@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "outDir": "dist",
+    "composite": true,
+    "target": "es2020"
+  },
+  "include": ["src", "index.ts"],
+  "exclude": ["dist"]
+}

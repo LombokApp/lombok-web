@@ -1,0 +1,34 @@
+# Yarn 2
+/.yarn/*
+!/.yarn/releases
+!/.yarn/plugins
+!/.yarn/sdks
+!/.yarn/cache
+
+# Build Artifactes
+/packages/*/build
+/packages/*/builds
+/packages/*/dist
+/packages/shared/packages/*/build
+/packages/shared/packages/*/builds
+/packages/shared/packages/*/dist
+!/packages/api-client/dist
+
+.DS_Store
+.idea
+builds
+data
+node_modules
+*.log
+memo.txt
+config/.env.testing
+coverage
+.history
+.tmp
+.postgres
+storybook-static
+
+*.tsbuildinfo
+package.tgz
+.docker-credentials
+env.dev

@@ -1,0 +1,6 @@
+{
+  "exec": "ts-node-transpile-only .",
+  "watch": ["src/**/*.ts", "locales"],
+  "ignore": ["src/generated"],
+  "ext": "ts,json"
+}

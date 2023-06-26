@@ -1,0 +1,49 @@
+{
+  "name": "stellariscloud",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "packages/shared/packages/*"
+  ],
+  "scripts": {
+    "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
+    "prettier:write": "prettier --write \"./**/*.(ts|tsx)\"",
+    "deploy:dev-platform-api": "(cd ./deploy && sh ./deploy-dev-platform-api.sh)",
+    "deploy:prod-platform-api": "(cd ./deploy && sh ./deploy-prod-platform-api.sh)",
+    "deploy:local-platform-api": "(cd ./deploy && sh ./deploy-local-platform-api.sh)",
+    "generate:api-client": "yarn workspace @stellariscloud/api generate-client",
+    "api:dev": "CMD_ENV=dev yarn workspace @stellariscloud/api dev",
+    "api:db:migrate:format": "CMD_ENV=dev yarn workspace @stellariscloud/api db:migrate:format",
+    "api:db:migrate:new": "CMD_ENV=dev yarn workspace @stellariscloud/api db:migrate:new",
+    "api:db:migrate:up": "CMD_ENV=dev yarn workspace @stellariscloud/api db:migrate:up",
+    "api:db:reset": "CMD_ENV=dev yarn workspace @stellariscloud/api db:reset",
+    "api:db:seed:dev": "CMD_ENV=dev yarn workspace @stellariscloud/api db:seed:dev",
+    "api:test:check": "CMD_ENV=test yarn workspace @stellariscloud/api test:check",
+    "api:test:unit": "CMD_ENV=test yarn workspace @stellariscloud/api test:unit",
+    "api:test:integration": "CMD_ENV=test yarn workspace @stellariscloud/api test:integration",
+    "dev:check-all": "sh ./dev-check-all.sh"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "5.60.1",
+    "@typescript-eslint/parser": "5.60.1",
+    "eslint": "8.43.0",
+    "eslint-config-prettier": "8.8.0",
+    "eslint-import-resolver-node": "0.3.7",
+    "eslint-plugin-eslint-comments": "3.2.0",
+    "eslint-plugin-jest": "27.2.2",
+    "eslint-plugin-jsx-a11y": "6.7.1",
+    "eslint-plugin-node": "11.1.0",
+    "eslint-plugin-promise": "6.1.1",
+    "eslint-plugin-regexp": "1.15.0",
+    "eslint-plugin-simple-import-sort": "10.0.0",
+    "eslint-plugin-sonarjs": "0.19.0",
+    "prettier": "2.8.8",
+    "ts-node": "10.9.1",
+    "ts-node-dev": "2.0.0",
+    "typescript": "4.9.5"
+  },
+  "engines": {
+    "node": "16"
+  },
+  "packageManager": "yarn@3.5.1"
+}

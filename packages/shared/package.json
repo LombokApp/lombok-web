@@ -1,0 +1,7 @@
+{
+  "name": "@stellariscloud/shared",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}

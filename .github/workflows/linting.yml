@@ -1,0 +1,128 @@
+name: Linting
+
+on:
+  push:
+    branches:
+      - '**' # matches every branch
+      - '!master' # excludes master
+  workflow_dispatch:
+
+jobs:
+  check-stellariscloud-ui:
+    name: Check @stellariscloud/stellariscloud-ui package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+      - run: yarn
+      - run: yarn tsc -v
+      - run: yarn workspace @stellariscloud/ui prettier:check
+      - run: yarn workspace @stellariscloud/ui lint:check
+      - run: yarn workspace @stellariscloud/ui ts:check
+
+  check-api:
+    name: Check @stellariscloud/api package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+      - run: yarn
+      - run: yarn tsc -v
+      - run: yarn workspace @stellariscloud/api prettier:check
+      - run: yarn workspace @stellariscloud/api lint:check
+      - run: yarn workspace @stellariscloud/api ts:check
+
+  check-design-system:
+    name: Check @stellariscloud/design-system package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+      - run: yarn
+      - run: yarn tsc -v
+      - run: yarn workspace @stellariscloud/design-system prettier:check
+      - run: yarn workspace @stellariscloud/design-system lint:check
+      - run: yarn workspace @stellariscloud/design-system ts:check
+
+  check-types:
+    name: Check @stellariscloud/types package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+      - run: yarn
+      - run: yarn tsc -v
+      - run: yarn workspace @stellariscloud/types prettier:check
+      - run: yarn workspace @stellariscloud/types lint:check
+      - run: yarn workspace @stellariscloud/types ts:check
+
+  check-utils:
+    name: Check @stellariscloud/utils package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+      - run: yarn
+      - run: yarn tsc -v
+      - run: yarn workspace @stellariscloud/utils prettier:check
+      - run: yarn workspace @stellariscloud/utils lint:check
+      - run: yarn workspace @stellariscloud/utils ts:check
+
+  check-auth-utils:
+    name: Check @stellariscloud/auth-utils package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+      - run: yarn
+      - run: yarn tsc -v
+      - run: yarn workspace @stellariscloud/auth-utils prettier:check
+      - run: yarn workspace @stellariscloud/auth-utils lint:check
+      - run: yarn workspace @stellariscloud/auth-utils ts:check
+
+  check-api-utils:
+    name: Check @stellariscloud/api-utils package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+      - run: yarn
+      - run: yarn tsc -v
+      - run: yarn workspace @stellariscloud/api-utils prettier:check
+      - run: yarn workspace @stellariscloud/api-utils lint:check
+      - run: yarn workspace @stellariscloud/api-utils ts:check

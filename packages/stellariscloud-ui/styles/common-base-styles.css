@@ -1,0 +1,72 @@
+html,
+body {
+  @apply font-body font-medium !important;
+  scroll-behavior: smooth;
+}
+
+/* gets rid of that highlight when you tap buttons on mobile */
+input,
+textarea,
+button,
+select,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+*:focus {
+  outline: none;
+  @apply ring-2 ring-current;
+}
+
+*:focus:not(:focus-visible) {
+  @apply ring-0;
+}
+
+.bg-stellaris-gradient {
+  background: linear-gradient(
+    87.77deg,
+    #c167d0 9.3%,
+    #4e4d9c 46.2%,
+    #7629ad 90.4%
+  );
+}
+
+.stellaris-gradient-diagonal {
+  background: linear-gradient(
+    43.77deg,
+    #ebc09a 20.36%,
+    #d3dfd8 34.09%,
+    #c9f0fa 53.86%,
+    #c9dcfe 70.33%,
+    #ceb6fd 93.98%
+  );
+}
+
+.light-transparent-gradient {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1625) -21.69%,
+    rgba(255, 255, 255, 0.2015) 78.31%
+  );
+}
+
+.outline-text {
+  color: transparent;
+  -webkit-text-stroke: 2px #000;
+}
+
+/* custom react-toastify styles https://fkhadra.github.io/react-toastify/how-to-style */
+:root {
+  --toastify-color-dark: #000;
+  --toastify-toast-width: 640px;
+}
+.Toastify__toast {
+  @apply rounded-full px-4 py-2;
+  min-height: auto;
+}
+.Toastify__toast-icon {
+  width: auto;
+}
+.Toastify {
+  padding: 0 !important; /* to make sure the container doesn't take up space in the body */
+}

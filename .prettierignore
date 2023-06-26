@@ -1,0 +1,19 @@
+# Yarn 2
+/.yarn
+/.pnp.*
+
+# Docker cache
+/.data
+
+# ui build artifacts
+/packages/ui/build
+
+# API build artifacts
+/packages/api/dist
+/packages/api/temp
+/packages/api/src/generated
+/packages/api/src/templates/*.hbs
+/packages/api-client/src
+/packages/api-client/dist
+
+/packages/legacy

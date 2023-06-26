@@ -1,0 +1,306 @@
+import { RewriteFrames } from '@sentry/integrations'
+import * as Sentry from '@sentry/node'
+import * as Tracing from '@sentry/tracing'
+import type Ajv from 'ajv'
+import formatsPlugin from 'ajv-formats'
+import cors from 'cors'
+import express from 'express'
+import type { OpenApiDocument } from 'express-openapi-validate'
+import { OpenApiValidator } from 'express-openapi-validate'
+import helmet from 'helmet'
+import type http from 'http'
+import type { LoggerModule } from 'i18next'
+import i18next from 'i18next'
+import I18NextFsBackend from 'i18next-fs-backend'
+import type { AddressInfo } from 'net'
+import promClient from 'prom-client'
+import { singleton } from 'tsyringe'
+
+import { EnvConfigProvider } from './config/env-config.provider'
+import { QueueName } from './constants/queue.constants'
+import { WorkerClass } from './constants/worker-class.constants'
+import { FoldersProcessor } from './domains/folder/workers/folders.worker'
+import { RouteNotFoundError } from './errors/app.error'
+import { RegisterRoutes } from './generated/routes'
+import { HealthManager } from './health/health-manager'
+import { httpErrorMiddleware } from './middleware/http-error.middleware'
+import { unhandledErrorMiddleware } from './middleware/unhandled-error.middleware'
+import { validationErrorMiddleware } from './middleware/validation-error.middleware'
+import { OrmService } from './orm/orm.service'
+import { LoggingService } from './services/logging.service'
+import { RedisService } from './services/redis.service'
+import { workerServiceFactory } from './services/worker.service'
+import { stringifyLog } from './util/i18n.util'
+import { registerExitHandler, runExitHandlers } from './util/process.util'
+import { formats } from './util/validation.util'
+
+declare global {
+  namespace Express {
+    export interface Request {
+      swaggerDoc: any
+    }
+    export interface Response {
+      /**
+       * See https://github.com/getsentry/sentry-javascript/blob/5339751/packages/node/src/handlers.ts#L78
+       */
+      __sentry_transaction?: Tracing.Span
+
+      /**
+       * See https://github.com/getsentry/sentry-javascript/blob/5339751/packages/node/src/handlers.ts#L461
+       */
+      sentry?: string
+    }
+  }
+}
+
+// Declare global.__rootdir__ for Sentry
+// See https://docs.sentry.io/platforms/node/typescript/#changing-events-frames
+declare global {
+  namespace NodeJS {
+    interface Global {
+      __rootdir__: string
+    }
+  }
+}
+
+global.__rootdir__ = __dirname || process.cwd()
+
+@singleton()
+export class App {
+  closing = false
+  server?: http.Server
+  readonly app
+
+  constructor(
+    private readonly config: EnvConfigProvider,
+    private readonly ormService: OrmService,
+    private readonly redisService: RedisService,
+    private readonly loggingService: LoggingService,
+    private readonly healthManager: HealthManager,
+  ) {
+    this.app = express()
+    this.app.disable('x-powered-by')
+
+    Sentry.init({
+      dsn: config.getLoggingConfig().sentryKey,
+      environment: config.getLoggingConfig().sentryEnv,
+      tracesSampleRate: 1.0,
+      integrations: [
+        /**
+         * This integration attaches a global uncaught exception handler.
+         *
+         * See https://docs.sentry.io/platforms/node/configuration/integrations/default-integrations/#onuncaughtexception
+         */
+        new Sentry.Integrations.OnUncaughtException(),
+
+        /**
+         * This integration attaches a global unhandled rejection handler.
+         *
+         * See https://docs.sentry.io/platforms/node/configuration/integrations/default-integrations/#onunhandledrejection
+         */
+        new Sentry.Integrations.OnUnhandledRejection(),
+
+        /**
+         * This integration wraps http and https modules to capture all network
+         * requests as breadcrumbs and/or tracing spans.
+         *
+         * See https://docs.sentry.io/platforms/node/configuration/integrations/default-integrations/#http
+         */
+        new Sentry.Integrations.Http({ tracing: true }),
+
+        /**
+         * This integration wraps all Express middleware in Sentry transactions.
+         * `Sentry.Handlers.tracingHandler()` must be installed for this
+         * integration.
+         *
+         * See https://docs.sentry.io/platforms/node/performance/
+         * See https://docs.sentry.io/platforms/node/guides/express/#monitor-performance
+         */
+        new Tracing.Integrations.Express({ app: this.app }),
+
+        new RewriteFrames({
+          root: global.__rootdir__,
+        }),
+      ],
+    })
+  }
+
+  async init() {
+    this.loggingService.logger.info('App init')
+    await this.initI18n()
+    await this.initOrm()
+    const { serveAPI, workerClasses } = this.config.getInstanceClassConfig()
+    this.initWorkers(workerClasses)
+
+    await this.initRoutes(!serveAPI)
+  }
+
+  private async initI18n() {
+    const logger = this.loggingService.logger
+
+    await i18next
+      .use(I18NextFsBackend)
+      .use<LoggerModule>({
+        type: 'logger',
+        log: (args) => logger.debug(stringifyLog(args)),
+        warn: (args) => logger.warn(stringifyLog(args)),
+        error: (args) => logger.error(stringifyLog(args)),
+      })
+      .init({
+        initImmediate: true,
+        debug: true,
+        lng: 'en',
+        fallbackLng: 'en',
+        ns: ['translation', 'errors'],
+        defaultNS: 'translation',
+        backend: {
+          loadPath: 'locales/{{lng}}/{{ns}}.json',
+        },
+      })
+  }
+
+  private async initOrm() {
+    await this.ormService.init()
+    await this.ormService.runMigrations()
+  }
+
+  private async initRoutes(healthOnly: boolean) {
+    const apiSpec = (await import('./generated/openapi.json'))
+      .default as OpenApiDocument
+
+    this.app.get('/api/v1/ingest-metrics', (req, res) => {
+      void promClient.register.metrics().then((metrics) => res.send(metrics))
+    })
+    // TODO: Update terraform config to use /health instead of /api/health once
+    // the risk of reporting unwanted unhealthy state is ruled out.
+    this.app.get('/health', this.healthManager.requestHandler())
+    this.app.get('/api/health', (req, res) => res.sendStatus(200))
+    if (healthOnly) {
+      return
+    }
+
+    this.app.use(Sentry.Handlers.requestHandler())
+    this.app.use(Sentry.Handlers.tracingHandler())
+    this.app.use(this.loggingService.requestHandler())
+
+    this.app.use(cors())
+    this.app.use(
+      helmet({
+        contentSecurityPolicy: {
+          useDefaults: true,
+        },
+      }),
+    )
+
+    this.app.use(express.json({ limit: '5mb' }))
+    this.app.use(this.ormService.requestHandler())
+
+    const validator = new OpenApiValidator(apiSpec, {
+      ajvOptions: {
+        // Add custom validation formats
+        formats,
+
+        // Return all - not only the first validation error
+        allErrors: true,
+
+        // Add line breaks to the runtime-generated validator functions
+        code: { lines: true },
+
+        // Silence warnings about invalid JSON Schema in the generated API spec
+        strict: false,
+
+        // These options are set to make AJV behave in a similar way to the
+        // bespoke `ValidationService` (that we have disabled) from TSOA.
+        // See https://ajv.js.org/guide/modifying-data.html#modifying-data-during-validation
+        removeAdditional: true,
+        useDefaults: true,
+        // Support parsing single query parameter values as arrays
+        coerceTypes: 'array',
+      },
+    })
+
+    formatsPlugin(validator['_ajv'] as Ajv)
+    RegisterRoutes(this.app, validator)
+
+    this.app.use(this.loggingService.errorHandler())
+    this.app.use(validationErrorMiddleware())
+    this.app.use(
+      (
+        req: express.Request,
+        res: express.Response,
+        next: express.NextFunction,
+      ) => next(new RouteNotFoundError()),
+    )
+    this.app.use(httpErrorMiddleware(this.loggingService))
+    this.app.use(Sentry.Handlers.errorHandler())
+    this.app.use(unhandledErrorMiddleware(this.loggingService))
+  }
+
+  private invokeWorkersForClass(cls: WorkerClass) {
+    switch (cls) {
+      case WorkerClass.WORKER_HIGH_PRIORITY:
+        // TODO: Fix the processor typing below
+        return [
+          workerServiceFactory(
+            QueueName.Folders,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            FoldersProcessor as any,
+          ),
+        ]
+      case WorkerClass.WORKER_LIVE_BOTS:
+        return []
+      case WorkerClass.WORKER_BACKGROUND:
+        return []
+    }
+  }
+
+  private initWorkers(workerClasses: WorkerClass[]) {
+    const workers = workerClasses.reduce<{ close: () => Promise<void> }[]>(
+      (acc, cls) => {
+        this.loggingService.logger.info(
+          `Setting up workers in ${cls} worker class.`,
+        )
+        return acc.concat(this.invokeWorkersForClass(cls))
+      },
+      [],
+    )
+
+    registerExitHandler(async () => {
+      await Promise.all(workers.map((w) => w.close()))
+    })
+  }
+
+  listen() {
+    if (this.closing) {
+      return
+    }
+
+    const { port } = this.config.getApiConfig()
+
+    const { logger } = this.loggingService
+
+    return new Promise<void>((resolve) => {
+      const server = this.app.listen(port, () => {
+        const address = server.address() as AddressInfo
+        logger.info(`👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍`)
+        logger.info(`API:  http://<whatever>:${address.port}/api/v1`)
+        logger.info(`Docs: http://<whatever>:${address.port}/docs`)
+
+        resolve()
+      })
+
+      this.server = server
+    })
+  }
+
+  async close() {
+    this.closing = true
+
+    await runExitHandlers()
+    await this.ormService.close()
+    await this.redisService.close()
+    if (this.server) {
+      this.server.close()
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "@stellariscloud/api-client",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "axios": "1.4.0",
+    "typescript": "4.9.5"
+  },
+  "peerDependencies": {
+    "axios": "1.4.0"
+  }
+}

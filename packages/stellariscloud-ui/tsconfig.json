@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "module": "es2020",
+    "target": "es5",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "composite": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "rootDir": ".",
+    "incremental": true,
+    "noEmit": false,
+    "outDir": "dist"
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "next-env.d.ts",
+    "./worker.ts",
+    ".eslintrc.js",
+    "postcss.config.js",
+    "lint-staged.config.js",
+    "tailwind.config.js",
+    "sentry.client.config.ts"
+  ],
+  "exclude": []
+}

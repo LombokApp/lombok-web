@@ -1,0 +1,9 @@
+# Build artifacts
+/packages/*/build
+/packages/*/builds
+/packages/*/dist
+
+# Docker cache
+/.data
+/docker-compose.yml
+/README.md

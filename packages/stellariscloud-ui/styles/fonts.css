@@ -1,0 +1,92 @@
+@font-face {
+  font-family: 'Hack';
+  src: url('../fonts/hack/Hack-Regular.ttf');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Hack';
+  src: url('../fonts/hack/Hack-Italic.ttf');
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Hack';
+  src: url('../fonts/hack/Hack-Bold.ttf');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Hack';
+  src: url('../fonts/hack/Hack-BoldItalic.ttf');
+  font-weight: 600;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('../fonts/sequel/Sequel\ Sans\ Heavy\ Head.ttf');
+  font-weight: 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('../fonts/sequel/Sequel\ Sans\ Black\ Head.ttf');
+  font-weight: 800;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('../fonts/sequel/Sequel\ Sans\ Bold\ Head.ttf');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('../fonts/sequel/Sequel\ Sans\ Semi\ Bold\ Head.ttf');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('../fonts/sequel/Sequel\ Sans\ Medium\ Head.ttf');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('../fonts/sequel/Sequel\ Sans\ Roman\ Head.ttf');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('../fonts/sequel/Sequel\ Sans\ Book\ Head.ttf');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Sequel Sans';
+  src: url('../fonts/sequel/Sequel\ Sans\ Light\ Head.ttf');
+  font-weight: 200;
+  font-style: normal;
+}
+
+.font-mono {
+  font-family: Hack, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+}
+
+.prose {
+  font-family: Helvetica, Arial, sans-serif;
+}

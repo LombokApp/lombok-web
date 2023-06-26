@@ -1,0 +1,6 @@
+# Yarn 2
+/.yarn
+/.pnp.*
+
+# Docker cache
+/.data

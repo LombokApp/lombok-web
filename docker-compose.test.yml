@@ -1,0 +1,16 @@
+version: '3.5'
+
+services:
+  dbtest:
+    image: postgres:13.2-alpine
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - 10001:5432
+  redistest:
+    image: redis:alpine
+    command: redis-server
+    ports:
+      - 10002:6379

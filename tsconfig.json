@@ -1,0 +1,7 @@
+{
+  "exclude": [
+    "packages/**/tests/**",
+    "packages/**/dist/**",
+    "packages/**/lib/**"
+  ]
+}
