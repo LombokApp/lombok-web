@@ -5,11 +5,11 @@ export type IconSizeType = 'sm' | 'md' | 'lg' | 'xl' | 'text'
 
 export interface IconProps {
   icon: React.ForwardRefExoticComponent<
-    React.SVGProps<SVGSVGElement> & {
+  React.PropsWithoutRef<React.SVGProps<SVGSVGElement> & {
       title?: string | undefined
       titleId?: string | undefined
     }
-  >
+  >>
   size?: IconSizeType
   className?: string
 }

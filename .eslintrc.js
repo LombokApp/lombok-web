@@ -9,7 +9,7 @@ module.exports = {
   },
 
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'simple-import-sort'],
+  plugins: ['@typescript-eslint', 'simple-import-sort', 'eslint-plugin-import'],
 
   parserOptions: {
     ecmaVersion: 2020,
@@ -115,7 +115,7 @@ module.exports = {
           { ignoreArrowShorthand: true },
         ],
         '@typescript-eslint/no-dupe-class-members': 'error',
-        '@typescript-eslint/no-duplicate-imports': 'error',
+        "import/no-duplicates": 'error',
         '@typescript-eslint/no-dynamic-delete': 'error',
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/no-extraneous-class': 'error',
