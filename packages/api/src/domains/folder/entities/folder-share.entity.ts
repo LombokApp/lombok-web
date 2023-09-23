@@ -22,7 +22,7 @@ import { FolderShareRepository } from './folder-share.repository'
   customRepository: () => FolderShareRepository,
 })
 @Unique({ properties: ['user', 'folder'] })
-export class FolderShare extends TimestampedEntity {
+export class FolderShare extends TimestampedEntity<FolderShare> {
   [EntityRepositoryType]?: FolderShareRepository;
   [OptionalProps]?: 'updatedAt' | 'createdAt'
 

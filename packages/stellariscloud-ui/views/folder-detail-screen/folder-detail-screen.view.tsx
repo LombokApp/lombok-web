@@ -1,8 +1,17 @@
-import { BellIcon, TagIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { ArrowPathIcon, TrashIcon, UsersIcon } from '@heroicons/react/20/solid'
+import {
+  CubeIcon,
+  DocumentTextIcon,
+  FolderIcon,
+  KeyIcon,
+  MapPinIcon,
+} from '@heroicons/react/24/outline'
 import type { FolderObjectData } from '@stellariscloud/api-client'
-import { FolderPermissionName, MediaType } from '@stellariscloud/api-client'
-import { Button, Heading, Icon } from '@stellariscloud/design-system'
-import { FolderPushMessage } from '@stellariscloud/types'
+import {
+  FolderOperationName,
+  FolderPermissionName,
+} from '@stellariscloud/api-client'
+import { FolderPushMessage, MediaType } from '@stellariscloud/types'
 import type {
   AudioMediaMimeTypes,
   ImageMediaMimeTypes,
@@ -10,32 +19,28 @@ import type {
 } from '@stellariscloud/utils'
 import {
   AUDIO_MEDIA_MIME_TYPES,
+  formatBytes,
   IMAGE_MEDIA_MIME_TYPES,
   mediaTypeFromMimeType,
   VIDEO_MEDIA_MIME_TYPES,
 } from '@stellariscloud/utils'
 import clsx from 'clsx'
-import NextJSImage from 'next/image'
 import { useRouter } from 'next/router'
 import React from 'react'
 import useDebounce from 'react-use/lib/useDebounce'
 
-import { ConfirmForgetFolder } from '../../components/confirm-forget-folder/confirm-forget-folder'
-import { ConfirmRefreshFolder } from '../../components/confirm-refresh-folder/confirm-refresh-folder'
-import { FolderDetailSidebar } from '../../components/folder-detail-sidebar/folder-detail-sidebar'
-import { FolderSharePanel } from '../../components/folder-share-panel/folder-share-panel'
-import { SearchInput } from '../../components/search-input/search-input'
-import { TagDropdown } from '../../components/tag-dropdown/tag-dropdown'
-import { Takeover } from '../../components/takeover/takeover'
+import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
+import { ConfirmRefreshFolderModal } from '../../components/confirm-refresh-folder-modal/confirm-refresh-folder-modal'
+import { FolderEmptyState } from '../../components/folder-empty-state/folder-empty-state'
+import { ShareFolderModal } from '../../components/share-folder-modal/share-folder-modal'
 import { useFolderContext } from '../../contexts/folder.context'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
-import { LogLevel } from '../../contexts/logging.context'
+import { Button } from '../../design-system/button/button'
+import { Icon } from '../../design-system/icon'
+import { PageHeading } from '../../design-system/page-heading/page-heading'
 import { useWindowDimensions } from '../../hooks/use-window-dimensions'
 import { foldersApi } from '../../services/api'
-import { FOLDER_DETAIL_FORCE_DOWNLOAD_SIZE_THRESHOLD } from '../../utils/constants'
-import { formatBytes } from '../../utils/size-format'
 import { FolderObjectDetailScreen } from '../folder-object-detail-screen/folder-object-detail-screen.view'
-import { FolderUploadDropzone } from '../folder-upload-dropzone/folder-upload-dropzone.view'
 
 const SCROLL_JUMP_ROWS_CUTTOFF = 10
 const ROW_BUFFER_SIZE = 3
@@ -165,20 +170,20 @@ const renderFolderObjectPreview = (
     folderObject.objectKey,
   )
   contentWrapperDiv.append(linkElement)
-  const previews = folderObject.contentMetadata?.previews ?? {}
-  const previewSize = 'medium'
-  const previewObjectKey =
-    previewSize in previews
-      ? `${folderObject.objectKey}____previews/${
-          previews[previewSize as keyof typeof previews]?.path
-        }`
-      : folderObject.sizeBytes <= FOLDER_DETAIL_FORCE_DOWNLOAD_SIZE_THRESHOLD
-      ? folderObject.objectKey
-      : undefined
+
+  const currentVersionMetadata =
+    folderObject.hash && folderObject.contentMetadata[folderObject.hash]
+      ? folderObject.contentMetadata[folderObject.hash] ?? {}
+      : {}
 
   const getDataResult =
-    folderObject.folder.id && previewObjectKey
-      ? getData(folderObject.folder.id, previewObjectKey)
+    folderObject.folder.id &&
+    folderObject.hash &&
+    currentVersionMetadata.thumbnailSm?.hash
+      ? getData(
+          folderObject.folder.id,
+          `metadata:${folderObject.objectKey}:${currentVersionMetadata.thumbnailSm.hash}`,
+        )
       : undefined
 
   if (
@@ -233,8 +238,10 @@ const renderFolderObjectPreview = (
         linkElement.append(downloadingIcon)
       }
 
-      const icon = iconForMimeType(folderObject.contentMetadata?.mimeType)
+      const icon = iconForMimeType(folderObject.mimeType)
       const iconDiv = document.createElement('div')
+      iconDiv.setAttribute('class', 'absolute h-full w-full')
+
       iconDiv.style.padding = '1.2em'
       iconDiv.append(icon)
       linkElement.append(iconDiv)
@@ -256,10 +263,57 @@ const renderFolderObjectPreview = (
   // info overlay
   const infoOverlay = document.createElement('div')
   linkElement.append(infoOverlay)
+
+  if (!folderObject.hash) {
+    const buttonDiv = document.createElement('div')
+    const reindexButton = document.createElement('button')
+    reindexButton.type = 'button'
+    reindexButton.onclick = (e) => {
+      e.stopPropagation()
+      e.preventDefault()
+      void foldersApi.enqueueFolderOperation({
+        folderId: folderObject.folder.id,
+        folderOperationRequestPayload: {
+          operationName: FolderOperationName.IndexFolderObject,
+          operationData: {
+            folderId: folderObject.folder.id,
+            objectKey: folderObject.objectKey,
+          },
+        },
+      })
+    }
+    reindexButton.innerHTML = `<svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+      class="w-6 h-6"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+      />
+    </svg>`
+    reindexButton.setAttribute(
+      'class',
+      'text-sm p-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white focus-visible:outline-indigo-600',
+    )
+
+    buttonDiv.append(reindexButton)
+    buttonDiv.setAttribute(
+      'class',
+      'absolute h-full w-full p-4 flex flex-col justify-start items-end',
+    )
+
+    linkElement.append(buttonDiv)
+  }
+
   infoOverlay.style.position = 'absolute'
   infoOverlay.setAttribute(
     'class',
-    'w-full h-full flex flex-col p-2 px-4 text-[1rem] text-white justify-end top-0 left-0 right-0 bottom-0',
+    'w-full h-full flex flex-col p-2 px-4 text-[1rem] font-bold shadow-md text-white justify-end top-0 left-0 right-0 bottom-0',
   )
   const infoContent = document.createElement('div')
   const titleWrapper = document.createElement('div')
@@ -273,7 +327,7 @@ const renderFolderObjectPreview = (
     ),
   )
   sizeWrapper.append(
-    document.createTextNode(formatBytes(folderObject.sizeBytes) ?? ''),
+    document.createTextNode(formatBytes(folderObject.sizeBytes)),
   )
   infoContent.append(titleWrapper)
   infoContent.append(sizeWrapper)
@@ -305,13 +359,13 @@ const renderTile = (
   itemContainerDiv.setAttribute('x-data-id', `${position}`)
   itemContainerDiv.style.height = `${tileSize - CARD_PADDING_SIZE}px`
   itemContainerDiv.style.width = `${tileSize - CARD_PADDING_SIZE}px`
-  itemContainerDiv.style.background = `rgba(255, 255, 255, 0.1)`
   itemContainerDiv.style.borderRadius = `5px`
   itemContainerDiv.style.overflow = `hidden`
   itemContainerDiv.style.marginLeft = `${CARD_PADDING_SIZE}px`
   itemContainerDiv.style.marginBottom = `${CARD_PADDING_SIZE}px`
   itemContainerDiv.style.fontSize = `6rem`
   itemContainerDiv.style.position = `relative`
+  itemContainerDiv.className = `bg-black/[15%] dark:bg-white/[2%]`
 
   const folderObject = getFolderObjectForPosition(position)
 
@@ -525,10 +579,8 @@ const updateRenderedTiles = (
 
 export const FolderDetailScreen = () => {
   const router = useRouter()
-  const folderContext = useFolderContext()
-  const [showSidebar] = React.useState(true)
   const [isResizing, setIsResizing] = React.useState(false)
-  const [_folderWebsocket, _setFolderWebsocket] = React.useState<WebSocket>()
+  // const [_folderWebsocket, setFolderWebsocket] = React.useState<Socket>()
   const [shareModalOpen, setShareModalOpen] = React.useState(false)
   const [refreshFolderConfirmationOpen, setRefreshFolderConfirmationOpen] =
     React.useState(false)
@@ -540,6 +592,7 @@ export const FolderDetailScreen = () => {
   const focusedObjectKey = router.query.objectKey
     ? router.query.objectKey[0]
     : undefined
+  const [tab, setTab] = React.useState<'files' | 'tasks'>('files')
 
   const [pageState, setPageState] = React.useState<{
     search?: string
@@ -554,50 +607,11 @@ export const FolderDetailScreen = () => {
   const [filterTagId, setFilterTagId] = React.useState<string>()
 
   const [pageSize] = React.useState<number>(100)
-  React.useEffect(() => {
-    const changedPageState: { search?: string; filterTagId?: string } = {}
-    const searchInQuery =
-      (router.query.search?.length ?? 0) > 0
-        ? (router.query.search as string)
-        : undefined
-    if (searchInQuery !== pageState.search) {
-      changedPageState.search = pageState.search
-    }
-    const filterTagIdInQuery =
-      (router.query.filterTagId?.length ?? 0) > 0
-        ? (router.query.filterTagId as string)
-        : undefined
-    if (filterTagIdInQuery !== pageState.filterTagId) {
-      changedPageState.filterTagId = pageState.filterTagId
-    }
-    if (Object.keys(changedPageState).length > 0 && !router.query.objectKey) {
-      void router.push({
-        pathname: router.pathname,
-        query: {
-          folderId: folderContext.folderId,
-          ...(typeof changedPageState.search === 'undefined'
-            ? {}
-            : { search: pageState.search }),
-          ...(typeof changedPageState.filterTagId === 'undefined'
-            ? {}
-            : { filterTagId: pageState.filterTagId }),
-        },
-      })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    pageState,
-    pageSize,
-    router.pathname,
-    router.query.search,
-    router.query.filterTagId,
-  ])
 
   const mainContainerRef = React.useRef<HTMLDivElement>(null)
   const scrollContainerRef = React.useRef<HTMLDivElement>(null)
   const scrollContainerParentRef = React.useRef<HTMLDivElement>(null)
   const tileContainerRef = React.useRef<HTMLDivElement>(null)
-  const sidebarRef = React.useRef<HTMLDivElement>(null)
   const windowDimensions = useWindowDimensions()
   const folderObjects = React.useRef<{
     results: {
@@ -614,7 +628,6 @@ export const FolderDetailScreen = () => {
     filterTagId?: string
   }>({ results: {}, positions: {}, folderRequests: {} })
   const {
-    localStorageFolderSizes,
     recalculateLocalStorageFolderSizes,
     purgeLocalStorageForFolder,
     getData,
@@ -628,7 +641,7 @@ export const FolderDetailScreen = () => {
       setSurroundingFocusedContext({ next: index + 1, previous: index - 1 })
       void router.push(
         {
-          pathname: `/folders/${folderContext.folderId}/${encodeURIComponent(
+          pathname: `/folders/${router.query.folderId}/${encodeURIComponent(
             objectKey,
           )}`,
         },
@@ -636,7 +649,7 @@ export const FolderDetailScreen = () => {
         { shallow: true },
       )
     },
-    [router, folderContext.folderId],
+    [router],
   )
 
   const handleScroll = React.useCallback(
@@ -809,34 +822,15 @@ export const FolderDetailScreen = () => {
     ],
   )
 
-  useDebounce(
-    () => {
-      // console.log(
-      //   'Running container resize!',
-      //   tileContainerRef.current?.innerHTML,
-      // )
-      if (tileContainerRef.current) {
-        tileContainerRef.current.innerHTML = ''
+  const _handleTabChange = React.useCallback(
+    (tabName: 'files' | 'tasks') => {
+      setTab(tabName)
+      if (tabName === 'files') {
+        setTimeout(handleScroll, 1)
       }
-      setIsResizing(false)
-      setTimeout(handleScroll, 1)
     },
-    500,
-    [windowDimensions.innerWidth, windowDimensions.innerHeight],
+    [handleScroll],
   )
-
-  const handleSetTagFilter = (tagId?: string) => {
-    if (!tagId) {
-      setFilterTagId(undefined)
-      setPageState((s) => ({ ...s, filterTagId: undefined }))
-    } else {
-      const tag = folderContext.tags?.find((t) => t.id === tagId)
-      if (tag) {
-        setFilterTagId(tag.id)
-        setPageState((s) => ({ ...s, filterTagId: tag.id }))
-      }
-    }
-  }
 
   const fetchFolderObjects = React.useCallback(
     async (offset: number) => {
@@ -887,7 +881,7 @@ export const FolderDetailScreen = () => {
 
       await foldersApi
         .listFolderObjects({
-          folderId: folderContext.folderId,
+          folderId: router.query.folderId as string,
           offset: offset + haveFirstN,
           limit,
           search: searchTerm,
@@ -921,8 +915,6 @@ export const FolderDetailScreen = () => {
               }
             }
           })
-          // trigger a layout reset on fetch
-          handleScroll()
         })
     },
     [
@@ -930,22 +922,121 @@ export const FolderDetailScreen = () => {
       searchTerm,
       filterTagId,
       getData,
-      folderContext.folderId,
+      router.query.folderId,
       handleObjectLinkClick,
-      handleScroll,
     ],
   )
 
-  const refreshFolderView = React.useCallback(() => {
+  const messageHandler = React.useCallback(
+    (name: FolderPushMessage, payload: { [key: string]: any }) => {
+      if (
+        [
+          FolderPushMessage.OBJECTS_ADDED,
+          FolderPushMessage.OBJECTS_REMOVED,
+          FolderPushMessage.OBJECT_ADDED,
+          FolderPushMessage.OBJECT_REMOVED,
+        ].includes(name)
+      ) {
+        if (tileContainerRef.current) {
+          tileContainerRef.current.innerHTML = ''
+        }
+        folderObjects.current = {
+          results: {},
+          positions: {},
+          folderRequests: {},
+        }
+        setObjectsViewContext(undefined)
+      } else if (FolderPushMessage.OBJECT_UPDATED === name) {
+        const folderObject = payload as FolderObjectData
+        if (folderObject.objectKey in folderObjects.current.positions) {
+          const position =
+            folderObjects.current.positions[folderObject.objectKey]
+          folderObjects.current.results[position] = folderObject
+          renderFolderObjectPreview(
+            (f, o) => handleObjectLinkClick(f, o, position),
+            (f, o) => ({ filePromise: getData(f, o) }),
+            position,
+            folderObject,
+            true,
+          )
+        }
+      }
+    },
+    [getData, handleObjectLinkClick],
+  )
+  const folderContext = useFolderContext(messageHandler)
+
+  React.useEffect(() => {
+    const changedPageState: { search?: string; filterTagId?: string } = {}
+    const searchInQuery =
+      (router.query.search?.length ?? 0) > 0
+        ? (router.query.search as string)
+        : undefined
+    if (searchInQuery !== pageState.search) {
+      changedPageState.search = pageState.search
+    }
+    const filterTagIdInQuery =
+      (router.query.filterTagId?.length ?? 0) > 0
+        ? (router.query.filterTagId as string)
+        : undefined
+    if (filterTagIdInQuery !== pageState.filterTagId) {
+      changedPageState.filterTagId = pageState.filterTagId
+    }
+    if (Object.keys(changedPageState).length > 0 && !router.query.objectKey) {
+      void router.push({
+        pathname: router.pathname,
+        query: {
+          folderId: folderContext.folderId,
+          ...(typeof changedPageState.search === 'undefined'
+            ? {}
+            : { search: pageState.search }),
+          ...(typeof changedPageState.filterTagId === 'undefined'
+            ? {}
+            : { filterTagId: pageState.filterTagId }),
+        },
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    pageState,
+    pageSize,
+    router.pathname,
+    router.query.search,
+    router.query.filterTagId,
+  ])
+
+  const refreshView = React.useCallback(() => {
     if (tileContainerRef.current) {
       tileContainerRef.current.innerHTML = ''
     }
-    folderObjects.current = { results: {}, positions: {}, folderRequests: {} }
-    void folderContext.refreshFolder()
-    void folderContext.refreshFolderMetadata()
+    setTimeout(handleScroll, 1)
+  }, [handleScroll])
 
-    void fetchFolderObjects(0)
-  }, [fetchFolderObjects, folderContext])
+  useDebounce(
+    () => {
+      // console.log(
+      //   'Running container resize!',
+      //   tileContainerRef.current?.innerHTML,
+      // )
+      setIsResizing(false)
+      refreshView()
+    },
+    200,
+    [windowDimensions.innerWidth, windowDimensions.innerHeight],
+  )
+
+  const _handleSetTagFilter = (tagId?: string) => {
+    if (!tagId) {
+      setFilterTagId(undefined)
+      setPageState((s) => ({ ...s, filterTagId: undefined }))
+    } else {
+      const tag = folderContext.tags?.find((t) => t.id === tagId)
+      if (tag) {
+        setFilterTagId(tag.id)
+        setPageState((s) => ({ ...s, filterTagId: tag.id }))
+      }
+    }
+  }
 
   const [_fetch, _cancel] = useDebounce(
     () => {
@@ -972,58 +1063,6 @@ export const FolderDetailScreen = () => {
     [folderContext.folderId, folderContext.folderMetadata],
   )
 
-  const _messageHandler = React.useCallback(
-    (message: { name: FolderPushMessage; payload: { [key: string]: any } }) => {
-      if (
-        [
-          FolderPushMessage.FOLDER_REINDEXED,
-          FolderPushMessage.OBJECTS_ADDED,
-          FolderPushMessage.OBJECTS_REMOVED,
-          FolderPushMessage.OBJECT_ADDED,
-          FolderPushMessage.OBJECT_REMOVED,
-        ].includes(message.name)
-      ) {
-        refreshFolderView()
-      } else if (FolderPushMessage.OBJECT_UPDATED === message.name) {
-        const folderObject = message.payload.object as FolderObjectData
-        const previewSize = 'small'
-        void (
-          folderObject.contentMetadata?.previews &&
-          previewSize in folderObject.contentMetadata.previews
-            ? getData(
-                folderObject.folder.id,
-                `${folderObject.objectKey}____previews/${folderObject.contentMetadata.previews[previewSize]?.path}`,
-              )
-            : Promise.resolve(undefined)
-        ).then((file) => {
-          folderContext.showNotification({
-            level: LogLevel.INFO,
-            message: `Object "${folderObject.objectKey}" updated`,
-            thumbnailSrc: file?.dataURL,
-          })
-        })
-        if (folderObject.objectKey in folderObjects.current.positions) {
-          const position =
-            folderObjects.current.positions[folderObject.objectKey]
-          folderObjects.current.results[position] = folderObject
-          renderFolderObjectPreview(
-            (f, o) => handleObjectLinkClick(f, o, position),
-            (f, o) => ({ filePromise: getData(f, o) }),
-            position,
-            folderObject,
-            true,
-          )
-        }
-      }
-    },
-    [refreshFolderView, getData, handleObjectLinkClick, folderContext],
-  )
-
-  // const websocket = useFolderWebsocket(folderContext.folderId, _messageHandler)
-  // React.useEffect(() => {
-  //   _setFolderWebsocket(websocket.webSocket)
-  // }, [websocket.webSocket])
-
   const handleForgetFolder = () => {
     if (!forgetFolderConfirmationOpen) {
       setForgetFolderConfirmationOpen(true)
@@ -1043,11 +1082,11 @@ export const FolderDetailScreen = () => {
     setShareModalOpen(false)
   }, [])
 
-  const handleRecalculateLocalStorage = async () => {
+  const _handleRecalculateLocalStorage = async () => {
     await recalculateLocalStorageFolderSizes()
   }
 
-  const handlePurgeLocalStorage = async () => {
+  const _handlePurgeLocalStorage = async () => {
     await purgeLocalStorageForFolder(folderContext.folderId)
   }
 
@@ -1067,13 +1106,13 @@ export const FolderDetailScreen = () => {
     folderContext.folderMetadata?.indexingJobContext?.indexingContinuationKey,
   ])
 
-  const handleSearchValueUpdate = (value?: string | undefined) => {
+  const _handleSearchValueUpdate = (value?: string | undefined) => {
     setSearchTerm(value)
     setObjectsViewContext(undefined)
     setPageState((s) => ({ ...s, search: value }))
   }
 
-  const filterTag = folderContext.tags?.find((t) => t.id === filterTagId)
+  const _filterTag = folderContext.tags?.find((t) => t.id === filterTagId)
 
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -1103,305 +1142,206 @@ export const FolderDetailScreen = () => {
 
   return (
     <>
-      {focusedObjectKey && (
-        <div className="absolute top-0 right-0 bottom-0 left-0 z-20">
-          <FolderObjectDetailScreen
-            folderId={folderContext.folderId}
-            objectKey={focusedObjectKey}
-            onNextClick={
-              surroundingFocusedContext &&
-              surroundingFocusedContext.next > 0 &&
-              surroundingFocusedContext.next <
-                (folderObjects.current.totalCount ?? 0)
-                ? () => {
-                    setSurroundingFocusedContext(() => ({
-                      previous: surroundingFocusedContext.previous + 1,
-                      next: surroundingFocusedContext.next + 1,
-                    }))
-                    void router.push(
-                      {
-                        pathname: `/folders/${
-                          folderContext.folderId
-                        }/${encodeURIComponent(
-                          folderObjects.current.results[
-                            surroundingFocusedContext.next
-                          ]?.objectKey ?? '',
-                        )}`,
-                      },
-                      undefined,
-                      { shallow: true },
-                    )
-                  }
-                : undefined
-            }
-            onPreviousClick={
-              surroundingFocusedContext &&
-              surroundingFocusedContext.previous >= 0
-                ? () => {
-                    setSurroundingFocusedContext(() => ({
-                      previous: surroundingFocusedContext.previous - 1,
-                      next: surroundingFocusedContext.next - 1,
-                    }))
-                    void router.push(
-                      {
-                        pathname: `/folders/${
-                          folderContext.folderId
-                        }/${encodeURIComponent(
-                          folderObjects.current.results[
-                            surroundingFocusedContext.previous
-                          ]?.objectKey ?? '',
-                        )}`,
-                      },
-                      undefined,
-                      { shallow: true },
-                    )
-                  }
-                : undefined
-            }
-            onFolderLinkClick={() => {
-              void router.push(
-                { pathname: `/folders/${folderContext.folderId}` },
-                undefined,
-                { shallow: true },
-              )
-            }}
-          />
-        </div>
-      )}
       {shareModalOpen && (
-        <Takeover>
-          <div className="h-screen w-screen bg-black/[.75] flex flex-col justify-around items-center">
-            <FolderSharePanel
-              fetchFolderShares={folderContext.refreshFolderShares}
-              folderShares={folderContext.folderShares}
-              onRemoveFolderShare={(shareId) =>
-                foldersApi
-                  .deleteFolderShare({
-                    folderId: folderContext.folderId,
-                    shareId,
-                  })
-                  .then((r) => {
-                    void folderContext.refreshFolderShares()
-                    return r.data
-                  })
-              }
-              onUpdateFolderShare={({ id, shareConfiguration }) => {
-                return foldersApi
-                  .updateFolderShare({
-                    folderId: folderContext.folderId,
-                    shareId: id ?? '',
-                    updateFolderSharePayload: {
-                      shareConfiguration,
-                    },
-                  })
-                  .then((r) => {
-                    void folderContext.refreshFolderShares()
-                    return r.data
-                  })
-              }}
-              onAddFolderShare={({ shareConfiguration, userInviteEmail }) => {
-                return foldersApi
-                  .createFolderShare({
-                    folderId: folderContext.folderId,
-                    createFolderSharePayload: {
-                      shareConfiguration,
-                      userInviteEmail,
-                    },
-                  })
-                  .then((r) => {
-                    void folderContext.refreshFolderShares()
-                    return r.data
-                  })
-              }}
-              onClose={handleShareClose}
-            />
-          </div>
-        </Takeover>
-      )}
-      {refreshFolderConfirmationOpen && (
-        <Takeover>
-          <div className="h-screen w-screen bg-black/[.75] flex flex-col justify-around items-center">
-            <ConfirmRefreshFolder
-              onConfirm={() => handleRefreshFolder()}
-              onCancel={() => setRefreshFolderConfirmationOpen(false)}
-            />
-          </div>
-        </Takeover>
+        <ShareFolderModal
+          foldersApi={foldersApi}
+          folderContext={folderContext}
+          onClose={handleShareClose}
+        />
       )}
       {forgetFolderConfirmationOpen && (
-        <Takeover>
-          <div className="h-screen w-screen bg-black/[.75] flex flex-col justify-around items-center">
-            <ConfirmForgetFolder
-              onConfirm={() => handleForgetFolder()}
-              onCancel={() => setForgetFolderConfirmationOpen(false)}
+        <ConfirmForgetFolderModal
+          onConfirm={() => handleForgetFolder()}
+          onCancel={() => setForgetFolderConfirmationOpen(false)}
+        />
+      )}
+      {refreshFolderConfirmationOpen && (
+        <ConfirmRefreshFolderModal
+          onConfirm={() => handleRefreshFolder()}
+          onCancel={() => setRefreshFolderConfirmationOpen(false)}
+        />
+      )}
+      <div
+        className="relative flex flex-1 w-full h-full bg-white dark:bg-gray-900"
+        ref={mainContainerRef}
+      >
+        {focusedObjectKey && (
+          <div className="absolute top-0 right-0 bottom-0 left-0 z-20">
+            <FolderObjectDetailScreen
+              folderId={folderContext.folderId}
+              objectKey={focusedObjectKey}
+              onNextClick={
+                surroundingFocusedContext &&
+                surroundingFocusedContext.next > 0 &&
+                surroundingFocusedContext.next <
+                  (folderObjects.current.totalCount ?? 0)
+                  ? () => {
+                      setSurroundingFocusedContext(() => ({
+                        previous: surroundingFocusedContext.previous + 1,
+                        next: surroundingFocusedContext.next + 1,
+                      }))
+                      void router.push(
+                        {
+                          pathname: `/folders/${
+                            folderContext.folderId
+                          }/${encodeURIComponent(
+                            folderObjects.current.results[
+                              surroundingFocusedContext.next
+                            ]?.objectKey ?? '',
+                          )}`,
+                        },
+                        undefined,
+                        { shallow: true },
+                      )
+                    }
+                  : undefined
+              }
+              onPreviousClick={
+                surroundingFocusedContext &&
+                surroundingFocusedContext.previous >= 0
+                  ? () => {
+                      setSurroundingFocusedContext(() => ({
+                        previous: surroundingFocusedContext.previous - 1,
+                        next: surroundingFocusedContext.next - 1,
+                      }))
+                      void router.push(
+                        {
+                          pathname: `/folders/${
+                            folderContext.folderId
+                          }/${encodeURIComponent(
+                            folderObjects.current.results[
+                              surroundingFocusedContext.previous
+                            ]?.objectKey ?? '',
+                          )}`,
+                        },
+                        undefined,
+                        { shallow: true },
+                      )
+                    }
+                  : undefined
+              }
+              onFolderLinkClick={() => {
+                void router.push(
+                  { pathname: `/folders/${folderContext.folderId}` },
+                  undefined,
+                  { shallow: true },
+                )
+              }}
             />
           </div>
-        </Takeover>
-      )}
-      <div className="flex flex-1 w-full h-full" ref={mainContainerRef}>
-        <div className="flex flex-1 h-full z-10">
-          <div className="flex-1 flex flex-col h-full">
-            <div className="p-2 flex items-center gap-6 w-full">
-              <div className="pl-4 flex flex-col pt-2">
-                <Heading level={4}>
-                  <span className="opacity-20">Folder</span>{' '}
-                  {folderContext.folder?.name}
-                </Heading>
-                <div>
-                  <span className="opacity-20">
-                    {folderContext.folder?.endpoint}
-                    {folderContext.folder?.endpoint.endsWith('/') ? '' : '/'}
-                    {folderContext.folder?.bucket}
-                  </span>
-                </div>
-              </div>
-              <div>
-                {filterTag ? (
-                  <div className="flex gap-2">
-                    <Button onClick={() => handleSetTagFilter(undefined)}>
-                      <Icon size="md" icon={TagIcon} />
-                      {filterTag.name}
-                      <Icon size="md" icon={XMarkIcon} />
+        )}
+        <div className="flex flex-1 h-full w-full z-10">
+          <div className="flex-1 flex flex-col w-full h-full">
+            <div className="w-full px-4 py-2">
+              <PageHeading
+                title={folderContext.folder?.name ?? ''}
+                titleIcon={FolderIcon}
+                properties={[
+                  {
+                    icon: CubeIcon,
+                    value: formatBytes(
+                      folderContext.folderMetadata?.totalSizeBytes ?? 0,
+                    ),
+                  },
+                  {
+                    icon: DocumentTextIcon,
+                    value: `${folderContext.folderMetadata?.totalCount} files`,
+                  },
+                  ...(folderContext.folder?.accessKeyId
+                    ? [
+                        {
+                          icon: KeyIcon,
+                          value: folderContext.folder.accessKeyId,
+                        },
+                      ]
+                    : []),
+                  {
+                    icon: MapPinIcon,
+                    value: `${folderContext.folder?.endpoint}${
+                      folderContext.folder?.endpoint.endsWith('/') ? '' : '/'
+                    }${folderContext.folder?.bucket}`,
+                  },
+                ]}
+              >
+                <div className="pt-2 flex gap-2">
+                  {folderContext.folderPermissions?.includes(
+                    FolderPermissionName.FolderRefresh,
+                  ) && (
+                    <Button size="sm" onClick={handleRefreshFolder}>
+                      <Icon size="sm" icon={ArrowPathIcon} />
+                      Refresh
                     </Button>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <TagDropdown
-                      shouldShowCreate={folderContext.folderPermissions?.includes(
-                        FolderPermissionName.TagCreate,
-                      )}
-                      addTagText="Filter by tag"
-                      tags={folderContext.tags ?? []}
-                      side="right"
-                      onSelectTag={(tagId) => handleSetTagFilter(tagId)}
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-2 items-center">
-                <SearchInput
-                  onChangeSearchTerm={handleSearchValueUpdate}
-                  searchTerm={searchTerm}
-                />
-              </div>
-              {(filterTagId || searchTerm) && (
-                <div className="opacity-50">
-                  {folderObjects.current.totalCount} results
+                  )}
+                  {folderContext.folderPermissions?.includes(
+                    FolderPermissionName.FolderForget,
+                  ) && (
+                    <Button size="sm" onClick={handleForgetFolder}>
+                      <Icon size="sm" icon={TrashIcon} />
+                    </Button>
+                  )}
+                  {folderContext.folderPermissions?.includes(
+                    FolderPermissionName.FolderManageShares,
+                  ) && (
+                    <Button primary size="sm" onClick={handleShareClick}>
+                      <Icon size="sm" className="text-white" icon={UsersIcon} />
+                      Share
+                    </Button>
+                  )}
                 </div>
-              )}
-              <div className="flex flex-1 justify-end relative pr-6">
+              </PageHeading>
+            </div>
+            {tab === 'tasks' ? (
+              <></>
+            ) : (
+              <div className="flex-1 flex overflow-hidden">
+                <div
+                  ref={scrollContainerParentRef}
+                  className="flex-1 h-full overflow-hidden"
+                >
+                  {folderContext.folderMetadata?.totalCount === 0 ? (
+                    <div className="h-full w-full flex flex-col justify-around">
+                      <FolderEmptyState onRefresh={handleRefreshFolder} />
+                    </div>
+                  ) : (
+                    <div
+                      ref={scrollContainerRef}
+                      className="overflow-y-auto h-full flex-1 -mr-[20px]"
+                      onScroll={handleScroll}
+                    >
+                      <div
+                        ref={tileContainerRef}
+                        className="justify-left ml-[4px] flex flex-wrap content-start overflow-hidden"
+                        style={{
+                          height: `${INITIAL_SCROLL_HEIGHT}px`,
+                        }}
+                      ></div>
+                    </div>
+                  )}
+                </div>
                 <div
                   className={clsx(
-                    'bg-white/[.3] rounded-full p-4',
-                    folderContext.newNotificationFlag && 'animate-pulse',
+                    'w-4 h-full z-40 rounded-full',
+                    'bg-gray-500',
                   )}
                 >
-                  <Icon size="md" icon={BellIcon} />
-                </div>
-                <div className="absolute z-40 right-3 top-16">
-                  <div className="flex flex-col gap-2">
-                    {folderContext.notifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        className={clsx(
-                          'flex items-center gap-4 rounded-xl p-4 bg-primary text-white shadow-lg',
-                        )}
-                      >
-                        {notification.thumbnailSrc && (
-                          <div className="h-[100px] w-[100px]">
-                            <NextJSImage
-                              width={'100'}
-                              height={'100'}
-                              className={'w-full h-full object-cover'}
-                              alt={notification.message}
-                              src={notification.thumbnailSrc}
-                            />
-                          </div>
-                        )}
-                        {notification.message}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="flex-1 flex overflow-hidden">
-              <div
-                ref={scrollContainerParentRef}
-                className="flex-1 h-full overflow-hidden"
-              >
-                <div
-                  ref={scrollContainerRef}
-                  className="overflow-y-auto h-full flex-1 -mr-[20px]"
-                  onScroll={handleScroll}
-                >
                   <div
-                    ref={tileContainerRef}
-                    className="justify-left ml-[4px] flex flex-wrap content-start overflow-hidden"
+                    className="w-full bg-black/[.5] rounded-full"
                     style={{
-                      height: `${INITIAL_SCROLL_HEIGHT}px`,
+                      height: `${
+                        (objectsViewContext?.scrollViewHeight ?? 0) * 100
+                      }%`,
+                      marginTop: `${
+                        (scrollContainerParentRef.current?.clientHeight ?? 0) *
+                        ((objectsViewContext?.scrollTopPercentage ?? 0) -
+                          (objectsViewContext?.scrollTopPercentage ?? 0) *
+                            (objectsViewContext?.scrollViewHeight ?? 0))
+                      }px`,
                     }}
                   ></div>
                 </div>
               </div>
-              <div
-                className={clsx('w-4 h-full z-40 rounded-full', 'bg-gray-500')}
-              >
-                <div
-                  className="w-full bg-black/[.5] rounded-full"
-                  style={{
-                    height: `${
-                      (objectsViewContext?.scrollViewHeight ?? 0) * 100
-                    }%`,
-                    marginTop: `${
-                      (scrollContainerParentRef.current?.clientHeight ?? 0) *
-                      ((objectsViewContext?.scrollTopPercentage ?? 0) -
-                        (objectsViewContext?.scrollTopPercentage ?? 0) *
-                          (objectsViewContext?.scrollViewHeight ?? 0))
-                    }px`,
-                  }}
-                ></div>
-              </div>
-            </div>
+            )}
           </div>
-          {showSidebar && (
-            <div className="h-full flex flex-col" ref={sidebarRef}>
-              <FolderDetailSidebar
-                websocketConnected={false}
-                folderAndPermissions={
-                  folderContext.folder && folderContext.folderPermissions
-                    ? {
-                        folder: folderContext.folder,
-                        permissions: folderContext.folderPermissions,
-                      }
-                    : undefined
-                }
-                folderIndex={folderContext.folderMetadata}
-                generatingThumbnails={false}
-                onForgetFolder={handleForgetFolder}
-                onRefreshFolder={handleRefreshFolder}
-                onShareClick={handleShareClick}
-                onRecalculateLocalStorage={handleRecalculateLocalStorage}
-                onPurgeLocalStorage={handlePurgeLocalStorage}
-                localStorageFolderSizes={localStorageFolderSizes}
-              />
-              {folderContext.folder &&
-                folderContext.folderPermissions &&
-                folderContext.folderPermissions.includes(
-                  FolderPermissionName.ObjectEdit,
-                ) && (
-                  <div className="p-4 text-white flex flex-col gap-2">
-                    <div>Upload</div>
-                    <FolderUploadDropzone
-                      folderAndPermission={{
-                        folder: folderContext.folder,
-                        permissions: folderContext.folderPermissions,
-                      }}
-                    />
-                  </div>
-                )}
-            </div>
-          )}
         </div>
       </div>
     </>

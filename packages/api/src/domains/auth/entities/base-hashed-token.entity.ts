@@ -1,9 +1,18 @@
-import { BeforeCreate, PrimaryKey, Property, UuidType } from '@mikro-orm/core'
+import {
+  Cascade,
+  ManyToOne,
+  PrimaryKey,
+  Property,
+  UuidType,
+} from '@mikro-orm/core'
 import crypto from 'crypto'
 
-import { BaseAccessTokenEntity } from './base-access-token.entity'
+import { TimestampedEntity } from '../../../entities/base.entity'
+import { User } from '../../user/entities/user.entity'
 
-export abstract class BaseHashedAccessTokenEntity extends BaseAccessTokenEntity {
+export abstract class BaseHashedTokenEntity<
+  Child,
+> extends TimestampedEntity<Child> {
   @PrimaryKey({ customType: new UuidType(), defaultRaw: 'gen_random_uuid()' })
   id!: string
 
@@ -13,6 +22,15 @@ export abstract class BaseHashedAccessTokenEntity extends BaseAccessTokenEntity 
   @Property({ hidden: true, persist: false })
   secret?: Buffer
 
+  @ManyToOne({
+    entity: () => User,
+    cascade: [Cascade.ALL],
+    onDelete: 'cascade',
+    hidden: true,
+    eager: true,
+  })
+  user!: User
+
   static createSecretKey(length: number = 32) {
     return crypto.randomBytes(length)
   }
@@ -21,16 +39,9 @@ export abstract class BaseHashedAccessTokenEntity extends BaseAccessTokenEntity 
     return crypto.createHash('SHA512').update(secret).digest('hex')
   }
 
-  @BeforeCreate()
-  initHash() {
-    if (this.secret) {
-      this.hash = BaseHashedAccessTokenEntity.createHash(this.secret)
-    }
-  }
-
-  static decode(encoded: string) {
+  static decode(refreshToken: string) {
     // eslint-disable-next-line prefer-const
-    let [id = '', secret = ''] = encoded.split(':')
+    let [id = '', secret = ''] = refreshToken.split(':')
 
     secret = secret.replace(/-/g, '+').replace(/_/g, '/')
 

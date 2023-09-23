@@ -82,3 +82,16 @@ export class ObjectTagInvalidError extends Error implements HttpError {
   [HttpError.status] = HttpStatusCode.BadRequest;
   [HttpError.errors] = [formatErrorCode(ServiceErrorCode.ObjectTagInvalid)]
 }
+
+@Log(LogLevel.Debug, 'stack')
+export class FolderMetadataWriteNotAuthorised
+  extends Error
+  implements HttpError
+{
+  name = FolderMetadataWriteNotAuthorised.name;
+
+  [HttpError.status] = HttpStatusCode.Unauthorized;
+  [HttpError.errors] = [
+    formatErrorCode(ServiceErrorCode.FolderMetadataForbidden),
+  ]
+}

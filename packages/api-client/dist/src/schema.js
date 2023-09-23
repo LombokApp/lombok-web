@@ -9,6 +9,35 @@ exports.schema = {
         "requestBodies": {},
         "responses": {},
         "schemas": {
+            "SessionResponse": {
+                "properties": {
+                    "data": {
+                        "properties": {
+                            "expiresAt": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "refreshToken": {
+                                "type": "string"
+                            },
+                            "accessToken": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "expiresAt",
+                            "refreshToken",
+                            "accessToken"
+                        ],
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "data"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
             "ErrorMetaData": {
                 "properties": {},
                 "type": "object",
@@ -53,54 +82,66 @@ exports.schema = {
                 "type": "object",
                 "additionalProperties": false
             },
-            "AppConfigCreateData": {
+            "PlatformRole": {
+                "enum": [
+                    "ANONYMOUS",
+                    "AUTHENTICATED",
+                    "ADMIN",
+                    "SERVICE"
+                ],
+                "type": "string"
+            },
+            "EmailFormat": {
+                "type": "string",
+                "format": "email",
+                "maxLength": 255
+            },
+            "UserData": {
                 "properties": {
-                    "key": {
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "id": {
                         "type": "string"
                     },
-                    "value": {}
-                },
-                "required": [
-                    "key"
-                ],
-                "type": "object",
-                "additionalProperties": false
-            },
-            "AppConfigGetResponse": {
-                "properties": {
-                    "value": {}
-                },
-                "required": [
-                    "value"
-                ],
-                "type": "object",
-                "additionalProperties": false
-            },
-            "SessionResponse": {
-                "properties": {
-                    "data": {
-                        "properties": {
-                            "expiresAt": {
-                                "type": "string",
-                                "format": "date-time"
-                            },
-                            "refreshToken": {
-                                "type": "string"
-                            },
-                            "accessToken": {
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "expiresAt",
-                            "refreshToken",
-                            "accessToken"
-                        ],
-                        "type": "object"
+                    "role": {
+                        "$ref": "#/components/schemas/PlatformRole"
+                    },
+                    "email": {
+                        "$ref": "#/components/schemas/EmailFormat"
                     }
                 },
                 "required": [
-                    "data"
+                    "createdAt",
+                    "updatedAt",
+                    "id",
+                    "role"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "User": {
+                "$ref": "#/components/schemas/UserData"
+            },
+            "SignupParams": {
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "password": {
+                        "type": "string",
+                        "maxLength": 255
+                    }
+                },
+                "required": [
+                    "email",
+                    "password"
                 ],
                 "type": "object",
                 "additionalProperties": false
@@ -117,6 +158,243 @@ exports.schema = {
                 "required": [
                     "login",
                     "password"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "OutputUploadUrlsResponse": {
+                "properties": {
+                    "folderId": {
+                        "type": "string"
+                    },
+                    "objectKey": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "folderId",
+                    "objectKey",
+                    "url"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "CreateOutputUploadUrlsPayload": {
+                "properties": {
+                    "outputFiles": {
+                        "items": {
+                            "properties": {
+                                "objectKey": {
+                                    "type": "string"
+                                },
+                                "folderId": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "objectKey",
+                                "folderId"
+                            ],
+                            "type": "object"
+                        },
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "outputFiles"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "MetadataUploadUrlsResponse": {
+                "properties": {
+                    "folderId": {
+                        "type": "string"
+                    },
+                    "objectKey": {
+                        "type": "string"
+                    },
+                    "urls": {
+                        "properties": {},
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "folderId",
+                    "objectKey",
+                    "urls"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "CreateMetadataUploadUrlsPayload": {
+                "properties": {
+                    "contentHash": {
+                        "type": "string"
+                    },
+                    "metadataFiles": {
+                        "items": {
+                            "properties": {
+                                "metadataHashes": {
+                                    "properties": {},
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                },
+                                "objectKey": {
+                                    "type": "string"
+                                },
+                                "folderId": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "metadataHashes",
+                                "objectKey",
+                                "folderId"
+                            ],
+                            "type": "object"
+                        },
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "contentHash",
+                    "metadataFiles"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "MediaType": {
+                "enum": [
+                    "IMAGE",
+                    "VIDEO",
+                    "AUDIO",
+                    "DOCUMENT",
+                    "UNKNOWN"
+                ],
+                "type": "string"
+            },
+            "ContentAttributesType": {
+                "properties": {
+                    "mediaType": {
+                        "$ref": "#/components/schemas/MediaType"
+                    },
+                    "mimeType": {
+                        "type": "string"
+                    },
+                    "height": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "width": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "orientation": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "lengthMs": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "bitrate": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                },
+                "required": [
+                    "mediaType",
+                    "mimeType",
+                    "height",
+                    "width",
+                    "orientation",
+                    "lengthMs",
+                    "bitrate"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "ContentAttibutesPayload": {
+                "properties": {
+                    "folderId": {
+                        "type": "string"
+                    },
+                    "objectKey": {
+                        "type": "string"
+                    },
+                    "hash": {
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "$ref": "#/components/schemas/ContentAttributesType"
+                    }
+                },
+                "required": [
+                    "folderId",
+                    "objectKey",
+                    "hash",
+                    "attributes"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "MetadataEntry": {
+                "properties": {
+                    "mimeType": {
+                        "type": "string"
+                    },
+                    "size": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "hash": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "mimeType",
+                    "size",
+                    "hash"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "ContentMetadataType": {
+                "properties": {},
+                "type": "object",
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/MetadataEntry"
+                }
+            },
+            "ContentMetadataPayload": {
+                "properties": {
+                    "folderId": {
+                        "type": "string"
+                    },
+                    "objectKey": {
+                        "type": "string"
+                    },
+                    "hash": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "$ref": "#/components/schemas/ContentMetadataType"
+                    }
+                },
+                "required": [
+                    "folderId",
+                    "objectKey",
+                    "hash",
+                    "metadata"
                 ],
                 "type": "object",
                 "additionalProperties": false
@@ -227,90 +505,19 @@ exports.schema = {
                 "type": "object",
                 "additionalProperties": false
             },
-            "ImagePreview": {
-                "properties": {
-                    "size": {
-                        "type": "number",
-                        "format": "double"
-                    },
-                    "path": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "size",
-                    "path"
-                ],
+            "ContentAttributesByHash": {
+                "properties": {},
                 "type": "object",
-                "additionalProperties": false
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/ContentAttributesType"
+                }
             },
-            "ImagePreviews": {
-                "properties": {
-                    "large": {
-                        "$ref": "#/components/schemas/ImagePreview"
-                    },
-                    "medium": {
-                        "$ref": "#/components/schemas/ImagePreview"
-                    },
-                    "small": {
-                        "$ref": "#/components/schemas/ImagePreview"
-                    }
-                },
+            "ContentMetadataByHash": {
+                "properties": {},
                 "type": "object",
-                "additionalProperties": false
-            },
-            "FolderObjectContentMetadata": {
-                "properties": {
-                    "hash": {
-                        "type": "string"
-                    },
-                    "mimeType": {
-                        "type": "string"
-                    },
-                    "previews": {
-                        "$ref": "#/components/schemas/ImagePreviews"
-                    },
-                    "lengthMilliseconds": {
-                        "type": "number",
-                        "format": "double"
-                    },
-                    "imageOrientation": {
-                        "type": "number",
-                        "format": "double"
-                    },
-                    "height": {
-                        "type": "number",
-                        "format": "double"
-                    },
-                    "width": {
-                        "type": "number",
-                        "format": "double"
-                    },
-                    "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    }
-                },
-                "required": [
-                    "hash",
-                    "mimeType",
-                    "previews",
-                    "lengthMilliseconds",
-                    "height",
-                    "width"
-                ],
-                "type": "object",
-                "additionalProperties": false
-            },
-            "MediaType": {
-                "enum": [
-                    "IMAGE",
-                    "VIDEO",
-                    "AUDIO",
-                    "DOCUMENT",
-                    "UNKNOWN"
-                ],
-                "type": "string"
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/ContentMetadataType"
+                }
             },
             "FolderObjectData": {
                 "properties": {
@@ -339,8 +546,14 @@ exports.schema = {
                         ],
                         "type": "object"
                     },
+                    "contentAttributes": {
+                        "$ref": "#/components/schemas/ContentAttributesByHash"
+                    },
                     "contentMetadata": {
-                        "$ref": "#/components/schemas/FolderObjectContentMetadata"
+                        "$ref": "#/components/schemas/ContentMetadataByHash"
+                    },
+                    "hash": {
+                        "type": "string"
                     },
                     "lastModified": {
                         "type": "number",
@@ -361,6 +574,9 @@ exports.schema = {
                     },
                     "mediaType": {
                         "$ref": "#/components/schemas/MediaType"
+                    },
+                    "mimeType": {
+                        "type": "string"
                     }
                 },
                 "required": [
@@ -369,11 +585,45 @@ exports.schema = {
                     "id",
                     "objectKey",
                     "folder",
+                    "contentAttributes",
+                    "contentMetadata",
                     "lastModified",
                     "tags",
                     "eTag",
                     "sizeBytes",
-                    "mediaType"
+                    "mediaType",
+                    "mimeType"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "EntityDTO_any_": {
+                "properties": {},
+                "type": "object"
+            },
+            "FolderOperationName": {
+                "enum": [
+                    "IndexFolder",
+                    "IndexFolderObject",
+                    "TranscribeAudio",
+                    "DetectObjects"
+                ],
+                "type": "string"
+            },
+            "FolderOperationRequestPayload": {
+                "properties": {
+                    "operationName": {
+                        "$ref": "#/components/schemas/FolderOperationName"
+                    },
+                    "operationData": {
+                        "properties": {},
+                        "additionalProperties": {},
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "operationName",
+                    "operationData"
                 ],
                 "type": "object",
                 "additionalProperties": false
@@ -496,28 +746,89 @@ exports.schema = {
                 "type": "object",
                 "additionalProperties": false
             },
-            "SignedURLsRequestPayload": {
-                "items": {
-                    "properties": {
-                        "method": {
-                            "type": "string",
-                            "enum": [
-                                "PUT",
-                                "DELETE",
-                                "GET"
-                            ]
-                        },
-                        "objectKey": {
-                            "type": "string"
-                        }
+            "SignedURLsRequestMethod": {
+                "enum": [
+                    "PUT",
+                    "DELETE",
+                    "GET"
+                ],
+                "type": "string"
+            },
+            "SignedURLsRequest": {
+                "properties": {
+                    "objectIdentifier": {
+                        "type": "string"
                     },
-                    "required": [
-                        "method",
-                        "objectKey"
-                    ],
-                    "type": "object"
+                    "method": {
+                        "$ref": "#/components/schemas/SignedURLsRequestMethod"
+                    }
                 },
-                "type": "array"
+                "required": [
+                    "objectIdentifier",
+                    "method"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "FolderOperationData": {
+                "properties": {
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "id": {
+                        "type": "string"
+                    },
+                    "operationName": {
+                        "$ref": "#/components/schemas/FolderOperationName"
+                    },
+                    "operationData": {
+                        "properties": {},
+                        "additionalProperties": {},
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "createdAt",
+                    "updatedAt",
+                    "id",
+                    "operationName",
+                    "operationData"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "FolderOperationsResponse": {
+                "properties": {
+                    "meta": {
+                        "properties": {
+                            "totalCount": {
+                                "type": "number",
+                                "format": "double"
+                            }
+                        },
+                        "required": [
+                            "totalCount"
+                        ],
+                        "type": "object"
+                    },
+                    "result": {
+                        "items": {
+                            "$ref": "#/components/schemas/FolderOperationData"
+                        },
+                        "type": "array"
+                    }
+                },
+                "required": [
+                    "meta",
+                    "result"
+                ],
+                "type": "object",
+                "additionalProperties": false
             },
             "S3ConnectionData": {
                 "properties": {
@@ -558,52 +869,6 @@ exports.schema = {
                 ],
                 "type": "object",
                 "additionalProperties": false
-            },
-            "PlatformRole": {
-                "enum": [
-                    "ANONYMOUS",
-                    "AUTHENTICATED",
-                    "ADMIN"
-                ],
-                "type": "string"
-            },
-            "EmailFormat": {
-                "type": "string",
-                "format": "email",
-                "maxLength": 255
-            },
-            "UserData": {
-                "properties": {
-                    "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updatedAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "id": {
-                        "type": "string"
-                    },
-                    "role": {
-                        "$ref": "#/components/schemas/PlatformRole"
-                    },
-                    "email": {
-                        "$ref": "#/components/schemas/EmailFormat"
-                    },
-                    "username": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "createdAt",
-                    "updatedAt",
-                    "id",
-                    "role",
-                    "username"
-                ],
-                "type": "object",
-                "additionalProperties": false
             }
         },
         "securitySchemes": {
@@ -613,6 +878,11 @@ exports.schema = {
                 "name": "refresh_token"
             },
             "AccessToken": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            },
+            "WorkerServiceToken": {
                 "type": "http",
                 "scheme": "bearer",
                 "bearerFormat": "JWT"
@@ -626,94 +896,6 @@ exports.schema = {
     },
     "openapi": "3.0.0",
     "paths": {
-        "/app-config": {
-            "put": {
-                "operationId": "setAppConfig",
-                "responses": {
-                    "201": {
-                        "description": ""
-                    },
-                    "4XX": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "AppConfig"
-                ],
-                "security": [
-                    {
-                        "AccessToken": [
-                            "app-config:create"
-                        ]
-                    }
-                ],
-                "parameters": [],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/AppConfigCreateData"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/app-config/{key}": {
-            "get": {
-                "operationId": "getAppConfig",
-                "responses": {
-                    "200": {
-                        "description": "Ok",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AppConfigGetResponse"
-                                }
-                            }
-                        }
-                    },
-                    "4XX": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "AppConfig"
-                ],
-                "security": [
-                    {
-                        "AccessToken": [
-                            "app-config:read"
-                        ]
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "key",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ]
-            }
-        },
         "/token": {
             "post": {
                 "operationId": "refreshToken",
@@ -750,9 +932,58 @@ exports.schema = {
                 "parameters": []
             }
         },
+        "/signup": {
+            "post": {
+                "operationId": "Signup",
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ],
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "description": "Given a user's credentials, this endpoint will create a new user.",
+                "tags": [
+                    "Auth"
+                ],
+                "security": [],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "data": {
+                                        "$ref": "#/components/schemas/SignupParams"
+                                    }
+                                },
+                                "required": [
+                                    "data"
+                                ],
+                                "type": "object"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
-                "operationId": "login",
+                "operationId": "Login",
                 "responses": {
                     "200": {
                         "description": "Ok",
@@ -820,12 +1051,327 @@ exports.schema = {
                 "security": [
                     {
                         "AccessToken": []
-                    },
-                    {
-                        "RefreshToken": []
                     }
                 ],
                 "parameters": []
+            }
+        },
+        "/worker/{operationId}/start": {
+            "get": {
+                "operationId": "startJob",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "properties": {
+                                            "url": {
+                                                "type": "string"
+                                            },
+                                            "objectKey": {
+                                                "type": "string"
+                                            },
+                                            "folderId": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "required": [
+                                            "url",
+                                            "objectKey",
+                                            "folderId"
+                                        ],
+                                        "type": "object"
+                                    },
+                                    "type": "array"
+                                }
+                            }
+                        }
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Worker"
+                ],
+                "security": [
+                    {
+                        "WorkerServiceToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "operationId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/worker/{operationId}/complete": {
+            "post": {
+                "operationId": "completeJob",
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Worker"
+                ],
+                "security": [
+                    {
+                        "WorkerServiceToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "operationId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/worker/{operationId}/output-upload-urls": {
+            "post": {
+                "operationId": "createOutputUploadUrls",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "outputUploadUrls": {
+                                            "items": {
+                                                "$ref": "#/components/schemas/OutputUploadUrlsResponse"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "required": [
+                                        "outputUploadUrls"
+                                    ],
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Worker"
+                ],
+                "security": [
+                    {
+                        "WorkerServiceToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "operationId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateOutputUploadUrlsPayload"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/worker/{operationId}/metadata-upload-urls": {
+            "post": {
+                "operationId": "createMetadataUploadUrls",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "metadataUploadUrls": {
+                                            "items": {
+                                                "$ref": "#/components/schemas/MetadataUploadUrlsResponse"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "required": [
+                                        "metadataUploadUrls"
+                                    ],
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Worker"
+                ],
+                "security": [
+                    {
+                        "WorkerServiceToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "operationId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateMetadataUploadUrlsPayload"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/worker/content-attributes": {
+            "post": {
+                "operationId": "updateContentAttributes",
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Worker"
+                ],
+                "security": [
+                    {
+                        "WorkerServiceToken": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "items": {
+                                    "$ref": "#/components/schemas/ContentAttibutesPayload"
+                                },
+                                "type": "array"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/worker/content-metadata": {
+            "post": {
+                "operationId": "updateContentMetadata",
+                "responses": {
+                    "204": {
+                        "description": "No content"
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Worker"
+                ],
+                "security": [
+                    {
+                        "WorkerServiceToken": []
+                    }
+                ],
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "items": {
+                                    "$ref": "#/components/schemas/ContentMetadataPayload"
+                                },
+                                "type": "array"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/folders": {
@@ -1277,6 +1823,61 @@ exports.schema = {
                                     }
                                 },
                                 "type": "object"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/folders/{folderId}/objects/{objectKey}/operations": {
+            "post": {
+                "operationId": "enqueueFolderOperation",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EntityDTO_any_"
+                                }
+                            }
+                        }
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Folders"
+                ],
+                "security": [
+                    {
+                        "AccessToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "folderId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FolderOperationRequestPayload"
                             }
                         }
                     }
@@ -2026,69 +2627,6 @@ exports.schema = {
                 ]
             }
         },
-        "/folders/{folderId}/objects/{objectKey}/content-metadata": {
-            "put": {
-                "operationId": "updateFolderObjectContentMetadata",
-                "responses": {
-                    "200": {
-                        "description": "Ok",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/FolderObjectData"
-                                }
-                            }
-                        }
-                    },
-                    "4XX": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Folders"
-                ],
-                "security": [
-                    {
-                        "AccessToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "folderId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "objectKey",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/FolderObjectContentMetadata"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/folders/{folderId}/refresh": {
             "post": {
                 "operationId": "refreshFolder",
@@ -2136,7 +2674,7 @@ exports.schema = {
         },
         "/folders/{folderId}/presigned-urls": {
             "post": {
-                "operationId": "createPresignedURLs",
+                "operationId": "createPresignedUrls",
                 "responses": {
                     "200": {
                         "description": "Ok",
@@ -2144,28 +2682,7 @@ exports.schema = {
                             "application/json": {
                                 "schema": {
                                     "items": {
-                                        "properties": {
-                                            "method": {
-                                                "type": "string",
-                                                "enum": [
-                                                    "PUT",
-                                                    "DELETE",
-                                                    "GET"
-                                                ]
-                                            },
-                                            "url": {
-                                                "type": "string"
-                                            },
-                                            "objectKey": {
-                                                "type": "string"
-                                            }
-                                        },
-                                        "required": [
-                                            "method",
-                                            "url",
-                                            "objectKey"
-                                        ],
-                                        "type": "object"
+                                        "type": "string"
                                     },
                                     "type": "array"
                                 }
@@ -2206,11 +2723,112 @@ exports.schema = {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/SignedURLsRequestPayload"
+                                "items": {
+                                    "$ref": "#/components/schemas/SignedURLsRequest"
+                                },
+                                "type": "array"
                             }
                         }
                     }
                 }
+            }
+        },
+        "/folders/{folderId}/socket-auth": {
+            "post": {
+                "operationId": "createSocketAuthentication",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "token": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "token"
+                                    ],
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Folders"
+                ],
+                "security": [
+                    {
+                        "AccessToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "folderId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/folders/{folderId}/folder-operations": {
+            "get": {
+                "operationId": "listFolderOperations",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FolderOperationsResponse"
+                                }
+                            }
+                        }
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Folders"
+                ],
+                "security": [
+                    {
+                        "AccessToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "folderId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
             }
         },
         "/s3-connections/{s3ConnectionId}": {

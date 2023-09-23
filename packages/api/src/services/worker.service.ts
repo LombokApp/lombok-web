@@ -1,29 +1,41 @@
 import * as Sentry from '@sentry/node'
-import { QueueScheduler, Worker } from 'bullmq'
+import type {
+  FolderOperationName,
+  FolderOperationNameDataTypes,
+  FolderOperationNameReturnTypes,
+  QueueProcessor,
+} from '@stellariscloud/workers'
+import { Worker } from 'bullmq'
 import { container } from 'tsyringe'
 
-import type { QueueName } from '../constants/queue.constants'
+import type { ConfigProvider } from '../config/config.interface'
+import { EnvConfigProvider } from '../config/env-config.provider'
 import { OrmService } from '../orm/orm.service'
-import type { QueueProcessor } from '../util/queue.util'
 import { createProcessor } from '../util/queue.util'
-import { RedisService } from './redis.service'
 
-export const workerServiceFactory = <_D, _R, N extends string = string>(
-  queue: QueueName,
+export const workerServiceFactory = <N extends FolderOperationName>(
+  queue: FolderOperationName,
   processorFunc: new (...args: any[]) => QueueProcessor<N>,
 ) => {
-  const redisService: RedisService = container.resolve(RedisService)
+  const configProvider: ConfigProvider = container.resolve(EnvConfigProvider)
   const ormService: OrmService = container.resolve(OrmService)
 
-  const worker = new Worker(
+  const worker = new Worker<
+    FolderOperationNameDataTypes[N],
+    FolderOperationNameReturnTypes[N],
+    FolderOperationName
+  >(
     queue,
     (job) =>
-      ormService.runInAsyncContextFp(createProcessor(processorFunc as any), [
-        job,
+      ormService.runInAsyncContextFp(createProcessor(processorFunc), [
+        job as any,
       ]),
     {
       runRetryDelay: 2000,
-      connection: redisService.getConnection(`worker-${queue}`),
+      connection: {
+        host: configProvider.getRedisConfig().host,
+        port: configProvider.getRedisConfig().port,
+      },
     },
   )
 
@@ -31,20 +43,10 @@ export const workerServiceFactory = <_D, _R, N extends string = string>(
     Sentry.captureException(error)
   })
 
-  const scheduler = new QueueScheduler(queue, {
-    connection: redisService.getConnection(`scheduler-${queue}`),
-  })
-
-  scheduler.on('failed', (jobId: string, error: Error) => {
-    Sentry.captureException(error)
-  })
-
   return {
     close: async () => {
       await worker.close()
       await worker.disconnect()
-      await scheduler.close()
-      await scheduler.disconnect()
     },
   }
 }

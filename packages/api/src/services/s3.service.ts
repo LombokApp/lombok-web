@@ -1,14 +1,14 @@
 import {
-  DeleteObjectCommand,
-  GetObjectCommand,
   ListBucketsCommand,
   ListObjectsV2Command,
-  PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3'
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import type { S3Object, S3ObjectInternal } from '@stellariscloud/types'
+import aws4 from 'aws4'
+import axios from 'axios'
 import { singleton } from 'tsyringe'
+
+import { SignedURLsRequestMethod } from '../domains/folder/services/folder.service'
 
 export const transformFolderObjectToInternal = (
   obj: S3Object,
@@ -162,61 +162,100 @@ export class S3Service {
   }
 
   async s3DeleteBucketObject({
-    s3Client,
-    bucket: bucketName,
+    accessKeyId,
+    secretAccessKey,
+    region = 'auto',
+    bucket,
+    endpoint,
     objectKey,
   }: {
-    s3Client: S3Client
+    accessKeyId: string
+    secretAccessKey: string
+    region?: string
+    endpoint: string
     bucket: string
     objectKey: string
   }) {
-    const url = await getSignedUrl(
-      s3Client,
-      new DeleteObjectCommand({
-        Bucket: bucketName,
-        Key: objectKey,
-      }),
-      { expiresIn: 1200 },
-    )
-
-    const deleteObjectResponse = await fetch(url, { method: 'DELETE' }).catch(
-      (e) => {
-        console.log('Error deleting object:', e)
-        throw e
+    const url = this.createS3PresignedUrls([
+      {
+        accessKeyId,
+        secretAccessKey,
+        region,
+        endpoint,
+        bucket,
+        objectKey,
+        method: SignedURLsRequestMethod.DELETE,
+        expirySeconds: 60,
       },
-    )
+    ])[0]
+
+    const deleteObjectResponse = await axios.delete(url).catch((e) => {
+      console.log('Error deleting object:', e)
+      throw e
+    })
     return deleteObjectResponse
   }
 
-  async s3GetPresignedURLs(
-    s3Client: S3Client,
-    bucketName: string,
-    objectKeys: { objectKey: string; method: 'PUT' | 'DELETE' | 'GET' }[],
+  createS3PresignedUrls(
+    requests: {
+      endpoint: string
+      region: string
+      accessKeyId: string
+      secretAccessKey: string
+      bucket: string
+      objectKey: string
+      method: SignedURLsRequestMethod
+      expirySeconds: number
+    }[],
   ) {
-    return Promise.all(
-      objectKeys.map(async ({ objectKey, method }) => {
-        let command: GetObjectCommand | PutObjectCommand | DeleteObjectCommand
-        if (method === 'DELETE') {
-          command = new DeleteObjectCommand({
-            Bucket: bucketName,
-            Key: objectKey,
-          })
-        } else if (method === 'PUT') {
-          command = new PutObjectCommand({
-            Bucket: bucketName,
-            Key: objectKey,
-          })
-        } else {
-          command = new GetObjectCommand({
-            Bucket: bucketName,
-            Key: objectKey,
-          })
-        }
-
-        const url = await getSignedUrl(s3Client, command, { expiresIn: 1200 })
-        return { objectKey, url, method }
-      }),
+    const hostnames = requests.reduce<{ [key: string]: string }>(
+      (acc, next) =>
+        next.endpoint in acc
+          ? acc
+          : {
+              ...acc,
+              [next.endpoint]: new URL(next.endpoint).host,
+            },
+      {},
     )
+
+    const urls = requests.map((request) => {
+      const urlParams = {
+        'X-Amz-Expires': request.expirySeconds,
+        'x-id': `${request.method[0].toUpperCase()}${request.method
+          .slice(1)
+          .toLowerCase()}Object`,
+        'X-Amz-Content-Sha256': 'UNSIGNED-PAYLOAD',
+      }
+      const queryString = Object.keys(urlParams)
+        .map(
+          (key) =>
+            `${key}=${encodeURIComponent(
+              urlParams[key as keyof typeof urlParams],
+            )}`,
+        )
+        .join('&')
+
+      const signedRequest = aws4.sign(
+        {
+          service: 's3',
+          region: request.region,
+          method: request.method,
+          path: `/${request.bucket}/${request.objectKey}?${new URLSearchParams(
+            queryString,
+          )}`,
+          host: hostnames[request.endpoint],
+          signQuery: true,
+          body: JSON.stringify(urlParams),
+        },
+        {
+          accessKeyId: request.accessKeyId,
+          secretAccessKey: request.secretAccessKey,
+        },
+      )
+      return `${request.endpoint}${signedRequest.path}`
+    })
+    return urls
   }
 
   async testS3Connection(input: {

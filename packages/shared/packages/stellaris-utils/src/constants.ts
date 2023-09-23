@@ -38,9 +38,9 @@ export enum AudioMediaMimeTypes {
 export enum DocumentMediaMimeTypes {
   TXT = 'text/plain',
   PDF = 'application/pdf',
+  JSON = 'application/json',
   XLS = 'application/vnd.ms-excel',
   XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  HTM = 'text/html',
   HTML = 'text/html',
   DOC = 'application/msword',
   DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -83,9 +83,9 @@ export const DOCUMENT_MEDIA_MIME_TYPES = [
   DocumentMediaMimeTypes.PDF,
   DocumentMediaMimeTypes.XLS,
   DocumentMediaMimeTypes.XLSX,
-  DocumentMediaMimeTypes.HTM,
   DocumentMediaMimeTypes.HTML,
   DocumentMediaMimeTypes.DOC,
+  DocumentMediaMimeTypes.JSON,
   DocumentMediaMimeTypes.DOCX,
 ]
 
@@ -124,10 +124,10 @@ export const MIME_TYPE_TO_EXTENSION_MAP = {
   [DocumentMediaMimeTypes.PDF]: 'pdf',
   [DocumentMediaMimeTypes.XLS]: 'xls',
   [DocumentMediaMimeTypes.XLSX]: 'xlsx',
-  [DocumentMediaMimeTypes.HTM]: 'htm',
   [DocumentMediaMimeTypes.HTML]: 'html',
   [DocumentMediaMimeTypes.DOC]: 'doc',
   [DocumentMediaMimeTypes.DOCX]: 'docx',
+  [DocumentMediaMimeTypes.JSON]: 'json',
 }
 
 export const EXTENSION_TO_MIME_TYPE_MAP: {

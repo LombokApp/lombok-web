@@ -53,6 +53,7 @@ const ResponseErrorType = r.Partial({
   meta: r.Dictionary(r.Unknown),
 })
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class HttpError extends Error {
   name = HttpError.name
 
@@ -76,6 +77,7 @@ export interface HttpErrorLike {
   [HttpError.errors]?: ResponseError[]
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export interface HttpError extends HttpErrorLike {}
 
 const HttpErrorType: r.Runtype<HttpErrorLike> = r.InstanceOf(HttpError).Or(
@@ -92,6 +94,7 @@ function responseError(this: Response, error: HttpErrorLike) {
 }
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     export interface Response {
       error: typeof responseError

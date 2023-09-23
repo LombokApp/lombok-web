@@ -1,3 +1,4 @@
+import type { FolderOperationName } from '@stellariscloud/workers'
 import {
   Body,
   Controller,
@@ -17,31 +18,29 @@ import {
 import { Lifecycle, scoped } from 'tsyringe'
 
 import { AuthScheme } from '../domains/auth/constants/scheme.constants'
+import { FolderPermissionMissingError } from '../domains/folder/errors/folder.error'
+import type { SignedURLsRequest } from '../domains/folder/services/folder.service'
 import {
+  FolderPermissionName,
   FolderService,
-  SignedURLsRequestPayload,
 } from '../domains/folder/services/folder.service'
 import type { FolderData } from '../domains/folder/transfer-objects/folder.dto'
-import { FolderObjectContentMetadata } from '../domains/folder/transfer-objects/folder-object.dto'
 import {
   CreateFolderSharePayload,
   UpdateFolderSharePayload,
 } from '../domains/folder/transfer-objects/folder-share.dto'
+import { FolderOperationService } from '../domains/folder-operation/services/folder-operation.service'
+import type { FolderOperationData } from '../domains/folder-operation/transfer-objects/folder-operation.dto'
 import type { ErrorResponse } from '../transfer-objects/error-response.dto'
-
-export interface CreateConversationBody {
-  content: string
-  importPath: string
-  lineNumber: number
-}
-
-export interface CreateCommentBody {
-  content: string
-}
 
 export interface FolderAndPermission {
   folder: FolderData
   permissions: string[]
+}
+
+export interface FolderOperationsResponse {
+  meta: { totalCount: number }
+  result: FolderOperationData[]
 }
 
 export interface ListFoldersResponse {
@@ -49,11 +48,19 @@ export interface ListFoldersResponse {
   result: FolderAndPermission[]
 }
 
+export interface FolderOperationRequestPayload {
+  operationName: FolderOperationName
+  operationData: { [key: string]: any }
+}
+
 @scoped(Lifecycle.ContainerScoped)
 @Route('folders')
 @Tags('Folders')
 export class FoldersController extends Controller {
-  constructor(private readonly folderService: FolderService) {
+  constructor(
+    private readonly folderService: FolderService,
+    private readonly folderOperationService: FolderOperationService,
+  ) {
     super()
   }
 
@@ -150,12 +157,29 @@ export class FoldersController extends Controller {
     @Path() folderId: string,
     @Path() objectKey: string,
   ) {
-    const result = await this.folderService.getFolderObject({
+    const result = await this.folderService.getFolderObjectAsUser({
       userId: req.viewer.user.id,
       folderId,
       objectKey,
     })
     return result.toFolderObjectData()
+  }
+
+  @Security(AuthScheme.AccessToken)
+  @Response<ErrorResponse>('4XX')
+  @OperationId('enqueueFolderOperation')
+  @Post('/:folderId/objects/:objectKey/operations')
+  async enqueueFolderOperation(
+    @Request() req: Express.Request,
+    @Path() folderId: string,
+    @Body() folderOperation: FolderOperationRequestPayload,
+  ) {
+    const result = await this.folderService.enqueueFolderOperation({
+      userId: req.viewer.user.id,
+      folderId,
+      folderOperation,
+    })
+    return result.toFolderOperationData()
   }
 
   @Security(AuthScheme.AccessToken)
@@ -167,7 +191,7 @@ export class FoldersController extends Controller {
     @Path() folderId: string,
     @Path() objectKey: string,
   ) {
-    await this.folderService.deleteFolderObject({
+    await this.folderService.deleteFolderObjectAsUser({
       userId: req.viewer.user.id,
       folderId,
       objectKey,
@@ -381,26 +405,6 @@ export class FoldersController extends Controller {
 
   @Security(AuthScheme.AccessToken)
   @Response<ErrorResponse>('4XX')
-  @OperationId('updateFolderObjectContentMetadata')
-  @Put('/:folderId/objects/:objectKey/content-metadata')
-  async updateFolderObjectContentMetadata(
-    @Request() req: Express.Request,
-    @Path() folderId: string,
-    @Path() objectKey: string,
-    @Body() body: FolderObjectContentMetadata,
-  ) {
-    const folderObject =
-      await this.folderService.saveUpdatedFolderObjectContentMetadataAsUser(
-        req.viewer.user.id,
-        folderId,
-        objectKey,
-        body,
-      )
-    return folderObject.toFolderObjectData()
-  }
-
-  @Security(AuthScheme.AccessToken)
-  @Response<ErrorResponse>('4XX')
   @OperationId('refreshFolderObjectS3Metadata')
   @Put('/:folderId/objects/:objectKey')
   async refreshFolderObjectS3Metadata(
@@ -410,7 +414,7 @@ export class FoldersController extends Controller {
     @Body() body: { eTag?: string },
   ) {
     const folderObject =
-      await this.folderService.updateFolderObjectS3MetadataAsUser(
+      await this.folderService.refreshFolderObjectS3MetadataAsUser(
         req.viewer.user.id,
         folderId,
         objectKey,
@@ -427,23 +431,90 @@ export class FoldersController extends Controller {
     @Request() req: Express.Request,
     @Path() folderId: string,
   ) {
-    await this.folderService.queueRefreshFolder(folderId, req.viewer.user.id)
+    const result = await this.folderService.getFolderAsUser({
+      folderId,
+      userId: req.viewer.id,
+    })
+    if (result.permissions.includes(FolderPermissionName.FOLDER_REFRESH)) {
+      await this.folderService.queueRefreshFolder(
+        result.folder.id,
+        req.viewer.user.id,
+      )
+    } else {
+      throw new FolderPermissionMissingError()
+    }
     return true
   }
 
   @Security(AuthScheme.AccessToken)
   @Response<ErrorResponse>('4XX')
-  @OperationId('createPresignedURLs')
+  @OperationId('createPresignedUrls')
   @Post('/:folderId/presigned-urls')
-  async createPresignedURLs(
+  createPresignedUrls(
     @Request() req: Express.Request,
     @Path() folderId: string,
-    @Body() body: SignedURLsRequestPayload,
+    @Body() body: SignedURLsRequest[],
   ) {
-    return this.folderService.createPresignedURLs(
-      folderId,
+    return this.folderService.createPresignedUrlsAsUser(
       req.viewer.user.id,
+      folderId,
       body,
     )
+  }
+
+  @Security(AuthScheme.AccessToken)
+  @Response<ErrorResponse>('4XX')
+  @OperationId('createSocketAuthentication')
+  @Post('/:folderId/socket-auth')
+  createSocketAuthentication(
+    @Request() req: Express.Request,
+    @Path() folderId: string,
+  ) {
+    return this.folderService.createSocketAuthenticationAsUser(
+      req.viewer.user.id,
+      folderId,
+    )
+  }
+
+  // @Security(AuthScheme.AccessToken)
+  // @Response<ErrorResponse>('4XX')
+  // @OperationId('getFolderOperation')
+  // @Get('/:folderId/:folderOperationId')
+  // async getFolderOperation(
+  //   @Path() folderId: string,
+  //   @Path() folderOperationId: string,
+  //   @Request() req: Express.Request,
+  // ) {
+  //   const _folder = await this.folderService.getFolderAsUser({
+  //     userId: req.viewer.id,
+  //     folderId,
+  //   })
+  //   const result = await this.folderOperationService.getFolderOperationAsUser({
+  //     folderId,
+  //     folderOperationId,
+  //   })
+  //   return result.toFolderOperationData()
+  // }
+
+  @Security(AuthScheme.AccessToken)
+  @Response<ErrorResponse>('4XX')
+  @OperationId('listFolderOperations')
+  @Get('/:folderId/folder-operations')
+  async listFolderOperations(
+    @Request() req: Express.Request,
+    @Path() folderId: string,
+  ): Promise<FolderOperationsResponse> {
+    const result = await this.folderOperationService.listFolderOperationsAsUser(
+      {
+        userId: req.viewer.user.id,
+        folderId,
+      },
+    )
+    return {
+      meta: result.meta,
+      result: result.result.map((folderOperation) =>
+        folderOperation.toFolderOperationData(),
+      ),
+    }
   }
 }

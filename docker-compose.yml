@@ -1,6 +1,28 @@
 version: '3.5'
 
 services:
+  worker:
+    build:
+      context: .
+      dockerfile: docker/worker.Dockerfile
+      target: local
+    env_file: packages/worker/env/env.${CMD_ENV:-dev}
+    volumes:
+      - ./packages:/usr/src/app/packages
+      - ./.yarnrc.yml:/usr/src/app/.yarnrc.yml
+      - ./.pnp.loader.mjs:/usr/src/app/.pnp.loader.mjs
+      - ./.pnp.cjs:/usr/src/app/.pnp.cjs
+      - ./package.json:/usr/src/app/package.json
+      - ./tsconfig.json:/usr/src/app/tsconfig.json
+      - ./yarn.lock:/usr/src/app/yarn.lock
+    environment:
+      WAIT_HOSTS: redis:${REDIS_PORT:-0}
+      REDIS_HOST: redis
+    deploy:
+      replicas: 1
+    # command: ['sleep', 'infinity']
+    # command: ['npm', '---workspace', '@stellariscloud/worker', 'run', 'dev']
+    command: ['yarn', 'workspace', '@stellariscloud/worker', 'dev']
   api:
     build:
       context: .

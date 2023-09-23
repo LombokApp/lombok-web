@@ -23,7 +23,7 @@ import type { FolderShare } from './folder-share.entity'
   tableName: 'folder',
   customRepository: () => FolderRepository,
 })
-export class Folder extends TimestampedEntity {
+export class Folder extends TimestampedEntity<Folder> {
   [EntityRepositoryType]?: FolderRepository;
   [OptionalProps]?: 'updatedAt' | 'createdAt'
 
@@ -51,13 +51,31 @@ export class Folder extends TimestampedEntity {
   @Property({ nullable: false })
   secretAccessKey!: string
 
+  @Property({ nullable: false })
+  metadataEndpoint!: string
+
+  @Property({ nullable: false })
+  metadataBucket!: string
+
+  @Property()
+  metadataPrefix?: string
+
+  @Property()
+  metadataRegion?: string
+
+  @Property({ nullable: false })
+  metadataAccessKeyId!: string
+
+  @Property({ nullable: false })
+  metadataSecretAccessKey!: string
+
   @ManyToOne({
     entity: () => User,
     onDelete: 'set null',
   })
   owner?: User
 
-  @OneToMany({ mappedBy: (share: FolderShare) => share.folder }) // referenced entity type can be sniffer too
+  @OneToMany({ mappedBy: (share: FolderShare) => share.folder })
   shares: Collection<FolderShare> = new Collection<FolderShare>(this)
 
   toFolderPublicData(): FolderPublicData {

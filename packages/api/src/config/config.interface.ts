@@ -1,5 +1,6 @@
+import type { WorkerClass } from '@stellariscloud/workers'
+
 import type { LogLevel } from '../constants/logging.constants'
-import type { WorkerClass } from '../constants/worker-class.constants'
 
 export interface ApiConfig {
   port: number
@@ -7,6 +8,7 @@ export interface ApiConfig {
 
 export interface AuthConfig {
   jwtSecret: string
+  workerPublicKey: string
 }
 
 export interface LoggingConfig {
@@ -28,11 +30,14 @@ export interface DbConfig {
 
 export interface DbSeedConfig {
   enabled: boolean
-  demoS3Endpoint: string
-  demoS3Bucket: string
-  demoS3Region: string
-  demoS3AccessKeyId: string
-  demoS3SecretAccessKey: string
+}
+
+export interface MetadataLocationConfig {
+  s3Endpoint: string
+  s3Bucket: string
+  s3Region: string
+  s3AccessKeyId: string
+  s3SecretAccessKey: string
 }
 
 export interface RedisConfig {
@@ -46,12 +51,18 @@ export interface InstanceClassConfig {
   serveAPI: boolean
 }
 
+export interface SendgridConfig {
+  apiKey: string
+}
+
 export interface ConfigProvider {
   getApiConfig: () => ApiConfig
   getAuthConfig: () => AuthConfig
   getDbConfig: () => DbConfig
   getDbSeedConfig: () => DbSeedConfig
+  getMetadataLocationConfig: () => MetadataLocationConfig
   getLoggingConfig: () => LoggingConfig
+  getSendgridConfig: () => SendgridConfig
   getRedisConfig: () => RedisConfig
   getInstanceClassConfig: () => InstanceClassConfig
 }

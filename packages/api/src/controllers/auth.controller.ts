@@ -14,15 +14,26 @@ import {
 } from 'tsoa'
 import { Lifecycle, scoped } from 'tsyringe'
 
-import { PlatformRole } from '../domains/auth/constants/role.constants'
 import { AuthScheme } from '../domains/auth/constants/scheme.constants'
-import type { Session } from '../domains/auth/entities/session.entity'
-import { AccessTokenService } from '../domains/auth/services/access-token.service'
-import type { AccessTokenJWT } from '../domains/auth/services/auth-token.service'
+import { SessionInvalidError } from '../domains/auth/errors/session.error'
+import { AuthService } from '../domains/auth/services/auth.service'
 import { SessionService } from '../domains/auth/services/session.service'
 import type { SessionData } from '../domains/auth/transfer-objects/session.dto'
-import { UserService } from '../domains/user/services/user.service'
+import { UserAuthService } from '../domains/user/services/user-auth.service'
+import { UnauthorizedError } from '../errors/auth.error'
 import type { ErrorResponse } from '../transfer-objects/error-response.dto'
+
+export interface SignupParams {
+  /**
+   * @maxLength 255
+   */
+  email: string
+
+  /**
+   * @maxLength 255
+   */
+  password: string
+}
 
 export interface SessionResponse {
   data: {
@@ -46,14 +57,26 @@ export interface ApiKeyResponse {
   }
 }
 
+// interface CreatePasswordChangeParams {
+//   login: string
+// }
+
+// interface ChangePasswordParams {
+//   password: string
+// }
+
+// interface CreateEmailVerificationParams {
+//   login: string
+// }
+
 @scoped(Lifecycle.ContainerScoped)
 @Route()
 @Tags('Auth')
 export class AuthController extends Controller {
   constructor(
-    private readonly apiKeyService: AccessTokenService,
     private readonly sessionService: SessionService,
-    private readonly userService: UserService,
+    private readonly authService: AuthService,
+    private readonly userAuthService: UserAuthService,
   ) {
     super()
   }
@@ -62,61 +85,106 @@ export class AuthController extends Controller {
   @Response<ErrorResponse>('4XX')
   @OperationId('refreshToken')
   @Post('token')
-  refreshToken(@Request() req: express.Request) {
-    const session = this.sessionService.refresh(req.credential as Session)
+  async refreshToken(
+    @Request() req: express.Request,
+  ): Promise<SessionResponse> {
+    if (!req.session) {
+      throw new SessionInvalidError()
+    }
 
-    return { data: session } as SessionResponse
+    const { accessToken, refreshToken, expiresAt } =
+      await this.sessionService.extendSession(req.session)
+
+    // return { data: session } as SessionResponse
+    return {
+      data: {
+        accessToken,
+        refreshToken,
+        expiresAt,
+      },
+    }
+  }
+
+  /**
+   * Given a user's credentials, this endpoint will create a new user.
+   */
+  @SuccessResponse(201)
+  @OperationId('Signup')
+  @Post('signup')
+  async signup(@Body() body: { data: SignupParams }) {
+    const user = await this.authService.signup(body.data)
+
+    this.setStatus(201)
+
+    return { data: user }
   }
 
   @Security(AuthScheme.Public)
   @Response<ErrorResponse>('4XX')
-  @OperationId('login')
+  @OperationId('Login')
   @Post('login')
-  async login(@Request() req: express.Request, @Body() _body: LoginParams) {
-    // WARN: this is dev logic that authenticates all users as the requested user id (in the login param)...
-    // TODO: replace this with future login model
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
-    console.log('logging in:', ip)
-    const user = await this.userService.get({
-      id: process.env.DEMO_USER_ID
-        ? process.env.DEMO_USER_ID
-        : ip === '92.68.180.183'
-        ? '6edd317d-9af8-42e3-9f0c-99cf027a1262'
-        : '3edd317d-9af8-42e3-9f0c-99cf027a1262',
-    })
-    const { session, accessToken, refreshToken } =
-      await this.sessionService.createSession(
-        {
-          id: user.id,
-          user,
-          authenticated: true,
-          role: PlatformRole.Authenticated,
-        },
-        `dummy_session_${user.id}`,
+  async login(@Body() body: LoginParams): Promise<SessionResponse> {
+    const { expiresAt, accessToken, refreshToken } =
+      await this.userAuthService.authenticateWithPassword(
+        body.login,
+        body.password,
       )
 
-    return {
-      data: {
-        ...session,
-        expiresAt: session.expiresAt,
-        accessToken,
-        refreshToken,
-      },
-    } as SessionResponse
+    return { data: { accessToken, refreshToken, expiresAt } }
   }
 
   @Security(AuthScheme.AccessToken)
-  @Security(AuthScheme.RefreshToken)
   @SuccessResponse(204)
   @Response<ErrorResponse>('4XX')
   @OperationId('logout')
   @Get('logout')
   async logout(@Request() req: express.Request) {
-    await this.sessionService.revoke(
-      req.viewer,
-      req.credential as Session | AccessTokenJWT,
-    )
+    if (!req.session) {
+      throw new UnauthorizedError()
+    }
+    await this.sessionService.revokeSession(req.session)
 
     this.setStatus(204)
   }
+
+  /**
+   * Given a user's email address or username, the backend will send a
+   * change a password email.
+   */
+  // @Security(AuthScheme.PasswordChange)
+  // @SuccessResponse(204)
+  // @OperationId('changePassword')
+  // @Put('password')
+  // async changePassword(
+  //   @Request() req: Express.Request,
+  //   @Body() body: { data: ChangePasswordParams },
+  // ) {
+  //   await this.userAuthService.changePassword(
+  //     req.credentials as ApiKey,
+  //     body.data.password,
+  //   )
+
+  //   this.setStatus(204)
+  // }
+
+  // @OperationId('createEmailVerification')
+  // @SuccessResponse(204)
+  // @Post('email-verification')
+  // createEmailVerification(
+  //   @Body() body: { data: CreateEmailVerificationParams },
+  // ) {
+  //   void this.userAuthService.sendEmailVerification(body.data.login)
+
+  //   this.setStatus(204)
+  // }
+
+  // @Security(AuthScheme.EmailVerification)
+  // @SuccessResponse(204)
+  // @OperationId('verifyEmail')
+  // @Put('verify-email')
+  // async verify(@Request() req: Express.Request) {
+  //   await this.userAuthService.verifyEmail(req.credentials as ApiKey)
+
+  //   this.setStatus(204)
+  // }
 }

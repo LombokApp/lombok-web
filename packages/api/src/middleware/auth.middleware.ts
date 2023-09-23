@@ -9,20 +9,19 @@ import {
   AuthSchemeType,
 } from '../domains/auth/constants/scheme.constants'
 import type { AuthScope } from '../domains/auth/constants/scope.constants'
-import { AuthScopeType } from '../domains/auth/constants/scope.constants'
-import type { Credential } from '../domains/auth/credential'
-import { ApiKey } from '../domains/auth/entities/api-key.entity'
-import { Session } from '../domains/auth/entities/session.entity'
-import type { VerifyResult } from '../domains/auth/services/auth.service'
+import {
+  ALLOWED_SCOPES,
+  AuthScopeType,
+} from '../domains/auth/constants/scope.constants'
+import type { Session } from '../domains/auth/entities/session.entity'
 import { AuthService } from '../domains/auth/services/auth.service'
-import { AccessTokenJWT } from '../domains/auth/services/auth-token.service'
 import type { User } from '../domains/user/entities/user.entity'
 import {
   AuthorizationHeaderInvalidError,
   ScopeRequiredError,
 } from '../errors/auth.error'
 
-const parseAuthorization = <
+export const parseAuthorization = <
   K extends boolean | undefined,
   T extends K extends true ? string : string | undefined,
 >(
@@ -52,36 +51,52 @@ const parseAuthorization = <
 const verify = (
   request: express.Request,
   scheme: AuthScheme,
-): Promise<VerifyResult> | VerifyResult => {
+): Promise<{ viewer: Actor; session?: Session }> => {
   const authService = container.resolve(AuthService)
   switch (scheme) {
+    case AuthScheme.WorkerServiceToken:
+      return authService.verifyWorkerAccessToken(
+        parseAuthorization(request, 'bearer', true),
+      )
+
     case AuthScheme.AccessToken:
-      if (request.headers['x-api-key']) {
-        return authService.verifyApiKey(
-          request.headers['x-api-key'] as string,
-        ) as VerifyResult
-      }
-      return authService.verifyAccessToken(
+      // TODO: reimplement api key check
+      // if (request.headers['x-api-key']) {
+      //   return authService.verifyApiKey(
+      //     request.headers['x-api-key'] as string,
+      //   ) as VerifyResult
+      // }
+      return authService.verifySessionWithAccessToken(
         parseAuthorization(request, 'bearer', true),
       )
 
     case AuthScheme.RefreshToken:
-      return authService.verifySession(String(request.query.refresh_token))
+      return authService.verifySessionWithRefreshToken(
+        String(request.query.refresh_token),
+      )
 
     case AuthScheme.Public:
-      if (parseAuthorization(request, 'bearer', true)) {
-        return authService.verifyAccessToken(
-          parseAuthorization(request, 'bearer', false),
-        )
-      }
-      return {
+      // if (parseAuthorization(request, 'bearer', true)) {
+      //   return authService.verifyAndExtendSessionWithRefreshToken(
+      //     parseAuthorization(request, 'bearer', false),
+      //   )
+      // }
+      return Promise.resolve({
         viewer: {
           id: '',
           user: {} as unknown as User,
           role: PlatformRole.Anonymous,
           authenticated: false,
         },
-      }
+      })
+
+    case AuthScheme.PasswordChange:
+      // apiKeyType = ApiKeyType.PASSWORD_CHANGE
+      throw Error('Not implemented.')
+
+    case AuthScheme.EmailVerification:
+      // apiKeyType = ApiKeyType.EMAIL_VERIFICATION
+      throw Error('Not implemented.')
   }
 }
 
@@ -95,9 +110,15 @@ export const expressAuthentication = async (
   AuthSchemeType.assert(scheme)
   AuthScopesType.assert(requiredScopes)
 
-  const handleResult = ({ viewer, credential, user }: VerifyResult) => {
-    let scopes: AuthScope[]
-
+  const handleResult = ({
+    viewer,
+    user,
+    session,
+  }: {
+    viewer: Actor
+    user?: User
+    session?: Session
+  }) => {
     if (!user) {
       // unauthenticated
       request.viewer = {
@@ -106,15 +127,12 @@ export const expressAuthentication = async (
         role: PlatformRole.Anonymous,
         authenticated: false,
       }
+      request.session = session
       return request.viewer
     }
-    if (credential instanceof Session || credential instanceof ApiKey) {
-      scopes = credential.scopes as AuthScope[]
-    } else if (credential instanceof AccessTokenJWT) {
-      scopes = credential.scp
-    } else {
-      scopes = []
-    }
+
+    const scopes: AuthScope[] =
+      session?.scopes ?? ALLOWED_SCOPES[PlatformRole.Authenticated]
 
     for (const scope of requiredScopes) {
       if (!scopes.includes(scope)) {
@@ -122,27 +140,26 @@ export const expressAuthentication = async (
       }
     }
 
-    request.credential = credential ?? ''
     request.viewer = viewer as unknown as Actor
     request.user = user
+    request.session = session
 
     return viewer
   }
 
   const result = verify(request, scheme)
 
-  if (typeof (result as Promise<VerifyResult>).then === 'function') {
-    return (result as Promise<VerifyResult>).then(handleResult)
-  }
-
-  return Promise.resolve(handleResult(result as VerifyResult))
+  return (
+    result as Promise<{ viewer: Actor; user?: User; session?: Session }>
+  ).then(handleResult)
 }
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
-      credential: Credential
       viewer: Actor
+      session?: Session
       user: User
     }
   }

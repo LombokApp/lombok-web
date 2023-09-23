@@ -1,45 +1,27 @@
-import {
-  BeforeCreate,
-  Entity,
-  // EntityRepositoryType,
-  OptionalProps,
-  Property,
-} from '@mikro-orm/core'
+import { Entity, OptionalProps, Property } from '@mikro-orm/core'
 import { addMs, earliest } from '@stellariscloud/utils'
 
 import { AuthDurationMs } from '../constants/duration.constants'
 import type { SessionData } from '../transfer-objects/session.dto'
-import { BaseHashedAccessTokenEntity } from './base-hashed-token.entity'
+import { BaseScopedAuthEntity } from './base-scoped-auth.entity'
 import { SessionRepository } from './session.repository'
 
 @Entity({ customRepository: () => SessionRepository })
-export class Session extends BaseHashedAccessTokenEntity {
-  [OptionalProps]?: 'updatedAt' | 'createdAt' | 'hash' | 'expiresAt'
-
-  @Property({ hidden: true })
-  hash!: string
+export class Session extends BaseScopedAuthEntity<Session> {
+  [OptionalProps]?: 'updatedAt' | 'createdAt' | 'hash'
 
   @Property()
   expiresAt!: Date
 
-  @BeforeCreate()
-  initExpiresAt() {
-    if (this.expiresAt instanceof Date) {
-      return
-    }
-
-    this.expiresAt = Session.sessionExpiresAt(this)
-  }
-
-  static sessionExpiresAt(key: Session) {
+  static sessionExpiresAt(createdAt: Date) {
     return earliest(
       addMs(new Date(), AuthDurationMs.SessionSliding),
-      addMs(key.createdAt, AuthDurationMs.SessionAbsolute),
+      addMs(createdAt, AuthDurationMs.SessionAbsolute),
     )
   }
 
   toSessionData(): Omit<SessionData, 'accessToken'> {
-    return this.toObjectPick(['scopes', 'expiresAt'])
+    return this.toObjectPick(['expiresAt'])
   }
 
   toJSON() {

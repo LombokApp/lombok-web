@@ -1,91 +1,64 @@
 import type { FolderPushMessage } from '@stellariscloud/types'
 import React from 'react'
+import type { Socket } from 'socket.io-client'
+import { io } from 'socket.io-client'
 
-import { api } from '../services/stellariscloud-api/api'
+import { foldersApi } from '../services/api'
 
 type MessageCallback = (msg: {
   name: FolderPushMessage
-  payload: { [key: string]: string | any }
+  payload: { [key: string]: string }
 }) => void
-
-interface Callback {
-  innerCallback: MessageCallback
-  outerCallback: (ev: WebSocketEventMap['message']) => void
-}
 
 export const useFolderWebsocket = (
   folderId: string,
   onMessage: MessageCallback,
 ) => {
-  const callbackRef = React.useRef<Callback>()
-  const websocket = React.useRef<WebSocket>()
-  React.useEffect(() => {
-    if (websocket.current) {
-      let justDeregistered = false
-      if (
-        callbackRef.current &&
-        callbackRef.current.innerCallback !== onMessage
-      ) {
-        websocket.current.removeEventListener(
-          'message',
-          callbackRef.current.outerCallback,
-        )
-        callbackRef.current = undefined
-        justDeregistered = true
-      }
-      if (!callbackRef.current || justDeregistered) {
-        const outerCallback = (ev: WebSocketEventMap['message']) => {
-          const data = JSON.parse(ev.data as string) as {
-            name: FolderPushMessage
-            payload: { [key: string]: string | any }
-          }
-          onMessage(data)
-        }
-        callbackRef.current = {
-          innerCallback: onMessage,
-          outerCallback,
-        }
-        websocket.current.addEventListener('message', outerCallback)
-      }
-    }
-  }, [onMessage])
+  const [socketState, setSocketState] = React.useState<{
+    socket?: Socket
+    connected: boolean
+  }>({
+    socket: undefined,
+    connected: false,
+  })
 
   React.useEffect(() => {
-    if (!websocket.current && folderId) {
-      // console.log('websocket startup')
-      void api.folderWebSocket({ folderId }).then((ws) => {
-        websocket.current = ws
-        ws.addEventListener('error', (errorEvent) => {
-          console.error('websocket error:', errorEvent)
+    const lastHandler = onMessage
+    const lastSocket = socketState.socket
+    lastSocket?.onAny(onMessage)
+    return () => {
+      socketState.socket?.offAny(lastHandler)
+    }
+  }, [socketState.socket, onMessage])
+
+  React.useEffect(() => {
+    if (folderId) {
+      foldersApi.createSocketAuthentication({ folderId }).then((response) => {
+        const s = io(process.env.NEXT_PUBLIC_SOCKET_BASE_URL ?? '', {
+          query: { token: response.data.token },
         })
-        ws.addEventListener('close', (_closeEvent) => {
-          // console.log('websocket close:', closeEvent)
-          websocket.current = undefined
+        setSocketState({ socket: s, connected: false })
+
+        s.on('connect', () => {
+          setSocketState({ socket: s, connected: true })
+        })
+
+        s.on('disconnect', () => {
+          setSocketState({ connected: false })
+        })
+
+        s.on('error', () => {
+          s.close()
+          setSocketState({ connected: false })
+        })
+        s.on('close', () => {
+          setSocketState({ connected: false })
         })
       })
     }
   }, [folderId])
 
-  React.useEffect(() => {
-    if (websocket.current?.readyState === 3) {
-      websocket.current = undefined
-    }
-  }, [websocket.current?.readyState])
-
-  React.useEffect(() => {
-    return () => {
-      if (websocket.current) {
-        websocket.current.close()
-      }
-    }
-  }, [])
-
   return {
-    webSocket: websocket.current,
-    close: () => websocket.current?.close(),
-    connecting: websocket.current?.readyState === 0,
-    connected: websocket.current?.readyState === 1,
-    closing: websocket.current?.readyState === 2,
-    closed: websocket.current?.readyState === 3,
+    ...socketState,
   }
 }

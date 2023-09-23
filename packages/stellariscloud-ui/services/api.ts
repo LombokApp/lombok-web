@@ -19,7 +19,7 @@ export const authenticator = new Authenticator({
 
 export const createQueryHooks = <
   T extends InstanceType<
-    typeof apiClient[keyof typeof apiClient & `${string}Api`]
+    (typeof apiClient)[keyof typeof apiClient & `${string}Api`]
   >,
 >(
   api: T,

@@ -2,6 +2,7 @@ import { EntityRepository } from '@mikro-orm/postgresql'
 import { registry } from 'tsyringe'
 
 import { getRepositoryInContext } from '../../../orm/orm.service'
+import { FolderNotFoundError } from '../errors/folder.error'
 import { Folder } from './folder.entity'
 import { FolderObject } from './folder-object.entity'
 
@@ -30,5 +31,19 @@ export class FolderRepository extends EntityRepository<Folder> {
           ? parseInt(r.total_size_bytes, 10)
           : 0,
       }))
+  }
+
+  getFolderAsUser(userId: string, folderId: string): Promise<Folder> {
+    try {
+      return this.findOneOrFail(
+        {
+          id: folderId,
+          $or: [{ owner: userId }, { shares: { user: userId } }],
+        },
+        { populate: ['shares'] },
+      )
+    } catch (e) {
+      throw new FolderNotFoundError()
+    }
   }
 }

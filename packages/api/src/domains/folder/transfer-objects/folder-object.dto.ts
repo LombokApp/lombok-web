@@ -1,17 +1,10 @@
-import type { MediaType } from '@stellariscloud/utils'
+import type {
+  ContentAttributesByHash,
+  ContentMetadataByHash,
+  MediaType,
+} from '@stellariscloud/types'
 
 import type { TimestampData } from '../../../transfer-objects/timestamps.dto'
-
-export interface ImagePreview {
-  size: number
-  path: string
-}
-
-export interface ImagePreviews {
-  large?: ImagePreview
-  medium?: ImagePreview
-  small?: ImagePreview
-}
 
 export interface FolderObjectData extends TimestampData {
   id: string
@@ -19,21 +12,13 @@ export interface FolderObjectData extends TimestampData {
   folder: {
     id: string
   }
-  contentMetadata?: FolderObjectContentMetadata
+  contentAttributes: ContentAttributesByHash
+  contentMetadata: ContentMetadataByHash
+  hash?: string
   lastModified: number
   tags: string[]
   eTag: string
   sizeBytes: number
-  readonly mediaType: MediaType
-}
-
-export interface FolderObjectContentMetadata {
-  hash: string
+  mediaType: MediaType
   mimeType: string
-  previews: ImagePreviews
-  lengthMilliseconds: number
-  imageOrientation?: number
-  height: number
-  width: number
-  createdAt?: Date
 }

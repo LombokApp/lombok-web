@@ -1,0 +1,6 @@
+/.orm-cache
+/dist
+/src/generated
+/src/templates/*.hbs
+/src/orm/migrations/.snapshot-stellarisclouddev.json
+/src/**/tracer.js

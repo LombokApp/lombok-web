@@ -1,8 +1,0 @@
-{
-  "eslint.autoFixOnSave": true,
-  "eslint.packageManager": "yarn",
-  "eslint.nodePath": ".yarn/sdks",
-  "workspace.workspaceFolderCheckCwd": false,
-  "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
-  "tsserver.tsdk": ".yarn/sdks/typescript/lib"
-}

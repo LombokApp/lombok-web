@@ -1,6 +1,7 @@
 import { RewriteFrames } from '@sentry/integrations'
 import * as Sentry from '@sentry/node'
 import * as Tracing from '@sentry/tracing'
+import { FolderOperationName, WorkerClass } from '@stellariscloud/workers'
 import type Ajv from 'ajv'
 import formatsPlugin from 'ajv-formats'
 import cors from 'cors'
@@ -13,13 +14,10 @@ import type { LoggerModule } from 'i18next'
 import i18next from 'i18next'
 import I18NextFsBackend from 'i18next-fs-backend'
 import type { AddressInfo } from 'net'
-import promClient from 'prom-client'
 import { singleton } from 'tsyringe'
 
 import { EnvConfigProvider } from './config/env-config.provider'
-import { QueueName } from './constants/queue.constants'
-import { WorkerClass } from './constants/worker-class.constants'
-import { FoldersProcessor } from './domains/folder/workers/folders.worker'
+import { IndexFolderProcessor } from './domains/folder/workers/index-folder.worker'
 import { RouteNotFoundError } from './errors/app.error'
 import { RegisterRoutes } from './generated/routes'
 import { HealthManager } from './health/health-manager'
@@ -28,13 +26,14 @@ import { unhandledErrorMiddleware } from './middleware/unhandled-error.middlewar
 import { validationErrorMiddleware } from './middleware/validation-error.middleware'
 import { OrmService } from './orm/orm.service'
 import { LoggingService } from './services/logging.service'
-import { RedisService } from './services/redis.service'
+import { SocketService } from './services/socket.service'
 import { workerServiceFactory } from './services/worker.service'
 import { stringifyLog } from './util/i18n.util'
 import { registerExitHandler, runExitHandlers } from './util/process.util'
 import { formats } from './util/validation.util'
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     export interface Request {
       swaggerDoc: any
@@ -56,6 +55,7 @@ declare global {
 // Declare global.__rootdir__ for Sentry
 // See https://docs.sentry.io/platforms/node/typescript/#changing-events-frames
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
     interface Global {
       __rootdir__: string
@@ -63,7 +63,8 @@ declare global {
   }
 }
 
-global.__rootdir__ = __dirname || process.cwd()
+// eslint-disable-next-line no-extra-semi
+;(global as any).__rootdir__ = __dirname || process.cwd()
 
 @singleton()
 export class App {
@@ -74,9 +75,9 @@ export class App {
   constructor(
     private readonly config: EnvConfigProvider,
     private readonly ormService: OrmService,
-    private readonly redisService: RedisService,
     private readonly loggingService: LoggingService,
     private readonly healthManager: HealthManager,
+    private readonly socketService: SocketService,
   ) {
     this.app = express()
     this.app.disable('x-powered-by')
@@ -119,7 +120,7 @@ export class App {
         new Tracing.Integrations.Express({ app: this.app }),
 
         new RewriteFrames({
-          root: global.__rootdir__,
+          root: (global as any).__rootdir__,
         }),
       ],
     })
@@ -133,6 +134,10 @@ export class App {
     this.initWorkers(workerClasses)
 
     await this.initRoutes(!serveAPI)
+    await this.listen()
+    if (serveAPI) {
+      this.initSocketServer()
+    }
   }
 
   private async initI18n() {
@@ -168,9 +173,6 @@ export class App {
     const apiSpec = (await import('./generated/openapi.json'))
       .default as OpenApiDocument
 
-    this.app.get('/api/v1/ingest-metrics', (req, res) => {
-      void promClient.register.metrics().then((metrics) => res.send(metrics))
-    })
     // TODO: Update terraform config to use /health instead of /api/health once
     // the risk of reporting unwanted unhealthy state is ruled out.
     this.app.get('/health', this.healthManager.requestHandler())
@@ -236,15 +238,20 @@ export class App {
     this.app.use(unhandledErrorMiddleware(this.loggingService))
   }
 
+  private initSocketServer() {
+    if (!this.server) {
+      throw new Error('HTTP Server should be initialised before socket server.')
+    }
+    this.socketService.init(this.server)
+  }
+
   private invokeWorkersForClass(cls: WorkerClass) {
     switch (cls) {
       case WorkerClass.WORKER_HIGH_PRIORITY:
-        // TODO: Fix the processor typing below
         return [
           workerServiceFactory(
-            QueueName.Folders,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            FoldersProcessor as any,
+            FolderOperationName.IndexFolder,
+            IndexFolderProcessor,
           ),
         ]
       case WorkerClass.WORKER_LIVE_BOTS:
@@ -270,7 +277,7 @@ export class App {
     })
   }
 
-  listen() {
+  async listen() {
     if (this.closing) {
       return
     }
@@ -287,9 +294,8 @@ export class App {
         logger.info(`Docs: http://<whatever>:${address.port}/docs`)
 
         resolve()
+        this.server = server
       })
-
-      this.server = server
     })
   }
 
@@ -298,9 +304,9 @@ export class App {
 
     await runExitHandlers()
     await this.ormService.close()
-    await this.redisService.close()
     if (this.server) {
       this.server.close()
     }
+    this.socketService.close()
   }
 }

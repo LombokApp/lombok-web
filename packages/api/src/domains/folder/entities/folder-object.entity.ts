@@ -12,11 +12,14 @@ import {
   Unique,
   UuidType,
 } from '@mikro-orm/core'
-import { MediaType } from '@stellariscloud/utils'
+import {
+  ContentAttributesByHash,
+  ContentMetadataByHash,
+  MediaType,
+} from '@stellariscloud/types'
 
 import { TimestampedEntity } from '../../../entities/base.entity'
 import type { FolderObjectData } from '../transfer-objects/folder-object.dto'
-import { FolderObjectContentMetadata } from '../transfer-objects/folder-object.dto'
 import { Folder } from './folder.entity'
 import { FolderObjectRepository } from './folder-object.repository'
 import type { ObjectTagRelation } from './object-tag-relation.entity'
@@ -26,7 +29,7 @@ import type { ObjectTagRelation } from './object-tag-relation.entity'
   customRepository: () => FolderObjectRepository,
 })
 @Unique({ properties: ['folder', 'objectKey'] })
-export class FolderObject extends TimestampedEntity {
+export class FolderObject extends TimestampedEntity<FolderObject> {
   [EntityRepositoryType]?: FolderObjectRepository;
   [OptionalProps]?: 'updatedAt' | 'createdAt'
 
@@ -45,11 +48,22 @@ export class FolderObject extends TimestampedEntity {
   @Property({ columnType: 'bigint', unsigned: true })
   lastModified!: number
 
-  @Property({ customType: new JsonType() })
-  contentMetadata?: FolderObjectContentMetadata
+  // The last known content hash. e.g. "SHA1:<hash>"
+  @Property({ columnType: 'TEXT' })
+  hash?: string
 
+  // The last best guess MediaType
   @Enum(() => MediaType)
   mediaType: MediaType = MediaType.Unknown
+
+  @Property({ columnType: 'TEXT' })
+  mimeType: string = ''
+
+  @Property({ customType: new JsonType() })
+  contentAttributes: ContentAttributesByHash = {}
+
+  @Property({ customType: new JsonType() })
+  contentMetadata: ContentMetadataByHash = {}
 
   @ManyToOne({
     entity: () => Folder,
@@ -74,10 +88,13 @@ export class FolderObject extends TimestampedEntity {
         'folder',
         'eTag',
         'lastModified',
+        'contentAttributes',
         'contentMetadata',
+        'hash',
         'createdAt',
         'updatedAt',
         'mediaType',
+        'mimeType',
       ]),
       tags: this.tags.isInitialized()
         ? this.tags.getItems().map((t) => t.tag.id)
