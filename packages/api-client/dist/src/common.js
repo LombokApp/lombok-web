@@ -80,25 +80,33 @@ const setOAuthToObject = async function (object, name, scopes, configuration) {
     }
 };
 exports.setOAuthToObject = setOAuthToObject;
+function setFlattenedQueryParams(urlSearchParams, parameter, key = "") {
+    if (parameter == null)
+        return;
+    if (typeof parameter === "object") {
+        if (Array.isArray(parameter)) {
+            parameter.forEach(item => setFlattenedQueryParams(urlSearchParams, item, key));
+        }
+        else {
+            Object.keys(parameter).forEach(currentKey => setFlattenedQueryParams(urlSearchParams, parameter[currentKey], `${key}${key !== '' ? '.' : ''}${currentKey}`));
+        }
+    }
+    else {
+        if (urlSearchParams.has(key)) {
+            urlSearchParams.append(key, parameter);
+        }
+        else {
+            urlSearchParams.set(key, parameter);
+        }
+    }
+}
 /**
  *
  * @export
  */
 const setSearchParams = function (url, ...objects) {
     const searchParams = new URLSearchParams(url.search);
-    for (const object of objects) {
-        for (const key in object) {
-            if (Array.isArray(object[key])) {
-                searchParams.delete(key);
-                for (const item of object[key]) {
-                    searchParams.append(key, item);
-                }
-            }
-            else {
-                searchParams.set(key, object[key]);
-            }
-        }
-    }
+    setFlattenedQueryParams(searchParams, objects);
     url.search = searchParams.toString();
 };
 exports.setSearchParams = setSearchParams;
@@ -130,7 +138,7 @@ exports.toPathString = toPathString;
  */
 const createRequestFunction = function (axiosArgs, globalAxios, BASE_PATH, configuration) {
     return (axios = globalAxios, basePath = BASE_PATH) => {
-        const axiosRequestArgs = { ...axiosArgs.options, url: (configuration?.basePath || basePath) + axiosArgs.url };
+        const axiosRequestArgs = { ...axiosArgs.options, url: (configuration?.basePath || axios.defaults.baseURL || basePath) + axiosArgs.url };
         return axios.request(axiosRequestArgs);
     };
 };

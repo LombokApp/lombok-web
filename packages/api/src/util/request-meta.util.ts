@@ -1,11 +1,11 @@
 import type { Request } from 'express'
 
 export interface RequestMetadata {
-  headers: { [key: string]: string | any }
+  headers: { [key: string]: string }
   protocol: string
   hostname: string
   path: string
-  query: { [key: string]: string | any }
+  query: { [key: string]: string }
   subdomains: string[]
   ip: string
   method: string

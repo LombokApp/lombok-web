@@ -19,5 +19,8 @@
     "watchFile": "useFsEventsOnParentDirectory",
     "watchDirectory": "useFsEvents"
   },
-  "git.ignoreLimitWarning": true
+  "git.ignoreLimitWarning": true,
+  "typescript.format.enable": false,
+  "javascript.format.enable": false,
+  "prettier.requireConfig": true
 }

@@ -1,4 +1,5 @@
 import type { SearchTerm } from './command.utils'
+import { SearchTermPosition } from './command.utils'
 
 export const createRegex = (searchTerm: SearchTerm): string => {
   let termGroup = searchTerm.term
@@ -15,11 +16,11 @@ export const createRegex = (searchTerm: SearchTerm): string => {
   }
 
   termGroup = `(${termGroup})`
-  if (searchTerm.position === 'start') {
+  if (searchTerm.position === SearchTermPosition.Start) {
     termGroup = '^0x' + termGroup
   }
 
-  if (searchTerm.position === 'end') {
+  if (searchTerm.position === SearchTermPosition.End) {
     termGroup = termGroup + '$'
   }
 

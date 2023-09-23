@@ -3,9 +3,9 @@
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { Controller, TsoaRoute, HttpStatusCodeLiteral, TsoaResponse } from '@tsoa/runtime';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { AppConfigController } from './../controllers/app-config.controller';
-// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { AuthController } from './../controllers/auth.controller';
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+import { WorkerController } from './../controllers/worker.controller';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { FoldersController } from './../controllers/folders.controller';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -29,56 +29,6 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
   //  NOTE: If you do not see routes for all of your controllers in this file, then you might not have informed tsoa of where to look
   //  Please look into the "controllerPathGlobs" config option described in the readme: https://github.com/lukeautry/tsoa
   // ###########################################################################################################
-  app.put(
-    '/api/v1/app-config',
-    authenticateMiddleware([{"AccessToken":["app-config:create"]}]),
-    validator.validate('put', convertPath('/app-config')),
-    function AppConfigController_setAppConfig(request: any, response: any, next: any) {
-      const args = {
-          req: {"in":"request","name":"req","required":true,"dataType":"object"},
-          body: {"in":"body","name":"body","required":true,"ref":"AppConfigCreateData"},
-      };
-
-      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
-
-      const controller: any = container.get<AppConfigController>(AppConfigController);
-      if (typeof controller['setStatus'] === 'function') {
-        controller.setStatus(undefined);
-      }
-
-      const promise = controller.setAppConfig.apply(controller, getArgs(args, request, response));
-      promiseHandler(controller, promise, response, 201, next);
-    }
-  );
-  
-  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-  app.get(
-    '/api/v1/app-config/:key',
-    authenticateMiddleware([{"AccessToken":["app-config:read"]}]),
-    validator.validate('get', convertPath('/app-config/:key')),
-    function AppConfigController_getAppConfig(request: any, response: any, next: any) {
-      const args = {
-          req: {"in":"request","name":"req","required":true,"dataType":"object"},
-          key: {"in":"path","name":"key","required":true,"dataType":"string"},
-      };
-
-      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
-
-      const controller: any = container.get<AppConfigController>(AppConfigController);
-      if (typeof controller['setStatus'] === 'function') {
-        controller.setStatus(undefined);
-      }
-
-      const promise = controller.getAppConfig.apply(controller, getArgs(args, request, response));
-      promiseHandler(controller, promise, response, undefined, next);
-    }
-  );
-  
-  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
   app.post(
     '/api/v1/token',
     authenticateMiddleware([{"RefreshToken":[]}]),
@@ -104,13 +54,35 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
   
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
   app.post(
+    '/api/v1/signup',
+    validator.validate('post', convertPath('/signup')),
+    function AuthController_signup(request: any, response: any, next: any) {
+      const args = {
+          body: {"in":"body","name":"body","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"data":{"ref":"SignupParams","required":true}}},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<AuthController>(AuthController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.signup.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, 201, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.post(
     '/api/v1/login',
     authenticateMiddleware([{"Public":[]}]),
     validator.validate('post', convertPath('/login')),
     function AuthController_login(request: any, response: any, next: any) {
       const args = {
-          req: {"in":"request","name":"req","required":true,"dataType":"object"},
-          _body: {"in":"body","name":"_body","required":true,"ref":"LoginParams"},
+          body: {"in":"body","name":"body","required":true,"ref":"LoginParams"},
       };
 
       // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -130,7 +102,7 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
   app.get(
     '/api/v1/logout',
-    authenticateMiddleware([{"AccessToken":[]},{"RefreshToken":[]}]),
+    authenticateMiddleware([{"AccessToken":[]}]),
     validator.validate('get', convertPath('/logout')),
     function AuthController_logout(request: any, response: any, next: any) {
       const args = {
@@ -148,6 +120,152 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
 
       const promise = controller.logout.apply(controller, getArgs(args, request, response));
       promiseHandler(controller, promise, response, 204, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.get(
+    '/api/v1/worker/:operationId/start',
+    authenticateMiddleware([{"WorkerServiceToken":[]}]),
+    validator.validate('get', convertPath('/worker/:operationId/start')),
+    function WorkerController_startJob(request: any, response: any, next: any) {
+      const args = {
+          operationId: {"in":"path","name":"operationId","required":true,"dataType":"string"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<WorkerController>(WorkerController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.startJob.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.post(
+    '/api/v1/worker/:operationId/complete',
+    authenticateMiddleware([{"WorkerServiceToken":[]}]),
+    validator.validate('post', convertPath('/worker/:operationId/complete')),
+    function WorkerController_completeJob(request: any, response: any, next: any) {
+      const args = {
+          operationId: {"in":"path","name":"operationId","required":true,"dataType":"string"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<WorkerController>(WorkerController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.completeJob.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.post(
+    '/api/v1/worker/:operationId/output-upload-urls',
+    authenticateMiddleware([{"WorkerServiceToken":[]}]),
+    validator.validate('post', convertPath('/worker/:operationId/output-upload-urls')),
+    function WorkerController_createOutputUploadUrls(request: any, response: any, next: any) {
+      const args = {
+          operationId: {"in":"path","name":"operationId","required":true,"dataType":"string"},
+          payload: {"in":"body","name":"payload","required":true,"ref":"CreateOutputUploadUrlsPayload"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<WorkerController>(WorkerController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.createOutputUploadUrls.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.post(
+    '/api/v1/worker/:operationId/metadata-upload-urls',
+    authenticateMiddleware([{"WorkerServiceToken":[]}]),
+    validator.validate('post', convertPath('/worker/:operationId/metadata-upload-urls')),
+    function WorkerController_createMetadataUploadUrls(request: any, response: any, next: any) {
+      const args = {
+          operationId: {"in":"path","name":"operationId","required":true,"dataType":"string"},
+          payload: {"in":"body","name":"payload","required":true,"ref":"CreateMetadataUploadUrlsPayload"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<WorkerController>(WorkerController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.createMetadataUploadUrls.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.post(
+    '/api/v1/worker/content-attributes',
+    authenticateMiddleware([{"WorkerServiceToken":[]}]),
+    validator.validate('post', convertPath('/worker/content-attributes')),
+    function WorkerController_updateContentAttributes(request: any, response: any, next: any) {
+      const args = {
+          payload: {"in":"body","name":"payload","required":true,"dataType":"array","array":{"dataType":"refObject","ref":"ContentAttibutesPayload"}},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<WorkerController>(WorkerController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.updateContentAttributes.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.post(
+    '/api/v1/worker/content-metadata',
+    authenticateMiddleware([{"WorkerServiceToken":[]}]),
+    validator.validate('post', convertPath('/worker/content-metadata')),
+    function WorkerController_updateContentMetadata(request: any, response: any, next: any) {
+      const args = {
+          payload: {"in":"body","name":"payload","required":true,"dataType":"array","array":{"dataType":"refObject","ref":"ContentMetadataPayload"}},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<WorkerController>(WorkerController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.updateContentMetadata.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
     }
   );
   
@@ -297,6 +415,32 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
       }
 
       const promise = controller.getFolderObject.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.post(
+    '/api/v1/folders/:folderId/objects/:objectKey/operations',
+    authenticateMiddleware([{"AccessToken":[]}]),
+    validator.validate('post', convertPath('/folders/:folderId/objects/:objectKey/operations')),
+    function FoldersController_enqueueFolderOperation(request: any, response: any, next: any) {
+      const args = {
+          req: {"in":"request","name":"req","required":true,"dataType":"object"},
+          folderId: {"in":"path","name":"folderId","required":true,"dataType":"string"},
+          folderOperation: {"in":"body","name":"folderOperation","required":true,"ref":"FolderOperationRequestPayload"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<FoldersController>(FoldersController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.enqueueFolderOperation.apply(controller, getArgs(args, request, response));
       promiseHandler(controller, promise, response, undefined, next);
     }
   );
@@ -620,33 +764,6 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
   
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
   app.put(
-    '/api/v1/folders/:folderId/objects/:objectKey/content-metadata',
-    authenticateMiddleware([{"AccessToken":[]}]),
-    validator.validate('put', convertPath('/folders/:folderId/objects/:objectKey/content-metadata')),
-    function FoldersController_updateFolderObjectContentMetadata(request: any, response: any, next: any) {
-      const args = {
-          req: {"in":"request","name":"req","required":true,"dataType":"object"},
-          folderId: {"in":"path","name":"folderId","required":true,"dataType":"string"},
-          objectKey: {"in":"path","name":"objectKey","required":true,"dataType":"string"},
-          body: {"in":"body","name":"body","required":true,"ref":"FolderObjectContentMetadata"},
-      };
-
-      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
-
-      const controller: any = container.get<FoldersController>(FoldersController);
-      if (typeof controller['setStatus'] === 'function') {
-        controller.setStatus(undefined);
-      }
-
-      const promise = controller.updateFolderObjectContentMetadata.apply(controller, getArgs(args, request, response));
-      promiseHandler(controller, promise, response, undefined, next);
-    }
-  );
-  
-  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-  app.put(
     '/api/v1/folders/:folderId/objects/:objectKey',
     authenticateMiddleware([{"AccessToken":[]}]),
     validator.validate('put', convertPath('/folders/:folderId/objects/:objectKey')),
@@ -702,11 +819,11 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
     '/api/v1/folders/:folderId/presigned-urls',
     authenticateMiddleware([{"AccessToken":[]}]),
     validator.validate('post', convertPath('/folders/:folderId/presigned-urls')),
-    function FoldersController_createPresignedURLs(request: any, response: any, next: any) {
+    function FoldersController_createPresignedUrls(request: any, response: any, next: any) {
       const args = {
           req: {"in":"request","name":"req","required":true,"dataType":"object"},
           folderId: {"in":"path","name":"folderId","required":true,"dataType":"string"},
-          body: {"in":"body","name":"body","required":true,"ref":"SignedURLsRequestPayload"},
+          body: {"in":"body","name":"body","required":true,"dataType":"array","array":{"dataType":"refObject","ref":"SignedURLsRequest"}},
       };
 
       // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -718,7 +835,57 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
         controller.setStatus(undefined);
       }
 
-      const promise = controller.createPresignedURLs.apply(controller, getArgs(args, request, response));
+      const promise = controller.createPresignedUrls.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.post(
+    '/api/v1/folders/:folderId/socket-auth',
+    authenticateMiddleware([{"AccessToken":[]}]),
+    validator.validate('post', convertPath('/folders/:folderId/socket-auth')),
+    function FoldersController_createSocketAuthentication(request: any, response: any, next: any) {
+      const args = {
+          req: {"in":"request","name":"req","required":true,"dataType":"object"},
+          folderId: {"in":"path","name":"folderId","required":true,"dataType":"string"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<FoldersController>(FoldersController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.createSocketAuthentication.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.get(
+    '/api/v1/folders/:folderId/folder-operations',
+    authenticateMiddleware([{"AccessToken":[]}]),
+    validator.validate('get', convertPath('/folders/:folderId/folder-operations')),
+    function FoldersController_listFolderOperations(request: any, response: any, next: any) {
+      const args = {
+          req: {"in":"request","name":"req","required":true,"dataType":"object"},
+          folderId: {"in":"path","name":"folderId","required":true,"dataType":"string"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<FoldersController>(FoldersController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.listFolderOperations.apply(controller, getArgs(args, request, response));
       promiseHandler(controller, promise, response, undefined, next);
     }
   );

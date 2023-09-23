@@ -1,9 +1,9 @@
+import { WorkerClass } from '@stellariscloud/workers'
 import * as r from 'runtypes'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 import { singleton } from 'tsyringe'
 
 import { LogLevel, LogLevelType } from '../constants/logging.constants'
-import { WorkerClass } from '../constants/worker-class.constants'
 import { EnumType } from '../util/types.util'
 import type {
   ApiConfig,
@@ -13,7 +13,9 @@ import type {
   DbSeedConfig,
   InstanceClassConfig,
   LoggingConfig,
+  MetadataLocationConfig,
   RedisConfig,
+  SendgridConfig,
 } from './config.interface'
 import { EnvConfigError } from './env-config.error'
 
@@ -67,10 +69,12 @@ export class EnvConfigProvider implements ConfigProvider {
     if (!this.auth) {
       const env = parseEnv({
         AUTH_JWT_SECRET: r.String.withConstraint(minLength(32)),
+        WORKER_PUBLIC_KEY: r.String.withConstraint(minLength(128)),
       })
 
       this.auth = {
         jwtSecret: env.AUTH_JWT_SECRET,
+        workerPublicKey: `-----BEGIN PUBLIC KEY-----\n${env.WORKER_PUBLIC_KEY}\n-----END PUBLIC KEY-----`,
       }
     }
 
@@ -128,30 +132,60 @@ export class EnvConfigProvider implements ConfigProvider {
     return this.db
   }
 
+  private metadataLocation?: MetadataLocationConfig
+
+  getMetadataLocationConfig() {
+    if (!this.metadataLocation) {
+      const env = parseEnv({
+        METADATA_LOCATION_ENDPOINT: r.String,
+        METADATA_LOCATION_BUCKET: r.String,
+        METADATA_LOCATION_REGION: r.String,
+        METADATA_LOCATION_ACCESS_KEY_ID: r.String,
+        METADATA_LOCATION_SECRET_ACCESS_KEY: r.String,
+      })
+
+      this.metadataLocation = {
+        s3AccessKeyId: env.METADATA_LOCATION_ACCESS_KEY_ID,
+        s3Endpoint: env.METADATA_LOCATION_ENDPOINT,
+        s3SecretAccessKey: env.METADATA_LOCATION_SECRET_ACCESS_KEY,
+        s3Region: env.METADATA_LOCATION_REGION,
+        s3Bucket: env.METADATA_LOCATION_BUCKET,
+      }
+    }
+
+    return this.metadataLocation
+  }
+
   private dbSeed?: DbSeedConfig
 
   getDbSeedConfig() {
     if (!this.dbSeed) {
       const env = parseEnv({
         DB_SEED_ENABLED: r.String.optional(),
-        DB_SEED_DEMO_S3_ENDPOINT: r.String,
-        DB_SEED_DEMO_S3_BUCKET: r.String,
-        DB_SEED_DEMO_S3_REGION: r.String,
-        DB_SEED_DEMO_S3_ACCESS_KEY_ID: r.String,
-        DB_SEED_DEMO_S3_SECRET_ACCESS_KEY: r.String,
       })
 
       this.dbSeed = {
         enabled: env.DB_SEED_ENABLED === 'true' || env.DB_SEED_ENABLED === '1',
-        demoS3AccessKeyId: env.DB_SEED_DEMO_S3_ACCESS_KEY_ID,
-        demoS3Endpoint: env.DB_SEED_DEMO_S3_ENDPOINT,
-        demoS3SecretAccessKey: env.DB_SEED_DEMO_S3_SECRET_ACCESS_KEY,
-        demoS3Region: env.DB_SEED_DEMO_S3_REGION,
-        demoS3Bucket: env.DB_SEED_DEMO_S3_BUCKET,
       }
     }
 
     return this.dbSeed
+  }
+
+  private sendgrid?: SendgridConfig
+
+  getSendgridConfig() {
+    if (!this.sendgrid) {
+      const env = parseEnv({
+        SENDGRID_API_KEY: r.String,
+      })
+
+      this.sendgrid = {
+        apiKey: env.SENDGRID_API_KEY,
+      }
+    }
+
+    return this.sendgrid
   }
 
   private redis?: RedisConfig

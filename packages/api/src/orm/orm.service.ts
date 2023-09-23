@@ -125,8 +125,8 @@ export class OrmService {
     params: A | undefined = undefined,
   ) {
     return (async (...args: A) => {
-      await RequestContext.createAsync(this.orm.em, async () => {
-        await callback(...args)
+      return RequestContext.createAsync(this.orm.em, async () => {
+        return callback(...args)
       })
     }).apply(this, params ?? ([] as unknown as A))
   }

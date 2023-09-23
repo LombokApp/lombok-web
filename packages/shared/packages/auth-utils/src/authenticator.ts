@@ -11,6 +11,7 @@ const COOKIES_REFRESH_TOKEN = `${COOKIES_NAME}:refreshToken`
 
 export interface AuthenticatorStateType {
   isAuthenticated: boolean
+  isLoaded: boolean
 }
 
 interface TokensType {
@@ -21,82 +22,82 @@ interface TokensType {
 export type AuthenticatorEventNames = 'onStateChanged'
 
 export class Authenticator {
-  private _state: AuthenticatorStateType = { isAuthenticated: false }
+  private _state: AuthenticatorStateType = {
+    isAuthenticated: false,
+    isLoaded: false,
+  }
   private readonly eventTarget =
     typeof window !== 'undefined' ? new EventTarget() : undefined
-  private tokens: TokensType
+  private readonly tokens: TokensType = {}
 
   constructor(readonly options: { basePath: string }) {
-    this.tokens = this.loadTokens()
-
-    const { accessToken } = this.tokens
-    if (verifyToken(accessToken)) {
-      this.state = { isAuthenticated: true }
-      return
-    }
-    this.state = { isAuthenticated: false }
+    setTimeout(() => {
+      const loadedTokens = this.loadTokens()
+      if (verifyToken(loadedTokens.accessToken)) {
+        this.tokens.accessToken = loadedTokens.accessToken
+        this.tokens.refreshToken = loadedTokens.refreshToken
+        this.state = { isAuthenticated: true, isLoaded: true }
+        return
+      }
+      this.state = { isAuthenticated: false, isLoaded: true }
+    }, 1)
   }
 
   // getAccessToken returns valid accessToken if it exists
   // or refreshes the token if not valid.
   public async getAccessToken() {
-    const { accessToken, refreshToken } = this.tokens
-
-    if (accessToken && verifyToken(accessToken)) {
-      return accessToken
+    if (this.tokens.accessToken && verifyToken(this.tokens.accessToken)) {
+      return this.tokens.accessToken
     }
-
-    if (refreshToken) {
+    if (this.tokens.refreshToken) {
       await this.refresh()
     }
     return this.tokens.accessToken
   }
 
   public async login(loginParams: { login: string; password: string }) {
-    let accessToken
-    let refreshToken
-
     try {
       const authApi = this.newAuthApi()
-      // TODO: Update this was the login body.
-      ;({ accessToken, refreshToken } = (
+      const loginResult = (
         await authApi.login({
           loginParams: {
             login: loginParams.login,
             password: loginParams.password,
           },
         })
-      ).data.data)
+      ).data.data
+      this.tokens.accessToken = loginResult.accessToken
+      this.tokens.refreshToken = loginResult.refreshToken
+      this.saveTokens({
+        accessToken: loginResult.accessToken,
+        refreshToken: loginResult.refreshToken,
+      })
+      this.state = { isAuthenticated: true, isLoaded: true }
     } catch (error: unknown) {
       this.reset()
       throw error
     }
-    this.saveTokens({
-      accessToken,
-      refreshToken,
-    })
-    this.state = { isAuthenticated: true }
+  }
+
+  public async signup(signupParams: { email: string; password: string }) {
+    try {
+      const authApi = this.newAuthApi()
+      await authApi.signup({
+        signupRequest: {
+          data: { email: signupParams.email, password: signupParams.password },
+        },
+      })
+    } catch (error: unknown) {
+      this.reset()
+      throw error
+    }
   }
 
   public async logout() {
-    // The logout API endpoint works by invalidating the current session
-    // refresh token record in our DB, preventing new access tokens from being
-    // generated. The current access token remains valid for the remainder of
-    // its (short) lifespan after logout and it is simply discarded when the
-    // current auth cache cookie is cleared after the logout call succeeds.
-
-    // The logout endpoint supports authentication using either an access
-    // token or session refresh token. We first attempt using the access
-    // token to authenticate - but this may fail. We then failover to using
-    // the session refresh token if the access token request fails for any
-    // reason (e.g. the access token has expired). The effect is the same
-    // in both cases and only one successful call with either authentication
-    // method is necessary.
-
     let error: unknown
     let failed = false
 
-    const { accessToken, refreshToken } = this.tokens
+    const { accessToken } = this.tokens
 
     if (accessToken !== undefined) {
       try {
@@ -108,15 +109,16 @@ export class Authenticator {
       }
     }
 
-    if (failed && refreshToken !== undefined) {
-      try {
-        const authApi = this.newAuthApi({ apiKey: refreshToken })
-        await authApi.logout()
-      } catch (err) {
-        error = err
-        failed = true
-      }
-    }
+    // TODO: fix logout with refresh
+    // if (failed && refreshToken !== undefined) {
+    //   try {
+    //     const authApi = this.newAuthApi({ apiKey: refreshToken })
+    //     await authApi.logout()
+    //   } catch (err) {
+    //     error = err
+    //     failed = true
+    //   }
+    // }
 
     this.reset()
     if (failed) {
@@ -125,7 +127,10 @@ export class Authenticator {
   }
 
   public toggleState() {
-    this.state = { isAuthenticated: !this.state.isAuthenticated }
+    this.state = {
+      isAuthenticated: !this.state.isAuthenticated,
+      isLoaded: true,
+    }
   }
 
   public addEventListener(
@@ -134,6 +139,7 @@ export class Authenticator {
     options?: boolean | AddEventListenerOptions | undefined,
   ) {
     this.eventTarget?.addEventListener(type, callback, options)
+    this.state = this._state
   }
 
   public removeEventListener(
@@ -165,13 +171,13 @@ export class Authenticator {
     Cookies.set(COOKIES_REFRESH_TOKEN, refreshToken!, {
       sameSite: 'strict',
     })
-    this.tokens = { accessToken, refreshToken }
   }
 
   private clearTokens() {
     Cookies.remove(COOKIES_ACCESS_TOKEN)
     Cookies.remove(COOKIES_REFRESH_TOKEN)
-    this.tokens = {}
+    delete this.tokens.accessToken
+    delete this.tokens.refreshToken
   }
 
   private newAuthApi(config?: ConfigurationParameters): AuthApi {
@@ -184,30 +190,31 @@ export class Authenticator {
   }
 
   private async refresh() {
-    const { refreshToken } = this.tokens
-    if (!refreshToken) {
+    if (!this.tokens.refreshToken) {
       throw new Error('no refresh token set')
     }
 
     const authApi = this.newAuthApi({
       basePath: this.options.basePath,
-      apiKey: refreshToken,
+      apiKey: this.tokens.refreshToken,
     })
 
-    let accessToken: string
     try {
-      accessToken = (await authApi.refreshToken()).data.data.accessToken
+      const { accessToken, refreshToken } = (await authApi.refreshToken()).data
+        .data
+      this.tokens.accessToken = accessToken
+      this.tokens.refreshToken = refreshToken
+      this.saveTokens({ accessToken, refreshToken })
+      this.state = { isAuthenticated: true, isLoaded: true }
     } catch (err: unknown) {
       this.reset()
       throw err
     }
-    this.saveTokens({ accessToken, refreshToken })
-    this.state = { isAuthenticated: true }
   }
 
   private reset() {
-    this.state = { isAuthenticated: false }
     this.clearTokens()
+    this.state = { isAuthenticated: false, isLoaded: true }
   }
 
   public get state(): AuthenticatorStateType {

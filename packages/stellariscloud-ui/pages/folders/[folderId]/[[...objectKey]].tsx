@@ -12,9 +12,11 @@ const FolderDetail: NextPage = () => {
       <div className="flex flex-1 justify-center h-full w-full">
         <section className="flex flex-col h-full w-full">
           <div className="flex flex-col flex-1 h-full gap-4 w-full">
-            <FolderContextProvider folderId={router.query.folderId as string}>
-              <FolderDetailScreen />
-            </FolderContextProvider>
+            {router.query.folderId && (
+              <FolderContextProvider folderId={router.query.folderId as string}>
+                <FolderDetailScreen />
+              </FolderContextProvider>
+            )}
           </div>
         </section>
       </div>

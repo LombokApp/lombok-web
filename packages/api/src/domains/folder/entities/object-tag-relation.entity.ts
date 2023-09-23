@@ -18,7 +18,7 @@ import { ObjectTagRelationRepository } from './object-tag-relation.repository'
   customRepository: () => ObjectTagRelationRepository,
 })
 @Unique({ properties: ['tag', 'object'] })
-export class ObjectTagRelation extends TimestampedEntity {
+export class ObjectTagRelation extends TimestampedEntity<ObjectTagRelation> {
   [EntityRepositoryType]?: ObjectTagRelationRepository;
   [OptionalProps]?: 'updatedAt' | 'createdAt'
 

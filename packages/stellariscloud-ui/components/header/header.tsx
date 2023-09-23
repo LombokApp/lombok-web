@@ -3,15 +3,15 @@ import { useAuthContext } from '@stellariscloud/auth-utils'
 import { Button, Icon } from '@stellariscloud/design-system'
 import clsx from 'clsx'
 import { useRouter } from 'next/dist/client/router'
-import Image from 'next/image'
 import type { MouseEvent } from 'react'
 import React from 'react'
 
 import { useBreakPoints } from '../../utils/hooks'
+import { ThemeSwitch } from '../theme-switch/theme-switch'
 
 export const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false)
-  const { authState, login, logout } = useAuthContext()
+  const { authState, logout } = useAuthContext()
 
   const { md } = useBreakPoints()
   React.useEffect(() => {
@@ -33,58 +33,61 @@ export const Header = () => {
     }
   }, [isDrawerOpen, router])
 
-  const handleGoogleSignInClick = (
-    e: MouseEvent<HTMLButtonElement> &
-      MouseEvent<HTMLAnchorElement> &
-      MouseEvent<HTMLLabelElement>,
+  const handleLoginSignupClick = (
+    e:
+      | MouseEvent<HTMLButtonElement>
+      | MouseEvent<HTMLAnchorElement>
+      | MouseEvent<HTMLLabelElement>,
+    shouldGotoSignup: boolean = false,
   ) => {
     e.preventDefault()
-    void login({
-      login: '____', // TODO: replace with a real login mechanism. For now the backend decides who you are.
-      password: '',
-    }).then(() => router.push('/folders'))
+    void router.push(shouldGotoSignup ? '/signup' : '/login')
   }
 
   const handleDisconnectClick = (
-    e: MouseEvent<HTMLButtonElement> &
-      MouseEvent<HTMLAnchorElement> &
-      MouseEvent<HTMLLabelElement>,
+    e:
+      | MouseEvent<HTMLButtonElement>
+      | MouseEvent<HTMLAnchorElement>
+      | MouseEvent<HTMLLabelElement>,
   ) => {
     e.preventDefault()
     void logout()
   }
   return (
-    <div
-      className={clsx(
-        'absolute z-50 top-0 right-0 p-2',
-        router.pathname !== '/' && 'mx-auto',
-      )}
-    >
-      {!authState.isAuthenticated && (
-        <Button
-          className={clsx('text-left', 'border', 'border-gray-50/[.3]')}
-          variant="ghost"
-          onClick={handleGoogleSignInClick}
-        >
-          <div className="flex items-center gap-2">
-            <Image
-              width={'25'}
-              height={'25'}
-              alt="Sign in with Google"
-              src={'/google.svg'}
-            />
-            <div className="pr-6 shrink-0">Sign&nbsp;in</div>
+    <div className={clsx('z-50 p-2', router.pathname !== '/' && 'mx-auto')}>
+      <div className="flex gap-8">
+        <ThemeSwitch />
+        {!authState.isAuthenticated && (
+          <div className="flex gap-2">
+            <Button
+              className={clsx('text-left', 'border', 'border-gray-50/[.3]')}
+              variant="ghost"
+              onClick={handleLoginSignupClick}
+            >
+              <div className="flex items-center gap-2">
+                <div className="shrink-0">Log in</div>
+              </div>
+            </Button>
+            <Button
+              className={clsx('text-left', 'border', 'border-gray-50/[.3]')}
+              variant="ghost"
+              onClick={(e) => handleLoginSignupClick(e, true)}
+            >
+              <div className="flex items-center gap-2">
+                <div className="shrink-0">Signup</div>
+              </div>
+            </Button>
           </div>
-        </Button>
-      )}
-      {authState.isAuthenticated && (
-        <button
-          className="btn btn-md btn-link text-gray-300 hover:text-gray-500"
-          onClick={handleDisconnectClick}
-        >
-          <Icon size="md" icon={ArrowRightOnRectangleIcon}></Icon>
-        </button>
-      )}
+        )}
+        {authState.isAuthenticated && (
+          <button
+            className="btn btn-md btn-link text-gray-300 hover:text-gray-500"
+            onClick={handleDisconnectClick}
+          >
+            <Icon size="md" icon={ArrowRightOnRectangleIcon}></Icon>
+          </button>
+        )}
+      </div>
     </div>
   )
 }

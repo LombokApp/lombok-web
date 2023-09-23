@@ -1,7 +1,7 @@
 import type { FolderObjectData } from '@stellariscloud/api-client'
 import { Icon } from '@stellariscloud/design-system'
+import { MediaType } from '@stellariscloud/types'
 import {
-  MediaType,
   mediaTypeFromExtension,
   mediaTypeFromMimeType,
 } from '@stellariscloud/utils'
@@ -11,7 +11,7 @@ import React from 'react'
 import { VideoPlayer } from '../../components/video-player/video-player'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { foldersApi } from '../../services/api'
-import { iconForMimeType } from '../../utils/file'
+import { iconForMediaType } from '../../utils/file'
 
 export const FolderObjectPreview = ({
   folderId,
@@ -64,10 +64,19 @@ export const FolderObjectPreview = ({
     return <></>
   }
 
-  const mimeType = folderObject?.contentMetadata?.mimeType ?? ''
+  const contentAttributes =
+    folderObject?.hash && folderObject.hash in folderObject.contentAttributes
+      ? folderObject.contentAttributes[folderObject.hash]
+      : undefined
+
+  const mimeType =
+    folderObject?.hash && contentAttributes
+      ? contentAttributes.mimeType
+      : undefined
+
   const dataURL = file === false ? undefined : file.dataURL
-  const fileType = folderObject?.contentMetadata?.mimeType
-    ? mediaTypeFromMimeType(folderObject.contentMetadata.mimeType)
+  const fileType = mimeType
+    ? mediaTypeFromMimeType(mimeType)
     : mediaTypeFromExtension(folderObject?.objectKey.split('.').at(-1) ?? '')
 
   return dataURL && fileType === MediaType.Image ? (
@@ -92,7 +101,7 @@ export const FolderObjectPreview = ({
     </div>
   ) : (
     <div className="flex flex-col w-full h-full items-center justify-around bg-black text-white">
-      <Icon size={'xl'} icon={iconForMimeType(mimeType)} />
+      <Icon size={'xl'} icon={iconForMediaType(fileType)} />
     </div>
   )
 }

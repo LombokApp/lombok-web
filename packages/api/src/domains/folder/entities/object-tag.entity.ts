@@ -19,7 +19,7 @@ import { ObjectTagRepository } from './object-tag.repository'
   customRepository: () => ObjectTagRepository,
 })
 @Unique({ properties: ['name', 'folder'] })
-export class ObjectTag extends TimestampedEntity {
+export class ObjectTag extends TimestampedEntity<ObjectTag> {
   [EntityRepositoryType]?: ObjectTagRepository;
   [OptionalProps]?: 'updatedAt' | 'createdAt'
 

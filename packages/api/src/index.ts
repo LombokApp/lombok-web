@@ -7,8 +7,6 @@ import { registerExitHandler } from './util/process.util'
 
 const app = container.resolve(App)
 
-void app.init().then(() => {
-  void app.listen()
-})
+void app.init()
 
 registerExitHandler(() => app.close())

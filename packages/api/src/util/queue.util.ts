@@ -1,27 +1,26 @@
+import type {
+  FolderOperationName,
+  FolderOperationNameDataTypes,
+  FolderOperationNameReturnTypes,
+  QueueProcessor,
+} from '@stellariscloud/workers'
 import type { Job } from 'bullmq'
+import type { InjectionToken } from 'tsyringe'
 
 import { resolveDependency } from '../ioc'
 
-export type QueueProcessor<N extends string> = {
-  [K in N]: (job: Job<any, any, K>) => any
-}
-
 export const createProcessor = <
-  N extends string,
-  P extends new (...args: any[]) => QueueProcessor<N>,
+  N extends FolderOperationName,
+  R extends FolderOperationNameReturnTypes[N],
+  D extends FolderOperationNameDataTypes[N],
 >(
-  ProcessorConstructor: P,
+  ProcessorConstructor: InjectionToken<QueueProcessor<N>>,
 ) => {
-  return (job: Job<any, any, N> | undefined) => {
+  return (job: Job<D, R, N> | undefined) => {
     if (!job) {
       throw new Error('Job undefined!')
     }
     const resolved = resolveDependency(ProcessorConstructor)
-    if (!(job.name in resolved)) {
-      throw Error(
-        `${ProcessorConstructor.name} missing job function '${job.name}'`,
-      )
-    }
-    return resolved[job.name](job)
+    return resolved.run(job)
   }
 }

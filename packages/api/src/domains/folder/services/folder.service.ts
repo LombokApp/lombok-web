@@ -1,23 +1,26 @@
-import { GetObjectCommand } from '@aws-sdk/client-s3'
-import * as Sentry from '@sentry/node'
 import type { S3ObjectInternal } from '@stellariscloud/types'
+import { FolderPushMessage, MediaType } from '@stellariscloud/types'
 import {
-  MediaType,
-  mediaTypeFromMimeType,
+  mediaTypeFromExtension,
+  objectIdentifierToObjectKey,
   parseSort,
 } from '@stellariscloud/utils'
-import { Queue } from 'bullmq'
+import { FolderOperationName } from '@stellariscloud/workers'
+import mime from 'mime'
 import { Lifecycle, scoped } from 'tsyringe'
+import { v4 as uuidV4 } from 'uuid'
 import type { Logger } from 'winston'
 
+import type { MetadataLocationConfig } from '../../../config/config.interface'
 import { EnvConfigProvider } from '../../../config/env-config.provider'
-import { QueueName } from '../../../constants/queue.constants'
+import type { FolderOperationRequestPayload } from '../../../controllers/folders.controller'
 import { LoggingService } from '../../../services/logging.service'
-import { RedisService } from '../../../services/redis.service'
+import { QueueService } from '../../../services/queue.service'
 import { configureS3Client, S3Service } from '../../../services/s3.service'
-import { registerExitHandler } from '../../../util/process.util'
+import { SocketService } from '../../../services/socket.service'
+import { JWTService } from '../../auth/services/jwt.service'
+import { FolderOperationService } from '../../folder-operation/services/folder-operation.service'
 import { UserService } from '../../user/services/user.service'
-import { FoldersJobName } from '../constants/folders.constants'
 import type { Folder } from '../entities/folder.entity'
 import { FolderRepository } from '../entities/folder.repository'
 import type { FolderObject } from '../entities/folder-object.entity'
@@ -29,6 +32,7 @@ import { ObjectTagRepository } from '../entities/object-tag.repository'
 import { ObjectTagRelationRepository } from '../entities/object-tag-relation.repository'
 import { S3ConnectionRepository } from '../entities/s3-connection.repository'
 import {
+  FolderMetadataWriteNotAuthorised,
   FolderNotFoundError,
   FolderObjectNotFoundError,
   FolderPermissionInvalidError,
@@ -38,14 +42,18 @@ import {
   ObjectTagInvalidError,
 } from '../errors/folder.error'
 import { S3ConnectionNotFoundError } from '../errors/s3-connection.error'
-import type { FolderObjectContentMetadata } from '../transfer-objects/folder-object.dto'
 import type { CreateFolderSharePayload } from '../transfer-objects/folder-share.dto'
-import type { FoldersJob } from '../workers/folders.worker'
 
-export type SignedURLsRequestPayload = {
-  objectKey: string
-  method: 'PUT' | 'DELETE' | 'GET'
-}[]
+export enum SignedURLsRequestMethod {
+  PUT = 'PUT',
+  DELETE = 'DELETE',
+  GET = 'GET',
+}
+
+export interface SignedURLsRequest {
+  objectIdentifier: string
+  method: SignedURLsRequestMethod
+}
 
 export enum FolderObjectSort {
   SizeAsc = 'size-asc',
@@ -79,62 +87,36 @@ export enum FolderPermissionName {
   TAG_ASSOCIATE = 'tag_associate',
 }
 
-const METADATA_POSTFIX = '____metadata.json'
-const PREVIEWS_POSTFIX = '____previews'
-
-const isKeyMetadataRelated = (key: string) => {
-  return (
-    key.endsWith(METADATA_POSTFIX) ||
-    key.split('/').find((part) => part.endsWith(PREVIEWS_POSTFIX))
-  )
-}
-
 const OWNER_PERMISSIONS = Object.values(FolderPermissionName)
 
 export interface FolderObjectUpdate {
   lastModified?: number
   size?: number
   eTag?: string
-  contentMetadata?: FolderObjectContentMetadata
 }
 
 @scoped(Lifecycle.ContainerScoped)
 export class FolderService {
-  private readonly redis = this.redisService.getConnection('queueService')
-
-  private readonly foldersQueue = new Queue<
-    FoldersJob['data'],
-    FoldersJob['returnvalue'],
-    FoldersJob['name']
-  >(QueueName.Folders, {
-    connection: this.redis,
-  })
-
   private readonly logger: Logger
+  private readonly metadataLocationConfig: MetadataLocationConfig =
+    this.configProvider.getMetadataLocationConfig()
 
   constructor(
-    private readonly config: EnvConfigProvider,
+    private readonly queueService: QueueService,
     private readonly objectTagRepository: ObjectTagRepository,
     private readonly objectTagRelationRepository: ObjectTagRelationRepository,
     private readonly folderObjectRepository: FolderObjectRepository,
+    private readonly folderOperationService: FolderOperationService,
     private readonly folderShareRepository: FolderShareRepository,
     private readonly folderRepository: FolderRepository,
+    private readonly jwtService: JWTService,
+    private readonly socketService: SocketService,
     private readonly userService: UserService,
     private readonly s3ConnectionRepository: S3ConnectionRepository,
     private readonly loggingService: LoggingService,
     private readonly s3Service: S3Service,
-    private readonly redisService: RedisService,
+    private readonly configProvider: EnvConfigProvider,
   ) {
-    this.foldersQueue.on('error', (error: Error) => {
-      Sentry.captureException(error)
-      console.error('FoldersWorker Queue error', error)
-    })
-
-    registerExitHandler(async () => {
-      await this.foldersQueue.close()
-      await this.foldersQueue.disconnect()
-    })
-
     this.logger = this.loggingService.logger
   }
 
@@ -165,8 +147,12 @@ export class FolderService {
       prefix: body.prefix,
       accessKeyId: s3Connection.accessKeyId,
       secretAccessKey: s3Connection.secretAccessKey,
-      endpoint: s3Connection.endpoint,
       region: s3Connection.region,
+      endpoint: s3Connection.endpoint,
+      metadataEndpoint: this.metadataLocationConfig.s3Endpoint,
+      metadataBucket: this.metadataLocationConfig.s3Bucket,
+      metadataSecretAccessKey: '',
+      metadataAccessKeyId: '',
       owner: userId,
     })
     await this.folderRepository.getEntityManager().flush()
@@ -226,7 +212,7 @@ export class FolderService {
     return true
   }
 
-  async deleteFolderObject({
+  async deleteFolderObjectAsUser({
     userId,
     folderId,
     objectKey,
@@ -235,7 +221,10 @@ export class FolderService {
     folderId: string
     objectKey: string
   }): Promise<boolean> {
-    const { permissions } = await this.getFolderAsUser({ folderId, userId })
+    const { folder, permissions } = await this.getFolderAsUser({
+      folderId,
+      userId,
+    })
 
     if (!permissions.includes(FolderPermissionName.OBJECT_EDIT)) {
       throw new FolderPermissionMissingError()
@@ -249,6 +238,15 @@ export class FolderService {
     if (!obj) {
       throw new FolderObjectNotFoundError()
     }
+
+    await this.s3Service.s3DeleteBucketObject({
+      accessKeyId: folder.accessKeyId,
+      secretAccessKey: folder.secretAccessKey,
+      endpoint: folder.endpoint,
+      region: folder.region,
+      bucket: folder.bucket,
+      objectKey,
+    })
 
     this.folderRepository.getEntityManager().remove(obj)
     await this.folderRepository.getEntityManager().flush()
@@ -269,7 +267,7 @@ export class FolderService {
     return folderMetadata
   }
 
-  async getFolderObject({
+  async getFolderObjectAsUser({
     objectKey,
     folderId,
     userId,
@@ -292,6 +290,27 @@ export class FolderService {
       throw new FolderObjectNotFoundError()
     }
     return obj
+  }
+
+  async enqueueFolderOperation({
+    userId,
+    folderId,
+    folderOperation,
+  }: {
+    userId: string
+    folderId: string
+    folderOperation: FolderOperationRequestPayload
+  }) {
+    const { folder } = await this.getFolderAsUser({
+      folderId,
+      userId,
+    })
+
+    return this.folderOperationService.enqueueFolderOperation({
+      userId,
+      folderId: folder.id,
+      operation: folderOperation,
+    })
   }
 
   async getFolderAsUser({
@@ -345,11 +364,15 @@ export class FolderService {
     const [folderObjects, folderObjectsCount] =
       await this.folderObjectRepository.findAndCount(
         {
-          ...(search ? { objectKey: { $like: `%${search}%` } } : {}),
           folder: folderId,
-          tags: tagId ? { tag: tagId } : undefined,
+          ...(search ? { objectKey: { $like: `%${search}%` } } : {}),
+          ...(tagId ? { tags: { tag: tagId } } : {}),
         },
-        { offset: offset ?? 0, limit: limit ?? 25, orderBy: parseSort(sort) },
+        {
+          offset: offset ?? 0,
+          limit: limit ?? 25,
+          orderBy: { ...parseSort(sort), id: 'ASC' },
+        },
       )
 
     return {
@@ -600,63 +623,120 @@ export class FolderService {
     return true
   }
 
-  // async associateObjectTag({
-  //   userId,
-  //   objectTagId,
-  //   body,
-  // }: {
-  //   body: { name: string }
-  //   userId: string
-  //   objectTagId: string
-  // }): Promise<ObjectTag> {
-  //   const { folder, permissions } = await this.getFolderAsUser(folderId, userId)
-  //   const { objectTag } = await this.getObjectTagAsUser(objectTagId, userId)
-  //   if (!folder) {
-  //     throw new FolderNotFoundError()
-  //   }
-  //   if (!permissions?.includes('tag:associate')) {
-  //     throw new FolderPermissionMissingError()
-  //   }
-  //   const objectTagRelation = this.objectTagRelationRepository.create({
-  //     tag: '',
-  //     name: body.name,
-  //   })
-  //   await this.objectTagRelationRepository.flush()
-  //   return objectTagRelation
-  // }
+  async createSocketAuthenticationAsUser(userId: string, folderId: string) {
+    const { folder } = await this.getFolderAsUser({ userId, folderId })
+    return {
+      token: this.jwtService.createFolderSocketAccessToken(userId, folder.id),
+    }
+  }
 
-  async createPresignedURLs(
-    folderId: string,
+  async createPresignedUrlsAsUser(
     userId: string,
-    urls: SignedURLsRequestPayload,
+    folderId: string,
+    urls: SignedURLsRequest[],
   ) {
-    const requiresWritePermission = !!urls.find((u) =>
-      ['POST', 'DELETE'].includes(u.method.toUpperCase()),
-    )
     const { folder, permissions } = await this.getFolderAsUser({
       folderId,
       userId,
     })
-    if (
-      requiresWritePermission &&
-      !permissions.includes(FolderPermissionName.OBJECT_EDIT)
-    ) {
-      throw new FolderPermissionMissingError()
-    }
-    const s3Client = configureS3Client({
-      accessKeyId: folder.accessKeyId,
-      secretAccessKey: folder.secretAccessKey,
-      endpoint: folder.endpoint,
-      region: folder.region,
-    })
-    return this.s3Service.s3GetPresignedURLs(s3Client, folder.bucket, urls)
+
+    const metadataBucketConfig =
+      folder.metadataEndpoint === this.metadataLocationConfig.s3Endpoint &&
+      folder.metadataBucket === this.metadataLocationConfig.s3Bucket
+        ? {
+            accessKeyId: this.metadataLocationConfig.s3AccessKeyId,
+            secretAccessKey: this.metadataLocationConfig.s3SecretAccessKey,
+            endpoint: this.metadataLocationConfig.s3Endpoint,
+            region: this.metadataLocationConfig.s3Region,
+            bucket: this.metadataLocationConfig.s3Bucket,
+          }
+        : {
+            accessKeyId: folder.metadataAccessKeyId,
+            secretAccessKey: folder.metadataSecretAccessKey,
+            endpoint: folder.metadataEndpoint,
+            region: folder.metadataRegion,
+            prefix: folder.metadataPrefix,
+            bucket: folder.bucket,
+          }
+
+    return this.s3Service.createS3PresignedUrls(
+      urls.map((urlRequest) => {
+        // objectIdentifier looks like one of these, depending on if it's a regular object content request or an object metadata request
+        // `metadata:${objectKey}:${metadataObject.hash}`
+        // `content:${objectKey}`
+        if (
+          !urlRequest.objectIdentifier.startsWith('content:') &&
+          !urlRequest.objectIdentifier.startsWith('metadata:')
+        ) {
+          throw new FolderObjectNotFoundError()
+        }
+
+        const { isMetadataIdentifier, metadataObjectKey, objectKey } =
+          objectIdentifierToObjectKey(urlRequest.objectIdentifier)
+        const objectKeyToFetch = isMetadataIdentifier
+          ? `${
+              folder.metadataPrefix ? folder.metadataPrefix : ''
+            }${folderId}/${metadataObjectKey}`
+          : objectKey
+
+        // validate that requested object is within the scope of this folder
+        if (folder.prefix && !objectKey.startsWith(folder.prefix)) {
+          throw new FolderObjectNotFoundError()
+        }
+
+        // deny access to write operations for anyone without edit perms
+        if (
+          [
+            SignedURLsRequestMethod.DELETE,
+            SignedURLsRequestMethod.PUT,
+          ].includes(urlRequest.method) &&
+          !permissions.includes(FolderPermissionName.OBJECT_EDIT)
+        ) {
+          throw new FolderPermissionMissingError()
+        }
+
+        // deny all write operations for metadata
+        if (
+          [
+            SignedURLsRequestMethod.DELETE,
+            SignedURLsRequestMethod.PUT,
+          ].includes(urlRequest.method) &&
+          isMetadataIdentifier
+        ) {
+          throw new FolderMetadataWriteNotAuthorised()
+        }
+
+        return {
+          accessKeyId: isMetadataIdentifier
+            ? metadataBucketConfig.accessKeyId
+            : folder.accessKeyId,
+          secretAccessKey: isMetadataIdentifier
+            ? metadataBucketConfig.secretAccessKey
+            : folder.secretAccessKey,
+          endpoint: isMetadataIdentifier
+            ? metadataBucketConfig.endpoint
+            : folder.endpoint,
+          region:
+            (isMetadataIdentifier
+              ? metadataBucketConfig.region
+              : folder.region) ?? 'auto',
+          bucket: isMetadataIdentifier
+            ? metadataBucketConfig.bucket
+            : folder.bucket,
+          method: urlRequest.method,
+          objectKey: objectKeyToFetch,
+          expirySeconds: 3600,
+        }
+      }),
+    )
   }
 
   async queueRefreshFolder(folderId: string, userId: string) {
-    await this.foldersQueue.add(FoldersJobName.RefreshFolderObjects, {
-      folderId,
-      userId,
-    })
+    return this.queueService.add(
+      FolderOperationName.IndexFolder,
+      { folderId, userId },
+      { jobId: uuidV4() },
+    )
   }
 
   async refreshFolder(folderId: string, userId: string) {
@@ -702,46 +782,12 @@ export class FolderService {
 
       for (const obj of batch) {
         const objectKey = obj.key
-        if (isKeyMetadataRelated(objectKey)) {
-          if (objectKey.endsWith(METADATA_POSTFIX)) {
-            // this is the metadata json file (as opposed to a preview file or other)
-            const getSerializedContentMetadataFromS3Response =
-              await s3Client.send(
-                new GetObjectCommand({
-                  Bucket: folder.bucket,
-                  Key: objectKey,
-                }),
-              )
-            const body =
-              await getSerializedContentMetadataFromS3Response.Body?.transformToString()
-            try {
-              const parsedBody: FolderObjectContentMetadata = body
-                ? JSON.parse(body)
-                : undefined
-              const referencedObjectKey = objectKey.slice(
-                0,
-                objectKey.length - METADATA_POSTFIX.length,
-              )
-              await this.saveUpdatedFolderObjectContentMetadata(
-                folder.id,
-                referencedObjectKey,
-                parsedBody,
-              )
-            } catch (e) {
-              console.error(
-                'Error processing metadata file [%s]:',
-                objectKey,
-                e,
-              )
-            }
-          }
-        } else if (obj.size > 0) {
+        if (obj.size > 0) {
           // this is a user file
           // console.log('Trying to update key metadata [%s]:', objectKey, obj)
           await this.updateFolderObjectInDB(folder.id, objectKey, obj)
         }
-        // remove that just completed one from the current batch
-        // this.indexingJobContext.batch = this.indexingJobContext.batch.slice(1)
+
         // if (!this.indexingJobContext.lastNotify) {
         //   this.indexingJobContext.lastNotify = Date.now()
         // } else if (this.indexingJobContext.lastNotify < Date.now() - 10000) {
@@ -760,46 +806,7 @@ export class FolderService {
     }
   }
 
-  async saveUpdatedFolderObjectContentMetadataAsUser(
-    userId: string,
-    folderId: string,
-    objectKey: string,
-    contentMetadata: FolderObjectContentMetadata,
-  ) {
-    const { permissions } = await this.getFolderAsUser({ folderId, userId })
-    if (!permissions.includes(FolderPermissionName.OBJECT_MANAGE)) {
-      throw new FolderPermissionMissingError()
-    }
-    return this.saveUpdatedFolderObjectContentMetadata(
-      folderId,
-      objectKey,
-      contentMetadata,
-    )
-  }
-
-  async saveUpdatedFolderObjectContentMetadata(
-    folderId: string,
-    objectKey: string,
-    contentMetadata: FolderObjectContentMetadata,
-  ) {
-    const folderObject = await this.folderObjectRepository.findOne({
-      folder: folderId,
-      objectKey,
-    })
-
-    if (!folderObject) {
-      throw new Error(
-        'Attempting to update content metadata for non-existent record.',
-      )
-    }
-    folderObject.contentMetadata = contentMetadata
-    // this.currentPreviewGenerationJobs[objectKey] = undefined
-    // await this.db.updateFolderObject(folderId, objectKey, folderObject)
-    await this.folderObjectRepository.getEntityManager().flush()
-    return folderObject
-  }
-
-  async updateFolderObjectS3MetadataAsUser(
+  async refreshFolderObjectS3MetadataAsUser(
     userId: string,
     folderId: string,
     objectKey: string,
@@ -828,16 +835,18 @@ export class FolderService {
     objectKey: string,
     updateRecord: FolderObjectUpdate,
   ): Promise<FolderObject> {
-    const previousRecord = (await this.folderObjectRepository.findOne({
+    const previousRecord = await this.folderObjectRepository.findOne({
       folder: folderId,
       objectKey,
-    })) as FolderObject | null
+    })
     if (previousRecord) {
-      previousRecord.contentMetadata = updateRecord.contentMetadata
       previousRecord.sizeBytes = updateRecord.size ?? 0
       previousRecord.lastModified = updateRecord.lastModified ?? 0
       previousRecord.eTag = updateRecord.eTag ?? ''
     }
+    const objectKeyParts = objectKey.split('.')
+    const extension =
+      objectKeyParts.length > 1 ? objectKeyParts.at(-1) : undefined
     const updatedRecord =
       previousRecord ??
       this.folderObjectRepository.create({
@@ -845,27 +854,24 @@ export class FolderService {
         objectKey,
         lastModified: updateRecord.lastModified ?? 0,
         eTag: updateRecord.eTag ?? '',
+        contentAttributes: {},
+        contentMetadata: {},
         sizeBytes: updateRecord.size ?? 0,
-        mediaType: updateRecord.contentMetadata?.mimeType
-          ? mediaTypeFromMimeType(updateRecord.contentMetadata.mimeType)
+        mediaType: extension
+          ? mediaTypeFromExtension(extension)
           : MediaType.Unknown,
+        mimeType: extension ? mime.getType(extension) ?? '' : '',
         ...updateRecord,
       })
 
     await this.folderObjectRepository.getEntityManager().flush()
-    // if (!this.indexingJobContext) {
-    //   if (previousRecord) {
-    //     this.broadcast({
-    //       name: FolderPushMessage.OBJECT_UPDATED,
-    //       payload: { object: updatedRecord },
-    //     })
-    //   } else {
-    //     this.broadcast({
-    //       name: FolderPushMessage.OBJECT_ADDED,
-    //       payload: { object: updatedRecord },
-    //     })
-    //   }
-    // }
+    this.socketService.sendToFolderRoom(
+      folderId,
+      previousRecord
+        ? FolderPushMessage.OBJECTS_UPDATED
+        : FolderPushMessage.OBJECT_ADDED,
+      { folderObject: updatedRecord },
+    )
 
     return updatedRecord
   }

@@ -9,9 +9,9 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { Configuration } from "./configuration";
-import { RequestArgs } from "./base";
-import { AxiosInstance } from 'axios';
+import type { Configuration } from "./configuration";
+import type { RequestArgs } from "./base";
+import type { AxiosInstance, AxiosResponse } from 'axios';
 /**
  *
  * @export
@@ -62,4 +62,4 @@ export declare const toPathString: (url: URL) => string;
  *
  * @export
  */
-export declare const createRequestFunction: (axiosArgs: RequestArgs, globalAxios: AxiosInstance, BASE_PATH: string, configuration?: Configuration) => (axios?: AxiosInstance, basePath?: string) => Promise<import("axios").AxiosResponse<any, any>>;
+export declare const createRequestFunction: (axiosArgs: RequestArgs, globalAxios: AxiosInstance, BASE_PATH: string, configuration?: Configuration) => <T = unknown, R = AxiosResponse<T, any>>(axios?: AxiosInstance, basePath?: string) => Promise<R>;

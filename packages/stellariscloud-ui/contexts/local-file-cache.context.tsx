@@ -1,9 +1,6 @@
-import type { AsyncOperation } from '@stellariscloud/types'
-import { AsyncOpType } from '@stellariscloud/types'
 import React from 'react'
-import { v4 as uuidV4 } from 'uuid'
 
-import { authenticator } from '../pages/_app'
+import { authenticator } from '../services/api'
 import { indexedDb } from '../services/indexed-db'
 import { getDataFromDisk } from '../services/local-cache/local-cache.service'
 import { downloadData } from '../utils/file'
@@ -21,19 +18,22 @@ export interface ILocalFileCacheContext {
   isLocal: (folderId: string, key: string) => Promise<boolean>
   isDownloading: (
     folderId: string,
-    objectKey: string,
+    objectIdentifier: string,
   ) => { progressPercent: number }
   getData: (
     folderId: string,
-    objectKey: string,
+    objectIdentifier: string,
   ) => Promise<{ dataURL: string; type: string } | undefined>
   downloadLocally: (
     folderId: string,
     key: string,
   ) => Promise<{ dataURL: string }>
-  downloadToFile: (folderId: string, objectKey: string) => void
-  uploadFile: (folderId: string, objectKey: string, file: File) => void
-  regenerateObjectPreviews: (folderId: string, key: string) => Promise<boolean>
+  downloadToFile: (
+    folderId: string,
+    objectIdentifier: string,
+    downloadFilename: string,
+  ) => void
+  uploadFile: (folderId: string, objectIdentifier: string, file: File) => void
   localStorageFolderSizes: { [key: string]: number }
   purgeLocalStorageForFolder: (folderId: string) => Promise<boolean>
   recalculateLocalStorageFolderSizes: () => Promise<boolean>
@@ -49,15 +49,6 @@ const LocalFileCacheContext = React.createContext<ILocalFileCacheContext>(
 )
 
 type WorkerMessage = [string, any]
-interface AsyncOperationContext {
-  operation: AsyncOperation
-  resolve: (success: boolean) => void
-  reject: (e: any) => void
-}
-
-interface AyncOperationsContextMap {
-  [key: string]: AsyncOperationContext | undefined
-}
 
 interface DownloadingContext {
   progressPercent: number
@@ -78,7 +69,6 @@ export const LocalFileCacheContextProvider = ({
   const [localStorageFolderSizes, setLocalStorageFolderSizes] = React.useState<{
     [key: string]: number
   }>({})
-  const operations = React.useRef<AyncOperationsContextMap>({})
   const workerRef = React.useRef<Worker>()
   const fileCacheRef = React.useRef<{
     [key: string]: { dataURL: string; type: string } | undefined
@@ -88,12 +78,12 @@ export const LocalFileCacheContextProvider = ({
   const addDataToMemory = React.useCallback(
     (
       folderId: string,
-      objectKey: string,
+      objectIdentifier: string,
       data: { dataURL: string; type: string },
     ) => {
-      // console.log('addFileToMemory(%s, %s, ...)', folderId, objectKey)
-      fileCacheRef.current[`${folderId}:${objectKey}`] = data
-      return fileCacheRef.current[`${folderId}:${objectKey}`] as {
+      // console.log('addFileToMemory(%s, %s, ...)', folderId, objectIdentifier)
+      fileCacheRef.current[`${folderId}:${objectIdentifier}`] = data
+      return fileCacheRef.current[`${folderId}:${objectIdentifier}`] as {
         dataURL: string
         type: string
       }
@@ -102,39 +92,35 @@ export const LocalFileCacheContextProvider = ({
   )
 
   const getDataFromMemory = React.useCallback(
-    (folderId: string, objectKey: string) => {
-      // console.log('getFileFromMemory(%s, %s)', folderId, objectKey)
-      return fileCacheRef.current[`${folderId}:${objectKey}`]
+    (folderId: string, objectIdentifier: string) => {
+      // console.log('getFileFromMemory(%s, %s)', folderId, objectIdentifier)
+      return fileCacheRef.current[`${folderId}:${objectIdentifier}`]
     },
     [],
   )
 
   const deleteFromMemory = React.useCallback(
-    (folderId: string, objectKey: string) => {
-      // console.log('deleteFromMemory(%s, %s)', folderId, objectKey)
+    (folderId: string, objectIdentifier: string) => {
+      // console.log('deleteFromMemory(%s, %s)', folderId, objectIdentifier)
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-      delete fileCacheRef.current[`${folderId}:${objectKey}`]
+      delete fileCacheRef.current[`${folderId}:${objectIdentifier}`]
     },
     [],
   )
 
+  const updateWorkerWithAuth = React.useCallback(() => {
+    void authenticator.getAccessToken().then((t) => {
+      workerRef.current?.postMessage(['AUTH_UPDATED', t])
+    })
+  }, [])
+
   React.useEffect(() => {
     if (!workerRef.current) {
+      updateWorkerWithAuth()
       workerRef.current = new Worker(new URL('../worker.ts', import.meta.url))
-
       authenticator.addEventListener('onStateChanged', () => {
-        void authenticator
-          .getAccessToken()
-          .then((t) => workerRef.current?.postMessage(['AUTH_UPDATED', t]))
+        updateWorkerWithAuth()
       })
-      void authenticator
-        .getAccessToken()
-        .then((t) =>
-          workerRef.current?.postMessage([
-            'INIT',
-            { accessToken: t, host: document.location.origin },
-          ]),
-        )
 
       workerRef.current.addEventListener(
         'message',
@@ -144,8 +130,8 @@ export const LocalFileCacheContextProvider = ({
             ['DOWNLOAD_COMPLETED', 'DOWNLOAD_FAILED'].includes(event.data[0])
           ) {
             const folderId: string = event.data[1].folderId
-            const objectKey: string = event.data[1].objectKey
-            const folderIdAndKey = `${folderId}:${objectKey}`
+            const objectIdentifier: string = event.data[1].objectIdentifier
+            const folderIdAndKey = `${folderId}:${objectIdentifier}`
             if (event.data[0] === 'DOWNLOAD_FAILED') {
               downloading.current[folderIdAndKey]?.reject(
                 `Failed downloading file: ${JSON.stringify(
@@ -157,35 +143,19 @@ export const LocalFileCacheContextProvider = ({
               // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
               delete downloading.current[folderIdAndKey]
             } else {
-              void getDataFromDisk(folderId, objectKey).then((data) => {
+              void getDataFromDisk(folderId, objectIdentifier).then((data) => {
                 if (data?.dataURL) {
-                  addDataToMemory(folderId, objectKey, data)
+                  addDataToMemory(folderId, objectIdentifier, data)
                   // console.log('blob from disk:', blob, downloading.current)
                   downloading.current[folderIdAndKey]?.resolve(data)
                 } else {
                   downloading.current[folderIdAndKey]?.reject(
-                    `Failed to load data "${objectKey}" from disk.`,
+                    `Failed to load data "${objectIdentifier}" from disk.`,
                   )
                 }
                 // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
                 delete downloading.current[folderIdAndKey]
               })
-            }
-          } else if (
-            ['OPERATION_COMPLETED', 'OPERATION_FAILED'].includes(event.data[0])
-          ) {
-            // const folderId: string = event.data[1].folderId
-            const operationId: string = event.data[1]
-            if (event.data[0] === 'OPERATION_FAILED') {
-              operations.current[operationId]?.reject(
-                `Failed operation: ${operationId}`,
-              )
-              // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-              delete operations.current[operationId]
-            } else {
-              operations.current[operationId]?.resolve(true)
-              // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-              delete operations.current[operationId]
             }
           } else if (event.data[0] === 'LOG_MESSAGE') {
             // const folderId: string = event.data[1].folderId
@@ -204,16 +174,16 @@ export const LocalFileCacheContextProvider = ({
         // workerRef.current?.terminate()
       }
     }
-  }, [downloading, loggingContext, addDataToMemory])
+  }, [downloading, loggingContext, addDataToMemory, updateWorkerWithAuth])
 
   const downloadLocally = React.useCallback(
-    (folderId: string, objectKey: string) => {
+    (folderId: string, objectIdentifier: string) => {
       return new Promise(
         (
           resolve: (result: { dataURL: string; type: string }) => void,
           reject,
         ) => {
-          const folderIdAndKey = `${folderId}:${objectKey}`
+          const folderIdAndKey = `${folderId}:${objectIdentifier}`
           if (downloading.current[folderIdAndKey]) {
             const oldResolve = downloading.current[folderIdAndKey]?.resolve as (
               blob: any,
@@ -241,7 +211,7 @@ export const LocalFileCacheContextProvider = ({
             }
             workerRef.current?.postMessage([
               'DOWNLOAD',
-              { folderId, objectKey },
+              { folderId, objectIdentifier },
             ])
           }
         },
@@ -251,21 +221,21 @@ export const LocalFileCacheContextProvider = ({
   )
 
   const getData = React.useCallback(
-    async (folderId: string, objectKey: string) => {
+    async (folderId: string, objectIdentifier: string) => {
       let result: { dataURL: string; type: string } | undefined
-      result = getDataFromMemory(folderId, objectKey)
+      result = getDataFromMemory(folderId, objectIdentifier)
       // console.log('result from memory:', result)
       if (!result) {
-        const data = await getDataFromDisk(folderId, objectKey)
+        const data = await getDataFromDisk(folderId, objectIdentifier)
         if (data) {
-          result = addDataToMemory(folderId, objectKey, data)
+          result = addDataToMemory(folderId, objectIdentifier, data)
         }
 
         // console.log('blob from disk:', blob)
       }
       if (!result) {
         // blob = await getFileBlobFromDisk(folderId, k)
-        result = await downloadLocally(folderId, objectKey)
+        result = await downloadLocally(folderId, objectIdentifier)
         // console.log('blob from download:', blob)
       }
       // const fileType = blob.type
@@ -279,18 +249,20 @@ export const LocalFileCacheContextProvider = ({
     (folderId: string, objectKey: string, file: File) => {
       void workerRef.current?.postMessage([
         'UPLOAD',
-        { folderId, objectKey, uploadFile: file },
+        {
+          folderId,
+          objectIdentifier: `content:${objectKey}`,
+          uploadFile: file,
+        },
       ])
     },
     [],
   )
 
   const downloadToFile = React.useCallback(
-    (folderId: string, objectKey: string) => {
-      void getData(folderId, objectKey).then((f) => {
-        const splitKey = objectKey.split('/')
-        const filename = splitKey[splitKey.length - 1]
-        downloadData(f.dataURL, filename)
+    (folderId: string, objectIdentifer: string, downloadFilename: string) => {
+      void getData(folderId, objectIdentifer).then((f) => {
+        downloadData(f.dataURL, downloadFilename)
       })
     },
     [getData],
@@ -334,32 +306,6 @@ export const LocalFileCacheContextProvider = ({
     [localStorageFolderSizes],
   )
 
-  const regenerateObjectPreviews = React.useCallback(
-    async (folderId: string, objectKey: string) => {
-      return new Promise((resolve: (success: boolean) => void, reject) => {
-        const operationId = uuidV4()
-        const operation: AsyncOperation = {
-          id: operationId,
-          inputs: [
-            {
-              folderId,
-              objectKey,
-            },
-          ],
-          config: {},
-          opType: AsyncOpType.GENERATE_OBJECT_PREVIEWS,
-        }
-        operations.current[operationId] = {
-          operation,
-          resolve,
-          reject,
-        }
-        workerRef.current?.postMessage(['OPERATION', operation])
-      })
-    },
-    [],
-  )
-
   return (
     <LocalFileCacheContext.Provider
       value={{
@@ -374,7 +320,6 @@ export const LocalFileCacheContextProvider = ({
         isDownloading,
         downloadToFile,
         downloadLocally,
-        regenerateObjectPreviews,
         initialized: indexedDb?.initialized ?? false,
       }}
     >

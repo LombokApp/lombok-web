@@ -13,7 +13,7 @@
  * Do not edit the class manually.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ViewerApi = exports.ViewerApiFactory = exports.ViewerApiFp = exports.ViewerApiAxiosParamCreator = exports.S3ConnectionsApi = exports.S3ConnectionsApiFactory = exports.S3ConnectionsApiFp = exports.S3ConnectionsApiAxiosParamCreator = exports.FoldersApi = exports.FoldersApiFactory = exports.FoldersApiFp = exports.FoldersApiAxiosParamCreator = exports.AuthApi = exports.AuthApiFactory = exports.AuthApiFp = exports.AuthApiAxiosParamCreator = exports.AppConfigApi = exports.AppConfigApiFactory = exports.AppConfigApiFp = exports.AppConfigApiAxiosParamCreator = exports.PlatformRole = exports.MediaType = exports.InlineResponse2007MethodEnum = exports.FolderPermissionName = void 0;
+exports.WorkerApi = exports.WorkerApiFactory = exports.WorkerApiFp = exports.WorkerApiAxiosParamCreator = exports.ViewerApi = exports.ViewerApiFactory = exports.ViewerApiFp = exports.ViewerApiAxiosParamCreator = exports.S3ConnectionsApi = exports.S3ConnectionsApiFactory = exports.S3ConnectionsApiFp = exports.S3ConnectionsApiAxiosParamCreator = exports.FoldersApi = exports.FoldersApiFactory = exports.FoldersApiFp = exports.FoldersApiAxiosParamCreator = exports.AuthApi = exports.AuthApiFactory = exports.AuthApiFp = exports.AuthApiAxiosParamCreator = exports.SignedURLsRequestMethod = exports.PlatformRole = exports.MediaType = exports.FolderPermissionName = exports.FolderOperationName = void 0;
 const axios_1 = require("axios");
 // Some imports not used depending on template conditions
 // @ts-ignore
@@ -25,209 +25,59 @@ const base_1 = require("./base");
  * @export
  * @enum {string}
  */
-var FolderPermissionName;
-(function (FolderPermissionName) {
-    FolderPermissionName["FolderRefresh"] = "folder_refresh";
-    FolderPermissionName["FolderManageShares"] = "folder_manage_shares";
-    FolderPermissionName["FolderForget"] = "folder_forget";
-    FolderPermissionName["ObjectEdit"] = "object_edit";
-    FolderPermissionName["ObjectManage"] = "object_manage";
-    FolderPermissionName["TagCreate"] = "tag_create";
-    FolderPermissionName["TagAssociate"] = "tag_associate";
-})(FolderPermissionName = exports.FolderPermissionName || (exports.FolderPermissionName = {}));
-/**
-    * @export
-    * @enum {string}
-    */
-var InlineResponse2007MethodEnum;
-(function (InlineResponse2007MethodEnum) {
-    InlineResponse2007MethodEnum["Put"] = "PUT";
-    InlineResponse2007MethodEnum["Delete"] = "DELETE";
-    InlineResponse2007MethodEnum["Get"] = "GET";
-})(InlineResponse2007MethodEnum = exports.InlineResponse2007MethodEnum || (exports.InlineResponse2007MethodEnum = {}));
+exports.FolderOperationName = {
+    IndexFolder: 'IndexFolder',
+    IndexFolderObject: 'IndexFolderObject',
+    TranscribeAudio: 'TranscribeAudio',
+    DetectObjects: 'DetectObjects'
+};
 /**
  *
  * @export
  * @enum {string}
  */
-var MediaType;
-(function (MediaType) {
-    MediaType["Image"] = "IMAGE";
-    MediaType["Video"] = "VIDEO";
-    MediaType["Audio"] = "AUDIO";
-    MediaType["Document"] = "DOCUMENT";
-    MediaType["Unknown"] = "UNKNOWN";
-})(MediaType = exports.MediaType || (exports.MediaType = {}));
+exports.FolderPermissionName = {
+    FolderRefresh: 'folder_refresh',
+    FolderManageShares: 'folder_manage_shares',
+    FolderForget: 'folder_forget',
+    ObjectEdit: 'object_edit',
+    ObjectManage: 'object_manage',
+    TagCreate: 'tag_create',
+    TagAssociate: 'tag_associate'
+};
 /**
  *
  * @export
  * @enum {string}
  */
-var PlatformRole;
-(function (PlatformRole) {
-    PlatformRole["Anonymous"] = "ANONYMOUS";
-    PlatformRole["Authenticated"] = "AUTHENTICATED";
-    PlatformRole["Admin"] = "ADMIN";
-})(PlatformRole = exports.PlatformRole || (exports.PlatformRole = {}));
-/**
- * AppConfigApi - axios parameter creator
- * @export
- */
-const AppConfigApiAxiosParamCreator = function (configuration) {
-    return {
-        /**
-         *
-         * @param {string} key
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getAppConfig: async (key, options = {}) => {
-            // verify required parameter 'key' is not null or undefined
-            (0, common_1.assertParamExists)('getAppConfig', 'key', key);
-            const localVarPath = `/app-config/{key}`
-                .replace(`{${"key"}}`, encodeURIComponent(String(key)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
-            const localVarHeaderParameter = {};
-            const localVarQueryParameter = {};
-            // authentication AccessToken required
-            // http bearer authentication required
-            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            return {
-                url: (0, common_1.toPathString)(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         *
-         * @param {AppConfigCreateData} appConfigCreateData
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        setAppConfig: async (appConfigCreateData, options = {}) => {
-            // verify required parameter 'appConfigCreateData' is not null or undefined
-            (0, common_1.assertParamExists)('setAppConfig', 'appConfigCreateData', appConfigCreateData);
-            const localVarPath = `/app-config`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options };
-            const localVarHeaderParameter = {};
-            const localVarQueryParameter = {};
-            // authentication AccessToken required
-            // http bearer authentication required
-            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(appConfigCreateData, localVarRequestOptions, configuration);
-            return {
-                url: (0, common_1.toPathString)(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    };
+exports.MediaType = {
+    Image: 'IMAGE',
+    Video: 'VIDEO',
+    Audio: 'AUDIO',
+    Document: 'DOCUMENT',
+    Unknown: 'UNKNOWN'
 };
-exports.AppConfigApiAxiosParamCreator = AppConfigApiAxiosParamCreator;
 /**
- * AppConfigApi - functional programming interface
+ *
  * @export
+ * @enum {string}
  */
-const AppConfigApiFp = function (configuration) {
-    const localVarAxiosParamCreator = (0, exports.AppConfigApiAxiosParamCreator)(configuration);
-    return {
-        /**
-         *
-         * @param {string} key
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getAppConfig(key, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getAppConfig(key, options);
-            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
-        },
-        /**
-         *
-         * @param {AppConfigCreateData} appConfigCreateData
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async setAppConfig(appConfigCreateData, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.setAppConfig(appConfigCreateData, options);
-            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
-        },
-    };
+exports.PlatformRole = {
+    Anonymous: 'ANONYMOUS',
+    Authenticated: 'AUTHENTICATED',
+    Admin: 'ADMIN',
+    Service: 'SERVICE'
 };
-exports.AppConfigApiFp = AppConfigApiFp;
 /**
- * AppConfigApi - factory interface
+ *
  * @export
+ * @enum {string}
  */
-const AppConfigApiFactory = function (configuration, basePath, axios) {
-    const localVarFp = (0, exports.AppConfigApiFp)(configuration);
-    return {
-        /**
-         *
-         * @param {string} key
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getAppConfig(key, options) {
-            return localVarFp.getAppConfig(key, options).then((request) => request(axios, basePath));
-        },
-        /**
-         *
-         * @param {AppConfigCreateData} appConfigCreateData
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        setAppConfig(appConfigCreateData, options) {
-            return localVarFp.setAppConfig(appConfigCreateData, options).then((request) => request(axios, basePath));
-        },
-    };
+exports.SignedURLsRequestMethod = {
+    Put: 'PUT',
+    Delete: 'DELETE',
+    Get: 'GET'
 };
-exports.AppConfigApiFactory = AppConfigApiFactory;
-/**
- * AppConfigApi - object-oriented interface
- * @export
- * @class AppConfigApi
- * @extends {BaseAPI}
- */
-class AppConfigApi extends base_1.BaseAPI {
-    /**
-     *
-     * @param {AppConfigApiGetAppConfigRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof AppConfigApi
-     */
-    getAppConfig(requestParameters, options) {
-        return (0, exports.AppConfigApiFp)(this.configuration).getAppConfig(requestParameters.key, options).then((request) => request(this.axios, this.basePath));
-    }
-    /**
-     *
-     * @param {AppConfigApiSetAppConfigRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof AppConfigApi
-     */
-    setAppConfig(requestParameters, options) {
-        return (0, exports.AppConfigApiFp)(this.configuration).setAppConfig(requestParameters.appConfigCreateData, options).then((request) => request(this.axios, this.basePath));
-    }
-}
-exports.AppConfigApi = AppConfigApi;
 /**
  * AuthApi - axios parameter creator
  * @export
@@ -254,7 +104,7 @@ const AuthApiAxiosParamCreator = function (configuration) {
             const localVarHeaderParameter = {};
             const localVarQueryParameter = {};
             localVarHeaderParameter['Content-Type'] = 'application/json';
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(loginParams, localVarRequestOptions, configuration);
@@ -282,9 +132,7 @@ const AuthApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            // authentication RefreshToken required
-            await (0, common_1.setApiKeyToObject)(localVarQueryParameter, "refresh_token", configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -310,9 +158,38 @@ const AuthApiAxiosParamCreator = function (configuration) {
             const localVarQueryParameter = {};
             // authentication RefreshToken required
             await (0, common_1.setApiKeyToObject)(localVarQueryParameter, "refresh_token", configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Given a user\'s credentials, this endpoint will create a new user.
+         * @param {SignupRequest} signupRequest
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        signup: async (signupRequest, options = {}) => {
+            // verify required parameter 'signupRequest' is not null or undefined
+            (0, common_1.assertParamExists)('signup', 'signupRequest', signupRequest);
+            const localVarPath = `/signup`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(signupRequest, localVarRequestOptions, configuration);
             return {
                 url: (0, common_1.toPathString)(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -356,6 +233,16 @@ const AuthApiFp = function (configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.refreshToken(options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
+        /**
+         * Given a user\'s credentials, this endpoint will create a new user.
+         * @param {SignupRequest} signupRequest
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async signup(signupRequest, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.signup(signupRequest, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
     };
 };
 exports.AuthApiFp = AuthApiFp;
@@ -368,12 +255,12 @@ const AuthApiFactory = function (configuration, basePath, axios) {
     return {
         /**
          *
-         * @param {LoginParams} loginParams
+         * @param {AuthApiLoginRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login(loginParams, options) {
-            return localVarFp.login(loginParams, options).then((request) => request(axios, basePath));
+        login(requestParameters, options) {
+            return localVarFp.login(requestParameters.loginParams, options).then((request) => request(axios, basePath));
         },
         /**
          *
@@ -390,6 +277,15 @@ const AuthApiFactory = function (configuration, basePath, axios) {
          */
         refreshToken(options) {
             return localVarFp.refreshToken(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Given a user\'s credentials, this endpoint will create a new user.
+         * @param {AuthApiSignupRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        signup(requestParameters, options) {
+            return localVarFp.signup(requestParameters.signupRequest, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -429,6 +325,16 @@ class AuthApi extends base_1.BaseAPI {
     refreshToken(options) {
         return (0, exports.AuthApiFp)(this.configuration).refreshToken(options).then((request) => request(this.axios, this.basePath));
     }
+    /**
+     * Given a user\'s credentials, this endpoint will create a new user.
+     * @param {AuthApiSignupRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApi
+     */
+    signup(requestParameters, options) {
+        return (0, exports.AuthApiFp)(this.configuration).signup(requestParameters.signupRequest, options).then((request) => request(this.axios, this.basePath));
+    }
 }
 exports.AuthApi = AuthApi;
 /**
@@ -439,13 +345,13 @@ const FoldersApiAxiosParamCreator = function (configuration) {
     return {
         /**
          *
-         * @param {InlineObject} inlineObject
+         * @param {CreateFolderRequest} createFolderRequest
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createFolder: async (inlineObject, options = {}) => {
-            // verify required parameter 'inlineObject' is not null or undefined
-            (0, common_1.assertParamExists)('createFolder', 'inlineObject', inlineObject);
+        createFolder: async (createFolderRequest, options = {}) => {
+            // verify required parameter 'createFolderRequest' is not null or undefined
+            (0, common_1.assertParamExists)('createFolder', 'createFolderRequest', createFolderRequest);
             const localVarPath = `/folders`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
@@ -460,10 +366,10 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
             localVarHeaderParameter['Content-Type'] = 'application/json';
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(inlineObject, localVarRequestOptions, configuration);
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(createFolderRequest, localVarRequestOptions, configuration);
             return {
                 url: (0, common_1.toPathString)(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -496,7 +402,7 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
             localVarHeaderParameter['Content-Type'] = 'application/json';
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(createFolderSharePayload, localVarRequestOptions, configuration);
@@ -508,15 +414,15 @@ const FoldersApiAxiosParamCreator = function (configuration) {
         /**
          *
          * @param {string} folderId
-         * @param {Array<object>} requestBody
+         * @param {Array<SignedURLsRequest>} signedURLsRequest
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createPresignedURLs: async (folderId, requestBody, options = {}) => {
+        createPresignedUrls: async (folderId, signedURLsRequest, options = {}) => {
             // verify required parameter 'folderId' is not null or undefined
-            (0, common_1.assertParamExists)('createPresignedURLs', 'folderId', folderId);
-            // verify required parameter 'requestBody' is not null or undefined
-            (0, common_1.assertParamExists)('createPresignedURLs', 'requestBody', requestBody);
+            (0, common_1.assertParamExists)('createPresignedUrls', 'folderId', folderId);
+            // verify required parameter 'signedURLsRequest' is not null or undefined
+            (0, common_1.assertParamExists)('createPresignedUrls', 'signedURLsRequest', signedURLsRequest);
             const localVarPath = `/folders/{folderId}/presigned-urls`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -532,10 +438,10 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
             localVarHeaderParameter['Content-Type'] = 'application/json';
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(requestBody, localVarRequestOptions, configuration);
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(signedURLsRequest, localVarRequestOptions, configuration);
             return {
                 url: (0, common_1.toPathString)(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -544,15 +450,46 @@ const FoldersApiAxiosParamCreator = function (configuration) {
         /**
          *
          * @param {string} folderId
-         * @param {InlineObject2} inlineObject2
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createTag: async (folderId, inlineObject2, options = {}) => {
+        createSocketAuthentication: async (folderId, options = {}) => {
+            // verify required parameter 'folderId' is not null or undefined
+            (0, common_1.assertParamExists)('createSocketAuthentication', 'folderId', folderId);
+            const localVarPath = `/folders/{folderId}/socket-auth`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication AccessToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} folderId
+         * @param {CreateTagRequest} createTagRequest
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createTag: async (folderId, createTagRequest, options = {}) => {
             // verify required parameter 'folderId' is not null or undefined
             (0, common_1.assertParamExists)('createTag', 'folderId', folderId);
-            // verify required parameter 'inlineObject2' is not null or undefined
-            (0, common_1.assertParamExists)('createTag', 'inlineObject2', inlineObject2);
+            // verify required parameter 'createTagRequest' is not null or undefined
+            (0, common_1.assertParamExists)('createTag', 'createTagRequest', createTagRequest);
             const localVarPath = `/folders/{folderId}/tags`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -568,10 +505,10 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
             localVarHeaderParameter['Content-Type'] = 'application/json';
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(inlineObject2, localVarRequestOptions, configuration);
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(createTagRequest, localVarRequestOptions, configuration);
             return {
                 url: (0, common_1.toPathString)(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -600,7 +537,7 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -635,7 +572,7 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -670,7 +607,7 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -705,9 +642,45 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} folderId
+         * @param {FolderOperationRequestPayload} folderOperationRequestPayload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        enqueueFolderOperation: async (folderId, folderOperationRequestPayload, options = {}) => {
+            // verify required parameter 'folderId' is not null or undefined
+            (0, common_1.assertParamExists)('enqueueFolderOperation', 'folderId', folderId);
+            // verify required parameter 'folderOperationRequestPayload' is not null or undefined
+            (0, common_1.assertParamExists)('enqueueFolderOperation', 'folderOperationRequestPayload', folderOperationRequestPayload);
+            const localVarPath = `/folders/{folderId}/objects/{objectKey}/operations`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication AccessToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(folderOperationRequestPayload, localVarRequestOptions, configuration);
             return {
                 url: (0, common_1.toPathString)(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -736,7 +709,7 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -767,7 +740,7 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -802,7 +775,7 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -849,7 +822,38 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             if (limit !== undefined) {
                 localVarQueryParameter['limit'] = limit;
             }
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} folderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listFolderOperations: async (folderId, options = {}) => {
+            // verify required parameter 'folderId' is not null or undefined
+            (0, common_1.assertParamExists)('listFolderOperations', 'folderId', folderId);
+            const localVarPath = `/folders/{folderId}/folder-operations`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication AccessToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -880,7 +884,7 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -907,7 +911,7 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -938,7 +942,7 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -969,7 +973,7 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -981,17 +985,17 @@ const FoldersApiAxiosParamCreator = function (configuration) {
          *
          * @param {string} folderId
          * @param {string} objectKey
-         * @param {InlineObject1} inlineObject1
+         * @param {RefreshFolderObjectS3MetadataRequest} refreshFolderObjectS3MetadataRequest
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        refreshFolderObjectS3Metadata: async (folderId, objectKey, inlineObject1, options = {}) => {
+        refreshFolderObjectS3Metadata: async (folderId, objectKey, refreshFolderObjectS3MetadataRequest, options = {}) => {
             // verify required parameter 'folderId' is not null or undefined
             (0, common_1.assertParamExists)('refreshFolderObjectS3Metadata', 'folderId', folderId);
             // verify required parameter 'objectKey' is not null or undefined
             (0, common_1.assertParamExists)('refreshFolderObjectS3Metadata', 'objectKey', objectKey);
-            // verify required parameter 'inlineObject1' is not null or undefined
-            (0, common_1.assertParamExists)('refreshFolderObjectS3Metadata', 'inlineObject1', inlineObject1);
+            // verify required parameter 'refreshFolderObjectS3MetadataRequest' is not null or undefined
+            (0, common_1.assertParamExists)('refreshFolderObjectS3Metadata', 'refreshFolderObjectS3MetadataRequest', refreshFolderObjectS3MetadataRequest);
             const localVarPath = `/folders/{folderId}/objects/{objectKey}`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
                 .replace(`{${"objectKey"}}`, encodeURIComponent(String(objectKey)));
@@ -1008,10 +1012,10 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
             localVarHeaderParameter['Content-Type'] = 'application/json';
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(inlineObject1, localVarRequestOptions, configuration);
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(refreshFolderObjectS3MetadataRequest, localVarRequestOptions, configuration);
             return {
                 url: (0, common_1.toPathString)(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -1048,7 +1052,7 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -1087,49 +1091,9 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            return {
-                url: (0, common_1.toPathString)(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         *
-         * @param {string} folderId
-         * @param {string} objectKey
-         * @param {FolderObjectContentMetadata} folderObjectContentMetadata
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        updateFolderObjectContentMetadata: async (folderId, objectKey, folderObjectContentMetadata, options = {}) => {
-            // verify required parameter 'folderId' is not null or undefined
-            (0, common_1.assertParamExists)('updateFolderObjectContentMetadata', 'folderId', folderId);
-            // verify required parameter 'objectKey' is not null or undefined
-            (0, common_1.assertParamExists)('updateFolderObjectContentMetadata', 'objectKey', objectKey);
-            // verify required parameter 'folderObjectContentMetadata' is not null or undefined
-            (0, common_1.assertParamExists)('updateFolderObjectContentMetadata', 'folderObjectContentMetadata', folderObjectContentMetadata);
-            const localVarPath = `/folders/{folderId}/objects/{objectKey}/content-metadata`
-                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
-                .replace(`{${"objectKey"}}`, encodeURIComponent(String(objectKey)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options };
-            const localVarHeaderParameter = {};
-            const localVarQueryParameter = {};
-            // authentication AccessToken required
-            // http bearer authentication required
-            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(folderObjectContentMetadata, localVarRequestOptions, configuration);
             return {
                 url: (0, common_1.toPathString)(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -1166,7 +1130,7 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
             localVarHeaderParameter['Content-Type'] = 'application/json';
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(updateFolderSharePayload, localVarRequestOptions, configuration);
@@ -1179,17 +1143,17 @@ const FoldersApiAxiosParamCreator = function (configuration) {
          *
          * @param {string} folderId
          * @param {string} tagId
-         * @param {InlineObject3} inlineObject3
+         * @param {CreateTagRequest} createTagRequest
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTag: async (folderId, tagId, inlineObject3, options = {}) => {
+        updateTag: async (folderId, tagId, createTagRequest, options = {}) => {
             // verify required parameter 'folderId' is not null or undefined
             (0, common_1.assertParamExists)('updateTag', 'folderId', folderId);
             // verify required parameter 'tagId' is not null or undefined
             (0, common_1.assertParamExists)('updateTag', 'tagId', tagId);
-            // verify required parameter 'inlineObject3' is not null or undefined
-            (0, common_1.assertParamExists)('updateTag', 'inlineObject3', inlineObject3);
+            // verify required parameter 'createTagRequest' is not null or undefined
+            (0, common_1.assertParamExists)('updateTag', 'createTagRequest', createTagRequest);
             const localVarPath = `/folders/{folderId}/tags/{tagId}`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
                 .replace(`{${"tagId"}}`, encodeURIComponent(String(tagId)));
@@ -1206,10 +1170,10 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
             localVarHeaderParameter['Content-Type'] = 'application/json';
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(inlineObject3, localVarRequestOptions, configuration);
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(createTagRequest, localVarRequestOptions, configuration);
             return {
                 url: (0, common_1.toPathString)(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -1227,12 +1191,12 @@ const FoldersApiFp = function (configuration) {
     return {
         /**
          *
-         * @param {InlineObject} inlineObject
+         * @param {CreateFolderRequest} createFolderRequest
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createFolder(inlineObject, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createFolder(inlineObject, options);
+        async createFolder(createFolderRequest, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createFolder(createFolderRequest, options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
         /**
@@ -1249,23 +1213,33 @@ const FoldersApiFp = function (configuration) {
         /**
          *
          * @param {string} folderId
-         * @param {Array<object>} requestBody
+         * @param {Array<SignedURLsRequest>} signedURLsRequest
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createPresignedURLs(folderId, requestBody, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createPresignedURLs(folderId, requestBody, options);
+        async createPresignedUrls(folderId, signedURLsRequest, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createPresignedUrls(folderId, signedURLsRequest, options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
         /**
          *
          * @param {string} folderId
-         * @param {InlineObject2} inlineObject2
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createTag(folderId, inlineObject2, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createTag(folderId, inlineObject2, options);
+        async createSocketAuthentication(folderId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createSocketAuthentication(folderId, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} folderId
+         * @param {CreateTagRequest} createTagRequest
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createTag(folderId, createTagRequest, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createTag(folderId, createTagRequest, options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
         /**
@@ -1309,6 +1283,17 @@ const FoldersApiFp = function (configuration) {
          */
         async deleteTag(folderId, tagId, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.deleteTag(folderId, tagId, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} folderId
+         * @param {FolderOperationRequestPayload} folderOperationRequestPayload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async enqueueFolderOperation(folderId, folderOperationRequestPayload, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.enqueueFolderOperation(folderId, folderOperationRequestPayload, options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
         /**
@@ -1362,6 +1347,16 @@ const FoldersApiFp = function (configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
+        async listFolderOperations(folderId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderOperations(folderId, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} folderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
         async listFolderShares(folderId, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderShares(folderId, options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
@@ -1399,12 +1394,12 @@ const FoldersApiFp = function (configuration) {
          *
          * @param {string} folderId
          * @param {string} objectKey
-         * @param {InlineObject1} inlineObject1
+         * @param {RefreshFolderObjectS3MetadataRequest} refreshFolderObjectS3MetadataRequest
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async refreshFolderObjectS3Metadata(folderId, objectKey, inlineObject1, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.refreshFolderObjectS3Metadata(folderId, objectKey, inlineObject1, options);
+        async refreshFolderObjectS3Metadata(folderId, objectKey, refreshFolderObjectS3MetadataRequest, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.refreshFolderObjectS3Metadata(folderId, objectKey, refreshFolderObjectS3MetadataRequest, options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
         /**
@@ -1434,18 +1429,6 @@ const FoldersApiFp = function (configuration) {
         /**
          *
          * @param {string} folderId
-         * @param {string} objectKey
-         * @param {FolderObjectContentMetadata} folderObjectContentMetadata
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async updateFolderObjectContentMetadata(folderId, objectKey, folderObjectContentMetadata, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateFolderObjectContentMetadata(folderId, objectKey, folderObjectContentMetadata, options);
-            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
-        },
-        /**
-         *
-         * @param {string} folderId
          * @param {string} shareId
          * @param {UpdateFolderSharePayload} updateFolderSharePayload
          * @param {*} [options] Override http request option.
@@ -1459,12 +1442,12 @@ const FoldersApiFp = function (configuration) {
          *
          * @param {string} folderId
          * @param {string} tagId
-         * @param {InlineObject3} inlineObject3
+         * @param {CreateTagRequest} createTagRequest
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateTag(folderId, tagId, inlineObject3, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTag(folderId, tagId, inlineObject3, options);
+        async updateTag(folderId, tagId, createTagRequest, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTag(folderId, tagId, createTagRequest, options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
     };
@@ -1479,131 +1462,147 @@ const FoldersApiFactory = function (configuration, basePath, axios) {
     return {
         /**
          *
-         * @param {InlineObject} inlineObject
+         * @param {FoldersApiCreateFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createFolder(inlineObject, options) {
-            return localVarFp.createFolder(inlineObject, options).then((request) => request(axios, basePath));
+        createFolder(requestParameters, options) {
+            return localVarFp.createFolder(requestParameters.createFolderRequest, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
-         * @param {CreateFolderSharePayload} createFolderSharePayload
+         * @param {FoldersApiCreateFolderShareRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createFolderShare(folderId, createFolderSharePayload, options) {
-            return localVarFp.createFolderShare(folderId, createFolderSharePayload, options).then((request) => request(axios, basePath));
+        createFolderShare(requestParameters, options) {
+            return localVarFp.createFolderShare(requestParameters.folderId, requestParameters.createFolderSharePayload, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
-         * @param {Array<object>} requestBody
+         * @param {FoldersApiCreatePresignedUrlsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createPresignedURLs(folderId, requestBody, options) {
-            return localVarFp.createPresignedURLs(folderId, requestBody, options).then((request) => request(axios, basePath));
+        createPresignedUrls(requestParameters, options) {
+            return localVarFp.createPresignedUrls(requestParameters.folderId, requestParameters.signedURLsRequest, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
-         * @param {InlineObject2} inlineObject2
+         * @param {FoldersApiCreateSocketAuthenticationRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createTag(folderId, inlineObject2, options) {
-            return localVarFp.createTag(folderId, inlineObject2, options).then((request) => request(axios, basePath));
+        createSocketAuthentication(requestParameters, options) {
+            return localVarFp.createSocketAuthentication(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
+         * @param {FoldersApiCreateTagRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteFolder(folderId, options) {
-            return localVarFp.deleteFolder(folderId, options).then((request) => request(axios, basePath));
+        createTag(requestParameters, options) {
+            return localVarFp.createTag(requestParameters.folderId, requestParameters.createTagRequest, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
-         * @param {string} objectKey
+         * @param {FoldersApiDeleteFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteFolderObject(folderId, objectKey, options) {
-            return localVarFp.deleteFolderObject(folderId, objectKey, options).then((request) => request(axios, basePath));
+        deleteFolder(requestParameters, options) {
+            return localVarFp.deleteFolder(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
-         * @param {string} shareId
+         * @param {FoldersApiDeleteFolderObjectRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteFolderShare(folderId, shareId, options) {
-            return localVarFp.deleteFolderShare(folderId, shareId, options).then((request) => request(axios, basePath));
+        deleteFolderObject(requestParameters, options) {
+            return localVarFp.deleteFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
-         * @param {string} tagId
+         * @param {FoldersApiDeleteFolderShareRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteTag(folderId, tagId, options) {
-            return localVarFp.deleteTag(folderId, tagId, options).then((request) => request(axios, basePath));
+        deleteFolderShare(requestParameters, options) {
+            return localVarFp.deleteFolderShare(requestParameters.folderId, requestParameters.shareId, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
+         * @param {FoldersApiDeleteTagRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getFolder(folderId, options) {
-            return localVarFp.getFolder(folderId, options).then((request) => request(axios, basePath));
+        deleteTag(requestParameters, options) {
+            return localVarFp.deleteTag(requestParameters.folderId, requestParameters.tagId, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
+         * @param {FoldersApiEnqueueFolderOperationRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getFolderMetadata(folderId, options) {
-            return localVarFp.getFolderMetadata(folderId, options).then((request) => request(axios, basePath));
+        enqueueFolderOperation(requestParameters, options) {
+            return localVarFp.enqueueFolderOperation(requestParameters.folderId, requestParameters.folderOperationRequestPayload, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
-         * @param {string} objectKey
+         * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getFolderObject(folderId, objectKey, options) {
-            return localVarFp.getFolderObject(folderId, objectKey, options).then((request) => request(axios, basePath));
+        getFolder(requestParameters, options) {
+            return localVarFp.getFolder(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
-         * @param {string} [search]
-         * @param {string} [tagId]
-         * @param {number} [offset]
-         * @param {number} [limit]
+         * @param {FoldersApiGetFolderMetadataRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listFolderObjects(folderId, search, tagId, offset, limit, options) {
-            return localVarFp.listFolderObjects(folderId, search, tagId, offset, limit, options).then((request) => request(axios, basePath));
+        getFolderMetadata(requestParameters, options) {
+            return localVarFp.getFolderMetadata(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
+         * @param {FoldersApiGetFolderObjectRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listFolderShares(folderId, options) {
-            return localVarFp.listFolderShares(folderId, options).then((request) => request(axios, basePath));
+        getFolderObject(requestParameters, options) {
+            return localVarFp.getFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listFolderObjects(requestParameters, options) {
+            return localVarFp.listFolderObjects(requestParameters.folderId, requestParameters.search, requestParameters.tagId, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {FoldersApiListFolderOperationsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listFolderOperations(requestParameters, options) {
+            return localVarFp.listFolderOperations(requestParameters.folderId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {FoldersApiListFolderSharesRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listFolderShares(requestParameters, options) {
+            return localVarFp.listFolderShares(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
         /**
          *
@@ -1615,87 +1614,66 @@ const FoldersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
-         * @param {string} folderId
+         * @param {FoldersApiListTagsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listTags(folderId, options) {
-            return localVarFp.listTags(folderId, options).then((request) => request(axios, basePath));
+        listTags(requestParameters, options) {
+            return localVarFp.listTags(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
+         * @param {FoldersApiRefreshFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        refreshFolder(folderId, options) {
-            return localVarFp.refreshFolder(folderId, options).then((request) => request(axios, basePath));
+        refreshFolder(requestParameters, options) {
+            return localVarFp.refreshFolder(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
-         * @param {string} objectKey
-         * @param {InlineObject1} inlineObject1
+         * @param {FoldersApiRefreshFolderObjectS3MetadataRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        refreshFolderObjectS3Metadata(folderId, objectKey, inlineObject1, options) {
-            return localVarFp.refreshFolderObjectS3Metadata(folderId, objectKey, inlineObject1, options).then((request) => request(axios, basePath));
+        refreshFolderObjectS3Metadata(requestParameters, options) {
+            return localVarFp.refreshFolderObjectS3Metadata(requestParameters.folderId, requestParameters.objectKey, requestParameters.refreshFolderObjectS3MetadataRequest, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
-         * @param {string} objectKey
-         * @param {string} tagId
+         * @param {FoldersApiTagObjectRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        tagObject(folderId, objectKey, tagId, options) {
-            return localVarFp.tagObject(folderId, objectKey, tagId, options).then((request) => request(axios, basePath));
+        tagObject(requestParameters, options) {
+            return localVarFp.tagObject(requestParameters.folderId, requestParameters.objectKey, requestParameters.tagId, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
-         * @param {string} objectKey
-         * @param {string} tagId
+         * @param {FoldersApiUntagObjectRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        untagObject(folderId, objectKey, tagId, options) {
-            return localVarFp.untagObject(folderId, objectKey, tagId, options).then((request) => request(axios, basePath));
+        untagObject(requestParameters, options) {
+            return localVarFp.untagObject(requestParameters.folderId, requestParameters.objectKey, requestParameters.tagId, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
-         * @param {string} objectKey
-         * @param {FolderObjectContentMetadata} folderObjectContentMetadata
+         * @param {FoldersApiUpdateFolderShareRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateFolderObjectContentMetadata(folderId, objectKey, folderObjectContentMetadata, options) {
-            return localVarFp.updateFolderObjectContentMetadata(folderId, objectKey, folderObjectContentMetadata, options).then((request) => request(axios, basePath));
+        updateFolderShare(requestParameters, options) {
+            return localVarFp.updateFolderShare(requestParameters.folderId, requestParameters.shareId, requestParameters.updateFolderSharePayload, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} folderId
-         * @param {string} shareId
-         * @param {UpdateFolderSharePayload} updateFolderSharePayload
+         * @param {FoldersApiUpdateTagRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateFolderShare(folderId, shareId, updateFolderSharePayload, options) {
-            return localVarFp.updateFolderShare(folderId, shareId, updateFolderSharePayload, options).then((request) => request(axios, basePath));
-        },
-        /**
-         *
-         * @param {string} folderId
-         * @param {string} tagId
-         * @param {InlineObject3} inlineObject3
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        updateTag(folderId, tagId, inlineObject3, options) {
-            return localVarFp.updateTag(folderId, tagId, inlineObject3, options).then((request) => request(axios, basePath));
+        updateTag(requestParameters, options) {
+            return localVarFp.updateTag(requestParameters.folderId, requestParameters.tagId, requestParameters.createTagRequest, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -1715,7 +1693,7 @@ class FoldersApi extends base_1.BaseAPI {
      * @memberof FoldersApi
      */
     createFolder(requestParameters, options) {
-        return (0, exports.FoldersApiFp)(this.configuration).createFolder(requestParameters.inlineObject, options).then((request) => request(this.axios, this.basePath));
+        return (0, exports.FoldersApiFp)(this.configuration).createFolder(requestParameters.createFolderRequest, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
@@ -1729,13 +1707,23 @@ class FoldersApi extends base_1.BaseAPI {
     }
     /**
      *
-     * @param {FoldersApiCreatePresignedURLsRequest} requestParameters Request parameters.
+     * @param {FoldersApiCreatePresignedUrlsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    createPresignedURLs(requestParameters, options) {
-        return (0, exports.FoldersApiFp)(this.configuration).createPresignedURLs(requestParameters.folderId, requestParameters.requestBody, options).then((request) => request(this.axios, this.basePath));
+    createPresignedUrls(requestParameters, options) {
+        return (0, exports.FoldersApiFp)(this.configuration).createPresignedUrls(requestParameters.folderId, requestParameters.signedURLsRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {FoldersApiCreateSocketAuthenticationRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    createSocketAuthentication(requestParameters, options) {
+        return (0, exports.FoldersApiFp)(this.configuration).createSocketAuthentication(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
@@ -1745,7 +1733,7 @@ class FoldersApi extends base_1.BaseAPI {
      * @memberof FoldersApi
      */
     createTag(requestParameters, options) {
-        return (0, exports.FoldersApiFp)(this.configuration).createTag(requestParameters.folderId, requestParameters.inlineObject2, options).then((request) => request(this.axios, this.basePath));
+        return (0, exports.FoldersApiFp)(this.configuration).createTag(requestParameters.folderId, requestParameters.createTagRequest, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
@@ -1789,6 +1777,16 @@ class FoldersApi extends base_1.BaseAPI {
     }
     /**
      *
+     * @param {FoldersApiEnqueueFolderOperationRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    enqueueFolderOperation(requestParameters, options) {
+        return (0, exports.FoldersApiFp)(this.configuration).enqueueFolderOperation(requestParameters.folderId, requestParameters.folderOperationRequestPayload, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
      * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1826,6 +1824,16 @@ class FoldersApi extends base_1.BaseAPI {
      */
     listFolderObjects(requestParameters, options) {
         return (0, exports.FoldersApiFp)(this.configuration).listFolderObjects(requestParameters.folderId, requestParameters.search, requestParameters.tagId, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {FoldersApiListFolderOperationsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    listFolderOperations(requestParameters, options) {
+        return (0, exports.FoldersApiFp)(this.configuration).listFolderOperations(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
@@ -1874,7 +1882,7 @@ class FoldersApi extends base_1.BaseAPI {
      * @memberof FoldersApi
      */
     refreshFolderObjectS3Metadata(requestParameters, options) {
-        return (0, exports.FoldersApiFp)(this.configuration).refreshFolderObjectS3Metadata(requestParameters.folderId, requestParameters.objectKey, requestParameters.inlineObject1, options).then((request) => request(this.axios, this.basePath));
+        return (0, exports.FoldersApiFp)(this.configuration).refreshFolderObjectS3Metadata(requestParameters.folderId, requestParameters.objectKey, requestParameters.refreshFolderObjectS3MetadataRequest, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
@@ -1898,16 +1906,6 @@ class FoldersApi extends base_1.BaseAPI {
     }
     /**
      *
-     * @param {FoldersApiUpdateFolderObjectContentMetadataRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FoldersApi
-     */
-    updateFolderObjectContentMetadata(requestParameters, options) {
-        return (0, exports.FoldersApiFp)(this.configuration).updateFolderObjectContentMetadata(requestParameters.folderId, requestParameters.objectKey, requestParameters.folderObjectContentMetadata, options).then((request) => request(this.axios, this.basePath));
-    }
-    /**
-     *
      * @param {FoldersApiUpdateFolderShareRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1924,7 +1922,7 @@ class FoldersApi extends base_1.BaseAPI {
      * @memberof FoldersApi
      */
     updateTag(requestParameters, options) {
-        return (0, exports.FoldersApiFp)(this.configuration).updateTag(requestParameters.folderId, requestParameters.tagId, requestParameters.inlineObject3, options).then((request) => request(this.axios, this.basePath));
+        return (0, exports.FoldersApiFp)(this.configuration).updateTag(requestParameters.folderId, requestParameters.tagId, requestParameters.createTagRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 exports.FoldersApi = FoldersApi;
@@ -1936,13 +1934,13 @@ const S3ConnectionsApiAxiosParamCreator = function (configuration) {
     return {
         /**
          *
-         * @param {InlineObject4} inlineObject4
+         * @param {CreateS3ConnectionRequest} createS3ConnectionRequest
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createS3Connection: async (inlineObject4, options = {}) => {
-            // verify required parameter 'inlineObject4' is not null or undefined
-            (0, common_1.assertParamExists)('createS3Connection', 'inlineObject4', inlineObject4);
+        createS3Connection: async (createS3ConnectionRequest, options = {}) => {
+            // verify required parameter 'createS3ConnectionRequest' is not null or undefined
+            (0, common_1.assertParamExists)('createS3Connection', 'createS3ConnectionRequest', createS3ConnectionRequest);
             const localVarPath = `/s3-connections`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
@@ -1957,10 +1955,10 @@ const S3ConnectionsApiAxiosParamCreator = function (configuration) {
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
             localVarHeaderParameter['Content-Type'] = 'application/json';
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(inlineObject4, localVarRequestOptions, configuration);
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(createS3ConnectionRequest, localVarRequestOptions, configuration);
             return {
                 url: (0, common_1.toPathString)(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -1989,7 +1987,7 @@ const S3ConnectionsApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -2020,7 +2018,7 @@ const S3ConnectionsApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -2047,7 +2045,7 @@ const S3ConnectionsApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -2057,13 +2055,13 @@ const S3ConnectionsApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
-         * @param {InlineObject5} inlineObject5
+         * @param {CreateS3ConnectionRequest} createS3ConnectionRequest
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        testS3Connection: async (inlineObject5, options = {}) => {
-            // verify required parameter 'inlineObject5' is not null or undefined
-            (0, common_1.assertParamExists)('testS3Connection', 'inlineObject5', inlineObject5);
+        testS3Connection: async (createS3ConnectionRequest, options = {}) => {
+            // verify required parameter 'createS3ConnectionRequest' is not null or undefined
+            (0, common_1.assertParamExists)('testS3Connection', 'createS3ConnectionRequest', createS3ConnectionRequest);
             const localVarPath = `/s3-connections/test`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
@@ -2078,10 +2076,10 @@ const S3ConnectionsApiAxiosParamCreator = function (configuration) {
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
             localVarHeaderParameter['Content-Type'] = 'application/json';
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(inlineObject5, localVarRequestOptions, configuration);
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(createS3ConnectionRequest, localVarRequestOptions, configuration);
             return {
                 url: (0, common_1.toPathString)(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -2099,12 +2097,12 @@ const S3ConnectionsApiFp = function (configuration) {
     return {
         /**
          *
-         * @param {InlineObject4} inlineObject4
+         * @param {CreateS3ConnectionRequest} createS3ConnectionRequest
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createS3Connection(inlineObject4, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createS3Connection(inlineObject4, options);
+        async createS3Connection(createS3ConnectionRequest, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createS3Connection(createS3ConnectionRequest, options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
         /**
@@ -2138,12 +2136,12 @@ const S3ConnectionsApiFp = function (configuration) {
         },
         /**
          *
-         * @param {InlineObject5} inlineObject5
+         * @param {CreateS3ConnectionRequest} createS3ConnectionRequest
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async testS3Connection(inlineObject5, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.testS3Connection(inlineObject5, options);
+        async testS3Connection(createS3ConnectionRequest, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.testS3Connection(createS3ConnectionRequest, options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
     };
@@ -2158,30 +2156,30 @@ const S3ConnectionsApiFactory = function (configuration, basePath, axios) {
     return {
         /**
          *
-         * @param {InlineObject4} inlineObject4
+         * @param {S3ConnectionsApiCreateS3ConnectionRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createS3Connection(inlineObject4, options) {
-            return localVarFp.createS3Connection(inlineObject4, options).then((request) => request(axios, basePath));
+        createS3Connection(requestParameters, options) {
+            return localVarFp.createS3Connection(requestParameters.createS3ConnectionRequest, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} s3ConnectionId
+         * @param {S3ConnectionsApiDeleteS3ConnectionRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteS3Connection(s3ConnectionId, options) {
-            return localVarFp.deleteS3Connection(s3ConnectionId, options).then((request) => request(axios, basePath));
+        deleteS3Connection(requestParameters, options) {
+            return localVarFp.deleteS3Connection(requestParameters.s3ConnectionId, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {string} s3ConnectionId
+         * @param {S3ConnectionsApiGetS3ConnectionRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getS3Connection(s3ConnectionId, options) {
-            return localVarFp.getS3Connection(s3ConnectionId, options).then((request) => request(axios, basePath));
+        getS3Connection(requestParameters, options) {
+            return localVarFp.getS3Connection(requestParameters.s3ConnectionId, options).then((request) => request(axios, basePath));
         },
         /**
          *
@@ -2193,12 +2191,12 @@ const S3ConnectionsApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
-         * @param {InlineObject5} inlineObject5
+         * @param {S3ConnectionsApiTestS3ConnectionRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        testS3Connection(inlineObject5, options) {
-            return localVarFp.testS3Connection(inlineObject5, options).then((request) => request(axios, basePath));
+        testS3Connection(requestParameters, options) {
+            return localVarFp.testS3Connection(requestParameters.createS3ConnectionRequest, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -2218,7 +2216,7 @@ class S3ConnectionsApi extends base_1.BaseAPI {
      * @memberof S3ConnectionsApi
      */
     createS3Connection(requestParameters, options) {
-        return (0, exports.S3ConnectionsApiFp)(this.configuration).createS3Connection(requestParameters.inlineObject4, options).then((request) => request(this.axios, this.basePath));
+        return (0, exports.S3ConnectionsApiFp)(this.configuration).createS3Connection(requestParameters.createS3ConnectionRequest, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
@@ -2257,7 +2255,7 @@ class S3ConnectionsApi extends base_1.BaseAPI {
      * @memberof S3ConnectionsApi
      */
     testS3Connection(requestParameters, options) {
-        return (0, exports.S3ConnectionsApiFp)(this.configuration).testS3Connection(requestParameters.inlineObject5, options).then((request) => request(this.axios, this.basePath));
+        return (0, exports.S3ConnectionsApiFp)(this.configuration).testS3Connection(requestParameters.createS3ConnectionRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 exports.S3ConnectionsApi = S3ConnectionsApi;
@@ -2286,7 +2284,7 @@ const ViewerApiAxiosParamCreator = function (configuration) {
             // authentication AccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
-            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter, options.query);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
@@ -2352,3 +2350,415 @@ class ViewerApi extends base_1.BaseAPI {
     }
 }
 exports.ViewerApi = ViewerApi;
+/**
+ * WorkerApi - axios parameter creator
+ * @export
+ */
+const WorkerApiAxiosParamCreator = function (configuration) {
+    return {
+        /**
+         *
+         * @param {string} operationId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        completeJob: async (operationId, options = {}) => {
+            // verify required parameter 'operationId' is not null or undefined
+            (0, common_1.assertParamExists)('completeJob', 'operationId', operationId);
+            const localVarPath = `/worker/{operationId}/complete`
+                .replace(`{${"operationId"}}`, encodeURIComponent(String(operationId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication WorkerServiceToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} operationId
+         * @param {CreateMetadataUploadUrlsPayload} createMetadataUploadUrlsPayload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createMetadataUploadUrls: async (operationId, createMetadataUploadUrlsPayload, options = {}) => {
+            // verify required parameter 'operationId' is not null or undefined
+            (0, common_1.assertParamExists)('createMetadataUploadUrls', 'operationId', operationId);
+            // verify required parameter 'createMetadataUploadUrlsPayload' is not null or undefined
+            (0, common_1.assertParamExists)('createMetadataUploadUrls', 'createMetadataUploadUrlsPayload', createMetadataUploadUrlsPayload);
+            const localVarPath = `/worker/{operationId}/metadata-upload-urls`
+                .replace(`{${"operationId"}}`, encodeURIComponent(String(operationId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication WorkerServiceToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(createMetadataUploadUrlsPayload, localVarRequestOptions, configuration);
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} operationId
+         * @param {CreateOutputUploadUrlsPayload} createOutputUploadUrlsPayload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createOutputUploadUrls: async (operationId, createOutputUploadUrlsPayload, options = {}) => {
+            // verify required parameter 'operationId' is not null or undefined
+            (0, common_1.assertParamExists)('createOutputUploadUrls', 'operationId', operationId);
+            // verify required parameter 'createOutputUploadUrlsPayload' is not null or undefined
+            (0, common_1.assertParamExists)('createOutputUploadUrls', 'createOutputUploadUrlsPayload', createOutputUploadUrlsPayload);
+            const localVarPath = `/worker/{operationId}/output-upload-urls`
+                .replace(`{${"operationId"}}`, encodeURIComponent(String(operationId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication WorkerServiceToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(createOutputUploadUrlsPayload, localVarRequestOptions, configuration);
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} operationId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startJob: async (operationId, options = {}) => {
+            // verify required parameter 'operationId' is not null or undefined
+            (0, common_1.assertParamExists)('startJob', 'operationId', operationId);
+            const localVarPath = `/worker/{operationId}/start`
+                .replace(`{${"operationId"}}`, encodeURIComponent(String(operationId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication WorkerServiceToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {Array<ContentAttibutesPayload>} contentAttibutesPayload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateContentAttributes: async (contentAttibutesPayload, options = {}) => {
+            // verify required parameter 'contentAttibutesPayload' is not null or undefined
+            (0, common_1.assertParamExists)('updateContentAttributes', 'contentAttibutesPayload', contentAttibutesPayload);
+            const localVarPath = `/worker/content-attributes`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication WorkerServiceToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(contentAttibutesPayload, localVarRequestOptions, configuration);
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {Array<ContentMetadataPayload>} contentMetadataPayload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateContentMetadata: async (contentMetadataPayload, options = {}) => {
+            // verify required parameter 'contentMetadataPayload' is not null or undefined
+            (0, common_1.assertParamExists)('updateContentMetadata', 'contentMetadataPayload', contentMetadataPayload);
+            const localVarPath = `/worker/content-metadata`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication WorkerServiceToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(contentMetadataPayload, localVarRequestOptions, configuration);
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    };
+};
+exports.WorkerApiAxiosParamCreator = WorkerApiAxiosParamCreator;
+/**
+ * WorkerApi - functional programming interface
+ * @export
+ */
+const WorkerApiFp = function (configuration) {
+    const localVarAxiosParamCreator = (0, exports.WorkerApiAxiosParamCreator)(configuration);
+    return {
+        /**
+         *
+         * @param {string} operationId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async completeJob(operationId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.completeJob(operationId, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} operationId
+         * @param {CreateMetadataUploadUrlsPayload} createMetadataUploadUrlsPayload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createMetadataUploadUrls(operationId, createMetadataUploadUrlsPayload, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createMetadataUploadUrls(operationId, createMetadataUploadUrlsPayload, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} operationId
+         * @param {CreateOutputUploadUrlsPayload} createOutputUploadUrlsPayload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createOutputUploadUrls(operationId, createOutputUploadUrlsPayload, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createOutputUploadUrls(operationId, createOutputUploadUrlsPayload, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} operationId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async startJob(operationId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.startJob(operationId, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {Array<ContentAttibutesPayload>} contentAttibutesPayload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateContentAttributes(contentAttibutesPayload, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateContentAttributes(contentAttibutesPayload, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {Array<ContentMetadataPayload>} contentMetadataPayload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateContentMetadata(contentMetadataPayload, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateContentMetadata(contentMetadataPayload, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+    };
+};
+exports.WorkerApiFp = WorkerApiFp;
+/**
+ * WorkerApi - factory interface
+ * @export
+ */
+const WorkerApiFactory = function (configuration, basePath, axios) {
+    const localVarFp = (0, exports.WorkerApiFp)(configuration);
+    return {
+        /**
+         *
+         * @param {WorkerApiCompleteJobRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        completeJob(requestParameters, options) {
+            return localVarFp.completeJob(requestParameters.operationId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {WorkerApiCreateMetadataUploadUrlsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createMetadataUploadUrls(requestParameters, options) {
+            return localVarFp.createMetadataUploadUrls(requestParameters.operationId, requestParameters.createMetadataUploadUrlsPayload, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {WorkerApiCreateOutputUploadUrlsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createOutputUploadUrls(requestParameters, options) {
+            return localVarFp.createOutputUploadUrls(requestParameters.operationId, requestParameters.createOutputUploadUrlsPayload, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {WorkerApiStartJobRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startJob(requestParameters, options) {
+            return localVarFp.startJob(requestParameters.operationId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {WorkerApiUpdateContentAttributesRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateContentAttributes(requestParameters, options) {
+            return localVarFp.updateContentAttributes(requestParameters.contentAttibutesPayload, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {WorkerApiUpdateContentMetadataRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateContentMetadata(requestParameters, options) {
+            return localVarFp.updateContentMetadata(requestParameters.contentMetadataPayload, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+exports.WorkerApiFactory = WorkerApiFactory;
+/**
+ * WorkerApi - object-oriented interface
+ * @export
+ * @class WorkerApi
+ * @extends {BaseAPI}
+ */
+class WorkerApi extends base_1.BaseAPI {
+    /**
+     *
+     * @param {WorkerApiCompleteJobRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof WorkerApi
+     */
+    completeJob(requestParameters, options) {
+        return (0, exports.WorkerApiFp)(this.configuration).completeJob(requestParameters.operationId, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {WorkerApiCreateMetadataUploadUrlsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof WorkerApi
+     */
+    createMetadataUploadUrls(requestParameters, options) {
+        return (0, exports.WorkerApiFp)(this.configuration).createMetadataUploadUrls(requestParameters.operationId, requestParameters.createMetadataUploadUrlsPayload, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {WorkerApiCreateOutputUploadUrlsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof WorkerApi
+     */
+    createOutputUploadUrls(requestParameters, options) {
+        return (0, exports.WorkerApiFp)(this.configuration).createOutputUploadUrls(requestParameters.operationId, requestParameters.createOutputUploadUrlsPayload, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {WorkerApiStartJobRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof WorkerApi
+     */
+    startJob(requestParameters, options) {
+        return (0, exports.WorkerApiFp)(this.configuration).startJob(requestParameters.operationId, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {WorkerApiUpdateContentAttributesRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof WorkerApi
+     */
+    updateContentAttributes(requestParameters, options) {
+        return (0, exports.WorkerApiFp)(this.configuration).updateContentAttributes(requestParameters.contentAttibutesPayload, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {WorkerApiUpdateContentMetadataRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof WorkerApi
+     */
+    updateContentMetadata(requestParameters, options) {
+        return (0, exports.WorkerApiFp)(this.configuration).updateContentMetadata(requestParameters.contentMetadataPayload, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+exports.WorkerApi = WorkerApi;

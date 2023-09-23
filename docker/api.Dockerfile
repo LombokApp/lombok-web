@@ -1,4 +1,4 @@
-FROM node:16-alpine as install
+FROM node:18-alpine as install
 
 WORKDIR /usr/src/app
 
@@ -15,7 +15,7 @@ FROM install as build
 
 RUN yarn config set enableNetwork false
 
-WORKDIR /usr/src/app/packages/shared/packages/utils
+WORKDIR /usr/src/app/packages/shared/packages/stellaris-utils
 RUN yarn workspaces focus
 RUN yarn clean
 RUN yarn build

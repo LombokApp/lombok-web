@@ -31,7 +31,9 @@ formats['password-special-character'] = passwordSpecialCharacterFormatRegex
  * @type string
  */
 export type PasswordFormat = PasswordLetterFormat &
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents
   PasswordNumberFormat &
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-type-constituents
   PasswordSpecialCharacterFormat
 
 /**

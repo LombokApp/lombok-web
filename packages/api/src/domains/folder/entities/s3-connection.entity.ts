@@ -17,7 +17,7 @@ import { S3ConnectionRepository } from './s3-connection.repository'
   tableName: 's3_connection',
   customRepository: () => S3ConnectionRepository,
 })
-export class S3Connection extends TimestampedEntity {
+export class S3Connection extends TimestampedEntity<S3Connection> {
   [EntityRepositoryType]?: S3ConnectionRepository;
   [OptionalProps]?: 'updatedAt' | 'createdAt' | 'outputDerived'
 

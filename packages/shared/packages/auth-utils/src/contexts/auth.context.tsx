@@ -1,4 +1,4 @@
-import type { LoginParams } from '@stellariscloud/api-client'
+import type { LoginParams, SignupParams } from '@stellariscloud/api-client'
 import React from 'react'
 
 import type { Authenticator } from '..'
@@ -12,6 +12,7 @@ export interface IAuthContext {
   isAuthenticated: boolean
   isLoggingOut: boolean
   login: (loginParams: LoginParams) => Promise<void>
+  signup: (signupParams: SignupParams) => Promise<void>
   logout: () => Promise<void>
 }
 const AuthContext = React.createContext<IAuthContext>({} as IAuthContext)
@@ -76,6 +77,16 @@ export const AuthContextProvider = ({
     }
   }
 
+  const signup = async (signupParams: SignupParams) => {
+    setError(undefined)
+
+    try {
+      await authenticator.signup(signupParams)
+    } finally {
+      setIsLoggingIn(false)
+    }
+  }
+
   const logout = async () => {
     setError(undefined)
     setIsLoggingOut(true)
@@ -93,6 +104,7 @@ export const AuthContextProvider = ({
         isAuthenticated,
         isLoggingOut,
         login,
+        signup,
         logout,
         authState,
       }}

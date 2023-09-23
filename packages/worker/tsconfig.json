@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "ts-node": {
+    "files": true,
+    "transpileOnly": true
+  },
+  "compilerOptions": {
+    "declaration": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
+    "composite": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["ES2023"],
+    "module": "node16",
+    "downlevelIteration": true,
+    "noImplicitAny": true,
+    "moduleResolution": "node16",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "sourceMap": true,
+    "strict": true,
+    "outDir": "dist",
+    "target": "ESNext"
+  },
+  "include": [
+    "test",
+    "src/**/*.ts",
+    "src/**/*.json",
+    "script/*.ts",
+    ".eslintrc.js",
+    "jest.config.unit.ts",
+    "jest.config.integration.ts",
+    "jest.config.ts"
+  ],
+  "exclude": ["dist"]
+}

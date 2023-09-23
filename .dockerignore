@@ -1,9 +1,13 @@
 # Build artifacts
-/packages/*/build
-/packages/*/builds
-/packages/*/dist
+
+/packages/_/build
+/packages/_/builds
+/packages/\*/dist
+/packages/stellariscloud-ui
+/packages/build-test
 
 # Docker cache
+
 /.data
 /docker-compose.yml
 /README.md

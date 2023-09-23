@@ -17,16 +17,6 @@ import { AuthScheme } from '../domains/auth/constants/scheme.constants'
 import { S3ConnectionService } from '../domains/folder/services/s3-connection.service'
 import type { ErrorResponse } from '../transfer-objects/error-response.dto'
 
-export interface CreateConversationBody {
-  content: string
-  importPath: string
-  lineNumber: number
-}
-
-export interface CreateCommentBody {
-  content: string
-}
-
 @scoped(Lifecycle.ContainerScoped)
 @Route('s3-connections')
 @Tags('S3Connections')

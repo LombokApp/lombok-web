@@ -2,7 +2,7 @@ import { indexedDb } from '../indexed-db'
 
 export const addFileToLocalFileStorage = async (
   folderId: string,
-  objectKey: string,
+  objectIdentifier: string,
   blob: Blob,
 ) => {
   // Convert blob to base64 string
@@ -14,7 +14,7 @@ export const addFileToLocalFileStorage = async (
       resolve(reader.result as string)
     })
   }).then(async (result) => {
-    await indexedDb?.putData(folderId, objectKey, {
+    await indexedDb?.putData(folderId, objectIdentifier, {
       dataURL: result,
       type: blob.type,
     })
@@ -24,9 +24,9 @@ export const addFileToLocalFileStorage = async (
 
 export const getDataFromDisk = async (
   folderId: string,
-  objectKey: string,
+  objectIdentifier: string,
 ): Promise<{ dataURL: string; type: string } | undefined> => {
-  const result = await indexedDb?.getData(folderId, objectKey)
+  const result = await indexedDb?.getData(folderId, objectIdentifier)
   if (result) {
     return { dataURL: result.dataURL, type: result.type }
   }

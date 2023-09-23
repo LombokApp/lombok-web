@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "composite": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "strictNullChecks": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "outDir": "dist"
+  },
+  "include": [".", "index.ts", "index.d.ts", ".eslintrc.js"],
+  "exclude": ["dist"]
+}

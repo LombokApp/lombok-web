@@ -10,7 +10,7 @@ import { isLoggableError, parseLoggableError } from '../errors/loggable.error'
 
 @singleton()
 export class LoggingService {
-  loggedErrors = new WeakSet<Object>()
+  loggedErrors = new WeakSet<NonNullable<unknown>>()
   logger: winston.Logger
 
   constructor(configProvider: EnvConfigProvider) {
@@ -68,12 +68,12 @@ export class LoggingService {
   }
 
   handleError(error: unknown) {
-    if (this.loggedErrors.has(error as Object)) {
+    if (this.loggedErrors.has(error as NonNullable<unknown>)) {
       return
     }
 
     try {
-      this.loggedErrors.add(error as Object)
+      this.loggedErrors.add(error as NonNullable<unknown>)
     } catch {
       // Ignore 'Invalid value used in weak set' error
     }

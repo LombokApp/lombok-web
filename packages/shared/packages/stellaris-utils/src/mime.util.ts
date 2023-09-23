@@ -1,3 +1,5 @@
+import { MediaType } from '@stellariscloud/types'
+
 import type {
   AudioMediaMimeTypes,
   ImageMediaMimeTypes,
@@ -10,14 +12,6 @@ import {
   MIME_TYPE_TO_EXTENSION_MAP,
   VIDEO_MEDIA_MIME_TYPES,
 } from './constants'
-
-export enum MediaType {
-  Image = 'IMAGE',
-  Video = 'VIDEO',
-  Audio = 'AUDIO',
-  Document = 'DOCUMENT',
-  Unknown = 'UNKNOWN',
-}
 
 export const mediaTypeFromMimeType = (mimeType: string) => {
   if (IMAGE_MEDIA_MIME_TYPES.includes(mimeType as ImageMediaMimeTypes)) {
