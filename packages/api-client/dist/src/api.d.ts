@@ -147,28 +147,22 @@ export interface CreateFolder200Response {
 export interface CreateFolderRequest {
     /**
      *
-     * @type {string}
+     * @type {UserLocationInputData}
      * @memberof CreateFolderRequest
      */
-    'prefix'?: string;
+    'metadataLocation': UserLocationInputData;
     /**
      *
-     * @type {string}
+     * @type {UserLocationInputData}
      * @memberof CreateFolderRequest
      */
-    'bucket': string;
+    'contentLocation': UserLocationInputData;
     /**
      *
      * @type {string}
      * @memberof CreateFolderRequest
      */
     'name': string;
-    /**
-     *
-     * @type {string}
-     * @memberof CreateFolderRequest
-     */
-    's3ConnectionId': string;
 }
 /**
  *
@@ -296,43 +290,6 @@ export interface CreateOutputUploadUrlsPayloadOutputFilesInner {
 /**
  *
  * @export
- * @interface CreateS3ConnectionRequest
- */
-export interface CreateS3ConnectionRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof CreateS3ConnectionRequest
-     */
-    'region': string;
-    /**
-     *
-     * @type {string}
-     * @memberof CreateS3ConnectionRequest
-     */
-    'endpoint': string;
-    /**
-     *
-     * @type {string}
-     * @memberof CreateS3ConnectionRequest
-     */
-    'secretAccessKey': string;
-    /**
-     *
-     * @type {string}
-     * @memberof CreateS3ConnectionRequest
-     */
-    'accessKeyId': string;
-    /**
-     *
-     * @type {string}
-     * @memberof CreateS3ConnectionRequest
-     */
-    'name': string;
-}
-/**
- *
- * @export
  * @interface CreateSocketAuthentication200Response
  */
 export interface CreateSocketAuthentication200Response {
@@ -355,6 +312,68 @@ export interface CreateTagRequest {
      * @memberof CreateTagRequest
      */
     'name': string;
+}
+/**
+ *
+ * @export
+ * @interface CreateUser200Response
+ */
+export interface CreateUser200Response {
+    /**
+     *
+     * @type {UserData}
+     * @memberof CreateUser200Response
+     */
+    'user': UserData;
+}
+/**
+ *
+ * @export
+ * @interface CreateUserData
+ */
+export interface CreateUserData {
+    /**
+     *
+     * @type {boolean}
+     * @memberof CreateUserData
+     */
+    'admin'?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof CreateUserData
+     */
+    'emailVerified'?: boolean;
+    /**
+     *
+     * @type {string}
+     * @memberof CreateUserData
+     */
+    'password': string;
+    /**
+     *
+     * @type {string}
+     * @memberof CreateUserData
+     */
+    'name'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof CreateUserData
+     */
+    'email'?: string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof CreateUserData
+     */
+    'permissions'?: Array<string>;
+    /**
+     *
+     * @type {string}
+     * @memberof CreateUserData
+     */
+    'username': string;
 }
 /**
  *
@@ -478,34 +497,16 @@ export interface FolderData {
     'name': string;
     /**
      *
-     * @type {string}
+     * @type {S3LocationData}
      * @memberof FolderData
      */
-    'accessKeyId': string;
+    'metadataLocation': S3LocationData;
     /**
      *
-     * @type {string}
+     * @type {S3LocationData}
      * @memberof FolderData
      */
-    'endpoint': string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderData
-     */
-    'region'?: string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderData
-     */
-    'bucket': string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderData
-     */
-    'prefix'?: string;
+    'contentLocation': S3LocationData;
 }
 /**
  *
@@ -832,6 +833,32 @@ export interface GetFolderMetadata200Response {
 /**
  *
  * @export
+ * @interface GetSettings200Response
+ */
+export interface GetSettings200Response {
+    /**
+     *
+     * @type {ServerSettings}
+     * @memberof GetSettings200Response
+     */
+    'settings': ServerSettings;
+}
+/**
+ *
+ * @export
+ * @interface GetUser200Response
+ */
+export interface GetUser200Response {
+    /**
+     *
+     * @type {UserData}
+     * @memberof GetUser200Response
+     */
+    'result': UserData;
+}
+/**
+ *
+ * @export
  * @interface GetViewer200Response
  */
 export interface GetViewer200Response {
@@ -915,25 +942,6 @@ export interface ListFoldersResponse {
 /**
  *
  * @export
- * @interface ListS3Connections200Response
- */
-export interface ListS3Connections200Response {
-    /**
-     *
-     * @type {Array<S3ConnectionData>}
-     * @memberof ListS3Connections200Response
-     */
-    'result': Array<S3ConnectionData>;
-    /**
-     *
-     * @type {ListFolderObjects200ResponseMeta}
-     * @memberof ListS3Connections200Response
-     */
-    'meta': ListFolderObjects200ResponseMeta;
-}
-/**
- *
- * @export
  * @interface ListTags200Response
  */
 export interface ListTags200Response {
@@ -949,6 +957,25 @@ export interface ListTags200Response {
      * @memberof ListTags200Response
      */
     'result': Array<ObjectTagData>;
+}
+/**
+ *
+ * @export
+ * @interface ListUsersResponse
+ */
+export interface ListUsersResponse {
+    /**
+     *
+     * @type {ListFolderObjects200ResponseMeta}
+     * @memberof ListUsersResponse
+     */
+    'meta': ListFolderObjects200ResponseMeta;
+    /**
+     *
+     * @type {Array<UserData>}
+     * @memberof ListUsersResponse
+     */
+    'result': Array<UserData>;
 }
 /**
  *
@@ -1097,7 +1124,7 @@ export interface OutputUploadUrlsResponse {
  */
 export declare const PlatformRole: {
     readonly Anonymous: "ANONYMOUS";
-    readonly Authenticated: "AUTHENTICATED";
+    readonly User: "USER";
     readonly Admin: "ADMIN";
     readonly Service: "SERVICE";
 };
@@ -1118,57 +1145,202 @@ export interface RefreshFolderObjectS3MetadataRequest {
 /**
  *
  * @export
- * @interface S3ConnectionData
+ * @interface S3LocationData
  */
-export interface S3ConnectionData {
+export interface S3LocationData {
     /**
      *
      * @type {string}
-     * @memberof S3ConnectionData
+     * @memberof S3LocationData
      */
     'createdAt': string;
     /**
      *
      * @type {string}
-     * @memberof S3ConnectionData
+     * @memberof S3LocationData
      */
     'updatedAt': string;
     /**
      *
      * @type {string}
-     * @memberof S3ConnectionData
+     * @memberof S3LocationData
      */
     'id': string;
     /**
      *
      * @type {string}
-     * @memberof S3ConnectionData
+     * @memberof S3LocationData
      */
-    'ownerId'?: string;
+    'userId'?: string;
     /**
      *
      * @type {string}
-     * @memberof S3ConnectionData
+     * @memberof S3LocationData
+     */
+    'providerType': S3LocationDataProviderTypeEnum;
+    /**
+     *
+     * @type {string}
+     * @memberof S3LocationData
      */
     'name': string;
     /**
      *
      * @type {string}
-     * @memberof S3ConnectionData
-     */
-    'accessKeyId': string;
-    /**
-     *
-     * @type {string}
-     * @memberof S3ConnectionData
+     * @memberof S3LocationData
      */
     'endpoint': string;
     /**
      *
      * @type {string}
-     * @memberof S3ConnectionData
+     * @memberof S3LocationData
      */
     'region'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof S3LocationData
+     */
+    'bucket': string;
+    /**
+     *
+     * @type {string}
+     * @memberof S3LocationData
+     */
+    'prefix'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof S3LocationData
+     */
+    'accessKeyId': string;
+}
+export declare const S3LocationDataProviderTypeEnum: {
+    readonly Server: "SERVER";
+    readonly User: "USER";
+};
+export type S3LocationDataProviderTypeEnum = typeof S3LocationDataProviderTypeEnum[keyof typeof S3LocationDataProviderTypeEnum];
+/**
+ *
+ * @export
+ * @interface ServerLocationData
+ */
+export interface ServerLocationData {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerLocationData
+     */
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerLocationData
+     */
+    'name': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerLocationData
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerLocationData
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerLocationData
+     */
+    'region': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerLocationData
+     */
+    'bucket': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerLocationData
+     */
+    'prefix'?: string;
+}
+/**
+ *
+ * @export
+ * @interface ServerLocationInputData
+ */
+export interface ServerLocationInputData {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerLocationInputData
+     */
+    'name': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerLocationInputData
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerLocationInputData
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerLocationInputData
+     */
+    'secretAccessKey': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerLocationInputData
+     */
+    'region': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerLocationInputData
+     */
+    'bucket': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerLocationInputData
+     */
+    'prefix'?: string;
+}
+/**
+ *
+ * @export
+ * @enum {string}
+ */
+export declare const ServerLocationType: {
+    readonly Metadata: "USER_METADATA";
+    readonly Content: "USER_CONTENT";
+    readonly Backup: "USER_BACKUP";
+};
+export type ServerLocationType = typeof ServerLocationType[keyof typeof ServerLocationType];
+/**
+ *
+ * @export
+ * @interface ServerSettings
+ */
+export interface ServerSettings {
+    /**
+     *
+     * @type {boolean}
+     * @memberof ServerSettings
+     */
+    'SIGNUP_ENABLED': boolean;
 }
 /**
  *
@@ -1262,6 +1434,12 @@ export interface SignupParams {
      * @type {string}
      * @memberof SignupParams
      */
+    'username': string;
+    /**
+     *
+     * @type {string}
+     * @memberof SignupParams
+     */
     'email': string;
     /**
      *
@@ -1324,6 +1502,62 @@ export interface UpdateFolderSharePayload {
 /**
  *
  * @export
+ * @interface UpdateSettingRequest
+ */
+export interface UpdateSettingRequest {
+    /**
+     *
+     * @type {any}
+     * @memberof UpdateSettingRequest
+     */
+    'value': any;
+}
+/**
+ *
+ * @export
+ * @interface UpdateUserData
+ */
+export interface UpdateUserData {
+    /**
+     *
+     * @type {boolean}
+     * @memberof UpdateUserData
+     */
+    'admin'?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof UpdateUserData
+     */
+    'emailVerified'?: boolean;
+    /**
+     *
+     * @type {string}
+     * @memberof UpdateUserData
+     */
+    'password'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof UpdateUserData
+     */
+    'name'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof UpdateUserData
+     */
+    'email'?: string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof UpdateUserData
+     */
+    'permissions'?: Array<string>;
+}
+/**
+ *
+ * @export
  * @interface UserData
  */
 export interface UserData {
@@ -1356,7 +1590,105 @@ export interface UserData {
      * @type {string}
      * @memberof UserData
      */
+    'name'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserData
+     */
     'email'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserData
+     */
+    'username'?: string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof UserData
+     */
+    'permissions': Array<string>;
+}
+/**
+ *
+ * @export
+ * @interface UserLocationInputData
+ */
+export interface UserLocationInputData {
+    /**
+     *
+     * @type {string}
+     * @memberof UserLocationInputData
+     */
+    'serverLocationId'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserLocationInputData
+     */
+    'userLocationId'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserLocationInputData
+     */
+    'userLocationBucketOverride'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserLocationInputData
+     */
+    'userLocationPrefixOverride'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserLocationInputData
+     */
+    'accessKeyId'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserLocationInputData
+     */
+    'secretAccessKey'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserLocationInputData
+     */
+    'endpoint'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserLocationInputData
+     */
+    'bucket'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserLocationInputData
+     */
+    'region'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserLocationInputData
+     */
+    'prefix'?: string;
+}
+/**
+ *
+ * @export
+ * @interface ViewerUpdatePayload
+ */
+export interface ViewerUpdatePayload {
+    /**
+     *
+     * @type {string}
+     * @memberof ViewerUpdatePayload
+     */
+    'name': string;
 }
 /**
  * AuthApi - axios parameter creator
@@ -2712,223 +3044,490 @@ export declare class FoldersApi extends BaseAPI {
     updateTag(requestParameters: FoldersApiUpdateTagRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ObjectTagData, any>>;
 }
 /**
- * S3ConnectionsApi - axios parameter creator
+ * ServerApi - axios parameter creator
  * @export
  */
-export declare const S3ConnectionsApiAxiosParamCreator: (configuration?: Configuration) => {
+export declare const ServerApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
-     * @param {CreateS3ConnectionRequest} createS3ConnectionRequest
+     * @param {ServerLocationType} locationType
+     * @param {ServerLocationInputData} serverLocationInputData
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createS3Connection: (createS3ConnectionRequest: CreateS3ConnectionRequest, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    addServerLocation: (locationType: ServerLocationType, serverLocationInputData: ServerLocationInputData, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
-     * @param {string} s3ConnectionId
+     * @param {CreateUserData} createUserData
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    deleteS3Connection: (s3ConnectionId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    createUser: (createUserData: CreateUserData, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
-     * @param {string} s3ConnectionId
+     * @param {ServerLocationType} locationType
+     * @param {string} locationId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getS3Connection: (s3ConnectionId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    deleteServerLocation: (locationType: ServerLocationType, locationId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} userId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteUser: (userId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listS3Connections: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    getSettings: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
-     * @param {CreateS3ConnectionRequest} createS3ConnectionRequest
+     * @param {string} userId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    testS3Connection: (createS3ConnectionRequest: CreateS3ConnectionRequest, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    getUser: (userId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {ServerLocationType} locationType
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listServerLocations: (locationType: ServerLocationType, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listUsers: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} settingsKey
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    resetSetting: (settingsKey: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} settingsKey
+     * @param {UpdateSettingRequest} updateSettingRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateSetting: (settingsKey: string, updateSettingRequest: UpdateSettingRequest, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} userId
+     * @param {UpdateUserData} updateUserData
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateUser: (userId: string, updateUserData: UpdateUserData, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
- * S3ConnectionsApi - functional programming interface
+ * ServerApi - functional programming interface
  * @export
  */
-export declare const S3ConnectionsApiFp: (configuration?: Configuration) => {
+export declare const ServerApiFp: (configuration?: Configuration) => {
     /**
      *
-     * @param {CreateS3ConnectionRequest} createS3ConnectionRequest
+     * @param {ServerLocationType} locationType
+     * @param {ServerLocationInputData} serverLocationInputData
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createS3Connection(createS3ConnectionRequest: CreateS3ConnectionRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<S3ConnectionData>>;
+    addServerLocation(locationType: ServerLocationType, serverLocationInputData: ServerLocationInputData, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ServerLocationData>>;
     /**
      *
-     * @param {string} s3ConnectionId
+     * @param {CreateUserData} createUserData
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    deleteS3Connection(s3ConnectionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DeleteFolder200Response>>;
+    createUser(createUserData: CreateUserData, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateUser200Response>>;
     /**
      *
-     * @param {string} s3ConnectionId
+     * @param {ServerLocationType} locationType
+     * @param {string} locationId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getS3Connection(s3ConnectionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<S3ConnectionData>>;
+    deleteServerLocation(locationType: ServerLocationType, locationId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>>;
+    /**
+     *
+     * @param {string} userId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteUser(userId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>>;
     /**
      *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listS3Connections(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ListS3Connections200Response>>;
+    getSettings(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GetSettings200Response>>;
     /**
      *
-     * @param {CreateS3ConnectionRequest} createS3ConnectionRequest
+     * @param {string} userId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    testS3Connection(createS3ConnectionRequest: CreateS3ConnectionRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DeleteFolder200Response>>;
+    getUser(userId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GetUser200Response>>;
+    /**
+     *
+     * @param {ServerLocationType} locationType
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listServerLocations(locationType: ServerLocationType, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ServerLocationData>>>;
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listUsers(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ListUsersResponse>>;
+    /**
+     *
+     * @param {string} settingsKey
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    resetSetting(settingsKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GetSettings200Response>>;
+    /**
+     *
+     * @param {string} settingsKey
+     * @param {UpdateSettingRequest} updateSettingRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateSetting(settingsKey: string, updateSettingRequest: UpdateSettingRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GetSettings200Response>>;
+    /**
+     *
+     * @param {string} userId
+     * @param {UpdateUserData} updateUserData
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateUser(userId: string, updateUserData: UpdateUserData, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateUser200Response>>;
 };
 /**
- * S3ConnectionsApi - factory interface
+ * ServerApi - factory interface
  * @export
  */
-export declare const S3ConnectionsApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+export declare const ServerApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
     /**
      *
-     * @param {S3ConnectionsApiCreateS3ConnectionRequest} requestParameters Request parameters.
+     * @param {ServerApiAddServerLocationRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createS3Connection(requestParameters: S3ConnectionsApiCreateS3ConnectionRequest, options?: AxiosRequestConfig): AxiosPromise<S3ConnectionData>;
+    addServerLocation(requestParameters: ServerApiAddServerLocationRequest, options?: AxiosRequestConfig): AxiosPromise<ServerLocationData>;
     /**
      *
-     * @param {S3ConnectionsApiDeleteS3ConnectionRequest} requestParameters Request parameters.
+     * @param {ServerApiCreateUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    deleteS3Connection(requestParameters: S3ConnectionsApiDeleteS3ConnectionRequest, options?: AxiosRequestConfig): AxiosPromise<DeleteFolder200Response>;
+    createUser(requestParameters: ServerApiCreateUserRequest, options?: AxiosRequestConfig): AxiosPromise<CreateUser200Response>;
     /**
      *
-     * @param {S3ConnectionsApiGetS3ConnectionRequest} requestParameters Request parameters.
+     * @param {ServerApiDeleteServerLocationRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getS3Connection(requestParameters: S3ConnectionsApiGetS3ConnectionRequest, options?: AxiosRequestConfig): AxiosPromise<S3ConnectionData>;
+    deleteServerLocation(requestParameters: ServerApiDeleteServerLocationRequest, options?: AxiosRequestConfig): AxiosPromise<boolean>;
+    /**
+     *
+     * @param {ServerApiDeleteUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteUser(requestParameters: ServerApiDeleteUserRequest, options?: AxiosRequestConfig): AxiosPromise<boolean>;
     /**
      *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listS3Connections(options?: AxiosRequestConfig): AxiosPromise<ListS3Connections200Response>;
+    getSettings(options?: AxiosRequestConfig): AxiosPromise<GetSettings200Response>;
     /**
      *
-     * @param {S3ConnectionsApiTestS3ConnectionRequest} requestParameters Request parameters.
+     * @param {ServerApiGetUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    testS3Connection(requestParameters: S3ConnectionsApiTestS3ConnectionRequest, options?: AxiosRequestConfig): AxiosPromise<DeleteFolder200Response>;
+    getUser(requestParameters: ServerApiGetUserRequest, options?: AxiosRequestConfig): AxiosPromise<GetUser200Response>;
+    /**
+     *
+     * @param {ServerApiListServerLocationsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listServerLocations(requestParameters: ServerApiListServerLocationsRequest, options?: AxiosRequestConfig): AxiosPromise<Array<ServerLocationData>>;
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listUsers(options?: AxiosRequestConfig): AxiosPromise<ListUsersResponse>;
+    /**
+     *
+     * @param {ServerApiResetSettingRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    resetSetting(requestParameters: ServerApiResetSettingRequest, options?: AxiosRequestConfig): AxiosPromise<GetSettings200Response>;
+    /**
+     *
+     * @param {ServerApiUpdateSettingRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateSetting(requestParameters: ServerApiUpdateSettingRequest, options?: AxiosRequestConfig): AxiosPromise<GetSettings200Response>;
+    /**
+     *
+     * @param {ServerApiUpdateUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateUser(requestParameters: ServerApiUpdateUserRequest, options?: AxiosRequestConfig): AxiosPromise<CreateUser200Response>;
 };
 /**
- * Request parameters for createS3Connection operation in S3ConnectionsApi.
+ * Request parameters for addServerLocation operation in ServerApi.
  * @export
- * @interface S3ConnectionsApiCreateS3ConnectionRequest
+ * @interface ServerApiAddServerLocationRequest
  */
-export interface S3ConnectionsApiCreateS3ConnectionRequest {
+export interface ServerApiAddServerLocationRequest {
     /**
      *
-     * @type {CreateS3ConnectionRequest}
-     * @memberof S3ConnectionsApiCreateS3Connection
+     * @type {ServerLocationType}
+     * @memberof ServerApiAddServerLocation
      */
-    readonly createS3ConnectionRequest: CreateS3ConnectionRequest;
+    readonly locationType: ServerLocationType;
+    /**
+     *
+     * @type {ServerLocationInputData}
+     * @memberof ServerApiAddServerLocation
+     */
+    readonly serverLocationInputData: ServerLocationInputData;
 }
 /**
- * Request parameters for deleteS3Connection operation in S3ConnectionsApi.
+ * Request parameters for createUser operation in ServerApi.
  * @export
- * @interface S3ConnectionsApiDeleteS3ConnectionRequest
+ * @interface ServerApiCreateUserRequest
  */
-export interface S3ConnectionsApiDeleteS3ConnectionRequest {
+export interface ServerApiCreateUserRequest {
+    /**
+     *
+     * @type {CreateUserData}
+     * @memberof ServerApiCreateUser
+     */
+    readonly createUserData: CreateUserData;
+}
+/**
+ * Request parameters for deleteServerLocation operation in ServerApi.
+ * @export
+ * @interface ServerApiDeleteServerLocationRequest
+ */
+export interface ServerApiDeleteServerLocationRequest {
+    /**
+     *
+     * @type {ServerLocationType}
+     * @memberof ServerApiDeleteServerLocation
+     */
+    readonly locationType: ServerLocationType;
     /**
      *
      * @type {string}
-     * @memberof S3ConnectionsApiDeleteS3Connection
+     * @memberof ServerApiDeleteServerLocation
      */
-    readonly s3ConnectionId: string;
+    readonly locationId: string;
 }
 /**
- * Request parameters for getS3Connection operation in S3ConnectionsApi.
+ * Request parameters for deleteUser operation in ServerApi.
  * @export
- * @interface S3ConnectionsApiGetS3ConnectionRequest
+ * @interface ServerApiDeleteUserRequest
  */
-export interface S3ConnectionsApiGetS3ConnectionRequest {
+export interface ServerApiDeleteUserRequest {
     /**
      *
      * @type {string}
-     * @memberof S3ConnectionsApiGetS3Connection
+     * @memberof ServerApiDeleteUser
      */
-    readonly s3ConnectionId: string;
+    readonly userId: string;
 }
 /**
- * Request parameters for testS3Connection operation in S3ConnectionsApi.
+ * Request parameters for getUser operation in ServerApi.
  * @export
- * @interface S3ConnectionsApiTestS3ConnectionRequest
+ * @interface ServerApiGetUserRequest
  */
-export interface S3ConnectionsApiTestS3ConnectionRequest {
+export interface ServerApiGetUserRequest {
     /**
      *
-     * @type {CreateS3ConnectionRequest}
-     * @memberof S3ConnectionsApiTestS3Connection
+     * @type {string}
+     * @memberof ServerApiGetUser
      */
-    readonly createS3ConnectionRequest: CreateS3ConnectionRequest;
+    readonly userId: string;
 }
 /**
- * S3ConnectionsApi - object-oriented interface
+ * Request parameters for listServerLocations operation in ServerApi.
  * @export
- * @class S3ConnectionsApi
+ * @interface ServerApiListServerLocationsRequest
+ */
+export interface ServerApiListServerLocationsRequest {
+    /**
+     *
+     * @type {ServerLocationType}
+     * @memberof ServerApiListServerLocations
+     */
+    readonly locationType: ServerLocationType;
+}
+/**
+ * Request parameters for resetSetting operation in ServerApi.
+ * @export
+ * @interface ServerApiResetSettingRequest
+ */
+export interface ServerApiResetSettingRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerApiResetSetting
+     */
+    readonly settingsKey: string;
+}
+/**
+ * Request parameters for updateSetting operation in ServerApi.
+ * @export
+ * @interface ServerApiUpdateSettingRequest
+ */
+export interface ServerApiUpdateSettingRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerApiUpdateSetting
+     */
+    readonly settingsKey: string;
+    /**
+     *
+     * @type {UpdateSettingRequest}
+     * @memberof ServerApiUpdateSetting
+     */
+    readonly updateSettingRequest: UpdateSettingRequest;
+}
+/**
+ * Request parameters for updateUser operation in ServerApi.
+ * @export
+ * @interface ServerApiUpdateUserRequest
+ */
+export interface ServerApiUpdateUserRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerApiUpdateUser
+     */
+    readonly userId: string;
+    /**
+     *
+     * @type {UpdateUserData}
+     * @memberof ServerApiUpdateUser
+     */
+    readonly updateUserData: UpdateUserData;
+}
+/**
+ * ServerApi - object-oriented interface
+ * @export
+ * @class ServerApi
  * @extends {BaseAPI}
  */
-export declare class S3ConnectionsApi extends BaseAPI {
+export declare class ServerApi extends BaseAPI {
     /**
      *
-     * @param {S3ConnectionsApiCreateS3ConnectionRequest} requestParameters Request parameters.
+     * @param {ServerApiAddServerLocationRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof S3ConnectionsApi
+     * @memberof ServerApi
      */
-    createS3Connection(requestParameters: S3ConnectionsApiCreateS3ConnectionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<S3ConnectionData, any>>;
+    addServerLocation(requestParameters: ServerApiAddServerLocationRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ServerLocationData, any>>;
     /**
      *
-     * @param {S3ConnectionsApiDeleteS3ConnectionRequest} requestParameters Request parameters.
+     * @param {ServerApiCreateUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof S3ConnectionsApi
+     * @memberof ServerApi
      */
-    deleteS3Connection(requestParameters: S3ConnectionsApiDeleteS3ConnectionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<DeleteFolder200Response, any>>;
+    createUser(requestParameters: ServerApiCreateUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CreateUser200Response, any>>;
     /**
      *
-     * @param {S3ConnectionsApiGetS3ConnectionRequest} requestParameters Request parameters.
+     * @param {ServerApiDeleteServerLocationRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof S3ConnectionsApi
+     * @memberof ServerApi
      */
-    getS3Connection(requestParameters: S3ConnectionsApiGetS3ConnectionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<S3ConnectionData, any>>;
+    deleteServerLocation(requestParameters: ServerApiDeleteServerLocationRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<boolean, any>>;
+    /**
+     *
+     * @param {ServerApiDeleteUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    deleteUser(requestParameters: ServerApiDeleteUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<boolean, any>>;
     /**
      *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof S3ConnectionsApi
+     * @memberof ServerApi
      */
-    listS3Connections(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ListS3Connections200Response, any>>;
+    getSettings(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<GetSettings200Response, any>>;
     /**
      *
-     * @param {S3ConnectionsApiTestS3ConnectionRequest} requestParameters Request parameters.
+     * @param {ServerApiGetUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof S3ConnectionsApi
+     * @memberof ServerApi
      */
-    testS3Connection(requestParameters: S3ConnectionsApiTestS3ConnectionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<DeleteFolder200Response, any>>;
+    getUser(requestParameters: ServerApiGetUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<GetUser200Response, any>>;
+    /**
+     *
+     * @param {ServerApiListServerLocationsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    listServerLocations(requestParameters: ServerApiListServerLocationsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ServerLocationData[], any>>;
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    listUsers(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ListUsersResponse, any>>;
+    /**
+     *
+     * @param {ServerApiResetSettingRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    resetSetting(requestParameters: ServerApiResetSettingRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<GetSettings200Response, any>>;
+    /**
+     *
+     * @param {ServerApiUpdateSettingRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    updateSetting(requestParameters: ServerApiUpdateSettingRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<GetSettings200Response, any>>;
+    /**
+     *
+     * @param {ServerApiUpdateUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    updateUser(requestParameters: ServerApiUpdateUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CreateUser200Response, any>>;
 }
 /**
  * ViewerApi - axios parameter creator
@@ -2941,6 +3540,13 @@ export declare const ViewerApiAxiosParamCreator: (configuration?: Configuration)
      * @throws {RequiredError}
      */
     getViewer: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {ViewerUpdatePayload} viewerUpdatePayload
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateViewer: (viewerUpdatePayload: ViewerUpdatePayload, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * ViewerApi - functional programming interface
@@ -2953,6 +3559,13 @@ export declare const ViewerApiFp: (configuration?: Configuration) => {
      * @throws {RequiredError}
      */
     getViewer(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GetViewer200Response>>;
+    /**
+     *
+     * @param {ViewerUpdatePayload} viewerUpdatePayload
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateViewer(viewerUpdatePayload: ViewerUpdatePayload, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GetViewer200Response>>;
 };
 /**
  * ViewerApi - factory interface
@@ -2965,7 +3578,27 @@ export declare const ViewerApiFactory: (configuration?: Configuration, basePath?
      * @throws {RequiredError}
      */
     getViewer(options?: AxiosRequestConfig): AxiosPromise<GetViewer200Response>;
+    /**
+     *
+     * @param {ViewerApiUpdateViewerRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): AxiosPromise<GetViewer200Response>;
 };
+/**
+ * Request parameters for updateViewer operation in ViewerApi.
+ * @export
+ * @interface ViewerApiUpdateViewerRequest
+ */
+export interface ViewerApiUpdateViewerRequest {
+    /**
+     *
+     * @type {ViewerUpdatePayload}
+     * @memberof ViewerApiUpdateViewer
+     */
+    readonly viewerUpdatePayload: ViewerUpdatePayload;
+}
 /**
  * ViewerApi - object-oriented interface
  * @export
@@ -2980,6 +3613,14 @@ export declare class ViewerApi extends BaseAPI {
      * @memberof ViewerApi
      */
     getViewer(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<GetViewer200Response, any>>;
+    /**
+     *
+     * @param {ViewerApiUpdateViewerRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ViewerApi
+     */
+    updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<GetViewer200Response, any>>;
 }
 /**
  * WorkerApi - axios parameter creator

@@ -132,7 +132,7 @@ export const expressAuthentication = async (
     }
 
     const scopes: AuthScope[] =
-      session?.scopes ?? ALLOWED_SCOPES[PlatformRole.Authenticated]
+      session?.scopes ?? ALLOWED_SCOPES[PlatformRole.User]
 
     for (const scope of requiredScopes) {
       if (!scopes.includes(scope)) {

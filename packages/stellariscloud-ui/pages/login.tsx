@@ -9,11 +9,11 @@ const Login: NextPage = () => {
   const authContext = useAuthContext()
   const router = useRouter()
   const handleLoginSubmit = React.useCallback(
-    async ({ email, password }: { email: string; password: string }) => {
-      await authContext
-        .login({ login: email, password })
-        .then(() => router.push('/folders'))
-        .catch((e) => console.error(e))
+    async ({ login, password }: { login: string; password: string }) => {
+      const loginSuccess = await authContext.login({ login, password })
+      if (loginSuccess) {
+        void router.push('/folders')
+      }
     },
     [authContext, router],
   )
@@ -21,6 +21,7 @@ const Login: NextPage = () => {
   return (
     <div className="h-full w-full flex flex-col justify-around">
       <LoginComponent
+        error={(authContext.error as any)?.response.data.errors[0].code}
         onSignup={() => void router.push('/signup')}
         onSubmit={handleLoginSubmit}
       />

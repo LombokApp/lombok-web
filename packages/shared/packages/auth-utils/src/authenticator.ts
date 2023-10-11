@@ -79,12 +79,20 @@ export class Authenticator {
     }
   }
 
-  public async signup(signupParams: { email: string; password: string }) {
+  public async signup(signupParams: {
+    username: string
+    email: string
+    password: string
+  }) {
     try {
       const authApi = this.newAuthApi()
       await authApi.signup({
         signupRequest: {
-          data: { email: signupParams.email, password: signupParams.password },
+          data: {
+            username: signupParams.username,
+            email: signupParams.email,
+            password: signupParams.password,
+          },
         },
       })
     } catch (error: unknown) {

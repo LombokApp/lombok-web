@@ -26,16 +26,9 @@ export class UserAuthService {
     private readonly jwtService: JWTService,
   ) {}
 
-  // async signup(data: CreateUserDto) {
-  //   const user = await this.userService.registerUser(data)
-  //   await this.sendEmailVerification(data.email)
-
-  //   return user
-  // }
-
   async authenticateWithPassword(login: string, password: string) {
     const user = await this.userRepository.findOne({
-      email: login,
+      $or: [{ email: login }, { username: login }],
     })
 
     if (!user || !user.verifyPassword(password)) {

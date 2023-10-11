@@ -171,7 +171,7 @@ export class App {
 
   private async initRoutes(healthOnly: boolean) {
     const apiSpec = (await import('./generated/openapi.json'))
-      .default as OpenApiDocument
+      .default as unknown as OpenApiDocument
 
     // TODO: Update terraform config to use /health instead of /api/health once
     // the risk of reporting unwanted unhealthy state is ruled out.

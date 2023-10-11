@@ -13,7 +13,7 @@
  * Do not edit the class manually.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WorkerApi = exports.WorkerApiFactory = exports.WorkerApiFp = exports.WorkerApiAxiosParamCreator = exports.ViewerApi = exports.ViewerApiFactory = exports.ViewerApiFp = exports.ViewerApiAxiosParamCreator = exports.S3ConnectionsApi = exports.S3ConnectionsApiFactory = exports.S3ConnectionsApiFp = exports.S3ConnectionsApiAxiosParamCreator = exports.FoldersApi = exports.FoldersApiFactory = exports.FoldersApiFp = exports.FoldersApiAxiosParamCreator = exports.AuthApi = exports.AuthApiFactory = exports.AuthApiFp = exports.AuthApiAxiosParamCreator = exports.SignedURLsRequestMethod = exports.PlatformRole = exports.MediaType = exports.FolderPermissionName = exports.FolderOperationName = void 0;
+exports.WorkerApi = exports.WorkerApiFactory = exports.WorkerApiFp = exports.WorkerApiAxiosParamCreator = exports.ViewerApi = exports.ViewerApiFactory = exports.ViewerApiFp = exports.ViewerApiAxiosParamCreator = exports.ServerApi = exports.ServerApiFactory = exports.ServerApiFp = exports.ServerApiAxiosParamCreator = exports.FoldersApi = exports.FoldersApiFactory = exports.FoldersApiFp = exports.FoldersApiAxiosParamCreator = exports.AuthApi = exports.AuthApiFactory = exports.AuthApiFp = exports.AuthApiAxiosParamCreator = exports.SignedURLsRequestMethod = exports.ServerLocationType = exports.S3LocationDataProviderTypeEnum = exports.PlatformRole = exports.MediaType = exports.FolderPermissionName = exports.FolderOperationName = void 0;
 const axios_1 = require("axios");
 // Some imports not used depending on template conditions
 // @ts-ignore
@@ -64,9 +64,23 @@ exports.MediaType = {
  */
 exports.PlatformRole = {
     Anonymous: 'ANONYMOUS',
-    Authenticated: 'AUTHENTICATED',
+    User: 'USER',
     Admin: 'ADMIN',
     Service: 'SERVICE'
+};
+exports.S3LocationDataProviderTypeEnum = {
+    Server: 'SERVER',
+    User: 'USER'
+};
+/**
+ *
+ * @export
+ * @enum {string}
+ */
+exports.ServerLocationType = {
+    Metadata: 'USER_METADATA',
+    Content: 'USER_CONTENT',
+    Backup: 'USER_BACKUP'
 };
 /**
  *
@@ -662,7 +676,7 @@ const FoldersApiAxiosParamCreator = function (configuration) {
             (0, common_1.assertParamExists)('enqueueFolderOperation', 'folderId', folderId);
             // verify required parameter 'folderOperationRequestPayload' is not null or undefined
             (0, common_1.assertParamExists)('enqueueFolderOperation', 'folderOperationRequestPayload', folderOperationRequestPayload);
-            const localVarPath = `/folders/{folderId}/objects/{objectKey}/operations`
+            const localVarPath = `/folders/{folderId}/operations`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
@@ -839,7 +853,7 @@ const FoldersApiAxiosParamCreator = function (configuration) {
         listFolderOperations: async (folderId, options = {}) => {
             // verify required parameter 'folderId' is not null or undefined
             (0, common_1.assertParamExists)('listFolderOperations', 'folderId', folderId);
-            const localVarPath = `/folders/{folderId}/folder-operations`
+            const localVarPath = `/folders/{folderId}/operations`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
@@ -1927,21 +1941,25 @@ class FoldersApi extends base_1.BaseAPI {
 }
 exports.FoldersApi = FoldersApi;
 /**
- * S3ConnectionsApi - axios parameter creator
+ * ServerApi - axios parameter creator
  * @export
  */
-const S3ConnectionsApiAxiosParamCreator = function (configuration) {
+const ServerApiAxiosParamCreator = function (configuration) {
     return {
         /**
          *
-         * @param {CreateS3ConnectionRequest} createS3ConnectionRequest
+         * @param {ServerLocationType} locationType
+         * @param {ServerLocationInputData} serverLocationInputData
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createS3Connection: async (createS3ConnectionRequest, options = {}) => {
-            // verify required parameter 'createS3ConnectionRequest' is not null or undefined
-            (0, common_1.assertParamExists)('createS3Connection', 'createS3ConnectionRequest', createS3ConnectionRequest);
-            const localVarPath = `/s3-connections`;
+        addServerLocation: async (locationType, serverLocationInputData, options = {}) => {
+            // verify required parameter 'locationType' is not null or undefined
+            (0, common_1.assertParamExists)('addServerLocation', 'locationType', locationType);
+            // verify required parameter 'serverLocationInputData' is not null or undefined
+            (0, common_1.assertParamExists)('addServerLocation', 'serverLocationInputData', serverLocationInputData);
+            const localVarPath = `/server/settings/locations/{locationType}`
+                .replace(`{${"locationType"}}`, encodeURIComponent(String(locationType)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
             let baseOptions;
@@ -1958,7 +1976,7 @@ const S3ConnectionsApiAxiosParamCreator = function (configuration) {
             (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(createS3ConnectionRequest, localVarRequestOptions, configuration);
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(serverLocationInputData, localVarRequestOptions, configuration);
             return {
                 url: (0, common_1.toPathString)(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -1966,15 +1984,14 @@ const S3ConnectionsApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
-         * @param {string} s3ConnectionId
+         * @param {CreateUserData} createUserData
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteS3Connection: async (s3ConnectionId, options = {}) => {
-            // verify required parameter 's3ConnectionId' is not null or undefined
-            (0, common_1.assertParamExists)('deleteS3Connection', 's3ConnectionId', s3ConnectionId);
-            const localVarPath = `/s3-connections/{s3ConnectionId}`
-                .replace(`{${"s3ConnectionId"}}`, encodeURIComponent(String(s3ConnectionId)));
+        createUser: async (createUserData, options = {}) => {
+            // verify required parameter 'createUserData' is not null or undefined
+            (0, common_1.assertParamExists)('createUser', 'createUserData', createUserData);
+            const localVarPath = `/server/users`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
             let baseOptions;
@@ -1982,6 +1999,43 @@ const S3ConnectionsApiAxiosParamCreator = function (configuration) {
                 baseOptions = configuration.baseOptions;
             }
             const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication AccessToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(createUserData, localVarRequestOptions, configuration);
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {ServerLocationType} locationType
+         * @param {string} locationId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteServerLocation: async (locationType, locationId, options = {}) => {
+            // verify required parameter 'locationType' is not null or undefined
+            (0, common_1.assertParamExists)('deleteServerLocation', 'locationType', locationType);
+            // verify required parameter 'locationId' is not null or undefined
+            (0, common_1.assertParamExists)('deleteServerLocation', 'locationId', locationId);
+            const localVarPath = `/server/settings/locations/{locationType}/{locationId}`
+                .replace(`{${"locationType"}}`, encodeURIComponent(String(locationType)))
+                .replace(`{${"locationId"}}`, encodeURIComponent(String(locationId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options };
             const localVarHeaderParameter = {};
             const localVarQueryParameter = {};
             // authentication AccessToken required
@@ -1997,15 +2051,104 @@ const S3ConnectionsApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
-         * @param {string} s3ConnectionId
+         * @param {string} userId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getS3Connection: async (s3ConnectionId, options = {}) => {
-            // verify required parameter 's3ConnectionId' is not null or undefined
-            (0, common_1.assertParamExists)('getS3Connection', 's3ConnectionId', s3ConnectionId);
-            const localVarPath = `/s3-connections/{s3ConnectionId}`
-                .replace(`{${"s3ConnectionId"}}`, encodeURIComponent(String(s3ConnectionId)));
+        deleteUser: async (userId, options = {}) => {
+            // verify required parameter 'userId' is not null or undefined
+            (0, common_1.assertParamExists)('deleteUser', 'userId', userId);
+            const localVarPath = `/server/users/{userId}`
+                .replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication AccessToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getSettings: async (options = {}) => {
+            const localVarPath = `/server/settings`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication AccessToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} userId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getUser: async (userId, options = {}) => {
+            // verify required parameter 'userId' is not null or undefined
+            (0, common_1.assertParamExists)('getUser', 'userId', userId);
+            const localVarPath = `/server/users/{userId}`
+                .replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication AccessToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {ServerLocationType} locationType
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerLocations: async (locationType, options = {}) => {
+            // verify required parameter 'locationType' is not null or undefined
+            (0, common_1.assertParamExists)('listServerLocations', 'locationType', locationType);
+            const localVarPath = `/server/settings/server-locations/{locationType}`
+                .replace(`{${"locationType"}}`, encodeURIComponent(String(locationType)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
             let baseOptions;
@@ -2031,8 +2174,8 @@ const S3ConnectionsApiAxiosParamCreator = function (configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listS3Connections: async (options = {}) => {
-            const localVarPath = `/s3-connections`;
+        listUsers: async (options = {}) => {
+            const localVarPath = `/server/users`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
             let baseOptions;
@@ -2055,21 +2198,56 @@ const S3ConnectionsApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
-         * @param {CreateS3ConnectionRequest} createS3ConnectionRequest
+         * @param {string} settingsKey
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        testS3Connection: async (createS3ConnectionRequest, options = {}) => {
-            // verify required parameter 'createS3ConnectionRequest' is not null or undefined
-            (0, common_1.assertParamExists)('testS3Connection', 'createS3ConnectionRequest', createS3ConnectionRequest);
-            const localVarPath = `/s3-connections/test`;
+        resetSetting: async (settingsKey, options = {}) => {
+            // verify required parameter 'settingsKey' is not null or undefined
+            (0, common_1.assertParamExists)('resetSetting', 'settingsKey', settingsKey);
+            const localVarPath = `/server/settings/{settingsKey}`
+                .replace(`{${"settingsKey"}}`, encodeURIComponent(String(settingsKey)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
             let baseOptions;
             if (configuration) {
                 baseOptions = configuration.baseOptions;
             }
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication AccessToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} settingsKey
+         * @param {UpdateSettingRequest} updateSettingRequest
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateSetting: async (settingsKey, updateSettingRequest, options = {}) => {
+            // verify required parameter 'settingsKey' is not null or undefined
+            (0, common_1.assertParamExists)('updateSetting', 'settingsKey', settingsKey);
+            // verify required parameter 'updateSettingRequest' is not null or undefined
+            (0, common_1.assertParamExists)('updateSetting', 'updateSettingRequest', updateSettingRequest);
+            const localVarPath = `/server/settings/{settingsKey}`
+                .replace(`{${"settingsKey"}}`, encodeURIComponent(String(settingsKey)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options };
             const localVarHeaderParameter = {};
             const localVarQueryParameter = {};
             // authentication AccessToken required
@@ -2079,7 +2257,43 @@ const S3ConnectionsApiAxiosParamCreator = function (configuration) {
             (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(createS3ConnectionRequest, localVarRequestOptions, configuration);
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(updateSettingRequest, localVarRequestOptions, configuration);
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} userId
+         * @param {UpdateUserData} updateUserData
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateUser: async (userId, updateUserData, options = {}) => {
+            // verify required parameter 'userId' is not null or undefined
+            (0, common_1.assertParamExists)('updateUser', 'userId', userId);
+            // verify required parameter 'updateUserData' is not null or undefined
+            (0, common_1.assertParamExists)('updateUser', 'updateUserData', updateUserData);
+            const localVarPath = `/server/users/{userId}`
+                .replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication AccessToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(updateUserData, localVarRequestOptions, configuration);
             return {
                 url: (0, common_1.toPathString)(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -2087,42 +2301,54 @@ const S3ConnectionsApiAxiosParamCreator = function (configuration) {
         },
     };
 };
-exports.S3ConnectionsApiAxiosParamCreator = S3ConnectionsApiAxiosParamCreator;
+exports.ServerApiAxiosParamCreator = ServerApiAxiosParamCreator;
 /**
- * S3ConnectionsApi - functional programming interface
+ * ServerApi - functional programming interface
  * @export
  */
-const S3ConnectionsApiFp = function (configuration) {
-    const localVarAxiosParamCreator = (0, exports.S3ConnectionsApiAxiosParamCreator)(configuration);
+const ServerApiFp = function (configuration) {
+    const localVarAxiosParamCreator = (0, exports.ServerApiAxiosParamCreator)(configuration);
     return {
         /**
          *
-         * @param {CreateS3ConnectionRequest} createS3ConnectionRequest
+         * @param {ServerLocationType} locationType
+         * @param {ServerLocationInputData} serverLocationInputData
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createS3Connection(createS3ConnectionRequest, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createS3Connection(createS3ConnectionRequest, options);
+        async addServerLocation(locationType, serverLocationInputData, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.addServerLocation(locationType, serverLocationInputData, options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
         /**
          *
-         * @param {string} s3ConnectionId
+         * @param {CreateUserData} createUserData
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async deleteS3Connection(s3ConnectionId, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteS3Connection(s3ConnectionId, options);
+        async createUser(createUserData, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createUser(createUserData, options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
         /**
          *
-         * @param {string} s3ConnectionId
+         * @param {ServerLocationType} locationType
+         * @param {string} locationId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getS3Connection(s3ConnectionId, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getS3Connection(s3ConnectionId, options);
+        async deleteServerLocation(locationType, locationId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteServerLocation(locationType, locationId, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} userId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteUser(userId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteUser(userId, options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
         /**
@@ -2130,135 +2356,298 @@ const S3ConnectionsApiFp = function (configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listS3Connections(options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listS3Connections(options);
+        async getSettings(options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getSettings(options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
         /**
          *
-         * @param {CreateS3ConnectionRequest} createS3ConnectionRequest
+         * @param {string} userId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async testS3Connection(createS3ConnectionRequest, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.testS3Connection(createS3ConnectionRequest, options);
+        async getUser(userId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getUser(userId, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {ServerLocationType} locationType
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listServerLocations(locationType, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listServerLocations(locationType, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listUsers(options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listUsers(options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} settingsKey
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async resetSetting(settingsKey, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.resetSetting(settingsKey, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} settingsKey
+         * @param {UpdateSettingRequest} updateSettingRequest
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateSetting(settingsKey, updateSettingRequest, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateSetting(settingsKey, updateSettingRequest, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} userId
+         * @param {UpdateUserData} updateUserData
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateUser(userId, updateUserData, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateUser(userId, updateUserData, options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
     };
 };
-exports.S3ConnectionsApiFp = S3ConnectionsApiFp;
+exports.ServerApiFp = ServerApiFp;
 /**
- * S3ConnectionsApi - factory interface
+ * ServerApi - factory interface
  * @export
  */
-const S3ConnectionsApiFactory = function (configuration, basePath, axios) {
-    const localVarFp = (0, exports.S3ConnectionsApiFp)(configuration);
+const ServerApiFactory = function (configuration, basePath, axios) {
+    const localVarFp = (0, exports.ServerApiFp)(configuration);
     return {
         /**
          *
-         * @param {S3ConnectionsApiCreateS3ConnectionRequest} requestParameters Request parameters.
+         * @param {ServerApiAddServerLocationRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createS3Connection(requestParameters, options) {
-            return localVarFp.createS3Connection(requestParameters.createS3ConnectionRequest, options).then((request) => request(axios, basePath));
+        addServerLocation(requestParameters, options) {
+            return localVarFp.addServerLocation(requestParameters.locationType, requestParameters.serverLocationInputData, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {S3ConnectionsApiDeleteS3ConnectionRequest} requestParameters Request parameters.
+         * @param {ServerApiCreateUserRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteS3Connection(requestParameters, options) {
-            return localVarFp.deleteS3Connection(requestParameters.s3ConnectionId, options).then((request) => request(axios, basePath));
+        createUser(requestParameters, options) {
+            return localVarFp.createUser(requestParameters.createUserData, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {S3ConnectionsApiGetS3ConnectionRequest} requestParameters Request parameters.
+         * @param {ServerApiDeleteServerLocationRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getS3Connection(requestParameters, options) {
-            return localVarFp.getS3Connection(requestParameters.s3ConnectionId, options).then((request) => request(axios, basePath));
+        deleteServerLocation(requestParameters, options) {
+            return localVarFp.deleteServerLocation(requestParameters.locationType, requestParameters.locationId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {ServerApiDeleteUserRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteUser(requestParameters, options) {
+            return localVarFp.deleteUser(requestParameters.userId, options).then((request) => request(axios, basePath));
         },
         /**
          *
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listS3Connections(options) {
-            return localVarFp.listS3Connections(options).then((request) => request(axios, basePath));
+        getSettings(options) {
+            return localVarFp.getSettings(options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {S3ConnectionsApiTestS3ConnectionRequest} requestParameters Request parameters.
+         * @param {ServerApiGetUserRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        testS3Connection(requestParameters, options) {
-            return localVarFp.testS3Connection(requestParameters.createS3ConnectionRequest, options).then((request) => request(axios, basePath));
+        getUser(requestParameters, options) {
+            return localVarFp.getUser(requestParameters.userId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {ServerApiListServerLocationsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerLocations(requestParameters, options) {
+            return localVarFp.listServerLocations(requestParameters.locationType, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listUsers(options) {
+            return localVarFp.listUsers(options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {ServerApiResetSettingRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        resetSetting(requestParameters, options) {
+            return localVarFp.resetSetting(requestParameters.settingsKey, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {ServerApiUpdateSettingRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateSetting(requestParameters, options) {
+            return localVarFp.updateSetting(requestParameters.settingsKey, requestParameters.updateSettingRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {ServerApiUpdateUserRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateUser(requestParameters, options) {
+            return localVarFp.updateUser(requestParameters.userId, requestParameters.updateUserData, options).then((request) => request(axios, basePath));
         },
     };
 };
-exports.S3ConnectionsApiFactory = S3ConnectionsApiFactory;
+exports.ServerApiFactory = ServerApiFactory;
 /**
- * S3ConnectionsApi - object-oriented interface
+ * ServerApi - object-oriented interface
  * @export
- * @class S3ConnectionsApi
+ * @class ServerApi
  * @extends {BaseAPI}
  */
-class S3ConnectionsApi extends base_1.BaseAPI {
+class ServerApi extends base_1.BaseAPI {
     /**
      *
-     * @param {S3ConnectionsApiCreateS3ConnectionRequest} requestParameters Request parameters.
+     * @param {ServerApiAddServerLocationRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof S3ConnectionsApi
+     * @memberof ServerApi
      */
-    createS3Connection(requestParameters, options) {
-        return (0, exports.S3ConnectionsApiFp)(this.configuration).createS3Connection(requestParameters.createS3ConnectionRequest, options).then((request) => request(this.axios, this.basePath));
+    addServerLocation(requestParameters, options) {
+        return (0, exports.ServerApiFp)(this.configuration).addServerLocation(requestParameters.locationType, requestParameters.serverLocationInputData, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
-     * @param {S3ConnectionsApiDeleteS3ConnectionRequest} requestParameters Request parameters.
+     * @param {ServerApiCreateUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof S3ConnectionsApi
+     * @memberof ServerApi
      */
-    deleteS3Connection(requestParameters, options) {
-        return (0, exports.S3ConnectionsApiFp)(this.configuration).deleteS3Connection(requestParameters.s3ConnectionId, options).then((request) => request(this.axios, this.basePath));
+    createUser(requestParameters, options) {
+        return (0, exports.ServerApiFp)(this.configuration).createUser(requestParameters.createUserData, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
-     * @param {S3ConnectionsApiGetS3ConnectionRequest} requestParameters Request parameters.
+     * @param {ServerApiDeleteServerLocationRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof S3ConnectionsApi
+     * @memberof ServerApi
      */
-    getS3Connection(requestParameters, options) {
-        return (0, exports.S3ConnectionsApiFp)(this.configuration).getS3Connection(requestParameters.s3ConnectionId, options).then((request) => request(this.axios, this.basePath));
+    deleteServerLocation(requestParameters, options) {
+        return (0, exports.ServerApiFp)(this.configuration).deleteServerLocation(requestParameters.locationType, requestParameters.locationId, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {ServerApiDeleteUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    deleteUser(requestParameters, options) {
+        return (0, exports.ServerApiFp)(this.configuration).deleteUser(requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof S3ConnectionsApi
+     * @memberof ServerApi
      */
-    listS3Connections(options) {
-        return (0, exports.S3ConnectionsApiFp)(this.configuration).listS3Connections(options).then((request) => request(this.axios, this.basePath));
+    getSettings(options) {
+        return (0, exports.ServerApiFp)(this.configuration).getSettings(options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
-     * @param {S3ConnectionsApiTestS3ConnectionRequest} requestParameters Request parameters.
+     * @param {ServerApiGetUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof S3ConnectionsApi
+     * @memberof ServerApi
      */
-    testS3Connection(requestParameters, options) {
-        return (0, exports.S3ConnectionsApiFp)(this.configuration).testS3Connection(requestParameters.createS3ConnectionRequest, options).then((request) => request(this.axios, this.basePath));
+    getUser(requestParameters, options) {
+        return (0, exports.ServerApiFp)(this.configuration).getUser(requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {ServerApiListServerLocationsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    listServerLocations(requestParameters, options) {
+        return (0, exports.ServerApiFp)(this.configuration).listServerLocations(requestParameters.locationType, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    listUsers(options) {
+        return (0, exports.ServerApiFp)(this.configuration).listUsers(options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {ServerApiResetSettingRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    resetSetting(requestParameters, options) {
+        return (0, exports.ServerApiFp)(this.configuration).resetSetting(requestParameters.settingsKey, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {ServerApiUpdateSettingRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    updateSetting(requestParameters, options) {
+        return (0, exports.ServerApiFp)(this.configuration).updateSetting(requestParameters.settingsKey, requestParameters.updateSettingRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {ServerApiUpdateUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    updateUser(requestParameters, options) {
+        return (0, exports.ServerApiFp)(this.configuration).updateUser(requestParameters.userId, requestParameters.updateUserData, options).then((request) => request(this.axios, this.basePath));
     }
 }
-exports.S3ConnectionsApi = S3ConnectionsApi;
+exports.ServerApi = ServerApi;
 /**
  * ViewerApi - axios parameter creator
  * @export
@@ -2292,6 +2681,38 @@ const ViewerApiAxiosParamCreator = function (configuration) {
                 options: localVarRequestOptions,
             };
         },
+        /**
+         *
+         * @param {ViewerUpdatePayload} viewerUpdatePayload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateViewer: async (viewerUpdatePayload, options = {}) => {
+            // verify required parameter 'viewerUpdatePayload' is not null or undefined
+            (0, common_1.assertParamExists)('updateViewer', 'viewerUpdatePayload', viewerUpdatePayload);
+            const localVarPath = `/viewer`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication AccessToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(viewerUpdatePayload, localVarRequestOptions, configuration);
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     };
 };
 exports.ViewerApiAxiosParamCreator = ViewerApiAxiosParamCreator;
@@ -2309,6 +2730,16 @@ const ViewerApiFp = function (configuration) {
          */
         async getViewer(options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getViewer(options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {ViewerUpdatePayload} viewerUpdatePayload
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateViewer(viewerUpdatePayload, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateViewer(viewerUpdatePayload, options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
     };
@@ -2329,6 +2760,15 @@ const ViewerApiFactory = function (configuration, basePath, axios) {
         getViewer(options) {
             return localVarFp.getViewer(options).then((request) => request(axios, basePath));
         },
+        /**
+         *
+         * @param {ViewerApiUpdateViewerRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateViewer(requestParameters, options) {
+            return localVarFp.updateViewer(requestParameters.viewerUpdatePayload, options).then((request) => request(axios, basePath));
+        },
     };
 };
 exports.ViewerApiFactory = ViewerApiFactory;
@@ -2347,6 +2787,16 @@ class ViewerApi extends base_1.BaseAPI {
      */
     getViewer(options) {
         return (0, exports.ViewerApiFp)(this.configuration).getViewer(options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {ViewerApiUpdateViewerRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ViewerApi
+     */
+    updateViewer(requestParameters, options) {
+        return (0, exports.ViewerApiFp)(this.configuration).updateViewer(requestParameters.viewerUpdatePayload, options).then((request) => request(this.axios, this.basePath));
     }
 }
 exports.ViewerApi = ViewerApi;

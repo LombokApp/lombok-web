@@ -29,10 +29,10 @@ export class FolderShare extends TimestampedEntity<FolderShare> {
   @PrimaryKey({ customType: new UuidType(), defaultRaw: 'gen_random_uuid()' })
   id!: string
 
-  @Property({ nullable: false })
+  @Property({ columnType: 'TEXT', nullable: false })
   userLabel!: string
 
-  @Property({ nullable: false })
+  @Property({ columnType: 'TEXT', nullable: false })
   userInviteEmail!: string
 
   @ManyToOne({
@@ -46,6 +46,7 @@ export class FolderShare extends TimestampedEntity<FolderShare> {
     onDelete: 'cascade',
     serializer: (f) => f.id,
     serializedName: 'folderId',
+    nullable: false,
   })
   readonly folder!: Folder
 

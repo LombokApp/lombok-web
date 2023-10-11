@@ -17,7 +17,7 @@ export function Banner({
             : type === 'warn'
             ? 'bg-amber-300 text-gray-800'
             : type === 'error'
-            ? 'bg-info-300 text-gray-800'
+            ? 'bg-red-500 text-white'
             : 'border border-gray-500 text-gray-500',
         )}
       >

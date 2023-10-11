@@ -2,7 +2,6 @@ import { addMs, earliest } from '@stellariscloud/utils'
 import { Lifecycle, scoped } from 'tsyringe'
 
 import type { SignupParams } from '../../../controllers/auth.controller'
-import { UserStatus } from '../../user/constants/user.constants'
 import type { User } from '../../user/entities/user.entity'
 import { UserRepository } from '../../user/entities/user.repository'
 import { UserIdentityConflictError } from '../../user/errors/user.error'
@@ -40,28 +39,31 @@ export class AuthService {
   }
 
   async createSignup(data: SignupParams) {
-    const { email, password } = data
+    const { username, email, password } = data
 
-    const count = await this.userRepository.count(
-      { email },
-      { filters: { deleted: false } },
-    )
+    const emailMatches = email && (await this.userRepository.find({ email }))
 
-    if (count > 0) {
+    if (email && emailMatches && emailMatches.length > 0) {
       throw new UserIdentityConflictError(email)
     }
 
-    const user = this.userRepository.create({
-      email,
-      emailVerified: false,
-      role: PlatformRole.Authenticated,
-      status: UserStatus.Pending,
+    const usernameMatches = await this.userRepository.find({
+      username,
     })
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (password?.length > 0) {
-      user.setPassword(password)
+    if (usernameMatches.length > 0) {
+      throw new UserIdentityConflictError(username)
     }
+
+    const user = this.userRepository.create({
+      username,
+      email,
+      emailVerified: false,
+      permissions: [],
+      role: PlatformRole.User,
+    })
+
+    user.setPassword(password)
 
     await this.userRepository.getEntityManager().persistAndFlush(user)
 

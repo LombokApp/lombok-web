@@ -32,4 +32,10 @@ export enum ServiceErrorCode {
 
   FolderOperationInvalidError = 'folderOperation.invalid',
   FolderOperationNotFoundError = 'folderOperation.notFound',
+
+  ServerConfigurationNotFoundError = 'serverConfiguration.notFound',
+  ServerConfigurationInvalidError = 'serverConfiguration.invalid',
+
+  S3LocationNotFoundError = 's3Location.notFound',
+  S3LocationInvalidError = 's3Location.invalid',
 }

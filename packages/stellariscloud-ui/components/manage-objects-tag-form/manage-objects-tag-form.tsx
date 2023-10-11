@@ -1,8 +1,9 @@
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import type { ObjectTagData } from '@stellariscloud/api-client'
-import { Button, Icon } from '@stellariscloud/design-system'
 import React from 'react'
 
+import { Button } from '../../design-system/button/button'
+import { Icon } from '../../design-system/icon'
 import { TagDropdown } from '../tag-dropdown/tag-dropdown'
 
 export const ManageObjectTagsForm = ({

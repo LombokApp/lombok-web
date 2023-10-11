@@ -1,8 +1,9 @@
 import { FolderPermissionName } from '@stellariscloud/api-client'
-import { Heading, Input } from '@stellariscloud/design-system'
 import clsx from 'clsx'
 import React from 'react'
 
+import { Input } from '../../design-system/input/input'
+import { Heading } from '../../design-system/typography'
 import type { UserShareInput } from './folder-share-panel'
 
 export const FolderPermissionsForm = ({
@@ -25,7 +26,7 @@ export const FolderPermissionsForm = ({
         <Heading level={6}>User email</Heading>
         <Input
           disabled={!!folderShare.id}
-          isError={emailError}
+          error={emailError ? 'There is an error' : undefined}
           className="flex-1"
           value={folderShare.userInviteEmail}
           onChange={(e) =>

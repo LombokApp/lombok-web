@@ -29,19 +29,19 @@ export class FolderOperation extends TimestampedEntity<FolderOperation> {
   @PrimaryKey({ customType: new UuidType(), defaultRaw: 'gen_random_uuid()' })
   id!: string
 
-  @Property({ customType: new JsonType() })
+  @Property({ customType: new JsonType(), nullable: false })
   operationData!: { [key: string]: any }
 
-  @Property()
+  @Property({ nullable: false })
   started: boolean = false
 
-  @Property()
+  @Property({ nullable: false })
   completed: boolean = false
 
-  @Property({ columnType: 'TEXT' })
+  @Property({ columnType: 'TEXT', nullable: false })
   operationName!: FolderOperationName
 
-  @Property()
+  @Property({ columnType: 'TEXT', nullable: true })
   error?: string
 
   @OneToMany({
@@ -54,6 +54,7 @@ export class FolderOperation extends TimestampedEntity<FolderOperation> {
   @ManyToOne({
     entity: () => Folder,
     onDelete: 'cascade',
+    nullable: false,
     serializer: (f) => ({
       id: f.id as string,
     }),

@@ -26,11 +26,12 @@ export class ObjectTag extends TimestampedEntity<ObjectTag> {
   @PrimaryKey({ customType: new UuidType(), defaultRaw: 'gen_random_uuid()' })
   id!: string
 
-  @Property({ columnType: 'TEXT' })
+  @Property({ columnType: 'TEXT', nullable: false })
   name!: string
 
   @ManyToOne({
     entity: () => Folder,
+    nullable: false,
     onDelete: 'cascade',
   })
   readonly folder!: Folder

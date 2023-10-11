@@ -4,6 +4,7 @@ import {
   EntityRepositoryType,
   ManyToOne,
   OneToMany,
+  OneToOne,
   OptionalProps,
   PrimaryKey,
   Property,
@@ -11,11 +12,9 @@ import {
 } from '@mikro-orm/core'
 
 import { TimestampedEntity } from '../../../entities/base.entity'
+import { S3Location } from '../../s3/entities/s3-location.entity'
 import { User } from '../../user/entities/user.entity'
-import type {
-  FolderData,
-  FolderPublicData,
-} from '../transfer-objects/folder.dto'
+import type { FolderData } from '../transfer-objects/folder.dto'
 import { FolderRepository } from './folder.repository'
 import type { FolderShare } from './folder-share.entity'
 
@@ -30,71 +29,39 @@ export class Folder extends TimestampedEntity<Folder> {
   @PrimaryKey({ customType: new UuidType(), defaultRaw: 'gen_random_uuid()' })
   id!: string
 
-  @Property({ nullable: false })
+  @Property({ columnType: 'TEXT', nullable: false })
   name!: string
 
-  @Property({ nullable: false })
-  endpoint!: string
+  @OneToOne({
+    entity: () => S3Location,
+    onDelete: 'cascade',
+  })
+  contentLocation!: S3Location
 
-  @Property({ nullable: false })
-  bucket!: string
-
-  @Property()
-  prefix?: string
-
-  @Property()
-  region?: string
-
-  @Property({ nullable: false })
-  accessKeyId!: string
-
-  @Property({ nullable: false })
-  secretAccessKey!: string
-
-  @Property({ nullable: false })
-  metadataEndpoint!: string
-
-  @Property({ nullable: false })
-  metadataBucket!: string
-
-  @Property()
-  metadataPrefix?: string
-
-  @Property()
-  metadataRegion?: string
-
-  @Property({ nullable: false })
-  metadataAccessKeyId!: string
-
-  @Property({ nullable: false })
-  metadataSecretAccessKey!: string
+  @OneToOne({
+    entity: () => S3Location,
+    onDelete: 'cascade',
+  })
+  metadataLocation!: S3Location
 
   @ManyToOne({
     entity: () => User,
-    onDelete: 'set null',
+    onDelete: 'cascade',
   })
-  owner?: User
+  owner!: User
 
   @OneToMany({ mappedBy: (share: FolderShare) => share.folder })
   shares: Collection<FolderShare> = new Collection<FolderShare>(this)
 
-  toFolderPublicData(): FolderPublicData {
-    return this.toObjectPick(['name', 'endpoint', 'bucket', 'prefix', 'region'])
-  }
-
   toFolderData(): FolderData {
-    return this.toObjectPick([
-      'id',
-      'name',
-      'endpoint',
-      'bucket',
-      'owner',
-      'prefix',
-      'region',
-      'createdAt',
-      'updatedAt',
-      'accessKeyId',
-    ])
+    return {
+      contentLocation: this.contentLocation.toS3LocationData(),
+      metadataLocation: this.metadataLocation.toS3LocationData(),
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      name: this.name,
+      id: this.id,
+    }
   }
 
   toJSON() {

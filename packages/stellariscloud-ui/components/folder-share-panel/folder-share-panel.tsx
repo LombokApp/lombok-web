@@ -4,10 +4,12 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import type { FolderShareData } from '@stellariscloud/api-client'
-import { Button, Heading, Icon } from '@stellariscloud/design-system'
 import clsx from 'clsx'
 import React from 'react'
 
+import { Button } from '../../design-system/button/button'
+import { Icon } from '../../design-system/icon'
+import { Heading } from '../../design-system/typography'
 import { isValidEmail } from '../../utils/validate'
 import { FolderPermissionsForm } from './folder-permissions-form'
 
@@ -113,7 +115,7 @@ export const FolderSharePanel = ({
         <div className="flex flex-1 flex-col gap-4">
           <div className="flex justify-between">
             <Heading level={4}>Share folder</Heading>
-            <Button variant="ghost" onClick={onClose}>
+            <Button onClick={onClose}>
               <Icon icon={XMarkIcon}></Icon>
             </Button>
           </div>
@@ -129,14 +131,12 @@ export const FolderSharePanel = ({
                     >
                       <div className="flex-1">{folderShare.userLabel}</div>
                       <Button
-                        variant="outline"
                         size="sm"
                         onClick={() => handleStartEdit(folderShare)}
                       >
                         <Icon icon={PencilIcon}></Icon>
                       </Button>
                       <Button
-                        variant="outline"
                         size="sm"
                         onClick={() => void onRemoveFolderShare(folderShare.id)}
                       >
@@ -154,11 +154,7 @@ export const FolderSharePanel = ({
             )}
             {!folderShares && <div className="italic">Loading</div>}
           </div>
-          <Button
-            variant="primary"
-            onClick={handleStartCreate}
-            className="px-6"
-          >
+          <Button primary onClick={handleStartCreate} className="px-6">
             Add share
           </Button>
         </div>
@@ -166,13 +162,13 @@ export const FolderSharePanel = ({
       {mode === UIMode.EDIT && editingFolderShare?.id && (
         <div className="flex flex-col gap-4 p-2">
           <div className="flex justify-between items-start">
-            <Button variant="ghost" onClick={() => setMode(UIMode.LIST)}>
+            <Button onClick={() => setMode(UIMode.LIST)}>
               <div className="flex gap-2 items-center">
                 <Icon icon={ArrowLeftIcon} />
                 Back
               </div>
             </Button>
-            <Button variant="ghost" onClick={onClose}>
+            <Button onClick={onClose}>
               <Icon icon={XMarkIcon}></Icon>
             </Button>
           </div>
@@ -190,14 +186,10 @@ export const FolderSharePanel = ({
             }
           />
           <div className="flex gap-4 justify-end">
-            <Button
-              variant="outline"
-              onClick={handleBackToList}
-              className="px-6"
-            >
+            <Button onClick={handleBackToList} className="px-6">
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleUpdate} className="px-6">
+            <Button primary onClick={handleUpdate} className="px-6">
               Save permissions
             </Button>
           </div>
@@ -206,13 +198,13 @@ export const FolderSharePanel = ({
       {mode === UIMode.CREATE && editingFolderShare && (
         <div className="flex flex-col gap-4 p-2">
           <div className="flex justify-between items-start">
-            <Button variant="ghost" onClick={() => setMode(UIMode.LIST)}>
+            <Button onClick={() => setMode(UIMode.LIST)}>
               <div className="flex gap-2 items-center">
                 <Icon icon={ArrowLeftIcon} />
                 Back
               </div>
             </Button>
-            <Button variant="ghost" onClick={onClose}>
+            <Button onClick={onClose}>
               <Icon icon={XMarkIcon}></Icon>
             </Button>
           </div>
@@ -227,14 +219,10 @@ export const FolderSharePanel = ({
             }
           />
           <div className="flex gap-4 justify-end">
-            <Button
-              variant="outline"
-              onClick={() => setMode(UIMode.LIST)}
-              className="px-6"
-            >
+            <Button onClick={() => setMode(UIMode.LIST)} className="px-6">
               Cancel
             </Button>
-            <Button variant="primary" onClick={handleAdd} className="px-6">
+            <Button primary onClick={handleAdd} className="px-6">
               Share folder
             </Button>
           </div>

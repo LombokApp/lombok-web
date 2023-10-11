@@ -36,7 +36,7 @@ export function Icon({ icon, size = 'text', className }: IconProps) {
           size === 'text'
           ? 'w-em h-em'
           : null,
-        'text-black dark:text-white',
+        // 'text-black dark:text-white',
         className,
       )}
     />

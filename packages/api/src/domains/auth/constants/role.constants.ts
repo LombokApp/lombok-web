@@ -11,7 +11,7 @@ export enum PlatformRole {
   /**
    * No platform level permissions (community user).
    */
-  Authenticated = 'AUTHENTICATED',
+  User = 'USER',
 
   /**
    * Full read and write access to platform resources.
@@ -28,7 +28,7 @@ export const PlatformRoleType: r.Runtype<PlatformRole> = EnumType(PlatformRole)
 
 export const PLATFORM_ROLES: Record<PlatformRole, number> = {
   [PlatformRole.Anonymous]: 0,
-  [PlatformRole.Authenticated]: 1,
+  [PlatformRole.User]: 1,
   [PlatformRole.Admin]: 2,
   [PlatformRole.Service]: 3,
 }

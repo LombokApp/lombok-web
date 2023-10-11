@@ -13,7 +13,6 @@ import type {
   DbSeedConfig,
   InstanceClassConfig,
   LoggingConfig,
-  MetadataLocationConfig,
   RedisConfig,
   SendgridConfig,
 } from './config.interface'
@@ -130,30 +129,6 @@ export class EnvConfigProvider implements ConfigProvider {
     }
 
     return this.db
-  }
-
-  private metadataLocation?: MetadataLocationConfig
-
-  getMetadataLocationConfig() {
-    if (!this.metadataLocation) {
-      const env = parseEnv({
-        METADATA_LOCATION_ENDPOINT: r.String,
-        METADATA_LOCATION_BUCKET: r.String,
-        METADATA_LOCATION_REGION: r.String,
-        METADATA_LOCATION_ACCESS_KEY_ID: r.String,
-        METADATA_LOCATION_SECRET_ACCESS_KEY: r.String,
-      })
-
-      this.metadataLocation = {
-        s3AccessKeyId: env.METADATA_LOCATION_ACCESS_KEY_ID,
-        s3Endpoint: env.METADATA_LOCATION_ENDPOINT,
-        s3SecretAccessKey: env.METADATA_LOCATION_SECRET_ACCESS_KEY,
-        s3Region: env.METADATA_LOCATION_REGION,
-        s3Bucket: env.METADATA_LOCATION_BUCKET,
-      }
-    }
-
-    return this.metadataLocation
   }
 
   private dbSeed?: DbSeedConfig

@@ -1,7 +1,9 @@
 import type { FolderObjectData } from '@stellariscloud/api-client'
-import { Button, Heading } from '@stellariscloud/design-system'
 import clsx from 'clsx'
 import React from 'react'
+
+import { Button } from '../../design-system/button/button'
+import { Heading } from '../../design-system/typography'
 
 export const ConfirmDelete = ({
   onConfirm,
@@ -24,20 +26,10 @@ export const ConfirmDelete = ({
           <em>{folderObject.objectKey}</em>
         </div>
         <div className="flex gap-4">
-          <Button
-            size="lg"
-            variant="primary"
-            preventDefaultOnClick
-            onClick={onConfirm}
-          >
+          <Button size="lg" primary preventDefaultOnClick onClick={onConfirm}>
             Delete
           </Button>
-          <Button
-            size="lg"
-            variant={'ghost'}
-            preventDefaultOnClick
-            onClick={onCancel}
-          >
+          <Button size="lg" preventDefaultOnClick onClick={onCancel}>
             Cancel
           </Button>
         </div>

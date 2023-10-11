@@ -1,6 +1,8 @@
+import { ChevronRightIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import Image from 'next/image'
 
+import { Avatar } from '../avatar'
 import { Button } from '../button/button'
 import type { IconProps } from '../icon'
 import { Icon } from '../icon'
@@ -19,38 +21,40 @@ export function PageHeading({
   titleIconSrc,
   children,
   onAncestorPress,
+  avatarKey,
 }: {
-  title: string
+  title: string | string[]
   subtitle?: string
   subtitleIcon?: IconProps['icon']
   ancestorTitle?: string
   ancestorHref?: string
   ancestorTitleIcon?: IconProps['icon']
   ancestorTitleIconBg?: string
+  avatarKey?: string
   titleIconSrc?: string
   titleIcon?: IconProps['icon']
   titleIconBg?: string
   properties?: { icon: IconProps['icon']; value: string; monospace?: boolean }[]
-  children: React.ReactNode
+  children?: React.ReactNode
   onAncestorPress?: (ancestorHref: string) => void
 }) {
   return (
     <div className="flex flex-col items-start lg:flex-row w-full">
       <div className="min-w-0 flex flex-col gap-1 flex-1 py-3 text-gray-900 dark:text-white">
         <div className="flex flex-col items-start gap-6">
-          <div className="flex gap-2">
-            <div>
-              {titleIcon && (
+          <div className="flex items-start gap-4">
+            {titleIcon && (
+              <div>
                 <div
                   className={clsx(
-                    'relative h-14 w-14 flex items-center justify-center flex-shrink-0 overflow-hidden',
+                    'relative h-36 w-36 sm:h-24 sm:w-24 md:h-18 md:w-18 lg:h-16 lg:w-16 flex items-center justify-center flex-shrink-0 overflow-hidden',
                     titleIconSrc ? '' : 'rounded-full',
                     titleIconBg,
                   )}
                 >
                   {titleIconSrc ? (
                     <Image
-                      alt={title}
+                      alt={typeof title === 'string' ? title : title[0]}
                       src={titleIconSrc}
                       fill
                       objectFit="cover"
@@ -59,12 +63,28 @@ export function PageHeading({
                     <Icon size="sm" className="text-white" icon={titleIcon} />
                   )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+            {!titleIconSrc && avatarKey && (
+              <div className={clsx(titleIconBg, 'rounded-full')}>
+                <Avatar uniqueKey={avatarKey} />
+              </div>
+            )}
             <div>
               <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold leading-7 sm:truncate sm:text-3xl sm:tracking-tight">
-                  {title}
+                <h2 className="text-xl font-bold leading-7 sm:truncate sm:text-2xl sm:tracking-tight">
+                  <div className="flex gap-2">
+                    {typeof title === 'string'
+                      ? title
+                      : title.map((t, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            {i > 0 && (
+                              <Icon size="sm" icon={ChevronRightIcon} />
+                            )}
+                            <div className="">{t}</div>
+                          </div>
+                        ))}
+                  </div>
                 </h2>
                 {ancestorTitle && ancestorTitleIcon && ancestorTitleIconBg && (
                   <a
@@ -121,9 +141,11 @@ export function PageHeading({
           </div>
         </div>
       </div>
-      <div className={clsx('flex flex-1')}>
-        <div className="flex gap-2 justify-end w-full">{children}</div>
-      </div>
+      {children && (
+        <div className={clsx('flex flex-1')}>
+          <div className="flex gap-2 justify-end w-full">{children}</div>
+        </div>
+      )}
     </div>
   )
 }

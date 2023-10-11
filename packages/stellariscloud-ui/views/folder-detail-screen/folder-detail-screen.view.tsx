@@ -1,9 +1,7 @@
 import { ArrowPathIcon, TrashIcon, UsersIcon } from '@heroicons/react/20/solid'
 import {
-  CubeIcon,
   DocumentTextIcon,
   FolderIcon,
-  KeyIcon,
   MapPinIcon,
 } from '@heroicons/react/24/outline'
 import type { FolderObjectData } from '@stellariscloud/api-client'
@@ -32,6 +30,7 @@ import useDebounce from 'react-use/lib/useDebounce'
 import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
 import { ConfirmRefreshFolderModal } from '../../components/confirm-refresh-folder-modal/confirm-refresh-folder-modal'
 import { FolderEmptyState } from '../../components/folder-empty-state/folder-empty-state'
+import { FolderScroll } from '../../components/folder-scroll/folder-scroll'
 import { ShareFolderModal } from '../../components/share-folder-modal/share-folder-modal'
 import { useFolderContext } from '../../contexts/folder.context'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
@@ -41,6 +40,8 @@ import { PageHeading } from '../../design-system/page-heading/page-heading'
 import { useWindowDimensions } from '../../hooks/use-window-dimensions'
 import { foldersApi } from '../../services/api'
 import { FolderObjectDetailScreen } from '../folder-object-detail-screen/folder-object-detail-screen.view'
+import type { FolderSidebarTab } from '../folder-sidebar/folder-sidebar.view'
+import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
 
 const SCROLL_JUMP_ROWS_CUTTOFF = 10
 const ROW_BUFFER_SIZE = 3
@@ -179,10 +180,10 @@ const renderFolderObjectPreview = (
   const getDataResult =
     folderObject.folder.id &&
     folderObject.hash &&
-    currentVersionMetadata.thumbnailSm?.hash
+    currentVersionMetadata.thumbnailLg?.hash
       ? getData(
           folderObject.folder.id,
-          `metadata:${folderObject.objectKey}:${currentVersionMetadata.thumbnailSm.hash}`,
+          `metadata:${folderObject.objectKey}:${currentVersionMetadata.thumbnailLg.hash}`,
         )
       : undefined
 
@@ -582,6 +583,9 @@ export const FolderDetailScreen = () => {
   const [isResizing, setIsResizing] = React.useState(false)
   // const [_folderWebsocket, setFolderWebsocket] = React.useState<Socket>()
   const [shareModalOpen, setShareModalOpen] = React.useState(false)
+  const [sidebarTab, setSidebarTab] =
+    React.useState<FolderSidebarTab>('overview')
+
   const [refreshFolderConfirmationOpen, setRefreshFolderConfirmationOpen] =
     React.useState(false)
   const [forgetFolderConfirmationOpen, setForgetFolderConfirmationOpen] =
@@ -592,7 +596,7 @@ export const FolderDetailScreen = () => {
   const focusedObjectKey = router.query.objectKey
     ? router.query.objectKey[0]
     : undefined
-  const [tab, setTab] = React.useState<'files' | 'tasks'>('files')
+  const [sidebarOpen, _setSidebarOpen] = React.useState(true)
 
   const [pageState, setPageState] = React.useState<{
     search?: string
@@ -823,13 +827,10 @@ export const FolderDetailScreen = () => {
   )
 
   const _handleTabChange = React.useCallback(
-    (tabName: 'files' | 'tasks') => {
-      setTab(tabName)
-      if (tabName === 'files') {
-        setTimeout(handleScroll, 1)
-      }
+    (tabName: 'overview' | 'actions' | 'workers') => {
+      setSidebarTab(tabName)
     },
-    [handleScroll],
+    [],
   )
 
   const fetchFolderObjects = React.useCallback(
@@ -1162,7 +1163,7 @@ export const FolderDetailScreen = () => {
         />
       )}
       <div
-        className="relative flex flex-1 w-full h-full bg-white dark:bg-gray-900"
+        className="relative flex flex-1 w-full h-full"
         ref={mainContainerRef}
       >
         {focusedObjectKey && (
@@ -1231,14 +1232,15 @@ export const FolderDetailScreen = () => {
           </div>
         )}
         <div className="flex flex-1 h-full w-full z-10">
-          <div className="flex-1 flex flex-col w-full h-full">
-            <div className="w-full px-4 py-2">
+          <div className="flex-1 flex flex-col w-full h-full ">
+            <div className="px-4 py-2">
               <PageHeading
                 title={folderContext.folder?.name ?? ''}
-                titleIcon={FolderIcon}
+                titleIconBg={'bg-blue-100'}
+                avatarKey={folderContext.folder?.id}
                 properties={[
                   {
-                    icon: CubeIcon,
+                    icon: FolderIcon,
                     value: formatBytes(
                       folderContext.folderMetadata?.totalSizeBytes ?? 0,
                     ),
@@ -1247,19 +1249,15 @@ export const FolderDetailScreen = () => {
                     icon: DocumentTextIcon,
                     value: `${folderContext.folderMetadata?.totalCount} files`,
                   },
-                  ...(folderContext.folder?.accessKeyId
-                    ? [
-                        {
-                          icon: KeyIcon,
-                          value: folderContext.folder.accessKeyId,
-                        },
-                      ]
-                    : []),
                   {
                     icon: MapPinIcon,
-                    value: `${folderContext.folder?.endpoint}${
-                      folderContext.folder?.endpoint.endsWith('/') ? '' : '/'
-                    }${folderContext.folder?.bucket}`,
+                    value: `${folderContext.folder?.contentLocation.endpoint}${
+                      folderContext.folder?.contentLocation.endpoint.endsWith(
+                        '/',
+                      )
+                        ? ''
+                        : '/'
+                    }${folderContext.folder?.contentLocation.bucket}`,
                   },
                 ]}
               >
@@ -1290,9 +1288,7 @@ export const FolderDetailScreen = () => {
                 </div>
               </PageHeading>
             </div>
-            {tab === 'tasks' ? (
-              <></>
-            ) : (
+            <div className="flex flex-1 overflow-hidden">
               <div className="flex-1 flex overflow-hidden">
                 <div
                   ref={scrollContainerParentRef}
@@ -1320,27 +1316,40 @@ export const FolderDetailScreen = () => {
                 </div>
                 <div
                   className={clsx(
-                    'w-4 h-full z-40 rounded-full',
-                    'bg-gray-500',
+                    'flex',
+                    folderContext.folderMetadata?.totalCount === 0
+                      ? 'opacity-0'
+                      : 'opacity-100',
                   )}
                 >
-                  <div
-                    className="w-full bg-black/[.5] rounded-full"
-                    style={{
-                      height: `${
-                        (objectsViewContext?.scrollViewHeight ?? 0) * 100
-                      }%`,
-                      marginTop: `${
-                        (scrollContainerParentRef.current?.clientHeight ?? 0) *
-                        ((objectsViewContext?.scrollTopPercentage ?? 0) -
-                          (objectsViewContext?.scrollTopPercentage ?? 0) *
-                            (objectsViewContext?.scrollViewHeight ?? 0))
-                      }px`,
-                    }}
-                  ></div>
+                  <FolderScroll
+                    viewHeight={
+                      (objectsViewContext?.scrollViewHeight ?? 0) * 100
+                    }
+                    marginTop={
+                      (scrollContainerParentRef.current?.clientHeight ?? 0) *
+                      ((objectsViewContext?.scrollTopPercentage ?? 0) -
+                        (objectsViewContext?.scrollTopPercentage ?? 0) *
+                          (objectsViewContext?.scrollViewHeight ?? 0))
+                    }
+                  />
                 </div>
               </div>
-            )}
+              {sidebarOpen && (
+                <div className="xs:w-[100%] md:w-[50%] lg:w-[50%] xl:w-[40%] 2xl:w-[35%] 2xl:max-w-[35rem]">
+                  <FolderSidebar
+                    onRescan={() => setRefreshFolderConfirmationOpen(true)}
+                    activeTab={sidebarTab}
+                    onTabChange={(t) => setSidebarTab(t)}
+                    folderMetadata={folderContext.folderMetadata}
+                    folderAndPermission={{
+                      folder: folderContext.folder,
+                      permissions: folderContext.folderPermissions,
+                    }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -9,7 +9,7 @@ import {
   UuidType,
 } from '@mikro-orm/core'
 
-import { BaseEntity } from '../../../entities/base.entity'
+import { TimestampedEntity } from '../../../entities/base.entity'
 import { FolderObject } from '../../folder/entities/folder-object.entity'
 import type { FolderOperationObjectData } from '../transfer-objects/folder-operation-object.dto'
 import { FolderOperation } from './folder-operation.entity'
@@ -24,26 +24,27 @@ export enum OperationRelationType {
   tableName: 'folder_operation_object',
   customRepository: () => FolderOperationObjectRepository,
 })
-export class FolderOperationObject extends BaseEntity<FolderOperationObject> {
+export class FolderOperationObject extends TimestampedEntity<FolderOperationObject> {
   [EntityRepositoryType]?: FolderOperationObjectRepository;
   [OptionalProps]?: 'updatedAt' | 'createdAt'
 
   @PrimaryKey({ customType: new UuidType(), defaultRaw: 'gen_random_uuid()' })
   id!: string
 
-  @Enum()
+  @Enum({ nullable: false })
   operationRelationType!: OperationRelationType
 
   @ManyToOne({
     entity: () => FolderObject,
+    nullable: false,
     onDelete: 'cascade',
   })
   readonly folderObject!: FolderObject
 
-  @Property({ columnType: 'TEXT' })
+  @Property({ columnType: 'TEXT', nullable: false })
   folderId!: string
 
-  @Property({ columnType: 'TEXT' })
+  @Property({ columnType: 'TEXT', nullable: false })
   objectKey!: string
 
   @ManyToOne({
@@ -54,9 +55,6 @@ export class FolderOperationObject extends BaseEntity<FolderOperationObject> {
     }),
   })
   readonly operation!: FolderOperation
-
-  @Property({ columnType: 'timestamptz(3)' })
-  readonly createdAt = new Date()
 
   toFolderOperationObjectData(): FolderOperationObjectData {
     return {

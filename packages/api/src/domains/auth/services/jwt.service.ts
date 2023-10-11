@@ -110,7 +110,7 @@ export class JWTService {
       sub: session.user.id,
     }
 
-    if (session.user.role !== PlatformRole.Authenticated) {
+    if (session.user.role !== PlatformRole.User) {
       payload.role = session.user.role
     }
 

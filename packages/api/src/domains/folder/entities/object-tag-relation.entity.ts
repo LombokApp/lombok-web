@@ -27,12 +27,14 @@ export class ObjectTagRelation extends TimestampedEntity<ObjectTagRelation> {
 
   @ManyToOne({
     entity: () => ObjectTag,
+    nullable: false,
     onDelete: 'cascade',
   })
   tag!: ObjectTag
 
   @ManyToOne({
     entity: () => FolderObject,
+    nullable: false,
     onDelete: 'cascade',
   })
   object!: FolderObject

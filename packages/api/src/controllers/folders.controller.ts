@@ -31,6 +31,7 @@ import {
 } from '../domains/folder/transfer-objects/folder-share.dto'
 import { FolderOperationService } from '../domains/folder-operation/services/folder-operation.service'
 import type { FolderOperationData } from '../domains/folder-operation/transfer-objects/folder-operation.dto'
+import type { UserLocationInputData } from '../domains/s3/transfer-objects/s3-location.dto'
 import type { ErrorResponse } from '../transfer-objects/error-response.dto'
 
 export interface FolderAndPermission {
@@ -72,10 +73,9 @@ export class FoldersController extends Controller {
     @Request() req: Express.Request,
     @Body()
     body: {
-      s3ConnectionId: string
       name: string
-      bucket: string
-      prefix?: string
+      contentLocation: UserLocationInputData
+      metadataLocation?: UserLocationInputData
     },
   ) {
     const folder = await this.folderService.createFolder({
@@ -168,7 +168,7 @@ export class FoldersController extends Controller {
   @Security(AuthScheme.AccessToken)
   @Response<ErrorResponse>('4XX')
   @OperationId('enqueueFolderOperation')
-  @Post('/:folderId/objects/:objectKey/operations')
+  @Post('/:folderId/operations')
   async enqueueFolderOperation(
     @Request() req: Express.Request,
     @Path() folderId: string,
@@ -499,7 +499,7 @@ export class FoldersController extends Controller {
   @Security(AuthScheme.AccessToken)
   @Response<ErrorResponse>('4XX')
   @OperationId('listFolderOperations')
-  @Get('/:folderId/folder-operations')
+  @Get('/:folderId/operations')
   async listFolderOperations(
     @Request() req: Express.Request,
     @Path() folderId: string,

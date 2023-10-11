@@ -25,7 +25,3 @@ echo "Checking types..."
 yarn workspace @stellariscloud/types lint:check
 yarn workspace @stellariscloud/types prettier:check
 yarn workspace @stellariscloud/types ts:check
-echo "Checking design-system..."
-yarn workspace @stellariscloud/design-system lint:check
-yarn workspace @stellariscloud/design-system prettier:check
-yarn workspace @stellariscloud/design-system ts:check

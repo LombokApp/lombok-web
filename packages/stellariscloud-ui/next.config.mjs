@@ -21,7 +21,6 @@ export default withSentryConfig({
   transpilePackages: [
     '@stellariscloud/types',
     '@stellariscloud/utils',
-    '@stellariscloud/design-system',
     '@stellariscloud/auth-utils',
     '@stellariscloud/utils',
   ],

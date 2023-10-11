@@ -86,3 +86,10 @@ export const findAllByKey = <
     [],
   )
 }
+
+export const filterNonUnique = (arr: any[]) =>
+  arr.filter((i) => arr.indexOf(i) === arr.lastIndexOf(i))
+
+export const removeDuplicates = (arr: any[]) => {
+  return arr.filter((item, index) => arr.indexOf(item) === index)
+}

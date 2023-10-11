@@ -42,6 +42,12 @@ export type PasswordFormat = PasswordLetterFormat &
  */
 export type EmailFormat = string
 
+/**
+ * @maxLength 64
+ * @format email
+ */
+export type UsernameFormat = string
+
 export const ajv = new Ajv({ formats })
 
 export const validate = (schema: Schema, data: unknown) => {

@@ -9,7 +9,6 @@ import { Lifecycle, scoped } from 'tsyringe'
 import { v4 as uuidV4 } from 'uuid'
 import type { Logger } from 'winston'
 
-import type { MetadataLocationConfig } from '../../../config/config.interface'
 import { EnvConfigProvider } from '../../../config/env-config.provider'
 import type { FolderOperationRequestPayload } from '../../../controllers/folders.controller'
 import type {
@@ -39,8 +38,6 @@ import {
 @scoped(Lifecycle.ContainerScoped)
 export class FolderOperationService {
   private readonly logger: Logger
-  private readonly metadataLocationConfig: MetadataLocationConfig =
-    this.configProvider.getMetadataLocationConfig()
 
   constructor(
     private readonly loggingService: LoggingService,
@@ -221,38 +218,17 @@ export class FolderOperationService {
     for (const metadata of payload.metadataFiles) {
       const folder =
         folders[metadata.folderId] ??
-        (await this.folderRepository.findOneOrFail({ id: metadata.folderId }))
+        (await this.folderRepository.findOneOrFail(
+          { id: metadata.folderId },
+          { populate: ['contentLocation', 'metadataLocation'] },
+        ))
       folders[metadata.folderId] = folder
-
-      // resolve the appropriate s3 credentials and config (either the system one or a user configured one)
-      const {
-        accessKeyId,
-        secretAccessKey,
-        endpoint,
-        region,
-        bucket,
-        prefix = undefined,
-      } = folder.metadataEndpoint === this.metadataLocationConfig.s3Endpoint &&
-      folder.metadataBucket === this.metadataLocationConfig.s3Bucket
-        ? {
-            accessKeyId: this.metadataLocationConfig.s3AccessKeyId,
-            secretAccessKey: this.metadataLocationConfig.s3SecretAccessKey,
-            endpoint: this.metadataLocationConfig.s3Endpoint,
-            region: this.metadataLocationConfig.s3Region,
-            bucket: this.metadataLocationConfig.s3Bucket,
-          }
-        : {
-            accessKeyId: folder.metadataAccessKeyId,
-            secretAccessKey: folder.metadataSecretAccessKey,
-            endpoint: folder.metadataEndpoint,
-            region: folder.metadataRegion,
-            prefix: folder.metadataPrefix,
-            bucket: folder.bucket,
-          }
 
       const objectKeys = Object.keys(metadata.metadataHashes).map(
         (metadataFileKey) =>
-          `${prefix ? prefix : ''}${folder.id}/${metadata.objectKey}/${
+          `${
+            folder.metadataLocation.prefix ? folder.metadataLocation.prefix : ''
+          }${folder.id}/${metadata.objectKey}/${
             metadata.metadataHashes[metadataFileKey]
           }`,
       )
@@ -260,12 +236,12 @@ export class FolderOperationService {
         objectKeys.map((k) => ({
           method: SignedURLsRequestMethod.PUT,
           objectKey: k,
-          accessKeyId,
-          secretAccessKey,
-          bucket,
-          endpoint,
+          accessKeyId: folder.metadataLocation.accessKeyId,
+          secretAccessKey: folder.metadataLocation.secretAccessKey,
+          bucket: folder.metadataLocation.bucket,
+          endpoint: folder.metadataLocation.endpoint,
           expirySeconds: 86400, // TODO: control this somewhere
-          region: region ?? 'auto',
+          region: folder.metadataLocation.region ?? 'auto',
         })),
       )
 
@@ -322,9 +298,12 @@ export class FolderOperationService {
     }[] = []
 
     for (const folderId of folderIds) {
-      const folder = await this.folderRepository.findOne({
-        id: folderId,
-      })
+      const folder = await this.folderRepository.findOne(
+        {
+          id: folderId,
+        },
+        { populate: ['contentLocation', 'metadataLocation'] },
+      )
       if (!folder) {
         throw new FolderOperationInvalidError()
       }
@@ -340,12 +319,12 @@ export class FolderOperationService {
             folderRequests.map((objectKey) => ({
               method: op,
               objectKey,
-              accessKeyId: folder.accessKeyId,
-              secretAccessKey: folder.secretAccessKey,
-              bucket: folder.bucket,
-              endpoint: folder.endpoint,
+              accessKeyId: folder.contentLocation.accessKeyId,
+              secretAccessKey: folder.contentLocation.secretAccessKey,
+              bucket: folder.contentLocation.bucket,
+              endpoint: folder.contentLocation.endpoint,
               expirySeconds: 3600,
-              region: folder.region ?? 'auto',
+              region: folder.contentLocation.region ?? 'auto',
             })),
           )
           .map((url, i) => ({

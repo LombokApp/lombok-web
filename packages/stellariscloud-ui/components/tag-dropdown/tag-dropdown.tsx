@@ -6,9 +6,12 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import { PlusSmallIcon, TagIcon } from '@heroicons/react/24/outline'
 import type { ObjectTagData } from '@stellariscloud/api-client'
-import { Button, Icon, Input } from '@stellariscloud/design-system'
 import clsx from 'clsx'
 import React from 'react'
+
+import { Button } from '../../design-system/button/button'
+import { Icon } from '../../design-system/icon'
+import { Input } from '../../design-system/input/input'
 
 export const TagDropdown = ({
   onCreateTag,
