@@ -2,6 +2,7 @@ import {
   Entity,
   EntityRepositoryType,
   Enum,
+  JsonType,
   OptionalProps,
   PrimaryKey,
   Property,
@@ -11,7 +12,6 @@ import crypto from 'crypto'
 
 import { TimestampedEntity } from '../../../entities/base.entity'
 import { PlatformRole } from '../../auth/constants/role.constants'
-import { UserStatus } from '../constants/user.constants'
 import type { UserData } from '../transfer-objects/user.dto'
 import { UserRepository } from './user.repository'
 
@@ -23,32 +23,47 @@ export class User extends TimestampedEntity<User> {
   @PrimaryKey({ customType: new UuidType(), defaultRaw: 'gen_random_uuid()' })
   id!: string
 
-  @Enum()
-  role: PlatformRole = PlatformRole.Authenticated
+  @Enum({ nullable: false })
+  role: PlatformRole = PlatformRole.User
 
-  @Enum()
-  status: UserStatus = UserStatus.Pending
+  @Property({ columnType: 'TEXT', nullable: false })
+  private passwordHash!: string
 
-  @Property({})
-  private passwordHash: string | null = null
-
-  @Property()
+  @Property({ nullable: false, columnType: 'TEXT' })
   private readonly passwordSalt: string = crypto.randomBytes(64).toString('hex')
+
+  /**
+   * Name
+   */
+  @Property({ columnType: 'TEXT', nullable: true })
+  name?: string
+
+  /**
+   * Username
+   */
+  @Property({ columnType: 'citext', unique: true, nullable: false })
+  username!: string
 
   /**
    * Email
    */
-  @Property({ columnType: 'citext', unique: true })
-  email!: string
+  @Property({ columnType: 'citext', unique: true, nullable: true })
+  email?: string
 
   /**
    * Email Verified
    */
-  @Property()
+  @Property({ nullable: false })
   emailVerified!: boolean
 
+  /**
+   * Permissions
+   */
+  @Property({ customType: new JsonType(), nullable: false })
+  permissions: string[] = []
+
   verifyPassword(password: string) {
-    if (this.passwordHash === null) {
+    if (!this.passwordHash || !password) {
       return false
     }
 
@@ -70,7 +85,16 @@ export class User extends TimestampedEntity<User> {
   }
 
   toUserData(): UserData {
-    return this.toObjectPick(['id', 'role', 'email', 'createdAt', 'updatedAt'])
+    return this.toObjectPick([
+      'id',
+      'role',
+      'name',
+      'username',
+      'email',
+      'permissions',
+      'createdAt',
+      'updatedAt',
+    ])
   }
 
   toJSON() {

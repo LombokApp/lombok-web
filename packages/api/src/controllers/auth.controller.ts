@@ -27,6 +27,11 @@ export interface SignupParams {
   /**
    * @maxLength 255
    */
+  username: string
+
+  /**
+   * @maxLength 255
+   */
   email: string
 
   /**

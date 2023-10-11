@@ -1,12 +1,37 @@
+import { useAuthContext } from '@stellariscloud/auth-utils'
 import type { NextPage } from 'next'
+import { useRouter } from 'next/router'
 import React from 'react'
 
-import { LoginSignupForm } from '../views/login-signup-form/login-signup-form'
+import { SignupComponent } from '../components/signup/signup.component'
 
 const Login: NextPage = () => {
+  const authContext = useAuthContext()
+  const router = useRouter()
+
+  const handleSignupSubmit = React.useCallback(
+    async ({
+      username,
+      email,
+      password,
+    }: {
+      username: string
+      email: string
+      password: string
+    }) => {
+      await authContext
+        .signup({ username, email, password })
+        .then(() => router.push('/login'))
+        .catch((e) => console.error(e))
+    },
+    [authContext, router],
+  )
   return (
-    <div className="h-full w-full text-center flex flex-col justify-around">
-      <LoginSignupForm shouldShowSignup={true} />
+    <div className="h-full w-full flex flex-col justify-around">
+      <SignupComponent
+        onLogin={() => void router.push('/login')}
+        onSubmit={handleSignupSubmit}
+      />
     </div>
   )
 }

@@ -1,10 +1,10 @@
 import { Switch } from '@headlessui/react'
 import { MoonIcon, SunIcon } from '@heroicons/react/24/outline'
-import { Icon } from '@stellariscloud/design-system'
 import clsx from 'clsx'
 import React from 'react'
 
 import { useThemeContext } from '../../contexts/theme.context'
+import { Icon } from '../../design-system/icon'
 
 export function ThemeToggle({
   onChange,
@@ -23,7 +23,7 @@ export function ThemeToggle({
         isDark ? 'bg-indigo-600' : 'bg-gray-200',
         'flex items-center',
         'relative inline-flex flex-shrink-0',
-        !isVertical ? 'h-10 w-20' : 'h-16 w-8',
+        !isVertical ? 'h-8 w-[4rem]' : 'h-16 w-8',
         'cursor-pointer rounded-full border-2 border-transparent',
         'transition-colors duration-200 ease-in-out',
         'focus:outline-none focus:ring-2 focus:ring-indigo-300',
@@ -36,7 +36,7 @@ export function ThemeToggle({
           isDark
             ? isVertical
               ? 'translate-y-4 translate-x-0.5'
-              : 'translate-x-10'
+              : 'translate-x-[2.1rem]'
             : isVertical
             ? '-translate-y-4 translate-x-0.5'
             : 'translate-x-1',
@@ -47,40 +47,49 @@ export function ThemeToggle({
       >
         <Icon
           icon={isDark ? MoonIcon : SunIcon}
-          size="sm"
+          size="xs"
           className={clsx(
-            'transition absolute duration-500',
             !isDark ? 'opacity-0' : 'opacity-100',
+            'transition absolute duration-500 text-gray-500 dark:text-gray-500',
           )}
         />
         <Icon
           icon={isDark ? MoonIcon : SunIcon}
-          size="sm"
+          size="xs"
           className={clsx(
-            'transition absolute duration-500',
             !isDark ? 'opacity-100' : 'opacity-0',
+            'transition absolute duration-500 text-gray-500 dark:text-gray-500',
           )}
         />
       </span>
       <div className="absolute">
-        <Icon
+        <div
           className={clsx(
-            'transition duration-200 text-white',
-            isVertical ? '-translate-y-2   translate-x-1.5' : '-translate-x-5',
-            !isDark ? 'opacity-0' : 'opacity-100',
+            'flex items-center',
+            isVertical ? 'flex-col' : 'flex-row',
           )}
-          icon={SunIcon}
-          size="sm"
-        />
-        <Icon
-          className={clsx(
-            'transition duration-200 text-gray-500',
-            isVertical ? 'translate-y-2 translate-x-1.5' : 'translate-x-0',
-            isDark ? 'opacity-0' : 'opacity-100',
-          )}
-          icon={MoonIcon}
-          size="sm"
-        />
+        >
+          <Icon
+            className={clsx(
+              'transition duration-200 text-white/50',
+              isVertical
+                ? '-translate-y-2  translate-x-[.3rem]'
+                : 'translate-x-1.5',
+              !isDark ? 'opacity-0' : 'opacity-100',
+            )}
+            icon={SunIcon}
+            size="sm"
+          />
+          <Icon
+            className={clsx(
+              'transition duration-200 text-gray-400 dark:text-gray-300',
+              isVertical ? 'translate-y-2 translate-x-1' : 'translate-x-[1rem]',
+              isDark ? 'opacity-0' : 'opacity-100',
+            )}
+            icon={MoonIcon}
+            size="sm"
+          />
+        </div>
       </div>
     </Switch>
   )
@@ -94,7 +103,7 @@ const isDarkSaved = () => {
   return window.matchMedia('(prefers-color-scheme: dark)').matches
 }
 
-export const ThemeSwitch = () => {
+export const ThemeSwitch = ({ isVertical }: { isVertical?: boolean }) => {
   const themeContext = useThemeContext()
 
   const [darkMode, setDarkMode] = React.useState({
@@ -144,13 +153,12 @@ export const ThemeSwitch = () => {
   }, [darkMode, themeContext])
 
   return (
-    <>
-      <ThemeToggle
-        isDark={darkMode.darkModeActive}
-        onChange={(isDark) =>
-          setDarkMode((s) => ({ ...s, darkModeRequested: isDark }))
-        }
-      />
-    </>
+    <ThemeToggle
+      isDark={darkMode.darkModeActive}
+      isVertical={isVertical}
+      onChange={(isDark) =>
+        setDarkMode((s) => ({ ...s, darkModeRequested: isDark }))
+      }
+    />
   )
 }

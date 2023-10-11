@@ -36,38 +36,40 @@ export class FolderObject extends TimestampedEntity<FolderObject> {
   @PrimaryKey({ customType: new UuidType(), defaultRaw: 'gen_random_uuid()' })
   id!: string
 
-  @Property({ columnType: 'TEXT' })
+  @Property({ columnType: 'TEXT', nullable: false })
   objectKey!: string
 
-  @Property({ columnType: 'TEXT' })
+  @Property({ columnType: 'TEXT', nullable: false })
   eTag!: string
 
-  @Property({ columnType: 'bigint', unsigned: true })
+  @Property({ columnType: 'bigint', unsigned: true, nullable: false })
   sizeBytes!: number
 
-  @Property({ columnType: 'bigint', unsigned: true })
+  @Property({ columnType: 'bigint', unsigned: true, nullable: false })
   lastModified!: number
 
   // The last known content hash. e.g. "SHA1:<hash>"
   @Property({ columnType: 'TEXT' })
   hash?: string
 
-  // The last best guess MediaType
-  @Enum(() => MediaType)
+  // The last best guess  MediaType
+  @Enum({ nullable: false, items: () => MediaType })
+  // @Enum(() => MediaType)
   mediaType: MediaType = MediaType.Unknown
 
-  @Property({ columnType: 'TEXT' })
+  @Property({ columnType: 'TEXT', nullable: false })
   mimeType: string = ''
 
-  @Property({ customType: new JsonType() })
+  @Property({ customType: new JsonType(), nullable: false })
   contentAttributes: ContentAttributesByHash = {}
 
-  @Property({ customType: new JsonType() })
+  @Property({ customType: new JsonType(), nullable: false })
   contentMetadata: ContentMetadataByHash = {}
 
   @ManyToOne({
     entity: () => Folder,
     onDelete: 'cascade',
+    nullable: false,
     serializer: (f) => ({
       id: f.id as string,
     }),

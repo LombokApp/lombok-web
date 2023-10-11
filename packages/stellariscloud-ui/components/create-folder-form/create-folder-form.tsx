@@ -1,101 +1,190 @@
-import type { S3ConnectionData } from '@stellariscloud/api-client'
+import type {
+  ServerLocationData,
+  ServerLocationType,
+  UserLocationInputData,
+} from '@stellariscloud/api-client'
+import { FOLDER_NAME_VALIDATORS_COMBINED } from '@stellariscloud/utils'
+import React from 'react'
+import * as r from 'runtypes'
 
 import { Button } from '../../design-system/button/button'
+import { ButtonDropdown } from '../../design-system/button-dropdown/button-dropdown'
 import { Input } from '../../design-system/input/input'
-import { Select } from '../../design-system/select/select'
 import { useFormState } from '../../utils/forms'
+import type { LocationFormValues } from '../../views/server/server-storage-config/location-form-fields'
+import { LocationFormFields } from '../../views/server/server-storage-config/location-form-fields'
 
 interface CreateFolderFormValues {
-  prefix: string
   name: string
-  bucket: string
-  s3Connection: S3ConnectionData
+  contentLocation: UserLocationInputData
+  metadataLocation?: UserLocationInputData
 }
+
+const ServerLocationRecord = r.Record({
+  serverLocationId: r.String,
+})
+
+const CustomLocationRecord = r.Record({
+  endpoint: r.String,
+  accessKeyId: r.String,
+  secretAccessKey: r.String,
+  region: r.String,
+  prefix: r.String,
+})
+
+const UserLocationRecord = r.Record({
+  userLocationId: r.String,
+  userLocationBucketOverride: r.String,
+  userLocationPrefixOverride: r.String,
+})
 
 export const CreateFolderForm = ({
   onSubmit,
   onCancel,
-  s3Connections,
+  serverLocations,
 }: {
   onSubmit: (values: CreateFolderFormValues) => void
   onCancel: () => void
-  s3Connections: S3ConnectionData[]
+  serverLocations: {
+    [ServerLocationType.Metadata]: ServerLocationData[]
+    [ServerLocationType.Content]: ServerLocationData[]
+    [ServerLocationType.Backup]: ServerLocationData[]
+  }
 }) => {
-  const form = useFormState<CreateFolderFormValues>(
-    {
-      bucket: 'stellaris-dev',
-      name: 'My demo folder',
-      prefix: '',
-      s3Connection: undefined,
+  const [newMetadataLocation, setNewMetadataLocation] = React.useState(false)
+  const [newContentLocation, setNewContentLocation] = React.useState(false)
+  const form = useFormState({
+    name: { validator: FOLDER_NAME_VALIDATORS_COMBINED },
+    contentLocation: {
+      validator:
+        UserLocationRecord.Or(ServerLocationRecord).Or(CustomLocationRecord),
     },
-    {
-      prefix: (_value: string | undefined) => ({ valid: true }),
-      bucket: (value: string | undefined) => ({ valid: !!value }),
-      name: (value: string | undefined) => ({ valid: !!value }),
-      s3Connection: (value: S3ConnectionData | undefined) => ({
-        valid: !!value,
-      }),
+    metadataLocation: {
+      validator: UserLocationRecord.Or(ServerLocationRecord)
+        .Or(CustomLocationRecord)
+        .optional(),
     },
+  })
+
+  const serverContentLocationValidation = ServerLocationRecord.validate(
+    form.getValues().contentLocation,
   )
+  const selectedContentServerLocation = serverContentLocationValidation.success
+    ? serverLocations.USER_CONTENT.find(
+        (l) => l.id === serverContentLocationValidation.value.serverLocationId,
+      )
+    : undefined
+
+  const serverMetadataLocationValidation = ServerLocationRecord.validate(
+    form.getValues().metadataLocation,
+  )
+  const selectedMetadataServerLocation =
+    serverMetadataLocationValidation.success
+      ? serverLocations.USER_METADATA.find(
+          (l) =>
+            l.id === serverMetadataLocationValidation.value.serverLocationId,
+        )
+      : undefined
 
   return (
-    <div className="rounded-xl p-4 border border-gray-900/10 dark:border-white/10 dark:bg-white/5 min-w-[48rem]">
+    <div className="lg:min-w-[28rem] lg:max-w-[30rem] flex flex-col gap-4">
+      <h3 className="font-bold text-gray-600 dark:text-gray-200 text-3xl mb">
+        Create a new folder
+      </h3>
+      <div className="text-gray-600 dark:text-gray-400 font-medium mb-4">
+        Folders refer to an arbitrary storage location, potentially already
+        containing files
+      </div>
+      <pre>{JSON.stringify(form.state, null, 2)}</pre>
+      <Input
+        label="Name"
+        placeholder="Choose a meaningful name for the folder"
+        error={
+          form.state?.fields.name.valid === false
+            ? form.state.fields.name.error
+            : undefined
+        }
+        value={form.getValues().name}
+        onChange={(e) => form.setValue('name', e.target.value)}
+      />
       <div className="flex flex-col gap-4 justify-stretch">
-        <div className="rounded-xl flex flex-col gap-2">
-          <span></span>
-          <Select
-            label="Connection"
-            emptyLabel="Choose S3 connection"
-            disabled={!s3Connections.length}
-            disabledLabel="You have no connections"
-            value={
-              form.state.fields.s3Connection.value
-                ? {
-                    name: `${form.state.fields.s3Connection.value.name} - ${form.state.fields.s3Connection.value.endpoint}`,
-                    id: form.state.fields.s3Connection.value.id,
-                  }
-                : undefined
+        <h3 className="font-semibold dark:text-gray-200">
+          <div className="flex justify-between">Content Location</div>
+        </h3>
+        {newContentLocation ? (
+          <>
+            <LocationFormFields
+              onChange={({ value }) =>
+                form.setValue('contentLocation', value as LocationFormValues)
+              }
+            />
+            <Button onClick={() => setNewContentLocation(false)}>Cancel</Button>
+          </>
+        ) : (
+          <ButtonDropdown
+            label={
+              selectedContentServerLocation
+                ? selectedContentServerLocation.name
+                : 'choose content location...'
             }
-            options={s3Connections.map((s3Connection) => ({
-              id: s3Connection.id,
-              name: `${s3Connection.name} - ${s3Connection.endpoint}`,
-            }))}
-            onSelect={(item) =>
-              form.setValue(
-                's3Connection',
-                s3Connections.find(
-                  (s3Connection) => s3Connection.id === item.id,
-                ),
-              )
-            }
+            items={serverLocations.USER_CONTENT.map((l) => ({
+              name: l.name,
+              onClick: () =>
+                form.setValue('contentLocation', { serverLocationId: l.id }),
+            })).concat([
+              {
+                name: 'add custom...',
+                onClick: () => setNewContentLocation(true),
+              },
+            ])}
           />
-        </div>
-        <Input
-          label="Name"
-          value={form.state.fields.name.value}
-          onChange={(e) => form.setValue('name', e.target.value)}
-        />
-        <Input
-          label="Bucket"
-          value={form.state.fields.bucket.value}
-          onChange={(e) => form.setValue('bucket', e.target.value)}
-        />
-        <Input
-          label="Object Key Prefix (Optional)"
-          value={form.state.fields.prefix.value}
-          placeholder={'some/subdirectory/'}
-          onChange={(e) => form.setValue('prefix', e.target.value)}
-        />
-        <div className="flex gap-2 justify-end">
-          <Button onClick={onCancel}>Cancel</Button>
-          <Button
-            primary
-            onClick={() => onSubmit(form.getValues())}
-            disabled={!form.state.valid}
-          >
-            Create
-          </Button>
-        </div>
+        )}
+      </div>
+      <div className="flex flex-col gap-4 justify-stretch">
+        <h3 className="font-semibold dark:text-gray-200">
+          <div className="flex justify-between">Metadata Location</div>
+        </h3>
+
+        {newMetadataLocation ? (
+          <>
+            <LocationFormFields
+              onChange={({ value }) =>
+                form.setValue('metadataLocation', value as LocationFormValues)
+              }
+            />
+            <Button onClick={() => setNewMetadataLocation(false)}>
+              Cancel
+            </Button>
+          </>
+        ) : (
+          <ButtonDropdown
+            label={
+              selectedMetadataServerLocation
+                ? selectedMetadataServerLocation.name
+                : 'choose metadata location...'
+            }
+            items={serverLocations.USER_METADATA.map((l) => ({
+              name: l.name,
+              onClick: () =>
+                form.setValue('metadataLocation', { serverLocationId: l.id }),
+            })).concat([
+              {
+                name: 'add custom...',
+                onClick: () => setNewMetadataLocation(true),
+              },
+            ])}
+          />
+        )}
+      </div>
+      <div className="flex gap-2 justify-end">
+        <Button onClick={onCancel}>Cancel</Button>
+        <Button
+          primary
+          onClick={() => onSubmit(form.getValues())}
+          disabled={!form.state?.valid}
+        >
+          Create
+        </Button>
       </div>
     </div>
   )

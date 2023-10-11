@@ -2,8 +2,9 @@ import { PlusIcon } from '@heroicons/react/20/solid'
 import type {
   FolderAndPermission,
   FoldersApiCreateFolderRequest,
-  S3ConnectionData,
+  ServerLocationData,
 } from '@stellariscloud/api-client'
+import { ServerLocationType } from '@stellariscloud/api-client'
 import clsx from 'clsx'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -11,27 +12,28 @@ import React from 'react'
 
 import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
 import { CreateFolderForm } from '../../components/create-folder-form/create-folder-form'
+import { CreateFolderStartPanel } from '../../components/create-folder-start-panel/create-folder-start-panel'
 import { FolderCard } from '../../components/folder-card/folder-card'
-import { FoldersEmptyState } from '../../components/folders-empty-state/folders-empty-state'
-import { Takeover } from '../../components/takeover/takeover'
-import { Banner } from '../../design-system/banner/banner'
 import { Button } from '../../design-system/button/button'
 import { Icon } from '../../design-system/icon/icon'
 import { PageHeading } from '../../design-system/page-heading/page-heading'
-import {
-  foldersApi,
-  foldersApiHooks,
-  s3ConnectionsAPI,
-} from '../../services/api'
+import { foldersApi, foldersApiHooks, serverApi } from '../../services/api'
 
 export const ListFoldersScreen = () => {
   const router = useRouter()
   const [folders, setFolders] = React.useState<FolderAndPermission[]>()
   const [folderFormKey, setFolderFormKey] = React.useState<string>()
-  const [s3Connections, setS3Connections] = React.useState<S3ConnectionData[]>()
   const [forgetFolderConfirmationOpen, setForgetFolderConfirmationOpen] =
     React.useState<string | false>(false)
-
+  const [serverLocations, setServerLocations] = React.useState<{
+    [ServerLocationType.Backup]: ServerLocationData[]
+    [ServerLocationType.Metadata]: ServerLocationData[]
+    [ServerLocationType.Content]: ServerLocationData[]
+  }>({
+    [ServerLocationType.Backup]: [],
+    [ServerLocationType.Metadata]: [],
+    [ServerLocationType.Content]: [],
+  })
   const handleForgetFolder = React.useCallback(
     (folderId: string) => {
       if (!forgetFolderConfirmationOpen) {
@@ -48,11 +50,25 @@ export const ListFoldersScreen = () => {
     [setForgetFolderConfirmationOpen, forgetFolderConfirmationOpen, folders],
   )
 
-  const handleStartCreate = () =>
+  const handleStartCreate = () => {
+    for (const k of [
+      ServerLocationType.Backup,
+      ServerLocationType.Metadata,
+      ServerLocationType.Content,
+    ]) {
+      void serverApi.listServerLocations({ locationType: k }).then((resp) => {
+        setServerLocations((locations) => ({
+          ...locations,
+          [k]: resp.data,
+        }))
+      })
+    }
+
     void router.push({
       pathname: router.pathname,
       query: { add: 'true' },
     })
+  }
 
   const listFolders = foldersApiHooks.useListFolders({}, { retry: 0 })
   const refreshFolders = React.useCallback(() => {
@@ -70,12 +86,6 @@ export const ListFoldersScreen = () => {
       setFolderFormKey(undefined)
     }
   }, [router.query.add, folderFormKey])
-
-  React.useEffect(() => {
-    void s3ConnectionsAPI
-      .listS3Connections()
-      .then((response) => setS3Connections(response.data.result))
-  }, [])
 
   React.useEffect(() => {
     refreshFolders()
@@ -97,20 +107,21 @@ export const ListFoldersScreen = () => {
   return (
     <>
       {forgetFolderConfirmationOpen && (
-        <Takeover>
-          <div className="h-screen w-screen bg-black/[.75] flex flex-col justify-around items-center">
-            <ConfirmForgetFolderModal
-              onConfirm={() => handleForgetFolder(forgetFolderConfirmationOpen)}
-              onCancel={() => setForgetFolderConfirmationOpen(false)}
-            />
-          </div>
-        </Takeover>
+        <ConfirmForgetFolderModal
+          onConfirm={() => handleForgetFolder(forgetFolderConfirmationOpen)}
+          onCancel={() => setForgetFolderConfirmationOpen(false)}
+        />
       )}
 
       <div className={clsx('items-center flex flex-col gap-6 h-full px-6')}>
         <div className="container flex-1 flex flex-col">
-          <div className="py-4 flex items-start gap-10">
-            <PageHeading title={folderFormKey ? 'New Folder' : 'Your Folders'}>
+          <div
+            className={clsx(
+              'py-4 flex items-start gap-10 duratio-200',
+              folderFormKey && 'opacity-0',
+            )}
+          >
+            <PageHeading title={'Your Folders'}>
               {!folderFormKey && (
                 <Button size="lg" primary={true} onClick={handleStartCreate}>
                   <Icon size="sm" icon={PlusIcon} className="text-white" />
@@ -125,66 +136,44 @@ export const ListFoldersScreen = () => {
               !folderFormKey ? 'h-0' : 'flex-1',
             )}
           >
-            <div className="p-4 rounded w-fit">
-              <>
-                {s3Connections && s3Connections.length === 0 && (
-                  <div className="py-4">
-                    <Banner
-                      type="warn"
-                      body="You have no S3 connections. You'll need at least one
-                    before you can create a folder."
-                    />
-                  </div>
-                )}
-                <CreateFolderForm
-                  onCancel={() =>
-                    void router.push({ pathname: router.pathname })
-                  }
-                  s3Connections={s3Connections ?? []}
-                  key={folderFormKey}
-                  onSubmit={(values) =>
-                    handleCreateFolder({
-                      s3ConnectionId: values.s3Connection.id,
-                      name: values.name,
-                      bucket: values.bucket,
-                      prefix: values.prefix,
-                    })
-                  }
-                />
-              </>
+            <div className="p-10 rounded-xl w-fit border border-gray-200 bg-white dark:border-0 dark:bg-white/5">
+              <CreateFolderForm
+                onCancel={() => void router.push({ pathname: router.pathname })}
+                serverLocations={serverLocations}
+                key={folderFormKey}
+                onSubmit={handleCreateFolder}
+              />
             </div>
           </div>
-          {folders?.length === 0 && !folderFormKey ? (
-            <div className="flex flex-1 flex-col items-center justify-around">
-              <div className="w-fit">
-                <FoldersEmptyState onCreate={handleStartCreate} />
-              </div>
-            </div>
-          ) : (
-            <ul
-              className={clsx(
-                'grid grid-cols-1 py-4 gap-6 sm:grid-cols-2 lg:grid-cols-3 w-full duration-200',
-                folderFormKey && 'opacity-0',
-              )}
-            >
-              {folders?.map((folderAndPermission, i) => (
-                <li key={folderAndPermission.folder.id} className="col-span-1">
-                  <Link
-                    href={`/folders/${folderAndPermission.folder.id}`}
-                    key={i}
-                    className="rounded-lg w-full"
-                  >
-                    <FolderCard
-                      folderAndPermission={folderAndPermission}
-                      onForget={() =>
-                        handleForgetFolder(folderAndPermission.folder.id)
-                      }
-                    />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+
+          <ul
+            className={clsx(
+              'grid grid-cols-1 py-4 gap-6 sm:grid-cols-2 lg:grid-cols-3 w-full duration-200',
+              folderFormKey && 'opacity-0',
+            )}
+          >
+            {folders?.map((folderAndPermission, i) => (
+              <li key={folderAndPermission.folder.id} className="col-span-1">
+                <Link
+                  href={`/folders/${folderAndPermission.folder.id}`}
+                  key={i}
+                  className="rounded-lg w-full"
+                >
+                  <FolderCard
+                    folderAndPermission={folderAndPermission}
+                    onForget={() =>
+                      handleForgetFolder(folderAndPermission.folder.id)
+                    }
+                  />
+                </Link>
+              </li>
+            ))}
+            {folders !== undefined && (
+              <li className="">
+                <CreateFolderStartPanel onCreate={handleStartCreate} />
+              </li>
+            )}
+          </ul>
           {!folders && <div className="animate-pulse">Loading folders...</div>}
         </div>
       </div>

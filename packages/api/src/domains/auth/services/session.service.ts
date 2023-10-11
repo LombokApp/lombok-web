@@ -22,7 +22,7 @@ export class SessionService {
   ) {}
 
   async createSession(actor: Actor) {
-    const user = await this.userService.get({ id: actor.id })
+    const user = await this.userService.getById({ id: actor.id })
 
     const secret = Session.createSecretKey()
 

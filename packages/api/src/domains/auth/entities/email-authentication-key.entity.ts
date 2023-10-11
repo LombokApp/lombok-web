@@ -18,7 +18,7 @@ export class EmailAuthenticationKey extends BaseScopedAuthEntity<EmailAuthentica
   [EntityRepositoryType]?: EmailAuthenticationKeyRepository;
   [OptionalProps]?: 'updatedAt' | 'createdAt' | 'hash'
 
-  @Enum({ index: true })
+  @Enum({ index: true, nullable: false })
   keyType!: EmailAuthenticationKeyType
 
   toEmailAuthenticationKeyData(): { id: string; secret?: string } {

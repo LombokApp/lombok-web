@@ -1,10 +1,10 @@
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
-import { Icon } from '@stellariscloud/design-system'
 import clsx from 'clsx'
 import Link from 'next/link'
 import React from 'react'
 
 import { useLoggingContext } from '../../contexts/logging.context'
+import { Icon } from '../../design-system/icon'
 
 export const LogPanel = ({ folderId }: { folderId?: string }) => {
   const logging = useLoggingContext()

@@ -1,122 +1,161 @@
 import React from 'react'
+import type * as r from 'runtypes'
+import show from 'runtypes/lib/show'
 
 export const functionArgName = (arg: string, idx: number): string => {
   return `${arg}_${idx}`
 }
 
-export const useFormState = <
-  T extends {
-    [key in keyof T]: T[key]
-  },
-  I extends object = Partial<T>,
-  V extends object = {
-    [key in keyof T]: (value: T[key] | undefined) => {
-      valid: boolean
-      error?: string
-    }
+export interface FormFieldConfig<T> {
+  defaultValue?: T
+  validator: r.Runtype<T>
+}
+
+interface FormFieldState {
+  valid: boolean
+  error?: string
+}
+
+const serializeFieldConfigs = <
+  C extends {
+    [key in keyof C]: FormFieldConfig<r.Static<C[key]['validator']>>
   },
 >(
-  initialValues: I,
-  inputValidators: V,
+  fieldConfigs: C,
 ) => {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-  type FormState = {
-    valid: boolean
-    error: string
-    fields: {
-      [key in keyof T]: {
-        valid: boolean
-        error: string
-        value: T[key] | undefined
-      }
-    }
-    isChanged: boolean
-  }
-  const [stringifiedInitialValues, setStringifiedInitialValues] =
-    React.useState(JSON.stringify(initialValues))
-
-  const buildInitialFieldValues = (values: I) =>
-    Object.keys(values).reduce((acc, next) => {
-      const nextValue = (values as any)[next]
-      const result = {
+  const serialized = JSON.stringify(
+    Object.keys(fieldConfigs).reduce((acc, nextFieldKey) => {
+      const f =
+        fieldConfigs[nextFieldKey as keyof typeof fieldConfigs]['validator']
+      return {
         ...acc,
-        [next as keyof FormState['fields']]: {
-          ...(next in inputValidators
-            ? (inputValidators as any)[next](nextValue)
-            : {
-                valid: true,
-              }),
-          value:
-            nextValue === undefined
-              ? nextValue
-              : JSON.parse(JSON.stringify(nextValue)),
+        [nextFieldKey]: {
+          defaultValue:
+            fieldConfigs[nextFieldKey as keyof typeof fieldConfigs]
+              .defaultValue,
+          validator: show(f.reflect),
         },
       }
-      return result
-    }, {}) as unknown as FormState['fields']
+    }, {}),
+  )
+  return serialized
+}
 
-  const [formState, setFormState] = React.useState<FormState>(() => {
-    const initialFieldState = buildInitialFieldValues(initialValues)
-    const firstInvalidField = Object.keys(initialFieldState).find(
-      (f) => !(initialFieldState as any)[f].valid,
-    )
-    const formValidity = !firstInvalidField
-    return {
-      valid: formValidity,
-      error: '',
-      isChanged: false,
-      fields: initialFieldState,
+export const useFormState = <
+  C extends {
+    [key in keyof C]: FormFieldConfig<r.Static<C[key]['validator']>>
+  },
+  T extends {
+    [key in keyof C]: r.Static<C[key]['validator']>
+  },
+  FS = {
+    [key in keyof C]: FormFieldState
+  },
+>(
+  fieldConfigs: C,
+  values: Partial<T> = {},
+  onChange?: (change: { value: T; valid: boolean }) => void,
+) => {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+  type F = {
+    valid: boolean
+    error: string
+    fields: FS
+  }
+
+  const [formState, setFormState] = React.useState<F>()
+  const [formValues, setFormValues] = React.useState<T>(values as T)
+
+  const lastStateRef = React.useRef(JSON.stringify(values))
+  // update internal values with incoming external ones
+  React.useEffect(() => {
+    const incomingStringifiedValues = JSON.stringify(values)
+    if (lastStateRef.current !== incomingStringifiedValues) {
+      lastStateRef.current = incomingStringifiedValues
+      setFormValues({ ...values } as T)
     }
-  })
+  }, [values])
 
-  const getValues = (fields?: typeof formState.fields | undefined) => {
-    return Object.keys(formState.fields).reduce(
-      (acc, next) => ({
-        ...acc,
-        [next as keyof T]: (fields ?? formState.fields)[next as keyof T].value,
-      }),
-      {},
-    ) as T
-  }
+  const lastConfigRef = React.useRef(fieldConfigs)
 
-  const setValue = <K extends keyof T, VT extends T[K]>(
-    key: K,
-    val: VT | undefined,
-  ) => {
-    setFormState((prevState: FormState) => {
-      const state: FormState = JSON.parse(JSON.stringify(prevState))
-      state.fields[key].value = val as T[typeof key]
+  const updateFormState = React.useCallback(
+    (v: T) => {
+      let formValidity = true
 
-      const validatorFunc = (inputValidators as any)[key]
-
-      const validator = validatorFunc ? validatorFunc(val) : { valid: true }
-      state.fields[key].valid = validator.valid
-      state.fields[key].error = validator.error
-
-      const firstInvalidField = Object.keys(state.fields).find(
-        (f) => !(state.fields as any)[f].valid,
+      const fields = Object.keys(lastConfigRef.current).reduce(
+        (acc, next) => {
+          const nextFieldName: keyof typeof fieldConfigs = next as keyof C
+          const fieldConfig = lastConfigRef.current[nextFieldName]
+          const validation = fieldConfig.validator.validate(v[nextFieldName])
+          let error = ''
+          if (!validation.success) {
+            if (validation.code === 'CONSTRAINT_FAILED') {
+              error = validation.message.slice(
+                'Failed constraint check for '.length, // TODO: Apparently I should be parsing this from 'details' which I can't see
+              )
+            } else {
+              error = validation.message
+            }
+          }
+          const result = {
+            ...acc,
+            [nextFieldName]: {
+              valid: validation.success,
+              error,
+              // errorDetails: validation.success ? '' : validation.details,
+            },
+          }
+          if (!validation.success) {
+            formValidity = false
+          }
+          return result
+        },
+        // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
+        {} as FS,
       )
-      const values = getValues(state.fields)
 
-      state.valid = !firstInvalidField
-      state.isChanged = stringifiedInitialValues !== JSON.stringify(values)
-      return state
+      setFormState({
+        valid: formValidity,
+        error: '',
+        fields,
+      })
+    },
+    [setFormState],
+  )
+
+  React.useEffect(() => {
+    const incomingStringifiedConfigs = serializeFieldConfigs(fieldConfigs)
+    if (
+      serializeFieldConfigs(lastConfigRef.current) !==
+      incomingStringifiedConfigs
+    ) {
+      lastConfigRef.current = JSON.parse(incomingStringifiedConfigs)
+      updateFormState(formValues)
+    }
+  }, [fieldConfigs, formValues, updateFormState])
+
+  // React.useEffect(() => updateFormState(), [updateFormState])
+
+  const setValue = <K extends keyof C>(key: K, value: T[K] | undefined) => {
+    setFormValues((existingValues) => {
+      const newFormValues = {
+        ...existingValues,
+        [key]: value,
+      }
+      updateFormState(newFormValues)
+      if (onChange) {
+        setTimeout(
+          () =>
+            onChange({
+              valid: true,
+              value: newFormValues,
+            }),
+          1,
+        )
+      }
+      return newFormValues
     })
   }
 
-  const reset = (newValues?: I) => {
-    const stringifiedNewValues = JSON.stringify(newValues)
-    setStringifiedInitialValues(stringifiedNewValues)
-    const initial = buildInitialFieldValues(newValues ?? initialValues)
-    Object.keys(initial).forEach((fieldName) => {
-      setValue(fieldName as any, (initial as any)[fieldName].value)
-    })
-    setFormState((prevState: FormState) => {
-      const state: FormState = JSON.parse(JSON.stringify(prevState))
-      state.isChanged = false
-      return state
-    })
-  }
-
-  return { state: formState, setValue, getValues, reset }
+  return { state: formState, setValue, formValues, getValues: () => formValues }
 }

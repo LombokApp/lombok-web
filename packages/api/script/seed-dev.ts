@@ -5,7 +5,6 @@ import { container, injectable } from 'tsyringe'
 
 import { EnvConfigProvider } from '../src/config/env-config.provider'
 import { PlatformRole } from '../src/domains/auth/constants/role.constants'
-import { UserStatus } from '../src/domains/user/constants/user.constants'
 import { UserRepository } from '../src/domains/user/entities/user.repository'
 import { resolveDependency } from '../src/ioc'
 import { OrmService } from '../src/orm/orm.service'
@@ -24,10 +23,10 @@ class Seeder {
     const userId = '6edd317d-9af8-42e3-9f0c-99cf027a1262'
     const user = userRepository.create({
       id: userId,
-      role: PlatformRole.Authenticated,
-      status: UserStatus.Active,
+      role: PlatformRole.User,
+      username: 'mekpans',
       email: 'steven@peertjelabs.nl',
-      emailVerified: false,
+      emailVerified: true,
     })
     await userRepository.getEntityManager().flush()
     return user

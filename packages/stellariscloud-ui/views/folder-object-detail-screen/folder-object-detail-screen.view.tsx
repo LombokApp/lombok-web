@@ -243,7 +243,10 @@ export const FolderObjectDetailScreen = ({
           {folderObject && (
             <div className="w-full flex-0 px-4 py-2">
               <PageHeading
-                title={folderObject.objectKey}
+                title={[
+                  folderContext.folder?.name ?? '',
+                  folderObject.objectKey,
+                ]}
                 titleIcon={DocumentIcon}
                 titleIconBg={'bg-purple-500 dark:bg-purple-700'}
                 titleIconSrc={objectThumbnailData}
@@ -274,7 +277,7 @@ export const FolderObjectDetailScreen = ({
                     ? [
                         {
                           icon: MapPinIcon,
-                          value: `${folderContext.folder.endpoint}/${folderContext.folder.bucket}/${folderObject.objectKey}`,
+                          value: `${folderContext.folder.contentLocation.endpoint}/${folderContext.folder.contentLocation.bucket}/${folderObject.objectKey}`,
                         },
                       ]
                     : []),

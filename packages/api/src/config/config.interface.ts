@@ -32,14 +32,6 @@ export interface DbSeedConfig {
   enabled: boolean
 }
 
-export interface MetadataLocationConfig {
-  s3Endpoint: string
-  s3Bucket: string
-  s3Region: string
-  s3AccessKeyId: string
-  s3SecretAccessKey: string
-}
-
 export interface RedisConfig {
   host?: string
   port?: number
@@ -60,7 +52,6 @@ export interface ConfigProvider {
   getAuthConfig: () => AuthConfig
   getDbConfig: () => DbConfig
   getDbSeedConfig: () => DbSeedConfig
-  getMetadataLocationConfig: () => MetadataLocationConfig
   getLoggingConfig: () => LoggingConfig
   getSendgridConfig: () => SendgridConfig
   getRedisConfig: () => RedisConfig

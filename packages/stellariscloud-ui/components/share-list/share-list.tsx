@@ -1,5 +1,7 @@
-import { Button, Heading } from '@stellariscloud/design-system'
 import type { ShareEventPublicDTO } from '@stellariscloud/types'
+
+import { Button } from '../../design-system/button/button'
+import { Heading } from '../../design-system/typography'
 
 export const ShareEventList = ({
   shareEvents,
@@ -29,8 +31,8 @@ export const ShareEventList = ({
         </div>
       </div>
       <div className="flex gap-2 py-4">
-        <Button variant="primary">Previous</Button>
-        <Button variant="primary">Next</Button>
+        <Button primary>Previous</Button>
+        <Button primary>Next</Button>
       </div>
     </div>
   )

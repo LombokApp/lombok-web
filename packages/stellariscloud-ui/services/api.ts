@@ -2,7 +2,7 @@ import type * as apiClient from '@stellariscloud/api-client'
 import {
   AuthApi,
   FoldersApi,
-  S3ConnectionsApi,
+  ServerApi,
   ViewerApi,
 } from '@stellariscloud/api-client'
 import type { ApiQueryHooks } from '@stellariscloud/api-utils'
@@ -66,7 +66,7 @@ const defaultConfig = {
 export const authApi = bindApiConfig(defaultConfig, AuthApi)()
 export const viewerApi = bindApiConfig(defaultConfig, ViewerApi)()
 export const foldersApi = bindApiConfig(defaultConfig, FoldersApi)()
-export const s3ConnectionsAPI = bindApiConfig(defaultConfig, S3ConnectionsApi)()
+export const serverApi = bindApiConfig(defaultConfig, ServerApi)()
 
 export const authApiHooks = createQueryHooks(authApi)
 export const foldersApiHooks = createQueryHooks(foldersApi)

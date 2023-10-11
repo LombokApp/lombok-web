@@ -9,7 +9,7 @@ import { WorkerController } from './../controllers/worker.controller';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { FoldersController } from './../controllers/folders.controller';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { S3ConnectionsController } from './../controllers/s3-connections.controller';
+import { ServerController } from './../controllers/server.controller';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { ViewerController } from './../controllers/viewer.controller';
 import { expressAuthentication } from './../middleware/auth.middleware';
@@ -277,7 +277,7 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
     function FoldersController_createFolder(request: any, response: any, next: any) {
       const args = {
           req: {"in":"request","name":"req","required":true,"dataType":"object"},
-          body: {"in":"body","name":"body","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"prefix":{"dataType":"string"},"bucket":{"dataType":"string","required":true},"name":{"dataType":"string","required":true},"s3ConnectionId":{"dataType":"string","required":true}}},
+          body: {"in":"body","name":"body","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"metadataLocation":{"ref":"UserLocationInputData"},"contentLocation":{"ref":"UserLocationInputData","required":true},"name":{"dataType":"string","required":true}}},
       };
 
       // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -421,9 +421,9 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
   
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
   app.post(
-    '/api/v1/folders/:folderId/objects/:objectKey/operations',
+    '/api/v1/folders/:folderId/operations',
     authenticateMiddleware([{"AccessToken":[]}]),
-    validator.validate('post', convertPath('/folders/:folderId/objects/:objectKey/operations')),
+    validator.validate('post', convertPath('/folders/:folderId/operations')),
     function FoldersController_enqueueFolderOperation(request: any, response: any, next: any) {
       const args = {
           req: {"in":"request","name":"req","required":true,"dataType":"object"},
@@ -867,9 +867,9 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
   
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
   app.get(
-    '/api/v1/folders/:folderId/folder-operations',
+    '/api/v1/folders/:folderId/operations',
     authenticateMiddleware([{"AccessToken":[]}]),
-    validator.validate('get', convertPath('/folders/:folderId/folder-operations')),
+    validator.validate('get', convertPath('/folders/:folderId/operations')),
     function FoldersController_listFolderOperations(request: any, response: any, next: any) {
       const args = {
           req: {"in":"request","name":"req","required":true,"dataType":"object"},
@@ -892,34 +892,87 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
   
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
   app.get(
-    '/api/v1/s3-connections/:s3ConnectionId',
-    authenticateMiddleware([{"AccessToken":[]}]),
-    validator.validate('get', convertPath('/s3-connections/:s3ConnectionId')),
-    function S3ConnectionsController_getS3Connection(request: any, response: any, next: any) {
+    '/api/v1/server/settings/server-locations/:locationType',
+    authenticateMiddleware([{"AccessToken":["user_folders_location:read"]}]),
+    validator.validate('get', convertPath('/server/settings/server-locations/:locationType')),
+    function ServerController_listServerLocations(request: any, response: any, next: any) {
       const args = {
-          s3ConnectionId: {"in":"path","name":"s3ConnectionId","required":true,"dataType":"string"},
+          req: {"in":"request","name":"req","required":true,"dataType":"object"},
+          locationType: {"in":"path","name":"locationType","required":true,"ref":"ServerLocationType"},
       };
 
       // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
       const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
 
-      const controller: any = container.get<S3ConnectionsController>(S3ConnectionsController);
+      const controller: any = container.get<ServerController>(ServerController);
       if (typeof controller['setStatus'] === 'function') {
         controller.setStatus(undefined);
       }
 
-      const promise = controller.getS3Connection.apply(controller, getArgs(args, request, response));
+      const promise = controller.listServerLocations.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.post(
+    '/api/v1/server/settings/locations/:locationType',
+    authenticateMiddleware([{"AccessToken":["metadata_location:read"]}]),
+    validator.validate('post', convertPath('/server/settings/locations/:locationType')),
+    function ServerController_addServerConfigLocation(request: any, response: any, next: any) {
+      const args = {
+          req: {"in":"request","name":"req","required":true,"dataType":"object"},
+          payload: {"in":"body","name":"payload","required":true,"ref":"ServerLocationInputData"},
+          locationType: {"in":"path","name":"locationType","required":true,"ref":"ServerLocationType"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<ServerController>(ServerController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.addServerConfigLocation.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.delete(
+    '/api/v1/server/settings/locations/:locationType/:locationId',
+    authenticateMiddleware([{"AccessToken":["metadata_location:read"]}]),
+    validator.validate('delete', convertPath('/server/settings/locations/:locationType/:locationId')),
+    function ServerController_deleteServerConfigLocation(request: any, response: any, next: any) {
+      const args = {
+          req: {"in":"request","name":"req","required":true,"dataType":"object"},
+          locationType: {"in":"path","name":"locationType","required":true,"ref":"ServerLocationType"},
+          locationId: {"in":"path","name":"locationId","required":true,"dataType":"string"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<ServerController>(ServerController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.deleteServerConfigLocation.apply(controller, getArgs(args, request, response));
       promiseHandler(controller, promise, response, undefined, next);
     }
   );
   
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
   app.get(
-    '/api/v1/s3-connections',
-    authenticateMiddleware([{"AccessToken":[]}]),
-    validator.validate('get', convertPath('/s3-connections')),
-    function S3ConnectionsController_listS3Connections(request: any, response: any, next: any) {
+    '/api/v1/server/users',
+    authenticateMiddleware([{"AccessToken":["user:read"]}]),
+    validator.validate('get', convertPath('/server/users')),
+    function ServerController_listUsers(request: any, response: any, next: any) {
       const args = {
           req: {"in":"request","name":"req","required":true,"dataType":"object"},
       };
@@ -928,87 +981,188 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
 
       const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
 
-      const controller: any = container.get<S3ConnectionsController>(S3ConnectionsController);
+      const controller: any = container.get<ServerController>(ServerController);
       if (typeof controller['setStatus'] === 'function') {
         controller.setStatus(undefined);
       }
 
-      const promise = controller.listS3Connections.apply(controller, getArgs(args, request, response));
+      const promise = controller.listUsers.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.get(
+    '/api/v1/server/users/:userId',
+    authenticateMiddleware([{"AccessToken":["user:read"]}]),
+    validator.validate('get', convertPath('/server/users/:userId')),
+    function ServerController_getUsers(request: any, response: any, next: any) {
+      const args = {
+          req: {"in":"request","name":"req","required":true,"dataType":"object"},
+          userId: {"in":"path","name":"userId","required":true,"dataType":"string"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<ServerController>(ServerController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.getUsers.apply(controller, getArgs(args, request, response));
       promiseHandler(controller, promise, response, undefined, next);
     }
   );
   
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
   app.post(
-    '/api/v1/s3-connections',
-    authenticateMiddleware([{"AccessToken":[]}]),
-    validator.validate('post', convertPath('/s3-connections')),
-    function S3ConnectionsController_createS3Connection(request: any, response: any, next: any) {
+    '/api/v1/server/users',
+    authenticateMiddleware([{"AccessToken":["user:create"]}]),
+    validator.validate('post', convertPath('/server/users')),
+    function ServerController_createUser(request: any, response: any, next: any) {
       const args = {
           req: {"in":"request","name":"req","required":true,"dataType":"object"},
-          body: {"in":"body","name":"body","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"region":{"dataType":"string","required":true},"endpoint":{"dataType":"string","required":true},"secretAccessKey":{"dataType":"string","required":true},"accessKeyId":{"dataType":"string","required":true},"name":{"dataType":"string","required":true}}},
+          body: {"in":"body","name":"body","required":true,"ref":"CreateUserData"},
       };
 
       // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
       const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
 
-      const controller: any = container.get<S3ConnectionsController>(S3ConnectionsController);
+      const controller: any = container.get<ServerController>(ServerController);
       if (typeof controller['setStatus'] === 'function') {
         controller.setStatus(undefined);
       }
 
-      const promise = controller.createS3Connection.apply(controller, getArgs(args, request, response));
+      const promise = controller.createUser.apply(controller, getArgs(args, request, response));
       promiseHandler(controller, promise, response, undefined, next);
     }
   );
   
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-  app.post(
-    '/api/v1/s3-connections/test',
-    authenticateMiddleware([{"AccessToken":[]}]),
-    validator.validate('post', convertPath('/s3-connections/test')),
-    function S3ConnectionsController_testS3Connection(request: any, response: any, next: any) {
+  app.put(
+    '/api/v1/server/users/:userId',
+    authenticateMiddleware([{"AccessToken":["user:create"]}]),
+    validator.validate('put', convertPath('/server/users/:userId')),
+    function ServerController_updateUser(request: any, response: any, next: any) {
       const args = {
           req: {"in":"request","name":"req","required":true,"dataType":"object"},
-          body: {"in":"body","name":"body","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"region":{"dataType":"string","required":true},"endpoint":{"dataType":"string","required":true},"secretAccessKey":{"dataType":"string","required":true},"accessKeyId":{"dataType":"string","required":true},"name":{"dataType":"string","required":true}}},
+          userId: {"in":"path","name":"userId","required":true,"dataType":"string"},
+          body: {"in":"body","name":"body","required":true,"ref":"UpdateUserData"},
       };
 
       // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
       const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
 
-      const controller: any = container.get<S3ConnectionsController>(S3ConnectionsController);
+      const controller: any = container.get<ServerController>(ServerController);
       if (typeof controller['setStatus'] === 'function') {
         controller.setStatus(undefined);
       }
 
-      const promise = controller.testS3Connection.apply(controller, getArgs(args, request, response));
+      const promise = controller.updateUser.apply(controller, getArgs(args, request, response));
       promiseHandler(controller, promise, response, undefined, next);
     }
   );
   
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-  app.post(
-    '/api/v1/s3-connections/:s3ConnectionId',
-    authenticateMiddleware([{"AccessToken":[]}]),
-    validator.validate('post', convertPath('/s3-connections/:s3ConnectionId')),
-    function S3ConnectionsController_deleteS3Connection(request: any, response: any, next: any) {
+  app.delete(
+    '/api/v1/server/users/:userId',
+    authenticateMiddleware([{"AccessToken":["user:create"]}]),
+    validator.validate('delete', convertPath('/server/users/:userId')),
+    function ServerController_deleteUser(request: any, response: any, next: any) {
       const args = {
           req: {"in":"request","name":"req","required":true,"dataType":"object"},
-          s3ConnectionId: {"in":"path","name":"s3ConnectionId","required":true,"dataType":"string"},
+          userId: {"in":"path","name":"userId","required":true,"dataType":"string"},
       };
 
       // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
       const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
 
-      const controller: any = container.get<S3ConnectionsController>(S3ConnectionsController);
+      const controller: any = container.get<ServerController>(ServerController);
       if (typeof controller['setStatus'] === 'function') {
         controller.setStatus(undefined);
       }
 
-      const promise = controller.deleteS3Connection.apply(controller, getArgs(args, request, response));
+      const promise = controller.deleteUser.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.get(
+    '/api/v1/server/settings',
+    authenticateMiddleware([{"AccessToken":["server_settings:read"]}]),
+    validator.validate('get', convertPath('/server/settings')),
+    function ServerController_getSettings(request: any, response: any, next: any) {
+      const args = {
+          req: {"in":"request","name":"req","required":true,"dataType":"object"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<ServerController>(ServerController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.getSettings.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.put(
+    '/api/v1/server/settings/:settingsKey',
+    authenticateMiddleware([{"AccessToken":["server_settings:update"]}]),
+    validator.validate('put', convertPath('/server/settings/:settingsKey')),
+    function ServerController_updateSetting(request: any, response: any, next: any) {
+      const args = {
+          req: {"in":"request","name":"req","required":true,"dataType":"object"},
+          settingsKey: {"in":"path","name":"settingsKey","required":true,"dataType":"string"},
+          settingsValue: {"in":"body","name":"settingsValue","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"value":{"dataType":"any","required":true}}},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<ServerController>(ServerController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.updateSetting.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.delete(
+    '/api/v1/server/settings/:settingsKey',
+    authenticateMiddleware([{"AccessToken":["server_settings:update"]}]),
+    validator.validate('delete', convertPath('/server/settings/:settingsKey')),
+    function ServerController_resetSetting(request: any, response: any, next: any) {
+      const args = {
+          req: {"in":"request","name":"req","required":true,"dataType":"object"},
+          settingsKey: {"in":"path","name":"settingsKey","required":true,"dataType":"string"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<ServerController>(ServerController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.resetSetting.apply(controller, getArgs(args, request, response));
       promiseHandler(controller, promise, response, undefined, next);
     }
   );
@@ -1018,7 +1172,7 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
     '/api/v1/viewer',
     authenticateMiddleware([{"AccessToken":["viewer:read"]}]),
     validator.validate('get', convertPath('/viewer')),
-    function ViewerController_getUser(request: any, response: any, next: any) {
+    function ViewerController_getViewer(request: any, response: any, next: any) {
       const args = {
           req: {"in":"request","name":"req","required":true,"dataType":"object"},
       };
@@ -1032,7 +1186,32 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
         controller.setStatus(undefined);
       }
 
-      const promise = controller.getUser.apply(controller, getArgs(args, request, response));
+      const promise = controller.getViewer.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.put(
+    '/api/v1/viewer',
+    authenticateMiddleware([{"AccessToken":["viewer:update"]}]),
+    validator.validate('put', convertPath('/viewer')),
+    function ViewerController_updateViewer(request: any, response: any, next: any) {
+      const args = {
+          req: {"in":"request","name":"req","required":true,"dataType":"object"},
+          viewerUpdatePayload: {"in":"body","name":"viewerUpdatePayload","required":true,"ref":"ViewerUpdatePayload"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<ViewerController>(ViewerController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.updateViewer.apply(controller, getArgs(args, request, response));
       promiseHandler(controller, promise, response, undefined, next);
     }
   );

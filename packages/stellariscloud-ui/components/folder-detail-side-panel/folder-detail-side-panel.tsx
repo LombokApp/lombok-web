@@ -26,7 +26,7 @@ export const FolderDetailSidePanel = ({
   websocketConnected: boolean
 }) => {
   return (
-    <div className="flex flex-col gap-4 p-6 pt-20 text-grey-800dark:text-white min-w-[25rem]">
+    <div className="flex flex-col gap-4 p-6 pt-20 text-grey-800 dark:text-white min-w-[25rem]">
       <div className="flex flex-col">
         <div className="opacity-50">Total files</div>
         <div>

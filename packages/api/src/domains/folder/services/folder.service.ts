@@ -7,11 +7,11 @@ import {
 } from '@stellariscloud/utils'
 import { FolderOperationName } from '@stellariscloud/workers'
 import mime from 'mime'
+import * as r from 'runtypes'
 import { Lifecycle, scoped } from 'tsyringe'
 import { v4 as uuidV4 } from 'uuid'
 import type { Logger } from 'winston'
 
-import type { MetadataLocationConfig } from '../../../config/config.interface'
 import { EnvConfigProvider } from '../../../config/env-config.provider'
 import type { FolderOperationRequestPayload } from '../../../controllers/folders.controller'
 import { LoggingService } from '../../../services/logging.service'
@@ -20,6 +20,15 @@ import { configureS3Client, S3Service } from '../../../services/s3.service'
 import { SocketService } from '../../../services/socket.service'
 import { JWTService } from '../../auth/services/jwt.service'
 import { FolderOperationService } from '../../folder-operation/services/folder-operation.service'
+import type { S3Location } from '../../s3/entities/s3-location.entity'
+import { S3LocationRepository } from '../../s3/entities/s3-location.repository'
+import {
+  S3LocationInvalidError,
+  S3LocationNotFoundError,
+} from '../../s3/errors/s3-location.error'
+import type { UserLocationInputData } from '../../s3/transfer-objects/s3-location.dto'
+import { ServerLocationType } from '../../server/constants/server.constants'
+import { ServerConfigurationService } from '../../server/services/server-configuration.service'
 import { UserService } from '../../user/services/user.service'
 import type { Folder } from '../entities/folder.entity'
 import { FolderRepository } from '../entities/folder.repository'
@@ -30,7 +39,6 @@ import { FolderShareRepository } from '../entities/folder-share.repository'
 import type { ObjectTag } from '../entities/object-tag.entity'
 import { ObjectTagRepository } from '../entities/object-tag.repository'
 import { ObjectTagRelationRepository } from '../entities/object-tag-relation.repository'
-import { S3ConnectionRepository } from '../entities/s3-connection.repository'
 import {
   FolderMetadataWriteNotAuthorised,
   FolderNotFoundError,
@@ -41,7 +49,6 @@ import {
   FolderTagNotFoundError,
   ObjectTagInvalidError,
 } from '../errors/folder.error'
-import { S3ConnectionNotFoundError } from '../errors/s3-connection.error'
 import type { CreateFolderSharePayload } from '../transfer-objects/folder-share.dto'
 
 export enum SignedURLsRequestMethod {
@@ -95,24 +102,42 @@ export interface FolderObjectUpdate {
   eTag?: string
 }
 
+const NewUserLocationPayloadRunType = r.Record({
+  accessKeyId: r.String,
+  secretAccessKey: r.String,
+  endpoint: r.String,
+  bucket: r.String,
+  region: r.String,
+  prefix: r.String,
+})
+
+const ExistingUserLocationPayloadRunType = r.Record({
+  userLocationId: r.String,
+  userLocationPrefixOverride: r.String,
+  userLocationBucketOverride: r.String,
+})
+
+const ServerLocationPayloadRunType = r.Record({
+  serverLocationId: r.String,
+})
+
 @scoped(Lifecycle.ContainerScoped)
 export class FolderService {
   private readonly logger: Logger
-  private readonly metadataLocationConfig: MetadataLocationConfig =
-    this.configProvider.getMetadataLocationConfig()
 
   constructor(
     private readonly queueService: QueueService,
     private readonly objectTagRepository: ObjectTagRepository,
     private readonly objectTagRelationRepository: ObjectTagRelationRepository,
     private readonly folderObjectRepository: FolderObjectRepository,
+    private readonly serverConfigurationService: ServerConfigurationService,
     private readonly folderOperationService: FolderOperationService,
     private readonly folderShareRepository: FolderShareRepository,
     private readonly folderRepository: FolderRepository,
     private readonly jwtService: JWTService,
     private readonly socketService: SocketService,
     private readonly userService: UserService,
-    private readonly s3ConnectionRepository: S3ConnectionRepository,
+    private readonly s3LocationRepository: S3LocationRepository,
     private readonly loggingService: LoggingService,
     private readonly s3Service: S3Service,
     private readonly configProvider: EnvConfigProvider,
@@ -125,34 +150,123 @@ export class FolderService {
     body,
   }: {
     body: {
+      // this is called with two location configurations (for content and metadata) which are each either:
+      //  - A whole new location, meaning no existing location id, but all the other required properties
+      //  - A location id of another of the user's locations, plus a bucket & prefix to replace the ones of that location
+      //  - A reference to a server location (in which case no overrides are allowed)
       name: string
-      bucket: string
-      prefix?: string
-      s3ConnectionId: string
+      contentLocation: UserLocationInputData
+      metadataLocation?: UserLocationInputData
     }
     userId: string
   }): Promise<Folder> {
-    const s3Connection = await this.s3ConnectionRepository.findOne({
-      id: body.s3ConnectionId,
-      owner: userId,
-    })
+    // create the ID ahead of time so we can also include
+    // it in the prefix of the folders data location
+    // (in the case of a Server provided location for a user folder)
+    const prospectiveFolderId = uuidV4()
+    const metadataPrefix = `.stellaris_folder_metadata_${prospectiveFolderId}`
 
-    if (!s3Connection) {
-      throw new S3ConnectionNotFoundError()
+    const buildLocation = async (
+      serverLocationType: ServerLocationType,
+      locationInput: UserLocationInputData,
+    ): Promise<S3Location> => {
+      const withNewUserLocationConnection =
+        NewUserLocationPayloadRunType.validate(locationInput)
+      const withExistingUserLocation =
+        ExistingUserLocationPayloadRunType.validate(locationInput)
+      const withExistingServerLocation =
+        ServerLocationPayloadRunType.validate(locationInput)
+
+      let location: S3Location | null = null
+
+      if (withNewUserLocationConnection.success) {
+        // user has input all new location info
+        location = this.s3LocationRepository.create({
+          ...withNewUserLocationConnection.value,
+          name: `${withNewUserLocationConnection.value.endpoint} - ${withNewUserLocationConnection.value.accessKeyId}`,
+          providerType: 'USER',
+          user: { id: userId },
+        })
+      } else if (withExistingUserLocation.success) {
+        // user has provided another location ID they apparently own, and a bucket + prefix override
+        const existingLocation = await this.s3LocationRepository.findOne({
+          providerType: 'USER',
+          user: userId,
+          id: withExistingUserLocation.value.userLocationId,
+        })
+        if (existingLocation) {
+          location = this.s3LocationRepository.create({
+            name: existingLocation.name,
+            providerType: 'USER',
+            user: userId,
+            endpoint: existingLocation.endpoint,
+            accessKeyId: existingLocation.accessKeyId,
+            secretAccessKey: existingLocation.secretAccessKey,
+            region: existingLocation.region,
+            prefix: withExistingUserLocation.value.userLocationPrefixOverride,
+            bucket: withExistingUserLocation.value.userLocationBucketOverride,
+          })
+        } else {
+          throw new S3LocationNotFoundError()
+        }
+      } else if (withExistingServerLocation.success) {
+        // user has provided a server location reference
+        const existingServerLocation =
+          await this.serverConfigurationService.getConfiguredServerLocationById(
+            serverLocationType,
+            withExistingServerLocation.value.serverLocationId,
+          )
+
+        if (!existingServerLocation) {
+          throw new S3LocationInvalidError()
+        }
+
+        location = this.s3LocationRepository.create({
+          name: existingServerLocation.name,
+          providerType: 'SERVER',
+          user: userId,
+          endpoint: existingServerLocation.endpoint,
+          accessKeyId: existingServerLocation.accessKeyId,
+          secretAccessKey: existingServerLocation.secretAccessKey,
+          region: existingServerLocation.region,
+          bucket: existingServerLocation.bucket,
+          prefix: `${existingServerLocation.prefix}${
+            existingServerLocation.prefix?.endsWith('/') ? '' : '/'
+          }${metadataPrefix}${metadataPrefix.endsWith('/') ? '' : '/'}`,
+        })
+      } else {
+        throw new S3LocationInvalidError()
+      }
+
+      return location
     }
 
+    const contentLocation = await buildLocation(
+      ServerLocationType.USER_CONTENT,
+      body.contentLocation,
+    )
+
+    const metadataLocation = body.metadataLocation
+      ? await buildLocation(
+          ServerLocationType.USER_METADATA,
+          body.metadataLocation,
+        )
+      : {
+          ...contentLocation,
+          prefix: `${
+            contentLocation.prefix
+              ? `${contentLocation.prefix}${
+                  contentLocation.prefix.endsWith('/') ? '' : '/'
+                }${metadataPrefix}`
+              : metadataPrefix
+          }`,
+        }
+
     const folder = this.folderRepository.create({
+      id: prospectiveFolderId,
       name: body.name,
-      bucket: body.bucket,
-      prefix: body.prefix,
-      accessKeyId: s3Connection.accessKeyId,
-      secretAccessKey: s3Connection.secretAccessKey,
-      region: s3Connection.region,
-      endpoint: s3Connection.endpoint,
-      metadataEndpoint: this.metadataLocationConfig.s3Endpoint,
-      metadataBucket: this.metadataLocationConfig.s3Bucket,
-      metadataSecretAccessKey: '',
-      metadataAccessKeyId: '',
+      contentLocation,
+      metadataLocation,
       owner: userId,
     })
     await this.folderRepository.getEntityManager().flush()
@@ -182,7 +296,11 @@ export class FolderService {
       {
         $or: [{ owner: userId }, { shares: { user: userId } }],
       },
-      { offset: offset ?? 0, limit: limit ?? 25 },
+      {
+        offset: offset ?? 0,
+        limit: limit ?? 25,
+        populate: ['contentLocation', 'metadataLocation'],
+      },
     )
 
     return {
@@ -221,7 +339,7 @@ export class FolderService {
     folderId: string
     objectKey: string
   }): Promise<boolean> {
-    const { folder, permissions } = await this.getFolderAsUser({
+    const { folder: _folder, permissions } = await this.getFolderAsUser({
       folderId,
       userId,
     })
@@ -239,14 +357,15 @@ export class FolderService {
       throw new FolderObjectNotFoundError()
     }
 
-    await this.s3Service.s3DeleteBucketObject({
-      accessKeyId: folder.accessKeyId,
-      secretAccessKey: folder.secretAccessKey,
-      endpoint: folder.endpoint,
-      region: folder.region,
-      bucket: folder.bucket,
-      objectKey,
-    })
+    // TODO: fix delete folder
+    // await this.s3Service.s3DeleteBucketObject({
+    //   accessKeyId: folder.accessKeyId,
+    //   secretAccessKey: folder.secretAccessKey,
+    //   endpoint: folder.endpoint,
+    //   region: folder.region,
+    //   bucket: folder.bucket,
+    //   objectKey,
+    // })
 
     this.folderRepository.getEntityManager().remove(obj)
     await this.folderRepository.getEntityManager().flush()
@@ -326,9 +445,9 @@ export class FolderService {
         id: folderId,
         $or: [{ owner: userId }, { shares: { user: userId } }],
       },
-      { populate: ['shares'] },
+      { populate: ['shares', 'contentLocation', 'metadataLocation'] },
     )
-    const isOwner = folder?.owner?.id === userId
+    const isOwner = folder?.owner.id === userId
     const share = folder?.shares.getItems()?.find((s) => s.user?.id === userId)
 
     if (!folder || (!isOwner && !share)) {
@@ -640,25 +759,6 @@ export class FolderService {
       userId,
     })
 
-    const metadataBucketConfig =
-      folder.metadataEndpoint === this.metadataLocationConfig.s3Endpoint &&
-      folder.metadataBucket === this.metadataLocationConfig.s3Bucket
-        ? {
-            accessKeyId: this.metadataLocationConfig.s3AccessKeyId,
-            secretAccessKey: this.metadataLocationConfig.s3SecretAccessKey,
-            endpoint: this.metadataLocationConfig.s3Endpoint,
-            region: this.metadataLocationConfig.s3Region,
-            bucket: this.metadataLocationConfig.s3Bucket,
-          }
-        : {
-            accessKeyId: folder.metadataAccessKeyId,
-            secretAccessKey: folder.metadataSecretAccessKey,
-            endpoint: folder.metadataEndpoint,
-            region: folder.metadataRegion,
-            prefix: folder.metadataPrefix,
-            bucket: folder.bucket,
-          }
-
     return this.s3Service.createS3PresignedUrls(
       urls.map((urlRequest) => {
         // objectIdentifier looks like one of these, depending on if it's a regular object content request or an object metadata request
@@ -675,12 +775,17 @@ export class FolderService {
           objectIdentifierToObjectKey(urlRequest.objectIdentifier)
         const objectKeyToFetch = isMetadataIdentifier
           ? `${
-              folder.metadataPrefix ? folder.metadataPrefix : ''
+              folder.metadataLocation.prefix
+                ? folder.metadataLocation.prefix
+                : ''
             }${folderId}/${metadataObjectKey}`
           : objectKey
 
         // validate that requested object is within the scope of this folder
-        if (folder.prefix && !objectKey.startsWith(folder.prefix)) {
+        if (
+          folder.contentLocation.prefix &&
+          !objectKey.startsWith(folder.contentLocation.prefix)
+        ) {
           throw new FolderObjectNotFoundError()
         }
 
@@ -707,22 +812,13 @@ export class FolderService {
         }
 
         return {
-          accessKeyId: isMetadataIdentifier
-            ? metadataBucketConfig.accessKeyId
-            : folder.accessKeyId,
-          secretAccessKey: isMetadataIdentifier
-            ? metadataBucketConfig.secretAccessKey
-            : folder.secretAccessKey,
-          endpoint: isMetadataIdentifier
-            ? metadataBucketConfig.endpoint
-            : folder.endpoint,
+          ...(isMetadataIdentifier
+            ? folder.metadataLocation
+            : folder.contentLocation),
           region:
             (isMetadataIdentifier
-              ? metadataBucketConfig.region
-              : folder.region) ?? 'auto',
-          bucket: isMetadataIdentifier
-            ? metadataBucketConfig.bucket
-            : folder.bucket,
+              ? folder.metadataLocation.region
+              : folder.contentLocation.region) ?? 'auto',
           method: urlRequest.method,
           objectKey: objectKeyToFetch,
           expirySeconds: 3600,
@@ -745,10 +841,10 @@ export class FolderService {
       userId,
     })
     const s3Client = configureS3Client({
-      accessKeyId: folder.accessKeyId,
-      secretAccessKey: folder.secretAccessKey,
-      endpoint: folder.endpoint,
-      region: folder.region,
+      accessKeyId: folder.contentLocation.accessKeyId,
+      secretAccessKey: folder.contentLocation.secretAccessKey,
+      endpoint: folder.contentLocation.endpoint,
+      region: folder.contentLocation.region,
     })
     if (!permissions.includes(FolderPermissionName.FOLDER_REFRESH)) {
       throw new FolderPermissionMissingError()
@@ -768,12 +864,12 @@ export class FolderService {
         continuationToken: string | undefined
       } = await this.s3Service.s3ListBucketObjects({
         s3Client,
-        bucketName: folder.bucket,
+        bucketName: folder.contentLocation.bucket,
         continuationToken:
           !continuationToken || continuationToken === ''
             ? undefined
             : continuationToken,
-        prefix: folder.prefix,
+        prefix: folder.contentLocation.prefix,
       })
 
       // swap in the new batch and the continuationToken for the next batch
@@ -815,15 +911,15 @@ export class FolderService {
     const { folder } = await this.getFolderAsUser({ folderId, userId })
 
     const s3Client = configureS3Client({
-      accessKeyId: folder.accessKeyId,
-      secretAccessKey: folder.secretAccessKey,
-      endpoint: folder.endpoint,
-      region: folder.region,
+      accessKeyId: folder.contentLocation.accessKeyId,
+      secretAccessKey: folder.contentLocation.secretAccessKey,
+      endpoint: folder.contentLocation.endpoint,
+      region: folder.contentLocation.region,
     })
 
     const response = await this.s3Service.s3HeadObject({
       s3Client,
-      bucketName: folder.bucket,
+      bucketName: folder.contentLocation.bucket,
       objectKey,
       eTag,
     })

@@ -82,7 +82,7 @@ export const schema = {
       "PlatformRole": {
         "enum": [
           "ANONYMOUS",
-          "AUTHENTICATED",
+          "USER",
           "ADMIN",
           "SERVICE"
         ],
@@ -92,6 +92,11 @@ export const schema = {
         "type": "string",
         "format": "email",
         "maxLength": 255
+      },
+      "UsernameFormat": {
+        "type": "string",
+        "format": "email",
+        "maxLength": 64
       },
       "UserData": {
         "properties": {
@@ -109,15 +114,28 @@ export const schema = {
           "role": {
             "$ref": "#/components/schemas/PlatformRole"
           },
+          "name": {
+            "type": "string"
+          },
           "email": {
             "$ref": "#/components/schemas/EmailFormat"
+          },
+          "username": {
+            "$ref": "#/components/schemas/UsernameFormat"
+          },
+          "permissions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           }
         },
         "required": [
           "createdAt",
           "updatedAt",
           "id",
-          "role"
+          "role",
+          "permissions"
         ],
         "type": "object",
         "additionalProperties": false
@@ -127,6 +145,10 @@ export const schema = {
       },
       "SignupParams": {
         "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 255
+          },
           "email": {
             "type": "string",
             "maxLength": 255
@@ -137,6 +159,7 @@ export const schema = {
           }
         },
         "required": [
+          "username",
           "email",
           "password"
         ],
@@ -396,6 +419,61 @@ export const schema = {
         "type": "object",
         "additionalProperties": false
       },
+      "S3LocationData": {
+        "properties": {
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "providerType": {
+            "type": "string",
+            "enum": [
+              "SERVER",
+              "USER"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "accessKeyId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "createdAt",
+          "updatedAt",
+          "id",
+          "providerType",
+          "name",
+          "endpoint",
+          "bucket",
+          "accessKeyId"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
       "FolderData": {
         "properties": {
           "createdAt": {
@@ -415,20 +493,11 @@ export const schema = {
           "name": {
             "type": "string"
           },
-          "accessKeyId": {
-            "type": "string"
+          "metadataLocation": {
+            "$ref": "#/components/schemas/S3LocationData"
           },
-          "endpoint": {
-            "type": "string"
-          },
-          "region": {
-            "type": "string"
-          },
-          "bucket": {
-            "type": "string"
-          },
-          "prefix": {
-            "type": "string"
+          "contentLocation": {
+            "$ref": "#/components/schemas/S3LocationData"
           }
         },
         "required": [
@@ -436,10 +505,45 @@ export const schema = {
           "updatedAt",
           "id",
           "name",
-          "accessKeyId",
-          "endpoint",
-          "bucket"
+          "metadataLocation",
+          "contentLocation"
         ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "UserLocationInputData": {
+        "properties": {
+          "serverLocationId": {
+            "type": "string"
+          },
+          "userLocationId": {
+            "type": "string"
+          },
+          "userLocationBucketOverride": {
+            "type": "string"
+          },
+          "userLocationPrefixOverride": {
+            "type": "string"
+          },
+          "accessKeyId": {
+            "type": "string"
+          },
+          "secretAccessKey": {
+            "type": "string"
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          }
+        },
         "type": "object",
         "additionalProperties": false
       },
@@ -827,42 +931,198 @@ export const schema = {
         "type": "object",
         "additionalProperties": false
       },
-      "S3ConnectionData": {
+      "ServerLocationData": {
         "properties": {
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
           "id": {
-            "type": "string"
-          },
-          "ownerId": {
             "type": "string"
           },
           "name": {
             "type": "string"
           },
+          "endpoint": {
+            "type": "string"
+          },
           "accessKeyId": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "endpoint",
+          "accessKeyId",
+          "region",
+          "bucket"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "ServerLocationType": {
+        "enum": [
+          "USER_METADATA",
+          "USER_CONTENT",
+          "USER_BACKUP"
+        ],
+        "type": "string"
+      },
+      "ServerLocationInputData": {
+        "properties": {
+          "name": {
             "type": "string"
           },
           "endpoint": {
             "type": "string"
           },
+          "accessKeyId": {
+            "type": "string"
+          },
+          "secretAccessKey": {
+            "type": "string"
+          },
           "region": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "prefix": {
             "type": "string"
           }
         },
         "required": [
-          "createdAt",
-          "updatedAt",
-          "id",
           "name",
+          "endpoint",
           "accessKeyId",
-          "endpoint"
+          "secretAccessKey",
+          "region",
+          "bucket"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "ListUsersResponse": {
+        "properties": {
+          "meta": {
+            "properties": {
+              "totalCount": {
+                "type": "number",
+                "format": "double"
+              }
+            },
+            "required": [
+              "totalCount"
+            ],
+            "type": "object"
+          },
+          "result": {
+            "items": {
+              "$ref": "#/components/schemas/UserData"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "meta",
+          "result"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "CreateUserData": {
+        "properties": {
+          "admin": {
+            "type": "boolean"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "password": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "permissions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "UpdateUserData": {
+        "properties": {
+          "admin": {
+            "type": "boolean"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "password": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "permissions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object",
+        "additionalProperties": false
+      },
+      "ServerSettings": {
+        "properties": {
+          "SIGNUP_ENABLED": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "SIGNUP_ENABLED"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "ViewerUpdatePayload": {
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
         ],
         "type": "object",
         "additionalProperties": false
@@ -1419,23 +1679,20 @@ export const schema = {
             "application/json": {
               "schema": {
                 "properties": {
-                  "prefix": {
-                    "type": "string"
+                  "metadataLocation": {
+                    "$ref": "#/components/schemas/UserLocationInputData"
                   },
-                  "bucket": {
-                    "type": "string"
+                  "contentLocation": {
+                    "$ref": "#/components/schemas/UserLocationInputData"
                   },
                   "name": {
-                    "type": "string"
-                  },
-                  "s3ConnectionId": {
                     "type": "string"
                   }
                 },
                 "required": [
-                  "bucket",
-                  "name",
-                  "s3ConnectionId"
+                  "metadataLocation",
+                  "contentLocation",
+                  "name"
                 ],
                 "type": "object"
               }
@@ -1826,7 +2083,7 @@ export const schema = {
         }
       }
     },
-    "/folders/{folderId}/objects/{objectKey}/operations": {
+    "/folders/{folderId}/operations": {
       "post": {
         "operationId": "enqueueFolderOperation",
         "responses": {
@@ -1879,6 +2136,49 @@ export const schema = {
             }
           }
         }
+      },
+      "get": {
+        "operationId": "listFolderOperations",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderOperationsResponse"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Folders"
+        ],
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "folderId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
       }
     },
     "/folders/{folderId}/objects": {
@@ -2783,43 +3083,130 @@ export const schema = {
         ]
       }
     },
-    "/folders/{folderId}/folder-operations": {
+    "/server/settings/server-locations/{locationType}": {
       "get": {
-        "operationId": "listFolderOperations",
+        "operationId": "listServerLocations",
         "responses": {
           "200": {
             "description": "Ok",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FolderOperationsResponse"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "items": {
+                    "$ref": "#/components/schemas/ServerLocationData"
+                  },
+                  "type": "array"
                 }
               }
             }
           }
         },
         "tags": [
-          "Folders"
+          "Server"
         ],
         "security": [
           {
-            "AccessToken": []
+            "AccessToken": [
+              "user_folders_location:read"
+            ]
           }
         ],
         "parameters": [
           {
             "in": "path",
-            "name": "folderId",
+            "name": "locationType",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ServerLocationType"
+            }
+          }
+        ]
+      }
+    },
+    "/server/settings/locations/{locationType}": {
+      "post": {
+        "operationId": "addServerLocation",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerLocationData"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Server"
+        ],
+        "security": [
+          {
+            "AccessToken": [
+              "metadata_location:read"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "locationType",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ServerLocationType"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServerLocationInputData"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/server/settings/locations/{locationType}/{locationId}": {
+      "delete": {
+        "operationId": "deleteServerLocation",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Server"
+        ],
+        "security": [
+          {
+            "AccessToken": [
+              "metadata_location:read"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "locationType",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ServerLocationType"
+            }
+          },
+          {
+            "in": "path",
+            "name": "locationId",
             "required": true,
             "schema": {
               "type": "string"
@@ -2828,52 +3215,35 @@ export const schema = {
         ]
       }
     },
-    "/s3-connections/{s3ConnectionId}": {
+    "/server/users": {
       "get": {
-        "operationId": "getS3Connection",
+        "operationId": "listUsers",
         "responses": {
           "200": {
             "description": "Ok",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/S3ConnectionData"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "#/components/schemas/ListUsersResponse"
                 }
               }
             }
           }
         },
         "tags": [
-          "S3Connections"
+          "Server"
         ],
         "security": [
           {
-            "AccessToken": []
+            "AccessToken": [
+              "user:read"
+            ]
           }
         ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "s3ConnectionId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ]
+        "parameters": []
       },
       "post": {
-        "operationId": "deleteS3Connection",
+        "operationId": "createUser",
         "responses": {
           "200": {
             "description": "Ok",
@@ -2881,52 +3251,45 @@ export const schema = {
               "application/json": {
                 "schema": {
                   "properties": {
-                    "success": {
-                      "type": "boolean"
+                    "user": {
+                      "$ref": "#/components/schemas/UserData"
                     }
                   },
                   "required": [
-                    "success"
+                    "user"
                   ],
                   "type": "object"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
           }
         },
         "tags": [
-          "S3Connections"
+          "Server"
         ],
         "security": [
           {
-            "AccessToken": []
+            "AccessToken": [
+              "user:create"
+            ]
           }
         ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "s3ConnectionId",
-            "required": true,
-            "schema": {
-              "type": "string"
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserData"
+              }
             }
           }
-        ]
+        }
       }
     },
-    "/s3-connections": {
+    "/server/users/{userId}": {
       "get": {
-        "operationId": "listS3Connections",
+        "operationId": "getUser",
         "responses": {
           "200": {
             "description": "Ok",
@@ -2935,126 +3298,41 @@ export const schema = {
                 "schema": {
                   "properties": {
                     "result": {
-                      "items": {
-                        "$ref": "#/components/schemas/S3ConnectionData"
-                      },
-                      "type": "array"
-                    },
-                    "meta": {
-                      "properties": {
-                        "totalCount": {
-                          "type": "number",
-                          "format": "double"
-                        }
-                      },
-                      "required": [
-                        "totalCount"
-                      ],
-                      "type": "object"
+                      "$ref": "#/components/schemas/UserData"
                     }
                   },
                   "required": [
-                    "result",
-                    "meta"
+                    "result"
                   ],
                   "type": "object"
                 }
               }
             }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
           }
         },
         "tags": [
-          "S3Connections"
+          "Server"
         ],
         "security": [
           {
-            "AccessToken": []
+            "AccessToken": [
+              "user:read"
+            ]
           }
         ],
-        "parameters": []
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
       },
-      "post": {
-        "operationId": "createS3Connection",
-        "responses": {
-          "200": {
-            "description": "Ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/S3ConnectionData"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "S3Connections"
-        ],
-        "security": [
-          {
-            "AccessToken": []
-          }
-        ],
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "properties": {
-                  "region": {
-                    "type": "string"
-                  },
-                  "endpoint": {
-                    "type": "string"
-                  },
-                  "secretAccessKey": {
-                    "type": "string"
-                  },
-                  "accessKeyId": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "region",
-                  "endpoint",
-                  "secretAccessKey",
-                  "accessKeyId",
-                  "name"
-                ],
-                "type": "object"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/s3-connections/test": {
-      "post": {
-        "operationId": "testS3Connection",
+      "put": {
+        "operationId": "updateUser",
         "responses": {
           "200": {
             "description": "Ok",
@@ -3062,72 +3340,224 @@ export const schema = {
               "application/json": {
                 "schema": {
                   "properties": {
-                    "success": {
-                      "type": "boolean"
+                    "user": {
+                      "$ref": "#/components/schemas/UserData"
                     }
                   },
                   "required": [
-                    "success"
+                    "user"
                   ],
                   "type": "object"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
           }
         },
         "tags": [
-          "S3Connections"
+          "Server"
         ],
         "security": [
           {
-            "AccessToken": []
+            "AccessToken": [
+              "user:create"
+            ]
           }
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserData"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteUser",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Server"
+        ],
+        "security": [
+          {
+            "AccessToken": [
+              "user:create"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/server/settings": {
+      "get": {
+        "operationId": "getSettings",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "settings": {
+                      "$ref": "#/components/schemas/ServerSettings"
+                    }
+                  },
+                  "required": [
+                    "settings"
+                  ],
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Server"
+        ],
+        "security": [
+          {
+            "AccessToken": [
+              "server_settings:read"
+            ]
+          }
+        ],
+        "parameters": []
+      }
+    },
+    "/server/settings/{settingsKey}": {
+      "put": {
+        "operationId": "updateSetting",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "settings": {
+                      "$ref": "#/components/schemas/ServerSettings"
+                    }
+                  },
+                  "required": [
+                    "settings"
+                  ],
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Server"
+        ],
+        "security": [
+          {
+            "AccessToken": [
+              "server_settings:update"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "settingsKey",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "properties": {
-                  "region": {
-                    "type": "string"
-                  },
-                  "endpoint": {
-                    "type": "string"
-                  },
-                  "secretAccessKey": {
-                    "type": "string"
-                  },
-                  "accessKeyId": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string"
-                  }
+                  "value": {}
                 },
                 "required": [
-                  "region",
-                  "endpoint",
-                  "secretAccessKey",
-                  "accessKeyId",
-                  "name"
+                  "value"
                 ],
                 "type": "object"
               }
             }
           }
         }
+      },
+      "delete": {
+        "operationId": "resetSetting",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "settings": {
+                      "$ref": "#/components/schemas/ServerSettings"
+                    }
+                  },
+                  "required": [
+                    "settings"
+                  ],
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Server"
+        ],
+        "security": [
+          {
+            "AccessToken": [
+              "server_settings:update"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "settingsKey",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
       }
     },
     "/viewer": {
@@ -3164,6 +3594,50 @@ export const schema = {
           }
         ],
         "parameters": []
+      },
+      "put": {
+        "operationId": "updateViewer",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/UserData"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Viewer"
+        ],
+        "security": [
+          {
+            "AccessToken": [
+              "viewer:update"
+            ]
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ViewerUpdatePayload"
+              }
+            }
+          }
+        }
       }
     }
   },

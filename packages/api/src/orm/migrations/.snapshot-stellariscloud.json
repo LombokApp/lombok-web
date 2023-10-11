@@ -6,6 +6,43 @@
   "tables": [
     {
       "columns": {
+        "key": {
+          "name": "key",
+          "type": "TEXT",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "value": {
+          "name": "value",
+          "type": "jsonb",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "json"
+        }
+      },
+      "name": "server_configuration",
+      "schema": "public",
+      "indexes": [
+        {
+          "keyName": "server_configuration_pkey",
+          "columnNames": [
+            "key"
+          ],
+          "composite": false,
+          "primary": true,
+          "unique": true
+        }
+      ],
+      "checks": [],
+      "foreignKeys": {}
+    },
+    {
+      "columns": {
         "id": {
           "name": "id",
           "type": "uuid",
@@ -43,46 +80,50 @@
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "default": "'AUTHENTICATED'",
+          "default": "'USER'",
           "enumItems": [
             "ANONYMOUS",
-            "AUTHENTICATED",
+            "USER",
             "ADMIN",
             "SERVICE"
           ],
           "mappedType": "enum"
         },
-        "status": {
-          "name": "status",
-          "type": "text",
+        "password_hash": {
+          "name": "password_hash",
+          "type": "TEXT",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "default": "'PENDING'",
-          "enumItems": [
-            "PENDING",
-            "ACTIVE"
-          ],
-          "mappedType": "enum"
+          "mappedType": "text"
         },
-        "password_hash": {
-          "name": "password_hash",
-          "type": "varchar(255)",
+        "password_salt": {
+          "name": "password_salt",
+          "type": "TEXT",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "name": {
+          "name": "name",
+          "type": "TEXT",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
-          "mappedType": "string"
+          "mappedType": "text"
         },
-        "password_salt": {
-          "name": "password_salt",
-          "type": "varchar(255)",
+        "username": {
+          "name": "username",
+          "type": "citext",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "mappedType": "string"
+          "mappedType": "unknown"
         },
         "email": {
           "name": "email",
@@ -90,7 +131,7 @@
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": false,
+          "nullable": true,
           "mappedType": "unknown"
         },
         "email_verified": {
@@ -101,11 +142,29 @@
           "primary": false,
           "nullable": false,
           "mappedType": "boolean"
+        },
+        "permissions": {
+          "name": "permissions",
+          "type": "jsonb",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "json"
         }
       },
       "name": "user",
       "schema": "public",
       "indexes": [
+        {
+          "columnNames": [
+            "username"
+          ],
+          "composite": false,
+          "keyName": "user_username_unique",
+          "primary": false,
+          "unique": true
+        },
         {
           "columnNames": [
             "email"
@@ -187,7 +246,26 @@
           "nullable": false,
           "enumItems": [
             "viewer:read",
-            "viewer:update"
+            "viewer:update",
+            "user:read",
+            "user:create",
+            "user:delete",
+            "user:manage",
+            "backup_location:read",
+            "backup_location:update",
+            "backup_location:delete",
+            "backup_location:create",
+            "user_folders_location:read",
+            "user_folders_location:update",
+            "user_folders_location:delete",
+            "user_folders_location:create",
+            "metadata_location:read",
+            "metadata_location:update",
+            "metadata_location:delete",
+            "metadata_location:create",
+            "public_server_settings:read",
+            "server_settings:read",
+            "server_settings:update"
           ],
           "mappedType": "array"
         },
@@ -275,64 +353,91 @@
         },
         "name": {
           "name": "name",
-          "type": "varchar(255)",
+          "type": "TEXT",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "mappedType": "string"
+          "mappedType": "text"
+        },
+        "provider_type": {
+          "name": "provider_type",
+          "type": "TEXT",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
         },
         "endpoint": {
           "name": "endpoint",
-          "type": "varchar(255)",
+          "type": "TEXT",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "mappedType": "string"
+          "mappedType": "text"
         },
         "region": {
           "name": "region",
-          "type": "varchar(255)",
+          "type": "TEXT",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
-          "mappedType": "string"
+          "mappedType": "text"
         },
         "access_key_id": {
           "name": "access_key_id",
-          "type": "varchar(255)",
+          "type": "TEXT",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "mappedType": "string"
+          "mappedType": "text"
         },
         "secret_access_key": {
           "name": "secret_access_key",
-          "type": "varchar(255)",
+          "type": "TEXT",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "mappedType": "string"
+          "mappedType": "text"
         },
-        "owner_id": {
-          "name": "owner_id",
+        "bucket": {
+          "name": "bucket",
+          "type": "TEXT",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "mappedType": "text"
+        },
+        "prefix": {
+          "name": "prefix",
+          "type": "TEXT",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "mappedType": "text"
+        },
+        "user_id": {
+          "name": "user_id",
           "type": "uuid",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": true,
+          "nullable": false,
           "mappedType": "uuid"
         }
       },
-      "name": "s3_connection",
+      "name": "s3_location",
       "schema": "public",
       "indexes": [
         {
-          "keyName": "s3_connection_pkey",
+          "keyName": "s3_location_pkey",
           "columnNames": [
             "id"
           ],
@@ -343,17 +448,17 @@
       ],
       "checks": [],
       "foreignKeys": {
-        "s3_connection_owner_id_foreign": {
-          "constraintName": "s3_connection_owner_id_foreign",
+        "s3_location_user_id_foreign": {
+          "constraintName": "s3_location_user_id_foreign",
           "columnNames": [
-            "owner_id"
+            "user_id"
           ],
-          "localTableName": "public.s3_connection",
+          "localTableName": "public.s3_location",
           "referencedColumnNames": [
             "id"
           ],
           "referencedTableName": "public.user",
-          "deleteRule": "set null",
+          "deleteRule": "cascade",
           "updateRule": "cascade"
         }
       }
@@ -392,120 +497,30 @@
         },
         "name": {
           "name": "name",
-          "type": "varchar(255)",
+          "type": "TEXT",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "mappedType": "string"
+          "mappedType": "text"
         },
-        "endpoint": {
-          "name": "endpoint",
-          "type": "varchar(255)",
+        "content_location_id": {
+          "name": "content_location_id",
+          "type": "uuid",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "mappedType": "string"
+          "mappedType": "uuid"
         },
-        "bucket": {
-          "name": "bucket",
-          "type": "varchar(255)",
+        "metadata_location_id": {
+          "name": "metadata_location_id",
+          "type": "uuid",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "mappedType": "string"
-        },
-        "prefix": {
-          "name": "prefix",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "mappedType": "string"
-        },
-        "region": {
-          "name": "region",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "mappedType": "string"
-        },
-        "access_key_id": {
-          "name": "access_key_id",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "string"
-        },
-        "secret_access_key": {
-          "name": "secret_access_key",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "string"
-        },
-        "metadata_endpoint": {
-          "name": "metadata_endpoint",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "string"
-        },
-        "metadata_bucket": {
-          "name": "metadata_bucket",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "string"
-        },
-        "metadata_prefix": {
-          "name": "metadata_prefix",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "mappedType": "string"
-        },
-        "metadata_region": {
-          "name": "metadata_region",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": true,
-          "mappedType": "string"
-        },
-        "metadata_access_key_id": {
-          "name": "metadata_access_key_id",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "string"
-        },
-        "metadata_secret_access_key": {
-          "name": "metadata_secret_access_key",
-          "type": "varchar(255)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "mappedType": "string"
+          "mappedType": "uuid"
         },
         "owner_id": {
           "name": "owner_id",
@@ -513,13 +528,31 @@
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
-          "nullable": true,
+          "nullable": false,
           "mappedType": "uuid"
         }
       },
       "name": "folder",
       "schema": "public",
       "indexes": [
+        {
+          "columnNames": [
+            "content_location_id"
+          ],
+          "composite": false,
+          "keyName": "folder_content_location_id_unique",
+          "primary": false,
+          "unique": true
+        },
+        {
+          "columnNames": [
+            "metadata_location_id"
+          ],
+          "composite": false,
+          "keyName": "folder_metadata_location_id_unique",
+          "primary": false,
+          "unique": true
+        },
         {
           "keyName": "folder_pkey",
           "columnNames": [
@@ -532,6 +565,32 @@
       ],
       "checks": [],
       "foreignKeys": {
+        "folder_content_location_id_foreign": {
+          "constraintName": "folder_content_location_id_foreign",
+          "columnNames": [
+            "content_location_id"
+          ],
+          "localTableName": "public.folder",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.s3_location",
+          "deleteRule": "cascade",
+          "updateRule": "cascade"
+        },
+        "folder_metadata_location_id_foreign": {
+          "constraintName": "folder_metadata_location_id_foreign",
+          "columnNames": [
+            "metadata_location_id"
+          ],
+          "localTableName": "public.folder",
+          "referencedColumnNames": [
+            "id"
+          ],
+          "referencedTableName": "public.s3_location",
+          "deleteRule": "cascade",
+          "updateRule": "cascade"
+        },
         "folder_owner_id_foreign": {
           "constraintName": "folder_owner_id_foreign",
           "columnNames": [
@@ -542,7 +601,7 @@
             "id"
           ],
           "referencedTableName": "public.user",
-          "deleteRule": "set null",
+          "deleteRule": "cascade",
           "updateRule": "cascade"
         }
       }
@@ -672,21 +731,21 @@
         },
         "user_label": {
           "name": "user_label",
-          "type": "varchar(255)",
+          "type": "TEXT",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "mappedType": "string"
+          "mappedType": "text"
         },
         "user_invite_email": {
           "name": "user_invite_email",
-          "type": "varchar(255)",
+          "type": "TEXT",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": false,
-          "mappedType": "string"
+          "mappedType": "text"
         },
         "user_id": {
           "name": "user_id",
@@ -841,12 +900,12 @@
         },
         "error": {
           "name": "error",
-          "type": "varchar(255)",
+          "type": "TEXT",
           "unsigned": false,
           "autoincrement": false,
           "primary": false,
           "nullable": true,
-          "mappedType": "string"
+          "mappedType": "text"
         },
         "folder_id": {
           "name": "folder_id",
@@ -1176,6 +1235,26 @@
           "default": "gen_random_uuid()",
           "mappedType": "uuid"
         },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamptz(3)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "mappedType": "datetime"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamptz(3)",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": false,
+          "length": 6,
+          "mappedType": "datetime"
+        },
         "operation_relation_type": {
           "name": "operation_relation_type",
           "type": "text",
@@ -1224,16 +1303,6 @@
           "primary": false,
           "nullable": false,
           "mappedType": "uuid"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamptz(3)",
-          "unsigned": false,
-          "autoincrement": false,
-          "primary": false,
-          "nullable": false,
-          "length": 6,
-          "mappedType": "datetime"
         }
       },
       "name": "folder_operation_object",
@@ -1338,7 +1407,26 @@
           "nullable": false,
           "enumItems": [
             "viewer:read",
-            "viewer:update"
+            "viewer:update",
+            "user:read",
+            "user:create",
+            "user:delete",
+            "user:manage",
+            "backup_location:read",
+            "backup_location:update",
+            "backup_location:delete",
+            "backup_location:create",
+            "user_folders_location:read",
+            "user_folders_location:update",
+            "user_folders_location:delete",
+            "user_folders_location:create",
+            "metadata_location:read",
+            "metadata_location:update",
+            "metadata_location:delete",
+            "metadata_location:create",
+            "public_server_settings:read",
+            "server_settings:read",
+            "server_settings:update"
           ],
           "mappedType": "array"
         },
@@ -1463,7 +1551,26 @@
           "nullable": false,
           "enumItems": [
             "viewer:read",
-            "viewer:update"
+            "viewer:update",
+            "user:read",
+            "user:create",
+            "user:delete",
+            "user:manage",
+            "backup_location:read",
+            "backup_location:update",
+            "backup_location:delete",
+            "backup_location:create",
+            "user_folders_location:read",
+            "user_folders_location:update",
+            "user_folders_location:delete",
+            "user_folders_location:create",
+            "metadata_location:read",
+            "metadata_location:update",
+            "metadata_location:delete",
+            "metadata_location:create",
+            "public_server_settings:read",
+            "server_settings:read",
+            "server_settings:update"
           ],
           "mappedType": "array"
         }

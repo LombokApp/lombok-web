@@ -11,8 +11,8 @@ export interface IAuthContext {
   isLoggingIn: boolean
   isAuthenticated: boolean
   isLoggingOut: boolean
-  login: (loginParams: LoginParams) => Promise<void>
-  signup: (signupParams: SignupParams) => Promise<void>
+  login: (loginParams: LoginParams) => Promise<boolean>
+  signup: (signupParams: SignupParams) => Promise<boolean>
   logout: () => Promise<void>
 }
 const AuthContext = React.createContext<IAuthContext>({} as IAuthContext)
@@ -54,24 +54,23 @@ export const AuthContextProvider = ({
     }
   }, [])
 
-  const authenticate = async (loginParams: LoginParams) => {
-    if (isAuthenticated) {
-      return
-    }
-
-    try {
-      await authenticator.login(loginParams)
-    } catch (err: unknown) {
-      setError(err as AuthError)
-    }
-  }
-
   const login = async (loginParams: LoginParams) => {
     setError(undefined)
     setIsLoggingIn(true)
 
     try {
-      await authenticate(loginParams)
+      if (isAuthenticated) {
+        return true
+      }
+
+      try {
+        await authenticator.login(loginParams)
+        return true
+      } catch (err: unknown) {
+        console.log('error:', err)
+        setError(err as AuthError)
+        return false
+      }
     } finally {
       setIsLoggingIn(false)
     }
@@ -82,6 +81,7 @@ export const AuthContextProvider = ({
 
     try {
       await authenticator.signup(signupParams)
+      return true
     } finally {
       setIsLoggingIn(false)
     }

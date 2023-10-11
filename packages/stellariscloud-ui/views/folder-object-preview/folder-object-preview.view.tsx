@@ -1,5 +1,4 @@
 import type { FolderObjectData } from '@stellariscloud/api-client'
-import { Icon } from '@stellariscloud/design-system'
 import { MediaType } from '@stellariscloud/types'
 import {
   mediaTypeFromExtension,
@@ -10,6 +9,7 @@ import React from 'react'
 
 import { VideoPlayer } from '../../components/video-player/video-player'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
+import { Icon } from '../../design-system/icon'
 import { foldersApi } from '../../services/api'
 import { iconForMediaType } from '../../utils/file'
 

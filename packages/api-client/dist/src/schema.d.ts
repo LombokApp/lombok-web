@@ -70,13 +70,18 @@ export declare const schema: {
                 readonly additionalProperties: false;
             };
             readonly PlatformRole: {
-                readonly enum: readonly ["ANONYMOUS", "AUTHENTICATED", "ADMIN", "SERVICE"];
+                readonly enum: readonly ["ANONYMOUS", "USER", "ADMIN", "SERVICE"];
                 readonly type: "string";
             };
             readonly EmailFormat: {
                 readonly type: "string";
                 readonly format: "email";
                 readonly maxLength: 255;
+            };
+            readonly UsernameFormat: {
+                readonly type: "string";
+                readonly format: "email";
+                readonly maxLength: 64;
             };
             readonly UserData: {
                 readonly properties: {
@@ -94,11 +99,23 @@ export declare const schema: {
                     readonly role: {
                         readonly $ref: "#/components/schemas/PlatformRole";
                     };
+                    readonly name: {
+                        readonly type: "string";
+                    };
                     readonly email: {
                         readonly $ref: "#/components/schemas/EmailFormat";
                     };
+                    readonly username: {
+                        readonly $ref: "#/components/schemas/UsernameFormat";
+                    };
+                    readonly permissions: {
+                        readonly items: {
+                            readonly type: "string";
+                        };
+                        readonly type: "array";
+                    };
                 };
-                readonly required: readonly ["createdAt", "updatedAt", "id", "role"];
+                readonly required: readonly ["createdAt", "updatedAt", "id", "role", "permissions"];
                 readonly type: "object";
                 readonly additionalProperties: false;
             };
@@ -107,6 +124,10 @@ export declare const schema: {
             };
             readonly SignupParams: {
                 readonly properties: {
+                    readonly username: {
+                        readonly type: "string";
+                        readonly maxLength: 255;
+                    };
                     readonly email: {
                         readonly type: "string";
                         readonly maxLength: 255;
@@ -116,7 +137,7 @@ export declare const schema: {
                         readonly maxLength: 255;
                     };
                 };
-                readonly required: readonly ["email", "password"];
+                readonly required: readonly ["username", "email", "password"];
                 readonly type: "object";
                 readonly additionalProperties: false;
             };
@@ -322,6 +343,49 @@ export declare const schema: {
                 readonly type: "object";
                 readonly additionalProperties: false;
             };
+            readonly S3LocationData: {
+                readonly properties: {
+                    readonly createdAt: {
+                        readonly type: "string";
+                        readonly format: "date-time";
+                    };
+                    readonly updatedAt: {
+                        readonly type: "string";
+                        readonly format: "date-time";
+                    };
+                    readonly id: {
+                        readonly type: "string";
+                    };
+                    readonly userId: {
+                        readonly type: "string";
+                    };
+                    readonly providerType: {
+                        readonly type: "string";
+                        readonly enum: readonly ["SERVER", "USER"];
+                    };
+                    readonly name: {
+                        readonly type: "string";
+                    };
+                    readonly endpoint: {
+                        readonly type: "string";
+                    };
+                    readonly region: {
+                        readonly type: "string";
+                    };
+                    readonly bucket: {
+                        readonly type: "string";
+                    };
+                    readonly prefix: {
+                        readonly type: "string";
+                    };
+                    readonly accessKeyId: {
+                        readonly type: "string";
+                    };
+                };
+                readonly required: readonly ["createdAt", "updatedAt", "id", "providerType", "name", "endpoint", "bucket", "accessKeyId"];
+                readonly type: "object";
+                readonly additionalProperties: false;
+            };
             readonly FolderData: {
                 readonly properties: {
                     readonly createdAt: {
@@ -341,23 +405,50 @@ export declare const schema: {
                     readonly name: {
                         readonly type: "string";
                     };
+                    readonly metadataLocation: {
+                        readonly $ref: "#/components/schemas/S3LocationData";
+                    };
+                    readonly contentLocation: {
+                        readonly $ref: "#/components/schemas/S3LocationData";
+                    };
+                };
+                readonly required: readonly ["createdAt", "updatedAt", "id", "name", "metadataLocation", "contentLocation"];
+                readonly type: "object";
+                readonly additionalProperties: false;
+            };
+            readonly UserLocationInputData: {
+                readonly properties: {
+                    readonly serverLocationId: {
+                        readonly type: "string";
+                    };
+                    readonly userLocationId: {
+                        readonly type: "string";
+                    };
+                    readonly userLocationBucketOverride: {
+                        readonly type: "string";
+                    };
+                    readonly userLocationPrefixOverride: {
+                        readonly type: "string";
+                    };
                     readonly accessKeyId: {
+                        readonly type: "string";
+                    };
+                    readonly secretAccessKey: {
                         readonly type: "string";
                     };
                     readonly endpoint: {
                         readonly type: "string";
                     };
-                    readonly region: {
+                    readonly bucket: {
                         readonly type: "string";
                     };
-                    readonly bucket: {
+                    readonly region: {
                         readonly type: "string";
                     };
                     readonly prefix: {
                         readonly type: "string";
                     };
                 };
-                readonly required: readonly ["createdAt", "updatedAt", "id", "name", "accessKeyId", "endpoint", "bucket"];
                 readonly type: "object";
                 readonly additionalProperties: false;
             };
@@ -665,36 +756,169 @@ export declare const schema: {
                 readonly type: "object";
                 readonly additionalProperties: false;
             };
-            readonly S3ConnectionData: {
+            readonly ServerLocationData: {
                 readonly properties: {
-                    readonly createdAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
-                    readonly updatedAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
                     readonly id: {
-                        readonly type: "string";
-                    };
-                    readonly ownerId: {
                         readonly type: "string";
                     };
                     readonly name: {
                         readonly type: "string";
                     };
-                    readonly accessKeyId: {
+                    readonly endpoint: {
                         readonly type: "string";
                     };
-                    readonly endpoint: {
+                    readonly accessKeyId: {
                         readonly type: "string";
                     };
                     readonly region: {
                         readonly type: "string";
                     };
+                    readonly bucket: {
+                        readonly type: "string";
+                    };
+                    readonly prefix: {
+                        readonly type: "string";
+                    };
                 };
-                readonly required: readonly ["createdAt", "updatedAt", "id", "name", "accessKeyId", "endpoint"];
+                readonly required: readonly ["id", "name", "endpoint", "accessKeyId", "region", "bucket"];
+                readonly type: "object";
+                readonly additionalProperties: false;
+            };
+            readonly ServerLocationType: {
+                readonly enum: readonly ["USER_METADATA", "USER_CONTENT", "USER_BACKUP"];
+                readonly type: "string";
+            };
+            readonly ServerLocationInputData: {
+                readonly properties: {
+                    readonly name: {
+                        readonly type: "string";
+                    };
+                    readonly endpoint: {
+                        readonly type: "string";
+                    };
+                    readonly accessKeyId: {
+                        readonly type: "string";
+                    };
+                    readonly secretAccessKey: {
+                        readonly type: "string";
+                    };
+                    readonly region: {
+                        readonly type: "string";
+                    };
+                    readonly bucket: {
+                        readonly type: "string";
+                    };
+                    readonly prefix: {
+                        readonly type: "string";
+                    };
+                };
+                readonly required: readonly ["name", "endpoint", "accessKeyId", "secretAccessKey", "region", "bucket"];
+                readonly type: "object";
+                readonly additionalProperties: false;
+            };
+            readonly ListUsersResponse: {
+                readonly properties: {
+                    readonly meta: {
+                        readonly properties: {
+                            readonly totalCount: {
+                                readonly type: "number";
+                                readonly format: "double";
+                            };
+                        };
+                        readonly required: readonly ["totalCount"];
+                        readonly type: "object";
+                    };
+                    readonly result: {
+                        readonly items: {
+                            readonly $ref: "#/components/schemas/UserData";
+                        };
+                        readonly type: "array";
+                    };
+                };
+                readonly required: readonly ["meta", "result"];
+                readonly type: "object";
+                readonly additionalProperties: false;
+            };
+            readonly CreateUserData: {
+                readonly properties: {
+                    readonly admin: {
+                        readonly type: "boolean";
+                    };
+                    readonly emailVerified: {
+                        readonly type: "boolean";
+                    };
+                    readonly password: {
+                        readonly type: "string";
+                    };
+                    readonly name: {
+                        readonly type: "string";
+                        readonly maxLength: 255;
+                    };
+                    readonly email: {
+                        readonly type: "string";
+                        readonly maxLength: 255;
+                    };
+                    readonly permissions: {
+                        readonly items: {
+                            readonly type: "string";
+                        };
+                        readonly type: "array";
+                    };
+                    readonly username: {
+                        readonly type: "string";
+                        readonly maxLength: 64;
+                    };
+                };
+                readonly required: readonly ["username", "password"];
+                readonly type: "object";
+                readonly additionalProperties: false;
+            };
+            readonly UpdateUserData: {
+                readonly properties: {
+                    readonly admin: {
+                        readonly type: "boolean";
+                    };
+                    readonly emailVerified: {
+                        readonly type: "boolean";
+                    };
+                    readonly password: {
+                        readonly type: "string";
+                    };
+                    readonly name: {
+                        readonly type: "string";
+                        readonly maxLength: 255;
+                    };
+                    readonly email: {
+                        readonly type: "string";
+                        readonly maxLength: 255;
+                    };
+                    readonly permissions: {
+                        readonly items: {
+                            readonly type: "string";
+                        };
+                        readonly type: "array";
+                    };
+                };
+                readonly type: "object";
+                readonly additionalProperties: false;
+            };
+            readonly ServerSettings: {
+                readonly properties: {
+                    readonly SIGNUP_ENABLED: {
+                        readonly type: "boolean";
+                    };
+                };
+                readonly required: readonly ["SIGNUP_ENABLED"];
+                readonly type: "object";
+                readonly additionalProperties: false;
+            };
+            readonly ViewerUpdatePayload: {
+                readonly properties: {
+                    readonly name: {
+                        readonly type: "string";
+                    };
+                };
+                readonly required: readonly ["name"];
                 readonly type: "object";
                 readonly additionalProperties: false;
             };
@@ -1186,20 +1410,17 @@ export declare const schema: {
                         readonly "application/json": {
                             readonly schema: {
                                 readonly properties: {
-                                    readonly prefix: {
-                                        readonly type: "string";
+                                    readonly metadataLocation: {
+                                        readonly $ref: "#/components/schemas/UserLocationInputData";
                                     };
-                                    readonly bucket: {
-                                        readonly type: "string";
+                                    readonly contentLocation: {
+                                        readonly $ref: "#/components/schemas/UserLocationInputData";
                                     };
                                     readonly name: {
                                         readonly type: "string";
                                     };
-                                    readonly s3ConnectionId: {
-                                        readonly type: "string";
-                                    };
                                 };
-                                readonly required: readonly ["bucket", "name", "s3ConnectionId"];
+                                readonly required: readonly ["metadataLocation", "contentLocation", "name"];
                                 readonly type: "object";
                             };
                         };
@@ -1536,7 +1757,7 @@ export declare const schema: {
                 };
             };
         };
-        readonly "/folders/{folderId}/objects/{objectKey}/operations": {
+        readonly "/folders/{folderId}/operations": {
             readonly post: {
                 readonly operationId: "enqueueFolderOperation";
                 readonly responses: {
@@ -1583,6 +1804,43 @@ export declare const schema: {
                         };
                     };
                 };
+            };
+            readonly get: {
+                readonly operationId: "listFolderOperations";
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Ok";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/FolderOperationsResponse";
+                                };
+                            };
+                        };
+                    };
+                    readonly "4XX": {
+                        readonly description: "";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/ErrorResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly AccessToken: readonly [];
+                }];
+                readonly parameters: readonly [{
+                    readonly in: "path";
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
             };
         };
         readonly "/folders/{folderId}/objects": {
@@ -2362,38 +2620,106 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/folders/{folderId}/folder-operations": {
+        readonly "/server/settings/server-locations/{locationType}": {
             readonly get: {
-                readonly operationId: "listFolderOperations";
+                readonly operationId: "listServerLocations";
                 readonly responses: {
                     readonly "200": {
                         readonly description: "Ok";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
-                                    readonly $ref: "#/components/schemas/FolderOperationsResponse";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
+                                    readonly items: {
+                                        readonly $ref: "#/components/schemas/ServerLocationData";
+                                    };
+                                    readonly type: "array";
                                 };
                             };
                         };
                     };
                 };
-                readonly tags: readonly ["Folders"];
+                readonly tags: readonly ["Server"];
                 readonly security: readonly [{
-                    readonly AccessToken: readonly [];
+                    readonly AccessToken: readonly ["user_folders_location:read"];
                 }];
                 readonly parameters: readonly [{
                     readonly in: "path";
-                    readonly name: "folderId";
+                    readonly name: "locationType";
+                    readonly required: true;
+                    readonly schema: {
+                        readonly $ref: "#/components/schemas/ServerLocationType";
+                    };
+                }];
+            };
+        };
+        readonly "/server/settings/locations/{locationType}": {
+            readonly post: {
+                readonly operationId: "addServerLocation";
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Ok";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/ServerLocationData";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Server"];
+                readonly security: readonly [{
+                    readonly AccessToken: readonly ["metadata_location:read"];
+                }];
+                readonly parameters: readonly [{
+                    readonly in: "path";
+                    readonly name: "locationType";
+                    readonly required: true;
+                    readonly schema: {
+                        readonly $ref: "#/components/schemas/ServerLocationType";
+                    };
+                }];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/ServerLocationInputData";
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        readonly "/server/settings/locations/{locationType}/{locationId}": {
+            readonly delete: {
+                readonly operationId: "deleteServerLocation";
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Ok";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly type: "boolean";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Server"];
+                readonly security: readonly [{
+                    readonly AccessToken: readonly ["metadata_location:read"];
+                }];
+                readonly parameters: readonly [{
+                    readonly in: "path";
+                    readonly name: "locationType";
+                    readonly required: true;
+                    readonly schema: {
+                        readonly $ref: "#/components/schemas/ServerLocationType";
+                    };
+                }, {
+                    readonly in: "path";
+                    readonly name: "locationId";
                     readonly required: true;
                     readonly schema: {
                         readonly type: "string";
@@ -2401,46 +2727,29 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/s3-connections/{s3ConnectionId}": {
+        readonly "/server/users": {
             readonly get: {
-                readonly operationId: "getS3Connection";
+                readonly operationId: "listUsers";
                 readonly responses: {
                     readonly "200": {
                         readonly description: "Ok";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
-                                    readonly $ref: "#/components/schemas/S3ConnectionData";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
+                                    readonly $ref: "#/components/schemas/ListUsersResponse";
                                 };
                             };
                         };
                     };
                 };
-                readonly tags: readonly ["S3Connections"];
+                readonly tags: readonly ["Server"];
                 readonly security: readonly [{
-                    readonly AccessToken: readonly [];
+                    readonly AccessToken: readonly ["user:read"];
                 }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "s3ConnectionId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
+                readonly parameters: readonly [];
             };
             readonly post: {
-                readonly operationId: "deleteS3Connection";
+                readonly operationId: "createUser";
                 readonly responses: {
                     readonly "200": {
                         readonly description: "Ok";
@@ -2448,44 +2757,37 @@ export declare const schema: {
                             readonly "application/json": {
                                 readonly schema: {
                                     readonly properties: {
-                                        readonly success: {
-                                            readonly type: "boolean";
+                                        readonly user: {
+                                            readonly $ref: "#/components/schemas/UserData";
                                         };
                                     };
-                                    readonly required: readonly ["success"];
+                                    readonly required: readonly ["user"];
                                     readonly type: "object";
                                 };
                             };
                         };
                     };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
+                };
+                readonly tags: readonly ["Server"];
+                readonly security: readonly [{
+                    readonly AccessToken: readonly ["user:create"];
+                }];
+                readonly parameters: readonly [];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/CreateUserData";
                             };
                         };
                     };
                 };
-                readonly tags: readonly ["S3Connections"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "s3ConnectionId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
             };
         };
-        readonly "/s3-connections": {
+        readonly "/server/users/{userId}": {
             readonly get: {
-                readonly operationId: "listS3Connections";
+                readonly operationId: "getUser";
                 readonly responses: {
                     readonly "200": {
                         readonly description: "Ok";
@@ -2494,107 +2796,31 @@ export declare const schema: {
                                 readonly schema: {
                                     readonly properties: {
                                         readonly result: {
-                                            readonly items: {
-                                                readonly $ref: "#/components/schemas/S3ConnectionData";
-                                            };
-                                            readonly type: "array";
-                                        };
-                                        readonly meta: {
-                                            readonly properties: {
-                                                readonly totalCount: {
-                                                    readonly type: "number";
-                                                    readonly format: "double";
-                                                };
-                                            };
-                                            readonly required: readonly ["totalCount"];
-                                            readonly type: "object";
+                                            readonly $ref: "#/components/schemas/UserData";
                                         };
                                     };
-                                    readonly required: readonly ["result", "meta"];
+                                    readonly required: readonly ["result"];
                                     readonly type: "object";
                                 };
                             };
                         };
                     };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
                 };
-                readonly tags: readonly ["S3Connections"];
+                readonly tags: readonly ["Server"];
                 readonly security: readonly [{
-                    readonly AccessToken: readonly [];
+                    readonly AccessToken: readonly ["user:read"];
                 }];
-                readonly parameters: readonly [];
-            };
-            readonly post: {
-                readonly operationId: "createS3Connection";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/S3ConnectionData";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["S3Connections"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [];
-                readonly requestBody: {
+                readonly parameters: readonly [{
+                    readonly in: "path";
+                    readonly name: "userId";
                     readonly required: true;
-                    readonly content: {
-                        readonly "application/json": {
-                            readonly schema: {
-                                readonly properties: {
-                                    readonly region: {
-                                        readonly type: "string";
-                                    };
-                                    readonly endpoint: {
-                                        readonly type: "string";
-                                    };
-                                    readonly secretAccessKey: {
-                                        readonly type: "string";
-                                    };
-                                    readonly accessKeyId: {
-                                        readonly type: "string";
-                                    };
-                                    readonly name: {
-                                        readonly type: "string";
-                                    };
-                                };
-                                readonly required: readonly ["region", "endpoint", "secretAccessKey", "accessKeyId", "name"];
-                                readonly type: "object";
-                            };
-                        };
+                    readonly schema: {
+                        readonly type: "string";
                     };
-                };
+                }];
             };
-        };
-        readonly "/s3-connections/test": {
-            readonly post: {
-                readonly operationId: "testS3Connection";
+            readonly put: {
+                readonly operationId: "updateUser";
                 readonly responses: {
                     readonly "200": {
                         readonly description: "Ok";
@@ -2602,60 +2828,176 @@ export declare const schema: {
                             readonly "application/json": {
                                 readonly schema: {
                                     readonly properties: {
-                                        readonly success: {
-                                            readonly type: "boolean";
+                                        readonly user: {
+                                            readonly $ref: "#/components/schemas/UserData";
                                         };
                                     };
-                                    readonly required: readonly ["success"];
+                                    readonly required: readonly ["user"];
                                     readonly type: "object";
                                 };
                             };
                         };
                     };
-                    readonly "4XX": {
-                        readonly description: "";
+                };
+                readonly tags: readonly ["Server"];
+                readonly security: readonly [{
+                    readonly AccessToken: readonly ["user:create"];
+                }];
+                readonly parameters: readonly [{
+                    readonly in: "path";
+                    readonly name: "userId";
+                    readonly required: true;
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/UpdateUserData";
+                            };
+                        };
+                    };
+                };
+            };
+            readonly delete: {
+                readonly operationId: "deleteUser";
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Ok";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
+                                    readonly type: "boolean";
                                 };
                             };
                         };
                     };
                 };
-                readonly tags: readonly ["S3Connections"];
+                readonly tags: readonly ["Server"];
                 readonly security: readonly [{
-                    readonly AccessToken: readonly [];
+                    readonly AccessToken: readonly ["user:create"];
+                }];
+                readonly parameters: readonly [{
+                    readonly in: "path";
+                    readonly name: "userId";
+                    readonly required: true;
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+            };
+        };
+        readonly "/server/settings": {
+            readonly get: {
+                readonly operationId: "getSettings";
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Ok";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly properties: {
+                                        readonly settings: {
+                                            readonly $ref: "#/components/schemas/ServerSettings";
+                                        };
+                                    };
+                                    readonly required: readonly ["settings"];
+                                    readonly type: "object";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Server"];
+                readonly security: readonly [{
+                    readonly AccessToken: readonly ["server_settings:read"];
                 }];
                 readonly parameters: readonly [];
+            };
+        };
+        readonly "/server/settings/{settingsKey}": {
+            readonly put: {
+                readonly operationId: "updateSetting";
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Ok";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly properties: {
+                                        readonly settings: {
+                                            readonly $ref: "#/components/schemas/ServerSettings";
+                                        };
+                                    };
+                                    readonly required: readonly ["settings"];
+                                    readonly type: "object";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Server"];
+                readonly security: readonly [{
+                    readonly AccessToken: readonly ["server_settings:update"];
+                }];
+                readonly parameters: readonly [{
+                    readonly in: "path";
+                    readonly name: "settingsKey";
+                    readonly required: true;
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
                 readonly requestBody: {
                     readonly required: true;
                     readonly content: {
                         readonly "application/json": {
                             readonly schema: {
                                 readonly properties: {
-                                    readonly region: {
-                                        readonly type: "string";
-                                    };
-                                    readonly endpoint: {
-                                        readonly type: "string";
-                                    };
-                                    readonly secretAccessKey: {
-                                        readonly type: "string";
-                                    };
-                                    readonly accessKeyId: {
-                                        readonly type: "string";
-                                    };
-                                    readonly name: {
-                                        readonly type: "string";
-                                    };
+                                    readonly value: {};
                                 };
-                                readonly required: readonly ["region", "endpoint", "secretAccessKey", "accessKeyId", "name"];
+                                readonly required: readonly ["value"];
                                 readonly type: "object";
                             };
                         };
                     };
                 };
+            };
+            readonly delete: {
+                readonly operationId: "resetSetting";
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Ok";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly properties: {
+                                        readonly settings: {
+                                            readonly $ref: "#/components/schemas/ServerSettings";
+                                        };
+                                    };
+                                    readonly required: readonly ["settings"];
+                                    readonly type: "object";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Server"];
+                readonly security: readonly [{
+                    readonly AccessToken: readonly ["server_settings:update"];
+                }];
+                readonly parameters: readonly [{
+                    readonly in: "path";
+                    readonly name: "settingsKey";
+                    readonly required: true;
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
             };
         };
         readonly "/viewer": {
@@ -2684,6 +3026,42 @@ export declare const schema: {
                     readonly AccessToken: readonly ["viewer:read"];
                 }];
                 readonly parameters: readonly [];
+            };
+            readonly put: {
+                readonly operationId: "updateViewer";
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Ok";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly properties: {
+                                        readonly data: {
+                                            readonly $ref: "#/components/schemas/UserData";
+                                        };
+                                    };
+                                    readonly required: readonly ["data"];
+                                    readonly type: "object";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Viewer"];
+                readonly security: readonly [{
+                    readonly AccessToken: readonly ["viewer:update"];
+                }];
+                readonly parameters: readonly [];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/ViewerUpdatePayload";
+                            };
+                        };
+                    };
+                };
             };
         };
     };

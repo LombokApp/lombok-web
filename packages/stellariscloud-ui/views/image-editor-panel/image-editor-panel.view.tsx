@@ -1,7 +1,7 @@
-import { Button } from '@stellariscloud/design-system'
 import clsx from 'clsx'
 import React from 'react'
 
+import { Button } from '../../design-system/button/button'
 import { ImageFiltersPanel } from './image-filters-panel.view'
 
 export const ImageEditorPanel = ({
@@ -36,7 +36,7 @@ export const ImageEditorPanel = ({
         {activeTab === 'Crop' && <div>Crop body</div>}
       </div>
       <div className="p-4">
-        <Button size="lg" className="w-full" variant="primary">
+        <Button size="lg" className="w-full" primary>
           Save
         </Button>
       </div>

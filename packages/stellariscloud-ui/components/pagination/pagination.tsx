@@ -1,5 +1,6 @@
-import { Button } from '@stellariscloud/design-system'
 import clsx from 'clsx'
+
+import { Button } from '../../design-system/button/button'
 
 export interface Props {
   currentPage: number
@@ -22,7 +23,6 @@ export const PageLink = ({
   return (
     <div>
       <Button
-        variant="ghost"
         onClick={onClick}
         disabled={disabled || active}
         className={clsx(
