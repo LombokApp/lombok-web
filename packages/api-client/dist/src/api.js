@@ -800,6 +800,37 @@ const FoldersApiAxiosParamCreator = function (configuration) {
         /**
          *
          * @param {string} folderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        indexAllContent: async (folderId, options = {}) => {
+            // verify required parameter 'folderId' is not null or undefined
+            (0, common_1.assertParamExists)('indexAllContent', 'folderId', folderId);
+            const localVarPath = `/folders/{folderId}/index-all`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication AccessToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} folderId
          * @param {string} [search]
          * @param {string} [tagId]
          * @param {number} [offset]
@@ -1344,6 +1375,16 @@ const FoldersApiFp = function (configuration) {
         /**
          *
          * @param {string} folderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async indexAllContent(folderId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.indexAllContent(folderId, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} folderId
          * @param {string} [search]
          * @param {string} [tagId]
          * @param {number} [offset]
@@ -1593,6 +1634,15 @@ const FoldersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @param {FoldersApiIndexAllContentRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        indexAllContent(requestParameters, options) {
+            return localVarFp.indexAllContent(requestParameters.folderId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
          * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1828,6 +1878,16 @@ class FoldersApi extends base_1.BaseAPI {
      */
     getFolderObject(requestParameters, options) {
         return (0, exports.FoldersApiFp)(this.configuration).getFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {FoldersApiIndexAllContentRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    indexAllContent(requestParameters, options) {
+        return (0, exports.FoldersApiFp)(this.configuration).indexAllContent(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *

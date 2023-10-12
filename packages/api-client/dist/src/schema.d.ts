@@ -1420,7 +1420,7 @@ export declare const schema: {
                                         readonly type: "string";
                                     };
                                 };
-                                readonly required: readonly ["metadataLocation", "contentLocation", "name"];
+                                readonly required: readonly ["contentLocation", "name"];
                                 readonly type: "object";
                             };
                         };
@@ -2007,6 +2007,45 @@ export declare const schema: {
                                     };
                                     readonly required: readonly ["meta", "result"];
                                     readonly type: "object";
+                                };
+                            };
+                        };
+                    };
+                    readonly "4XX": {
+                        readonly description: "";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/ErrorResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly AccessToken: readonly [];
+                }];
+                readonly parameters: readonly [{
+                    readonly in: "path";
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+            };
+        };
+        readonly "/folders/{folderId}/index-all": {
+            readonly post: {
+                readonly operationId: "indexAllContent";
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Ok";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly type: "boolean";
                                 };
                             };
                         };

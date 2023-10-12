@@ -211,14 +211,16 @@ export class FoldersController extends Controller {
     @Query() offset?: number,
     @Query() limit?: number,
   ) {
-    const result = await this.folderService.listFolderObjects({
-      userId: req.viewer.user.id,
-      folderId,
-      search,
-      tagId,
-      offset,
-      limit,
-    })
+    const result = await this.folderService.listFolderObjectsAsUser(
+      req.viewer,
+      {
+        folderId,
+        search,
+        tagId,
+        offset,
+        limit,
+      },
+    )
     return {
       ...result,
       result: result.result.map((f) => f.toFolderObjectData()),
@@ -240,6 +242,21 @@ export class FoldersController extends Controller {
       share,
     })
     return result.toFolderShareData()
+  }
+
+  @Security(AuthScheme.AccessToken)
+  @Response<ErrorResponse>('4XX')
+  @OperationId('indexAllContent')
+  @Post('/:folderId/index-all')
+  async indexAllContent(
+    @Request() req: Express.Request,
+    @Path() folderId: string,
+  ) {
+    await this.folderService.indexAllUnindexedContent({
+      userId: req.viewer.user.id,
+      folderId,
+    })
+    return true
   }
 
   @Security(AuthScheme.AccessToken)

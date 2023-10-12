@@ -100,7 +100,7 @@ export function PageHeading({
                       <div className={clsx('flex items-center gap-2')}>
                         <Icon
                           size="xs"
-                          className="text-gray-800"
+                          className="text-gray-800 dark:text-gray-300"
                           icon={ancestorTitleIcon}
                         />
                         <div>{ancestorTitle}</div>

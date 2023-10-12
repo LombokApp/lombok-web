@@ -5,6 +5,7 @@ import {
   CubeIcon,
   FolderIcon,
   GlobeAltIcon,
+  MagnifyingGlassIcon,
   WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline'
 import type { FolderAndPermission } from '@stellariscloud/api-client'
@@ -17,7 +18,7 @@ import { Button } from '../../design-system/button/button'
 import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
 
-const MAIN_TEXT_COLOR = 'text-gray-500'
+const MAIN_TEXT_COLOR = 'text-gray-500 dark:text-gray-400'
 const MAIN_ICON_COLOR = 'text-gray-500'
 
 export type FolderSidebarTab = 'overview' | 'actions' | 'workers'
@@ -28,8 +29,10 @@ export const FolderSidebar = ({
   activeTab = 'overview',
   onTabChange,
   onRescan,
+  onIndexAll,
 }: {
   onRescan: () => void
+  onIndexAll: () => void
   activeTab?: FolderSidebarTab
   onTabChange: (tab: FolderSidebarTab) => void
   folderAndPermission?: Partial<FolderAndPermission>
@@ -64,6 +67,13 @@ export const FolderSidebar = ({
       description: 'Rescan the underlying storage for content changes',
       icon: ArrowPathIcon,
       onExecute: onRescan,
+    },
+    {
+      id: 'index_all',
+      label: 'Index all unindexed',
+      description: 'Enqueue indexing jobs for all unindexed objects',
+      icon: MagnifyingGlassIcon,
+      onExecute: onIndexAll,
     },
   ]
 
@@ -167,7 +177,7 @@ export const FolderSidebar = ({
                     : 'unknown'
                 }`}{' '}
                 <span className="font-mono">{`(${
-                  folderMetadata?.totalSizeBytes ?? 'unknown'
+                  folderMetadata?.totalSizeBytes.toLocaleString() ?? 'unknown'
                 } bytes)`}</span>
               </dd>
             </div>

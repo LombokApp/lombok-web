@@ -967,6 +967,10 @@ export const FolderDetailScreen = () => {
   )
   const folderContext = useFolderContext(messageHandler)
 
+  const handleIndexAll = () => {
+    void foldersApi.indexAllContent({ folderId: folderContext.folderId })
+  }
+
   React.useEffect(() => {
     const changedPageState: { search?: string; filterTagId?: string } = {}
     const searchInQuery =
@@ -1339,6 +1343,7 @@ export const FolderDetailScreen = () => {
                 <div className="xs:w-[100%] md:w-[50%] lg:w-[50%] xl:w-[40%] 2xl:w-[35%] 2xl:max-w-[35rem]">
                   <FolderSidebar
                     onRescan={() => setRefreshFolderConfirmationOpen(true)}
+                    onIndexAll={handleIndexAll}
                     activeTab={sidebarTab}
                     onTabChange={(t) => setSidebarTab(t)}
                     folderMetadata={folderContext.folderMetadata}

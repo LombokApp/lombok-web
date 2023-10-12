@@ -160,7 +160,7 @@ export interface CreateFolderRequest {
      * @type {UserLocationInputData}
      * @memberof CreateFolderRequest
      */
-    'metadataLocation': UserLocationInputData;
+    'metadataLocation'?: UserLocationInputData;
     /**
      * 
      * @type {UserLocationInputData}
@@ -2570,6 +2570,43 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         /**
          * 
          * @param {string} folderId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        indexAllContent: async (folderId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('indexAllContent', 'folderId', folderId)
+            const localVarPath = `/folders/{folderId}/index-all`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication AccessToken required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} folderId 
          * @param {string} [search] 
          * @param {string} [tagId] 
          * @param {number} [offset] 
@@ -3187,6 +3224,16 @@ export const FoldersApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @param {string} folderId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async indexAllContent(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.indexAllContent(folderId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {string} folderId 
          * @param {string} [search] 
          * @param {string} [tagId] 
          * @param {number} [offset] 
@@ -3433,6 +3480,15 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
          */
         getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: AxiosRequestConfig): AxiosPromise<FolderObjectData> {
             return localVarFp.getFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {FoldersApiIndexAllContentRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        indexAllContent(requestParameters: FoldersApiIndexAllContentRequest, options?: AxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.indexAllContent(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -3771,6 +3827,20 @@ export interface FoldersApiGetFolderObjectRequest {
      * @memberof FoldersApiGetFolderObject
      */
     readonly objectKey: string
+}
+
+/**
+ * Request parameters for indexAllContent operation in FoldersApi.
+ * @export
+ * @interface FoldersApiIndexAllContentRequest
+ */
+export interface FoldersApiIndexAllContentRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiIndexAllContent
+     */
+    readonly folderId: string
 }
 
 /**
@@ -4159,6 +4229,17 @@ export class FoldersApi extends BaseAPI {
      */
     public getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: AxiosRequestConfig) {
         return FoldersApiFp(this.configuration).getFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {FoldersApiIndexAllContentRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    public indexAllContent(requestParameters: FoldersApiIndexAllContentRequest, options?: AxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).indexAllContent(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

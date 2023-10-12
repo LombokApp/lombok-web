@@ -18,6 +18,7 @@ import { LoggingService } from '../../../services/logging.service'
 import { QueueService } from '../../../services/queue.service'
 import { configureS3Client, S3Service } from '../../../services/s3.service'
 import { SocketService } from '../../../services/socket.service'
+import type { Actor } from '../../auth/actor'
 import { JWTService } from '../../auth/services/jwt.service'
 import { FolderOperationService } from '../../folder-operation/services/folder-operation.service'
 import type { S3Location } from '../../s3/entities/s3-location.entity'
@@ -462,24 +463,25 @@ export class FolderService {
     }
   }
 
-  async listFolderObjects({
-    userId,
-    folderId,
-    search,
-    tagId,
-    offset,
-    limit,
-    sort = FolderObjectSort.CreatedAtAsc,
-  }: {
-    userId: string
-    folderId: string
-    search?: string
-    tagId?: string
-    offset?: number
-    limit?: number
-    sort?: FolderObjectSort
-  }) {
-    const _folder = await this.getFolderAsUser({ folderId, userId })
+  async listFolderObjectsAsUser(
+    actor: Actor,
+    {
+      folderId,
+      search,
+      tagId,
+      offset,
+      limit,
+      sort = FolderObjectSort.CreatedAtAsc,
+    }: {
+      folderId: string
+      search?: string
+      tagId?: string
+      offset?: number
+      limit?: number
+      sort?: FolderObjectSort
+    },
+  ) {
+    const _folder = await this.getFolderAsUser({ folderId, userId: actor.id })
     const [folderObjects, folderObjectsCount] =
       await this.folderObjectRepository.findAndCount(
         {
@@ -545,6 +547,35 @@ export class FolderService {
       result: folderShares,
       meta: { totalCount: folderSharesCount },
     }
+  }
+
+  async indexAllUnindexedContent({
+    userId,
+    folderId,
+  }: {
+    userId: string
+    folderId: string
+  }): Promise<FolderObject[]> {
+    const _folder = await this.getFolderAsUser({ folderId, userId })
+
+    const unindexedObjects =
+      await this.folderObjectRepository.listUnindexedFolderObjects(
+        folderId,
+        5000,
+      )
+    await Promise.all(
+      unindexedObjects.map((o) => {
+        return this.enqueueFolderOperation({
+          userId,
+          folderId,
+          folderOperation: {
+            operationData: { folderId, objectKey: o.objectKey },
+            operationName: FolderOperationName.IndexFolderObject,
+          },
+        })
+      }),
+    )
+    return unindexedObjects
   }
 
   async createFolderShareAsUser({
@@ -878,6 +909,18 @@ export class FolderService {
 
       for (const obj of batch) {
         const objectKey = obj.key
+        if (
+          objectKey.startsWith(
+            `${folder.contentLocation.prefix}${
+              !folder.contentLocation.prefix ||
+              folder.contentLocation.prefix.endsWith('/')
+                ? ''
+                : '/'
+            }.stellaris_folder_metadata`,
+          )
+        ) {
+          continue
+        }
         if (obj.size > 0) {
           // this is a user file
           // console.log('Trying to update key metadata [%s]:', objectKey, obj)

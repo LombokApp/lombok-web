@@ -1,9 +1,11 @@
 import {
+  BigIntType,
   Collection,
   Entity,
   EntityRepositoryType,
   Enum,
   JsonType,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   OptionalProps,
@@ -19,10 +21,22 @@ import {
 } from '@stellariscloud/types'
 
 import { TimestampedEntity } from '../../../entities/base.entity'
+import { FolderOperation } from '../../folder-operation/entities/folder-operation.entity'
+import { FolderOperationObject } from '../../folder-operation/entities/folder-operation-object.entity'
 import type { FolderObjectData } from '../transfer-objects/folder-object.dto'
 import { Folder } from './folder.entity'
 import { FolderObjectRepository } from './folder-object.repository'
 import type { ObjectTagRelation } from './object-tag-relation.entity'
+
+export class NumericBigIntType extends BigIntType {
+  convertToJSValue(value: string): any {
+    if (!value) {
+      return value
+    }
+
+    return parseInt(value, 10)
+  }
+}
 
 @Entity({
   tableName: 'folder_object',
@@ -42,10 +56,18 @@ export class FolderObject extends TimestampedEntity<FolderObject> {
   @Property({ columnType: 'TEXT', nullable: false })
   eTag!: string
 
-  @Property({ columnType: 'bigint', unsigned: true, nullable: false })
+  @Property({
+    customType: new NumericBigIntType(),
+    unsigned: true,
+    nullable: false,
+  })
   sizeBytes!: number
 
-  @Property({ columnType: 'bigint', unsigned: true, nullable: false })
+  @Property({
+    customType: new NumericBigIntType(),
+    unsigned: true,
+    nullable: false,
+  })
   lastModified!: number
 
   // The last known content hash. e.g. "SHA1:<hash>"
@@ -75,6 +97,14 @@ export class FolderObject extends TimestampedEntity<FolderObject> {
     }),
   })
   readonly folder!: Folder
+
+  @ManyToMany({
+    entity: () => FolderOperation,
+    pivotEntity: () => FolderOperationObject,
+  })
+  operations: Collection<FolderOperation> = new Collection<FolderOperation>(
+    this,
+  )
 
   @OneToMany({
     mappedBy: (tagRelation: ObjectTagRelation) => tagRelation.object,

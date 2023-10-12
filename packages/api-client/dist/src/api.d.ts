@@ -150,7 +150,7 @@ export interface CreateFolderRequest {
      * @type {UserLocationInputData}
      * @memberof CreateFolderRequest
      */
-    'metadataLocation': UserLocationInputData;
+    'metadataLocation'?: UserLocationInputData;
     /**
      *
      * @type {UserLocationInputData}
@@ -1957,6 +1957,13 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
     /**
      *
      * @param {string} folderId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    indexAllContent: (folderId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} folderId
      * @param {string} [search]
      * @param {string} [tagId]
      * @param {number} [offset]
@@ -2152,6 +2159,13 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
     /**
      *
      * @param {string} folderId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    indexAllContent(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>>;
+    /**
+     *
+     * @param {string} folderId
      * @param {string} [search]
      * @param {string} [tagId]
      * @param {number} [offset]
@@ -2336,6 +2350,13 @@ export declare const FoldersApiFactory: (configuration?: Configuration, basePath
      * @throws {RequiredError}
      */
     getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: AxiosRequestConfig): AxiosPromise<FolderObjectData>;
+    /**
+     *
+     * @param {FoldersApiIndexAllContentRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    indexAllContent(requestParameters: FoldersApiIndexAllContentRequest, options?: AxiosRequestConfig): AxiosPromise<boolean>;
     /**
      *
      * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
@@ -2629,6 +2650,19 @@ export interface FoldersApiGetFolderObjectRequest {
      * @memberof FoldersApiGetFolderObject
      */
     readonly objectKey: string;
+}
+/**
+ * Request parameters for indexAllContent operation in FoldersApi.
+ * @export
+ * @interface FoldersApiIndexAllContentRequest
+ */
+export interface FoldersApiIndexAllContentRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof FoldersApiIndexAllContent
+     */
+    readonly folderId: string;
 }
 /**
  * Request parameters for listFolderObjects operation in FoldersApi.
@@ -2955,6 +2989,14 @@ export declare class FoldersApi extends BaseAPI {
      * @memberof FoldersApi
      */
     getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderObjectData, any>>;
+    /**
+     *
+     * @param {FoldersApiIndexAllContentRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    indexAllContent(requestParameters: FoldersApiIndexAllContentRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<boolean, any>>;
     /**
      *
      * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
