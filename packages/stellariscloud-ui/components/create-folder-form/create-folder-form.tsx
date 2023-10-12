@@ -51,7 +51,7 @@ export const CreateFolderForm = ({
     [ServerLocationType.Backup]: ServerLocationData[]
   }
 }) => {
-  const [newMetadataLocation, setNewMetadataLocation] = React.useState(false)
+  // const [newMetadataLocation, setNewMetadataLocation] = React.useState(false)
   const [newContentLocation, setNewContentLocation] = React.useState(false)
   const form = useFormState({
     name: { validator: FOLDER_NAME_VALIDATORS_COMBINED },
@@ -75,16 +75,16 @@ export const CreateFolderForm = ({
       )
     : undefined
 
-  const serverMetadataLocationValidation = ServerLocationRecord.validate(
-    form.getValues().metadataLocation,
-  )
-  const selectedMetadataServerLocation =
-    serverMetadataLocationValidation.success
-      ? serverLocations.USER_METADATA.find(
-          (l) =>
-            l.id === serverMetadataLocationValidation.value.serverLocationId,
-        )
-      : undefined
+  // const serverMetadataLocationValidation = ServerLocationRecord.validate(
+  //   form.getValues().metadataLocation,
+  // )
+  // const selectedMetadataServerLocation =
+  //   serverMetadataLocationValidation.success
+  //     ? serverLocations.USER_METADATA.find(
+  //         (l) =>
+  //           l.id === serverMetadataLocationValidation.value.serverLocationId,
+  //       )
+  //     : undefined
 
   return (
     <div className="lg:min-w-[28rem] lg:max-w-[30rem] flex flex-col gap-4">
@@ -95,7 +95,6 @@ export const CreateFolderForm = ({
         Folders refer to an arbitrary storage location, potentially already
         containing files
       </div>
-      <pre>{JSON.stringify(form.state, null, 2)}</pre>
       <Input
         label="Name"
         placeholder="Choose a meaningful name for the folder"
@@ -135,42 +134,6 @@ export const CreateFolderForm = ({
               {
                 name: 'add custom...',
                 onClick: () => setNewContentLocation(true),
-              },
-            ])}
-          />
-        )}
-      </div>
-      <div className="flex flex-col gap-4 justify-stretch">
-        <h3 className="font-semibold dark:text-gray-200">
-          <div className="flex justify-between">Metadata Location</div>
-        </h3>
-
-        {newMetadataLocation ? (
-          <>
-            <LocationFormFields
-              onChange={({ value }) =>
-                form.setValue('metadataLocation', value as LocationFormValues)
-              }
-            />
-            <Button onClick={() => setNewMetadataLocation(false)}>
-              Cancel
-            </Button>
-          </>
-        ) : (
-          <ButtonDropdown
-            label={
-              selectedMetadataServerLocation
-                ? selectedMetadataServerLocation.name
-                : 'choose metadata location...'
-            }
-            items={serverLocations.USER_METADATA.map((l) => ({
-              name: l.name,
-              onClick: () =>
-                form.setValue('metadataLocation', { serverLocationId: l.id }),
-            })).concat([
-              {
-                name: 'add custom...',
-                onClick: () => setNewMetadataLocation(true),
               },
             ])}
           />

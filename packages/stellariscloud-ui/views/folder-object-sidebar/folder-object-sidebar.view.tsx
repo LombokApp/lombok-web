@@ -34,7 +34,7 @@ import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
 import { foldersApi } from '../../services/api'
 
-const MAIN_TEXT_COLOR = 'text-gray-500'
+const MAIN_TEXT_COLOR = 'text-gray-500 dark:text-gray-400'
 const MAIN_ICON_COLOR = 'text-gray-500'
 
 export const FolderObjectSidebar = ({
@@ -48,9 +48,9 @@ export const FolderObjectSidebar = ({
   folderAndPermission?: FolderAndPermission
 }) => {
   const { downloadToFile } = useLocalFileCacheContext()
-  const [tab, setTab] = React.useState('metadata')
+  const [tab, setTab] = React.useState('overview')
   const tabs: { id: string; name: string; icon?: IconProps['icon'] }[] = [
-    { id: 'info', name: 'Info', icon: BookOpenIcon },
+    { id: 'overview', name: 'Overview', icon: BookOpenIcon },
     { id: 'actions', name: 'Actions', icon: BeakerIcon },
     { id: 'tasks', name: 'Tasks', icon: BoltIcon },
     { id: 'metadata_raw', name: 'Raw', icon: MagnifyingGlassIcon },
@@ -190,7 +190,7 @@ export const FolderObjectSidebar = ({
           ))}
         </nav>
       </div>
-      {tab === 'info' && (
+      {tab === 'overview' && (
         <>
           <dl className="border-b border-gray-900/5 pb-6 pt-2">
             <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
@@ -242,10 +242,10 @@ export const FolderObjectSidebar = ({
               </dt>
               <dd className={clsx('text-sm leading-6', MAIN_TEXT_COLOR)}>
                 {`${formatBytes(folderObject.sizeBytes)}`}{' '}
-                <span className="font-mono">{`(${folderObject.sizeBytes} bytes)`}</span>
+                <span className="font-mono">{`(${folderObject.sizeBytes.toLocaleString()} bytes)`}</span>
               </dd>
             </div>
-            {attributes.height && attributes.width && (
+            {attributes.height && attributes.width ? (
               <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
                 <dt className="flex-none flex">
                   <span className="sr-only">Dimensions</span>
@@ -255,6 +255,8 @@ export const FolderObjectSidebar = ({
                   {attributes.width} x {attributes.height}
                 </dd>
               </div>
+            ) : (
+              ''
             )}
             {attributes.mimeType && (
               <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
@@ -411,7 +413,7 @@ export const FolderObjectSidebar = ({
           ))}
         </ul>
       )}
-      {tab === 'Tasks' && (
+      {tab === 'tasks' && (
         <div className="text-xs p-4">
           <pre>
             {JSON.stringify(

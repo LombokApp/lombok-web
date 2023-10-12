@@ -1693,7 +1693,6 @@ exports.schema = {
                                     }
                                 },
                                 "required": [
-                                    "metadataLocation",
                                     "contentLocation",
                                     "name"
                                 ],
@@ -2374,6 +2373,51 @@ exports.schema = {
                                         "result"
                                     ],
                                     "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Folders"
+                ],
+                "security": [
+                    {
+                        "AccessToken": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "folderId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/folders/{folderId}/index-all": {
+            "post": {
+                "operationId": "indexAllContent",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "boolean"
                                 }
                             }
                         }

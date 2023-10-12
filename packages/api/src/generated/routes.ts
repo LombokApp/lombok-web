@@ -527,6 +527,31 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
   );
   
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.post(
+    '/api/v1/folders/:folderId/index-all',
+    authenticateMiddleware([{"AccessToken":[]}]),
+    validator.validate('post', convertPath('/folders/:folderId/index-all')),
+    function FoldersController_indexAllContent(request: any, response: any, next: any) {
+      const args = {
+          req: {"in":"request","name":"req","required":true,"dataType":"object"},
+          folderId: {"in":"path","name":"folderId","required":true,"dataType":"string"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<FoldersController>(FoldersController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.indexAllContent.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
   app.delete(
     '/api/v1/folders/:folderId/shares/:shareId',
     authenticateMiddleware([{"AccessToken":[]}]),

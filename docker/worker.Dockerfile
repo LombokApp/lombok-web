@@ -88,7 +88,7 @@ RUN apt-get update && \
     wget https://storage.googleapis.com/tf-builds/libtensorflow_r2_8_linux_arm64.tar.gz -q && \
     tar -C /usr/local -xzf libtensorflow_r2_8_linux_arm64.tar.gz && \
     rm libtensorflow_r2_8_linux_arm64.tar.gz && \
-    cd .yarn/unplugged/@tensorflow-tfjs-node-npm-4.10.0-7a627fcc78/node_modules/@tensorflow/tfjs-node && \
+    cd .yarn/unplugged/@tensorflow-tfjs-node-npm-4.11.0-99248add48/node_modules/@tensorflow/tfjs-node && \
     rm -rf deps && rm -rf lib && \
     yarn dlx node-pre-gyp install --build-from-source && \
     # end tensorflow bindings build
