@@ -15,7 +15,7 @@ import {
   FolderOperationName,
   FolderPermissionName,
 } from '@stellariscloud/api-client'
-import { FolderPushMessage } from '@stellariscloud/types'
+import { FolderPushMessage, MediaType } from '@stellariscloud/types'
 import { formatBytes, toMetadataObjectIdentifier } from '@stellariscloud/utils'
 import { useRouter } from 'next/router'
 import React from 'react'
@@ -64,7 +64,7 @@ export const FolderObjectDetailScreen = ({
 
   React.useEffect(() => {
     setDisplayObjectKey(
-      displaySize === 'original'
+      displaySize === 'original' || folderObject?.mediaType === MediaType.Audio
         ? `content:${objectKey}`
         : displaySize === 'compressed' &&
           folderObject?.hash &&
@@ -72,7 +72,13 @@ export const FolderObjectDetailScreen = ({
         ? `metadata:${objectKey}:${currentVersionMetadata['compressedVersion'].hash}`
         : undefined,
     )
-  }, [displaySize, currentVersionMetadata, folderObject?.hash, objectKey])
+  }, [
+    displaySize,
+    currentVersionMetadata,
+    folderObject?.hash,
+    folderObject?.mediaType,
+    objectKey,
+  ])
 
   React.useEffect(() => {
     setDisplaySize(
@@ -237,11 +243,11 @@ export const FolderObjectDetailScreen = ({
       )}
       <div className="w-full h-screen flex flex-1 justify-end bg-gray-50 dark:bg-gray-900">
         <div
-          className="relative w-full flex flex-col items-center"
+          className="relative w-full h-full flex flex-col items-center"
           key={displayObjectKey}
         >
           {folderObject && (
-            <div className="w-full flex-0 px-4 py-2">
+            <div className="w-full px-4 py-2">
               <PageHeading
                 title={[
                   folderContext.folder?.name ?? '',
@@ -345,7 +351,7 @@ export const FolderObjectDetailScreen = ({
               </PageHeading>
             </div>
           )}
-          <div className="w-full flex-1 flex">
+          <div className="w-full flex-1 flex overflow-hidden">
             {folderObject && (
               <div
                 className={

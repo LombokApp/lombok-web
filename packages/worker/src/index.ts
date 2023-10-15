@@ -247,7 +247,6 @@ const audioTranscribeWorker = workerServiceFactory(
     }
 
     const mediaType = mediaTypeFromMimeType(mimeType)
-    console.log('mediaType:', mediaType)
     if (![MediaType.Video, MediaType.Audio].includes(mediaType)) {
       throw new Error('Unsupported MediaType')
     }

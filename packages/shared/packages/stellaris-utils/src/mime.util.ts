@@ -2,11 +2,13 @@ import { MediaType } from '@stellariscloud/types'
 
 import type {
   AudioMediaMimeTypes,
+  DocumentMediaMimeTypes,
   ImageMediaMimeTypes,
   VideoMediaMimeTypes,
 } from './constants'
 import {
   AUDIO_MEDIA_MIME_TYPES,
+  DOCUMENT_MEDIA_MIME_TYPES,
   EXTENSION_TO_MIME_TYPE_MAP,
   IMAGE_MEDIA_MIME_TYPES,
   MIME_TYPE_TO_EXTENSION_MAP,
@@ -20,6 +22,10 @@ export const mediaTypeFromMimeType = (mimeType: string) => {
     return MediaType.Video
   } else if (AUDIO_MEDIA_MIME_TYPES.includes(mimeType as AudioMediaMimeTypes)) {
     return MediaType.Audio
+  } else if (
+    DOCUMENT_MEDIA_MIME_TYPES.includes(mimeType as DocumentMediaMimeTypes)
+  ) {
+    return MediaType.Document
   }
   return MediaType.Unknown
 }

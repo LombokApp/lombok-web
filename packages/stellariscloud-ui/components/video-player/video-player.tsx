@@ -8,6 +8,7 @@ interface VideoPlayerProps {
   autoPlay?: boolean
   className?: string
   controls?: boolean
+  type?: string
 }
 
 export const VideoPlayer = ({
@@ -18,6 +19,7 @@ export const VideoPlayer = ({
   controls = true,
   grayscale = false,
   className,
+  type = 'video/mp4',
 }: VideoPlayerProps) => {
   return (
     <div
@@ -34,7 +36,7 @@ export const VideoPlayer = ({
         loop
         style={{ width, height }}
       >
-        <source src={src} type="video/mp4" />
+        <source src={src} type={type} />
       </video>
     </div>
   )

@@ -231,9 +231,14 @@ export class FolderService {
           secretAccessKey: existingServerLocation.secretAccessKey,
           region: existingServerLocation.region,
           bucket: existingServerLocation.bucket,
-          prefix: `${existingServerLocation.prefix}${
-            existingServerLocation.prefix?.endsWith('/') ? '' : '/'
-          }${metadataPrefix}${metadataPrefix.endsWith('/') ? '' : '/'}`,
+          prefix: `${
+            existingServerLocation.prefix ? existingServerLocation.prefix : ''
+          }${
+            !existingServerLocation.prefix ||
+            existingServerLocation.prefix.endsWith('/')
+              ? ''
+              : '/'
+          }`,
         })
       } else {
         throw new S3LocationInvalidError()
@@ -257,7 +262,10 @@ export class FolderService {
           prefix: `${
             contentLocation.prefix
               ? `${contentLocation.prefix}${
-                  contentLocation.prefix.endsWith('/') ? '' : '/'
+                  !contentLocation.prefix ||
+                  contentLocation.prefix.endsWith('/')
+                    ? ''
+                    : '/'
                 }${metadataPrefix}`
               : metadataPrefix
           }`,

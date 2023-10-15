@@ -1,31 +1,36 @@
-import { EyeIcon } from '@heroicons/react/20/solid'
 import {
   ArrowDownTrayIcon,
   ArrowPathIcon,
   BeakerIcon,
-  BoltIcon,
   BookOpenIcon,
   CubeIcon,
-  DocumentIcon,
+  DocumentTextIcon,
+  EyeIcon,
+  EyeSlashIcon,
   FolderIcon,
   GlobeAltIcon,
   HashtagIcon,
-  MagnifyingGlassIcon,
+  MusicalNoteIcon,
+  PhotoIcon,
   QuestionMarkCircleIcon,
   TvIcon,
+  VideoCameraIcon,
 } from '@heroicons/react/24/outline'
 import type {
   FolderAndPermission,
   FolderData,
   FolderObjectData,
 } from '@stellariscloud/api-client'
-import { FolderOperationName, MediaType } from '@stellariscloud/api-client'
+import { FolderOperationName } from '@stellariscloud/api-client'
+import { MediaType } from '@stellariscloud/types'
 import {
   extensionFromMimeType,
   formatBytes,
+  mediaTypeFromMimeType,
   toMetadataObjectIdentifier,
 } from '@stellariscloud/utils'
 import clsx from 'clsx'
+import Image from 'next/image'
 import React from 'react'
 
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
@@ -47,15 +52,49 @@ export const FolderObjectSidebar = ({
   objectKey: string
   folderAndPermission?: FolderAndPermission
 }) => {
-  const { downloadToFile } = useLocalFileCacheContext()
+  const { downloadToFile, getData } = useLocalFileCacheContext()
   const [tab, setTab] = React.useState('overview')
   const tabs: { id: string; name: string; icon?: IconProps['icon'] }[] = [
     { id: 'overview', name: 'Overview', icon: BookOpenIcon },
     { id: 'actions', name: 'Actions', icon: BeakerIcon },
-    { id: 'tasks', name: 'Tasks', icon: BoltIcon },
-    { id: 'metadata_raw', name: 'Raw', icon: MagnifyingGlassIcon },
+    // { id: 'tasks', name: 'Tasks', icon: BoltIcon },
+    // { id: 'metadata_raw', name: 'Raw', icon: MagnifyingGlassIcon },
   ]
   const folderId = folder.id
+  const [focusedMetadata, setFocusedMetadata] = React.useState<string>()
+  const [metadataContent, setMetadataContent] = React.useState<{
+    [key: string]: string
+  }>({})
+
+  React.useEffect(() => {
+    if (
+      focusedMetadata &&
+      folderObject.hash &&
+      !(focusedMetadata in metadataContent)
+    ) {
+      void getData(
+        folderId,
+        toMetadataObjectIdentifier(
+          objectKey,
+          folderObject.contentMetadata[folderObject.hash]?.[focusedMetadata]
+            ?.hash ?? '',
+        ),
+      ).then((result) => {
+        setMetadataContent((mc) => ({
+          ...mc,
+          [focusedMetadata]: result?.dataURL ?? '',
+        }))
+      })
+    }
+  }, [
+    focusedMetadata,
+    folderId,
+    folderObject.contentMetadata,
+    folderObject.hash,
+    getData,
+    metadataContent,
+    objectKey,
+  ])
 
   const handleIndexFolderObject = () => {
     void foldersApi.enqueueFolderOperation({
@@ -111,7 +150,7 @@ export const FolderObjectSidebar = ({
       id: 'index',
       label: 'Index content',
       description:
-        'Index basic attributes of the object and generate preview media',
+        'Resolve basic attributes of the object and generate preview media',
       icon: ArrowPathIcon,
       onExecute: handleIndexFolderObject,
     },
@@ -140,7 +179,7 @@ export const FolderObjectSidebar = ({
   ]
 
   return (
-    <div className="p-2 bg-gray-50 dark:bg-gray-600/5 h-full overflow-y-auto">
+    <div className="h-full px-1 flex flex-col bg-gray-50 dark:bg-gray-600/5 h-full">
       <div className="sm:hidden">
         <label htmlFor="tabs" className="sr-only">
           Select a tab
@@ -191,8 +230,8 @@ export const FolderObjectSidebar = ({
         </nav>
       </div>
       {tab === 'overview' && (
-        <>
-          <dl className="border-b border-gray-900/5 pb-6 pt-2">
+        <div className="flex-1 flex flex-col overflow-y-auto mt-4">
+          <dl className="border-b border-gray-900/5 dark:border-gray-800 pb-6 pt-2">
             <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
               <dt className="flex-none flex">
                 <span className="sr-only">Path</span>
@@ -263,7 +302,17 @@ export const FolderObjectSidebar = ({
                 <dt className="flex-none">
                   <span className="sr-only">Status</span>
                   <Icon
-                    icon={QuestionMarkCircleIcon}
+                    icon={
+                      folderObject.mediaType === MediaType.Audio
+                        ? MusicalNoteIcon
+                        : folderObject.mediaType === MediaType.Image
+                        ? PhotoIcon
+                        : folderObject.mediaType === MediaType.Video
+                        ? VideoCameraIcon
+                        : folderObject.mediaType === MediaType.Document
+                        ? DocumentTextIcon
+                        : QuestionMarkCircleIcon
+                    }
                     size="md"
                     className={MAIN_ICON_COLOR}
                   />
@@ -276,113 +325,153 @@ export const FolderObjectSidebar = ({
           </dl>
           <div className="text-xs p-4 py-1">
             {folderObject.hash && (
-              <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                {Object.keys(
-                  folderObject.contentMetadata[folderObject.hash] ?? {},
-                ).map((metadataKey, i) => {
-                  const metadataEntry =
-                    folderObject.contentMetadata[folderObject.hash ?? '']?.[
-                      metadataKey
-                    ]
-                  if (!metadataEntry) {
-                    return <></>
-                  }
-                  return (
-                    <li key={i} className="flex justify-between gap-x-6 py-5">
-                      <div className="flex items-center justify-center min-w-0 gap-x-4">
-                        {
-                          <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-full text-gray-400">
-                            <Icon
-                              icon={DocumentIcon}
-                              size="md"
-                              className={clsx('text-gray-400')}
-                            />
+              <div>
+                <div
+                  className={clsx(
+                    'pt-4 text-lg font-semibold',
+                    MAIN_TEXT_COLOR,
+                  )}
+                >
+                  Metadata
+                </div>
+                <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {Object.keys(
+                    folderObject.contentMetadata[folderObject.hash] ?? {},
+                  ).map((metadataKey, i) => {
+                    const metadataEntry =
+                      folderObject.contentMetadata[folderObject.hash ?? '']?.[
+                        metadataKey
+                      ]
+                    const mediaType =
+                      metadataEntry &&
+                      mediaTypeFromMimeType(metadataEntry.mimeType)
+                    if (!metadataEntry) {
+                      return <></>
+                    }
+                    return (
+                      <li key={i} className="flex flex-col">
+                        <div className="flex justify-between gap-x-6 py-5">
+                          <div className="flex items-center justify-center min-w-0 gap-x-4">
+                            {
+                              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-full text-gray-400">
+                                <Icon
+                                  icon={
+                                    mediaType === MediaType.Image
+                                      ? PhotoIcon
+                                      : mediaType === MediaType.Audio
+                                      ? MusicalNoteIcon
+                                      : DocumentTextIcon
+                                  }
+                                  size="md"
+                                  className={clsx('text-gray-400')}
+                                />
+                              </div>
+                            }
+                            <div className="min-w-0 flex-auto">
+                              <p
+                                className={clsx(
+                                  'text-sm font-medium leading-6',
+                                  MAIN_TEXT_COLOR,
+                                )}
+                              >
+                                <span className="opacity-50">key: </span>
+                                <span className="font-mono font-light">
+                                  {metadataKey}
+                                </span>
+                              </p>
+                              <p
+                                className={clsx(
+                                  'truncate text-xs leading-5',
+                                  'text-sm font-semibold ',
+                                  MAIN_TEXT_COLOR,
+                                )}
+                              >
+                                {metadataEntry.mimeType} -{' '}
+                                {formatBytes(metadataEntry.size)} - #
+                                {metadataEntry.hash.slice(0, 8)}
+                              </p>
+                            </div>
                           </div>
-                        }
-                        <div className="min-w-0 flex-auto">
-                          <p
-                            className={clsx(
-                              'text-sm font-semibold leading-6',
-                              MAIN_TEXT_COLOR,
-                            )}
-                          >
-                            metadata: <i>{metadataKey}</i>
-                          </p>
-                          <p
-                            className={clsx(
-                              'text-sm font-semibold leading-6',
-                              MAIN_TEXT_COLOR,
-                            )}
-                          >
-                            #{metadataEntry.hash.slice(0, 8)}
-                          </p>
-                          <p
-                            className={clsx(
-                              'mt-1 truncate text-xs leading-5',
-                              'text-sm font-semibold ',
-                              MAIN_TEXT_COLOR,
-                            )}
-                          >
-                            {metadataEntry.mimeType} -{' '}
-                            {formatBytes(metadataEntry.size)}
-                          </p>
+                          <div className="flex gap-2 hidden shrink-0 sm:flex sm:items-end">
+                            <Button
+                              size="sm"
+                              className="dark:bg-gray-50/5"
+                              onClick={() =>
+                                setFocusedMetadata(
+                                  metadataKey === focusedMetadata
+                                    ? undefined
+                                    : metadataKey,
+                                )
+                              }
+                            >
+                              <Icon
+                                icon={
+                                  focusedMetadata === metadataKey
+                                    ? EyeSlashIcon
+                                    : EyeIcon
+                                }
+                                size="sm"
+                                className="text-gray-400"
+                              />
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="dark:bg-gray-50/5"
+                              onClick={() =>
+                                downloadToFile(
+                                  folderObject.folder.id,
+                                  toMetadataObjectIdentifier(
+                                    objectKey,
+                                    metadataEntry.hash,
+                                  ),
+                                  `${metadataKey}-${metadataEntry.hash.slice(
+                                    0,
+                                    8,
+                                  )}.${extensionFromMimeType(
+                                    metadataEntry.mimeType,
+                                  )}`,
+                                )
+                              }
+                            >
+                              <Icon
+                                icon={ArrowDownTrayIcon}
+                                size="sm"
+                                className="text-gray-400"
+                              />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex gap-2 hidden shrink-0 sm:flex sm:items-end">
-                        <Button
-                          onClick={() =>
-                            downloadToFile(
-                              folderObject.folder.id,
-                              toMetadataObjectIdentifier(
-                                objectKey,
-                                metadataEntry.hash,
-                              ),
-                              `${metadataKey}-${metadataEntry.hash.slice(
-                                0,
-                                8,
-                              )}.${extensionFromMimeType(
-                                metadataEntry.mimeType,
-                              )}`,
-                            )
-                          }
-                        >
-                          <Icon
-                            icon={EyeIcon}
-                            size="md"
-                            className="text-gray-400"
-                          />
-                        </Button>
-                        <Button
-                          onClick={() =>
-                            downloadToFile(
-                              folderObject.folder.id,
-                              toMetadataObjectIdentifier(
-                                objectKey,
-                                metadataEntry.hash,
-                              ),
-                              `${metadataKey}-${metadataEntry.hash.slice(
-                                0,
-                                8,
-                              )}.${extensionFromMimeType(
-                                metadataEntry.mimeType,
-                              )}`,
-                            )
-                          }
-                        >
-                          <Icon
-                            icon={ArrowDownTrayIcon}
-                            size="md"
-                            className="text-gray-400"
-                          />
-                        </Button>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
+                        {focusedMetadata === metadataKey && (
+                          <div className={clsx('w-full', MAIN_TEXT_COLOR)}>
+                            {mediaType === MediaType.Document && (
+                              <pre className="">
+                                {metadataContent[metadataKey] &&
+                                  Buffer.from(
+                                    metadataContent[metadataKey].substring(29),
+                                    'base64',
+                                  ).toString()}
+                              </pre>
+                            )}
+                            {mediaType === MediaType.Image && (
+                              <div className="relative w-full min-h-[30rem]">
+                                <Image
+                                  fill
+                                  className="object-contain"
+                                  alt={`Metadata: ${metadataKey}`}
+                                  src={metadataContent[metadataKey]}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
             )}
           </div>
-        </>
+        </div>
       )}
       {tab === 'actions' && (
         <ul className="space-y-3 mt-4 px-2">
@@ -402,6 +491,7 @@ export const FolderObjectSidebar = ({
                 </div>
                 <div className="shrink-0">
                   <Button
+                    primary
                     onClick={actionItem.onExecute}
                     className="dark:text-gray-200"
                   >
@@ -413,20 +503,6 @@ export const FolderObjectSidebar = ({
           ))}
         </ul>
       )}
-      {tab === 'tasks' && (
-        <div className="text-xs p-4">
-          <pre>
-            {JSON.stringify(
-              {
-                contentAttributes: folderObject.contentAttributes,
-                contentMetadata: folderObject.contentMetadata,
-              },
-              null,
-              2,
-            )}
-          </pre>
-        </div>
-      )}{' '}
       {tab === 'metadata_raw' && (
         <div className="text-xs p-4">
           <pre className="p-6 dark:bg-white/5 dark:text-gray-200">

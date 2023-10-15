@@ -728,8 +728,17 @@ export declare const schema: {
                         readonly additionalProperties: {};
                         readonly type: "object";
                     };
+                    readonly started: {
+                        readonly type: "boolean";
+                    };
+                    readonly completed: {
+                        readonly type: "boolean";
+                    };
+                    readonly error: {
+                        readonly type: "string";
+                    };
                 };
-                readonly required: readonly ["createdAt", "updatedAt", "id", "operationName", "operationData"];
+                readonly required: readonly ["createdAt", "updatedAt", "id", "operationName", "operationData", "started", "completed"];
                 readonly type: "object";
                 readonly additionalProperties: false;
             };
@@ -755,6 +764,14 @@ export declare const schema: {
                 readonly required: readonly ["meta", "result"];
                 readonly type: "object";
                 readonly additionalProperties: false;
+            };
+            readonly FolderOperationSort: {
+                readonly enum: readonly ["createdAt-asc", "createdAt-desc", "updatedAt-asc", "updatedAt-desc"];
+                readonly type: "string";
+            };
+            readonly FolderOperationStatus: {
+                readonly enum: readonly ["PENDING", "FAILED", "COMPLETE"];
+                readonly type: "string";
             };
             readonly ServerLocationData: {
                 readonly properties: {
@@ -1839,6 +1856,36 @@ export declare const schema: {
                     readonly required: true;
                     readonly schema: {
                         readonly type: "string";
+                    };
+                }, {
+                    readonly in: "query";
+                    readonly name: "sort";
+                    readonly required: false;
+                    readonly schema: {
+                        readonly $ref: "#/components/schemas/FolderOperationSort";
+                    };
+                }, {
+                    readonly in: "query";
+                    readonly name: "status";
+                    readonly required: false;
+                    readonly schema: {
+                        readonly $ref: "#/components/schemas/FolderOperationStatus";
+                    };
+                }, {
+                    readonly in: "query";
+                    readonly name: "limit";
+                    readonly required: false;
+                    readonly schema: {
+                        readonly format: "double";
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly in: "query";
+                    readonly name: "offset";
+                    readonly required: false;
+                    readonly schema: {
+                        readonly format: "double";
+                        readonly type: "number";
                     };
                 }];
             };
