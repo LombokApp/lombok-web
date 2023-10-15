@@ -1,7 +1,6 @@
 import {
   ArrowPathIcon,
   BookOpenIcon,
-  Cog6ToothIcon,
   CubeIcon,
   FolderIcon,
   GlobeAltIcon,
@@ -17,11 +16,12 @@ import React from 'react'
 import { Button } from '../../design-system/button/button'
 import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
+import { FolderWorkersTab } from './folder-workers-tab/folder-workers-tab.view'
 
 const MAIN_TEXT_COLOR = 'text-gray-500 dark:text-gray-400'
 const MAIN_ICON_COLOR = 'text-gray-500'
 
-export type FolderSidebarTab = 'overview' | 'actions' | 'workers'
+export type FolderSidebarTab = 'overview' | 'settings' | 'workers'
 
 export const FolderSidebar = ({
   folderAndPermission,
@@ -35,7 +35,7 @@ export const FolderSidebar = ({
   onIndexAll: () => void
   activeTab?: FolderSidebarTab
   onTabChange: (tab: FolderSidebarTab) => void
-  folderAndPermission?: Partial<FolderAndPermission>
+  folderAndPermission?: FolderAndPermission
   folderMetadata?: FolderMetadata
 }) => {
   const { folder } = folderAndPermission ?? {}
@@ -43,7 +43,7 @@ export const FolderSidebar = ({
   const tabs: { id: string; name: string; icon?: IconProps['icon'] }[] = [
     { id: 'overview', name: 'Overview', icon: BookOpenIcon },
     { id: 'workers', name: 'Workers', icon: WrenchScrewdriverIcon },
-    { id: 'settings', name: 'Settings', icon: Cog6ToothIcon },
+    // { id: 'settings', name: 'Settings', icon: Cog6ToothIcon },
   ]
 
   const handleSetTab = React.useCallback(
@@ -78,7 +78,7 @@ export const FolderSidebar = ({
   ]
 
   return (
-    <div className="p-2 bg-gray-50 dark:bg-gray-600/5 h-full overflow-y-auto">
+    <div className="py-2 bg-gray-50 dark:bg-gray-600/5 h-full overflow-y-auto">
       <div className="sm:hidden">
         <label htmlFor="tabs" className="sr-only">
           Select a tab
@@ -94,7 +94,7 @@ export const FolderSidebar = ({
           ))}
         </select>
       </div>
-      <div className="hidden sm:block">
+      <div className="hidden sm:block px-2">
         <nav
           className="isolate flex divide-x divide-gray-200 dark:divide-gray-200/10 rounded-lg shadow"
           aria-label="Tabs"
@@ -206,6 +206,7 @@ export const FolderSidebar = ({
                   </div>
                   <div className="shrink-0">
                     <Button
+                      primary
                       onClick={actionItem.onExecute}
                       className="dark:text-gray-200"
                     >
@@ -218,18 +219,8 @@ export const FolderSidebar = ({
           </ul>
         </>
       )}
-      {tab === 'workers' && (
-        <div className="text-xs p-4">
-          <pre>
-            {JSON.stringify(
-              {
-                work: [],
-              },
-              null,
-              2,
-            )}
-          </pre>
-        </div>
+      {tab === 'workers' && folderAndPermission && (
+        <FolderWorkersTab folderAndPermission={folderAndPermission} />
       )}
     </div>
   )

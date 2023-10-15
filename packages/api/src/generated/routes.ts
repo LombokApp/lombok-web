@@ -899,6 +899,10 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
       const args = {
           req: {"in":"request","name":"req","required":true,"dataType":"object"},
           folderId: {"in":"path","name":"folderId","required":true,"dataType":"string"},
+          sort: {"in":"query","name":"sort","ref":"FolderOperationSort"},
+          status: {"in":"query","name":"status","ref":"FolderOperationStatus"},
+          limit: {"in":"query","name":"limit","dataType":"double"},
+          offset: {"in":"query","name":"offset","dataType":"double"},
       };
 
       // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa

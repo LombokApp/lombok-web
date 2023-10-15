@@ -1,4 +1,5 @@
 import { FolderPushMessage } from '@stellariscloud/types'
+import { parseSort } from '@stellariscloud/utils'
 import type { FolderOperationNameDataTypes } from '@stellariscloud/workers'
 import {
   FOLDER_OPERATION_VALIDATOR_TYPES,
@@ -22,11 +23,14 @@ import { LoggingService } from '../../../services/logging.service'
 import { QueueService } from '../../../services/queue.service'
 import { S3Service } from '../../../services/s3.service'
 import { SocketService } from '../../../services/socket.service'
+import type { Actor } from '../../auth/actor'
 import type { Folder } from '../../folder/entities/folder.entity'
 import { FolderRepository } from '../../folder/entities/folder.repository'
 import type { FolderObject } from '../../folder/entities/folder-object.entity'
 import { FolderObjectRepository } from '../../folder/entities/folder-object.repository'
 import { SignedURLsRequestMethod } from '../../folder/services/folder.service'
+import type { FolderOperationSort } from '../constants/folder-operation.constants'
+import { FolderOperationStatus } from '../constants/folder-operation.constants'
 import type { FolderOperation } from '../entities/folder-operation.entity'
 import { FolderOperationRepository } from '../entities/folder-operation.repository'
 import { OperationRelationType } from '../entities/folder-operation-object.entity'
@@ -419,26 +423,45 @@ export class FolderOperationService {
     return folderOperation
   }
 
-  async listFolderOperationsAsUser({
-    userId,
-    folderId,
-    offset,
-    limit,
-  }: {
-    userId: string
-    folderId: string
-    offset?: number
-    limit?: number
-  }) {
-    const _folder = this.folderRepository.getFolderAsUser(userId, folderId)
+  async listFolderOperationsAsUser(
+    actor: Actor,
+    {
+      folderId,
+      offset,
+      limit,
+      sort,
+      status,
+    }: {
+      folderId: string
+      offset?: number
+      limit?: number
+      sort?: FolderOperationSort
+      status?: FolderOperationStatus
+    },
+  ) {
+    const _folder = this.folderRepository.getFolderAsUser(
+      actor.user.id,
+      folderId,
+    )
     const [folderOperations, folderOperationsCount] =
       await this.folderOperationRepository.findAndCount(
         {
           folder: {
             id: folderId,
           },
+          ...(status === FolderOperationStatus.Pending
+            ? { started: false }
+            : status === FolderOperationStatus.Failed
+            ? { error: { $ne: null } }
+            : status === FolderOperationStatus.Complete
+            ? { completed: true, error: null }
+            : {}),
         },
-        { offset: offset ?? 0, limit: limit ?? 25 },
+        {
+          offset: offset ?? 0,
+          limit: limit ?? 25,
+          ...(sort ? { orderBy: parseSort(sort) } : {}),
+        },
       )
 
     return {

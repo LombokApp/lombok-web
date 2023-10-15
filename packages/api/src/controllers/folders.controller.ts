@@ -29,6 +29,10 @@ import {
   CreateFolderSharePayload,
   UpdateFolderSharePayload,
 } from '../domains/folder/transfer-objects/folder-share.dto'
+import {
+  FolderOperationSort,
+  FolderOperationStatus,
+} from '../domains/folder-operation/constants/folder-operation.constants'
 import { FolderOperationService } from '../domains/folder-operation/services/folder-operation.service'
 import type { FolderOperationData } from '../domains/folder-operation/transfer-objects/folder-operation.dto'
 import type { UserLocationInputData } from '../domains/s3/transfer-objects/s3-location.dto'
@@ -520,11 +524,19 @@ export class FoldersController extends Controller {
   async listFolderOperations(
     @Request() req: Express.Request,
     @Path() folderId: string,
+    @Query() sort?: FolderOperationSort,
+    @Query() status?: FolderOperationStatus,
+    @Query() limit?: number,
+    @Query() offset?: number,
   ): Promise<FolderOperationsResponse> {
     const result = await this.folderOperationService.listFolderOperationsAsUser(
+      req.viewer,
       {
-        userId: req.viewer.user.id,
         folderId,
+        sort,
+        status,
+        limit,
+        offset,
       },
     )
     return {

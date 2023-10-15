@@ -656,6 +656,24 @@ export interface FolderOperationData {
     'operationData': {
         [key: string]: any | undefined;
     };
+    /**
+     *
+     * @type {boolean}
+     * @memberof FolderOperationData
+     */
+    'started': boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof FolderOperationData
+     */
+    'completed': boolean;
+    /**
+     *
+     * @type {string}
+     * @memberof FolderOperationData
+     */
+    'error'?: string;
 }
 /**
  *
@@ -690,6 +708,29 @@ export interface FolderOperationRequestPayload {
         [key: string]: any | undefined;
     };
 }
+/**
+ *
+ * @export
+ * @enum {string}
+ */
+export declare const FolderOperationSort: {
+    readonly CreatedAtAsc: "createdAt-asc";
+    readonly CreatedAtDesc: "createdAt-desc";
+    readonly UpdatedAtAsc: "updatedAt-asc";
+    readonly UpdatedAtDesc: "updatedAt-desc";
+};
+export type FolderOperationSort = typeof FolderOperationSort[keyof typeof FolderOperationSort];
+/**
+ *
+ * @export
+ * @enum {string}
+ */
+export declare const FolderOperationStatus: {
+    readonly Pending: "PENDING";
+    readonly Failed: "FAILED";
+    readonly Complete: "COMPLETE";
+};
+export type FolderOperationStatus = typeof FolderOperationStatus[keyof typeof FolderOperationStatus];
 /**
  *
  * @export
@@ -1975,10 +2016,14 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
     /**
      *
      * @param {string} folderId
+     * @param {FolderOperationSort} [sort]
+     * @param {FolderOperationStatus} [status]
+     * @param {number} [limit]
+     * @param {number} [offset]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolderOperations: (folderId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listFolderOperations: (folderId: string, sort?: FolderOperationSort, status?: FolderOperationStatus, limit?: number, offset?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {string} folderId
@@ -2177,10 +2222,14 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
     /**
      *
      * @param {string} folderId
+     * @param {FolderOperationSort} [sort]
+     * @param {FolderOperationStatus} [status]
+     * @param {number} [limit]
+     * @param {number} [offset]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolderOperations(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderOperationsResponse>>;
+    listFolderOperations(folderId: string, sort?: FolderOperationSort, status?: FolderOperationStatus, limit?: number, offset?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderOperationsResponse>>;
     /**
      *
      * @param {string} folderId
@@ -2713,6 +2762,30 @@ export interface FoldersApiListFolderOperationsRequest {
      * @memberof FoldersApiListFolderOperations
      */
     readonly folderId: string;
+    /**
+     *
+     * @type {FolderOperationSort}
+     * @memberof FoldersApiListFolderOperations
+     */
+    readonly sort?: FolderOperationSort;
+    /**
+     *
+     * @type {FolderOperationStatus}
+     * @memberof FoldersApiListFolderOperations
+     */
+    readonly status?: FolderOperationStatus;
+    /**
+     *
+     * @type {number}
+     * @memberof FoldersApiListFolderOperations
+     */
+    readonly limit?: number;
+    /**
+     *
+     * @type {number}
+     * @memberof FoldersApiListFolderOperations
+     */
+    readonly offset?: number;
 }
 /**
  * Request parameters for listFolderShares operation in FoldersApi.

@@ -826,13 +826,6 @@ export const FolderDetailScreen = () => {
     ],
   )
 
-  const _handleTabChange = React.useCallback(
-    (tabName: 'overview' | 'actions' | 'workers') => {
-      setSidebarTab(tabName)
-    },
-    [],
-  )
-
   const fetchFolderObjects = React.useCallback(
     async (offset: number) => {
       // if search parameters have changed, reset everything...
@@ -1339,21 +1332,23 @@ export const FolderDetailScreen = () => {
                   />
                 </div>
               </div>
-              {sidebarOpen && (
-                <div className="xs:w-[100%] md:w-[50%] lg:w-[50%] xl:w-[40%] 2xl:w-[35%] 2xl:max-w-[35rem]">
-                  <FolderSidebar
-                    onRescan={() => setRefreshFolderConfirmationOpen(true)}
-                    onIndexAll={handleIndexAll}
-                    activeTab={sidebarTab}
-                    onTabChange={(t) => setSidebarTab(t)}
-                    folderMetadata={folderContext.folderMetadata}
-                    folderAndPermission={{
-                      folder: folderContext.folder,
-                      permissions: folderContext.folderPermissions,
-                    }}
-                  />
-                </div>
-              )}
+              {sidebarOpen &&
+                folderContext.folder &&
+                folderContext.folderPermissions && (
+                  <div className="xs:w-[100%] md:w-[50%] lg:w-[50%] xl:w-[40%] 2xl:w-[35%] 2xl:max-w-[35rem]">
+                    <FolderSidebar
+                      onRescan={() => setRefreshFolderConfirmationOpen(true)}
+                      onIndexAll={handleIndexAll}
+                      activeTab={sidebarTab}
+                      onTabChange={(t) => setSidebarTab(t)}
+                      folderMetadata={folderContext.folderMetadata}
+                      folderAndPermission={{
+                        folder: folderContext.folder,
+                        permissions: folderContext.folderPermissions,
+                      }}
+                    />
+                  </div>
+                )}
             </div>
           </div>
         </div>

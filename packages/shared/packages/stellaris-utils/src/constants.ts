@@ -27,6 +27,7 @@ export enum VideoMediaMimeTypes {
 export enum AudioMediaMimeTypes {
   AAC = 'audio/aac',
   WAV = 'audio/wav',
+  XWAV = 'audio/x-wav',
   WEBM = 'audio/webm',
   MIDI = 'audio/midi',
   MPEG = 'audio/mpeg',
@@ -71,6 +72,7 @@ export const VIDEO_MEDIA_MIME_TYPES = [
 export const AUDIO_MEDIA_MIME_TYPES = [
   AudioMediaMimeTypes.AAC,
   AudioMediaMimeTypes.WAV,
+  AudioMediaMimeTypes.XWAV,
   AudioMediaMimeTypes.WEBM,
   AudioMediaMimeTypes.MIDI,
   AudioMediaMimeTypes.MPEG,
@@ -116,6 +118,7 @@ export const MIME_TYPE_TO_EXTENSION_MAP = {
   [AudioMediaMimeTypes.MPEG]: 'mp3',
   [AudioMediaMimeTypes.OGG]: 'ogg',
   [AudioMediaMimeTypes.WAV]: 'wav',
+  [AudioMediaMimeTypes.XWAV]: 'wav',
   [AudioMediaMimeTypes.WEBM]: 'webm',
   [AudioMediaMimeTypes.THREEGPP]: '3gpp',
   [AudioMediaMimeTypes.THREEGPP2]: '3gpp2',

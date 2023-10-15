@@ -6,4 +6,7 @@ export interface FolderOperationData extends TimestampData {
   id: string
   operationName: FolderOperationName
   operationData: { [key: string]: any }
+  started: boolean
+  completed: boolean
+  error?: string
 }

@@ -65,11 +65,12 @@ export function ButtonDropdown({
                         }
                       }}
                       className={clsx(
+                        'w-full',
                         active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                         'w-full block px-4 py-2 text-sm',
                       )}
                     >
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 whitespace-pre">
                         {item.icon && (
                           <Icon
                             icon={item.icon}

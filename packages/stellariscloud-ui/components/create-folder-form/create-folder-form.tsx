@@ -132,7 +132,7 @@ export const CreateFolderForm = ({
                 form.setValue('contentLocation', { serverLocationId: l.id }),
             })).concat([
               {
-                name: 'add custom...',
+                name: 'custom...',
                 onClick: () => setNewContentLocation(true),
               },
             ])}

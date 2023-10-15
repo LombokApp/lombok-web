@@ -8,7 +8,7 @@ export function FolderScroll({
   marginTop: number
 }) {
   return (
-    <div className={clsx('h-full', 'bg-gray-100 dark:bg-white/10 rounded-md')}>
+    <div className={clsx('h-full', 'bg-gray-100 dark:bg-white/5 rounded-full')}>
       <div className={clsx('px-1.5 w-6 h-full rounded-full')}>
         <div
           style={{

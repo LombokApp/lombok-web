@@ -894,6 +894,15 @@ exports.schema = {
                         "properties": {},
                         "additionalProperties": {},
                         "type": "object"
+                    },
+                    "started": {
+                        "type": "boolean"
+                    },
+                    "completed": {
+                        "type": "boolean"
+                    },
+                    "error": {
+                        "type": "string"
                     }
                 },
                 "required": [
@@ -901,7 +910,9 @@ exports.schema = {
                     "updatedAt",
                     "id",
                     "operationName",
-                    "operationData"
+                    "operationData",
+                    "started",
+                    "completed"
                 ],
                 "type": "object",
                 "additionalProperties": false
@@ -933,6 +944,23 @@ exports.schema = {
                 ],
                 "type": "object",
                 "additionalProperties": false
+            },
+            "FolderOperationSort": {
+                "enum": [
+                    "createdAt-asc",
+                    "createdAt-desc",
+                    "updatedAt-asc",
+                    "updatedAt-desc"
+                ],
+                "type": "string"
+            },
+            "FolderOperationStatus": {
+                "enum": [
+                    "PENDING",
+                    "FAILED",
+                    "COMPLETE"
+                ],
+                "type": "string"
             },
             "ServerLocationData": {
                 "properties": {
@@ -2178,6 +2206,40 @@ exports.schema = {
                         "required": true,
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "sort",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/components/schemas/FolderOperationSort"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/components/schemas/FolderOperationStatus"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "required": false,
+                        "schema": {
+                            "format": "double",
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "required": false,
+                        "schema": {
+                            "format": "double",
+                            "type": "number"
                         }
                     }
                 ]

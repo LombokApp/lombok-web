@@ -7,11 +7,12 @@ import {
 import Image from 'next/image'
 import React from 'react'
 
+import { AudioPlayer } from '../../components/audio-player/audio-player'
 import { VideoPlayer } from '../../components/video-player/video-player'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { Icon } from '../../design-system/icon'
 import { foldersApi } from '../../services/api'
-import { iconForMediaType } from '../../utils/file'
+import { iconForMediaType } from '../../utils/icons'
 
 export const FolderObjectPreview = ({
   folderId,
@@ -75,11 +76,11 @@ export const FolderObjectPreview = ({
       : undefined
 
   const dataURL = file === false ? undefined : file.dataURL
-  const fileType = mimeType
+  const mediaType = mimeType
     ? mediaTypeFromMimeType(mimeType)
     : mediaTypeFromExtension(folderObject?.objectKey.split('.').at(-1) ?? '')
 
-  return dataURL && fileType === MediaType.Image ? (
+  return file && dataURL && mediaType === MediaType.Image ? (
     <div className="relative w-full h-full">
       <Image
         className={displayMode}
@@ -88,7 +89,7 @@ export const FolderObjectPreview = ({
         src={dataURL}
       />
     </div>
-  ) : dataURL && fileType === MediaType.Video ? (
+  ) : file && dataURL && mediaType === MediaType.Video ? (
     <div className="flex justify-center">
       <VideoPlayer
         className="object-cover"
@@ -96,12 +97,17 @@ export const FolderObjectPreview = ({
         height="100%"
         controls
         src={dataURL}
-        grayscale={false}
       />
+    </div>
+  ) : file && dataURL && mediaType === MediaType.Audio ? (
+    <div className="flex w-full h-full justify-center items-center p-4">
+      <div className="sm:w-full sm:h-full lg:h-[80%] lg:w-[80%] xl:h-[60%] xl:w-[60%]">
+        <AudioPlayer width="100%" height="100%" controls src={dataURL} />
+      </div>
     </div>
   ) : (
     <div className="flex flex-col w-full h-full items-center justify-around bg-black text-white">
-      <Icon size={'xl'} icon={iconForMediaType(fileType)} />
+      <Icon size={'xl'} icon={iconForMediaType(mediaType)} />
     </div>
   )
 }

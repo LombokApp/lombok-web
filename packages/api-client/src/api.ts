@@ -656,6 +656,24 @@ export interface FolderOperationData {
      * @memberof FolderOperationData
      */
     'operationData': { [key: string]: any | undefined; };
+    /**
+     * 
+     * @type {boolean}
+     * @memberof FolderOperationData
+     */
+    'started': boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof FolderOperationData
+     */
+    'completed': boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderOperationData
+     */
+    'error'?: string;
 }
 
 
@@ -694,6 +712,37 @@ export interface FolderOperationRequestPayload {
      */
     'operationData': { [key: string]: any | undefined; };
 }
+
+
+/**
+ * 
+ * @export
+ * @enum {string}
+ */
+
+export const FolderOperationSort = {
+    CreatedAtAsc: 'createdAt-asc',
+    CreatedAtDesc: 'createdAt-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
+} as const;
+
+export type FolderOperationSort = typeof FolderOperationSort[keyof typeof FolderOperationSort];
+
+
+/**
+ * 
+ * @export
+ * @enum {string}
+ */
+
+export const FolderOperationStatus = {
+    Pending: 'PENDING',
+    Failed: 'FAILED',
+    Complete: 'COMPLETE'
+} as const;
+
+export type FolderOperationStatus = typeof FolderOperationStatus[keyof typeof FolderOperationStatus];
 
 
 /**
@@ -2664,10 +2713,14 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         /**
          * 
          * @param {string} folderId 
+         * @param {FolderOperationSort} [sort] 
+         * @param {FolderOperationStatus} [status] 
+         * @param {number} [limit] 
+         * @param {number} [offset] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listFolderOperations: async (folderId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listFolderOperations: async (folderId: string, sort?: FolderOperationSort, status?: FolderOperationStatus, limit?: number, offset?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('listFolderOperations', 'folderId', folderId)
             const localVarPath = `/folders/{folderId}/operations`
@@ -2686,6 +2739,22 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
             // authentication AccessToken required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
+            }
+
+            if (status !== undefined) {
+                localVarQueryParameter['status'] = status;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
 
 
     
@@ -3248,11 +3317,15 @@ export const FoldersApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @param {string} folderId 
+         * @param {FolderOperationSort} [sort] 
+         * @param {FolderOperationStatus} [status] 
+         * @param {number} [limit] 
+         * @param {number} [offset] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listFolderOperations(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderOperationsResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderOperations(folderId, options);
+        async listFolderOperations(folderId: string, sort?: FolderOperationSort, status?: FolderOperationStatus, limit?: number, offset?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderOperationsResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderOperations(folderId, sort, status, limit, offset, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -3506,7 +3579,7 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
          * @throws {RequiredError}
          */
         listFolderOperations(requestParameters: FoldersApiListFolderOperationsRequest, options?: AxiosRequestConfig): AxiosPromise<FolderOperationsResponse> {
-            return localVarFp.listFolderOperations(requestParameters.folderId, options).then((request) => request(axios, basePath));
+            return localVarFp.listFolderOperations(requestParameters.folderId, requestParameters.sort, requestParameters.status, requestParameters.limit, requestParameters.offset, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -3897,6 +3970,34 @@ export interface FoldersApiListFolderOperationsRequest {
      * @memberof FoldersApiListFolderOperations
      */
     readonly folderId: string
+
+    /**
+     * 
+     * @type {FolderOperationSort}
+     * @memberof FoldersApiListFolderOperations
+     */
+    readonly sort?: FolderOperationSort
+
+    /**
+     * 
+     * @type {FolderOperationStatus}
+     * @memberof FoldersApiListFolderOperations
+     */
+    readonly status?: FolderOperationStatus
+
+    /**
+     * 
+     * @type {number}
+     * @memberof FoldersApiListFolderOperations
+     */
+    readonly limit?: number
+
+    /**
+     * 
+     * @type {number}
+     * @memberof FoldersApiListFolderOperations
+     */
+    readonly offset?: number
 }
 
 /**
@@ -4261,7 +4362,7 @@ export class FoldersApi extends BaseAPI {
      * @memberof FoldersApi
      */
     public listFolderOperations(requestParameters: FoldersApiListFolderOperationsRequest, options?: AxiosRequestConfig) {
-        return FoldersApiFp(this.configuration).listFolderOperations(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
+        return FoldersApiFp(this.configuration).listFolderOperations(requestParameters.folderId, requestParameters.sort, requestParameters.status, requestParameters.limit, requestParameters.offset, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

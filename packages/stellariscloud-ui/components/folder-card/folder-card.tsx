@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import React from 'react'
 
 import { Avatar } from '../../design-system/avatar'
-import { Icon } from '../../design-system/icon'
+import { Badge } from '../../design-system/badge/badge'
 
 export const FolderCard = ({
   className,
@@ -39,18 +39,9 @@ export const FolderCard = ({
               {folder.name}
             </h3>
             <div className="overflow-hidden w-full">
-              <span className="inline-flex items-center rounded-full bg-yellow-50/10 px-2 py-0 text-xs font-medium text-yellow-400 ring-1 ring-inset ring-yellow-400/20">
-                <div className="flex gap-2 items-center">
-                  <Icon
-                    icon={KeyIcon}
-                    className="dark:text-yellow-400 text-yellow-800"
-                    size="xs"
-                  />
-                  <span className="text-[80%]">
-                    {folder.contentLocation.accessKeyId}
-                  </span>
-                </div>
-              </span>
+              <Badge style="warn" icon={KeyIcon}>
+                {folder.contentLocation.accessKeyId}
+              </Badge>
             </div>
           </div>
           <div className="overflow-hidden w-full">
