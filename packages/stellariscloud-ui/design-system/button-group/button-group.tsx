@@ -51,7 +51,7 @@ export function ButtonGroup({
               onClick={onClick}
               preventDefaultOnClick={preventDefaultOnClick}
               key={i}
-              className={clsx(
+              containerClassName={clsx(
                 'rounded-none first:rounded-l-md last:rounded-r-md',
               )}
             >

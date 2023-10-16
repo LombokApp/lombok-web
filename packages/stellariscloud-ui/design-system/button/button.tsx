@@ -7,6 +7,7 @@ import { Icon } from '../icon'
 export function Button({
   children,
   className,
+  containerClassName,
   primary = false,
   danger = false,
   link = false,
@@ -17,6 +18,7 @@ export function Button({
   selected = false,
   icon,
 }: {
+  containerClassName?: string
   className?: string
   children?: React.ReactNode
   primary?: boolean
@@ -40,7 +42,21 @@ export function Button({
   }
   const regular = !primary && !danger && !link
   return (
-    <div className={clsx('relative')}>
+    <div
+      className={clsx(
+        containerClassName,
+        'relative rounded-md overflow-hidden max-w-fit',
+        size === 'xl'
+          ? 'h-[2.75rem]'
+          : size === 'lg'
+          ? 'h-[2.5rem]'
+          : size === 'md'
+          ? 'h-[2.25rem]'
+          : size === 'sm'
+          ? 'h-[2rem]'
+          : '',
+      )}
+    >
       <div
         className={clsx(
           selected && 'absolute h-full w-full bg-black opacity-20',
@@ -51,7 +67,8 @@ export function Button({
         onClick={clickHandler}
         type="button"
         className={clsx(
-          'flex items-center gap-2 justify-center rounded-md',
+          'h-full',
+          'flex items-center gap-2 justify-center',
           'text-sm font-semibold leading-6',
           size === 'xl'
             ? 'px-3.5 py-2.5'

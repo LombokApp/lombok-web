@@ -34,7 +34,7 @@ export const FolderCard = ({
           <Avatar uniqueKey={folder.id} />
         </div>
         <div className="flex flex-col items-start w-full overflow-hidden">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <h3 className="text-2xl font-bold text-gray-600 dark:text-white">
               {folder.name}
             </h3>

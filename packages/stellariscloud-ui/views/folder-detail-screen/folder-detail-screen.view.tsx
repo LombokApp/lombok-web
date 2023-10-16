@@ -1,5 +1,6 @@
 import { ArrowPathIcon, TrashIcon, UsersIcon } from '@heroicons/react/20/solid'
 import {
+  ArrowUpOnSquareIcon,
   DocumentTextIcon,
   FolderIcon,
   MapPinIcon,
@@ -593,9 +594,9 @@ export const FolderDetailScreen = () => {
 
   const [surroundingFocusedContext, setSurroundingFocusedContext] =
     React.useState<{ next: number; previous: number }>()
-  const focusedObjectKey = router.query.objectKey
-    ? router.query.objectKey[0]
-    : undefined
+  const [focusedObjectKey, setFocusedObjectKey] = React.useState<string>()
+  const focusedObjectKeyRef = React.useRef<string>()
+
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
 
   const [pageState, setPageState] = React.useState<{
@@ -627,10 +628,11 @@ export const FolderDetailScreen = () => {
     folderRequests: {
       [objectKey: string]: { time: number; success?: boolean } | undefined
     }
+    fetched: boolean
     totalCount?: number
     searchTerm?: string
     filterTagId?: string
-  }>({ results: {}, positions: {}, folderRequests: {} })
+  }>({ results: {}, positions: {}, folderRequests: {}, fetched: false })
   const {
     recalculateLocalStorageFolderSizes,
     purgeLocalStorageForFolder,
@@ -843,6 +845,7 @@ export const FolderDetailScreen = () => {
           tileContainerRef.current.innerHTML = ''
         }
       }
+      folderObjects.current.fetched = true
 
       let haveFirstN = 0
       for (let i = offset; i < offset + pageSize; i++) {
@@ -892,6 +895,7 @@ export const FolderDetailScreen = () => {
 
           // set last known total result size for this query
           folderObjects.current.totalCount = response.data.meta.totalCount
+
           // set the result for each object in its position
           response.data.result.forEach((folderObject, i) => {
             const position = offset + haveFirstN + i
@@ -938,6 +942,7 @@ export const FolderDetailScreen = () => {
           results: {},
           positions: {},
           folderRequests: {},
+          fetched: false,
         }
         setObjectsViewContext(undefined)
       } else if (FolderPushMessage.OBJECT_UPDATED === name) {
@@ -1045,12 +1050,28 @@ export const FolderDetailScreen = () => {
     100,
     [
       fetchFolderObjects,
-      focusedObjectKey,
       searchTerm,
       objectsViewContext?.start,
       objectsViewContext?.end,
     ],
   )
+
+  // update focused object references
+  React.useEffect(() => {
+    if (router.query.objectKey) {
+      if (
+        !focusedObjectKeyRef.current ||
+        focusedObjectKeyRef.current !== router.query.objectKey[0]
+      ) {
+        focusedObjectKeyRef.current = router.query.objectKey[0]
+        setFocusedObjectKey(focusedObjectKeyRef.current)
+      }
+    } else if (focusedObjectKeyRef.current) {
+      focusedObjectKeyRef.current = undefined
+      setFocusedObjectKey(focusedObjectKeyRef.current)
+      void fetchFolderObjects(0).then(() => handleScroll())
+    }
+  }, [router.query.objectKey, fetchFolderObjects, handleScroll])
 
   const startOrContinueFolderRefresh = React.useCallback(
     (_t?: string) => {
@@ -1115,7 +1136,7 @@ export const FolderDetailScreen = () => {
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (
-        !focusedObjectKey &&
+        !focusedObjectKeyRef.current &&
         ['PageUp', 'PageDown'].includes(e.key) &&
         scrollContainerParentRef.current &&
         scrollContainerRef.current
@@ -1163,11 +1184,11 @@ export const FolderDetailScreen = () => {
         className="relative flex flex-1 w-full h-full"
         ref={mainContainerRef}
       >
-        {focusedObjectKey && (
+        {focusedObjectKeyRef.current && (
           <div className="absolute top-0 right-0 bottom-0 left-0 z-20">
             <FolderObjectDetailScreen
               folderId={folderContext.folderId}
-              objectKey={focusedObjectKey}
+              objectKey={focusedObjectKeyRef.current}
               onNextClick={
                 surroundingFocusedContext &&
                 surroundingFocusedContext.next > 0 &&
