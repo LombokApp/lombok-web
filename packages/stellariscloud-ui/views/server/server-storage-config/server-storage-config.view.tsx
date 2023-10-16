@@ -1,5 +1,4 @@
 import {
-  ExclamationTriangleIcon,
   FolderIcon,
   GlobeAltIcon,
   KeyIcon,
