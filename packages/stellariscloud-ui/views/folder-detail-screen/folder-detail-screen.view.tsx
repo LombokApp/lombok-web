@@ -1,6 +1,5 @@
 import { ArrowPathIcon, TrashIcon, UsersIcon } from '@heroicons/react/20/solid'
 import {
-  ArrowUpOnSquareIcon,
   DocumentTextIcon,
   FolderIcon,
   MapPinIcon,
@@ -32,7 +31,6 @@ import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder
 import { ConfirmRefreshFolderModal } from '../../components/confirm-refresh-folder-modal/confirm-refresh-folder-modal'
 import { FolderEmptyState } from '../../components/folder-empty-state/folder-empty-state'
 import { FolderScroll } from '../../components/folder-scroll/folder-scroll'
-import { ShareFolderModal } from '../../components/share-folder-modal/share-folder-modal'
 import { useFolderContext } from '../../contexts/folder.context'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { Button } from '../../design-system/button/button'
@@ -168,7 +166,7 @@ const renderFolderObjectPreview = (
 
   const linkElement = buildLinkWrapper(
     onClick,
-    folderObject.folder.id,
+    folderObject.folderId,
     folderObject.objectKey,
   )
   contentWrapperDiv.append(linkElement)
@@ -179,11 +177,11 @@ const renderFolderObjectPreview = (
       : {}
 
   const getDataResult =
-    folderObject.folder.id &&
+    folderObject.folderId &&
     folderObject.hash &&
     currentVersionMetadata.thumbnailLg?.hash
       ? getData(
-          folderObject.folder.id,
+          folderObject.folderId,
           `metadata:${folderObject.objectKey}:${currentVersionMetadata.thumbnailLg.hash}`,
         )
       : undefined
@@ -274,11 +272,11 @@ const renderFolderObjectPreview = (
       e.stopPropagation()
       e.preventDefault()
       void foldersApi.enqueueFolderOperation({
-        folderId: folderObject.folder.id,
+        folderId: folderObject.folderId,
         folderOperationRequestPayload: {
           operationName: FolderOperationName.IndexFolderObject,
           operationData: {
-            folderId: folderObject.folder.id,
+            folderId: folderObject.folderId,
             objectKey: folderObject.objectKey,
           },
         },
@@ -583,7 +581,7 @@ export const FolderDetailScreen = () => {
   const router = useRouter()
   const [isResizing, setIsResizing] = React.useState(false)
   // const [_folderWebsocket, setFolderWebsocket] = React.useState<Socket>()
-  const [shareModalOpen, setShareModalOpen] = React.useState(false)
+  const [_shareModalOpen, setShareModalOpen] = React.useState(false)
   const [sidebarTab, setSidebarTab] =
     React.useState<FolderSidebarTab>('overview')
 
@@ -609,7 +607,6 @@ export const FolderDetailScreen = () => {
   const [searchTerm, setSearchTerm] = React.useState(
     (router.query.search as string | undefined) ?? undefined,
   )
-  const [filterTagId, setFilterTagId] = React.useState<string>()
 
   const [pageSize] = React.useState<number>(100)
 
@@ -831,15 +828,11 @@ export const FolderDetailScreen = () => {
   const fetchFolderObjects = React.useCallback(
     async (offset: number) => {
       // if search parameters have changed, reset everything...
-      if (
-        searchTerm !== folderObjects.current.searchTerm ||
-        filterTagId !== folderObjects.current.filterTagId
-      ) {
+      if (searchTerm !== folderObjects.current.searchTerm) {
         folderObjects.current.results = {}
         folderObjects.current.positions = {}
         folderObjects.current.folderRequests = {}
         folderObjects.current.searchTerm = searchTerm
-        folderObjects.current.filterTagId = filterTagId
         folderObjects.current.totalCount = undefined
         if (tileContainerRef.current) {
           tileContainerRef.current.innerHTML = ''
@@ -879,16 +872,12 @@ export const FolderDetailScreen = () => {
       await foldersApi
         .listFolderObjects({
           folderId: router.query.folderId as string,
-          offset: offset + haveFirstN,
+          offset: Math.max(offset + haveFirstN, 0),
           limit,
           search: searchTerm,
-          tagId: filterTagId,
         })
         .then((response) => {
-          if (
-            searchTerm !== folderObjects.current.searchTerm ||
-            filterTagId !== folderObjects.current.filterTagId
-          ) {
+          if (searchTerm !== folderObjects.current.searchTerm) {
             // search parameters have changed since this request was executed...
             return
           }
@@ -898,16 +887,18 @@ export const FolderDetailScreen = () => {
 
           // set the result for each object in its position
           response.data.result.forEach((folderObject, i) => {
-            const position = offset + haveFirstN + i
-            if (!(position in folderObjects.current.results)) {
-              folderObjects.current.results[position] = folderObject
-              folderObjects.current.positions[folderObject.objectKey] = position
+            // console.log('rendering: %s', folderObject.objectKey)
+            const viewPositionIndex = offset + haveFirstN + i
+            if (!(viewPositionIndex in folderObjects.current.results)) {
+              folderObjects.current.results[viewPositionIndex] = folderObject
+              folderObjects.current.positions[folderObject.objectKey] =
+                viewPositionIndex
               if (tileContainerRef.current) {
                 // kick-off preview render
                 renderFolderObjectPreview(
-                  (f, o) => handleObjectLinkClick(f, o, position),
+                  (f, o) => handleObjectLinkClick(f, o, viewPositionIndex),
                   (f, o) => ({ filePromise: getData(f, o) }),
-                  position,
+                  viewPositionIndex,
                   folderObject,
                 )
               }
@@ -918,7 +909,6 @@ export const FolderDetailScreen = () => {
     [
       pageSize,
       searchTerm,
-      filterTagId,
       getData,
       router.query.folderId,
       handleObjectLinkClick,
@@ -1028,19 +1018,6 @@ export const FolderDetailScreen = () => {
     [windowDimensions.innerWidth, windowDimensions.innerHeight],
   )
 
-  const _handleSetTagFilter = (tagId?: string) => {
-    if (!tagId) {
-      setFilterTagId(undefined)
-      setPageState((s) => ({ ...s, filterTagId: undefined }))
-    } else {
-      const tag = folderContext.tags?.find((t) => t.id === tagId)
-      if (tag) {
-        setFilterTagId(tag.id)
-        setPageState((s) => ({ ...s, filterTagId: tag.id }))
-      }
-    }
-  }
-
   const [_fetch, _cancel] = useDebounce(
     () => {
       if (!focusedObjectKey) {
@@ -1097,7 +1074,7 @@ export const FolderDetailScreen = () => {
     setShareModalOpen(true)
   }, [])
 
-  const handleShareClose = React.useCallback(() => {
+  const _handleShareClose = React.useCallback(() => {
     setShareModalOpen(false)
   }, [])
 
@@ -1131,8 +1108,6 @@ export const FolderDetailScreen = () => {
     setPageState((s) => ({ ...s, search: value }))
   }
 
-  const _filterTag = folderContext.tags?.find((t) => t.id === filterTagId)
-
   React.useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (
@@ -1161,13 +1136,6 @@ export const FolderDetailScreen = () => {
 
   return (
     <>
-      {shareModalOpen && (
-        <ShareFolderModal
-          foldersApi={foldersApi}
-          folderContext={folderContext}
-          onClose={handleShareClose}
-        />
-      )}
       {forgetFolderConfirmationOpen && (
         <ConfirmForgetFolderModal
           onConfirm={() => handleForgetFolder()}

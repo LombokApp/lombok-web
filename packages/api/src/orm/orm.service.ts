@@ -1,141 +1,63 @@
-import type {
-  AnyEntity,
-  EntityName,
-  EntityRepository,
-  GetRepository,
-} from '@mikro-orm/core'
-import { MikroORM, RequestContext } from '@mikro-orm/core'
-import type { PostgreSqlDriver } from '@mikro-orm/postgresql'
-import type { NextFunction, Request, Response } from 'express'
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
+import { drizzle } from 'drizzle-orm/postgres-js'
+import { migrate } from 'drizzle-orm/postgres-js/migrator'
+import path from 'path'
+import postgres from 'postgres'
 import { singleton } from 'tsyringe'
 
 import { EnvConfigProvider } from '../config/env-config.provider'
-import { HealthManager } from '../health/health-manager'
-import { LoggingService } from '../services/logging.service'
-import { getConfig } from './orm.config'
+import { sessionsTable } from '../domains/auth/entities/session.entity'
+import {
+  foldersRelations,
+  foldersTable,
+} from '../domains/folder/entities/folder.entity'
+import { folderObjectsTable } from '../domains/folder/entities/folder-object.entity'
+import { folderOperationsTable } from '../domains/folder-operation/entities/folder-operation.entity'
+import { folderOperationObjectsTable } from '../domains/folder-operation/entities/folder-operation-object.entity'
+import { serverConfigurationsTable } from '../domains/server/entities/server-configuration.entity'
+import { storageLocationsTable } from '../domains/storage-location/entities/storage-location.entity'
+import { usersTable } from '../domains/user/entities/user.entity'
 
-export const getRepositoryInContext = <
-  T extends AnyEntity<T>,
-  U extends EntityRepository<T> = EntityRepository<T>,
->(
-  entityName: EntityName<T>,
-): GetRepository<T, U> => {
-  const em = RequestContext.getEntityManager()
-  if (!em) {
-    throw new Error('Could not get em from existing context.')
-  }
-  return em.getRepository(entityName)
+export const schema = {
+  usersTable,
+  sessionsTable,
+  storageLocationsTable,
+  serverConfigurationsTable,
+  foldersTable,
+  foldersRelations,
+  folderObjectsTable,
+  folderOperationsTable,
+  folderOperationObjectsTable,
 }
 
 @singleton()
 export class OrmService {
-  constructor(
-    private readonly configProvider: EnvConfigProvider,
-    private readonly loggingService: LoggingService,
-    private readonly healthManager: HealthManager,
-  ) {}
+  constructor(private readonly configProvider: EnvConfigProvider) {}
 
-  private _ok = false
+  private _db?: PostgresJsDatabase<typeof schema>
 
-  private _init?: Promise<void>
-  private _orm?: MikroORM<PostgreSqlDriver>
-
-  get orm(): MikroORM<PostgreSqlDriver> {
-    if (!this._orm) {
-      throw new Error('OrmService is not initialized')
+  get db(): PostgresJsDatabase<typeof schema> {
+    if (!this._db) {
+      throw new Error('DB is not initialized')
     }
-    return this._orm
+    return this._db
   }
 
-  async init() {
-    if (!this._init) {
-      this.healthManager.register('db', this)
-      this._init = getConfig(this.configProvider, this.loggingService).then(
-        (config) =>
-          MikroORM.init<PostgreSqlDriver>({
-            ...config,
-            logger: (message) => this.loggingService.logger.debug(message),
-            // eslint-disable-next-line promise/no-nesting
-          }).then((orm) => {
-            this._ok = true
-            this._orm = orm
-          }),
-      )
-    }
-
-    return this._init
-  }
-
-  healthState() {
-    return { ok: this._ok }
-  }
-
-  async runMigrations() {
-    if (this.configProvider.getDbConfig().runMigrations) {
-      const executed = await this.orm.getMigrator().getExecutedMigrations()
-
-      executed.forEach((migration) => {
-        this.loggingService.logger.info(
-          `previously executed migration: ${
-            migration.name
-          } ${migration.executed_at.toISOString()}`,
-        )
-      })
-
-      const pending = await this.orm.getMigrator().getPendingMigrations()
-
-      pending.forEach((migration) => {
-        this.loggingService.logger.info(
-          `found pending migration: ${migration.path}`,
-        )
-      })
-      this.loggingService.logger.info(
-        `migrations enabled, running ${pending.length} migration${
-          pending.length === 1 ? '' : 's'
-        }`,
-      )
-
-      await this.orm.getMigrator().up()
-    } else {
-      this.loggingService.logger.info('migrations disabled, skipping all')
-    }
-  }
-
-  forkEntityManager() {
-    return this.orm.em.fork({ clear: true })
-  }
-
-  requestHandler() {
-    return (_: Request, __: Response, next: NextFunction) => {
-      RequestContext.create(this.orm.em, next)
-    }
-  }
-
-  runInContextFp<R, A extends any[] = []>(
-    callback: (...args: A) => R,
-    params: A | undefined = undefined,
-  ) {
-    RequestContext.create(this.orm.em, () =>
-      callback.apply(this, params ?? ([] as unknown as A)),
+  async init(runMigrations: boolean = false) {
+    const queryClient = postgres(
+      `postgres://${this.configProvider.getDbConfig().user}:${
+        this.configProvider.getDbConfig().password
+      }@${this.configProvider.getDbConfig().host}:${
+        this.configProvider.getDbConfig().port
+      }/${this.configProvider.getDbConfig().name}`,
     )
-  }
-
-  runInAsyncContextFp<R, A extends any[] = []>(
-    callback: (...args: A) => Promise<R>,
-    params: A | undefined = undefined,
-  ) {
-    return (async (...args: A) => {
-      return RequestContext.createAsync(this.orm.em, async () => {
-        return callback(...args)
+    this._db = drizzle(queryClient, {
+      schema,
+    })
+    if (runMigrations) {
+      await migrate(this._db, {
+        migrationsFolder: path.join(__dirname, './migrations'),
       })
-    }).apply(this, params ?? ([] as unknown as A))
-  }
-
-  async close() {
-    if (!this._init) {
-      return
     }
-    await this._init
-    await this.orm.close()
   }
 }

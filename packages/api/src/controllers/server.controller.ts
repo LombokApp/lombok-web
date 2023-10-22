@@ -16,17 +16,18 @@ import { Lifecycle, scoped } from 'tsyringe'
 
 import { AuthScheme } from '../domains/auth/constants/scheme.constants'
 import { AuthScope } from '../domains/auth/constants/scope.constants'
-import type { ServerLocationData } from '../domains/s3/transfer-objects/s3-location.dto'
-import { ServerLocationInputData } from '../domains/s3/transfer-objects/s3-location.dto'
 import { ServerLocationType } from '../domains/server/constants/server.constants'
 import { ServerConfigurationService } from '../domains/server/services/server-configuration.service'
 import type { ServerSettings } from '../domains/server/transfer-objects/settings.dto'
+import type { ServerLocationData } from '../domains/storage-location/transfer-objects/s3-location.dto'
+import { ServerLocationInputData } from '../domains/storage-location/transfer-objects/s3-location.dto'
 import { UserService } from '../domains/user/services/user.service'
 import type { UserData } from '../domains/user/transfer-objects/user.dto'
 import {
   CreateUserData,
   UpdateUserData,
 } from '../domains/user/transfer-objects/user.dto'
+import { transformUserToUserDTO } from '../domains/user/transforms/user-dto.transform'
 
 export interface ListUsersResponse {
   meta: { totalCount: number }
@@ -109,7 +110,7 @@ export class ServerController extends Controller {
   @OperationId('listUsers')
   @Get('/users')
   async listUsers(@Request() req: Express.Request): Promise<ListUsersResponse> {
-    const [results, count] = await this.userService.listUsersAsAdmin(
+    const { results, totalCount } = await this.userService.listUsersAsAdmin(
       req.viewer.id,
       {
         limit: 100,
@@ -117,8 +118,8 @@ export class ServerController extends Controller {
       },
     )
     return {
-      result: results.map((result) => result.toUserData()),
-      meta: { totalCount: count },
+      result: results.map((result) => transformUserToUserDTO(result)),
+      meta: { totalCount },
     }
   }
 
@@ -134,7 +135,7 @@ export class ServerController extends Controller {
       userId,
     )
     return {
-      result: result.toUserData(),
+      result: transformUserToUserDTO(result),
     }
   }
 
@@ -146,8 +147,8 @@ export class ServerController extends Controller {
     @Body()
     body: CreateUserData,
   ) {
-    const user = await this.userService.createUserAsUser(req.viewer, body)
-    return { user: user.toUserData() }
+    const user = await this.userService.createUserAsAdmin(req.viewer, body)
+    return { user: transformUserToUserDTO(user) }
   }
 
   @Security(AuthScheme.AccessToken, [AuthScope.CreateUsers])
@@ -159,18 +160,18 @@ export class ServerController extends Controller {
     @Body()
     body: UpdateUserData,
   ) {
-    const user = await this.userService.updateUserAsUser(req.viewer, {
+    const user = await this.userService.updateUserAsAdmin(req.viewer, {
       id: userId,
       ...body,
     })
-    return { user: user.toUserData() }
+    return { user: transformUserToUserDTO(user) }
   }
 
   @Security(AuthScheme.AccessToken, [AuthScope.CreateUsers])
   @OperationId('deleteUser')
   @Delete('/users/:userId')
   async deleteUser(@Request() req: Express.Request, @Path() userId: string) {
-    await this.userService.deleteUserAsUser(req.viewer, userId)
+    await this.userService.deleteUserAsAdmin(req.viewer, userId)
     return true
   }
 

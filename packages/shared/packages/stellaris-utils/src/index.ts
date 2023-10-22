@@ -1,7 +1,6 @@
 export * from './collection.util'
 export * from './intl.util'
 export * from './date.util'
-export * from './sort.util'
 export * from './promise.util'
 export * from './string.util'
 export * from './address.util'

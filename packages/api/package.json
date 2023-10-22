@@ -4,8 +4,7 @@
   "files": [
     ".orm-cache/**",
     "dist/**",
-    "locales/**",
-    "mikro-orm.config.js"
+    "locales/**"
   ],
   "main": "./src/index.ts",
   "publishConfig": {
@@ -18,14 +17,13 @@
     "build:deps": "yarn workspace @stellariscloud/utils build:clean && yarn build:routes",
     "prepack": "yarn build",
     "db:init": "./cmd/db-init.sh",
-    "db:migrate:format": "./cmd/db-migrate-format.sh",
     "db:migrate:new": "./cmd/db-migrate-new.sh",
     "db:migrate:up": "./cmd/db-migrate-up.sh",
-    "db:migrate:down": "./cmd/db-migrate-down.sh",
+    "db:migrate:up:docker": "docker exec -it stellaris-api yarn db:migrate:up",
+    "db:migrate:check": "./cmd/db-migrate-check.sh",
+    "db:migrate:drop": "./cmd/db-migrate-drop.sh",
     "db:reset": "./cmd/db-reset.sh",
-    "db:reset:dev": "yarn db:reset && yarn db:seed:dev",
-    "db:seed:dev": "./cmd/db-seed-dev.sh",
-    "db:seed:staging": "./cmd/db-seed-staging.sh",
+    "db:reset:dev": "docker exec -it stellaris-api yarn workspace @stellariscloud/api db:reset",
     "generate:worker-jwt": "./cmd/generate-worker-jwt.sh",
     "generate:worker-keys": "./cmd/generate-worker-keys.sh",
     "dev": "./cmd/dev.sh",
@@ -47,12 +45,6 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.342.0",
-    "@mikro-orm/cli": "5.8.0",
-    "@mikro-orm/core": "5.8.0",
-    "@mikro-orm/migrations": "5.8.0",
-    "@mikro-orm/postgresql": "5.8.0",
-    "@mikro-orm/reflection": "5.8.0",
-    "@mikro-orm/sql-highlighter": "1.0.1",
     "@sendgrid/mail": "7.7.0",
     "@sentry/integrations": "6.3.6",
     "@sentry/node": "6.3.6",
@@ -68,6 +60,7 @@
     "bufferutil": "4.0.7",
     "bullmq": "4.8.0",
     "cors": "2.8.5",
+    "drizzle-orm": "0.28.6",
     "express": "4.17.3",
     "express-openapi-validate": "0.6.1",
     "express-winston": "4.2.0",
@@ -76,10 +69,10 @@
     "i18next": "20.2.4",
     "i18next-fs-backend": "1.1.4",
     "jsonwebtoken": "8.5.1",
-    "knex": "2.4.2",
     "logdna-winston": "3.0.5",
     "mime": "3.0.0",
     "pg": "8.11.0",
+    "postgres": "3.4.0",
     "reflect-metadata": "0.1.13",
     "runtypes": "6.7.0",
     "socket.io": "4.7.2",
@@ -91,6 +84,7 @@
     "winston": "3.6.0"
   },
   "devDependencies": {
+    "@esbuild/linux-arm64": "0.18.20",
     "@jest/types": "29.6.1",
     "@stellariscloud/api-client": "workspace:*",
     "@types/aws4": "1.11.3",
@@ -108,6 +102,7 @@
     "@types/supertest": "2.0.11",
     "@types/uuid": "9.0.1",
     "@typescript-eslint/eslint-plugin": "6.4.0",
+    "drizzle-kit": "0.19.13",
     "env-cmd": "10.1.0",
     "eslint": "8.47.0",
     "eslint-config-prettier": "9.0.0",
@@ -131,12 +126,6 @@
     "ts-node-dev": "2.0.0",
     "typescript": "5.0.2",
     "winston-transport": "4.5.0"
-  },
-  "mikro-orm": {
-    "useTsNode": true,
-    "configPaths": [
-      "./src/orm/orm-cli.config.ts"
-    ]
   },
   "engines": {
     "node": "18"

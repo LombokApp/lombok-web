@@ -9,14 +9,11 @@ import type { TimestampData } from '../../../transfer-objects/timestamps.dto'
 export interface FolderObjectData extends TimestampData {
   id: string
   objectKey: string
-  folder: {
-    id: string
-  }
+  folderId: string
   contentAttributes: ContentAttributesByHash
   contentMetadata: ContentMetadataByHash
-  hash?: string
+  hash: string | null
   lastModified: number
-  tags: string[]
   eTag: string
   sizeBytes: number
   mediaType: MediaType

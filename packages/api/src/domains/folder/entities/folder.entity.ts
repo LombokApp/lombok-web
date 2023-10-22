@@ -1,70 +1,44 @@
-import {
-  Collection,
-  Entity,
-  EntityRepositoryType,
-  ManyToOne,
-  OneToMany,
-  OneToOne,
-  OptionalProps,
-  PrimaryKey,
-  Property,
-  UuidType,
-} from '@mikro-orm/core'
+import { relations } from 'drizzle-orm'
+import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
-import { TimestampedEntity } from '../../../entities/base.entity'
-import { S3Location } from '../../s3/entities/s3-location.entity'
-import { User } from '../../user/entities/user.entity'
-import type { FolderData } from '../transfer-objects/folder.dto'
-import { FolderRepository } from './folder.repository'
-import type { FolderShare } from './folder-share.entity'
+import type { StorageLocation } from '../../storage-location/entities/storage-location.entity'
+import { storageLocationsTable } from '../../storage-location/entities/storage-location.entity'
+import { usersTable } from '../../user/entities/user.entity'
 
-@Entity({
-  tableName: 'folder',
-  customRepository: () => FolderRepository,
+export const foldersTable = pgTable('folders', {
+  id: uuid('id').primaryKey(),
+  name: text('name').notNull(),
+  contentLocationId: uuid('contentLocationId')
+    .notNull()
+    .references(() => storageLocationsTable.id),
+  metadataLocationId: uuid('metadataLocationId')
+    .notNull()
+    .references(() => storageLocationsTable.id),
+  ownerId: uuid('ownerId')
+    .notNull()
+    .references(() => usersTable.id),
+  createdAt: timestamp('createdAt').notNull(),
+  updatedAt: timestamp('updatedAt').notNull(),
 })
-export class Folder extends TimestampedEntity<Folder> {
-  [EntityRepositoryType]?: FolderRepository;
-  [OptionalProps]?: 'updatedAt' | 'createdAt'
 
-  @PrimaryKey({ customType: new UuidType(), defaultRaw: 'gen_random_uuid()' })
-  id!: string
+export const foldersRelations = relations(foldersTable, ({ one }) => ({
+  contentLocation: one(storageLocationsTable, {
+    fields: [foldersTable.contentLocationId],
+    references: [storageLocationsTable.id],
+  }),
+  metadataLocation: one(storageLocationsTable, {
+    fields: [foldersTable.metadataLocationId],
+    references: [storageLocationsTable.id],
+  }),
+  owner: one(usersTable, {
+    fields: [foldersTable.ownerId],
+    references: [usersTable.id],
+  }),
+}))
 
-  @Property({ columnType: 'TEXT', nullable: false })
-  name!: string
-
-  @OneToOne({
-    entity: () => S3Location,
-    onDelete: 'cascade',
-  })
-  contentLocation!: S3Location
-
-  @OneToOne({
-    entity: () => S3Location,
-    onDelete: 'cascade',
-  })
-  metadataLocation!: S3Location
-
-  @ManyToOne({
-    entity: () => User,
-    onDelete: 'cascade',
-  })
-  owner!: User
-
-  @OneToMany({ mappedBy: (share: FolderShare) => share.folder })
-  shares: Collection<FolderShare> = new Collection<FolderShare>(this)
-
-  toFolderData(): FolderData {
-    return {
-      contentLocation: this.contentLocation.toS3LocationData(),
-      metadataLocation: this.metadataLocation.toS3LocationData(),
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
-      name: this.name,
-      id: this.id,
-    }
-  }
-
-  toJSON() {
-    return this.toFolderData()
-  }
+export type FolderWithoutLocations = typeof foldersTable.$inferSelect
+export type Folder = typeof foldersTable.$inferSelect & {
+  contentLocation: StorageLocation
+  metadataLocation: StorageLocation
 }
+export type NewFolder = typeof foldersTable.$inferInsert

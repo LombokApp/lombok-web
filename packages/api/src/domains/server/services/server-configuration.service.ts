@@ -1,17 +1,20 @@
+import { eq, inArray } from 'drizzle-orm'
 import { Lifecycle, scoped } from 'tsyringe'
 import { v4 as uuidV4 } from 'uuid'
 
+import { OrmService } from '../../../orm/orm.service'
 import type { Actor } from '../../auth/actor'
 import type {
   ServerLocationData,
   ServerLocationInputData,
-} from '../../s3/transfer-objects/s3-location.dto'
+} from '../../storage-location/transfer-objects/s3-location.dto'
 import type { ServerLocationType } from '../constants/server.constants'
 import {
   CONFIGURATION_KEYS,
   ServerLocationTypeRunType,
 } from '../constants/server.constants'
-import { ServerConfigurationRepository } from '../entities/server-configuration.repository'
+import type { NewServerConfiguration } from '../entities/server-configuration.entity'
+import { serverConfigurationsTable } from '../entities/server-configuration.entity'
 import {
   ServerConfigurationInvalidError,
   ServerConfigurationNotFoundError,
@@ -20,16 +23,18 @@ import type { PublicServerSettings } from '../transfer-objects/settings.dto'
 
 @scoped(Lifecycle.ContainerScoped)
 export class ServerConfigurationService {
-  constructor(
-    private readonly serverConfigurationRepository: ServerConfigurationRepository,
-  ) {}
+  constructor(private readonly ormService: OrmService) {}
 
   async getServerSettingsAsUser(_actor: Actor): Promise<PublicServerSettings> {
     // TODO: check user permissions for access to read entire server settings object
 
-    const results = await this.serverConfigurationRepository.find({
-      key: { $in: Object.keys(CONFIGURATION_KEYS) },
-    })
+    const results =
+      await this.ormService.db.query.serverConfigurationsTable.findMany({
+        where: inArray(
+          serverConfigurationsTable.key,
+          Object.keys(CONFIGURATION_KEYS),
+        ),
+      })
 
     return results.reduce(
       (acc, configResult) => ({
@@ -47,8 +52,8 @@ export class ServerConfigurationService {
       throw new ServerConfigurationNotFoundError()
     }
 
-    return this.serverConfigurationRepository.findOne({
-      key: configurationKey,
+    return this.ormService.db.query.serverConfigurationsTable.findFirst({
+      where: eq(serverConfigurationsTable.key, configurationKey),
     })
   }
 
@@ -64,29 +69,40 @@ export class ServerConfigurationService {
     }
 
     // TODO: validate value
-
-    const record =
-      (await this.serverConfigurationRepository.findOne({
-        key: settingKey,
-      })) ??
-      this.serverConfigurationRepository.create({
-        key: settingKey,
-        value: settingValue,
+    const existingRecord =
+      await this.ormService.db.query.serverConfigurationsTable.findFirst({
+        where: eq(serverConfigurationsTable.key, settingKey),
       })
 
-    record.value = settingValue
-    await this.serverConfigurationRepository
-      .getEntityManager()
-      .persistAndFlush(record)
-
-    return record
+    if (existingRecord) {
+      return this.ormService.db
+        .update(serverConfigurationsTable)
+        .set({
+          value: settingValue,
+        })
+        .where(eq(serverConfigurationsTable.key, settingKey))
+        .returning()
+    } else {
+      const now = new Date()
+      const values: NewServerConfiguration = {
+        key: settingKey,
+        value: settingValue,
+        createdAt: now,
+        updatedAt: now,
+      }
+      return (
+        await this.ormService.db
+          .insert(serverConfigurationsTable)
+          .values(values)
+          .returning()
+      )[0]
+    }
   }
 
   async resetServerSettingAsUser(_actor: Actor, settingsKey: string) {
-    // TODO: check user permissions for access reset settings
-    await this.serverConfigurationRepository.getEntityManager().removeAndFlush({
-      key: settingsKey,
-    })
+    await this.ormService.db
+      .delete(serverConfigurationsTable)
+      .where(eq(serverConfigurationsTable.key, settingsKey))
   }
 
   async addServerLocationServerConfigurationAsUser(
@@ -100,22 +116,29 @@ export class ServerConfigurationService {
       throw new ServerConfigurationInvalidError()
     }
 
+    const locationWithId = { ...location, id: uuidV4() }
+
     const key = `${type}_LOCATIONS`
-    const record =
-      (await this.serverConfigurationRepository.findOne({
-        key,
-      })) ??
-      this.serverConfigurationRepository.create({
-        key,
-        value: [],
+
+    const existingRecord =
+      await this.ormService.db.query.serverConfigurationsTable.findFirst({
+        where: eq(serverConfigurationsTable.key, key),
       })
 
-    const locationWithId = { ...location, id: uuidV4() }
-    record.value.push(locationWithId)
-
-    await this.serverConfigurationRepository
-      .getEntityManager()
-      .persistAndFlush(record)
+    if (existingRecord) {
+      existingRecord.value = existingRecord.value.push(locationWithId)
+    } else {
+      const now = new Date()
+      const newServerConfiguration: NewServerConfiguration = {
+        key,
+        value: [locationWithId],
+        createdAt: now,
+        updatedAt: now,
+      }
+      await this.ormService.db
+        .insert(serverConfigurationsTable)
+        .values(newServerConfiguration)
+    }
 
     return locationWithId
   }
@@ -131,9 +154,10 @@ export class ServerConfigurationService {
       throw new ServerConfigurationInvalidError()
     }
 
-    const record = await this.serverConfigurationRepository.findOne({
-      key: `${type}_LOCATIONS`,
-    })
+    const record =
+      await this.ormService.db.query.serverConfigurationsTable.findFirst({
+        where: eq(serverConfigurationsTable.key, `${type}_LOCATIONS`),
+      })
 
     if (!record) {
       throw new ServerConfigurationNotFoundError()
@@ -149,8 +173,6 @@ export class ServerConfigurationService {
       throw new ServerConfigurationNotFoundError()
     }
 
-    await this.serverConfigurationRepository.getEntityManager().flush()
-
     return record
   }
 
@@ -164,9 +186,10 @@ export class ServerConfigurationService {
       throw new ServerConfigurationInvalidError()
     }
 
-    const record = (await this.serverConfigurationRepository.findOne({
-      key: `${type}_LOCATIONS`,
-    })) ?? { value: [] }
+    const record =
+      (await this.ormService.db.query.serverConfigurationsTable.findFirst({
+        where: eq(serverConfigurationsTable.key, `${type}_LOCATIONS`),
+      })) ?? { value: [] }
 
     return (record.value as (ServerLocationInputData & { id: string })[]).find(
       (v) => v.id === serverLocationId,
@@ -184,9 +207,13 @@ export class ServerConfigurationService {
       throw new ServerConfigurationInvalidError()
     }
 
-    const record = await this.serverConfigurationRepository.findOne({
-      key: `${locationTypeValidation.value}_LOCATIONS`,
-    })
+    const record =
+      await this.ormService.db.query.serverConfigurationsTable.findFirst({
+        where: eq(
+          serverConfigurationsTable.key,
+          `${locationTypeValidation.value}_LOCATIONS`,
+        ),
+      })
 
     if (!record) {
       return []

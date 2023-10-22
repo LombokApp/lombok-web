@@ -1,4 +1,5 @@
 import type { UserData } from '@stellariscloud/api-client'
+import type { NullablePartial } from '@stellariscloud/utils'
 import clsx from 'clsx'
 import React from 'react'
 
@@ -11,12 +12,18 @@ import { viewerApi } from '../../../services/api'
 export function UserProfileScreen() {
   const [user, setUser] = React.useState<UserData>()
   const [userFormState, setUserFormState] =
-    React.useState<Partial<ProfileUserFormValues>>()
+    React.useState<NullablePartial<ProfileUserFormValues>>()
 
   React.useEffect(() => {
     void viewerApi.getViewer().then((u) => {
       setUser(u.data.data)
-      setUserFormState(u.data.data)
+      setUserFormState({
+        password: '',
+        name: u.data.data.name ?? '',
+        username: u.data.data.username ?? '',
+        email: u.data.data.email ?? '',
+        id: u.data.data.id,
+      })
     })
   }, [])
 

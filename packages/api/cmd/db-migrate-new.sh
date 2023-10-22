@@ -3,10 +3,6 @@ set -e
 . ./cmd/env.sh
 set -x
 
-rm -rf .orm-cache
-
-yarn mikro-orm migration:create
-
-./cmd/db-migrate-format.sh
+yarn drizzle-kit generate:pg --config ./src/orm/drizzle.config.ts
 
 { set +x; } 2>/dev/null

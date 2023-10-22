@@ -26,3 +26,20 @@ export class InternalServerError extends Error implements HttpError {
     super()
   }
 }
+
+@Log(LogLevel.Error, 'column')
+export class InvalidSortColumnError extends Error implements HttpError {
+  name = InvalidSortColumnError.name;
+
+  [HttpError.status] = HttpStatusCode.BadRequest;
+  [HttpError.errors] = [
+    {
+      id: this.columnName,
+      ...formatErrorCode(ServiceErrorCode.AppInternalError),
+    },
+  ]
+
+  constructor(readonly columnName: string) {
+    super()
+  }
+}

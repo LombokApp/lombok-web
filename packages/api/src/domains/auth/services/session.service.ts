@@ -1,47 +1,67 @@
+import { and, eq } from 'drizzle-orm'
 import { Lifecycle, scoped } from 'tsyringe'
+import { v4 as uuidV4 } from 'uuid'
 
-import { UserService } from '../../user/services/user.service'
+import { OrmService } from '../../../orm/orm.service'
+import { usersTable } from '../../user/entities/user.entity'
+import { UserNotFoundError } from '../../user/errors/user.error'
 import type { Actor } from '../actor'
 import { ALLOWED_SCOPES } from '../constants/scope.constants'
-import { Session } from '../entities/session.entity'
-import { SessionRepository } from '../entities/session.repository'
+import type { NewSession, Session } from '../entities/session.entity'
+import { sessionsTable } from '../entities/session.entity'
 import {
   SessionExpiredError,
   SessionInvalidError,
   SessionNotFoundError,
 } from '../errors/session.error'
+import { hashedTokenHelper } from '../utils/hashed-token-helper'
+import { sessionExpiresAt } from './auth.service'
 import type { AccessTokenJWT } from './jwt.service'
 import { JWTService } from './jwt.service'
 
 @scoped(Lifecycle.ContainerScoped)
 export class SessionService {
   constructor(
-    private readonly userService: UserService,
     private readonly jwtService: JWTService,
-    private readonly sessionRepository: SessionRepository,
+    private readonly ormService: OrmService,
   ) {}
 
   async createSession(actor: Actor) {
-    const user = await this.userService.getById({ id: actor.id })
-
-    const secret = Session.createSecretKey()
-
-    const session = this.sessionRepository.create({
-      scopes: ALLOWED_SCOPES[user.role],
-      user,
-      hash: Session.createHash(secret),
-      expiresAt: Session.sessionExpiresAt(new Date()),
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.id, actor.id),
     })
 
-    await this.sessionRepository.getEntityManager().persistAndFlush(session)
-    const accessToken = this.jwtService.createAccessTokenFromSession(session)
-    const refreshToken = Session.encode(session.id, secret)
+    if (!user) {
+      throw new UserNotFoundError()
+    }
+
+    const secret = hashedTokenHelper.createSecretKey()
+
+    const now = new Date()
+    const newSession: NewSession = {
+      id: uuidV4(),
+      scopes: ALLOWED_SCOPES[user.role],
+      userId: user.id,
+      hash: hashedTokenHelper.createHash(secret),
+      expiresAt: sessionExpiresAt(new Date()),
+      createdAt: now,
+      updatedAt: now,
+    }
+    const [session] = await this.ormService.db
+      .insert(sessionsTable)
+      .values(newSession)
+      .returning()
+
+    const accessToken = await this.jwtService.createAccessTokenFromSession(
+      session,
+    )
+    const refreshToken = hashedTokenHelper.encode(session.id, secret)
 
     return {
       session: {
         id: session.id,
         expiresAt: session.expiresAt,
-        user: session.user,
+        user,
       },
       accessToken,
       refreshToken,
@@ -59,60 +79,66 @@ export class SessionService {
   }
 
   async getById(actor: Actor, id: string) {
-    const key = await this.sessionRepository.findOne({
-      id,
-      user: actor.id,
+    const session = await this.ormService.db.query.sessionsTable.findFirst({
+      where: and(eq(sessionsTable.userId, actor.id), eq(sessionsTable.id, id)),
     })
 
-    if (key === null) {
+    if (!session) {
       throw new SessionNotFoundError()
     }
 
-    return key
+    return session
   }
 
-  async delete(key: Session) {
-    await this.sessionRepository.nativeDelete(key)
-    await this.sessionRepository.getEntityManager().persistAndFlush(key)
+  async delete(session: Session) {
+    await this.ormService.db
+      .delete(sessionsTable)
+      .where(eq(sessionsTable.id, session.id))
   }
 
   async verifySessionWithRefreshToken(refreshToken: string) {
-    const [id, secret] = Session.decode(refreshToken)
-    const session = (await this.sessionRepository.findOne({
-      id,
-      hash: Session.createHash(secret),
-    })) as Session | null
+    const [id, secret] = hashedTokenHelper.decodeRefreshToken(refreshToken)
+
+    const session = await this.ormService.db.query.sessionsTable.findFirst({
+      where: and(
+        eq(sessionsTable.id, id),
+        eq(sessionsTable.hash, hashedTokenHelper.createHash(secret)),
+      ),
+    })
 
     if (!session) {
       throw new SessionInvalidError()
     }
 
-    if (Date.now() > session.expiresAt.getTime()) {
-      throw new SessionExpiredError(session.expiresAt)
+    if (Date.now() > new Date(session.expiresAt).getTime()) {
+      throw new SessionExpiredError(new Date(session.expiresAt))
     }
 
     return session
   }
 
   async extendSession(session: Session) {
-    if (Date.now() > session.expiresAt.getTime()) {
-      throw new SessionExpiredError(session.expiresAt)
+    if (Date.now() > new Date(session.expiresAt).getTime()) {
+      throw new SessionExpiredError(new Date(session.expiresAt))
     }
 
     // Create a new secret
-    const secret = Session.createSecretKey()
+    const secret = hashedTokenHelper.createSecretKey()
 
-    // Update the hash and expiry of the session
-    this.sessionRepository.assign(session, {
-      expiresAt: Session.sessionExpiresAt(session.createdAt),
-      hash: Session.createHash(secret),
-    })
-
-    await this.sessionRepository.getEntityManager().persistAndFlush(session)
+    const [updatedSession] = await this.ormService.db
+      .update(sessionsTable)
+      .set({
+        expiresAt: sessionExpiresAt(new Date(session.createdAt)),
+        hash: hashedTokenHelper.createHash(secret),
+      })
+      .where(eq(sessionsTable.id, session.id))
+      .returning()
 
     // Create new access and refresh tokens
-    const accessToken = this.jwtService.createAccessTokenFromSession(session)
-    const refreshToken = Session.encode(session.id, secret)
+    const accessToken = await this.jwtService.createAccessTokenFromSession(
+      updatedSession,
+    )
+    const refreshToken = hashedTokenHelper.encode(updatedSession.id, secret)
 
     return {
       accessToken,
@@ -122,19 +148,20 @@ export class SessionService {
   }
 
   async verifySessionWithAccessToken(accessToken: AccessTokenJWT) {
-    const session = (await this.sessionRepository.findOne({
-      id: accessToken.jti.split(':')[0],
-    })) as Session | null
+    const returnedSessions = await this.ormService.db
+      .select()
+      .from(sessionsTable)
+      .where(eq(sessionsTable.id, accessToken.jti.split(':')[0]))
 
-    if (!session) {
+    if (returnedSessions.length === 0) {
       throw new SessionInvalidError()
     }
 
-    if (Date.now() > session.expiresAt.getTime()) {
-      throw new SessionExpiredError(session.expiresAt)
-    }
+    const session = returnedSessions[0]
 
-    await this.sessionRepository.getEntityManager().persistAndFlush(session)
+    if (Date.now() > new Date(session.expiresAt).getTime()) {
+      throw new SessionExpiredError(new Date(session.expiresAt))
+    }
 
     return session
   }

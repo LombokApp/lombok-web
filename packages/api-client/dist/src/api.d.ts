@@ -167,25 +167,6 @@ export interface CreateFolderRequest {
 /**
  *
  * @export
- * @interface CreateFolderSharePayload
- */
-export interface CreateFolderSharePayload {
-    /**
-     *
-     * @type {string}
-     * @memberof CreateFolderSharePayload
-     */
-    'userInviteEmail': string;
-    /**
-     *
-     * @type {FolderShareConfig}
-     * @memberof CreateFolderSharePayload
-     */
-    'shareConfiguration': FolderShareConfig;
-}
-/**
- *
- * @export
  * @interface CreateMetadataUploadUrls200Response
  */
 export interface CreateMetadataUploadUrls200Response {
@@ -299,32 +280,6 @@ export interface CreateSocketAuthentication200Response {
      * @memberof CreateSocketAuthentication200Response
      */
     'token': string;
-}
-/**
- *
- * @export
- * @interface CreateTagRequest
- */
-export interface CreateTagRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof CreateTagRequest
-     */
-    'name': string;
-}
-/**
- *
- * @export
- * @interface CreateUser200Response
- */
-export interface CreateUser200Response {
-    /**
-     *
-     * @type {UserData}
-     * @memberof CreateUser200Response
-     */
-    'user': UserData;
 }
 /**
  *
@@ -497,16 +452,16 @@ export interface FolderData {
     'name': string;
     /**
      *
-     * @type {S3LocationData}
+     * @type {StorageLocationData}
      * @memberof FolderData
      */
-    'metadataLocation': S3LocationData;
+    'metadataLocation': StorageLocationData;
     /**
      *
-     * @type {S3LocationData}
+     * @type {StorageLocationData}
      * @memberof FolderData
      */
-    'contentLocation': S3LocationData;
+    'contentLocation': StorageLocationData;
 }
 /**
  *
@@ -540,10 +495,10 @@ export interface FolderObjectData {
     'objectKey': string;
     /**
      *
-     * @type {FolderObjectDataFolder}
+     * @type {string}
      * @memberof FolderObjectData
      */
-    'folder': FolderObjectDataFolder;
+    'folderId': string;
     /**
      *
      * @type {{ [key: string]: ContentAttributesType | undefined; }}
@@ -567,19 +522,13 @@ export interface FolderObjectData {
      * @type {string}
      * @memberof FolderObjectData
      */
-    'hash'?: string;
+    'hash': string | null;
     /**
      *
      * @type {number}
      * @memberof FolderObjectData
      */
     'lastModified': number;
-    /**
-     *
-     * @type {Array<string>}
-     * @memberof FolderObjectData
-     */
-    'tags': Array<string>;
     /**
      *
      * @type {string}
@@ -604,19 +553,6 @@ export interface FolderObjectData {
      * @memberof FolderObjectData
      */
     'mimeType': string;
-}
-/**
- *
- * @export
- * @interface FolderObjectDataFolder
- */
-export interface FolderObjectDataFolder {
-    /**
-     *
-     * @type {string}
-     * @memberof FolderObjectDataFolder
-     */
-    'id': string;
 }
 /**
  *
@@ -673,7 +609,7 @@ export interface FolderOperationData {
      * @type {string}
      * @memberof FolderOperationData
      */
-    'error'?: string;
+    'error': string | null;
 }
 /**
  *
@@ -739,10 +675,10 @@ export type FolderOperationStatus = typeof FolderOperationStatus[keyof typeof Fo
 export interface FolderOperationsResponse {
     /**
      *
-     * @type {ListFolderObjects200ResponseMeta}
+     * @type {ListFoldersResponseMeta}
      * @memberof FolderOperationsResponse
      */
-    'meta': ListFolderObjects200ResponseMeta;
+    'meta': ListFoldersResponseMeta;
     /**
      *
      * @type {Array<FolderOperationData>}
@@ -765,74 +701,6 @@ export declare const FolderPermissionName: {
     readonly TagAssociate: "tag_associate";
 };
 export type FolderPermissionName = typeof FolderPermissionName[keyof typeof FolderPermissionName];
-/**
- *
- * @export
- * @interface FolderShareConfig
- */
-export interface FolderShareConfig {
-    /**
-     *
-     * @type {Array<FolderPermissionName>}
-     * @memberof FolderShareConfig
-     */
-    'permissions': Array<FolderPermissionName>;
-}
-/**
- *
- * @export
- * @interface FolderShareData
- */
-export interface FolderShareData {
-    /**
-     *
-     * @type {string}
-     * @memberof FolderShareData
-     */
-    'createdAt': string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderShareData
-     */
-    'updatedAt': string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderShareData
-     */
-    'id': string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderShareData
-     */
-    'userId'?: string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderShareData
-     */
-    'userLabel': string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderShareData
-     */
-    'userInviteEmail': string;
-    /**
-     *
-     * @type {FolderObjectDataFolder}
-     * @memberof FolderShareData
-     */
-    'folder': FolderObjectDataFolder;
-    /**
-     *
-     * @type {FolderShareConfig}
-     * @memberof FolderShareData
-     */
-    'shareConfiguration': FolderShareConfig;
-}
 /**
  *
  * @export
@@ -918,10 +786,10 @@ export interface GetViewer200Response {
 export interface ListFolderObjects200Response {
     /**
      *
-     * @type {ListFolderObjects200ResponseMeta}
+     * @type {ListResponseMeta}
      * @memberof ListFolderObjects200Response
      */
-    'meta': ListFolderObjects200ResponseMeta;
+    'meta': ListResponseMeta;
     /**
      *
      * @type {Array<FolderObjectData>}
@@ -932,47 +800,15 @@ export interface ListFolderObjects200Response {
 /**
  *
  * @export
- * @interface ListFolderObjects200ResponseMeta
- */
-export interface ListFolderObjects200ResponseMeta {
-    /**
-     *
-     * @type {number}
-     * @memberof ListFolderObjects200ResponseMeta
-     */
-    'totalCount': number;
-}
-/**
- *
- * @export
- * @interface ListFolderShares200Response
- */
-export interface ListFolderShares200Response {
-    /**
-     *
-     * @type {ListFolderObjects200ResponseMeta}
-     * @memberof ListFolderShares200Response
-     */
-    'meta': ListFolderObjects200ResponseMeta;
-    /**
-     *
-     * @type {Array<FolderShareData>}
-     * @memberof ListFolderShares200Response
-     */
-    'result': Array<FolderShareData>;
-}
-/**
- *
- * @export
  * @interface ListFoldersResponse
  */
 export interface ListFoldersResponse {
     /**
      *
-     * @type {ListFolderObjects200ResponseMeta}
+     * @type {ListFoldersResponseMeta}
      * @memberof ListFoldersResponse
      */
-    'meta': ListFolderObjects200ResponseMeta;
+    'meta': ListFoldersResponseMeta;
     /**
      *
      * @type {Array<FolderAndPermission>}
@@ -983,21 +819,28 @@ export interface ListFoldersResponse {
 /**
  *
  * @export
- * @interface ListTags200Response
+ * @interface ListFoldersResponseMeta
  */
-export interface ListTags200Response {
+export interface ListFoldersResponseMeta {
     /**
      *
-     * @type {ListFolderObjects200ResponseMeta}
-     * @memberof ListTags200Response
+     * @type {number}
+     * @memberof ListFoldersResponseMeta
      */
-    'meta': ListFolderObjects200ResponseMeta;
+    'totalCount': number;
+}
+/**
+ *
+ * @export
+ * @interface ListResponseMeta
+ */
+export interface ListResponseMeta {
     /**
      *
-     * @type {Array<ObjectTagData>}
-     * @memberof ListTags200Response
+     * @type {number}
+     * @memberof ListResponseMeta
      */
-    'result': Array<ObjectTagData>;
+    'totalCount': number;
 }
 /**
  *
@@ -1007,10 +850,10 @@ export interface ListTags200Response {
 export interface ListUsersResponse {
     /**
      *
-     * @type {ListFolderObjects200ResponseMeta}
+     * @type {ListFoldersResponseMeta}
      * @memberof ListUsersResponse
      */
-    'meta': ListFolderObjects200ResponseMeta;
+    'meta': ListFoldersResponseMeta;
     /**
      *
      * @type {Array<UserData>}
@@ -1105,37 +948,6 @@ export interface MetadataUploadUrlsResponse {
 /**
  *
  * @export
- * @interface ObjectTagData
- */
-export interface ObjectTagData {
-    /**
-     *
-     * @type {string}
-     * @memberof ObjectTagData
-     */
-    'createdAt': string;
-    /**
-     *
-     * @type {string}
-     * @memberof ObjectTagData
-     */
-    'updatedAt': string;
-    /**
-     *
-     * @type {string}
-     * @memberof ObjectTagData
-     */
-    'id': string;
-    /**
-     *
-     * @type {string}
-     * @memberof ObjectTagData
-     */
-    'name': string;
-}
-/**
- *
- * @export
  * @interface OutputUploadUrlsResponse
  */
 export interface OutputUploadUrlsResponse {
@@ -1183,84 +995,6 @@ export interface RefreshFolderObjectS3MetadataRequest {
      */
     'eTag'?: string;
 }
-/**
- *
- * @export
- * @interface S3LocationData
- */
-export interface S3LocationData {
-    /**
-     *
-     * @type {string}
-     * @memberof S3LocationData
-     */
-    'createdAt': string;
-    /**
-     *
-     * @type {string}
-     * @memberof S3LocationData
-     */
-    'updatedAt': string;
-    /**
-     *
-     * @type {string}
-     * @memberof S3LocationData
-     */
-    'id': string;
-    /**
-     *
-     * @type {string}
-     * @memberof S3LocationData
-     */
-    'userId'?: string;
-    /**
-     *
-     * @type {string}
-     * @memberof S3LocationData
-     */
-    'providerType': S3LocationDataProviderTypeEnum;
-    /**
-     *
-     * @type {string}
-     * @memberof S3LocationData
-     */
-    'name': string;
-    /**
-     *
-     * @type {string}
-     * @memberof S3LocationData
-     */
-    'endpoint': string;
-    /**
-     *
-     * @type {string}
-     * @memberof S3LocationData
-     */
-    'region'?: string;
-    /**
-     *
-     * @type {string}
-     * @memberof S3LocationData
-     */
-    'bucket': string;
-    /**
-     *
-     * @type {string}
-     * @memberof S3LocationData
-     */
-    'prefix'?: string;
-    /**
-     *
-     * @type {string}
-     * @memberof S3LocationData
-     */
-    'accessKeyId': string;
-}
-export declare const S3LocationDataProviderTypeEnum: {
-    readonly Server: "SERVER";
-    readonly User: "USER";
-};
-export type S3LocationDataProviderTypeEnum = typeof S3LocationDataProviderTypeEnum[keyof typeof S3LocationDataProviderTypeEnum];
 /**
  *
  * @export
@@ -1462,7 +1196,7 @@ export interface Signup201Response {
      * @type {UserData}
      * @memberof Signup201Response
      */
-    'data': UserData;
+    'user': UserData;
 }
 /**
  *
@@ -1530,16 +1264,81 @@ export interface StartJob200ResponseInner {
 /**
  *
  * @export
- * @interface UpdateFolderSharePayload
+ * @interface StorageLocationData
  */
-export interface UpdateFolderSharePayload {
+export interface StorageLocationData {
     /**
      *
-     * @type {FolderShareConfig}
-     * @memberof UpdateFolderSharePayload
+     * @type {string}
+     * @memberof StorageLocationData
      */
-    'shareConfiguration': FolderShareConfig;
+    'createdAt': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationData
+     */
+    'updatedAt': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationData
+     */
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationData
+     */
+    'userId'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationData
+     */
+    'providerType': StorageLocationDataProviderTypeEnum;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationData
+     */
+    'name': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationData
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationData
+     */
+    'region'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationData
+     */
+    'bucket': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationData
+     */
+    'prefix'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationData
+     */
+    'accessKeyId': string;
 }
+export declare const StorageLocationDataProviderTypeEnum: {
+    readonly Server: "SERVER";
+    readonly User: "USER";
+};
+export type StorageLocationDataProviderTypeEnum = typeof StorageLocationDataProviderTypeEnum[keyof typeof StorageLocationDataProviderTypeEnum];
 /**
  *
  * @export
@@ -1631,13 +1430,25 @@ export interface UserData {
      * @type {string}
      * @memberof UserData
      */
-    'name'?: string;
+    'name': string | null;
     /**
      *
      * @type {string}
      * @memberof UserData
      */
-    'email'?: string;
+    'email': string | null;
+    /**
+     *
+     * @type {boolean}
+     * @memberof UserData
+     */
+    'emailVerified': boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof UserData
+     */
+    'isAdmin': boolean;
     /**
      *
      * @type {string}
@@ -1906,14 +1717,6 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
     /**
      *
      * @param {string} folderId
-     * @param {CreateFolderSharePayload} createFolderSharePayload
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createFolderShare: (folderId: string, createFolderSharePayload: CreateFolderSharePayload, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} folderId
      * @param {Array<SignedURLsRequest>} signedURLsRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1929,14 +1732,6 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
     /**
      *
      * @param {string} folderId
-     * @param {CreateTagRequest} createTagRequest
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createTag: (folderId: string, createTagRequest: CreateTagRequest, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} folderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -1949,22 +1744,6 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
      * @throws {RequiredError}
      */
     deleteFolderObject: (folderId: string, objectKey: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {string} shareId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    deleteFolderShare: (folderId: string, shareId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {string} tagId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    deleteTag: (folderId: string, tagId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {string} folderId
@@ -2006,13 +1785,12 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
      *
      * @param {string} folderId
      * @param {string} [search]
-     * @param {string} [tagId]
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolderObjects: (folderId: string, search?: string, tagId?: string, offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listFolderObjects: (folderId: string, search?: string, offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {string} folderId
@@ -2026,24 +1804,10 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
     listFolderOperations: (folderId: string, sort?: FolderOperationSort, status?: FolderOperationStatus, limit?: number, offset?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
-     * @param {string} folderId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listFolderShares: (folderId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     listFolders: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listTags: (folderId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {string} folderId
@@ -2060,42 +1824,6 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
      * @throws {RequiredError}
      */
     refreshFolderObjectS3Metadata: (folderId: string, objectKey: string, refreshFolderObjectS3MetadataRequest: RefreshFolderObjectS3MetadataRequest, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {string} objectKey
-     * @param {string} tagId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    tagObject: (folderId: string, objectKey: string, tagId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {string} objectKey
-     * @param {string} tagId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    untagObject: (folderId: string, objectKey: string, tagId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {string} shareId
-     * @param {UpdateFolderSharePayload} updateFolderSharePayload
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateFolderShare: (folderId: string, shareId: string, updateFolderSharePayload: UpdateFolderSharePayload, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {string} tagId
-     * @param {CreateTagRequest} createTagRequest
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateTag: (folderId: string, tagId: string, createTagRequest: CreateTagRequest, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * FoldersApi - functional programming interface
@@ -2109,14 +1837,6 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
      * @throws {RequiredError}
      */
     createFolder(createFolderRequest: CreateFolderRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateFolder200Response>>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {CreateFolderSharePayload} createFolderSharePayload
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createFolderShare(folderId: string, createFolderSharePayload: CreateFolderSharePayload, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderShareData>>;
     /**
      *
      * @param {string} folderId
@@ -2135,14 +1855,6 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
     /**
      *
      * @param {string} folderId
-     * @param {CreateTagRequest} createTagRequest
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createTag(folderId: string, createTagRequest: CreateTagRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ObjectTagData>>;
-    /**
-     *
-     * @param {string} folderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -2158,27 +1870,11 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
     /**
      *
      * @param {string} folderId
-     * @param {string} shareId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    deleteFolderShare(folderId: string, shareId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DeleteFolder200Response>>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {string} tagId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    deleteTag(folderId: string, tagId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DeleteFolder200Response>>;
-    /**
-     *
-     * @param {string} folderId
      * @param {FolderOperationRequestPayload} folderOperationRequestPayload
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    enqueueFolderOperation(folderId: string, folderOperationRequestPayload: FolderOperationRequestPayload, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>>;
+    enqueueFolderOperation(folderId: string, folderOperationRequestPayload: FolderOperationRequestPayload, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderOperationData>>;
     /**
      *
      * @param {string} folderId
@@ -2212,13 +1908,12 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
      *
      * @param {string} folderId
      * @param {string} [search]
-     * @param {string} [tagId]
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolderObjects(folderId: string, search?: string, tagId?: string, offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ListFolderObjects200Response>>;
+    listFolderObjects(folderId: string, search?: string, offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ListFolderObjects200Response>>;
     /**
      *
      * @param {string} folderId
@@ -2232,24 +1927,10 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
     listFolderOperations(folderId: string, sort?: FolderOperationSort, status?: FolderOperationStatus, limit?: number, offset?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderOperationsResponse>>;
     /**
      *
-     * @param {string} folderId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listFolderShares(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ListFolderShares200Response>>;
-    /**
-     *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     listFolders(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ListFoldersResponse>>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listTags(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ListTags200Response>>;
     /**
      *
      * @param {string} folderId
@@ -2266,42 +1947,6 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
      * @throws {RequiredError}
      */
     refreshFolderObjectS3Metadata(folderId: string, objectKey: string, refreshFolderObjectS3MetadataRequest: RefreshFolderObjectS3MetadataRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectData>>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {string} objectKey
-     * @param {string} tagId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    tagObject(folderId: string, objectKey: string, tagId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DeleteFolder200Response>>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {string} objectKey
-     * @param {string} tagId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    untagObject(folderId: string, objectKey: string, tagId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DeleteFolder200Response>>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {string} shareId
-     * @param {UpdateFolderSharePayload} updateFolderSharePayload
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateFolderShare(folderId: string, shareId: string, updateFolderSharePayload: UpdateFolderSharePayload, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderShareData>>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {string} tagId
-     * @param {CreateTagRequest} createTagRequest
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateTag(folderId: string, tagId: string, createTagRequest: CreateTagRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ObjectTagData>>;
 };
 /**
  * FoldersApi - factory interface
@@ -2315,13 +1960,6 @@ export declare const FoldersApiFactory: (configuration?: Configuration, basePath
      * @throws {RequiredError}
      */
     createFolder(requestParameters: FoldersApiCreateFolderRequest, options?: AxiosRequestConfig): AxiosPromise<CreateFolder200Response>;
-    /**
-     *
-     * @param {FoldersApiCreateFolderShareRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createFolderShare(requestParameters: FoldersApiCreateFolderShareRequest, options?: AxiosRequestConfig): AxiosPromise<FolderShareData>;
     /**
      *
      * @param {FoldersApiCreatePresignedUrlsRequest} requestParameters Request parameters.
@@ -2338,13 +1976,6 @@ export declare const FoldersApiFactory: (configuration?: Configuration, basePath
     createSocketAuthentication(requestParameters: FoldersApiCreateSocketAuthenticationRequest, options?: AxiosRequestConfig): AxiosPromise<CreateSocketAuthentication200Response>;
     /**
      *
-     * @param {FoldersApiCreateTagRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createTag(requestParameters: FoldersApiCreateTagRequest, options?: AxiosRequestConfig): AxiosPromise<ObjectTagData>;
-    /**
-     *
      * @param {FoldersApiDeleteFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2359,25 +1990,11 @@ export declare const FoldersApiFactory: (configuration?: Configuration, basePath
     deleteFolderObject(requestParameters: FoldersApiDeleteFolderObjectRequest, options?: AxiosRequestConfig): AxiosPromise<DeleteFolder200Response>;
     /**
      *
-     * @param {FoldersApiDeleteFolderShareRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    deleteFolderShare(requestParameters: FoldersApiDeleteFolderShareRequest, options?: AxiosRequestConfig): AxiosPromise<DeleteFolder200Response>;
-    /**
-     *
-     * @param {FoldersApiDeleteTagRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    deleteTag(requestParameters: FoldersApiDeleteTagRequest, options?: AxiosRequestConfig): AxiosPromise<DeleteFolder200Response>;
-    /**
-     *
      * @param {FoldersApiEnqueueFolderOperationRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    enqueueFolderOperation(requestParameters: FoldersApiEnqueueFolderOperationRequest, options?: AxiosRequestConfig): AxiosPromise<object>;
+    enqueueFolderOperation(requestParameters: FoldersApiEnqueueFolderOperationRequest, options?: AxiosRequestConfig): AxiosPromise<FolderOperationData>;
     /**
      *
      * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
@@ -2422,24 +2039,10 @@ export declare const FoldersApiFactory: (configuration?: Configuration, basePath
     listFolderOperations(requestParameters: FoldersApiListFolderOperationsRequest, options?: AxiosRequestConfig): AxiosPromise<FolderOperationsResponse>;
     /**
      *
-     * @param {FoldersApiListFolderSharesRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listFolderShares(requestParameters: FoldersApiListFolderSharesRequest, options?: AxiosRequestConfig): AxiosPromise<ListFolderShares200Response>;
-    /**
-     *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     listFolders(options?: AxiosRequestConfig): AxiosPromise<ListFoldersResponse>;
-    /**
-     *
-     * @param {FoldersApiListTagsRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listTags(requestParameters: FoldersApiListTagsRequest, options?: AxiosRequestConfig): AxiosPromise<ListTags200Response>;
     /**
      *
      * @param {FoldersApiRefreshFolderRequest} requestParameters Request parameters.
@@ -2454,34 +2057,6 @@ export declare const FoldersApiFactory: (configuration?: Configuration, basePath
      * @throws {RequiredError}
      */
     refreshFolderObjectS3Metadata(requestParameters: FoldersApiRefreshFolderObjectS3MetadataRequest, options?: AxiosRequestConfig): AxiosPromise<FolderObjectData>;
-    /**
-     *
-     * @param {FoldersApiTagObjectRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    tagObject(requestParameters: FoldersApiTagObjectRequest, options?: AxiosRequestConfig): AxiosPromise<DeleteFolder200Response>;
-    /**
-     *
-     * @param {FoldersApiUntagObjectRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    untagObject(requestParameters: FoldersApiUntagObjectRequest, options?: AxiosRequestConfig): AxiosPromise<DeleteFolder200Response>;
-    /**
-     *
-     * @param {FoldersApiUpdateFolderShareRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateFolderShare(requestParameters: FoldersApiUpdateFolderShareRequest, options?: AxiosRequestConfig): AxiosPromise<FolderShareData>;
-    /**
-     *
-     * @param {FoldersApiUpdateTagRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateTag(requestParameters: FoldersApiUpdateTagRequest, options?: AxiosRequestConfig): AxiosPromise<ObjectTagData>;
 };
 /**
  * Request parameters for createFolder operation in FoldersApi.
@@ -2495,25 +2070,6 @@ export interface FoldersApiCreateFolderRequest {
      * @memberof FoldersApiCreateFolder
      */
     readonly createFolderRequest: CreateFolderRequest;
-}
-/**
- * Request parameters for createFolderShare operation in FoldersApi.
- * @export
- * @interface FoldersApiCreateFolderShareRequest
- */
-export interface FoldersApiCreateFolderShareRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiCreateFolderShare
-     */
-    readonly folderId: string;
-    /**
-     *
-     * @type {CreateFolderSharePayload}
-     * @memberof FoldersApiCreateFolderShare
-     */
-    readonly createFolderSharePayload: CreateFolderSharePayload;
 }
 /**
  * Request parameters for createPresignedUrls operation in FoldersApi.
@@ -2548,25 +2104,6 @@ export interface FoldersApiCreateSocketAuthenticationRequest {
     readonly folderId: string;
 }
 /**
- * Request parameters for createTag operation in FoldersApi.
- * @export
- * @interface FoldersApiCreateTagRequest
- */
-export interface FoldersApiCreateTagRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiCreateTag
-     */
-    readonly folderId: string;
-    /**
-     *
-     * @type {CreateTagRequest}
-     * @memberof FoldersApiCreateTag
-     */
-    readonly createTagRequest: CreateTagRequest;
-}
-/**
  * Request parameters for deleteFolder operation in FoldersApi.
  * @export
  * @interface FoldersApiDeleteFolderRequest
@@ -2597,44 +2134,6 @@ export interface FoldersApiDeleteFolderObjectRequest {
      * @memberof FoldersApiDeleteFolderObject
      */
     readonly objectKey: string;
-}
-/**
- * Request parameters for deleteFolderShare operation in FoldersApi.
- * @export
- * @interface FoldersApiDeleteFolderShareRequest
- */
-export interface FoldersApiDeleteFolderShareRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiDeleteFolderShare
-     */
-    readonly folderId: string;
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiDeleteFolderShare
-     */
-    readonly shareId: string;
-}
-/**
- * Request parameters for deleteTag operation in FoldersApi.
- * @export
- * @interface FoldersApiDeleteTagRequest
- */
-export interface FoldersApiDeleteTagRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiDeleteTag
-     */
-    readonly folderId: string;
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiDeleteTag
-     */
-    readonly tagId: string;
 }
 /**
  * Request parameters for enqueueFolderOperation operation in FoldersApi.
@@ -2733,12 +2232,6 @@ export interface FoldersApiListFolderObjectsRequest {
     readonly search?: string;
     /**
      *
-     * @type {string}
-     * @memberof FoldersApiListFolderObjects
-     */
-    readonly tagId?: string;
-    /**
-     *
      * @type {number}
      * @memberof FoldersApiListFolderObjects
      */
@@ -2788,32 +2281,6 @@ export interface FoldersApiListFolderOperationsRequest {
     readonly offset?: number;
 }
 /**
- * Request parameters for listFolderShares operation in FoldersApi.
- * @export
- * @interface FoldersApiListFolderSharesRequest
- */
-export interface FoldersApiListFolderSharesRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiListFolderShares
-     */
-    readonly folderId: string;
-}
-/**
- * Request parameters for listTags operation in FoldersApi.
- * @export
- * @interface FoldersApiListTagsRequest
- */
-export interface FoldersApiListTagsRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiListTags
-     */
-    readonly folderId: string;
-}
-/**
  * Request parameters for refreshFolder operation in FoldersApi.
  * @export
  * @interface FoldersApiRefreshFolderRequest
@@ -2852,106 +2319,6 @@ export interface FoldersApiRefreshFolderObjectS3MetadataRequest {
     readonly refreshFolderObjectS3MetadataRequest: RefreshFolderObjectS3MetadataRequest;
 }
 /**
- * Request parameters for tagObject operation in FoldersApi.
- * @export
- * @interface FoldersApiTagObjectRequest
- */
-export interface FoldersApiTagObjectRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiTagObject
-     */
-    readonly folderId: string;
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiTagObject
-     */
-    readonly objectKey: string;
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiTagObject
-     */
-    readonly tagId: string;
-}
-/**
- * Request parameters for untagObject operation in FoldersApi.
- * @export
- * @interface FoldersApiUntagObjectRequest
- */
-export interface FoldersApiUntagObjectRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiUntagObject
-     */
-    readonly folderId: string;
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiUntagObject
-     */
-    readonly objectKey: string;
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiUntagObject
-     */
-    readonly tagId: string;
-}
-/**
- * Request parameters for updateFolderShare operation in FoldersApi.
- * @export
- * @interface FoldersApiUpdateFolderShareRequest
- */
-export interface FoldersApiUpdateFolderShareRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiUpdateFolderShare
-     */
-    readonly folderId: string;
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiUpdateFolderShare
-     */
-    readonly shareId: string;
-    /**
-     *
-     * @type {UpdateFolderSharePayload}
-     * @memberof FoldersApiUpdateFolderShare
-     */
-    readonly updateFolderSharePayload: UpdateFolderSharePayload;
-}
-/**
- * Request parameters for updateTag operation in FoldersApi.
- * @export
- * @interface FoldersApiUpdateTagRequest
- */
-export interface FoldersApiUpdateTagRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiUpdateTag
-     */
-    readonly folderId: string;
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiUpdateTag
-     */
-    readonly tagId: string;
-    /**
-     *
-     * @type {CreateTagRequest}
-     * @memberof FoldersApiUpdateTag
-     */
-    readonly createTagRequest: CreateTagRequest;
-}
-/**
  * FoldersApi - object-oriented interface
  * @export
  * @class FoldersApi
@@ -2966,14 +2333,6 @@ export declare class FoldersApi extends BaseAPI {
      * @memberof FoldersApi
      */
     createFolder(requestParameters: FoldersApiCreateFolderRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CreateFolder200Response, any>>;
-    /**
-     *
-     * @param {FoldersApiCreateFolderShareRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FoldersApi
-     */
-    createFolderShare(requestParameters: FoldersApiCreateFolderShareRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderShareData, any>>;
     /**
      *
      * @param {FoldersApiCreatePresignedUrlsRequest} requestParameters Request parameters.
@@ -2992,14 +2351,6 @@ export declare class FoldersApi extends BaseAPI {
     createSocketAuthentication(requestParameters: FoldersApiCreateSocketAuthenticationRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CreateSocketAuthentication200Response, any>>;
     /**
      *
-     * @param {FoldersApiCreateTagRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FoldersApi
-     */
-    createTag(requestParameters: FoldersApiCreateTagRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ObjectTagData, any>>;
-    /**
-     *
      * @param {FoldersApiDeleteFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3016,28 +2367,12 @@ export declare class FoldersApi extends BaseAPI {
     deleteFolderObject(requestParameters: FoldersApiDeleteFolderObjectRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<DeleteFolder200Response, any>>;
     /**
      *
-     * @param {FoldersApiDeleteFolderShareRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FoldersApi
-     */
-    deleteFolderShare(requestParameters: FoldersApiDeleteFolderShareRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<DeleteFolder200Response, any>>;
-    /**
-     *
-     * @param {FoldersApiDeleteTagRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FoldersApi
-     */
-    deleteTag(requestParameters: FoldersApiDeleteTagRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<DeleteFolder200Response, any>>;
-    /**
-     *
      * @param {FoldersApiEnqueueFolderOperationRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    enqueueFolderOperation(requestParameters: FoldersApiEnqueueFolderOperationRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+    enqueueFolderOperation(requestParameters: FoldersApiEnqueueFolderOperationRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderOperationData, any>>;
     /**
      *
      * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
@@ -3088,27 +2423,11 @@ export declare class FoldersApi extends BaseAPI {
     listFolderOperations(requestParameters: FoldersApiListFolderOperationsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderOperationsResponse, any>>;
     /**
      *
-     * @param {FoldersApiListFolderSharesRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FoldersApi
-     */
-    listFolderShares(requestParameters: FoldersApiListFolderSharesRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ListFolderShares200Response, any>>;
-    /**
-     *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
     listFolders(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ListFoldersResponse, any>>;
-    /**
-     *
-     * @param {FoldersApiListTagsRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FoldersApi
-     */
-    listTags(requestParameters: FoldersApiListTagsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ListTags200Response, any>>;
     /**
      *
      * @param {FoldersApiRefreshFolderRequest} requestParameters Request parameters.
@@ -3125,38 +2444,6 @@ export declare class FoldersApi extends BaseAPI {
      * @memberof FoldersApi
      */
     refreshFolderObjectS3Metadata(requestParameters: FoldersApiRefreshFolderObjectS3MetadataRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderObjectData, any>>;
-    /**
-     *
-     * @param {FoldersApiTagObjectRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FoldersApi
-     */
-    tagObject(requestParameters: FoldersApiTagObjectRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<DeleteFolder200Response, any>>;
-    /**
-     *
-     * @param {FoldersApiUntagObjectRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FoldersApi
-     */
-    untagObject(requestParameters: FoldersApiUntagObjectRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<DeleteFolder200Response, any>>;
-    /**
-     *
-     * @param {FoldersApiUpdateFolderShareRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FoldersApi
-     */
-    updateFolderShare(requestParameters: FoldersApiUpdateFolderShareRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderShareData, any>>;
-    /**
-     *
-     * @param {FoldersApiUpdateTagRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FoldersApi
-     */
-    updateTag(requestParameters: FoldersApiUpdateTagRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ObjectTagData, any>>;
 }
 /**
  * ServerApi - axios parameter creator
@@ -3262,7 +2549,7 @@ export declare const ServerApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createUser(createUserData: CreateUserData, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateUser200Response>>;
+    createUser(createUserData: CreateUserData, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Signup201Response>>;
     /**
      *
      * @param {ServerLocationType} locationType
@@ -3326,7 +2613,7 @@ export declare const ServerApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    updateUser(userId: string, updateUserData: UpdateUserData, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateUser200Response>>;
+    updateUser(userId: string, updateUserData: UpdateUserData, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Signup201Response>>;
 };
 /**
  * ServerApi - factory interface
@@ -3346,7 +2633,7 @@ export declare const ServerApiFactory: (configuration?: Configuration, basePath?
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createUser(requestParameters: ServerApiCreateUserRequest, options?: AxiosRequestConfig): AxiosPromise<CreateUser200Response>;
+    createUser(requestParameters: ServerApiCreateUserRequest, options?: AxiosRequestConfig): AxiosPromise<Signup201Response>;
     /**
      *
      * @param {ServerApiDeleteServerLocationRequest} requestParameters Request parameters.
@@ -3407,7 +2694,7 @@ export declare const ServerApiFactory: (configuration?: Configuration, basePath?
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    updateUser(requestParameters: ServerApiUpdateUserRequest, options?: AxiosRequestConfig): AxiosPromise<CreateUser200Response>;
+    updateUser(requestParameters: ServerApiUpdateUserRequest, options?: AxiosRequestConfig): AxiosPromise<Signup201Response>;
 };
 /**
  * Request parameters for addServerLocation operation in ServerApi.
@@ -3572,7 +2859,7 @@ export declare class ServerApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof ServerApi
      */
-    createUser(requestParameters: ServerApiCreateUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CreateUser200Response, any>>;
+    createUser(requestParameters: ServerApiCreateUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<Signup201Response, any>>;
     /**
      *
      * @param {ServerApiDeleteServerLocationRequest} requestParameters Request parameters.
@@ -3642,7 +2929,7 @@ export declare class ServerApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof ServerApi
      */
-    updateUser(requestParameters: ServerApiUpdateUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CreateUser200Response, any>>;
+    updateUser(requestParameters: ServerApiUpdateUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<Signup201Response, any>>;
 }
 /**
  * ViewerApi - axios parameter creator

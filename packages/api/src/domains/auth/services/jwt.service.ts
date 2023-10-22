@@ -1,9 +1,12 @@
+import { eq } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
 import * as r from 'runtypes'
 import { singleton } from 'tsyringe'
 import { v4 as uuidV4 } from 'uuid'
 
 import { EnvConfigProvider } from '../../../config/env-config.provider'
+import { OrmService } from '../../../orm/orm.service'
+import { usersTable } from '../../user/entities/user.entity'
 import { AuthDurationSeconds } from '../constants/duration.constants'
 import { PlatformRole, PlatformRoleType } from '../constants/role.constants'
 import type { AuthScope } from '../constants/scope.constants'
@@ -14,6 +17,7 @@ import {
   AuthTokenInvalidError,
   AuthTokenParseError,
 } from '../errors/auth-token.error'
+import { SessionInvalidError } from '../errors/session.error'
 
 const ALGORITHM = 'HS256'
 const RSA_ALGORITHM = 'RS512'
@@ -78,7 +82,10 @@ export class AccessTokenJWT {
 
 @singleton()
 export class JWTService {
-  constructor(private readonly config: EnvConfigProvider) {}
+  constructor(
+    private readonly config: EnvConfigProvider,
+    private readonly ormService: OrmService,
+  ) {}
 
   createFolderSocketAccessToken(userId: string, folderId: string): string {
     const { jwtSecret } = this.config.getAuthConfig()
@@ -100,18 +107,26 @@ export class JWTService {
     return token
   }
 
-  createAccessTokenFromSession(session: Session): string {
+  async createAccessTokenFromSession(session: Session): Promise<string> {
     const { jwtSecret } = this.config.getAuthConfig()
 
     const payload: AccessTokenJWT = {
       aud: 'access_token',
       jti: `${session.id}:${uuidV4()}`,
-      scp: session.scopes,
-      sub: session.user.id,
+      scp: session.scopes ?? [],
+      sub: session.userId,
     }
 
-    if (session.user.role !== PlatformRole.User) {
-      payload.role = session.user.role
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.id, session.userId),
+    })
+
+    if (!user) {
+      throw new SessionInvalidError()
+    }
+
+    if (user.role !== PlatformRole.User) {
+      payload.role = user.role
     }
 
     const token = jwt.sign(payload, jwtSecret, {

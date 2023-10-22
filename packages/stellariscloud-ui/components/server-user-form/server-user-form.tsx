@@ -10,6 +10,17 @@ import { Input } from '../../design-system/input/input'
 import { useFormState } from '../../utils/forms'
 import { UserPermissions } from './user-permissions'
 
+export interface UserInput {
+  name?: string
+  username?: string
+  password?: string
+  id?: string
+  email?: string
+  permissions?: string[]
+  isAdmin: boolean
+  emailVerified: boolean
+}
+
 export interface UserFormValues {
   id: string
   name: string
@@ -17,13 +28,22 @@ export interface UserFormValues {
   email: string
   password: string
   emailVerified: boolean
+  isAdmin: boolean
   permissions: string[]
-  roles: string[]
 }
 
 export const ServerUserForm = ({
   onChange,
-  value = {},
+  value = {
+    id: '',
+    username: '',
+    email: '',
+    password: '',
+    name: '',
+    emailVerified: false,
+    permissions: [],
+    isAdmin: false,
+  },
 }: {
   onChange: (updatedFormValue: {
     valid: boolean
@@ -40,8 +60,8 @@ export const ServerUserForm = ({
         ? { validator: r.String.optional() }
         : { validator: r.String },
       emailVerified: { validator: r.Boolean },
+      isAdmin: { validator: r.Boolean },
       permissions: { validator: r.Array(r.String) },
-      roles: { validator: r.Array(r.String) },
     },
     value,
     onChange,

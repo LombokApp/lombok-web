@@ -1,35 +1,12 @@
-import {
-  Entity,
-  EntityRepositoryType,
-  JsonType,
-  OptionalProps,
-  PrimaryKey,
-  Property,
-} from '@mikro-orm/core'
+import { jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
-import { BaseEntity } from '../../../entities/base.entity'
-import type { ServerConfigurationData } from '../transfer-objects/server-configuration.dto'
-import { ServerConfigurationRepository } from './server-configuration.repository'
-
-@Entity({
-  tableName: 'server_configuration',
-  customRepository: () => ServerConfigurationRepository,
+export const serverConfigurationsTable = pgTable('server_configurations', {
+  key: text('key').primaryKey(),
+  value: jsonb('value').$type<any>(),
+  createdAt: timestamp('createdAt').notNull(),
+  updatedAt: timestamp('updatedAt').notNull(),
 })
-export class ServerConfiguration extends BaseEntity<ServerConfiguration> {
-  [EntityRepositoryType]?: ServerConfigurationRepository;
-  [OptionalProps]?: 'updatedAt' | 'createdAt'
 
-  @PrimaryKey({ columnType: 'TEXT' })
-  key!: string
-
-  @Property({ customType: new JsonType(), nullable: false })
-  value!: any
-
-  toServerConfigurationData(): ServerConfigurationData {
-    return this.toObject()
-  }
-
-  toJSON() {
-    return this.toServerConfigurationData()
-  }
-}
+export type ServerConfiguration = typeof serverConfigurationsTable.$inferSelect
+export type NewServerConfiguration =
+  typeof serverConfigurationsTable.$inferInsert

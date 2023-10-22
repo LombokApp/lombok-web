@@ -5,8 +5,10 @@ import type { PlatformRole } from '../../auth/constants/role.constants'
 export interface UserData extends TimestampData {
   readonly id: string
   readonly role: PlatformRole
-  name?: string
-  email?: EmailFormat
+  name: string | null
+  email: EmailFormat | null
+  emailVerified: boolean
+  isAdmin: boolean
   username?: UsernameFormat
   permissions: string[]
 }

@@ -1,16 +1,18 @@
 import { FolderPushMessage } from '@stellariscloud/types'
-import { parseSort } from '@stellariscloud/utils'
-import type { FolderOperationNameDataTypes } from '@stellariscloud/workers'
+import type {
+  FolderOperationName,
+  FolderOperationNameDataTypes,
+} from '@stellariscloud/workers'
 import {
   FOLDER_OPERATION_VALIDATOR_TYPES,
   inputOutputObjectsFromOperationData,
 } from '@stellariscloud/workers'
+import { and, eq, isNotNull, isNull, sql } from 'drizzle-orm'
 import * as r from 'runtypes'
 import { Lifecycle, scoped } from 'tsyringe'
 import { v4 as uuidV4 } from 'uuid'
 import type { Logger } from 'winston'
 
-import { EnvConfigProvider } from '../../../config/env-config.provider'
 import type { FolderOperationRequestPayload } from '../../../controllers/folders.controller'
 import type {
   ContentAttibutesPayload,
@@ -19,21 +21,31 @@ import type {
   CreateOutputUploadUrlsPayload,
   MetadataUploadUrlsResponse,
 } from '../../../controllers/worker.controller'
+import { OrmService } from '../../../orm/orm.service'
 import { LoggingService } from '../../../services/logging.service'
 import { QueueService } from '../../../services/queue.service'
 import { S3Service } from '../../../services/s3.service'
 import { SocketService } from '../../../services/socket.service'
+import { parseSort } from '../../../util/sort.util'
 import type { Actor } from '../../auth/actor'
-import type { Folder } from '../../folder/entities/folder.entity'
-import { FolderRepository } from '../../folder/entities/folder.repository'
+import type { FolderWithoutLocations } from '../../folder/entities/folder.entity'
+import { foldersTable } from '../../folder/entities/folder.entity'
 import type { FolderObject } from '../../folder/entities/folder-object.entity'
-import { FolderObjectRepository } from '../../folder/entities/folder-object.repository'
+import { folderObjectsTable } from '../../folder/entities/folder-object.entity'
+import {
+  FolderNotFoundError,
+  FolderObjectNotFoundError,
+} from '../../folder/errors/folder.error'
 import { SignedURLsRequestMethod } from '../../folder/services/folder.service'
-import type { FolderOperationSort } from '../constants/folder-operation.constants'
-import { FolderOperationStatus } from '../constants/folder-operation.constants'
+import { storageLocationsTable } from '../../storage-location/entities/storage-location.entity'
+import { StorageLocationNotFoundError } from '../../storage-location/errors/storage-location.error'
+import {
+  FolderOperationSort,
+  FolderOperationStatus,
+} from '../constants/folder-operation.constants'
 import type { FolderOperation } from '../entities/folder-operation.entity'
-import { FolderOperationRepository } from '../entities/folder-operation.repository'
-import { OperationRelationType } from '../entities/folder-operation-object.entity'
+import { folderOperationsTable } from '../entities/folder-operation.entity'
+import { folderOperationObjectsTable } from '../entities/folder-operation-object.entity'
 import {
   FolderOperationInvalidError,
   FolderOperationNotFoundError,
@@ -45,13 +57,10 @@ export class FolderOperationService {
 
   constructor(
     private readonly loggingService: LoggingService,
-    private readonly folderOperationRepository: FolderOperationRepository,
     private readonly socketService: SocketService,
-    private readonly folderRepository: FolderRepository,
-    private readonly folderObjectRepository: FolderObjectRepository,
     private readonly queueService: QueueService,
     private readonly s3Service: S3Service,
-    private readonly configProvider: EnvConfigProvider,
+    private readonly ormService: OrmService,
   ) {
     this.logger = this.loggingService.logger
   }
@@ -77,9 +86,17 @@ export class FolderOperationService {
       // Validate user has permission to access the folders described in inputObjects and outputObjects
       const _folders = await Promise.all(
         [...inputObjects, ...outputObjects].map((o) =>
-          this.folderRepository.getFolderAsUser(userId, o.folderId),
+          this.ormService.db.query.foldersTable.findFirst({
+            where: and(
+              eq(foldersTable.ownerId, userId),
+              eq(foldersTable.id, o.folderId),
+            ),
+          }),
         ),
       )
+      if (_folders.find((f) => f === undefined)) {
+        throw new FolderNotFoundError()
+      }
 
       // Load all input objects so they can be attached to the operation entity
       const inputObjectsWithObject = inputObjects.filter(
@@ -90,48 +107,66 @@ export class FolderOperationService {
       }[]
 
       const inputObjectEntities: FolderObject[] = await Promise.all(
-        inputObjectsWithObject.map((o) =>
-          this.folderObjectRepository.findOneOrFail({
-            objectKey: o.objectKey,
-            folder: o.folderId,
-          }),
-        ),
+        inputObjectsWithObject.map((o) => {
+          return this.ormService.db.query.folderObjectsTable
+            .findFirst({
+              where: and(
+                eq(folderObjectsTable.objectKey, o.objectKey),
+                eq(folderObjectsTable.folderId, o.folderId),
+              ),
+            })
+            .then((folderObject) => {
+              if (!folderObject) {
+                throw new FolderObjectNotFoundError()
+              }
+              return folderObject
+            })
+        }),
       )
 
       if (inputObjectEntities.length !== inputObjectsWithObject.length) {
         throw new FolderOperationInvalidError()
       }
 
-      const createdOperation = this.folderOperationRepository.create({
-        id: uuidV4(),
-        operationName: operation.operationName,
-        operationData: opData,
-        started: false,
-        completed: false,
-        folder: { id: folderId },
-        relatedObjects: inputObjectEntities.map((inputObject) => ({
-          operationRelationType: OperationRelationType.INPUT,
-          folderId,
-          folderObject: inputObject.id,
-          objectKey: inputObject.objectKey,
-        })),
-      })
+      const now = new Date()
 
-      // Persist the new operation
-      await this.folderOperationRepository
-        .getEntityManager()
-        .persistAndFlush(createdOperation)
+      const [folderOperation] = await this.ormService.db
+        .insert(folderOperationsTable)
+        .values({
+          id: uuidV4(),
+          operationName: operation.operationName,
+          operationData: opData,
+          started: false,
+          completed: false,
+          folderId,
+          createdAt: now,
+          updatedAt: now,
+        })
+        .returning()
+
+      await this.ormService.db.insert(folderOperationObjectsTable).values(
+        inputObjectEntities.map((inputObject) => ({
+          id: uuidV4(),
+          operationRelationType: 'INPUT',
+          folderId,
+          operationId: folderOperation.id,
+          folderObjectId: inputObject.id,
+          objectKey: inputObject.objectKey,
+          createdAt: now,
+          updatedAt: now,
+        })),
+      )
 
       // Queue the operation
       await this.queueService.add(
         operation.operationName,
         opData as { [key: string]: any },
         {
-          jobId: createdOperation.id,
+          jobId: folderOperation.id,
         },
       )
 
-      return createdOperation
+      return folderOperation
     } catch (e) {
       if (e instanceof r.ValidationError) {
         throw new FolderOperationInvalidError()
@@ -151,17 +186,22 @@ export class FolderOperationService {
       url: string
     }[]
   > {
-    const operation = await this.folderOperationRepository.findOneOrFail({
-      id: operationId,
-    })
+    const operation =
+      await this.ormService.db.query.folderOperationsTable.findFirst({
+        where: eq(folderOperationsTable.id, operationId),
+      })
+
+    if (!operation) {
+      throw new FolderOperationNotFoundError()
+    }
 
     if (operation.started) {
       throw new FolderOperationInvalidError()
     }
-
+    const operationName = operation.operationName as FolderOperationName
     const inputObjects = inputOutputObjectsFromOperationData(
-      operation.operationName,
-      operation.operationData as FolderOperationNameDataTypes[typeof operation.operationName],
+      operationName,
+      operation.operationData as FolderOperationNameDataTypes[typeof operationName],
     )['inputObjects'].filter((inputObject) => inputObject.objectKey) as {
       folderId: string
       objectKey: string
@@ -175,7 +215,11 @@ export class FolderOperationService {
       : []
 
     operation.started = true
-    await this.folderOperationRepository.getEntityManager().flush()
+
+    await this.ormService.db
+      .update(folderOperationsTable)
+      .set({ started: true })
+      .where(eq(folderOperationsTable.id, operationId))
 
     return signedUrls
   }
@@ -184,9 +228,14 @@ export class FolderOperationService {
     operationId: string,
     payload: CreateOutputUploadUrlsPayload,
   ) {
-    const operation = await this.folderOperationRepository.findOneOrFail({
-      id: operationId,
-    })
+    const operation =
+      await this.ormService.db.query.folderOperationsTable.findFirst({
+        where: eq(folderOperationsTable.id, operationId),
+      })
+
+    if (!operation) {
+      throw new FolderOperationNotFoundError()
+    }
 
     if (!operation.started || operation.completed) {
       throw new FolderOperationInvalidError()
@@ -206,15 +255,21 @@ export class FolderOperationService {
     operationId: string,
     payload: CreateMetadataUploadUrlsPayload,
   ) {
-    const operation = await this.folderOperationRepository.findOneOrFail({
-      id: operationId,
-    })
+    const operation =
+      await this.ormService.db.query.folderOperationsTable.findFirst({
+        where: eq(folderOperationsTable.id, operationId),
+      })
+
+    if (!operation) {
+      throw new FolderOperationNotFoundError()
+    }
 
     if (!operation.started || operation.completed) {
       throw new FolderOperationInvalidError()
     }
 
-    const folders: { [folderId: string]: Folder | undefined } = {}
+    const folders: { [folderId: string]: FolderWithoutLocations | undefined } =
+      {}
 
     const metadataUploadUrls: MetadataUploadUrlsResponse[] = []
 
@@ -222,30 +277,40 @@ export class FolderOperationService {
     for (const metadata of payload.metadataFiles) {
       const folder =
         folders[metadata.folderId] ??
-        (await this.folderRepository.findOneOrFail(
-          { id: metadata.folderId },
-          { populate: ['contentLocation', 'metadataLocation'] },
-        ))
+        (await this.ormService.db.query.foldersTable.findFirst({
+          where: eq(folderObjectsTable.id, metadata.folderId),
+        }))
       folders[metadata.folderId] = folder
+
+      if (!folder) {
+        throw new FolderNotFoundError()
+      }
+
+      const metadataLocation =
+        await this.ormService.db.query.storageLocationsTable.findFirst({
+          where: eq(storageLocationsTable.id, folder.metadataLocationId),
+        })
+
+      if (!metadataLocation) {
+        throw new StorageLocationNotFoundError()
+      }
 
       const objectKeys = Object.keys(metadata.metadataHashes).map(
         (metadataFileKey) =>
-          `${
-            folder.metadataLocation.prefix ? folder.metadataLocation.prefix : ''
-          }${folder.id}/${metadata.objectKey}/${
-            metadata.metadataHashes[metadataFileKey]
-          }`,
+          `${metadataLocation.prefix ? metadataLocation.prefix : ''}${
+            folder.id
+          }/${metadata.objectKey}/${metadata.metadataHashes[metadataFileKey]}`,
       )
       const presignedUploadUrls = this.s3Service.createS3PresignedUrls(
         objectKeys.map((k) => ({
           method: SignedURLsRequestMethod.PUT,
           objectKey: k,
-          accessKeyId: folder.metadataLocation.accessKeyId,
-          secretAccessKey: folder.metadataLocation.secretAccessKey,
-          bucket: folder.metadataLocation.bucket,
-          endpoint: folder.metadataLocation.endpoint,
+          accessKeyId: metadataLocation.accessKeyId,
+          secretAccessKey: metadataLocation.secretAccessKey,
+          bucket: metadataLocation.bucket,
+          endpoint: metadataLocation.endpoint,
           expirySeconds: 86400, // TODO: control this somewhere
-          region: folder.metadataLocation.region ?? 'auto',
+          region: metadataLocation.region,
         })),
       )
 
@@ -302,11 +367,11 @@ export class FolderOperationService {
     }[] = []
 
     for (const folderId of folderIds) {
-      const folder = await this.folderRepository.findOne(
+      const folder = await this.ormService.db.query.foldersTable.findFirst(
         {
-          id: folderId,
+          where: eq(foldersTable.id, folderId),
         },
-        { populate: ['contentLocation', 'metadataLocation'] },
+        // { populate: ['contentLocation', 'metadataLocation'] },
       )
       if (!folder) {
         throw new FolderOperationInvalidError()
@@ -317,18 +382,27 @@ export class FolderOperationService {
         continue
       }
 
+      const contentLocation =
+        await this.ormService.db.query.storageLocationsTable.findFirst({
+          where: eq(storageLocationsTable.id, folder.metadataLocationId),
+        })
+
+      if (!contentLocation) {
+        throw new StorageLocationNotFoundError()
+      }
+
       signedUrls = signedUrls.concat(
         this.s3Service
           .createS3PresignedUrls(
             folderRequests.map((objectKey) => ({
               method: op,
               objectKey,
-              accessKeyId: folder.contentLocation.accessKeyId,
-              secretAccessKey: folder.contentLocation.secretAccessKey,
-              bucket: folder.contentLocation.bucket,
-              endpoint: folder.contentLocation.endpoint,
+              accessKeyId: contentLocation.accessKeyId,
+              secretAccessKey: contentLocation.secretAccessKey,
+              bucket: contentLocation.bucket,
+              endpoint: contentLocation.endpoint,
               expirySeconds: 3600,
-              region: folder.contentLocation.region ?? 'auto',
+              region: contentLocation.region,
             })),
           )
           .map((url, i) => ({
@@ -349,79 +423,114 @@ export class FolderOperationService {
 
   async updateAttributes(payload: ContentAttibutesPayload[]): Promise<void> {
     for (const { folderId, objectKey, hash, attributes } of payload) {
-      const folderObject = await this.folderObjectRepository.findOneOrFail({
-        folder: { id: folderId },
-        objectKey,
-      })
+      const folderObject =
+        await this.ormService.db.query.folderObjectsTable.findFirst({
+          where: and(
+            eq(folderObjectsTable.folderId, folderId),
+            eq(folderObjectsTable.objectKey, objectKey),
+          ),
+        })
+      if (!folderObject) {
+        throw new FolderObjectNotFoundError()
+      }
 
-      folderObject.hash = hash
-      folderObject.contentAttributes[hash] = attributes
+      await this.ormService.db
+        .update(folderObjectsTable)
+        .set({
+          hash,
+          contentAttributes: {
+            ...folderObject.contentAttributes,
+            [hash]: { ...folderObject.contentAttributes[hash], ...attributes },
+          },
+        })
+        .where(
+          and(
+            eq(folderObjectsTable.folderId, folderId),
+            eq(folderObjectsTable.objectKey, objectKey),
+          ),
+        )
       this.socketService.sendToFolderRoom(
         folderId,
         FolderPushMessage.OBJECTS_UPDATED,
         folderObject,
       )
     }
-
-    await this.folderObjectRepository.getEntityManager().flush()
   }
 
   async updateMetadata(payload: ContentMetadataPayload[]): Promise<void> {
     for (const { folderId, objectKey, hash, metadata } of payload) {
-      const folderObject = await this.folderObjectRepository.findOneOrFail({
-        folder: { id: folderId },
-        objectKey,
-      })
+      const folderObject =
+        await this.ormService.db.query.folderObjectsTable.findFirst({
+          where: and(
+            eq(folderObjectsTable.folderId, folderId),
+            eq(folderObjectsTable.objectKey, objectKey),
+          ),
+        })
 
-      folderObject.hash = hash
-      folderObject.contentMetadata[hash] = {
-        ...(folderObject.contentMetadata[hash] ?? {}),
-        ...metadata,
+      if (!folderObject) {
+        throw new FolderObjectNotFoundError()
       }
+
+      const newContentMetadata = {
+        ...folderObject.contentMetadata,
+        [hash]: { ...folderObject.contentMetadata[hash], ...metadata },
+      }
+
+      await this.ormService.db
+        .update(folderObjectsTable)
+        .set({
+          hash,
+          contentMetadata: newContentMetadata,
+        })
+        .where(eq(folderObjectsTable.id, folderObject.id))
+
       this.socketService.sendToFolderRoom(
         folderId,
         FolderPushMessage.OBJECT_UPDATED,
         folderObject,
       )
     }
-
-    await this.folderObjectRepository.getEntityManager().flush()
   }
 
   async registerOperationComplete(operationId: string): Promise<void> {
-    const operation = await this.folderOperationRepository.findOneOrFail({
-      id: operationId,
-    })
+    const operation =
+      await this.ormService.db.query.folderOperationsTable.findFirst({
+        where: eq(folderOperationsTable.id, operationId),
+      })
+
+    if (!operation) {
+      throw new FolderOperationNotFoundError()
+    }
 
     if (!operation.started || operation.completed) {
       throw new FolderOperationInvalidError()
     }
 
-    operation.completed = true
-    await this.folderOperationRepository.getEntityManager().flush()
+    await this.ormService.db
+      .update(folderOperationsTable)
+      .set({ completed: true })
+      .where(eq(folderOperationsTable.id, operationId))
   }
 
-  async getFolderOperationAsUser({
-    userId,
-    folderId,
-    folderOperationId,
-  }: {
-    userId: string
-    folderId: string
-    folderOperationId: string
-  }) {
-    const folderOperation = await this.folderOperationRepository.findOne({
-      id: folderOperationId,
-      folder: {
-        id: folderId,
-        $or: [{ owner: userId }, { shares: { user: userId } }],
-      },
-    })
-    if (!folderOperation) {
-      throw new FolderOperationNotFoundError()
-    }
-    return folderOperation
-  }
+  // async getFolderOperationAsUser({
+  //   userId,
+  //   folderId,
+  //   folderOperationId,
+  // }: {
+  //   userId: string
+  //   folderId: string
+  //   folderOperationId: string
+  // }) {
+  //   const folderOperation =
+  //     await this.ormService.db.query.folderOperationTable.findFirst({
+  //       where: eq(folderOperationTable.id, folderOperationId),
+  //     })
+
+  //   if (!folderOperation) {
+  //     throw new FolderOperationNotFoundError()
+  //   }
+  //   return folderOperation
+  // }
 
   async listFolderOperationsAsUser(
     actor: Actor,
@@ -429,7 +538,7 @@ export class FolderOperationService {
       folderId,
       offset,
       limit,
-      sort,
+      sort = FolderOperationSort.CreatedAtDesc,
       status,
     }: {
       folderId: string
@@ -439,34 +548,51 @@ export class FolderOperationService {
       status?: FolderOperationStatus
     },
   ) {
-    const _folder = this.folderRepository.getFolderAsUser(
-      actor.user.id,
-      folderId,
-    )
-    const [folderOperations, folderOperationsCount] =
-      await this.folderOperationRepository.findAndCount(
-        {
-          folder: {
-            id: folderId,
-          },
-          ...(status === FolderOperationStatus.Pending
-            ? { started: false }
-            : status === FolderOperationStatus.Failed
-            ? { error: { $ne: null } }
-            : status === FolderOperationStatus.Complete
-            ? { completed: true, error: null }
-            : {}),
-        },
-        {
-          offset: offset ?? 0,
-          limit: limit ?? 25,
-          ...(sort ? { orderBy: parseSort(sort) } : {}),
-        },
-      )
+    const _folder = await this.ormService.db.query.foldersTable.findFirst({
+      where: and(
+        eq(foldersTable.ownerId, actor.user.id),
+        eq(foldersTable.id, folderId),
+      ),
+    })
+
+    if (!_folder) {
+      throw new FolderNotFoundError()
+    }
+
+    const folderOperations =
+      await this.ormService.db.query.folderOperationsTable.findMany({
+        where: and(
+          ...[eq(folderOperationsTable.folderId, folderId)]
+            .concat(
+              status === FolderOperationStatus.Pending
+                ? eq(folderOperationsTable.started, false)
+                : [],
+            )
+            .concat(
+              status === FolderOperationStatus.Failed
+                ? isNotNull(folderOperationsTable.error)
+                : [],
+            )
+            .concat(
+              status === FolderOperationStatus.Complete
+                ? [
+                    eq(folderOperationsTable.completed, true),
+                    isNull(folderOperationsTable.error),
+                  ]
+                : [],
+            ),
+        ),
+        limit,
+        offset,
+        orderBy: parseSort(folderOperationsTable, sort),
+      })
+    const [folderOperationsCount] = await this.ormService.db
+      .select({ count: sql<string | null>`count(*)` })
+      .from(folderOperationsTable)
 
     return {
       result: folderOperations,
-      meta: { totalCount: folderOperationsCount },
+      meta: { totalCount: parseInt(folderOperationsCount.count ?? '0', 10) },
     }
   }
 }

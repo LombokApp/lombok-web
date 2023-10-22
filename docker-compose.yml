@@ -24,6 +24,7 @@ services:
     # command: ['npm', '---workspace', '@stellariscloud/worker', 'run', 'dev']
     command: ['yarn', 'workspace', '@stellariscloud/worker', 'dev']
   api:
+    container_name: 'stellariscloud-api'
     build:
       context: .
       dockerfile: docker/api.Dockerfile
@@ -33,8 +34,6 @@ services:
     env_file: packages/api/env/env.${CMD_ENV:-dev}
     environment:
       WAIT_HOSTS: db:${DB_PORT:-0}, redis:${REDIS_PORT:-0}
-      REDIS_HOST: redis
-      DB_HOST: db
     deploy:
       replicas: 1
     command: ['yarn', 'workspace', '@stellariscloud/api', 'dev']
