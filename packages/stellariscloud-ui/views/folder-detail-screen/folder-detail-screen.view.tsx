@@ -1,5 +1,6 @@
 import { ArrowPathIcon, TrashIcon, UsersIcon } from '@heroicons/react/20/solid'
 import {
+  ArrowUpOnSquareIcon,
   DocumentTextIcon,
   FolderIcon,
   MapPinIcon,
@@ -31,6 +32,7 @@ import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder
 import { ConfirmRefreshFolderModal } from '../../components/confirm-refresh-folder-modal/confirm-refresh-folder-modal'
 import { FolderEmptyState } from '../../components/folder-empty-state/folder-empty-state'
 import { FolderScroll } from '../../components/folder-scroll/folder-scroll'
+import { UploadModal } from '../../components/upload-modal/upload-modal'
 import { useFolderContext } from '../../contexts/folder.context'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { Button } from '../../design-system/button/button'
@@ -587,6 +589,7 @@ export const FolderDetailScreen = () => {
 
   const [refreshFolderConfirmationOpen, setRefreshFolderConfirmationOpen] =
     React.useState(false)
+  const [uploadOpen, setUploadOpen] = React.useState(false)
   const [forgetFolderConfirmationOpen, setForgetFolderConfirmationOpen] =
     React.useState(false)
 
@@ -634,6 +637,7 @@ export const FolderDetailScreen = () => {
     recalculateLocalStorageFolderSizes,
     purgeLocalStorageForFolder,
     getData,
+    uploadFile,
   } = useLocalFileCacheContext()
 
   const [objectsViewContext, setObjectsViewContext] =
@@ -1102,6 +1106,10 @@ export const FolderDetailScreen = () => {
     folderContext.folderMetadata?.indexingJobContext?.indexingContinuationKey,
   ])
 
+  const handleUploadStart = React.useCallback(() => {
+    setUploadOpen(true)
+  }, [])
+
   const _handleSearchValueUpdate = (value?: string | undefined) => {
     setSearchTerm(value)
     setObjectsViewContext(undefined)
@@ -1136,6 +1144,14 @@ export const FolderDetailScreen = () => {
 
   return (
     <>
+      {uploadOpen && (
+        <UploadModal
+          onUpload={(file: File) =>
+            uploadFile(folderContext.folderId, file.name, file)
+          }
+          onCancel={() => setUploadOpen(false)}
+        />
+      )}
       {forgetFolderConfirmationOpen && (
         <ConfirmForgetFolderModal
           onConfirm={() => handleForgetFolder()}
@@ -1248,6 +1264,14 @@ export const FolderDetailScreen = () => {
                 ]}
               >
                 <div className="pt-2 flex gap-2">
+                  {folderContext.folderPermissions?.includes(
+                    FolderPermissionName.ObjectEdit,
+                  ) && (
+                    <Button size="sm" onClick={handleUploadStart}>
+                      <Icon size="sm" icon={ArrowUpOnSquareIcon} />
+                      Upload
+                    </Button>
+                  )}
                   {folderContext.folderPermissions?.includes(
                     FolderPermissionName.FolderRefresh,
                   ) && (

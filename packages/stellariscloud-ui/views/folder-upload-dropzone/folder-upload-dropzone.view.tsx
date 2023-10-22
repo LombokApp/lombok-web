@@ -1,36 +1,12 @@
-import type { FolderAndPermission } from '@stellariscloud/api-client'
 import React from 'react'
+import type { FileRejection } from 'react-dropzone'
 import { useDropzone } from 'react-dropzone'
 
-import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
-
 export const FolderUploadDropzone = ({
-  folderAndPermission,
+  onDrop,
 }: {
-  folderAndPermission: FolderAndPermission
+  onDrop: (acceptedFiles: File[], fileRejections: FileRejection[]) => void
 }) => {
-  const { uploadFile } = useLocalFileCacheContext()
-  const onDrop = React.useCallback(
-    (acceptedFiles: File[]) => {
-      for (const f of acceptedFiles) {
-        uploadFile(
-          folderAndPermission.folder.id,
-          `${
-            folderAndPermission.folder.contentLocation.prefix
-              ? folderAndPermission.folder.contentLocation.prefix
-              : ''
-          }${f.name}`,
-          f,
-        )
-      }
-    },
-    [
-      folderAndPermission.folder.contentLocation.prefix,
-      folderAndPermission.folder.id,
-      uploadFile,
-    ],
-  )
-
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
   })

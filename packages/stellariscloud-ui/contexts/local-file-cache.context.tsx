@@ -33,7 +33,7 @@ export interface ILocalFileCacheContext {
     objectIdentifier: string,
     downloadFilename: string,
   ) => void
-  uploadFile: (folderId: string, objectIdentifier: string, file: File) => void
+  uploadFile: (folderId: string, filename: string, file: File) => void
   localStorageFolderSizes: { [key: string]: number }
   purgeLocalStorageForFolder: (folderId: string) => Promise<boolean>
   recalculateLocalStorageFolderSizes: () => Promise<boolean>

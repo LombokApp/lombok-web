@@ -5,21 +5,30 @@ export function Modal({
   title,
   onClose,
   children,
+  disableClose = false,
 }: {
   title?: string
   onClose: () => void
   children: React.ReactNode
+  disableClose?: boolean
 }) {
   const [open, setOpen] = React.useState(true)
 
   const handleClose = React.useCallback(() => {
-    setOpen(false)
-    onClose()
-  }, [setOpen, onClose])
+    if (!disableClose) {
+      setOpen(false)
+      onClose()
+    }
+  }, [setOpen, onClose, disableClose])
 
   return (
     <Transition.Root show={open} as={React.Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={handleClose}>
+      <Dialog
+        as="div"
+        className="relative z-50"
+        onClose={handleClose}
+        open={open}
+      >
         <Transition.Child
           as={React.Fragment}
           enter="ease-out duration-300"
