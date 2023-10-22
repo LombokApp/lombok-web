@@ -1,30 +1,16 @@
-import { Entity, OptionalProps, Property } from '@mikro-orm/core'
-import { addMs, earliest } from '@stellariscloud/utils'
+import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
-import { AuthDurationMs } from '../constants/duration.constants'
-import type { SessionData } from '../transfer-objects/session.dto'
-import { BaseScopedAuthEntity } from './base-scoped-auth.entity'
-import { SessionRepository } from './session.repository'
+import type { AuthScope } from '../constants/scope.constants'
 
-@Entity({ customRepository: () => SessionRepository })
-export class Session extends BaseScopedAuthEntity<Session> {
-  [OptionalProps]?: 'updatedAt' | 'createdAt' | 'hash'
+export const sessionsTable = pgTable('session', {
+  id: uuid('id').primaryKey(),
+  hash: text('hash'),
+  userId: uuid('userId').notNull(),
+  scopes: text('scopes').array().$type<AuthScope[]>(),
+  expiresAt: timestamp('expiresAt').notNull(),
+  createdAt: timestamp('createdAt').notNull(),
+  updatedAt: timestamp('updatedAt').notNull(),
+})
 
-  @Property()
-  expiresAt!: Date
-
-  static sessionExpiresAt(createdAt: Date) {
-    return earliest(
-      addMs(new Date(), AuthDurationMs.SessionSliding),
-      addMs(createdAt, AuthDurationMs.SessionAbsolute),
-    )
-  }
-
-  toSessionData(): Omit<SessionData, 'accessToken'> {
-    return this.toObjectPick(['expiresAt'])
-  }
-
-  toJSON() {
-    return this.toSessionData()
-  }
-}
+export type Session = typeof sessionsTable.$inferSelect
+export type NewSession = typeof sessionsTable.$inferInsert

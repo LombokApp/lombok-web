@@ -15,6 +15,7 @@ import { AuthScheme } from '../domains/auth/constants/scheme.constants'
 import { AuthScope } from '../domains/auth/constants/scope.constants'
 import { UserService } from '../domains/user/services/user.service'
 import type { UserData } from '../domains/user/transfer-objects/user.dto'
+import { transformUserToUserDTO } from '../domains/user/transforms/user-dto.transform'
 
 export interface ViewerUpdatePayload {
   name: string
@@ -34,7 +35,7 @@ export class ViewerController extends Controller {
   async getViewer(@Request() req: Express.Request) {
     const user = await this.userService.getById({ id: req.viewer.id })
 
-    const res: { data: UserData } = { data: user.toUserData() }
+    const res: { data: UserData } = { data: transformUserToUserDTO(user) }
     return res
   }
 
@@ -50,7 +51,7 @@ export class ViewerController extends Controller {
       viewerUpdatePayload,
     )
 
-    const res: { data: UserData } = { data: user.toUserData() }
+    const res: { data: UserData } = { data: transformUserToUserDTO(user) }
     return res
   }
 }

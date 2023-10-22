@@ -1,15 +1,17 @@
+import crypto from 'crypto'
+import { eq, or } from 'drizzle-orm'
 import { Lifecycle, scoped } from 'tsyringe'
 
-import { SendgridService } from '../../../services/sendgrid.service'
+import { OrmService } from '../../../orm/orm.service'
 import { Actor } from '../../auth/actor'
-import { JWTService } from '../../auth/services/jwt.service'
 import { SessionService } from '../../auth/services/session.service'
-import { UserRepository } from '../entities/user.repository'
+import { authHelper } from '../../auth/utils/auth-helper'
+import type { User } from '../entities/user.entity'
+import { usersTable } from '../entities/user.entity'
 import {
   LoginInvalidError,
   UserEmailNotVerifiedError,
 } from '../errors/user.error'
-import { UserService } from './user.service'
 
 export enum ApiKeyType {
   EmailVerify = 'EmailVerify',
@@ -19,19 +21,16 @@ export enum ApiKeyType {
 @scoped(Lifecycle.ContainerScoped)
 export class UserAuthService {
   constructor(
-    private readonly userRepository: UserRepository,
     private readonly sessionService: SessionService,
-    private readonly userService: UserService,
-    private readonly sendgridService: SendgridService,
-    private readonly jwtService: JWTService,
+    private readonly ormService: OrmService,
   ) {}
 
   async authenticateWithPassword(login: string, password: string) {
-    const user = await this.userRepository.findOne({
-      $or: [{ email: login }, { username: login }],
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: or(eq(usersTable.email, login), eq(usersTable.username, login)),
     })
 
-    if (!user || !user.verifyPassword(password)) {
+    if (!user || !this.verifyPassword(user, password)) {
       throw new LoginInvalidError(login)
     }
 
@@ -54,6 +53,17 @@ export class UserAuthService {
       refreshToken,
       expiresAt: session.expiresAt,
     }
+  }
+
+  verifyPassword(user: User, password: string) {
+    if (!user.passwordHash || !password) {
+      return false
+    }
+
+    return crypto.timingSafeEqual(
+      authHelper.createPasswordHash(password, user.passwordSalt),
+      Buffer.from(user.passwordHash, 'hex'),
+    )
   }
 
   // async sendEmailVerification(login: string) {

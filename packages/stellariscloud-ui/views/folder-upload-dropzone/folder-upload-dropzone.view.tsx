@@ -15,13 +15,17 @@ export const FolderUploadDropzone = ({
       for (const f of acceptedFiles) {
         uploadFile(
           folderAndPermission.folder.id,
-          `${folderAndPermission.folder.prefix}${f.name}`,
+          `${
+            folderAndPermission.folder.contentLocation.prefix
+              ? folderAndPermission.folder.contentLocation.prefix
+              : ''
+          }${f.name}`,
           f,
         )
       }
     },
     [
-      folderAndPermission.folder.prefix,
+      folderAndPermission.folder.contentLocation.prefix,
       folderAndPermission.folder.id,
       uploadFile,
     ],

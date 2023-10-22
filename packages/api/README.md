@@ -72,11 +72,11 @@ CMD_ENV=test yarn workspace @stellariscloud/api test
 
 ## DB Migrations
 
-DB migrations are managed using [MikroORM])(https://mikro-orm.io/) (see https://mikro-orm.io/docs/next/migrations/#using-via-cli).
+DB migrations are managed using [Drizzle])(https://orm.drizzle.team/).
 
-MikroORM generates new migrations automatically by diffing the state of the defined entities in the codebase against the current connected DB schema.
+Drizzle generates new migrations automatically by diffing the schema defined in the codebase against the last known state.
 
-Files matching the pattern `src/**/*.entity.ts` are automatically loaded by MikroORM to parse entity definitions.
+Files matching the pattern `src/**/*.entity.ts` are automatically loaded by Drizzle to parse entity definitions.
 
 ### Migration Creation Process
 
@@ -92,7 +92,7 @@ Files matching the pattern `src/**/*.entity.ts` are automatically loaded by Mikr
    CMD_ENV=dev yarn workspace @stellariscloud/api db:migrate:up
    ```
 
-2. Update or create new orm entities (see https://mikro-orm.io/docs/next/defining-entities).
+2. Update or create new orm entities.
 
 3. Generate a new migration file.
 

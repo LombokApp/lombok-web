@@ -165,8 +165,7 @@ export class App {
   }
 
   private async initOrm() {
-    await this.ormService.init()
-    await this.ormService.runMigrations()
+    await this.ormService.init(true)
   }
 
   private async initRoutes(healthOnly: boolean) {
@@ -195,7 +194,6 @@ export class App {
     )
 
     this.app.use(express.json({ limit: '5mb' }))
-    this.app.use(this.ormService.requestHandler())
 
     const validator = new OpenApiValidator(apiSpec, {
       ajvOptions: {
@@ -303,7 +301,6 @@ export class App {
     this.closing = true
 
     await runExitHandlers()
-    await this.ormService.close()
     if (this.server) {
       this.server.close()
     }

@@ -26,6 +26,8 @@ export enum PlatformRole {
 
 export const PlatformRoleType: r.Runtype<PlatformRole> = EnumType(PlatformRole)
 
+export type SaveablePlatformRole = PlatformRole.Admin | PlatformRole.User
+
 export const PLATFORM_ROLES: Record<PlatformRole, number> = {
   [PlatformRole.Anonymous]: 0,
   [PlatformRole.User]: 1,

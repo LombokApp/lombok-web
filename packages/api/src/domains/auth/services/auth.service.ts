@@ -1,15 +1,19 @@
 import { addMs, earliest } from '@stellariscloud/utils'
-import { Lifecycle, scoped } from 'tsyringe'
+import { eq } from 'drizzle-orm'
+import { container, Lifecycle, scoped } from 'tsyringe'
+import { v4 as uuidV4 } from 'uuid'
 
 import type { SignupParams } from '../../../controllers/auth.controller'
-import type { User } from '../../user/entities/user.entity'
-import { UserRepository } from '../../user/entities/user.repository'
+import { OrmService } from '../../../orm/orm.service'
+import type { NewUser, User } from '../../user/entities/user.entity'
+import { usersTable } from '../../user/entities/user.entity'
 import { UserIdentityConflictError } from '../../user/errors/user.error'
 import { Actor } from '../actor'
 import { AuthDurationMs } from '../constants/duration.constants'
 import { PlatformRole } from '../constants/role.constants'
 import type { Session } from '../entities/session.entity'
-import type { AccessTokenJWT } from './jwt.service'
+import { SessionInvalidError } from '../errors/session.error'
+import { authHelper } from '../utils/auth-helper'
 import { JWTService } from './jwt.service'
 import { SessionService } from './session.service'
 
@@ -25,12 +29,9 @@ export const sessionExpiresAt = (createdAt: Date) =>
 
 @scoped(Lifecycle.ContainerScoped)
 export class AuthService {
-  constructor(
-    private readonly jwtService: JWTService,
-    private readonly sessionService: SessionService,
-    private readonly userRepository: UserRepository,
-  ) {}
-
+  constructor(private readonly jwtService: JWTService) {}
+  ormService = container.resolve(OrmService)
+  sessionService = container.resolve(SessionService)
   async signup(data: SignupParams) {
     const user = await this.createSignup(data)
     // await this.sendEmailVerification(data.email)
@@ -39,39 +40,50 @@ export class AuthService {
   }
 
   async createSignup(data: SignupParams) {
-    const { username, email, password } = data
+    const { username, email } = data
 
-    const emailMatches = email && (await this.userRepository.find({ email }))
+    const existingByEmail = await this.ormService.db.query.usersTable.findFirst(
+      {
+        where: eq(usersTable.email, email),
+      },
+    )
 
-    if (email && emailMatches && emailMatches.length > 0) {
+    if (email && existingByEmail) {
       throw new UserIdentityConflictError(email)
     }
 
-    const usernameMatches = await this.userRepository.find({
-      username,
-    })
+    const existingByUsername =
+      await this.ormService.db.query.usersTable.findFirst({
+        where: eq(usersTable.username, email),
+      })
 
-    if (usernameMatches.length > 0) {
+    if (existingByUsername) {
       throw new UserIdentityConflictError(username)
     }
 
-    const user = this.userRepository.create({
-      username,
-      email,
-      emailVerified: false,
-      permissions: [],
+    const now = new Date()
+    const passwordSalt = authHelper.createPasswordSalt()
+    const newUser: NewUser = {
+      id: uuidV4(),
+      email: data.email,
       role: PlatformRole.User,
-    })
+      emailVerified: false,
+      username: data.username,
+      passwordHash: authHelper
+        .createPasswordHash(data.password, passwordSalt)
+        .toString('hex'),
+      passwordSalt,
+      permissions: [],
+      createdAt: now,
+      updatedAt: now,
+    }
 
-    user.setPassword(password)
+    const [createdUser] = await this.ormService.db
+      .insert(usersTable)
+      .values(newUser)
+      .returning()
 
-    await this.userRepository.getEntityManager().persistAndFlush(user)
-
-    return user
-  }
-
-  _getUser(token: AccessTokenJWT) {
-    return this.userRepository.findOneOrFail({ id: token.sub })
+    return createdUser
   }
 
   // async verifyApiKey(apiKeyString: string): Promise<{
@@ -106,10 +118,17 @@ export class AuthService {
     const session = await this.sessionService.verifySessionWithAccessToken(
       accessToken,
     )
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.id, session.userId),
+    })
+
+    if (!user) {
+      throw new SessionInvalidError()
+    }
 
     return {
-      viewer: Actor.fromUser(session.user as unknown as User),
-      user: session.user,
+      viewer: Actor.fromUser(user),
+      user,
       session,
     }
   }
@@ -121,9 +140,17 @@ export class AuthService {
       refreshToken,
     )
 
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.id, session.userId),
+    })
+
+    if (!user) {
+      throw new SessionInvalidError()
+    }
+
     return {
-      viewer: Actor.fromUser(session.user),
-      user: session.user,
+      viewer: Actor.fromUser(user),
+      user,
       session,
     }
   }

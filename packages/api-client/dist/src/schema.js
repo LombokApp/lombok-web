@@ -118,10 +118,22 @@ exports.schema = {
                         "$ref": "#/components/schemas/PlatformRole"
                     },
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "email": {
-                        "$ref": "#/components/schemas/EmailFormat"
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/EmailFormat"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "emailVerified": {
+                        "type": "boolean"
+                    },
+                    "isAdmin": {
+                        "type": "boolean"
                     },
                     "username": {
                         "$ref": "#/components/schemas/UsernameFormat"
@@ -138,13 +150,14 @@ exports.schema = {
                     "updatedAt",
                     "id",
                     "role",
+                    "name",
+                    "email",
+                    "emailVerified",
+                    "isAdmin",
                     "permissions"
                 ],
                 "type": "object",
                 "additionalProperties": false
-            },
-            "User": {
-                "$ref": "#/components/schemas/UserData"
             },
             "SignupParams": {
                 "properties": {
@@ -422,7 +435,7 @@ exports.schema = {
                 "type": "object",
                 "additionalProperties": false
             },
-            "S3LocationData": {
+            "StorageLocationData": {
                 "properties": {
                     "createdAt": {
                         "type": "string",
@@ -497,10 +510,10 @@ exports.schema = {
                         "type": "string"
                     },
                     "metadataLocation": {
-                        "$ref": "#/components/schemas/S3LocationData"
+                        "$ref": "#/components/schemas/StorageLocationData"
                     },
                     "contentLocation": {
-                        "$ref": "#/components/schemas/S3LocationData"
+                        "$ref": "#/components/schemas/StorageLocationData"
                     }
                 },
                 "required": [
@@ -639,16 +652,8 @@ exports.schema = {
                     "objectKey": {
                         "type": "string"
                     },
-                    "folder": {
-                        "properties": {
-                            "id": {
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "id"
-                        ],
-                        "type": "object"
+                    "folderId": {
+                        "type": "string"
                     },
                     "contentAttributes": {
                         "$ref": "#/components/schemas/ContentAttributesByHash"
@@ -657,17 +662,12 @@ exports.schema = {
                         "$ref": "#/components/schemas/ContentMetadataByHash"
                     },
                     "hash": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "lastModified": {
                         "type": "number",
                         "format": "double"
-                    },
-                    "tags": {
-                        "items": {
-                            "type": "string"
-                        },
-                        "type": "array"
                     },
                     "eTag": {
                         "type": "string"
@@ -688,11 +688,11 @@ exports.schema = {
                     "updatedAt",
                     "id",
                     "objectKey",
-                    "folder",
+                    "folderId",
                     "contentAttributes",
                     "contentMetadata",
+                    "hash",
                     "lastModified",
-                    "tags",
                     "eTag",
                     "sizeBytes",
                     "mediaType",
@@ -700,10 +700,6 @@ exports.schema = {
                 ],
                 "type": "object",
                 "additionalProperties": false
-            },
-            "EntityDTO_any_": {
-                "properties": {},
-                "type": "object"
             },
             "FolderOperationName": {
                 "enum": [
@@ -713,166 +709,6 @@ exports.schema = {
                     "DetectObjects"
                 ],
                 "type": "string"
-            },
-            "FolderOperationRequestPayload": {
-                "properties": {
-                    "operationName": {
-                        "$ref": "#/components/schemas/FolderOperationName"
-                    },
-                    "operationData": {
-                        "properties": {},
-                        "additionalProperties": {},
-                        "type": "object"
-                    }
-                },
-                "required": [
-                    "operationName",
-                    "operationData"
-                ],
-                "type": "object",
-                "additionalProperties": false
-            },
-            "FolderShareConfig": {
-                "properties": {
-                    "permissions": {
-                        "items": {
-                            "$ref": "#/components/schemas/FolderPermissionName"
-                        },
-                        "type": "array"
-                    }
-                },
-                "required": [
-                    "permissions"
-                ],
-                "type": "object",
-                "additionalProperties": false
-            },
-            "FolderShareData": {
-                "properties": {
-                    "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updatedAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "id": {
-                        "type": "string"
-                    },
-                    "userId": {
-                        "type": "string"
-                    },
-                    "userLabel": {
-                        "type": "string"
-                    },
-                    "userInviteEmail": {
-                        "type": "string"
-                    },
-                    "folder": {
-                        "properties": {
-                            "id": {
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "id"
-                        ],
-                        "type": "object"
-                    },
-                    "shareConfiguration": {
-                        "$ref": "#/components/schemas/FolderShareConfig"
-                    }
-                },
-                "required": [
-                    "createdAt",
-                    "updatedAt",
-                    "id",
-                    "userLabel",
-                    "userInviteEmail",
-                    "folder",
-                    "shareConfiguration"
-                ],
-                "type": "object",
-                "additionalProperties": false
-            },
-            "CreateFolderSharePayload": {
-                "properties": {
-                    "userInviteEmail": {
-                        "type": "string"
-                    },
-                    "shareConfiguration": {
-                        "$ref": "#/components/schemas/FolderShareConfig"
-                    }
-                },
-                "required": [
-                    "userInviteEmail",
-                    "shareConfiguration"
-                ],
-                "type": "object",
-                "additionalProperties": false
-            },
-            "UpdateFolderSharePayload": {
-                "properties": {
-                    "shareConfiguration": {
-                        "$ref": "#/components/schemas/FolderShareConfig"
-                    }
-                },
-                "required": [
-                    "shareConfiguration"
-                ],
-                "type": "object",
-                "additionalProperties": false
-            },
-            "ObjectTagData": {
-                "properties": {
-                    "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updatedAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "id": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "createdAt",
-                    "updatedAt",
-                    "id",
-                    "name"
-                ],
-                "type": "object",
-                "additionalProperties": false
-            },
-            "SignedURLsRequestMethod": {
-                "enum": [
-                    "PUT",
-                    "DELETE",
-                    "GET"
-                ],
-                "type": "string"
-            },
-            "SignedURLsRequest": {
-                "properties": {
-                    "objectIdentifier": {
-                        "type": "string"
-                    },
-                    "method": {
-                        "$ref": "#/components/schemas/SignedURLsRequestMethod"
-                    }
-                },
-                "required": [
-                    "objectIdentifier",
-                    "method"
-                ],
-                "type": "object",
-                "additionalProperties": false
             },
             "FolderOperationData": {
                 "properties": {
@@ -902,7 +738,8 @@ exports.schema = {
                         "type": "boolean"
                     },
                     "error": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     }
                 },
                 "required": [
@@ -912,7 +749,63 @@ exports.schema = {
                     "operationName",
                     "operationData",
                     "started",
-                    "completed"
+                    "completed",
+                    "error"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "FolderOperationRequestPayload": {
+                "properties": {
+                    "operationName": {
+                        "$ref": "#/components/schemas/FolderOperationName"
+                    },
+                    "operationData": {
+                        "properties": {},
+                        "additionalProperties": {},
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "operationName",
+                    "operationData"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "ListResponseMeta": {
+                "properties": {
+                    "totalCount": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                },
+                "required": [
+                    "totalCount"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "SignedURLsRequestMethod": {
+                "enum": [
+                    "PUT",
+                    "DELETE",
+                    "GET"
+                ],
+                "type": "string"
+            },
+            "SignedURLsRequest": {
+                "properties": {
+                    "objectIdentifier": {
+                        "type": "string"
+                    },
+                    "method": {
+                        "$ref": "#/components/schemas/SignedURLsRequestMethod"
+                    }
+                },
+                "required": [
+                    "objectIdentifier",
+                    "method"
                 ],
                 "type": "object",
                 "additionalProperties": false
@@ -1230,12 +1123,12 @@ exports.schema = {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "data": {
-                                            "$ref": "#/components/schemas/User"
+                                        "user": {
+                                            "$ref": "#/components/schemas/UserData"
                                         }
                                     },
                                     "required": [
-                                        "data"
+                                        "user"
                                     ],
                                     "type": "object"
                                 }
@@ -2122,7 +2015,7 @@ exports.schema = {
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/EntityDTO_any_"
+                                    "$ref": "#/components/schemas/FolderOperationData"
                                 }
                             }
                         }
@@ -2256,16 +2149,7 @@ exports.schema = {
                                 "schema": {
                                     "properties": {
                                         "meta": {
-                                            "properties": {
-                                                "totalCount": {
-                                                    "type": "number",
-                                                    "format": "double"
-                                                }
-                                            },
-                                            "required": [
-                                                "totalCount"
-                                            ],
-                                            "type": "object"
+                                            "$ref": "#/components/schemas/ListResponseMeta"
                                         },
                                         "result": {
                                             "items": {
@@ -2321,14 +2205,6 @@ exports.schema = {
                     },
                     {
                         "in": "query",
-                        "name": "tagId",
-                        "required": false,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "in": "query",
                         "name": "offset",
                         "required": false,
                         "schema": {
@@ -2343,128 +2219,6 @@ exports.schema = {
                         "schema": {
                             "format": "double",
                             "type": "number"
-                        }
-                    }
-                ]
-            }
-        },
-        "/folders/{folderId}/shares": {
-            "post": {
-                "operationId": "createFolderShare",
-                "responses": {
-                    "200": {
-                        "description": "Ok",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/FolderShareData"
-                                }
-                            }
-                        }
-                    },
-                    "4XX": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Folders"
-                ],
-                "security": [
-                    {
-                        "AccessToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "folderId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/CreateFolderSharePayload"
-                            }
-                        }
-                    }
-                }
-            },
-            "get": {
-                "operationId": "listFolderShares",
-                "responses": {
-                    "200": {
-                        "description": "Ok",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "meta": {
-                                            "properties": {
-                                                "totalCount": {
-                                                    "type": "number",
-                                                    "format": "double"
-                                                }
-                                            },
-                                            "required": [
-                                                "totalCount"
-                                            ],
-                                            "type": "object"
-                                        },
-                                        "result": {
-                                            "items": {
-                                                "$ref": "#/components/schemas/FolderShareData"
-                                            },
-                                            "type": "array"
-                                        }
-                                    },
-                                    "required": [
-                                        "meta",
-                                        "result"
-                                    ],
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "4XX": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Folders"
-                ],
-                "security": [
-                    {
-                        "AccessToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "folderId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
                         }
                     }
                 ]
@@ -2515,524 +2269,6 @@ exports.schema = {
                 ]
             }
         },
-        "/folders/{folderId}/shares/{shareId}": {
-            "delete": {
-                "operationId": "deleteFolderShare",
-                "responses": {
-                    "200": {
-                        "description": "Ok",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        }
-                                    },
-                                    "required": [
-                                        "success"
-                                    ],
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "4XX": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Folders"
-                ],
-                "security": [
-                    {
-                        "AccessToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "folderId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "shareId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ]
-            },
-            "put": {
-                "operationId": "updateFolderShare",
-                "responses": {
-                    "200": {
-                        "description": "Ok",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/FolderShareData"
-                                }
-                            }
-                        }
-                    },
-                    "4XX": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Folders"
-                ],
-                "security": [
-                    {
-                        "AccessToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "folderId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "shareId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/UpdateFolderSharePayload"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/folders/{folderId}/tags": {
-            "get": {
-                "operationId": "listTags",
-                "responses": {
-                    "200": {
-                        "description": "Ok",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "meta": {
-                                            "properties": {
-                                                "totalCount": {
-                                                    "type": "number",
-                                                    "format": "double"
-                                                }
-                                            },
-                                            "required": [
-                                                "totalCount"
-                                            ],
-                                            "type": "object"
-                                        },
-                                        "result": {
-                                            "items": {
-                                                "$ref": "#/components/schemas/ObjectTagData"
-                                            },
-                                            "type": "array"
-                                        }
-                                    },
-                                    "required": [
-                                        "meta",
-                                        "result"
-                                    ],
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "4XX": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Folders"
-                ],
-                "security": [
-                    {
-                        "AccessToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "folderId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ]
-            },
-            "post": {
-                "operationId": "createTag",
-                "responses": {
-                    "200": {
-                        "description": "Ok",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ObjectTagData"
-                                }
-                            }
-                        }
-                    },
-                    "4XX": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Folders"
-                ],
-                "security": [
-                    {
-                        "AccessToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "folderId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "name": {
-                                        "type": "string"
-                                    }
-                                },
-                                "required": [
-                                    "name"
-                                ],
-                                "type": "object"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/folders/{folderId}/tags/{tagId}": {
-            "post": {
-                "operationId": "updateTag",
-                "responses": {
-                    "200": {
-                        "description": "Ok",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ObjectTagData"
-                                }
-                            }
-                        }
-                    },
-                    "4XX": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Folders"
-                ],
-                "security": [
-                    {
-                        "AccessToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "folderId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "tagId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "name": {
-                                        "type": "string"
-                                    }
-                                },
-                                "required": [
-                                    "name"
-                                ],
-                                "type": "object"
-                            }
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "operationId": "deleteTag",
-                "responses": {
-                    "200": {
-                        "description": "Ok",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        }
-                                    },
-                                    "required": [
-                                        "success"
-                                    ],
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "4XX": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Folders"
-                ],
-                "security": [
-                    {
-                        "AccessToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "folderId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "tagId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ]
-            }
-        },
-        "/folders/{folderId}/objects/{objectKey}/{tagId}": {
-            "post": {
-                "operationId": "tagObject",
-                "responses": {
-                    "200": {
-                        "description": "Ok",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        }
-                                    },
-                                    "required": [
-                                        "success"
-                                    ],
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "4XX": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Folders"
-                ],
-                "security": [
-                    {
-                        "AccessToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "folderId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "objectKey",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "tagId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ]
-            },
-            "delete": {
-                "operationId": "untagObject",
-                "responses": {
-                    "200": {
-                        "description": "Ok",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean"
-                                        }
-                                    },
-                                    "required": [
-                                        "success"
-                                    ],
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "4XX": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Folders"
-                ],
-                "security": [
-                    {
-                        "AccessToken": []
-                    }
-                ],
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "folderId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "objectKey",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "in": "path",
-                        "name": "tagId",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ]
-            }
-        },
         "/folders/{folderId}/refresh": {
             "post": {
                 "operationId": "refreshFolder",
@@ -3042,7 +2278,11 @@ exports.schema = {
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "boolean"
+                                    "type": "boolean",
+                                    "enum": [
+                                        true
+                                    ],
+                                    "nullable": false
                                 }
                             }
                         }

@@ -1,7 +1,9 @@
+import type { UpdateUserData, UserData } from '@stellariscloud/api-client'
 import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import React from 'react'
 
+import type { UserInput } from '../../../components/server-user-form/server-user-form'
 import { ServerUserForm } from '../../../components/server-user-form/server-user-form'
 import { Button } from '../../../design-system/button/button'
 import { PageHeading } from '../../../design-system/page-heading/page-heading'
@@ -15,30 +17,23 @@ interface CreateUserInput {
   permissions: string[]
 }
 
-interface UserInput {
-  name?: string
-  username?: string
-  password?: string
-  id?: string
-  email?: string
-  permissions?: string[]
-}
-
 export function ServerUserDetailScreen({
   userId,
   user,
 }: {
   userId?: string
-  user: UserInput
+  user?: UserData
 }) {
   const isNew = !userId
   const router = useRouter()
   const [userObject, setUserObject] = React.useState<UserInput>({
-    username: user.username ?? '',
-    email: user.email ?? '',
-    permissions: user.permissions ?? [],
-    id: user.id,
-    password: user.password ?? '',
+    username: user?.username ?? '',
+    email: user?.email ?? '',
+    permissions: user?.permissions,
+    id: user?.id,
+    password: '',
+    emailVerified: user?.emailVerified ?? false,
+    isAdmin: user?.isAdmin ?? false,
   })
 
   const handleSubmitClick = React.useCallback(() => {
@@ -54,9 +49,7 @@ export function ServerUserDetailScreen({
       void serverApi
         .updateUser({
           userId,
-          updateUserData: {
-            ...userObject,
-          },
+          updateUserData: userObject as UpdateUserData,
         })
         .then(({ data }) => {
           void router.push(`/server/users/${data.user.id}`)
@@ -86,7 +79,7 @@ export function ServerUserDetailScreen({
             <div className="inline-block min-w-full py-2 align-middle">
               <ServerUserForm
                 onChange={(changedUser) => setUserObject(changedUser.value)}
-                value={user}
+                value={userObject}
               />
               <div className="py-4">
                 <Button primary onClick={handleSubmitClick}>

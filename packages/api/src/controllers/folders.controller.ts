@@ -25,18 +25,19 @@ import {
   FolderService,
 } from '../domains/folder/services/folder.service'
 import type { FolderData } from '../domains/folder/transfer-objects/folder.dto'
-import {
-  CreateFolderSharePayload,
-  UpdateFolderSharePayload,
-} from '../domains/folder/transfer-objects/folder-share.dto'
+import type { FolderObjectData } from '../domains/folder/transfer-objects/folder-object.dto'
+import { transformFolderToFolderDTO } from '../domains/folder/transforms/folder-dto.transform'
+import { transformFolderObjectToFolderObjectDTO } from '../domains/folder/transforms/folder-object-dto.transform'
 import {
   FolderOperationSort,
   FolderOperationStatus,
 } from '../domains/folder-operation/constants/folder-operation.constants'
 import { FolderOperationService } from '../domains/folder-operation/services/folder-operation.service'
 import type { FolderOperationData } from '../domains/folder-operation/transfer-objects/folder-operation.dto'
-import type { UserLocationInputData } from '../domains/s3/transfer-objects/s3-location.dto'
+import { transformFolderOperationToFolderOperationDTO } from '../domains/folder-operation/transforms/folder-operation-dto.transform'
+import type { UserLocationInputData } from '../domains/storage-location/transfer-objects/s3-location.dto'
 import type { ErrorResponse } from '../transfer-objects/error-response.dto'
+import type { ListResponseMeta } from '../transfer-objects/list-response.dto'
 
 export interface FolderAndPermission {
   folder: FolderData
@@ -81,12 +82,12 @@ export class FoldersController extends Controller {
       contentLocation: UserLocationInputData
       metadataLocation?: UserLocationInputData
     },
-  ) {
+  ): Promise<{ folder: FolderData }> {
     const folder = await this.folderService.createFolder({
       userId: req.viewer.user.id,
       body,
     })
-    return { folder: folder.toFolderData() }
+    return { folder }
   }
 
   @Security(AuthScheme.AccessToken)
@@ -99,7 +100,7 @@ export class FoldersController extends Controller {
       userId: req.viewer.id,
     })
     return {
-      folder: result.folder.toFolderData(),
+      folder: transformFolderToFolderDTO(result.folder),
       permissions: result.permissions,
     }
   }
@@ -115,7 +116,7 @@ export class FoldersController extends Controller {
     return {
       meta: result.meta,
       result: result.result.map((f) => ({
-        folder: f.folder.toFolderData(),
+        folder: transformFolderToFolderDTO(f.folder),
         permissions: f.permissions as string[],
       })),
     } as ListFoldersResponse
@@ -144,7 +145,10 @@ export class FoldersController extends Controller {
   async getFolderMetadata(
     @Request() req: Express.Request,
     @Path() folderId: string,
-  ) {
+  ): Promise<{
+    totalCount: number
+    totalSizeBytes: number
+  }> {
     const result = await this.folderService.getFolderMetadata({
       userId: req.viewer.user.id,
       folderId,
@@ -160,13 +164,13 @@ export class FoldersController extends Controller {
     @Request() req: Express.Request,
     @Path() folderId: string,
     @Path() objectKey: string,
-  ) {
+  ): Promise<FolderObjectData> {
     const result = await this.folderService.getFolderObjectAsUser({
       userId: req.viewer.user.id,
       folderId,
       objectKey,
     })
-    return result.toFolderObjectData()
+    return transformFolderObjectToFolderObjectDTO(result)
   }
 
   @Security(AuthScheme.AccessToken)
@@ -177,13 +181,13 @@ export class FoldersController extends Controller {
     @Request() req: Express.Request,
     @Path() folderId: string,
     @Body() folderOperation: FolderOperationRequestPayload,
-  ) {
+  ): Promise<FolderOperationData> {
     const result = await this.folderService.enqueueFolderOperation({
       userId: req.viewer.user.id,
       folderId,
       folderOperation,
     })
-    return result.toFolderOperationData()
+    return transformFolderOperationToFolderOperationDTO(result)
   }
 
   @Security(AuthScheme.AccessToken)
@@ -211,42 +215,40 @@ export class FoldersController extends Controller {
     @Request() req: Express.Request,
     @Path() folderId: string,
     @Query() search?: string,
-    @Query() tagId?: string,
     @Query() offset?: number,
     @Query() limit?: number,
-  ) {
-    const result = await this.folderService.listFolderObjectsAsUser(
+  ): Promise<{ result: FolderObjectData[]; meta: ListResponseMeta }> {
+    const { result, meta } = await this.folderService.listFolderObjectsAsUser(
       req.viewer,
       {
         folderId,
         search,
-        tagId,
         offset,
         limit,
       },
     )
     return {
-      ...result,
-      result: result.result.map((f) => f.toFolderObjectData()),
+      meta,
+      result: result.map((o) => transformFolderObjectToFolderObjectDTO(o)),
     }
   }
 
-  @Security(AuthScheme.AccessToken)
-  @Response<ErrorResponse>('4XX')
-  @OperationId('createFolderShare')
-  @Post('/:folderId/shares')
-  async createFolderShare(
-    @Request() req: Express.Request,
-    @Path() folderId: string,
-    @Body() share: CreateFolderSharePayload,
-  ) {
-    const result = await this.folderService.createFolderShareAsUser({
-      userId: req.viewer.user.id,
-      folderId,
-      share,
-    })
-    return result.toFolderShareData()
-  }
+  // @Security(AuthScheme.AccessToken)
+  // @Response<ErrorResponse>('4XX')
+  // @OperationId('createFolderShare')
+  // @Post('/:folderId/shares')
+  // async createFolderShare(
+  //   @Request() req: Express.Request,
+  //   @Path() folderId: string,
+  //   @Body() share: CreateFolderSharePayload,
+  // ) {
+  //   const result = await this.folderService.createFolderShareAsUser({
+  //     userId: req.viewer.user.id,
+  //     folderId,
+  //     share,
+  //   })
+  //   return result.toFolderShareData()
+  // }
 
   @Security(AuthScheme.AccessToken)
   @Response<ErrorResponse>('4XX')
@@ -263,166 +265,166 @@ export class FoldersController extends Controller {
     return true
   }
 
-  @Security(AuthScheme.AccessToken)
-  @Response<ErrorResponse>('4XX')
-  @OperationId('deleteFolderShare')
-  @Delete('/:folderId/shares/:shareId')
-  async deleteFolderShare(
-    @Request() req: Express.Request,
-    @Path() folderId: string,
-    @Path() shareId: string,
-  ) {
-    await this.folderService.deleteFolderShareAsUser({
-      userId: req.viewer.user.id,
-      folderId,
-      shareId,
-    })
-    return { success: true }
-  }
+  // @Security(AuthScheme.AccessToken)
+  // @Response<ErrorResponse>('4XX')
+  // @OperationId('deleteFolderShare')
+  // @Delete('/:folderId/shares/:shareId')
+  // async deleteFolderShare(
+  //   @Request() req: Express.Request,
+  //   @Path() folderId: string,
+  //   @Path() shareId: string,
+  // ) {
+  //   await this.folderService.deleteFolderShareAsUser({
+  //     userId: req.viewer.user.id,
+  //     folderId,
+  //     shareId,
+  //   })
+  //   return { success: true }
+  // }
 
-  @Security(AuthScheme.AccessToken)
-  @Response<ErrorResponse>('4XX')
-  @OperationId('updateFolderShare')
-  @Put('/:folderId/shares/:shareId')
-  async updateFolderShare(
-    @Request() req: Express.Request,
-    @Path() folderId: string,
-    @Path() shareId: string,
-    @Body() share: UpdateFolderSharePayload,
-  ) {
-    return this.folderService
-      .updateFolderShareAsUser({
-        userId: req.viewer.user.id,
-        folderId,
-        shareId,
-        shareConfiguration: share.shareConfiguration,
-      })
-      .then((result) => result.toFolderShareData())
-  }
+  // @Security(AuthScheme.AccessToken)
+  // @Response<ErrorResponse>('4XX')
+  // @OperationId('updateFolderShare')
+  // @Put('/:folderId/shares/:shareId')
+  // async updateFolderShare(
+  //   @Request() req: Express.Request,
+  //   @Path() folderId: string,
+  //   @Path() shareId: string,
+  //   @Body() share: UpdateFolderSharePayload,
+  // ) {
+  //   return this.folderService
+  //     .updateFolderShareAsUser({
+  //       userId: req.viewer.user.id,
+  //       folderId,
+  //       shareId,
+  //       shareConfiguration: share.shareConfiguration,
+  //     })
+  //     .then((result) => result.toFolderShareData())
+  // }
 
-  @Security(AuthScheme.AccessToken)
-  @Response<ErrorResponse>('4XX')
-  @OperationId('listFolderShares')
-  @Get('/:folderId/shares')
-  async listFolderShares(
-    @Request() req: Express.Request,
-    @Path() folderId: string,
-  ) {
-    const result = await this.folderService.listFolderShares({
-      userId: req.viewer.user.id,
-      folderId,
-    })
-    return {
-      ...result,
-      result: result.result.map((f) => f.toFolderShareData()),
-    }
-  }
+  // @Security(AuthScheme.AccessToken)
+  // @Response<ErrorResponse>('4XX')
+  // @OperationId('listFolderShares')
+  // @Get('/:folderId/shares')
+  // async listFolderShares(
+  //   @Request() req: Express.Request,
+  //   @Path() folderId: string,
+  // ) {
+  //   const result = await this.folderService.listFolderShares({
+  //     userId: req.viewer.user.id,
+  //     folderId,
+  //   })
+  //   return {
+  //     ...result,
+  //     result: result.result.map((f) => f.toFolderShareData()),
+  //   }
+  // }
 
-  @Security(AuthScheme.AccessToken)
-  @Response<ErrorResponse>('4XX')
-  @OperationId('listTags')
-  @Get('/:folderId/tags')
-  async listTags(@Request() req: Express.Request, @Path() folderId: string) {
-    const result = await this.folderService.listTags({
-      userId: req.viewer.user.id,
-      folderId,
-    })
-    return {
-      ...result,
-      result: result.result.map((f) => f.toObjectTagData()),
-    }
-  }
+  // @Security(AuthScheme.AccessToken)
+  // @Response<ErrorResponse>('4XX')
+  // @OperationId('listTags')
+  // @Get('/:folderId/tags')
+  // async listTags(@Request() req: Express.Request, @Path() folderId: string) {
+  //   const result = await this.folderService.listTags({
+  //     userId: req.viewer.user.id,
+  //     folderId,
+  //   })
+  //   return {
+  //     ...result,
+  //     result: result.result.map((f) => f.toObjectTagData()),
+  //   }
+  // }
 
-  @Security(AuthScheme.AccessToken)
-  @Response<ErrorResponse>('4XX')
-  @OperationId('createTag')
-  @Post('/:folderId/tags')
-  async createTag(
-    @Request() req: Express.Request,
-    @Path() folderId: string,
-    @Body() body: { name: string },
-  ) {
-    const objectTag = await this.folderService.createTag({
-      userId: req.viewer.user.id,
-      folderId,
-      body,
-    })
-    return objectTag.toObjectTagData()
-  }
+  // @Security(AuthScheme.AccessToken)
+  // @Response<ErrorResponse>('4XX')
+  // @OperationId('createTag')
+  // @Post('/:folderId/tags')
+  // async createTag(
+  //   @Request() req: Express.Request,
+  //   @Path() folderId: string,
+  //   @Body() body: { name: string },
+  // ) {
+  //   const objectTag = await this.folderService.createTag({
+  //     userId: req.viewer.user.id,
+  //     folderId,
+  //     body,
+  //   })
+  //   return objectTag.toObjectTagData()
+  // }
 
-  @Security(AuthScheme.AccessToken)
-  @Response<ErrorResponse>('4XX')
-  @OperationId('updateTag')
-  @Post('/:folderId/tags/:tagId')
-  async updateTag(
-    @Request() req: Express.Request,
-    @Path() folderId: string,
-    @Path() tagId: string,
-    @Body() body: { name: string },
-  ) {
-    const objectTag = await this.folderService.updateTag({
-      userId: req.viewer.user.id,
-      tagId,
-      folderId,
-      body,
-    })
-    return objectTag.toObjectTagData()
-  }
+  // @Security(AuthScheme.AccessToken)
+  // @Response<ErrorResponse>('4XX')
+  // @OperationId('updateTag')
+  // @Post('/:folderId/tags/:tagId')
+  // async updateTag(
+  //   @Request() req: Express.Request,
+  //   @Path() folderId: string,
+  //   @Path() tagId: string,
+  //   @Body() body: { name: string },
+  // ) {
+  //   const objectTag = await this.folderService.updateTag({
+  //     userId: req.viewer.user.id,
+  //     tagId,
+  //     folderId,
+  //     body,
+  //   })
+  //   return objectTag.toObjectTagData()
+  // }
 
-  @Security(AuthScheme.AccessToken)
-  @Response<ErrorResponse>('4XX')
-  @OperationId('deleteTag')
-  @Delete('/:folderId/tags/:tagId')
-  async deleteTag(
-    @Request() req: Express.Request,
-    @Path() folderId: string,
-    @Path() tagId: string,
-  ) {
-    await this.folderService.deleteTag({
-      userId: req.viewer.user.id,
-      folderId,
-      tagId,
-    })
-    return { success: true }
-  }
+  // @Security(AuthScheme.AccessToken)
+  // @Response<ErrorResponse>('4XX')
+  // @OperationId('deleteTag')
+  // @Delete('/:folderId/tags/:tagId')
+  // async deleteTag(
+  //   @Request() req: Express.Request,
+  //   @Path() folderId: string,
+  //   @Path() tagId: string,
+  // ) {
+  //   await this.folderService.deleteTag({
+  //     userId: req.viewer.user.id,
+  //     folderId,
+  //     tagId,
+  //   })
+  //   return { success: true }
+  // }
 
-  @Security(AuthScheme.AccessToken)
-  @Response<ErrorResponse>('4XX')
-  @OperationId('tagObject')
-  @Post('/:folderId/objects/:objectKey/:tagId')
-  async tagObjectAsUser(
-    @Request() req: Express.Request,
-    @Path() folderId: string,
-    @Path() objectKey: string,
-    @Path() tagId: string,
-  ) {
-    await this.folderService.tagObject({
-      userId: req.viewer.user.id,
-      folderId,
-      objectKey,
-      tagId,
-    })
-    return { success: true }
-  }
+  // @Security(AuthScheme.AccessToken)
+  // @Response<ErrorResponse>('4XX')
+  // @OperationId('tagObject')
+  // @Post('/:folderId/objects/:objectKey/:tagId')
+  // async tagObjectAsUser(
+  //   @Request() req: Express.Request,
+  //   @Path() folderId: string,
+  //   @Path() objectKey: string,
+  //   @Path() tagId: string,
+  // ) {
+  //   await this.folderService.tagObject({
+  //     userId: req.viewer.user.id,
+  //     folderId,
+  //     objectKey,
+  //     tagId,
+  //   })
+  //   return { success: true }
+  // }
 
-  @Security(AuthScheme.AccessToken)
-  @Response<ErrorResponse>('4XX')
-  @OperationId('untagObject')
-  @Delete('/:folderId/objects/:objectKey/:tagId')
-  async untagObjectAsUser(
-    @Request() req: Express.Request,
-    @Path() folderId: string,
-    @Path() objectKey: string,
-    @Path() tagId: string,
-  ) {
-    await this.folderService.untagObject({
-      userId: req.viewer.user.id,
-      folderId,
-      objectKey,
-      tagId,
-    })
-    return { success: true }
-  }
+  // @Security(AuthScheme.AccessToken)
+  // @Response<ErrorResponse>('4XX')
+  // @OperationId('untagObject')
+  // @Delete('/:folderId/objects/:objectKey/:tagId')
+  // async untagObjectAsUser(
+  //   @Request() req: Express.Request,
+  //   @Path() folderId: string,
+  //   @Path() objectKey: string,
+  //   @Path() tagId: string,
+  // ) {
+  //   await this.folderService.untagObject({
+  //     userId: req.viewer.user.id,
+  //     folderId,
+  //     objectKey,
+  //     tagId,
+  //   })
+  //   return { success: true }
+  // }
 
   @Security(AuthScheme.AccessToken)
   @Response<ErrorResponse>('4XX')
@@ -433,15 +435,13 @@ export class FoldersController extends Controller {
     @Path() folderId: string,
     @Path() objectKey: string,
     @Body() body: { eTag?: string },
-  ) {
-    const folderObject =
-      await this.folderService.refreshFolderObjectS3MetadataAsUser(
-        req.viewer.user.id,
-        folderId,
-        objectKey,
-        body.eTag,
-      )
-    return folderObject.toFolderObjectData()
+  ): Promise<FolderObjectData> {
+    return this.folderService.refreshFolderObjectS3MetadataAsUser(
+      req.viewer.user.id,
+      folderId,
+      objectKey,
+      body.eTag,
+    )
   }
 
   @Security(AuthScheme.AccessToken)
@@ -451,7 +451,7 @@ export class FoldersController extends Controller {
   async refreshFolder(
     @Request() req: Express.Request,
     @Path() folderId: string,
-  ) {
+  ): Promise<true> {
     const result = await this.folderService.getFolderAsUser({
       folderId,
       userId: req.viewer.id,
@@ -475,7 +475,7 @@ export class FoldersController extends Controller {
     @Request() req: Express.Request,
     @Path() folderId: string,
     @Body() body: SignedURLsRequest[],
-  ) {
+  ): Promise<string[]> {
     return this.folderService.createPresignedUrlsAsUser(
       req.viewer.user.id,
       folderId,
@@ -542,7 +542,7 @@ export class FoldersController extends Controller {
     return {
       meta: result.meta,
       result: result.result.map((folderOperation) =>
-        folderOperation.toFolderOperationData(),
+        transformFolderOperationToFolderOperationDTO(folderOperation),
       ),
     }
   }

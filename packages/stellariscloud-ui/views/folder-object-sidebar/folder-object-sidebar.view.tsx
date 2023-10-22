@@ -419,7 +419,7 @@ export const FolderObjectSidebar = ({
                               className="dark:bg-gray-50/5"
                               onClick={() =>
                                 downloadToFile(
-                                  folderObject.folder.id,
+                                  folderObject.folderId,
                                   toMetadataObjectIdentifier(
                                     objectKey,
                                     metadataEntry.hash,

@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 set -e
-source ./cmd/env.sh
+. ./cmd/env.sh
 set -x
 
-yarn mikro-orm migration:up
+yarn drizzle-kit up:pg --config ./src/orm/drizzle.config.ts
 
 { set +x; } 2>/dev/null

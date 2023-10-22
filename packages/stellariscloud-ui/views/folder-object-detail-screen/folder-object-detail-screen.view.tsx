@@ -152,33 +152,6 @@ export const FolderObjectDetailScreen = ({
   )
   const folderContext = useFolderContext(messageHandler)
 
-  const _handleCreateTag = React.useCallback(
-    (name: string) =>
-      foldersApi
-        .createTag({ folderId, createTagRequest: { name } })
-        .then((response) => {
-          void folderContext.refreshTags()
-          return response.data
-        }),
-    [folderContext, folderId],
-  )
-
-  const _handleTagObject = React.useCallback(
-    (tagId: string) =>
-      foldersApi
-        .tagObject({ folderId, objectKey, tagId })
-        .then(fetchKeyMetadata),
-    [folderId, objectKey, fetchKeyMetadata],
-  )
-
-  const _handleUntagObject = React.useCallback(
-    (tagId: string) =>
-      foldersApi
-        .untagObject({ folderId, objectKey, tagId })
-        .then(fetchKeyMetadata),
-    [folderId, objectKey, fetchKeyMetadata],
-  )
-
   const handleFolderLinkClick = React.useCallback(
     (e?: React.MouseEvent) => {
       e?.preventDefault()
@@ -257,7 +230,7 @@ export const FolderObjectDetailScreen = ({
                 titleIconBg={'bg-purple-500 dark:bg-purple-700'}
                 titleIconSrc={objectThumbnailData}
                 ancestorTitle={folderContext.folder?.name}
-                ancestorHref={`/folders/${folderObject.folder.id}`}
+                ancestorHref={`/folders/${folderObject.folderId}`}
                 ancestorTitleIcon={FolderIcon}
                 ancestorTitleIconBg="bg-blue-500"
                 onAncestorPress={(href) => void router.push(href)}

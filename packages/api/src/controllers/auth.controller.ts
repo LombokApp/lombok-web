@@ -20,6 +20,8 @@ import { AuthService } from '../domains/auth/services/auth.service'
 import { SessionService } from '../domains/auth/services/session.service'
 import type { SessionData } from '../domains/auth/transfer-objects/session.dto'
 import { UserAuthService } from '../domains/user/services/user-auth.service'
+import type { UserData } from '../domains/user/transfer-objects/user.dto'
+import { transformUserToUserDTO } from '../domains/user/transforms/user-dto.transform'
 import { UnauthorizedError } from '../errors/auth.error'
 import type { ErrorResponse } from '../transfer-objects/error-response.dto'
 
@@ -80,8 +82,8 @@ export interface ApiKeyResponse {
 export class AuthController extends Controller {
   constructor(
     private readonly sessionService: SessionService,
-    private readonly authService: AuthService,
     private readonly userAuthService: UserAuthService,
+    private readonly authService: AuthService,
   ) {
     super()
   }
@@ -116,12 +118,14 @@ export class AuthController extends Controller {
   @SuccessResponse(201)
   @OperationId('Signup')
   @Post('signup')
-  async signup(@Body() body: { data: SignupParams }) {
+  async signup(
+    @Body() body: { data: SignupParams },
+  ): Promise<{ user: UserData }> {
     const user = await this.authService.signup(body.data)
 
     this.setStatus(201)
 
-    return { data: user }
+    return { user: transformUserToUserDTO(user) }
   }
 
   @Security(AuthScheme.Public)

@@ -21,9 +21,7 @@ const ServerUserPage: NextPage = () => {
   return (
     <div className="h-full w-full">
       {isNew ? (
-        <ServerUserDetailScreen
-          user={{ name: '', email: '', permissions: [] }}
-        />
+        <ServerUserDetailScreen />
       ) : (
         user && (
           <ServerUserDetailScreen

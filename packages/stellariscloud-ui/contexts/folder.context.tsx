@@ -1,8 +1,6 @@
 import type {
   FolderAndPermission,
   FolderOperationData,
-  FolderShareData,
-  ObjectTagData,
 } from '@stellariscloud/api-client'
 import type { FolderMetadata } from '@stellariscloud/types'
 import { FolderPushMessage } from '@stellariscloud/types'
@@ -19,13 +17,8 @@ export interface IFolderContext {
   folder?: FolderAndPermission['folder']
   folderPermissions?: FolderAndPermission['permissions']
   refreshFolder: () => Promise<void>
-  refreshTags: () => Promise<void>
-  tags?: ObjectTagData[]
-  createObjectTag: (tag: string) => Promise<ObjectTagData>
   refreshFolderMetadata: () => Promise<void>
   folderMetadata?: FolderMetadata
-  refreshFolderShares: () => Promise<void>
-  folderShares?: FolderShareData[]
   notifications: Notification[]
   showNotification: (n: Notification) => void
   newNotificationFlag?: string
@@ -64,8 +57,6 @@ export const FolderContextProvider = ({
   const [folderAndPermission, setFolderAndPermission] =
     React.useState<FolderAndPermission>()
   const [folderMetadata, setFolderMetadata] = React.useState<FolderMetadata>()
-  const [objectTags, setObjectTags] = React.useState<ObjectTagData[]>()
-  const [folderShares, setFolderShares] = React.useState<FolderShareData[]>()
   const notifications = React.useRef<Notification[]>([])
   const [newNotificationFlag, setNewNotificationFlag] = React.useState<string>()
   const [_folderOperations, setFolderOperations] =
@@ -138,13 +129,13 @@ export const FolderContextProvider = ({
     messageHandler,
   )
 
-  const fetchFolderTags = React.useCallback(
-    () =>
-      foldersApi
-        .listTags({ folderId })
-        .then((response) => setObjectTags(response.data.result)),
-    [folderId],
-  )
+  // const fetchFolderTags = React.useCallback(
+  //   () =>
+  //     foldersApi
+  //       .listTags({ folderId })
+  //       .then((response) => setObjectTags(response.data.result)),
+  //   [folderId],
+  // )
 
   const _fetchFolderOperations = React.useCallback(
     () =>
@@ -154,14 +145,14 @@ export const FolderContextProvider = ({
     [folderId],
   )
 
-  const createFolderTag = (tagName: string) => {
-    return foldersApi
-      .createTag({ folderId, createTagRequest: { name: tagName } })
-      .then((response) => {
-        void fetchFolderTags()
-        return response.data
-      })
-  }
+  // const createFolderTag = (tagName: string) => {
+  //   return foldersApi
+  //     .createTag({ folderId, createTagRequest: { name: tagName } })
+  //     .then((response) => {
+  //       void fetchFolderTags()
+  //       return response.data
+  //     })
+  // }
 
   const showNotification = React.useCallback((notification: Notification) => {
     const randomId = (Math.random() + 1).toString(36).substring(7)
@@ -183,21 +174,21 @@ export const FolderContextProvider = ({
     }, 5000)
   }, [])
 
-  const fetchFolderShares = React.useCallback(
-    () =>
-      foldersApi
-        .listFolderShares({ folderId })
-        .then((response) => setFolderShares(response.data.result)),
-    [folderId],
-  )
+  // const fetchFolderShares = React.useCallback(
+  //   () =>
+  //     foldersApi
+  //       .listFolderShares({ folderId })
+  //       .then((response) => setFolderShares(response.data.result)),
+  //   [folderId],
+  // )
 
   React.useEffect(() => {
     if (folderId) {
       void fetchFolder()
       void fetchFolderMetadata()
-      void fetchFolderTags()
+      // void fetchFolderTags()
     }
-  }, [folderId, fetchFolder, fetchFolderTags, fetchFolderMetadata])
+  }, [folderId, fetchFolder, fetchFolderMetadata])
 
   const subscribeToMessages = (handler: SocketMessageHandler) => {
     socket?.onAny(handler)
@@ -217,11 +208,6 @@ export const FolderContextProvider = ({
         refreshFolder: fetchFolder,
         folderMetadata,
         refreshFolderMetadata: fetchFolderMetadata,
-        tags: objectTags,
-        refreshTags: fetchFolderTags,
-        createObjectTag: createFolderTag,
-        folderShares,
-        refreshFolderShares: fetchFolderShares,
         notifications: notifications.current,
         showNotification,
         socketConnected,

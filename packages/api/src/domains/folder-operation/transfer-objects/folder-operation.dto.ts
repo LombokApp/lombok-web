@@ -8,5 +8,5 @@ export interface FolderOperationData extends TimestampData {
   operationData: { [key: string]: any }
   started: boolean
   completed: boolean
-  error?: string
+  error: string | null
 }

@@ -1,14 +1,21 @@
-import { parseSort } from '@stellariscloud/utils'
+import { eq, inArray, sql } from 'drizzle-orm'
 import { Lifecycle, scoped } from 'tsyringe'
+import { v4 as uuidV4 } from 'uuid'
 
+import { OrmService } from '../../../orm/orm.service'
+import { parseSort } from '../../../util/sort.util'
 import type { Actor } from '../../auth/actor'
+import type { SaveablePlatformRole } from '../../auth/constants/role.constants'
 import { PlatformRole } from '../../auth/constants/role.constants'
-import { UserRepository } from '../entities/user.repository'
+import { authHelper } from '../../auth/utils/auth-helper'
+import type { NewUser } from '../entities/user.entity'
+import { usersTable } from '../entities/user.entity'
 import { UserNotFoundError } from '../errors/user.error'
 import type {
   CreateUserData,
   UpdateUserData,
 } from '../transfer-objects/user.dto'
+import { UserAuthService } from './user-auth.service'
 
 export enum UserSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -27,24 +34,39 @@ export enum UserSort {
 
 @scoped(Lifecycle.ContainerScoped)
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly ormService: OrmService,
+    private readonly userAuthService: UserAuthService,
+  ) {}
 
   async updateViewer(actor: Actor, { name }: { name: string }) {
-    const user = await this.userRepository.findOne({ id: actor.id })
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.id, actor.id),
+    })
 
-    if (user === null) {
+    if (!user) {
       throw new UserNotFoundError()
     }
 
     user.name = name
 
-    await this.userRepository.getEntityManager().flush()
+    const updatedUser = (
+      await this.ormService.db
+        .update(usersTable)
+        .set({
+          name,
+        })
+        .where(eq(usersTable.id, user.id))
+        .returning()
+    )[0]
 
-    return user
+    return updatedUser
   }
 
   async getByEmail({ email }: { email: string }) {
-    const user = await this.userRepository.findOne({ email })
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.email, email),
+    })
 
     if (!user) {
       throw new UserNotFoundError()
@@ -54,7 +76,9 @@ export class UserService {
   }
 
   async getById({ id }: { id: string }) {
-    const user = await this.userRepository.findOne({ id })
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.id, id),
+    })
 
     if (!user) {
       throw new UserNotFoundError()
@@ -63,33 +87,35 @@ export class UserService {
     return user
   }
 
-  count({ role }: { role?: PlatformRole[]; indexed?: boolean }) {
-    return this.userRepository.count({
-      $and: [role === undefined ? {} : { role: { $in: role } }],
-    })
-  }
-
-  listUsers({
+  async listUsers({
     limit = 10,
     offset = 0,
     sort = UserSort.CreatedAtDesc,
-    role,
+    roles,
   }: {
     limit?: number
     offset?: number
     sort?: UserSort
-    role?: PlatformRole[]
+    roles?: (PlatformRole.Admin | PlatformRole.User)[]
   }) {
-    return this.userRepository.findAndCount(
-      {
-        $and: [role === undefined ? {} : { role: { $in: role } }],
-      },
-      {
-        limit,
-        offset,
-        orderBy: parseSort(sort),
-      },
-    )
+    const users = await this.ormService.db.query.usersTable.findMany({
+      ...(roles
+        ? {
+            where: inArray(usersTable.role, roles),
+          }
+        : undefined),
+      limit,
+      offset,
+      orderBy: parseSort(usersTable, sort),
+    })
+    const [userCountResult] = await this.ormService.db
+      .select({ count: sql<string | null>`count(*)` })
+      .from(usersTable)
+
+    return {
+      results: users,
+      totalCount: parseInt(userCountResult.count ?? '0', 10),
+    }
   }
 
   listUsersAsAdmin(
@@ -98,16 +124,16 @@ export class UserService {
       limit = 10,
       offset = 0,
       sort = UserSort.CreatedAtDesc,
-      role,
+      roles,
     }: {
       limit?: number
       offset?: number
       sort?: UserSort
-      role?: PlatformRole[]
+      roles?: (PlatformRole.Admin | PlatformRole.User)[]
     },
   ) {
     // TODO: ACL
-    return this.listUsers({ limit, offset, sort, role })
+    return this.listUsers({ limit, offset, sort, roles })
   }
 
   getUserByIdAsAdmin(actorId: string, userId: string) {
@@ -115,49 +141,69 @@ export class UserService {
     return this.getById({ id: userId })
   }
 
-  async createUserAsUser(actor: Actor, userPayload: CreateUserData) {
+  async createUserAsAdmin(actor: Actor, userPayload: CreateUserData) {
     // TODO: ACL
     // TODO: input validation
 
-    const createdUser = this.userRepository.create({
+    const now = new Date()
+
+    const passwordSalt = authHelper.createPasswordSalt()
+    const newUser: NewUser = {
+      id: uuidV4(),
       name: userPayload.name,
       email: userPayload.email,
       role: userPayload.admin ? PlatformRole.Admin : PlatformRole.User,
       emailVerified: userPayload.emailVerified ?? false,
       username: userPayload.username,
+      passwordHash: authHelper
+        .createPasswordHash(userPayload.password, passwordSalt)
+        .toString('hex'),
+      passwordSalt,
       permissions: userPayload.permissions ?? [],
-    })
+      createdAt: now,
+      updatedAt: now,
+    }
 
-    createdUser.setPassword(userPayload.password)
-    await this.userRepository.getEntityManager().persistAndFlush(createdUser)
+    const [createdUser] = await this.ormService.db
+      .insert(usersTable)
+      .values(newUser)
+      .returning()
 
-    const u = await this.userRepository.findOneOrFail({ id: createdUser.id })
-    return u
+    return createdUser
   }
 
-  async updateUserAsUser(
+  async updateUserAsAdmin(
     actor: Actor,
     userPayload: UpdateUserData & { id: string },
   ) {
     // TODO: ACL
     // TODO: input validation
 
-    const existingUser = await this.userRepository.findOne({
-      id: userPayload.id,
+    const existingUser = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.id, userPayload.id),
     })
 
     if (!existingUser) {
       throw new UserNotFoundError()
     }
 
+    const updates: {
+      role?: SaveablePlatformRole
+      name?: string
+      emailVerified?: boolean
+      passwordHash?: string
+      passwordSalt?: string
+      permissions?: string[]
+    } = {}
+
     if (userPayload.admin && existingUser.role !== PlatformRole.Admin) {
-      existingUser.role = PlatformRole.Admin
+      updates.role = PlatformRole.Admin
     } else if (!userPayload.admin && existingUser.role === PlatformRole.Admin) {
-      existingUser.role = PlatformRole.User
+      updates.role = PlatformRole.User
     }
 
     if (userPayload.name) {
-      existingUser.name = userPayload.name
+      updates.name = userPayload.name
     }
 
     if (
@@ -165,25 +211,34 @@ export class UserService {
         userPayload.emailVerified === true) &&
       userPayload.emailVerified !== existingUser.emailVerified
     ) {
-      existingUser.emailVerified = userPayload.emailVerified
+      updates.emailVerified = userPayload.emailVerified
     }
 
     if (userPayload.password) {
-      existingUser.setPassword(userPayload.password)
+      const passwordSalt = authHelper.createPasswordSalt()
+      updates.passwordHash = authHelper
+        .createPasswordHash(userPayload.password, passwordSalt)
+        .toString('hex')
+      updates.passwordSalt = passwordSalt
     }
     if (userPayload.permissions) {
       // TODO: validate incoming permission keys
-      existingUser.permissions = userPayload.permissions
+      updates.permissions = userPayload.permissions
     }
 
-    await this.userRepository.getEntityManager().flush()
+    const user = (
+      await this.ormService.db
+        .update(usersTable)
+        .set(updates)
+        .where(eq(usersTable.id, existingUser.id))
+        .returning()
+    )[0]
 
-    const u = await this.userRepository.findOneOrFail({ id: userPayload.id })
-    return u
+    return user
   }
 
-  async deleteUserAsUser(actor: Actor, userId: string) {
+  async deleteUserAsAdmin(actor: Actor, userId: string) {
     // TODO: ACL
-    await this.userRepository.getEntityManager().removeAndFlush({ id: userId })
+    await this.ormService.db.delete(usersTable).where(eq(usersTable.id, userId))
   }
 }

@@ -1,10 +1,9 @@
 #!/usr/bin/env sh
 set -e
-
 . ./cmd/env.sh
 set -x
 
-yarn mikro-orm schema:drop -r --drop-migrations-table --fk-checks
-yarn mikro-orm migration:up
+yarn ts-node "./script/db-reset.ts"
+yarn drizzle-kit up:pg --config ./src/orm/drizzle.config.ts
 
 { set +x; } 2>/dev/null
