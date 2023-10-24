@@ -37,6 +37,7 @@ export interface ILocalFileCacheContext {
   localStorageFolderSizes: { [key: string]: number }
   purgeLocalStorageForFolder: (folderId: string) => Promise<boolean>
   recalculateLocalStorageFolderSizes: () => Promise<boolean>
+  uploadingProgress: { [key: string]: number }
   getDataFromMemory: (
     folderId: string,
     key: string,
@@ -67,6 +68,9 @@ export const LocalFileCacheContextProvider = ({
 }) => {
   const downloading = React.useRef<DownloadingContextMap>({})
   const [localStorageFolderSizes, setLocalStorageFolderSizes] = React.useState<{
+    [key: string]: number
+  }>({})
+  const [uploadingProgress, setUploadingProgress] = React.useState<{
     [key: string]: number
   }>({})
   const workerRef = React.useRef<Worker>()
@@ -164,6 +168,13 @@ export const LocalFileCacheContextProvider = ({
               ...line,
               remote: false,
             })
+          } else if (event.data[0] === 'UPLOAD_PROGRESS') {
+            const progress: number = event.data[1].progress
+            const uploadObjectKey: string = event.data[1].objectKey
+            setUploadingProgress((up) => ({
+              ...up,
+              [uploadObjectKey]: progress,
+            }))
           } else {
             // console.log(`WebWorker Response => ${event.data}`)
           }
@@ -312,6 +323,7 @@ export const LocalFileCacheContextProvider = ({
         isLocal,
         getDataFromMemory,
         uploadFile,
+        uploadingProgress,
         recalculateLocalStorageFolderSizes,
         purgeLocalStorageForFolder,
         localStorageFolderSizes,

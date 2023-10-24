@@ -638,6 +638,7 @@ export const FolderDetailScreen = () => {
     purgeLocalStorageForFolder,
     getData,
     uploadFile,
+    uploadingProgress,
   } = useLocalFileCacheContext()
 
   const [objectsViewContext, setObjectsViewContext] =
@@ -1146,6 +1147,7 @@ export const FolderDetailScreen = () => {
     <>
       {uploadOpen && (
         <UploadModal
+          uploadingProgress={uploadingProgress}
           onUpload={(file: File) =>
             uploadFile(folderContext.folderId, file.name, file)
           }

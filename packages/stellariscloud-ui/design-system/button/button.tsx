@@ -45,7 +45,7 @@ export function Button({
     <div
       className={clsx(
         containerClassName,
-        'relative rounded-md overflow-hidden max-w-fit',
+        'relative rounded-md overflow-hidden max-w-fit shrink-0',
         size === 'xl'
           ? 'h-[2.75rem]'
           : size === 'lg'

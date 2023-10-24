@@ -12,13 +12,13 @@ export const FolderUploadDropzone = ({
   })
 
   return (
-    <div className="w-full h-full bg-sky-50 border-2 border-sky-600 p-6 rounded-md">
+    <div className="w-full h-full bg-black/10 dark:bg-white/5 rounded-md">
       <div className="h-full" {...getRootProps()}>
         <input {...getInputProps()} />
         {isDragActive ? (
           <p>Drop the files here ...</p>
         ) : (
-          <div className="flex flex-col items-center italic text-gray-400">
+          <div className="flex flex-col items-center italic text-gray-600 dark:text-gray-400 p-6 cursor-pointer">
             <p>Drop files here to upload</p>
             <p>or click to select files.</p>
           </div>
