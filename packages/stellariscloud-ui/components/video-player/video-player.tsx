@@ -24,6 +24,7 @@ export const VideoPlayer = ({
   return (
     <div
       className={clsx(
+        'flex flex-1',
         grayscale && 'ease-in-out duration-200 grayscale hover:grayscale-0',
       )}
     >

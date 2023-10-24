@@ -328,7 +328,7 @@ export const FolderObjectDetailScreen = ({
             {folderObject && (
               <div
                 className={
-                  'h-full flex-1 bg-gray-100 dark:bg-black/[20%] flex flex-col'
+                  'h-full flex-1 bg-gray-100 dark:bg-black/[20%] flex flex-col justify-around'
                 }
               >
                 {folderObject.hash ? (
