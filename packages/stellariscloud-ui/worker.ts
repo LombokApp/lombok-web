@@ -241,8 +241,19 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
             'Content-Type': uploadFile.type,
             'Content-Encoding': 'base64',
           },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / (progressEvent.total ?? 0),
+            )
+            postMessage([
+              'UPLOAD_PROGRESS',
+              {
+                progress: percentCompleted,
+                objectKey: uploadFile.name,
+              },
+            ])
+          },
         })
-        await addFileToLocalFileStorage(folderId, uploadFile.name, uploadFile)
 
         // have the app ingest the file
         await foldersApi.refreshFolderObjectS3Metadata({
