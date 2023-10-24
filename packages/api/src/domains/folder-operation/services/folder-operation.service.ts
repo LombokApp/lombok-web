@@ -434,25 +434,31 @@ export class FolderOperationService {
         throw new FolderObjectNotFoundError()
       }
 
-      await this.ormService.db
-        .update(folderObjectsTable)
-        .set({
-          hash,
-          contentAttributes: {
-            ...folderObject.contentAttributes,
-            [hash]: { ...folderObject.contentAttributes[hash], ...attributes },
-          },
-        })
-        .where(
-          and(
-            eq(folderObjectsTable.folderId, folderId),
-            eq(folderObjectsTable.objectKey, objectKey),
-          ),
-        )
+      const updatedObject = (
+        await this.ormService.db
+          .update(folderObjectsTable)
+          .set({
+            hash,
+            contentAttributes: {
+              ...folderObject.contentAttributes,
+              [hash]: {
+                ...folderObject.contentAttributes[hash],
+                ...attributes,
+              },
+            },
+          })
+          .where(
+            and(
+              eq(folderObjectsTable.folderId, folderId),
+              eq(folderObjectsTable.objectKey, objectKey),
+            ),
+          )
+          .returning()
+      )[0]
       this.socketService.sendToFolderRoom(
         folderId,
         FolderPushMessage.OBJECTS_UPDATED,
-        folderObject,
+        updatedObject,
       )
     }
   }
@@ -476,18 +482,21 @@ export class FolderOperationService {
         [hash]: { ...folderObject.contentMetadata[hash], ...metadata },
       }
 
-      await this.ormService.db
-        .update(folderObjectsTable)
-        .set({
-          hash,
-          contentMetadata: newContentMetadata,
-        })
-        .where(eq(folderObjectsTable.id, folderObject.id))
+      const updatedObject = (
+        await this.ormService.db
+          .update(folderObjectsTable)
+          .set({
+            hash,
+            contentMetadata: newContentMetadata,
+          })
+          .where(eq(folderObjectsTable.id, folderObject.id))
+          .returning()
+      )[0]
 
       this.socketService.sendToFolderRoom(
         folderId,
         FolderPushMessage.OBJECT_UPDATED,
-        folderObject,
+        updatedObject,
       )
     }
   }
