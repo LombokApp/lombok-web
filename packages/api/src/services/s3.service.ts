@@ -185,7 +185,7 @@ export class S3Service {
         bucket,
         objectKey,
         method: SignedURLsRequestMethod.DELETE,
-        expirySeconds: 60,
+        expirySeconds: 3600,
       },
     ])[0]
 

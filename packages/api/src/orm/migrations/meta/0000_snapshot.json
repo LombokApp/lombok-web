@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "pg",
-  "id": "53602270-32b8-4b5a-8981-b858e854e499",
+  "id": "ebfaf767-7aea-451f-b470-baed418a0971",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "session": {
@@ -34,19 +34,19 @@
         },
         "expiresAt": {
           "name": "expiresAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
         "createdAt": {
           "name": "createdAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
         "updatedAt": {
           "name": "updatedAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         }
@@ -98,13 +98,13 @@
         },
         "createdAt": {
           "name": "createdAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
         "updatedAt": {
           "name": "updatedAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         }
@@ -134,7 +134,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "folder_operation_objects_folderId_folders_id_fk": {
@@ -204,13 +204,13 @@
         },
         "createdAt": {
           "name": "createdAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
         "updatedAt": {
           "name": "updatedAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         }
@@ -306,13 +306,13 @@
         },
         "createdAt": {
           "name": "createdAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
         "updatedAt": {
           "name": "updatedAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         }
@@ -358,13 +358,13 @@
         },
         "createdAt": {
           "name": "createdAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
         "updatedAt": {
           "name": "updatedAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         }
@@ -432,13 +432,13 @@
         },
         "createdAt": {
           "name": "createdAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
         "updatedAt": {
           "name": "updatedAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         }
@@ -514,13 +514,13 @@
         },
         "createdAt": {
           "name": "createdAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
         "updatedAt": {
           "name": "updatedAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         }
@@ -606,13 +606,13 @@
         },
         "createdAt": {
           "name": "createdAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
         "updatedAt": {
           "name": "updatedAt",
-          "type": "date",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         }

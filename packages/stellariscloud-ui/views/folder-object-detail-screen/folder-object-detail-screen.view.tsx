@@ -20,8 +20,7 @@ import { formatBytes, toMetadataObjectIdentifier } from '@stellariscloud/utils'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import { ConfirmDelete } from '../../components/confirm-delete/confirm-delete'
-import { Takeover } from '../../components/takeover/takeover'
+import { ConfirmDeleteModal } from '../../components/confirm-delete-modal/confirm-delete-modal'
 import { useFolderContext } from '../../contexts/folder.context'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { LogLevel, useLoggingContext } from '../../contexts/logging.context'
@@ -204,15 +203,11 @@ export const FolderObjectDetailScreen = ({
   return (
     <>
       {showDeleteModal && folderObject && (
-        <Takeover>
-          <div className="h-screen w-screen flex flex-col justify-around items-center">
-            <ConfirmDelete
-              folderObject={folderObject}
-              onConfirm={handleDelete}
-              onCancel={() => setShowDeleteModal(false)}
-            />
-          </div>
-        </Takeover>
+        <ConfirmDeleteModal
+          folderObject={folderObject}
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteModal(false)}
+        />
       )}
       <div className="w-full h-screen flex flex-1 justify-end bg-gray-50 dark:bg-gray-900">
         <div

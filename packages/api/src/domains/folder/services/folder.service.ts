@@ -403,7 +403,7 @@ export class FolderService {
     folderId: string
     objectKey: string
   }): Promise<boolean> {
-    const { folder: _folder, permissions } = await this.getFolderAsUser({
+    const { folder, permissions } = await this.getFolderAsUser({
       folderId,
       userId,
     })
@@ -412,33 +412,37 @@ export class FolderService {
       throw new FolderPermissionMissingError()
     }
 
-    const obj = await this.ormService.db.query.folderObjectsTable.findFirst({
-      where: and(
-        eq(folderObjectsTable.folderId, folderId),
-        eq(folderObjectsTable.objectKey, objectKey),
-      ),
-    })
+    const folderObject =
+      await this.ormService.db.query.folderObjectsTable.findFirst({
+        where: and(
+          eq(folderObjectsTable.folderId, folderId),
+          eq(folderObjectsTable.objectKey, objectKey),
+        ),
+      })
 
-    if (!obj) {
+    if (!folderObject) {
       throw new FolderObjectNotFoundError()
     }
 
-    // TODO: fix delete folder
-    // await this.s3Service.s3DeleteBucketObject({
-    //   accessKeyId: folder.accessKeyId,
-    //   secretAccessKey: folder.secretAccessKey,
-    //   endpoint: folder.endpoint,
-    //   region: folder.region,
-    //   bucket: folder.bucket,
-    //   objectKey,
-    // })
-
-    // this.folderRepository.getEntityManager().remove(obj)
-    // await this.folderRepository.getEntityManager().flush()
+    await this.s3Service.s3DeleteBucketObject({
+      accessKeyId: folder.contentLocation.accessKeyId,
+      secretAccessKey: folder.contentLocation.secretAccessKey,
+      endpoint: folder.contentLocation.endpoint,
+      region: folder.contentLocation.region,
+      bucket: folder.contentLocation.bucket,
+      objectKey,
+    })
 
     await this.ormService.db
       .delete(folderObjectsTable)
-      .where(eq(folderObjectsTable.id, obj.id))
+      .where(eq(folderObjectsTable.id, folderObject.id))
+
+    this.socketService.sendToFolderRoom(
+      folderId,
+      FolderPushMessage.OBJECT_REMOVED,
+      { folderObject },
+    )
+
     return true
   }
 

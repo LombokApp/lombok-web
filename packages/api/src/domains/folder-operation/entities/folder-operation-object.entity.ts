@@ -18,7 +18,7 @@ export const folderOperationObjectsTable = pgTable('folder_operation_objects', {
   operationRelationType: text('operationRelationType').notNull(),
   folderObjectId: uuid('folderObjectId')
     .notNull()
-    .references(() => folderObjectsTable.id),
+    .references(() => folderObjectsTable.id, { onDelete: 'cascade' }),
   folderId: uuid('folderId')
     .notNull()
     .references(() => foldersTable.id),
