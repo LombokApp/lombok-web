@@ -14,6 +14,8 @@ import {
 import { folderObjectsTable } from '../domains/folder/entities/folder-object.entity'
 import { folderOperationsTable } from '../domains/folder-operation/entities/folder-operation.entity'
 import { folderOperationObjectsTable } from '../domains/folder-operation/entities/folder-operation-object.entity'
+import { folderWorkersTable } from '../domains/folder-operation/entities/folder-worker.entity'
+import { folderWorkerKeysTable } from '../domains/folder-operation/entities/folder-worker-key.entity'
 import { serverConfigurationsTable } from '../domains/server/entities/server-configuration.entity'
 import { storageLocationsTable } from '../domains/storage-location/entities/storage-location.entity'
 import { usersTable } from '../domains/user/entities/user.entity'
@@ -28,6 +30,8 @@ export const schema = {
   folderObjectsTable,
   folderOperationsTable,
   folderOperationObjectsTable,
+  folderWorkersTable,
+  folderWorkerKeysTable,
 }
 
 @singleton()

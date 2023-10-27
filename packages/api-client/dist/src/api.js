@@ -13,7 +13,7 @@
  * Do not edit the class manually.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WorkerApi = exports.WorkerApiFactory = exports.WorkerApiFp = exports.WorkerApiAxiosParamCreator = exports.ViewerApi = exports.ViewerApiFactory = exports.ViewerApiFp = exports.ViewerApiAxiosParamCreator = exports.ServerApi = exports.ServerApiFactory = exports.ServerApiFp = exports.ServerApiAxiosParamCreator = exports.FoldersApi = exports.FoldersApiFactory = exports.FoldersApiFp = exports.FoldersApiAxiosParamCreator = exports.AuthApi = exports.AuthApiFactory = exports.AuthApiFp = exports.AuthApiAxiosParamCreator = exports.StorageLocationDataProviderTypeEnum = exports.SignedURLsRequestMethod = exports.ServerLocationType = exports.PlatformRole = exports.MediaType = exports.FolderPermissionName = exports.FolderOperationStatus = exports.FolderOperationSort = exports.FolderOperationName = void 0;
+exports.WorkerApi = exports.WorkerApiFactory = exports.WorkerApiFp = exports.WorkerApiAxiosParamCreator = exports.ViewerApi = exports.ViewerApiFactory = exports.ViewerApiFp = exports.ViewerApiAxiosParamCreator = exports.ServerApi = exports.ServerApiFactory = exports.ServerApiFp = exports.ServerApiAxiosParamCreator = exports.FoldersApi = exports.FoldersApiFactory = exports.FoldersApiFp = exports.FoldersApiAxiosParamCreator = exports.AuthApi = exports.AuthApiFactory = exports.AuthApiFp = exports.AuthApiAxiosParamCreator = exports.StorageLocationDataProviderTypeEnum = exports.SignedURLsRequestMethod = exports.ServerLocationType = exports.PlatformRole = exports.MediaType = exports.FolderWorkerKeySort = exports.FolderPermissionName = exports.FolderOperationStatus = exports.FolderOperationSort = exports.FolderOperationName = void 0;
 const axios_1 = require("axios");
 // Some imports not used depending on template conditions
 // @ts-ignore
@@ -65,6 +65,17 @@ exports.FolderPermissionName = {
     ObjectManage: 'object_manage',
     TagCreate: 'tag_create',
     TagAssociate: 'tag_associate'
+};
+/**
+ *
+ * @export
+ * @enum {string}
+ */
+exports.FolderWorkerKeySort = {
+    CreatedAtAsc: 'createdAt-asc',
+    CreatedAtDesc: 'createdAt-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
 };
 /**
  *
@@ -1416,6 +1427,33 @@ const ServerApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createServerWorkerKey: async (options = {}) => {
+            const localVarPath = `/server/worker-keys`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication AccessToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
          * @param {CreateUserData} createUserData
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1603,6 +1641,45 @@ const ServerApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @param {FolderWorkerKeySort} [sort]
+         * @param {number} [limit]
+         * @param {number} [offset]
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerWorkerKeys: async (sort, limit, offset, options = {}) => {
+            const localVarPath = `/server/worker-keys`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication AccessToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
+            }
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1754,6 +1831,15 @@ const ServerApiFp = function (configuration) {
         },
         /**
          *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createServerWorkerKey(options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createServerWorkerKey(options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
          * @param {CreateUserData} createUserData
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1810,6 +1896,18 @@ const ServerApiFp = function (configuration) {
          */
         async listServerLocations(locationType, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listServerLocations(locationType, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {FolderWorkerKeySort} [sort]
+         * @param {number} [limit]
+         * @param {number} [offset]
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listServerWorkerKeys(sort, limit, offset, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listServerWorkerKeys(sort, limit, offset, options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
         /**
@@ -1874,6 +1972,14 @@ const ServerApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createServerWorkerKey(options) {
+            return localVarFp.createServerWorkerKey(options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
          * @param {ServerApiCreateUserRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1924,6 +2030,15 @@ const ServerApiFactory = function (configuration, basePath, axios) {
          */
         listServerLocations(requestParameters, options) {
             return localVarFp.listServerLocations(requestParameters.locationType, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {ServerApiListServerWorkerKeysRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerWorkerKeys(requestParameters = {}, options) {
+            return localVarFp.listServerWorkerKeys(requestParameters.sort, requestParameters.limit, requestParameters.offset, options).then((request) => request(axios, basePath));
         },
         /**
          *
@@ -1979,6 +2094,15 @@ class ServerApi extends base_1.BaseAPI {
      */
     addServerLocation(requestParameters, options) {
         return (0, exports.ServerApiFp)(this.configuration).addServerLocation(requestParameters.locationType, requestParameters.serverLocationInputData, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    createServerWorkerKey(options) {
+        return (0, exports.ServerApiFp)(this.configuration).createServerWorkerKey(options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
@@ -2038,6 +2162,16 @@ class ServerApi extends base_1.BaseAPI {
      */
     listServerLocations(requestParameters, options) {
         return (0, exports.ServerApiFp)(this.configuration).listServerLocations(requestParameters.locationType, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {ServerApiListServerWorkerKeysRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    listServerWorkerKeys(requestParameters = {}, options) {
+        return (0, exports.ServerApiFp)(this.configuration).listServerWorkerKeys(requestParameters.sort, requestParameters.limit, requestParameters.offset, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *

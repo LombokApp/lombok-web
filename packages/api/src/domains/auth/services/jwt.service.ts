@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm'
+import type { JwtPayload } from 'jsonwebtoken'
 import jwt from 'jsonwebtoken'
 import * as r from 'runtypes'
 import { singleton } from 'tsyringe'
@@ -28,6 +29,12 @@ export const accessTokenType: r.Runtype<AccessTokenJWT> = r.Record({
   sub: r.String,
   scp: r.Array(AuthScopeType),
   role: PlatformRoleType.optional(),
+})
+
+export const workerAccessTokenType: r.Runtype<WorkerAccessTokenJWT> = r.Record({
+  aud: r.String,
+  jti: r.String,
+  sub: r.String,
 })
 
 export const socketAccessTokenType: r.Runtype<SocketAccessTokenJWT> = r.Record({
@@ -77,6 +84,26 @@ export class AccessTokenJWT {
     }
 
     return new AccessTokenJWT(result.value)
+  }
+}
+
+export class WorkerAccessTokenJWT {
+  aud!: string
+  jti!: string
+  sub!: string
+
+  protected constructor(decoded: AccessTokenJWT) {
+    Object.assign(this, decoded)
+  }
+
+  static parse(decoded: unknown) {
+    const result = accessTokenType.validate(decoded)
+
+    if (!result.success) {
+      throw new AuthTokenParseError(decoded, result)
+    }
+
+    return new WorkerAccessTokenJWT(result.value)
   }
 }
 
@@ -139,12 +166,32 @@ export class JWTService {
     return token
   }
 
+  createWorkerAccessTokenFromWorker(workerId: string): string {
+    const { jwtSecret } = this.config.getAuthConfig()
+
+    const payload: WorkerAccessTokenJWT = {
+      aud: 'worker_access_token',
+      jti: `${workerId}:${uuidV4()}`,
+      sub: workerId,
+    }
+
+    const token = jwt.sign(payload, jwtSecret, {
+      algorithm: ALGORITHM,
+      expiresIn: AuthDurationSeconds.WorkerAccessToken,
+    })
+
+    WorkerAccessTokenJWT.parse(this.verifyJWT(token))
+
+    return token
+  }
+
   verifyJWT(token: string) {
     const { jwtSecret } = this.config.getAuthConfig()
 
-    let decoded: unknown
     try {
-      decoded = jwt.verify(token, jwtSecret, { algorithms: [ALGORITHM] })
+      return jwt.verify(token, jwtSecret, {
+        algorithms: [ALGORITHM],
+      }) as JwtPayload
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
         throw new AuthTokenExpiredError(token, error)
@@ -154,19 +201,15 @@ export class JWTService {
       }
       throw error
     }
-
-    return decoded
   }
 
   verifyWorkerJWT(token: string) {
-    const { workerPublicKey } = this.config.getAuthConfig()
-
-    let decoded: unknown
+    const { workerJwtSecret } = this.config.getAuthConfig()
     try {
-      decoded = jwt.verify(token, workerPublicKey, {
+      return jwt.verify(token, workerJwtSecret, {
         algorithms: [RSA_ALGORITHM],
         audience: 'worker_access_token',
-      })
+      }) as JwtPayload
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
         throw new AuthTokenExpiredError(token, error)
@@ -176,8 +219,6 @@ export class JWTService {
       }
       throw error
     }
-
-    return decoded
   }
 
   verifySocketAccessToken(token: string) {

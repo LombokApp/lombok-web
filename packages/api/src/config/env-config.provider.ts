@@ -68,12 +68,12 @@ export class EnvConfigProvider implements ConfigProvider {
     if (!this.auth) {
       const env = parseEnv({
         AUTH_JWT_SECRET: r.String.withConstraint(minLength(32)),
-        WORKER_PUBLIC_KEY: r.String.withConstraint(minLength(128)),
+        WORKER_JWT_SECRET: r.String.withConstraint(minLength(32)),
       })
 
       this.auth = {
         jwtSecret: env.AUTH_JWT_SECRET,
-        workerPublicKey: `-----BEGIN PUBLIC KEY-----\n${env.WORKER_PUBLIC_KEY}\n-----END PUBLIC KEY-----`,
+        workerJwtSecret: env.WORKER_JWT_SECRET,
       }
     }
 

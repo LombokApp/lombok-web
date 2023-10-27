@@ -271,6 +271,25 @@ export interface CreateOutputUploadUrlsPayloadOutputFilesInner {
 /**
  *
  * @export
+ * @interface CreateServerWorkerKey200Response
+ */
+export interface CreateServerWorkerKey200Response {
+    /**
+     *
+     * @type {FolderWorkerKeyData}
+     * @memberof CreateServerWorkerKey200Response
+     */
+    'worker': FolderWorkerKeyData;
+    /**
+     *
+     * @type {string}
+     * @memberof CreateServerWorkerKey200Response
+     */
+    'token': string;
+}
+/**
+ *
+ * @export
  * @interface CreateSocketAuthentication200Response
  */
 export interface CreateSocketAuthentication200Response {
@@ -675,10 +694,10 @@ export type FolderOperationStatus = typeof FolderOperationStatus[keyof typeof Fo
 export interface FolderOperationsResponse {
     /**
      *
-     * @type {ListFoldersResponseMeta}
+     * @type {ListServerWorkerKeys200ResponseMeta}
      * @memberof FolderOperationsResponse
      */
-    'meta': ListFoldersResponseMeta;
+    'meta': ListServerWorkerKeys200ResponseMeta;
     /**
      *
      * @type {Array<FolderOperationData>}
@@ -701,6 +720,49 @@ export declare const FolderPermissionName: {
     readonly TagAssociate: "tag_associate";
 };
 export type FolderPermissionName = typeof FolderPermissionName[keyof typeof FolderPermissionName];
+/**
+ *
+ * @export
+ * @interface FolderWorkerKeyData
+ */
+export interface FolderWorkerKeyData {
+    /**
+     *
+     * @type {string}
+     * @memberof FolderWorkerKeyData
+     */
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof FolderWorkerKeyData
+     */
+    'accessTokenExpiresAt': string;
+    /**
+     *
+     * @type {string}
+     * @memberof FolderWorkerKeyData
+     */
+    'createdAt': string;
+    /**
+     *
+     * @type {string}
+     * @memberof FolderWorkerKeyData
+     */
+    'updatedAt': string;
+}
+/**
+ *
+ * @export
+ * @enum {string}
+ */
+export declare const FolderWorkerKeySort: {
+    readonly CreatedAtAsc: "createdAt-asc";
+    readonly CreatedAtDesc: "createdAt-desc";
+    readonly UpdatedAtAsc: "updatedAt-asc";
+    readonly UpdatedAtDesc: "updatedAt-desc";
+};
+export type FolderWorkerKeySort = typeof FolderWorkerKeySort[keyof typeof FolderWorkerKeySort];
 /**
  *
  * @export
@@ -805,29 +867,16 @@ export interface ListFolderObjects200Response {
 export interface ListFoldersResponse {
     /**
      *
-     * @type {ListFoldersResponseMeta}
+     * @type {ListServerWorkerKeys200ResponseMeta}
      * @memberof ListFoldersResponse
      */
-    'meta': ListFoldersResponseMeta;
+    'meta': ListServerWorkerKeys200ResponseMeta;
     /**
      *
      * @type {Array<FolderAndPermission>}
      * @memberof ListFoldersResponse
      */
     'result': Array<FolderAndPermission>;
-}
-/**
- *
- * @export
- * @interface ListFoldersResponseMeta
- */
-export interface ListFoldersResponseMeta {
-    /**
-     *
-     * @type {number}
-     * @memberof ListFoldersResponseMeta
-     */
-    'totalCount': number;
 }
 /**
  *
@@ -845,15 +894,47 @@ export interface ListResponseMeta {
 /**
  *
  * @export
+ * @interface ListServerWorkerKeys200Response
+ */
+export interface ListServerWorkerKeys200Response {
+    /**
+     *
+     * @type {Array<FolderWorkerKeyData>}
+     * @memberof ListServerWorkerKeys200Response
+     */
+    'result': Array<FolderWorkerKeyData>;
+    /**
+     *
+     * @type {ListServerWorkerKeys200ResponseMeta}
+     * @memberof ListServerWorkerKeys200Response
+     */
+    'meta': ListServerWorkerKeys200ResponseMeta;
+}
+/**
+ *
+ * @export
+ * @interface ListServerWorkerKeys200ResponseMeta
+ */
+export interface ListServerWorkerKeys200ResponseMeta {
+    /**
+     *
+     * @type {number}
+     * @memberof ListServerWorkerKeys200ResponseMeta
+     */
+    'totalCount': number;
+}
+/**
+ *
+ * @export
  * @interface ListUsersResponse
  */
 export interface ListUsersResponse {
     /**
      *
-     * @type {ListFoldersResponseMeta}
+     * @type {ListServerWorkerKeys200ResponseMeta}
      * @memberof ListUsersResponse
      */
-    'meta': ListFoldersResponseMeta;
+    'meta': ListServerWorkerKeys200ResponseMeta;
     /**
      *
      * @type {Array<UserData>}
@@ -2460,6 +2541,12 @@ export declare const ServerApiAxiosParamCreator: (configuration?: Configuration)
     addServerLocation: (locationType: ServerLocationType, serverLocationInputData: ServerLocationInputData, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createServerWorkerKey: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
      * @param {CreateUserData} createUserData
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2500,6 +2587,15 @@ export declare const ServerApiAxiosParamCreator: (configuration?: Configuration)
      * @throws {RequiredError}
      */
     listServerLocations: (locationType: ServerLocationType, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {FolderWorkerKeySort} [sort]
+     * @param {number} [limit]
+     * @param {number} [offset]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listServerWorkerKeys: (sort?: FolderWorkerKeySort, limit?: number, offset?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {*} [options] Override http request option.
@@ -2545,6 +2641,12 @@ export declare const ServerApiFp: (configuration?: Configuration) => {
     addServerLocation(locationType: ServerLocationType, serverLocationInputData: ServerLocationInputData, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ServerLocationData>>;
     /**
      *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createServerWorkerKey(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateServerWorkerKey200Response>>;
+    /**
+     *
      * @param {CreateUserData} createUserData
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2585,6 +2687,15 @@ export declare const ServerApiFp: (configuration?: Configuration) => {
      * @throws {RequiredError}
      */
     listServerLocations(locationType: ServerLocationType, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ServerLocationData>>>;
+    /**
+     *
+     * @param {FolderWorkerKeySort} [sort]
+     * @param {number} [limit]
+     * @param {number} [offset]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listServerWorkerKeys(sort?: FolderWorkerKeySort, limit?: number, offset?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ListServerWorkerKeys200Response>>;
     /**
      *
      * @param {*} [options] Override http request option.
@@ -2629,6 +2740,12 @@ export declare const ServerApiFactory: (configuration?: Configuration, basePath?
     addServerLocation(requestParameters: ServerApiAddServerLocationRequest, options?: AxiosRequestConfig): AxiosPromise<ServerLocationData>;
     /**
      *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createServerWorkerKey(options?: AxiosRequestConfig): AxiosPromise<CreateServerWorkerKey200Response>;
+    /**
+     *
      * @param {ServerApiCreateUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2668,6 +2785,13 @@ export declare const ServerApiFactory: (configuration?: Configuration, basePath?
      * @throws {RequiredError}
      */
     listServerLocations(requestParameters: ServerApiListServerLocationsRequest, options?: AxiosRequestConfig): AxiosPromise<Array<ServerLocationData>>;
+    /**
+     *
+     * @param {ServerApiListServerWorkerKeysRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listServerWorkerKeys(requestParameters?: ServerApiListServerWorkerKeysRequest, options?: AxiosRequestConfig): AxiosPromise<ListServerWorkerKeys200Response>;
     /**
      *
      * @param {*} [options] Override http request option.
@@ -2787,6 +2911,31 @@ export interface ServerApiListServerLocationsRequest {
     readonly locationType: ServerLocationType;
 }
 /**
+ * Request parameters for listServerWorkerKeys operation in ServerApi.
+ * @export
+ * @interface ServerApiListServerWorkerKeysRequest
+ */
+export interface ServerApiListServerWorkerKeysRequest {
+    /**
+     *
+     * @type {FolderWorkerKeySort}
+     * @memberof ServerApiListServerWorkerKeys
+     */
+    readonly sort?: FolderWorkerKeySort;
+    /**
+     *
+     * @type {number}
+     * @memberof ServerApiListServerWorkerKeys
+     */
+    readonly limit?: number;
+    /**
+     *
+     * @type {number}
+     * @memberof ServerApiListServerWorkerKeys
+     */
+    readonly offset?: number;
+}
+/**
  * Request parameters for resetSetting operation in ServerApi.
  * @export
  * @interface ServerApiResetSettingRequest
@@ -2854,6 +3003,13 @@ export declare class ServerApi extends BaseAPI {
     addServerLocation(requestParameters: ServerApiAddServerLocationRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ServerLocationData, any>>;
     /**
      *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    createServerWorkerKey(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CreateServerWorkerKey200Response, any>>;
+    /**
+     *
      * @param {ServerApiCreateUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2899,6 +3055,14 @@ export declare class ServerApi extends BaseAPI {
      * @memberof ServerApi
      */
     listServerLocations(requestParameters: ServerApiListServerLocationsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ServerLocationData[], any>>;
+    /**
+     *
+     * @param {ServerApiListServerWorkerKeysRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    listServerWorkerKeys(requestParameters?: ServerApiListServerWorkerKeysRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ListServerWorkerKeys200Response, any>>;
     /**
      *
      * @param {*} [options] Override http request option.

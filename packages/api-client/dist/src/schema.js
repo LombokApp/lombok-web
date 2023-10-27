@@ -1039,6 +1039,42 @@ exports.schema = {
                 "type": "object",
                 "additionalProperties": false
             },
+            "FolderWorkerKeyData": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "accessTokenExpiresAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "accessTokenExpiresAt",
+                    "createdAt",
+                    "updatedAt"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "FolderWorkerKeySort": {
+                "enum": [
+                    "createdAt-asc",
+                    "createdAt-desc",
+                    "updatedAt-asc",
+                    "updatedAt-desc"
+                ],
+                "type": "string"
+            },
             "ViewerUpdatePayload": {
                 "properties": {
                     "name": {
@@ -2904,6 +2940,143 @@ exports.schema = {
                         "required": true,
                         "schema": {
                             "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/server/worker-keys": {
+            "post": {
+                "operationId": "createServerWorkerKey",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "worker": {
+                                            "$ref": "#/components/schemas/FolderWorkerKeyData"
+                                        },
+                                        "token": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "worker",
+                                        "token"
+                                    ],
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Server"
+                ],
+                "security": [
+                    {
+                        "AccessToken": [
+                            "server_worker_key:create"
+                        ]
+                    }
+                ],
+                "parameters": []
+            },
+            "get": {
+                "operationId": "listServerWorkerKeys",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "result": {
+                                            "items": {
+                                                "$ref": "#/components/schemas/FolderWorkerKeyData"
+                                            },
+                                            "type": "array"
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "totalCount": {
+                                                    "type": "number",
+                                                    "format": "double"
+                                                }
+                                            },
+                                            "required": [
+                                                "totalCount"
+                                            ],
+                                            "type": "object"
+                                        }
+                                    },
+                                    "required": [
+                                        "result",
+                                        "meta"
+                                    ],
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Server"
+                ],
+                "security": [
+                    {
+                        "AccessToken": [
+                            "server_worker_key:read"
+                        ]
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "sort",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/components/schemas/FolderWorkerKeySort"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "required": false,
+                        "schema": {
+                            "format": "double",
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "required": false,
+                        "schema": {
+                            "format": "double",
+                            "type": "number"
                         }
                     }
                 ]

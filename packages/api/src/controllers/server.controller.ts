@@ -7,7 +7,9 @@ import {
   Path,
   Post,
   Put,
+  Query,
   Request,
+  Response,
   Route,
   Security,
   Tags,
@@ -16,6 +18,11 @@ import { Lifecycle, scoped } from 'tsyringe'
 
 import { AuthScheme } from '../domains/auth/constants/scheme.constants'
 import { AuthScope } from '../domains/auth/constants/scope.constants'
+import {
+  FolderWorkerKeySort,
+  FolderWorkerService,
+} from '../domains/folder-operation/services/folder-worker.service'
+import { transformFolderWorkerKeyToFolderWorkerKeyDTO } from '../domains/folder-operation/transforms/folder-worker-key-dto.transform'
 import { ServerLocationType } from '../domains/server/constants/server.constants'
 import { ServerConfigurationService } from '../domains/server/services/server-configuration.service'
 import type { ServerSettings } from '../domains/server/transfer-objects/settings.dto'
@@ -28,6 +35,7 @@ import {
   UpdateUserData,
 } from '../domains/user/transfer-objects/user.dto'
 import { transformUserToUserDTO } from '../domains/user/transforms/user-dto.transform'
+import type { ErrorResponse } from '../transfer-objects/error-response.dto'
 
 export interface ListUsersResponse {
   meta: { totalCount: number }
@@ -41,6 +49,7 @@ export class ServerController extends Controller {
   constructor(
     private readonly userService: UserService,
     private readonly serverConfigurationService: ServerConfigurationService,
+    private readonly serverWorkerService: FolderWorkerService,
   ) {
     super()
   }
@@ -222,6 +231,46 @@ export class ServerController extends Controller {
     return {
       settings: await this.serverConfigurationService.getServerSettingsAsUser(
         req.viewer,
+      ),
+    }
+  }
+
+  @Security(AuthScheme.AccessToken, [AuthScope.CreateServerWorkerKey])
+  @Response<ErrorResponse>('4XX')
+  @OperationId('createServerWorkerKey')
+  @Post('/worker-keys')
+  async createServerWorkerKey(@Request() req: Express.Request) {
+    const result = await this.serverWorkerService.createServerWorkerKeyAsAdmin(
+      req.viewer,
+    )
+    return {
+      token: result.token,
+      worker: transformFolderWorkerKeyToFolderWorkerKeyDTO(result.workerKey),
+    }
+  }
+
+  @Security(AuthScheme.AccessToken, [AuthScope.ReadServerWorkerKey])
+  @Response<ErrorResponse>('4XX')
+  @OperationId('listServerWorkerKeys')
+  @Get('/worker-keys')
+  async listServerWorkerKeys(
+    @Request() req: Express.Request,
+    @Query() sort?: FolderWorkerKeySort,
+    @Query() limit?: number,
+    @Query() offset?: number,
+  ) {
+    const result = await this.serverWorkerService.listServerWorkerKeysAsAdmin(
+      req.viewer,
+      {
+        limit,
+        offset,
+        sort,
+      },
+    )
+    return {
+      meta: result.meta,
+      result: result.result.map((folderWorkerKey) =>
+        transformFolderWorkerKeyToFolderWorkerKeyDTO(folderWorkerKey),
       ),
     }
   }

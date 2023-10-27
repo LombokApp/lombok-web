@@ -8,7 +8,7 @@ export interface ApiConfig {
 
 export interface AuthConfig {
   jwtSecret: string
-  workerPublicKey: string
+  workerJwtSecret: string
 }
 
 export interface LoggingConfig {

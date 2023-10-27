@@ -934,6 +934,57 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
   );
   
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.post(
+    '/api/v1/server/worker-keys',
+    authenticateMiddleware([{"AccessToken":["server_worker_key:create"]}]),
+    validator.validate('post', convertPath('/server/worker-keys')),
+    function ServerController_createServerWorkerKey(request: any, response: any, next: any) {
+      const args = {
+          req: {"in":"request","name":"req","required":true,"dataType":"object"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<ServerController>(ServerController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.createServerWorkerKey.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.get(
+    '/api/v1/server/worker-keys',
+    authenticateMiddleware([{"AccessToken":["server_worker_key:read"]}]),
+    validator.validate('get', convertPath('/server/worker-keys')),
+    function ServerController_listServerWorkerKeys(request: any, response: any, next: any) {
+      const args = {
+          req: {"in":"request","name":"req","required":true,"dataType":"object"},
+          sort: {"in":"query","name":"sort","ref":"FolderWorkerKeySort"},
+          limit: {"in":"query","name":"limit","dataType":"double"},
+          offset: {"in":"query","name":"offset","dataType":"double"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<ServerController>(ServerController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.listServerWorkerKeys.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
   app.get(
     '/api/v1/viewer',
     authenticateMiddleware([{"AccessToken":["viewer:read"]}]),
