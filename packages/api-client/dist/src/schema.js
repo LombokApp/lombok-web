@@ -2955,7 +2955,7 @@ exports.schema = {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "worker": {
+                                        "workerKey": {
                                             "$ref": "#/components/schemas/FolderWorkerKeyData"
                                         },
                                         "token": {
@@ -2963,7 +2963,7 @@ exports.schema = {
                                         }
                                     },
                                     "required": [
-                                        "worker",
+                                        "workerKey",
                                         "token"
                                     ],
                                     "type": "object"
@@ -3077,6 +3077,61 @@ exports.schema = {
                         "schema": {
                             "format": "double",
                             "type": "number"
+                        }
+                    }
+                ]
+            }
+        },
+        "/server/worker-keys/{workerKeyId}": {
+            "delete": {
+                "operationId": "deleteServerWorkerKey",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    "required": [
+                                        "success"
+                                    ],
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Server"
+                ],
+                "security": [
+                    {
+                        "AccessToken": [
+                            "server_worker_key:create"
+                        ]
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "workerKeyId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ]

@@ -67,7 +67,7 @@ export function Button({
         onClick={clickHandler}
         type="button"
         className={clsx(
-          'h-full',
+          'h-full rounded-md',
           'flex items-center gap-2 justify-center',
           'text-sm font-semibold leading-6',
           size === 'xl'

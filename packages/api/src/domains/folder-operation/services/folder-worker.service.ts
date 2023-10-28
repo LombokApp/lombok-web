@@ -1,4 +1,4 @@
-import { isNull, sql } from 'drizzle-orm'
+import { eq, isNull, sql } from 'drizzle-orm'
 import { Lifecycle, scoped } from 'tsyringe'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -14,6 +14,7 @@ import type {
   NewFolderWorkerKey,
 } from '../entities/folder-worker-key.entity'
 import { folderWorkerKeysTable } from '../entities/folder-worker-key.entity'
+import { FolderWorkerKeyNotFoundError } from '../errors/folder-worker-key.error'
 
 export enum FolderWorkerSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -44,14 +45,13 @@ export class FolderWorkerService {
     const now = new Date()
     const secret = hashedTokenHelper.createSecretKey()
     const workerId = uuidV4()
-    const token = this.jwtService.createWorkerAccessTokenFromWorker(workerId)
-    const parsedToken = this.jwtService.verifyJWT(token)
+    const token = this.jwtService.createWorkerAccessToken(workerId)
+    const parsedToken = this.jwtService.verifyWorkerAccessToken(token)
     const newWorkerKey: NewFolderWorkerKey = {
       id: workerId,
       createdAt: now,
       updatedAt: now,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      accessTokenExpiresAt: new Date(parsedToken.exp! * 1000),
+      accessTokenExpiresAt: new Date(parsedToken.exp * 1000),
       hash: hashedTokenHelper.createHash(secret),
     }
 
@@ -63,6 +63,26 @@ export class FolderWorkerService {
     )[0]
 
     return { workerKey, token }
+  }
+
+  async deleteServerWorkerKeyAsAdmin(actor: Actor, workerKeyId: string) {
+    if (actor.role !== PlatformRole.Admin) {
+      throw new UnauthorizedError()
+    }
+    const workerKey =
+      await this.ormService.db.query.folderWorkerKeysTable.findFirst({
+        where: eq(folderWorkerKeysTable.id, workerKeyId),
+      })
+
+    if (!workerKey) {
+      throw new FolderWorkerKeyNotFoundError()
+    }
+
+    await this.ormService.db
+      .delete(folderWorkerKeysTable)
+      .where(eq(folderWorkerKeysTable.id, workerKeyId))
+
+    return true
   }
 
   async listServerWorkerKeysAsAdmin(

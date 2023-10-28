@@ -245,7 +245,24 @@ export class ServerController extends Controller {
     )
     return {
       token: result.token,
-      worker: transformFolderWorkerKeyToFolderWorkerKeyDTO(result.workerKey),
+      workerKey: transformFolderWorkerKeyToFolderWorkerKeyDTO(result.workerKey),
+    }
+  }
+
+  @Security(AuthScheme.AccessToken, [AuthScope.DeleteServerWorkerKey])
+  @Response<ErrorResponse>('4XX')
+  @OperationId('deleteServerWorkerKey')
+  @Delete('/worker-keys/:workerKeyId')
+  async deleteServerWorkerKey(
+    @Request() req: Express.Request,
+    @Path() workerKeyId: string,
+  ) {
+    await this.serverWorkerService.deleteServerWorkerKeyAsAdmin(
+      req.viewer,
+      workerKeyId,
+    )
+    return {
+      success: true,
     }
   }
 

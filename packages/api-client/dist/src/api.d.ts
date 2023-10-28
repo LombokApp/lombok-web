@@ -279,7 +279,7 @@ export interface CreateServerWorkerKey200Response {
      * @type {FolderWorkerKeyData}
      * @memberof CreateServerWorkerKey200Response
      */
-    'worker': FolderWorkerKeyData;
+    'workerKey': FolderWorkerKeyData;
     /**
      *
      * @type {string}
@@ -2562,6 +2562,13 @@ export declare const ServerApiAxiosParamCreator: (configuration?: Configuration)
     deleteServerLocation: (locationType: ServerLocationType, locationId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @param {string} workerKeyId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteServerWorkerKey: (workerKeyId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
      * @param {string} userId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2662,6 +2669,13 @@ export declare const ServerApiFp: (configuration?: Configuration) => {
     deleteServerLocation(locationType: ServerLocationType, locationId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>>;
     /**
      *
+     * @param {string} workerKeyId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteServerWorkerKey(workerKeyId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DeleteFolder200Response>>;
+    /**
+     *
      * @param {string} userId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2758,6 +2772,13 @@ export declare const ServerApiFactory: (configuration?: Configuration, basePath?
      * @throws {RequiredError}
      */
     deleteServerLocation(requestParameters: ServerApiDeleteServerLocationRequest, options?: AxiosRequestConfig): AxiosPromise<boolean>;
+    /**
+     *
+     * @param {ServerApiDeleteServerWorkerKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteServerWorkerKey(requestParameters: ServerApiDeleteServerWorkerKeyRequest, options?: AxiosRequestConfig): AxiosPromise<DeleteFolder200Response>;
     /**
      *
      * @param {ServerApiDeleteUserRequest} requestParameters Request parameters.
@@ -2870,6 +2891,19 @@ export interface ServerApiDeleteServerLocationRequest {
      * @memberof ServerApiDeleteServerLocation
      */
     readonly locationId: string;
+}
+/**
+ * Request parameters for deleteServerWorkerKey operation in ServerApi.
+ * @export
+ * @interface ServerApiDeleteServerWorkerKeyRequest
+ */
+export interface ServerApiDeleteServerWorkerKeyRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerApiDeleteServerWorkerKey
+     */
+    readonly workerKeyId: string;
 }
 /**
  * Request parameters for deleteUser operation in ServerApi.
@@ -3024,6 +3058,14 @@ export declare class ServerApi extends BaseAPI {
      * @memberof ServerApi
      */
     deleteServerLocation(requestParameters: ServerApiDeleteServerLocationRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<boolean, any>>;
+    /**
+     *
+     * @param {ServerApiDeleteServerWorkerKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    deleteServerWorkerKey(requestParameters: ServerApiDeleteServerWorkerKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<DeleteFolder200Response, any>>;
     /**
      *
      * @param {ServerApiDeleteUserRequest} requestParameters Request parameters.

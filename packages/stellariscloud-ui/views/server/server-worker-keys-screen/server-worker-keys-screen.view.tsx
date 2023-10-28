@@ -1,74 +1,177 @@
-import { TrashIcon } from '@heroicons/react/24/outline'
+import {
+  DocumentDuplicateIcon,
+  KeyIcon,
+  TrashIcon,
+  WrenchScrewdriverIcon,
+} from '@heroicons/react/24/outline'
 import type { FolderWorkerKeyData } from '@stellariscloud/api-client'
-import { useRouter } from 'next/router'
+import { timeSinceOrUntil } from '@stellariscloud/utils'
 import React from 'react'
 
 import { Avatar } from '../../../design-system/avatar'
 import { Button } from '../../../design-system/button/button'
 import { ButtonGroup } from '../../../design-system/button-group/button-group'
+import { EmptyState } from '../../../design-system/empty-state/empty-state'
+import { Icon } from '../../../design-system/icon'
 import { Table } from '../../../design-system/table/table'
 import { serverApi } from '../../../services/api'
+import { copyToClipboard } from '../../../utils/clipboard'
 
 export function ServerWorkerKeysScreen() {
-  const router = useRouter()
+  const [listKeysResetKey, setListKeysResetKey] = React.useState('__')
   const [workerKeys, setWorkerKeys] = React.useState<FolderWorkerKeyData[]>()
+  const [createdWorkerKeys, setCreatedWorkerKeys] = React.useState<{
+    [key: string]: string
+  }>({})
+
+  const refetchWorkerKeys = React.useCallback(() => {
+    setListKeysResetKey(`${Math.random()}`)
+  }, [])
+
   React.useEffect(() => {
     void serverApi
       .listServerWorkerKeys()
       .then((response) => setWorkerKeys(response.data.result))
-  }, [])
+  }, [listKeysResetKey])
+
+  const handleCreateServerWorkerKey = () => {
+    void serverApi.createServerWorkerKey().then(({ data: createdKey }) => {
+      setCreatedWorkerKeys((keys) => ({
+        ...keys,
+        [createdKey.workerKey.id]: createdKey.token,
+      }))
+      refetchWorkerKeys()
+    })
+  }
+
+  const handleDeleteServerWorkerKey = React.useCallback(
+    (workerKeyId: string) => {
+      void serverApi.deleteServerWorkerKey({ workerKeyId }).then(() => {
+        refetchWorkerKeys()
+      })
+    },
+    [refetchWorkerKeys],
+  )
+
   return (
     <div className="">
-      {workerKeys?.length === 0 && <div>No worker keys</div>}
-      {workerKeys && (
-        <div className="flow-root">
-          <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-              <Table
-                headers={['Name', 'Role', 'Permissions', 'Edit']}
-                rows={workerKeys.map((workerKey, i) => [
-                  <div key={i} className="flex items-center gap-4">
-                    <Avatar
-                      uniqueKey={workerKey.id}
-                      size="xs"
-                      className="bg-indigo-100"
-                    />
-                    <div className="flex flex-col">
-                      <div>{workerKey.id}</div>
-                      <div>{workerKey.createdAt}</div>
-                    </div>
-                  </div>,
-                  <span
-                    key={1}
-                    className="inline-flex items-center rounded-md bg-green-50 dark:bg-green-50/10 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-400 ring-1 ring-inset ring-green-600/20 dark:ring-green-600/60"
-                  >
-                    <div>{workerKey.createdAt}</div>
-                  </span>,
-                  workerKeys.map((perm, j) => (
-                    <span key={j}>{workerKey.id}</span>
-                  )),
-                  <ButtonGroup
-                    key={i}
-                    buttons={[
-                      {
-                        name: '',
-                        icon: TrashIcon,
-                        onClick: () =>
-                          void router.push(
-                            `/server/users/${workerKey.id}/delete`,
-                          ),
-                      },
-                    ]}
-                  />,
-                ])}
-              />
+      <dl className="divide-y divide-gray-100 dark:divide-gray-700">
+        <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+          <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">
+            Server Worker Keys
+            <div className="mt-1 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:col-span-2 sm:mt-0">
+              Worker require a key to connect to Stellaris Cloud. Here you can
+              create keys that will authorize a worker on behalf of the server,
+              meaning they can perform work for all users.
             </div>
-          </div>
+          </dt>
+          <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+            {workerKeys?.length === 0 && (
+              <div className="pb-4">
+                <EmptyState
+                  buttonText="Add Server Worker Key"
+                  icon={KeyIcon}
+                  text="No server worker keys are created"
+                  onButtonPress={() => handleCreateServerWorkerKey()}
+                />
+              </div>
+            )}
+            {workerKeys && workerKeys.length > 0 && (
+              <div className="flow-root">
+                <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                  <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                    <Table
+                      headers={['ID', 'Created', 'Expiry', 'Delete']}
+                      rows={workerKeys.map((workerKey, i) => [
+                        <div key={i} className="flex items-center gap-4">
+                          <Avatar
+                            uniqueKey={workerKey.id}
+                            size="sm"
+                            className="bg-indigo-100"
+                          />
+                          <div className="flex flex-col">
+                            <div>{workerKey.id}</div>
+                            <div>
+                              {createdWorkerKeys[workerKey.id] ? (
+                                <div className="flex gap-2">
+                                  <i>{`${createdWorkerKeys[workerKey.id].slice(
+                                    0,
+                                    40,
+                                  )}...`}</i>
+                                  <Button
+                                    size="xs"
+                                    className="text-xs"
+                                    onClick={() =>
+                                      void copyToClipboard(
+                                        createdWorkerKeys[workerKey.id],
+                                      )
+                                    }
+                                  >
+                                    <Icon
+                                      size="xs"
+                                      icon={DocumentDuplicateIcon}
+                                    />
+                                    Copy
+                                  </Button>
+                                </div>
+                              ) : (
+                                '****************************************'
+                              )}
+                            </div>
+                          </div>
+                        </div>,
+                        <div key={1} className="text-[80%]">
+                          {new Date(workerKey.createdAt).toLocaleString()}
+                        </div>,
+                        <div key={1}>
+                          {timeSinceOrUntil(
+                            new Date(workerKey.accessTokenExpiresAt),
+                          )}
+                        </div>,
+                        <ButtonGroup
+                          key={i}
+                          buttons={[
+                            {
+                              name: '',
+                              icon: TrashIcon,
+                              onClick: () =>
+                                handleDeleteServerWorkerKey(workerKey.id),
+                            },
+                          ]}
+                        />,
+                      ])}
+                    />
+                  </div>
+                </div>
+                <div className="">
+                  <Button onClick={() => handleCreateServerWorkerKey()}>
+                    Add Server Worker Key
+                  </Button>
+                </div>
+              </div>
+            )}
+          </dd>
         </div>
-      )}
-      <Button onClick={() => void router.push('/server/users/new')}>
-        Add Worker Key
-      </Button>
+        <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+          <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">
+            Server Workers
+            <div className="mt-1 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:col-span-2 sm:mt-0">
+              Any server workers that have connected to the server will be
+              listed here.
+            </div>
+          </dt>
+          <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+            {workerKeys?.length === 0 && (
+              <div className="pb-4">
+                <EmptyState
+                  icon={WrenchScrewdriverIcon}
+                  text="No workers have checked in"
+                />
+              </div>
+            )}
+          </dd>
+        </div>
+      </dl>
     </div>
   )
 }

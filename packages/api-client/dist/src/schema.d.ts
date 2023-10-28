@@ -2468,14 +2468,14 @@ export declare const schema: {
                             readonly "application/json": {
                                 readonly schema: {
                                     readonly properties: {
-                                        readonly worker: {
+                                        readonly workerKey: {
                                             readonly $ref: "#/components/schemas/FolderWorkerKeyData";
                                         };
                                         readonly token: {
                                             readonly type: "string";
                                         };
                                     };
-                                    readonly required: readonly ["worker", "token"];
+                                    readonly required: readonly ["workerKey", "token"];
                                     readonly type: "object";
                                 };
                             };
@@ -2567,6 +2567,51 @@ export declare const schema: {
                     readonly schema: {
                         readonly format: "double";
                         readonly type: "number";
+                    };
+                }];
+            };
+        };
+        readonly "/server/worker-keys/{workerKeyId}": {
+            readonly delete: {
+                readonly operationId: "deleteServerWorkerKey";
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Ok";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly properties: {
+                                        readonly success: {
+                                            readonly type: "boolean";
+                                        };
+                                    };
+                                    readonly required: readonly ["success"];
+                                    readonly type: "object";
+                                };
+                            };
+                        };
+                    };
+                    readonly "4XX": {
+                        readonly description: "";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/ErrorResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Server"];
+                readonly security: readonly [{
+                    readonly AccessToken: readonly ["server_worker_key:create"];
+                }];
+                readonly parameters: readonly [{
+                    readonly in: "path";
+                    readonly name: "workerKeyId";
+                    readonly required: true;
+                    readonly schema: {
+                        readonly type: "string";
                     };
                 }];
             };

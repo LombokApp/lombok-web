@@ -11,9 +11,9 @@ export function Banner({
     <>
       <div
         className={clsx(
-          'flex items-center justify-between gap-x-6 px-6 py-2.5 sm:rounded-xl sm:py-3 sm:pl-4 sm:pr-3.5',
+          'flex items-center justify-between gap-x-6 px-6 py-2.5 sm:rounded-md sm:py-3 sm:pl-4 sm:pr-3.5',
           type === 'info'
-            ? 'bg-gray-900 text-white'
+            ? 'bg-gray-300 text-gray-800 dark:bg-purple-500 dark:text-white'
             : type === 'warn'
             ? 'bg-amber-300 text-gray-800'
             : type === 'error'

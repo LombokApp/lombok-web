@@ -33,6 +33,8 @@ export enum ServiceErrorCode {
   FolderOperationInvalidError = 'folderOperation.invalid',
   FolderOperationNotFoundError = 'folderOperation.notFound',
 
+  FolderWorkerKeyNotFoundError = 'folderWorkerKey.notFound',
+
   ServerConfigurationNotFoundError = 'serverConfiguration.notFound',
   ServerConfigurationInvalidError = 'serverConfiguration.invalid',
 

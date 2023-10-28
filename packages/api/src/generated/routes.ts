@@ -958,6 +958,31 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
   );
   
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+  app.delete(
+    '/api/v1/server/worker-keys/:workerKeyId',
+    authenticateMiddleware([{"AccessToken":["server_worker_key:create"]}]),
+    validator.validate('delete', convertPath('/server/worker-keys/:workerKeyId')),
+    function ServerController_deleteServerWorkerKey(request: any, response: any, next: any) {
+      const args = {
+          req: {"in":"request","name":"req","required":true,"dataType":"object"},
+          workerKeyId: {"in":"path","name":"workerKeyId","required":true,"dataType":"string"},
+      };
+
+      // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+      const container: IocContainer = typeof iocContainer === 'function' ? (iocContainer as IocContainerFactory)(request) : iocContainer;
+
+      const controller: any = container.get<ServerController>(ServerController);
+      if (typeof controller['setStatus'] === 'function') {
+        controller.setStatus(undefined);
+      }
+
+      const promise = controller.deleteServerWorkerKey.apply(controller, getArgs(args, request, response));
+      promiseHandler(controller, promise, response, undefined, next);
+    }
+  );
+  
+  // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
   app.get(
     '/api/v1/server/worker-keys',
     authenticateMiddleware([{"AccessToken":["server_worker_key:read"]}]),

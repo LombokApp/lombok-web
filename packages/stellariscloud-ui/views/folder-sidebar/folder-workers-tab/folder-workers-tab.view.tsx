@@ -4,7 +4,7 @@ import type {
   FolderOperationData,
   FolderOperationStatus,
 } from '@stellariscloud/api-client'
-import { timeSince } from '@stellariscloud/utils'
+import { timeSinceOrUntil } from '@stellariscloud/utils'
 import clsx from 'clsx'
 import React from 'react'
 
@@ -170,12 +170,12 @@ export const FolderWorkersTab = ({
                     <div className="flex gap-2">
                       <div>
                         Created:{' '}
-                        {timeSince(new Date(folderOperation.createdAt))}
+                        {timeSinceOrUntil(new Date(folderOperation.createdAt))}
                       </div>
                       -
                       <div>
                         Updated:{' '}
-                        {timeSince(new Date(folderOperation.updatedAt))}
+                        {timeSinceOrUntil(new Date(folderOperation.updatedAt))}
                       </div>
                     </div>
                   </div>

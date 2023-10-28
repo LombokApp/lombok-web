@@ -13,10 +13,10 @@ import React from 'react'
 
 import { Button } from '../../../design-system/button/button'
 import { ButtonGroup } from '../../../design-system/button-group/button-group'
+import { EmptyState } from '../../../design-system/empty-state/empty-state'
 import { Icon } from '../../../design-system/icon'
 import { Table } from '../../../design-system/table/table'
 import { serverApi } from '../../../services/api'
-import { EmptyServerLocation } from './empty-server-location'
 import type { LocationFormValues } from './location-form'
 import { LocationForm } from './location-form'
 
@@ -174,161 +174,159 @@ export function ServerStorageConfig() {
 
   return (
     <div className="">
-      <div className="">
-        <dl className="divide-y divide-gray-100 dark:divide-gray-700">
-          <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-            <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">
-              User Content Provisions
-              <div className="mt-1 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:col-span-2 sm:mt-0">
-                Users folders can optionally be provisioned with content storage
-                backends from these locations.
-              </div>
-              <code className="mt-2 text-sm sm:text-base inline-flex text-left items-center space-x-4 bg-gray-800 text-white rounded-lg p-4 pl-6">
-                <span className="flex gap-4">
-                  <span className="flex-1">
-                    <span>https://</span>
-                    <span>&lt;endpoint&gt;</span>
-                    <span>/</span>
-                    <span>&lt;bucket&gt;</span>
-                    <span>/</span>
-                    <span>&lt;prefix&gt;</span>
-                    <span>/</span>
-                    <span className="text-yellow-500">&lt;folderId&gt;</span>
-                  </span>
+      <dl className="divide-y divide-gray-100 dark:divide-gray-700">
+        <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+          <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">
+            User Content Provisions
+            <div className="mt-1 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:col-span-2 sm:mt-0">
+              Users folders can optionally be provisioned with content storage
+              backends from these locations.
+            </div>
+            <code className="mt-2 text-sm sm:text-base inline-flex text-left items-center space-x-4 bg-gray-800 text-white rounded-lg p-4 pl-6">
+              <span className="flex gap-4">
+                <span className="flex-1">
+                  <span>https://</span>
+                  <span>&lt;endpoint&gt;</span>
+                  <span>/</span>
+                  <span>&lt;bucket&gt;</span>
+                  <span>/</span>
+                  <span>&lt;prefix&gt;</span>
+                  <span>/</span>
+                  <span className="text-yellow-500">&lt;folderId&gt;</span>
                 </span>
-              </code>
-            </dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {editingLocation?.locationType === ServerLocationType.Content ? (
-                <LocationForm
-                  value={editingLocation.location}
-                  titleText={
-                    editingLocation.mutationType === 'CREATE'
-                      ? 'Create location'
-                      : 'Update location'
+              </span>
+            </code>
+          </dt>
+          <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+            {editingLocation?.locationType === ServerLocationType.Content ? (
+              <LocationForm
+                value={editingLocation.location}
+                titleText={
+                  editingLocation.mutationType === 'CREATE'
+                    ? 'Create location'
+                    : 'Update location'
+                }
+                onSubmit={(values) =>
+                  void handleAddServerLocation(
+                    ServerLocationType.Content,
+                    values,
+                  ).then(() => setEditingLocation({}))
+                }
+                onCancel={() => setEditingLocation({})}
+              />
+            ) : s3Locations.USER_CONTENT.length > 0 ? (
+              <div className="flex flex-col gap-4 items-start">
+                <StorageBackendTable
+                  locations={s3Locations.USER_CONTENT}
+                  onEdit={(location) =>
+                    setEditingLocation({
+                      location,
+                      locationType: ServerLocationType.Content,
+                      mutationType: 'UPDATE',
+                    })
                   }
-                  onSubmit={(values) =>
-                    void handleAddServerLocation(
-                      ServerLocationType.Content,
-                      values,
-                    ).then(() => setEditingLocation({}))
-                  }
-                  onCancel={() => setEditingLocation({})}
                 />
-              ) : s3Locations.USER_CONTENT.length > 0 ? (
-                <div className="flex flex-col gap-4 items-start">
-                  <StorageBackendTable
-                    locations={s3Locations.USER_CONTENT}
-                    onEdit={(location) =>
-                      setEditingLocation({
-                        location,
-                        locationType: ServerLocationType.Content,
-                        mutationType: 'UPDATE',
-                      })
-                    }
-                  />
-                  <Button
-                    primary
-                    icon={PlusSmallIcon}
-                    onClick={() =>
-                      setEditingLocation({
-                        location: undefined,
-                        mutationType: 'CREATE',
-                        locationType: ServerLocationType.Content,
-                      })
-                    }
-                  >
-                    Add Content Location
-                  </Button>
-                </div>
-              ) : (
-                <EmptyServerLocation
-                  buttonText="Add user folder location"
-                  icon={FolderIcon}
-                  text="No user folder locations set"
-                  onCreate={() =>
+                <Button
+                  primary
+                  icon={PlusSmallIcon}
+                  onClick={() =>
                     setEditingLocation({
                       location: undefined,
                       mutationType: 'CREATE',
                       locationType: ServerLocationType.Content,
                     })
                   }
-                />
-              )}
-            </dd>
-          </div>
-          <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-            <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">
-              Backup Locations
-              <div className="mt-1 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:col-span-2 sm:mt-0">
-                Redundant backups for a user's folders are persisted to one or
-                more of these locations. If you want to offer your users
-                redundancy for their data, then you should use at least one
-                location here.
+                >
+                  Add Content Location
+                </Button>
               </div>
-            </dt>
-            <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-              {editingLocation?.locationType === ServerLocationType.Backup ? (
-                <LocationForm
-                  value={editingLocation.location}
-                  titleText={
-                    editingLocation.mutationType === 'CREATE'
-                      ? 'Create location'
-                      : 'Update location'
-                  }
-                  onSubmit={(values) =>
-                    void handleAddServerLocation(
-                      ServerLocationType.Backup,
-                      values,
-                    ).then(() => setEditingLocation({}))
-                  }
-                  onCancel={() => setEditingLocation({})}
-                />
-              ) : s3Locations.USER_BACKUP.length ? (
-                <div className="flex flex-col gap-4 items-start">
-                  <StorageBackendTable
-                    locations={s3Locations.USER_BACKUP}
-                    onEdit={(location) =>
-                      setEditingLocation({
-                        location,
-                        locationType: ServerLocationType.Backup,
-                        mutationType: 'UPDATE',
-                      })
-                    }
-                  />
-
-                  <Button
-                    primary
-                    icon={PlusSmallIcon}
-                    onClick={() =>
-                      setEditingLocation(() => ({
-                        location: undefined,
-                        mutationType: 'CREATE',
-                        locationType: ServerLocationType.Backup,
-                      }))
-                    }
-                  >
-                    Add Backup Location
-                  </Button>
-                </div>
-              ) : (
-                <EmptyServerLocation
-                  buttonText="Add backup location"
-                  icon={FolderIcon}
-                  text="No backup locations set"
-                  onCreate={() => {
+            ) : (
+              <EmptyState
+                buttonText="Add user folder location"
+                icon={FolderIcon}
+                text="No user folder locations set"
+                onButtonPress={() =>
+                  setEditingLocation({
+                    location: undefined,
+                    mutationType: 'CREATE',
+                    locationType: ServerLocationType.Content,
+                  })
+                }
+              />
+            )}
+          </dd>
+        </div>
+        <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+          <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">
+            Backup Locations
+            <div className="mt-1 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:col-span-2 sm:mt-0">
+              Redundant backups for a user's folders are persisted to one or
+              more of these locations. If you want to offer your users
+              redundancy for their data, then you should use at least one
+              location here.
+            </div>
+          </dt>
+          <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+            {editingLocation?.locationType === ServerLocationType.Backup ? (
+              <LocationForm
+                value={editingLocation.location}
+                titleText={
+                  editingLocation.mutationType === 'CREATE'
+                    ? 'Create location'
+                    : 'Update location'
+                }
+                onSubmit={(values) =>
+                  void handleAddServerLocation(
+                    ServerLocationType.Backup,
+                    values,
+                  ).then(() => setEditingLocation({}))
+                }
+                onCancel={() => setEditingLocation({})}
+              />
+            ) : s3Locations.USER_BACKUP.length ? (
+              <div className="flex flex-col gap-4 items-start">
+                <StorageBackendTable
+                  locations={s3Locations.USER_BACKUP}
+                  onEdit={(location) =>
                     setEditingLocation({
+                      location,
+                      locationType: ServerLocationType.Backup,
+                      mutationType: 'UPDATE',
+                    })
+                  }
+                />
+
+                <Button
+                  primary
+                  icon={PlusSmallIcon}
+                  onClick={() =>
+                    setEditingLocation(() => ({
                       location: undefined,
                       mutationType: 'CREATE',
                       locationType: ServerLocationType.Backup,
-                    })
-                  }}
-                />
-              )}
-            </dd>
-          </div>
-        </dl>
-      </div>
+                    }))
+                  }
+                >
+                  Add Backup Location
+                </Button>
+              </div>
+            ) : (
+              <EmptyState
+                buttonText="Add backup location"
+                icon={FolderIcon}
+                text="No backup locations set"
+                onButtonPress={() => {
+                  setEditingLocation({
+                    location: undefined,
+                    mutationType: 'CREATE',
+                    locationType: ServerLocationType.Backup,
+                  })
+                }}
+              />
+            )}
+          </dd>
+        </div>
+      </dl>
     </div>
   )
 }

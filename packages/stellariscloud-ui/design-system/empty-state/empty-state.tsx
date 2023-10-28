@@ -1,19 +1,19 @@
 import React from 'react'
 
-import { Button } from '../../../design-system/button/button'
-import type { IconProps } from '../../../design-system/icon'
-import { Icon } from '../../../design-system/icon'
+import { Button } from '../button/button'
+import type { IconProps } from '../icon'
+import { Icon } from '../icon'
 
-export function EmptyServerLocation({
-  onCreate,
+export function EmptyState({
+  onButtonPress,
   text,
   buttonText,
   icon,
 }: {
   icon: IconProps['icon']
-  onCreate: () => void
+  onButtonPress?: () => void
   text: string
-  buttonText: string
+  buttonText?: string
 }) {
   return (
     <div className="text-center flex flex-col items-center w-full h-full bg-white dark:bg-white/5 p-6 py-10 rounded-lg border-2 border-dashed border-white/30">
@@ -21,11 +21,13 @@ export function EmptyServerLocation({
       <h3 className="mt-2 text-sm font-semibold text-gray-500 dark:text-white">
         {text}
       </h3>
-      <div className="flex justify-center mt-6">
-        <Button primary onClick={onCreate}>
-          {buttonText}
-        </Button>
-      </div>
+      {onButtonPress && buttonText && (
+        <div className="flex justify-center mt-6">
+          <Button primary onClick={onButtonPress}>
+            {buttonText}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

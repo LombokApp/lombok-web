@@ -1521,6 +1521,37 @@ const ServerApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @param {string} workerKeyId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteServerWorkerKey: async (workerKeyId, options = {}) => {
+            // verify required parameter 'workerKeyId' is not null or undefined
+            (0, common_1.assertParamExists)('deleteServerWorkerKey', 'workerKeyId', workerKeyId);
+            const localVarPath = `/server/worker-keys/{workerKeyId}`
+                .replace(`{${"workerKeyId"}}`, encodeURIComponent(String(workerKeyId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication AccessToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
          * @param {string} userId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1861,6 +1892,16 @@ const ServerApiFp = function (configuration) {
         },
         /**
          *
+         * @param {string} workerKeyId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteServerWorkerKey(workerKeyId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteServerWorkerKey(workerKeyId, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
          * @param {string} userId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1998,6 +2039,15 @@ const ServerApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @param {ServerApiDeleteServerWorkerKeyRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteServerWorkerKey(requestParameters, options) {
+            return localVarFp.deleteServerWorkerKey(requestParameters.workerKeyId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
          * @param {ServerApiDeleteUserRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2123,6 +2173,16 @@ class ServerApi extends base_1.BaseAPI {
      */
     deleteServerLocation(requestParameters, options) {
         return (0, exports.ServerApiFp)(this.configuration).deleteServerLocation(requestParameters.locationType, requestParameters.locationId, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {ServerApiDeleteServerWorkerKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    deleteServerWorkerKey(requestParameters, options) {
+        return (0, exports.ServerApiFp)(this.configuration).deleteServerWorkerKey(requestParameters.workerKeyId, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
