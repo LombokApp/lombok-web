@@ -13,7 +13,7 @@
  * Do not edit the class manually.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WorkerApi = exports.WorkerApiFactory = exports.WorkerApiFp = exports.WorkerApiAxiosParamCreator = exports.ViewerApi = exports.ViewerApiFactory = exports.ViewerApiFp = exports.ViewerApiAxiosParamCreator = exports.ServerApi = exports.ServerApiFactory = exports.ServerApiFp = exports.ServerApiAxiosParamCreator = exports.FoldersApi = exports.FoldersApiFactory = exports.FoldersApiFp = exports.FoldersApiAxiosParamCreator = exports.AuthApi = exports.AuthApiFactory = exports.AuthApiFp = exports.AuthApiAxiosParamCreator = exports.StorageLocationDataProviderTypeEnum = exports.SignedURLsRequestMethod = exports.ServerLocationType = exports.PlatformRole = exports.MediaType = exports.FolderWorkerKeySort = exports.FolderPermissionName = exports.FolderOperationStatus = exports.FolderOperationSort = exports.FolderOperationName = void 0;
+exports.WorkerApi = exports.WorkerApiFactory = exports.WorkerApiFp = exports.WorkerApiAxiosParamCreator = exports.ViewerApi = exports.ViewerApiFactory = exports.ViewerApiFp = exports.ViewerApiAxiosParamCreator = exports.ServerApi = exports.ServerApiFactory = exports.ServerApiFp = exports.ServerApiAxiosParamCreator = exports.FoldersApi = exports.FoldersApiFactory = exports.FoldersApiFp = exports.FoldersApiAxiosParamCreator = exports.AuthApi = exports.AuthApiFactory = exports.AuthApiFp = exports.AuthApiAxiosParamCreator = exports.StorageLocationDataProviderTypeEnum = exports.SignedURLsRequestMethod = exports.ServerLocationType = exports.PlatformRole = exports.MediaType = exports.FolderWorkerSort = exports.FolderWorkerKeySort = exports.FolderPermissionName = exports.FolderOperationStatus = exports.FolderOperationSort = exports.FolderOperationName = void 0;
 const axios_1 = require("axios");
 // Some imports not used depending on template conditions
 // @ts-ignore
@@ -76,6 +76,21 @@ exports.FolderWorkerKeySort = {
     CreatedAtDesc: 'createdAt-desc',
     UpdatedAtAsc: 'updatedAt-asc',
     UpdatedAtDesc: 'updatedAt-desc'
+};
+/**
+ *
+ * @export
+ * @enum {string}
+ */
+exports.FolderWorkerSort = {
+    CreatedAtAsc: 'createdAt-asc',
+    CreatedAtDesc: 'createdAt-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc',
+    LastSeenAsc: 'lastSeen-asc',
+    LastSeenDesc: 'lastSeen-desc',
+    FirstSeenAsc: 'firstSeen-asc',
+    FirstSeenDesc: 'firstSeen-desc'
 };
 /**
  *
@@ -1711,6 +1726,45 @@ const ServerApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @param {FolderWorkerSort} [sort]
+         * @param {number} [limit]
+         * @param {number} [offset]
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerWorkers: async (sort, limit, offset, options = {}) => {
+            const localVarPath = `/server/workers`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication AccessToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
+            }
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1953,6 +2007,18 @@ const ServerApiFp = function (configuration) {
         },
         /**
          *
+         * @param {FolderWorkerSort} [sort]
+         * @param {number} [limit]
+         * @param {number} [offset]
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listServerWorkers(sort, limit, offset, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listServerWorkers(sort, limit, offset, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -2089,6 +2155,15 @@ const ServerApiFactory = function (configuration, basePath, axios) {
          */
         listServerWorkerKeys(requestParameters = {}, options) {
             return localVarFp.listServerWorkerKeys(requestParameters.sort, requestParameters.limit, requestParameters.offset, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {ServerApiListServerWorkersRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerWorkers(requestParameters = {}, options) {
+            return localVarFp.listServerWorkers(requestParameters.sort, requestParameters.limit, requestParameters.offset, options).then((request) => request(axios, basePath));
         },
         /**
          *
@@ -2232,6 +2307,16 @@ class ServerApi extends base_1.BaseAPI {
      */
     listServerWorkerKeys(requestParameters = {}, options) {
         return (0, exports.ServerApiFp)(this.configuration).listServerWorkerKeys(requestParameters.sort, requestParameters.limit, requestParameters.offset, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {ServerApiListServerWorkersRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    listServerWorkers(requestParameters = {}, options) {
+        return (0, exports.ServerApiFp)(this.configuration).listServerWorkers(requestParameters.sort, requestParameters.limit, requestParameters.offset, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
@@ -2452,7 +2537,7 @@ const WorkerApiAxiosParamCreator = function (configuration) {
             const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
             const localVarHeaderParameter = {};
             const localVarQueryParameter = {};
-            // authentication WorkerServiceToken required
+            // authentication WorkerAccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
             (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
@@ -2486,7 +2571,7 @@ const WorkerApiAxiosParamCreator = function (configuration) {
             const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
             const localVarHeaderParameter = {};
             const localVarQueryParameter = {};
-            // authentication WorkerServiceToken required
+            // authentication WorkerAccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
             localVarHeaderParameter['Content-Type'] = 'application/json';
@@ -2522,7 +2607,7 @@ const WorkerApiAxiosParamCreator = function (configuration) {
             const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
             const localVarHeaderParameter = {};
             const localVarQueryParameter = {};
-            // authentication WorkerServiceToken required
+            // authentication WorkerAccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
             localVarHeaderParameter['Content-Type'] = 'application/json';
@@ -2530,6 +2615,33 @@ const WorkerApiAxiosParamCreator = function (configuration) {
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(createOutputUploadUrlsPayload, localVarRequestOptions, configuration);
+            return {
+                url: (0, common_1.toPathString)(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createSocketAuthentication: async (options = {}) => {
+            const localVarPath = `/worker/socket-auth`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication WorkerAccessToken required
+            // http bearer authentication required
+            await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
+            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
             return {
                 url: (0, common_1.toPathString)(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -2555,7 +2667,7 @@ const WorkerApiAxiosParamCreator = function (configuration) {
             const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
             const localVarHeaderParameter = {};
             const localVarQueryParameter = {};
-            // authentication WorkerServiceToken required
+            // authentication WorkerAccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
             (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
@@ -2585,7 +2697,7 @@ const WorkerApiAxiosParamCreator = function (configuration) {
             const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
             const localVarHeaderParameter = {};
             const localVarQueryParameter = {};
-            // authentication WorkerServiceToken required
+            // authentication WorkerAccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
             localVarHeaderParameter['Content-Type'] = 'application/json';
@@ -2617,7 +2729,7 @@ const WorkerApiAxiosParamCreator = function (configuration) {
             const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
             const localVarHeaderParameter = {};
             const localVarQueryParameter = {};
-            // authentication WorkerServiceToken required
+            // authentication WorkerAccessToken required
             // http bearer authentication required
             await (0, common_1.setBearerAuthToObject)(localVarHeaderParameter, configuration);
             localVarHeaderParameter['Content-Type'] = 'application/json';
@@ -2670,6 +2782,15 @@ const WorkerApiFp = function (configuration) {
          */
         async createOutputUploadUrls(operationId, createOutputUploadUrlsPayload, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.createOutputUploadUrls(operationId, createOutputUploadUrlsPayload, options);
+            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createSocketAuthentication(options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createSocketAuthentication(options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
         /**
@@ -2741,6 +2862,14 @@ const WorkerApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createSocketAuthentication(options) {
+            return localVarFp.createSocketAuthentication(options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
          * @param {WorkerApiStartJobRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2805,6 +2934,15 @@ class WorkerApi extends base_1.BaseAPI {
      */
     createOutputUploadUrls(requestParameters, options) {
         return (0, exports.WorkerApiFp)(this.configuration).createOutputUploadUrls(requestParameters.operationId, requestParameters.createOutputUploadUrlsPayload, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof WorkerApi
+     */
+    createSocketAuthentication(options) {
+        return (0, exports.WorkerApiFp)(this.configuration).createSocketAuthentication(options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *

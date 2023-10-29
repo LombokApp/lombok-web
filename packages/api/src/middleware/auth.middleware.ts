@@ -54,7 +54,7 @@ const verify = (
 ): Promise<{ viewer: Actor; session?: Session }> => {
   const authService = container.resolve(AuthService)
   switch (scheme) {
-    case AuthScheme.WorkerServiceToken:
+    case AuthScheme.WorkerAccessToken:
       return authService.verifyWorkerAccessToken(
         parseAuthorization(request, 'bearer', true),
       )

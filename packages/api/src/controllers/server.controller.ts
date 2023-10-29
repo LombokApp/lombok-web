@@ -21,7 +21,9 @@ import { AuthScope } from '../domains/auth/constants/scope.constants'
 import {
   FolderWorkerKeySort,
   FolderWorkerService,
+  FolderWorkerSort,
 } from '../domains/folder-operation/services/folder-worker.service'
+import { transformFolderWorkerToFolderWorkerDTO } from '../domains/folder-operation/transforms/folder-worker-dto.transform'
 import { transformFolderWorkerKeyToFolderWorkerKeyDTO } from '../domains/folder-operation/transforms/folder-worker-key-dto.transform'
 import { ServerLocationType } from '../domains/server/constants/server.constants'
 import { ServerConfigurationService } from '../domains/server/services/server-configuration.service'
@@ -288,6 +290,32 @@ export class ServerController extends Controller {
       meta: result.meta,
       result: result.result.map((folderWorkerKey) =>
         transformFolderWorkerKeyToFolderWorkerKeyDTO(folderWorkerKey),
+      ),
+    }
+  }
+
+  @Security(AuthScheme.AccessToken, [AuthScope.ReadServerWorkerKey])
+  @Response<ErrorResponse>('4XX')
+  @OperationId('listServerWorkers')
+  @Get('/workers')
+  async listServerWorkers(
+    @Request() req: Express.Request,
+    @Query() sort?: FolderWorkerSort,
+    @Query() limit?: number,
+    @Query() offset?: number,
+  ) {
+    const result = await this.serverWorkerService.listServerWorkersAsAdmin(
+      req.viewer,
+      {
+        limit,
+        offset,
+        sort,
+      },
+    )
+    return {
+      meta: result.meta,
+      result: result.result.map((folderWorker) =>
+        transformFolderWorkerToFolderWorkerDTO(folderWorker),
       ),
     }
   }

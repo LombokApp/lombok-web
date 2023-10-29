@@ -19,7 +19,7 @@
         "scheme": "bearer",
         "bearerFormat": "JWT"
       },
-      "WorkerServiceToken": {
+      "WorkerAccessToken": {
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT"

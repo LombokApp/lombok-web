@@ -4,7 +4,10 @@ import {
   TrashIcon,
   WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline'
-import type { FolderWorkerKeyData } from '@stellariscloud/api-client'
+import type {
+  FolderWorkerData,
+  FolderWorkerKeyData,
+} from '@stellariscloud/api-client'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
 import React from 'react'
 
@@ -20,6 +23,7 @@ import { copyToClipboard } from '../../../utils/clipboard'
 export function ServerWorkerKeysScreen() {
   const [listKeysResetKey, setListKeysResetKey] = React.useState('__')
   const [workerKeys, setWorkerKeys] = React.useState<FolderWorkerKeyData[]>()
+  const [workers, setWorkers] = React.useState<FolderWorkerData[]>()
   const [createdWorkerKeys, setCreatedWorkerKeys] = React.useState<{
     [key: string]: string
   }>({})
@@ -32,6 +36,12 @@ export function ServerWorkerKeysScreen() {
     void serverApi
       .listServerWorkerKeys()
       .then((response) => setWorkerKeys(response.data.result))
+  }, [listKeysResetKey])
+
+  React.useEffect(() => {
+    void serverApi
+      .listServerWorkers()
+      .then((response) => setWorkers(response.data.result))
   }, [listKeysResetKey])
 
   const handleCreateServerWorkerKey = () => {
@@ -120,7 +130,7 @@ export function ServerWorkerKeysScreen() {
                             </div>
                           </div>
                         </div>,
-                        <div key={1} className="text-[80%]">
+                        <div key={1}>
                           {new Date(workerKey.createdAt).toLocaleString()}
                         </div>,
                         <div key={1}>
@@ -161,13 +171,42 @@ export function ServerWorkerKeysScreen() {
             </div>
           </dt>
           <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-            {workerKeys?.length === 0 && (
+            {workers?.length === 0 && (
               <div className="pb-4">
                 <EmptyState
                   icon={WrenchScrewdriverIcon}
                   text="No workers have checked in"
                 />
               </div>
+            )}
+            {workers && workers.length > 0 && (
+              <Table
+                headers={['ID', 'Created', 'First Seen', 'Last Seen']}
+                rows={workers.map((worker, i) => [
+                  <div key={i} className="flex items-center gap-4">
+                    <Avatar
+                      uniqueKey={worker.id}
+                      size="sm"
+                      className="bg-indigo-100"
+                    />
+                    <div className="flex flex-col">
+                      <div>{worker.id}</div>
+                      <div>Capabilities: {worker.capabilities.join(', ')}</div>
+                      <div>External ID: {worker.externalId}</div>
+                      <div>Key ID: {worker.keyId}</div>
+                    </div>
+                  </div>,
+                  <div key={1}>
+                    {new Date(worker.createdAt).toLocaleString()}
+                  </div>,
+                  <div key={1}>
+                    {timeSinceOrUntil(new Date(worker.firstSeen))}
+                  </div>,
+                  <div key={1}>
+                    {timeSinceOrUntil(new Date(worker.lastSeen))}
+                  </div>,
+                ])}
+              />
             )}
           </dd>
         </div>

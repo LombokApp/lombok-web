@@ -38,12 +38,39 @@ export const workerAccessTokenType: r.Runtype<WorkerAccessTokenJWT> = r.Record({
   exp: r.Number,
 })
 
+export const workerSocketAccessTokenType: r.Runtype<WorkerSocketAccessTokenJWT> =
+  r.Record({
+    aud: r.String,
+    jti: r.String,
+    sub: r.String,
+  })
+
 export const socketAccessTokenType: r.Runtype<SocketAccessTokenJWT> = r.Record({
   aud: r.String,
   jti: r.String,
   sub: r.String,
   folderId: r.String,
 })
+
+export class WorkerSocketAccessTokenJWT {
+  aud!: string
+  jti!: string
+  sub!: string
+
+  protected constructor(decoded: WorkerSocketAccessTokenJWT) {
+    Object.assign(this, decoded)
+  }
+
+  static parse(decoded: unknown) {
+    const result = workerSocketAccessTokenType.validate(decoded)
+
+    if (!result.success) {
+      throw new AuthTokenParseError(decoded, result)
+    }
+
+    return new WorkerSocketAccessTokenJWT(result.value)
+  }
+}
 
 export class SocketAccessTokenJWT {
   aud!: string
@@ -117,6 +144,25 @@ export class JWTService {
     private readonly ormService: OrmService,
   ) {}
 
+  createWorkerSocketAccessToken(userId?: string): string {
+    const { jwtSecret } = this.config.getAuthConfig()
+
+    const payload: WorkerSocketAccessTokenJWT = {
+      aud: 'worker_socket_access_token',
+      jti: userId ? `${userId}:${uuidV4()}` : uuidV4(),
+      sub: userId ?? 'SERVER',
+    }
+
+    const token = jwt.sign(payload, jwtSecret, {
+      algorithm: ALGORITHM,
+      expiresIn: 60, // socket init tokens only need to be valid for a very short time
+    })
+
+    SocketAccessTokenJWT.parse(this.verifyJWT(token))
+
+    return token
+  }
+
   createFolderSocketAccessToken(userId: string, folderId: string): string {
     const { jwtSecret } = this.config.getAuthConfig()
 
@@ -184,7 +230,7 @@ export class JWTService {
       expiresIn: AuthDurationSeconds.WorkerAccessToken,
     })
 
-    WorkerAccessTokenJWT.parse(this.verifyWorkerAccessToken(token))
+    this.verifyWorkerAccessToken(token)
     return token
   }
 

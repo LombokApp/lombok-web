@@ -12,6 +12,7 @@ import { Actor } from '../actor'
 import { AuthDurationMs } from '../constants/duration.constants'
 import { PlatformRole } from '../constants/role.constants'
 import type { Session } from '../entities/session.entity'
+import { AccessTokenInvalidError } from '../errors/access-token.error'
 import { SessionInvalidError } from '../errors/session.error'
 import { authHelper } from '../utils/auth-helper'
 import { JWTService } from './jwt.service'
@@ -100,7 +101,10 @@ export class AuthService {
   async verifyWorkerAccessToken(
     tokenString: string,
   ): Promise<{ viewer: Actor }> {
-    this.jwtService.verifyWorkerAccessToken(tokenString)
+    const parsed = this.jwtService.verifyWorkerAccessToken(tokenString)
+    if (parsed.sub !== 'SERVER') {
+      throw new AccessTokenInvalidError()
+    }
     return Promise.resolve({
       viewer: {
         id: '',

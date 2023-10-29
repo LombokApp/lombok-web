@@ -13,15 +13,18 @@ export const folderWorkersTable = pgTable('folder_workers', {
   id: uuid('id').primaryKey(),
   externalId: text('externalId').notNull(),
   paused: boolean('paused').notNull().default(false),
-  ipAddress: text('ipAddress').notNull(),
-  capabilities: text('capabilities').array().$type<string[]>(),
+  capabilities: text('capabilities')
+    .array()
+    .$type<string[]>()
+    .notNull()
+    .default([]),
   ips: jsonb('ips')
     .$type<{
       [key: string]: { firstSeen: Date; lastSeen: Date }
     }>()
     .notNull(),
-  firstSeen: timestamp('firstSeen'),
-  lastSeen: timestamp('lastSeen'),
+  firstSeen: timestamp('firstSeen').notNull(),
+  lastSeen: timestamp('lastSeen').notNull(),
   keyId: uuid('keyId').references(() => folderWorkerKeysTable.id, {
     onDelete: 'set null',
   }),

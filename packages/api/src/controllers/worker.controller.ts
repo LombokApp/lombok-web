@@ -9,6 +9,7 @@ import {
   OperationId,
   Path,
   Post,
+  Request,
   Response,
   Route,
   Security,
@@ -18,6 +19,7 @@ import { Lifecycle, scoped } from 'tsyringe'
 
 import { AuthScheme } from '../domains/auth/constants/scheme.constants'
 import { FolderOperationService } from '../domains/folder-operation/services/folder-operation.service'
+import { FolderWorkerService } from '../domains/folder-operation/services/folder-worker.service'
 import type { ErrorResponse } from '../transfer-objects/error-response.dto'
 
 export interface OperationCompletePayload {
@@ -71,11 +73,14 @@ export interface ContentMetadataPayload {
 @Route('worker')
 @Tags('Worker')
 export class WorkerController extends Controller {
-  constructor(private readonly folderOperationService: FolderOperationService) {
+  constructor(
+    private readonly folderWorkerService: FolderWorkerService,
+    private readonly folderOperationService: FolderOperationService,
+  ) {
     super()
   }
 
-  @Security(AuthScheme.WorkerServiceToken)
+  @Security(AuthScheme.WorkerAccessToken)
   @Response<ErrorResponse>('4XX')
   @OperationId('startJob')
   @Get('/:operationId/start')
@@ -86,7 +91,7 @@ export class WorkerController extends Controller {
     return result
   }
 
-  @Security(AuthScheme.WorkerServiceToken)
+  @Security(AuthScheme.WorkerAccessToken)
   @Response<ErrorResponse>('4XX')
   @OperationId('completeJob')
   @Post('/:operationId/complete')
@@ -94,7 +99,7 @@ export class WorkerController extends Controller {
     await this.folderOperationService.registerOperationComplete(operationId)
   }
 
-  @Security(AuthScheme.WorkerServiceToken)
+  @Security(AuthScheme.WorkerAccessToken)
   @Response<ErrorResponse>('4XX')
   @OperationId('createOutputUploadUrls')
   @Post('/:operationId/output-upload-urls')
@@ -112,7 +117,7 @@ export class WorkerController extends Controller {
     return result
   }
 
-  @Security(AuthScheme.WorkerServiceToken)
+  @Security(AuthScheme.WorkerAccessToken)
   @Response<ErrorResponse>('4XX')
   @OperationId('createMetadataUploadUrls')
   @Post('/:operationId/metadata-upload-urls')
@@ -130,7 +135,7 @@ export class WorkerController extends Controller {
     return result
   }
 
-  @Security(AuthScheme.WorkerServiceToken)
+  @Security(AuthScheme.WorkerAccessToken)
   @Response<ErrorResponse>('4XX')
   @OperationId('updateContentAttributes')
   @Post('/content-attributes')
@@ -140,7 +145,7 @@ export class WorkerController extends Controller {
     await this.folderOperationService.updateAttributes(payload)
   }
 
-  @Security(AuthScheme.WorkerServiceToken)
+  @Security(AuthScheme.WorkerAccessToken)
   @Response<ErrorResponse>('4XX')
   @OperationId('updateContentMetadata')
   @Post('/content-metadata')
@@ -148,5 +153,15 @@ export class WorkerController extends Controller {
     @Body() payload: ContentMetadataPayload[],
   ): Promise<void> {
     await this.folderOperationService.updateMetadata(payload)
+  }
+
+  @Security(AuthScheme.WorkerAccessToken)
+  @Response<ErrorResponse>('4XX')
+  @OperationId('createSocketAuthentication')
+  @Post('/socket-auth')
+  createSocketAuthentication(@Request() req: Express.Request) {
+    return this.folderWorkerService.createSocketAuthenticationAsWorker(
+      req.viewer.id === '' ? undefined : req.viewer.id,
+    )
   }
 }

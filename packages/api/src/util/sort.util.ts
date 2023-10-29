@@ -27,5 +27,5 @@ export const parseSort = <
   if (!(column in table)) {
     throw new InvalidSortColumnError(column)
   }
-  return [(order === 'asc' ? asc : desc)(table[column])]
+  return (order === 'asc' ? asc : desc)(table[column])
 }
