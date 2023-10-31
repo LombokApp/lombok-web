@@ -4,13 +4,33 @@ import io from 'socket.io'
 import { container, singleton } from 'tsyringe'
 
 import { AuthTokenExpiredError } from '../domains/auth/errors/auth-token.error'
-import { JWTService } from '../domains/auth/services/jwt.service'
+import {
+  AccessTokenJWT,
+  JWTService,
+} from '../domains/auth/services/jwt.service'
 import { FolderService } from '../domains/folder/services/folder.service'
+import { FolderWorkerService } from '../domains/folder-operation/services/folder-worker.service'
 import { UnauthorizedError } from '../errors/auth.error'
 
 @singleton()
 export class SocketService {
   ioServer?: io.Server
+  _folderService?: FolderService
+  _folderWorkerService?: FolderWorkerService
+
+  get folderService() {
+    if (!this._folderService) {
+      this._folderService = container.resolve(FolderService)
+    }
+    return this._folderService
+  }
+
+  get workerService() {
+    if (!this._folderWorkerService) {
+      this._folderWorkerService = container.resolve(FolderWorkerService)
+    }
+    return this._folderWorkerService
+  }
 
   constructor(private readonly jwtService: JWTService) {}
 
@@ -25,31 +45,40 @@ export class SocketService {
       },
     })
     this.ioServer.use((socket, next) => {
-      let folderService
-      try {
-        folderService = container.resolve(FolderService)
-      } catch (e) {
-        next(new Error('Failure.'))
-        return
-      }
       const token = socket.handshake.query.token
       if (typeof token !== 'string') {
         next(new UnauthorizedError())
         return
       }
       try {
-        const verifiedToken = this.jwtService.verifySocketAccessToken(token)
-        if (!verifiedToken.folderId) {
+        const verifiedToken = AccessTokenJWT.parse(
+          this.jwtService.verifyJWT(token),
+        )
+        const scpParts = verifiedToken.scp[0]?.split(':') ?? []
+        if (scpParts[0] !== 'socket_connect') {
           next(new UnauthorizedError())
           return
         }
-        void folderService
-          .getFolderAsUser({
-            folderId: verifiedToken.folderId,
-            userId: verifiedToken.jti.split(':')[0],
-          })
-          .then(({ folder }) => socket.join(`folder:${folder.id}`))
-          .then(() => next())
+
+        if (verifiedToken.sub.startsWith('USER') && scpParts[1]) {
+          // folder event subscribe
+          void this.folderService
+            .getFolderAsUser({
+              folderId: scpParts[1],
+              userId: verifiedToken.jti.split(':')[0],
+            })
+            .then(({ folder }) => socket.join(`folder:${folder.id}`))
+            .then(() => next())
+        } else if (verifiedToken.sub.startsWith('WORKER')) {
+          // worker subscribe
+          void this.workerService
+            .getWorkerKey(scpParts[1])
+            .then((workerKey) => socket.join(`workerKey:${workerKey.id}`))
+            .catch(() => next(new UnauthorizedError()))
+            .then(() => next())
+        } else {
+          next(new UnauthorizedError())
+        }
       } catch (e: any) {
         if (e instanceof AuthTokenExpiredError) {
           socket.conn.close()

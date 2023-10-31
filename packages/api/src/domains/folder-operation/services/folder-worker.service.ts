@@ -5,10 +5,9 @@ import { v4 as uuidV4 } from 'uuid'
 import { UnauthorizedError } from '../../../errors/auth.error'
 import { OrmService } from '../../../orm/orm.service'
 import { parseSort } from '../../../util/sort.util'
-import type { Actor } from '../../auth/actor'
 import { PlatformRole } from '../../auth/constants/role.constants'
 import { JWTService } from '../../auth/services/jwt.service'
-import { hashedTokenHelper } from '../../auth/utils/hashed-token-helper'
+import type { User } from '../../user/entities/user.entity'
 import { folderWorkersTable } from '../entities/folder-worker.entity'
 import type {
   FolderWorkerKey,
@@ -42,22 +41,21 @@ export class FolderWorkerService {
     private readonly jwtService: JWTService,
   ) {}
 
-  async createServerWorkerKeyAsAdmin(actor: Actor) {
+  async createServerWorkerKeyAsAdmin(actor: User) {
     if (actor.role !== PlatformRole.Admin) {
       throw new UnauthorizedError()
     }
 
     const now = new Date()
-    const secret = hashedTokenHelper.createSecretKey()
     const workerId = uuidV4()
     const token = this.jwtService.createWorkerAccessToken(workerId)
-    const parsedToken = this.jwtService.verifyWorkerAccessToken(token)
+    const parsedToken = this.jwtService.verifyJWT(token)
     const newWorkerKey: NewFolderWorkerKey = {
       id: workerId,
       createdAt: now,
       updatedAt: now,
-      accessTokenExpiresAt: new Date(parsedToken.exp * 1000),
-      hash: hashedTokenHelper.createHash(secret),
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      accessTokenExpiresAt: new Date(parsedToken.exp! * 1000),
     }
 
     const workerKey = (
@@ -70,7 +68,20 @@ export class FolderWorkerService {
     return { workerKey, token }
   }
 
-  async deleteServerWorkerKeyAsAdmin(actor: Actor, workerKeyId: string) {
+  async getWorkerKey(workerKeyId: string) {
+    const workerKey =
+      await this.ormService.db.query.folderWorkerKeysTable.findFirst({
+        where: eq(folderWorkerKeysTable.id, workerKeyId),
+      })
+
+    if (!workerKey) {
+      throw new FolderWorkerKeyNotFoundError()
+    }
+
+    return workerKey
+  }
+
+  async deleteServerWorkerKeyAsAdmin(actor: User, workerKeyId: string) {
     if (actor.role !== PlatformRole.Admin) {
       throw new UnauthorizedError()
     }
@@ -91,7 +102,7 @@ export class FolderWorkerService {
   }
 
   async listServerWorkerKeysAsAdmin(
-    actor: Actor,
+    actor: User,
     {
       offset = 0,
       limit = 25,
@@ -125,7 +136,7 @@ export class FolderWorkerService {
   }
 
   async listServerWorkersAsAdmin(
-    actor: Actor,
+    actor: User,
     {
       offset = 0,
       limit = 25,
@@ -182,9 +193,9 @@ export class FolderWorkerService {
     }
   }
 
-  createSocketAuthenticationAsWorker(userId?: string) {
+  createSocketAuthenticationAsWorker(workerKeyId: string) {
     return {
-      token: this.jwtService.createWorkerSocketAccessToken(userId),
+      token: this.jwtService.createWorkerSocketAccessToken(workerKeyId),
     }
   }
 }

@@ -4,11 +4,10 @@ import { v4 as uuidV4 } from 'uuid'
 
 import { OrmService } from '../../../orm/orm.service'
 import { parseSort } from '../../../util/sort.util'
-import type { Actor } from '../../auth/actor'
 import type { SaveablePlatformRole } from '../../auth/constants/role.constants'
 import { PlatformRole } from '../../auth/constants/role.constants'
 import { authHelper } from '../../auth/utils/auth-helper'
-import type { NewUser } from '../entities/user.entity'
+import type { NewUser, User } from '../entities/user.entity'
 import { usersTable } from '../entities/user.entity'
 import { UserNotFoundError } from '../errors/user.error'
 import type {
@@ -39,24 +38,14 @@ export class UserService {
     private readonly userAuthService: UserAuthService,
   ) {}
 
-  async updateViewer(actor: Actor, { name }: { name: string }) {
-    const user = await this.ormService.db.query.usersTable.findFirst({
-      where: eq(usersTable.id, actor.id),
-    })
-
-    if (!user) {
-      throw new UserNotFoundError()
-    }
-
-    user.name = name
-
+  async updateViewer(actor: User, { name }: { name: string }) {
     const updatedUser = (
       await this.ormService.db
         .update(usersTable)
         .set({
           name,
         })
-        .where(eq(usersTable.id, user.id))
+        .where(eq(usersTable.id, actor.id))
         .returning()
     )[0]
 
@@ -141,7 +130,7 @@ export class UserService {
     return this.getById({ id: userId })
   }
 
-  async createUserAsAdmin(actor: Actor, userPayload: CreateUserData) {
+  async createUserAsAdmin(actor: User, userPayload: CreateUserData) {
     // TODO: ACL
     // TODO: input validation
 
@@ -173,7 +162,7 @@ export class UserService {
   }
 
   async updateUserAsAdmin(
-    actor: Actor,
+    actor: User,
     userPayload: UpdateUserData & { id: string },
   ) {
     // TODO: ACL
@@ -226,7 +215,7 @@ export class UserService {
       updates.permissions = userPayload.permissions
     }
 
-    const user = (
+    const updatedUser = (
       await this.ormService.db
         .update(usersTable)
         .set(updates)
@@ -234,10 +223,10 @@ export class UserService {
         .returning()
     )[0]
 
-    return user
+    return updatedUser
   }
 
-  async deleteUserAsAdmin(actor: Actor, userId: string) {
+  async deleteUserAsAdmin(actor: User, userId: string) {
     // TODO: ACL
     await this.ormService.db.delete(usersTable).where(eq(usersTable.id, userId))
   }

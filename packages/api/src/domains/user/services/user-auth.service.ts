@@ -3,7 +3,6 @@ import { eq, or } from 'drizzle-orm'
 import { Lifecycle, scoped } from 'tsyringe'
 
 import { OrmService } from '../../../orm/orm.service'
-import { Actor } from '../../auth/actor'
 import { SessionService } from '../../auth/services/session.service'
 import { authHelper } from '../../auth/utils/auth-helper'
 import type { User } from '../entities/user.entity'
@@ -45,7 +44,7 @@ export class UserAuthService {
     // const scopes = ALLOWED_SCOPES[PlatformRole.Authenticated]
 
     const { session, accessToken, refreshToken } =
-      await this.sessionService.createSession(Actor.fromUser(user))
+      await this.sessionService.createSession(user)
 
     return {
       user: session,

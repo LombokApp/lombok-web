@@ -16,6 +16,7 @@ import { AuthScope } from '../domains/auth/constants/scope.constants'
 import { UserService } from '../domains/user/services/user.service'
 import type { UserData } from '../domains/user/transfer-objects/user.dto'
 import { transformUserToUserDTO } from '../domains/user/transforms/user-dto.transform'
+import { UnauthorizedError } from '../errors/auth.error'
 
 export interface ViewerUpdatePayload {
   name: string
@@ -32,10 +33,12 @@ export class ViewerController extends Controller {
   @Security(AuthScheme.AccessToken, [AuthScope.ReadViewer])
   @OperationId('getViewer')
   @Get()
-  async getViewer(@Request() req: Express.Request) {
-    const user = await this.userService.getById({ id: req.viewer.id })
+  getViewer(@Request() req: Express.Request) {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
 
-    const res: { data: UserData } = { data: transformUserToUserDTO(user) }
+    const res: { data: UserData } = { data: transformUserToUserDTO(req.user) }
     return res
   }
 
@@ -46,12 +49,18 @@ export class ViewerController extends Controller {
     @Request() req: Express.Request,
     @Body() viewerUpdatePayload: ViewerUpdatePayload,
   ) {
-    const user = await this.userService.updateViewer(
-      req.viewer,
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
+
+    const updatedViewer = await this.userService.updateViewer(
+      req.user,
       viewerUpdatePayload,
     )
 
-    const res: { data: UserData } = { data: transformUserToUserDTO(user) }
+    const res: { data: UserData } = {
+      data: transformUserToUserDTO(updatedViewer),
+    }
     return res
   }
 }

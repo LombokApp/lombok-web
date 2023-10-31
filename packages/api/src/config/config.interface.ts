@@ -4,6 +4,7 @@ import type { LogLevel } from '../constants/logging.constants'
 
 export interface ApiConfig {
   port: number
+  hostId: string
 }
 
 export interface AuthConfig {

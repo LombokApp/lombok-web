@@ -20,6 +20,7 @@ import { Lifecycle, scoped } from 'tsyringe'
 import { AuthScheme } from '../domains/auth/constants/scheme.constants'
 import { FolderOperationService } from '../domains/folder-operation/services/folder-operation.service'
 import { FolderWorkerService } from '../domains/folder-operation/services/folder-worker.service'
+import { UnauthorizedError } from '../errors/auth.error'
 import type { ErrorResponse } from '../transfer-objects/error-response.dto'
 
 export interface OperationCompletePayload {
@@ -160,8 +161,11 @@ export class WorkerController extends Controller {
   @OperationId('createSocketAuthentication')
   @Post('/socket-auth')
   createSocketAuthentication(@Request() req: Express.Request) {
+    if (!req.worker) {
+      throw new UnauthorizedError()
+    }
     return this.folderWorkerService.createSocketAuthenticationAsWorker(
-      req.viewer.id === '' ? undefined : req.viewer.id,
+      req.worker.id,
     )
   }
 }

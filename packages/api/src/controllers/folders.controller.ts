@@ -36,6 +36,7 @@ import { FolderOperationService } from '../domains/folder-operation/services/fol
 import type { FolderOperationData } from '../domains/folder-operation/transfer-objects/folder-operation.dto'
 import { transformFolderOperationToFolderOperationDTO } from '../domains/folder-operation/transforms/folder-operation-dto.transform'
 import type { UserLocationInputData } from '../domains/storage-location/transfer-objects/s3-location.dto'
+import { UnauthorizedError } from '../errors/auth.error'
 import type { ErrorResponse } from '../transfer-objects/error-response.dto'
 import type { ListResponseMeta } from '../transfer-objects/list-response.dto'
 
@@ -83,8 +84,11 @@ export class FoldersController extends Controller {
       metadataLocation?: UserLocationInputData
     },
   ): Promise<{ folder: FolderData }> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     const folder = await this.folderService.createFolder({
-      userId: req.viewer.user.id,
+      userId: req.user.id,
       body,
     })
     return { folder }
@@ -95,9 +99,12 @@ export class FoldersController extends Controller {
   @OperationId('getFolder')
   @Get('/:folderId')
   async getFolder(@Path() folderId: string, @Request() req: Express.Request) {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     const result = await this.folderService.getFolderAsUser({
       folderId,
-      userId: req.viewer.id,
+      userId: req.user.id,
     })
     return {
       folder: transformFolderToFolderDTO(result.folder),
@@ -110,8 +117,11 @@ export class FoldersController extends Controller {
   @OperationId('listFolders')
   @Get()
   async listFolders(@Request() req: Express.Request) {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     const result = await this.folderService.listFoldersAsUser({
-      userId: req.viewer.user.id,
+      userId: req.user.id,
     })
     return {
       meta: result.meta,
@@ -131,8 +141,11 @@ export class FoldersController extends Controller {
     @Path()
     folderId: string,
   ) {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     await this.folderService.deleteFolder({
-      userId: req.viewer.user.id,
+      userId: req.user.id,
       folderId,
     })
     return { success: true }
@@ -149,8 +162,11 @@ export class FoldersController extends Controller {
     totalCount: number
     totalSizeBytes: number
   }> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     const result = await this.folderService.getFolderMetadata({
-      userId: req.viewer.user.id,
+      userId: req.user.id,
       folderId,
     })
     return result
@@ -165,8 +181,11 @@ export class FoldersController extends Controller {
     @Path() folderId: string,
     @Path() objectKey: string,
   ): Promise<FolderObjectData> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     const result = await this.folderService.getFolderObjectAsUser({
-      userId: req.viewer.user.id,
+      userId: req.user.id,
       folderId,
       objectKey,
     })
@@ -182,8 +201,11 @@ export class FoldersController extends Controller {
     @Path() folderId: string,
     @Body() folderOperation: FolderOperationRequestPayload,
   ): Promise<FolderOperationData> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     const result = await this.folderService.enqueueFolderOperation({
-      userId: req.viewer.user.id,
+      userId: req.user.id,
       folderId,
       folderOperation,
     })
@@ -199,8 +221,11 @@ export class FoldersController extends Controller {
     @Path() folderId: string,
     @Path() objectKey: string,
   ) {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     await this.folderService.deleteFolderObjectAsUser({
-      userId: req.viewer.user.id,
+      userId: req.user.id,
       folderId,
       objectKey,
     })
@@ -218,8 +243,11 @@ export class FoldersController extends Controller {
     @Query() offset?: number,
     @Query() limit?: number,
   ): Promise<{ result: FolderObjectData[]; meta: ListResponseMeta }> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     const { result, meta } = await this.folderService.listFolderObjectsAsUser(
-      req.viewer,
+      req.user,
       {
         folderId,
         search,
@@ -243,7 +271,7 @@ export class FoldersController extends Controller {
   //   @Body() share: CreateFolderSharePayload,
   // ) {
   //   const result = await this.folderService.createFolderShareAsUser({
-  //     userId: req.viewer.user.id,
+  //     userId: req.viewer.userId,
   //     folderId,
   //     share,
   //   })
@@ -258,8 +286,11 @@ export class FoldersController extends Controller {
     @Request() req: Express.Request,
     @Path() folderId: string,
   ) {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     await this.folderService.indexAllUnindexedContent({
-      userId: req.viewer.user.id,
+      userId: req.user.id,
       folderId,
     })
     return true
@@ -275,7 +306,7 @@ export class FoldersController extends Controller {
   //   @Path() shareId: string,
   // ) {
   //   await this.folderService.deleteFolderShareAsUser({
-  //     userId: req.viewer.user.id,
+  //     userId: req.viewer.userId,
   //     folderId,
   //     shareId,
   //   })
@@ -294,7 +325,7 @@ export class FoldersController extends Controller {
   // ) {
   //   return this.folderService
   //     .updateFolderShareAsUser({
-  //       userId: req.viewer.user.id,
+  //       userId: req.viewer.userId,
   //       folderId,
   //       shareId,
   //       shareConfiguration: share.shareConfiguration,
@@ -311,7 +342,7 @@ export class FoldersController extends Controller {
   //   @Path() folderId: string,
   // ) {
   //   const result = await this.folderService.listFolderShares({
-  //     userId: req.viewer.user.id,
+  //     userId: req.viewer.userId,
   //     folderId,
   //   })
   //   return {
@@ -326,7 +357,7 @@ export class FoldersController extends Controller {
   // @Get('/:folderId/tags')
   // async listTags(@Request() req: Express.Request, @Path() folderId: string) {
   //   const result = await this.folderService.listTags({
-  //     userId: req.viewer.user.id,
+  //     userId: req.viewer.userId,
   //     folderId,
   //   })
   //   return {
@@ -345,7 +376,7 @@ export class FoldersController extends Controller {
   //   @Body() body: { name: string },
   // ) {
   //   const objectTag = await this.folderService.createTag({
-  //     userId: req.viewer.user.id,
+  //     userId: req.viewer.userId,
   //     folderId,
   //     body,
   //   })
@@ -363,7 +394,7 @@ export class FoldersController extends Controller {
   //   @Body() body: { name: string },
   // ) {
   //   const objectTag = await this.folderService.updateTag({
-  //     userId: req.viewer.user.id,
+  //     userId: req.viewer.userId,
   //     tagId,
   //     folderId,
   //     body,
@@ -381,7 +412,7 @@ export class FoldersController extends Controller {
   //   @Path() tagId: string,
   // ) {
   //   await this.folderService.deleteTag({
-  //     userId: req.viewer.user.id,
+  //     userId: req.viewer.userId,
   //     folderId,
   //     tagId,
   //   })
@@ -399,7 +430,7 @@ export class FoldersController extends Controller {
   //   @Path() tagId: string,
   // ) {
   //   await this.folderService.tagObject({
-  //     userId: req.viewer.user.id,
+  //     userId: req.viewer.userId,
   //     folderId,
   //     objectKey,
   //     tagId,
@@ -418,7 +449,7 @@ export class FoldersController extends Controller {
   //   @Path() tagId: string,
   // ) {
   //   await this.folderService.untagObject({
-  //     userId: req.viewer.user.id,
+  //     userId: req.viewer.userId,
   //     folderId,
   //     objectKey,
   //     tagId,
@@ -436,8 +467,11 @@ export class FoldersController extends Controller {
     @Path() objectKey: string,
     @Body() body: { eTag?: string },
   ): Promise<FolderObjectData> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     return this.folderService.refreshFolderObjectS3MetadataAsUser(
-      req.viewer.user.id,
+      req.user.id,
       folderId,
       objectKey,
       body.eTag,
@@ -452,15 +486,15 @@ export class FoldersController extends Controller {
     @Request() req: Express.Request,
     @Path() folderId: string,
   ): Promise<true> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     const result = await this.folderService.getFolderAsUser({
       folderId,
-      userId: req.viewer.id,
+      userId: req.user.id,
     })
     if (result.permissions.includes(FolderPermissionName.FOLDER_REFRESH)) {
-      await this.folderService.queueRefreshFolder(
-        result.folder.id,
-        req.viewer.user.id,
-      )
+      await this.folderService.queueRefreshFolder(result.folder.id, req.user.id)
     } else {
       throw new FolderPermissionMissingError()
     }
@@ -476,8 +510,11 @@ export class FoldersController extends Controller {
     @Path() folderId: string,
     @Body() body: SignedURLsRequest[],
   ): Promise<string[]> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     return this.folderService.createPresignedUrlsAsUser(
-      req.viewer.user.id,
+      req.user.id,
       folderId,
       body,
     )
@@ -491,8 +528,11 @@ export class FoldersController extends Controller {
     @Request() req: Express.Request,
     @Path() folderId: string,
   ) {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     return this.folderService.createSocketAuthenticationAsUser(
-      req.viewer.user.id,
+      req.user.id,
       folderId,
     )
   }
@@ -529,8 +569,11 @@ export class FoldersController extends Controller {
     @Query() limit?: number,
     @Query() offset?: number,
   ): Promise<FolderOperationsResponse> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     const result = await this.folderOperationService.listFolderOperationsAsUser(
-      req.viewer,
+      req.user,
       {
         folderId,
         sort,

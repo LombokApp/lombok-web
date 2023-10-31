@@ -20,7 +20,6 @@ import { QueueService } from '../../../services/queue.service'
 import { configureS3Client, S3Service } from '../../../services/s3.service'
 import { SocketService } from '../../../services/socket.service'
 import { parseSort } from '../../../util/sort.util'
-import type { Actor } from '../../auth/actor'
 import { JWTService } from '../../auth/services/jwt.service'
 import { FolderOperationService } from '../../folder-operation/services/folder-operation.service'
 import { ServerLocationType } from '../../server/constants/server.constants'
@@ -32,6 +31,7 @@ import {
   StorageLocationNotFoundError,
 } from '../../storage-location/errors/storage-location.error'
 import type { UserLocationInputData } from '../../storage-location/transfer-objects/s3-location.dto'
+import type { User } from '../../user/entities/user.entity'
 import { UserService } from '../../user/services/user.service'
 import type { Folder } from '../entities/folder.entity'
 import { foldersTable } from '../entities/folder.entity'
@@ -549,7 +549,7 @@ export class FolderService {
   }
 
   async listFolderObjectsAsUser(
-    actor: Actor,
+    actor: User,
     {
       folderId,
       search,

@@ -3,11 +3,11 @@ import { Lifecycle, scoped } from 'tsyringe'
 import { v4 as uuidV4 } from 'uuid'
 
 import { OrmService } from '../../../orm/orm.service'
-import type { Actor } from '../../auth/actor'
 import type {
   ServerLocationData,
   ServerLocationInputData,
 } from '../../storage-location/transfer-objects/s3-location.dto'
+import type { User } from '../../user/entities/user.entity'
 import type { ServerLocationType } from '../constants/server.constants'
 import {
   CONFIGURATION_KEYS,
@@ -25,7 +25,7 @@ import type { PublicServerSettings } from '../transfer-objects/settings.dto'
 export class ServerConfigurationService {
   constructor(private readonly ormService: OrmService) {}
 
-  async getServerSettingsAsUser(_actor: Actor): Promise<PublicServerSettings> {
+  async getServerSettingsAsUser(_actor: User): Promise<PublicServerSettings> {
     // TODO: check user permissions for access to read entire server settings object
 
     const results =
@@ -58,7 +58,7 @@ export class ServerConfigurationService {
   }
 
   async setServerSettingAsUser(
-    actor: Actor,
+    user: User,
     settingKey: string,
     settingValue: any,
   ) {
@@ -99,7 +99,8 @@ export class ServerConfigurationService {
     }
   }
 
-  async resetServerSettingAsUser(_actor: Actor, settingsKey: string) {
+  async resetServerSettingAsUser(actor: User, settingsKey: string) {
+    // TODO: ACL
     await this.ormService.db
       .delete(serverConfigurationsTable)
       .where(eq(serverConfigurationsTable.key, settingsKey))

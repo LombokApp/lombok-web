@@ -21,13 +21,13 @@ import type {
   CreateOutputUploadUrlsPayload,
   MetadataUploadUrlsResponse,
 } from '../../../controllers/worker.controller'
+import { UnauthorizedError } from '../../../errors/auth.error'
 import { OrmService } from '../../../orm/orm.service'
 import { LoggingService } from '../../../services/logging.service'
 import { QueueService } from '../../../services/queue.service'
 import { S3Service } from '../../../services/s3.service'
 import { SocketService } from '../../../services/socket.service'
 import { parseSort } from '../../../util/sort.util'
-import type { Actor } from '../../auth/actor'
 import type { FolderWithoutLocations } from '../../folder/entities/folder.entity'
 import { foldersTable } from '../../folder/entities/folder.entity'
 import type { FolderObject } from '../../folder/entities/folder-object.entity'
@@ -39,6 +39,7 @@ import {
 import { SignedURLsRequestMethod } from '../../folder/services/folder.service'
 import { storageLocationsTable } from '../../storage-location/entities/storage-location.entity'
 import { StorageLocationNotFoundError } from '../../storage-location/errors/storage-location.error'
+import type { User } from '../../user/entities/user.entity'
 import {
   FolderOperationSort,
   FolderOperationStatus,
@@ -542,7 +543,7 @@ export class FolderOperationService {
   // }
 
   async listFolderOperationsAsUser(
-    actor: Actor,
+    actor: User,
     {
       folderId,
       offset,
@@ -557,9 +558,12 @@ export class FolderOperationService {
       status?: FolderOperationStatus
     },
   ) {
+    if (!actor.id) {
+      throw new UnauthorizedError()
+    }
     const _folder = await this.ormService.db.query.foldersTable.findFirst({
       where: and(
-        eq(foldersTable.ownerId, actor.user.id),
+        eq(foldersTable.ownerId, actor.id),
         eq(foldersTable.id, folderId),
       ),
     })

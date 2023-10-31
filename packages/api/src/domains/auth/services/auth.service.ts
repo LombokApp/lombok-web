@@ -8,14 +8,13 @@ import { OrmService } from '../../../orm/orm.service'
 import type { NewUser, User } from '../../user/entities/user.entity'
 import { usersTable } from '../../user/entities/user.entity'
 import { UserIdentityConflictError } from '../../user/errors/user.error'
-import { Actor } from '../actor'
 import { AuthDurationMs } from '../constants/duration.constants'
 import { PlatformRole } from '../constants/role.constants'
 import type { Session } from '../entities/session.entity'
 import { AccessTokenInvalidError } from '../errors/access-token.error'
 import { SessionInvalidError } from '../errors/session.error'
 import { authHelper } from '../utils/auth-helper'
-import { JWTService } from './jwt.service'
+import { AccessTokenJWT, JWTService } from './jwt.service'
 import { SessionService } from './session.service'
 
 /**
@@ -87,38 +86,22 @@ export class AuthService {
     return createdUser
   }
 
-  // async verifyApiKey(apiKeyString: string): Promise<{
-  //   viewer: Actor
-  // }> {
-  //   const apiKey = await this.authTokenService.verifyApiKey(apiKeyString)
-  //   const user = apiKey.user
-
-  //   return {
-  //     viewer: Actor.fromUser(user),
-  //   }
-  // }
-
   async verifyWorkerAccessToken(
     tokenString: string,
-  ): Promise<{ viewer: Actor }> {
-    const parsed = this.jwtService.verifyWorkerAccessToken(tokenString)
+  ): Promise<{ actor?: User }> {
+    const parsed = this.jwtService.verifyJWT(tokenString)
     if (parsed.sub !== 'SERVER') {
       throw new AccessTokenInvalidError()
     }
-    return Promise.resolve({
-      viewer: {
-        id: '',
-        user: {} as unknown as User,
-        role: PlatformRole.Service,
-        authenticated: true,
-      },
-    })
+    return Promise.resolve({})
   }
 
   async verifySessionWithAccessToken(
     tokenString: string,
-  ): Promise<{ viewer: Actor; user: User; session: Session }> {
-    const accessToken = this.jwtService.verifyAccessToken(tokenString)
+  ): Promise<{ user: User; session: Session }> {
+    const accessToken = AccessTokenJWT.parse(
+      this.jwtService.verifyJWT(tokenString),
+    )
     const session = await this.sessionService.verifySessionWithAccessToken(
       accessToken,
     )
@@ -131,7 +114,6 @@ export class AuthService {
     }
 
     return {
-      viewer: Actor.fromUser(user),
       user,
       session,
     }
@@ -139,7 +121,7 @@ export class AuthService {
 
   async verifySessionWithRefreshToken(
     refreshToken: string,
-  ): Promise<{ viewer: Actor; user: User; session: Session }> {
+  ): Promise<{ user: User; session: Session }> {
     const session = await this.sessionService.verifySessionWithRefreshToken(
       refreshToken,
     )
@@ -153,7 +135,6 @@ export class AuthService {
     }
 
     return {
-      viewer: Actor.fromUser(user),
       user,
       session,
     }
