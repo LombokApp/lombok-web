@@ -9,7 +9,6 @@ import { EnvConfigProvider } from '../../../config/env-config.provider'
 import { OrmService } from '../../../orm/orm.service'
 import { usersTable } from '../../user/entities/user.entity'
 import { AuthDurationSeconds } from '../constants/duration.constants'
-import { AuthScopeType } from '../constants/scope.constants'
 import type { Session } from '../entities/session.entity'
 import {
   AuthTokenExpiredError,
@@ -24,7 +23,7 @@ export const accessTokenType: r.Runtype<AccessTokenJWT> = r.Record({
   aud: r.String,
   jti: r.String,
   sub: r.String,
-  scp: r.Array(AuthScopeType),
+  scp: r.Array(r.String),
 })
 
 export class AccessTokenJWT {
@@ -127,7 +126,7 @@ export class JWTService {
   }
 
   createWorkerAccessToken(workerKeyId: string): string {
-    const { workerJwtSecret } = this.config.getAuthConfig()
+    const { jwtSecret } = this.config.getAuthConfig()
     const { hostId } = this.config.getApiConfig()
 
     const payload: AccessTokenJWT = {
@@ -137,7 +136,7 @@ export class JWTService {
       sub: `WORKER:${workerKeyId}`,
     }
 
-    const token = jwt.sign(payload, workerJwtSecret, {
+    const token = jwt.sign(payload, jwtSecret, {
       algorithm: ALGORITHM,
       expiresIn: AuthDurationSeconds.WorkerAccessToken,
     })

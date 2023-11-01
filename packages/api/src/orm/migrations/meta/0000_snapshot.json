@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "pg",
-  "id": "20f9c175-abe0-490d-988f-0d7603eac300",
+  "id": "31d8633b-5fdf-4dac-87c9-0ffb93bcd8d3",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "session": {
@@ -202,6 +202,18 @@
           "primaryKey": false,
           "notNull": true
         },
+        "assignedFolderWorkerId": {
+          "name": "assignedFolderWorkerId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "assignedAt": {
+          "name": "assignedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "timestamp",
@@ -229,6 +241,19 @@
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
+        },
+        "folder_operations_assignedFolderWorkerId_folder_workers_id_fk": {
+          "name": "folder_operations_assignedFolderWorkerId_folder_workers_id_fk",
+          "tableFrom": "folder_operations",
+          "tableTo": "folder_workers",
+          "columnsFrom": [
+            "assignedFolderWorkerId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -242,12 +267,6 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
-          "notNull": true
-        },
-        "hash": {
-          "name": "hash",
-          "type": "text",
-          "primaryKey": false,
           "notNull": true
         },
         "accessTokenExpiresAt": {
@@ -317,17 +336,11 @@
           "notNull": true,
           "default": false
         },
-        "ipAddress": {
-          "name": "ipAddress",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "capabilities": {
           "name": "capabilities",
           "type": "text[]",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "ips": {
           "name": "ips",
@@ -339,13 +352,13 @@
           "name": "firstSeen",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "lastSeen": {
           "name": "lastSeen",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "keyId": {
           "name": "keyId",

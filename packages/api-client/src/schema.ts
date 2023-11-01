@@ -700,7 +700,6 @@ export const schema = {
       },
       "FolderOperationName": {
         "enum": [
-          "IndexFolder",
           "IndexFolderObject",
           "TranscribeAudio",
           "DetectObjects"
@@ -1675,7 +1674,7 @@ export const schema = {
         }
       }
     },
-    "/worker/socket-auth": {
+    "/worker/socket": {
       "post": {
         "operationId": "createSocketAuthentication",
         "responses": {

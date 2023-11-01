@@ -1,7 +1,6 @@
 import { RewriteFrames } from '@sentry/integrations'
 import * as Sentry from '@sentry/node'
 import * as Tracing from '@sentry/tracing'
-import { FolderOperationName, WorkerClass } from '@stellariscloud/workers'
 import type Ajv from 'ajv'
 import formatsPlugin from 'ajv-formats'
 import cors from 'cors'
@@ -17,7 +16,10 @@ import type { AddressInfo } from 'net'
 import { singleton } from 'tsyringe'
 
 import { EnvConfigProvider } from './config/env-config.provider'
+import { QueueName } from './constants/app-worker-constants'
+import { IndexAllUnindexedInFolderProcessor } from './domains/folder/workers/index-all-unindexed-in-folder.worker'
 import { IndexFolderProcessor } from './domains/folder/workers/index-folder.worker'
+import { ExecuteUnstartedWorkProcessor } from './domains/folder-operation/workers/execute-unstarted-work.worker'
 import { RouteNotFoundError } from './errors/app.error'
 import { RegisterRoutes } from './generated/routes'
 import { HealthManager } from './health/health-manager'
@@ -26,8 +28,8 @@ import { unhandledErrorMiddleware } from './middleware/unhandled-error.middlewar
 import { validationErrorMiddleware } from './middleware/validation-error.middleware'
 import { OrmService } from './orm/orm.service'
 import { LoggingService } from './services/logging.service'
+import { QueueService } from './services/queue.service'
 import { SocketService } from './services/socket.service'
-import { workerServiceFactory } from './services/worker.service'
 import { stringifyLog } from './util/i18n.util'
 import { registerExitHandler, runExitHandlers } from './util/process.util'
 import { formats } from './util/validation.util'
@@ -78,6 +80,7 @@ export class App {
     private readonly loggingService: LoggingService,
     private readonly healthManager: HealthManager,
     private readonly socketService: SocketService,
+    private readonly queueService: QueueService,
   ) {
     this.app = express()
     this.app.disable('x-powered-by')
@@ -130,14 +133,11 @@ export class App {
     this.loggingService.logger.info('App init')
     await this.initI18n()
     await this.initOrm()
-    const { serveAPI, workerClasses } = this.config.getInstanceClassConfig()
-    this.initWorkers(workerClasses)
+    this.initWorkers()
 
-    await this.initRoutes(!serveAPI)
+    await this.initRoutes()
     await this.listen()
-    if (serveAPI) {
-      this.initSocketServer()
-    }
+    this.initSocketServer()
   }
 
   private async initI18n() {
@@ -168,7 +168,7 @@ export class App {
     await this.ormService.init(true)
   }
 
-  private async initRoutes(healthOnly: boolean) {
+  private async initRoutes() {
     const apiSpec = (await import('./generated/openapi.json'))
       .default as unknown as OpenApiDocument
 
@@ -176,9 +176,6 @@ export class App {
     // the risk of reporting unwanted unhealthy state is ruled out.
     this.app.get('/health', this.healthManager.requestHandler())
     this.app.get('/api/health', (req, res) => res.sendStatus(200))
-    if (healthOnly) {
-      return
-    }
 
     this.app.use(Sentry.Handlers.requestHandler())
     this.app.use(Sentry.Handlers.tracingHandler())
@@ -243,35 +240,23 @@ export class App {
     this.socketService.init(this.server)
   }
 
-  private invokeWorkersForClass(cls: WorkerClass) {
-    switch (cls) {
-      case WorkerClass.WORKER_HIGH_PRIORITY:
-        return [
-          workerServiceFactory(
-            FolderOperationName.IndexFolder,
-            IndexFolderProcessor,
-          ),
-        ]
-      case WorkerClass.WORKER_LIVE_BOTS:
-        return []
-      case WorkerClass.WORKER_BACKGROUND:
-        return []
-    }
-  }
-
-  private initWorkers(workerClasses: WorkerClass[]) {
-    const workers = workerClasses.reduce<{ close: () => Promise<void> }[]>(
-      (acc, cls) => {
-        this.loggingService.logger.info(
-          `Setting up workers in ${cls} worker class.`,
-        )
-        return acc.concat(this.invokeWorkersForClass(cls))
-      },
-      [],
-    )
-
+  private initWorkers() {
+    const processors = [
+      this.queueService.bindQueueProcessor(
+        QueueName.IndexFolder,
+        IndexFolderProcessor,
+      ),
+      this.queueService.bindQueueProcessor(
+        QueueName.ExecuteUnstartedWork,
+        ExecuteUnstartedWorkProcessor,
+      ),
+      this.queueService.bindQueueProcessor(
+        QueueName.IndexAllUnindexedInFolder,
+        IndexAllUnindexedInFolderProcessor,
+      ),
+    ]
     registerExitHandler(async () => {
-      await Promise.all(workers.map((w) => w.close()))
+      await Promise.all(processors.map((p) => p.close()))
     })
   }
 
@@ -290,6 +275,7 @@ export class App {
         logger.info(`👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍`)
         logger.info(`API:  http://<whatever>:${address.port}/api/v1`)
         logger.info(`Docs: http://<whatever>:${address.port}/docs`)
+        logger.info(`Websocket: http://<whatever>:${address.port}`)
 
         resolve()
         this.server = server

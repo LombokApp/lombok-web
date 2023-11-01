@@ -2,6 +2,7 @@ version: '3.5'
 
 services:
   worker:
+    container_name: 'stellariscloud-worker'
     build:
       context: .
       dockerfile: docker/worker.Dockerfile
@@ -15,13 +16,7 @@ services:
       - ./package.json:/usr/src/app/package.json
       - ./tsconfig.json:/usr/src/app/tsconfig.json
       - ./yarn.lock:/usr/src/app/yarn.lock
-    environment:
-      WAIT_HOSTS: redis:${REDIS_PORT:-0}
-      REDIS_HOST: redis
-    deploy:
-      replicas: 1
-    # command: ['sleep', 'infinity']
-    # command: ['npm', '---workspace', '@stellariscloud/worker', 'run', 'dev']
+    restart: unless-stopped
     command: ['yarn', 'workspace', '@stellariscloud/worker', 'dev']
   api:
     container_name: 'stellariscloud-api'

@@ -204,12 +204,12 @@ export class FoldersController extends Controller {
     if (!req.user) {
       throw new UnauthorizedError()
     }
-    const result = await this.folderService.enqueueFolderOperation({
+    const result = await this.folderService.enqueueFolderOperationAsUser({
       userId: req.user.id,
       folderId,
       folderOperation,
     })
-    return transformFolderOperationToFolderOperationDTO(result)
+    return transformFolderOperationToFolderOperationDTO(result[0])
   }
 
   @Security(AuthScheme.AccessToken)
@@ -289,7 +289,7 @@ export class FoldersController extends Controller {
     if (!req.user) {
       throw new UnauthorizedError()
     }
-    await this.folderService.indexAllUnindexedContent({
+    await this.folderService.indexAllUnindexedContentAsUser({
       userId: req.user.id,
       folderId,
     })

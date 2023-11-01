@@ -5,6 +5,8 @@ import { v4 as uuidV4 } from 'uuid'
 
 import type { SignupParams } from '../../../controllers/auth.controller'
 import { OrmService } from '../../../orm/orm.service'
+import type { FolderWorkerKey } from '../../folder-operation/entities/folder-worker-key.entity'
+import { folderWorkerKeysTable } from '../../folder-operation/entities/folder-worker-key.entity'
 import type { NewUser, User } from '../../user/entities/user.entity'
 import { usersTable } from '../../user/entities/user.entity'
 import { UserIdentityConflictError } from '../../user/errors/user.error'
@@ -86,14 +88,32 @@ export class AuthService {
     return createdUser
   }
 
-  async verifyWorkerAccessToken(
+  async verifyWorkerWithAccessToken(
     tokenString: string,
-  ): Promise<{ actor?: User }> {
+  ): Promise<{ worker?: FolderWorkerKey }> {
     const parsed = this.jwtService.verifyJWT(tokenString)
-    if (parsed.sub !== 'SERVER') {
+    if (!parsed.sub?.startsWith('WORKER')) {
       throw new AccessTokenInvalidError()
     }
-    return Promise.resolve({})
+    const workerKeyId = parsed.sub.split(':')[1]
+    const workerKey = workerKeyId
+      ? await this.ormService.db.query.folderWorkerKeysTable.findFirst({
+          where: eq(folderWorkerKeysTable.id, workerKeyId),
+        })
+      : undefined
+    const user =
+      workerKey?.ownerId &&
+      (await this.ormService.db.query.usersTable.findFirst({
+        where: eq(usersTable.id, workerKey.ownerId),
+      }))
+
+    if (!workerKey) {
+      throw new AccessTokenInvalidError()
+    }
+    return Promise.resolve({
+      user,
+      worker: workerKey,
+    })
   }
 
   async verifySessionWithAccessToken(

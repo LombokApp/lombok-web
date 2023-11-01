@@ -7,12 +7,13 @@ import {
   FOLDER_OPERATION_VALIDATOR_TYPES,
   inputOutputObjectsFromOperationData,
 } from '@stellariscloud/workers'
-import { and, eq, isNotNull, isNull, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNotNull, isNull, lt, or, sql } from 'drizzle-orm'
 import * as r from 'runtypes'
 import { Lifecycle, scoped } from 'tsyringe'
 import { v4 as uuidV4 } from 'uuid'
 import type { Logger } from 'winston'
 
+import { QueueName } from '../../../constants/app-worker-constants'
 import type { FolderOperationRequestPayload } from '../../../controllers/folders.controller'
 import type {
   ContentAttibutesPayload,
@@ -44,8 +45,12 @@ import {
   FolderOperationSort,
   FolderOperationStatus,
 } from '../constants/folder-operation.constants'
-import type { FolderOperation } from '../entities/folder-operation.entity'
+import type {
+  FolderOperation,
+  NewFolderOperation,
+} from '../entities/folder-operation.entity'
 import { folderOperationsTable } from '../entities/folder-operation.entity'
+import type { NewFolderOperationObject } from '../entities/folder-operation-object.entity'
 import { folderOperationObjectsTable } from '../entities/folder-operation-object.entity'
 import {
   FolderOperationInvalidError,
@@ -66,74 +71,65 @@ export class FolderOperationService {
     this.logger = this.loggingService.logger
   }
 
-  async enqueueFolderOperation({
+  async enqueueFolderOperations({
     userId,
     folderId,
-    operation,
+    operations,
   }: {
     userId: string
     folderId: string
-    operation: FolderOperationRequestPayload
-  }): Promise<FolderOperation> {
+    operations: FolderOperationRequestPayload[]
+  }): Promise<FolderOperation[]> {
+    const folderOperations: NewFolderOperation[] = []
+    const inputObjectRelations: NewFolderOperationObject[] = []
+    const touchedFolderIds: { [key: string]: true } = {}
     try {
-      const opData = FOLDER_OPERATION_VALIDATOR_TYPES[
-        operation.operationName
-      ].check(operation.operationData)
+      for (const operation of operations) {
+        const opData = FOLDER_OPERATION_VALIDATOR_TYPES[
+          operation.operationName
+        ].check(operation.operationData)
 
-      // Resolve input and output objects from the operation data
-      const { inputObjects, outputObjects } =
-        inputOutputObjectsFromOperationData(operation.operationName, opData)
+        // Resolve input and output objects from the operation data
+        const { inputObjects, outputObjects } =
+          inputOutputObjectsFromOperationData(operation.operationName, opData)
 
-      // Validate user has permission to access the folders described in inputObjects and outputObjects
-      const _folders = await Promise.all(
-        [...inputObjects, ...outputObjects].map((o) =>
-          this.ormService.db.query.foldersTable.findFirst({
-            where: and(
-              eq(foldersTable.ownerId, userId),
-              eq(foldersTable.id, o.folderId),
-            ),
+        for (const inputOutputObject of [...inputObjects, ...outputObjects]) {
+          touchedFolderIds[inputOutputObject.folderId] = true
+        }
+
+        // Load all input objects so they can be attached to the operation entity
+        const inputObjectsWithObject = inputObjects.filter(
+          (inputObject) => !!inputObject.objectKey,
+        ) as {
+          folderId: string
+          objectKey: string
+        }[]
+
+        const inputObjectEntities: FolderObject[] = await Promise.all(
+          inputObjectsWithObject.map((o) => {
+            return this.ormService.db.query.folderObjectsTable
+              .findFirst({
+                where: and(
+                  eq(folderObjectsTable.objectKey, o.objectKey),
+                  eq(folderObjectsTable.folderId, o.folderId),
+                ),
+              })
+              .then((folderObject) => {
+                if (!folderObject) {
+                  throw new FolderObjectNotFoundError()
+                }
+                return folderObject
+              })
           }),
-        ),
-      )
-      if (_folders.find((f) => f === undefined)) {
-        throw new FolderNotFoundError()
-      }
+        )
 
-      // Load all input objects so they can be attached to the operation entity
-      const inputObjectsWithObject = inputObjects.filter(
-        (inputObject) => !!inputObject.objectKey,
-      ) as {
-        folderId: string
-        objectKey: string
-      }[]
+        if (inputObjectEntities.length !== inputObjectsWithObject.length) {
+          throw new FolderOperationInvalidError()
+        }
 
-      const inputObjectEntities: FolderObject[] = await Promise.all(
-        inputObjectsWithObject.map((o) => {
-          return this.ormService.db.query.folderObjectsTable
-            .findFirst({
-              where: and(
-                eq(folderObjectsTable.objectKey, o.objectKey),
-                eq(folderObjectsTable.folderId, o.folderId),
-              ),
-            })
-            .then((folderObject) => {
-              if (!folderObject) {
-                throw new FolderObjectNotFoundError()
-              }
-              return folderObject
-            })
-        }),
-      )
+        const now = new Date()
 
-      if (inputObjectEntities.length !== inputObjectsWithObject.length) {
-        throw new FolderOperationInvalidError()
-      }
-
-      const now = new Date()
-
-      const [folderOperation] = await this.ormService.db
-        .insert(folderOperationsTable)
-        .values({
+        const folderOperation = {
           id: uuidV4(),
           operationName: operation.operationName,
           operationData: opData,
@@ -142,32 +138,61 @@ export class FolderOperationService {
           folderId,
           createdAt: now,
           updatedAt: now,
+        }
+
+        inputObjectEntities
+          .map((inputObject) => ({
+            id: uuidV4(),
+            operationRelationType: 'INPUT',
+            folderId,
+            operationId: folderOperation.id,
+            folderObjectId: inputObject.id,
+            objectKey: inputObject.objectKey,
+            createdAt: now,
+            updatedAt: now,
+          }))
+          .forEach((o) => inputObjectRelations.push(o))
+
+        // trigger a job to send unstarted work to the workers
+        if (
+          (await this.queueService.getWaitingCount(
+            QueueName.ExecuteUnstartedWork,
+          )) === 0
+        ) {
+          await this.queueService.add(QueueName.ExecuteUnstartedWork, {
+            jobId: uuidV4(),
+            delay: 1000,
+          })
+        }
+
+        folderOperations.push(folderOperation)
+      }
+
+      // Validate user has permission to access the folders described in inputObjects and outputObjects
+      const touchedFolderIdsArr = Object.keys(touchedFolderIds)
+      const touchedFolders =
+        await this.ormService.db.query.foldersTable.findMany({
+          where: and(
+            eq(foldersTable.ownerId, userId),
+            inArray(foldersTable.id, touchedFolderIdsArr),
+          ),
         })
-        .returning()
 
-      await this.ormService.db.insert(folderOperationObjectsTable).values(
-        inputObjectEntities.map((inputObject) => ({
-          id: uuidV4(),
-          operationRelationType: 'INPUT',
-          folderId,
-          operationId: folderOperation.id,
-          folderObjectId: inputObject.id,
-          objectKey: inputObject.objectKey,
-          createdAt: now,
-          updatedAt: now,
-        })),
-      )
+      if (touchedFolders.length !== touchedFolderIdsArr.length) {
+        throw new FolderNotFoundError()
+      }
 
-      // Queue the operation
-      await this.queueService.add(
-        operation.operationName,
-        opData as { [key: string]: any },
-        {
-          jobId: folderOperation.id,
-        },
-      )
+      return await this.ormService.db.transaction(async (tx) => {
+        const ops = await tx
+          .insert(folderOperationsTable)
+          .values(folderOperations)
+          .returning()
 
-      return folderOperation
+        await tx
+          .insert(folderOperationObjectsTable)
+          .values(inputObjectRelations)
+        return ops
+      })
     } catch (e) {
       if (e instanceof r.ValidationError) {
         throw new FolderOperationInvalidError()
@@ -606,6 +631,54 @@ export class FolderOperationService {
     return {
       result: folderOperations,
       meta: { totalCount: parseInt(folderOperationsCount.count ?? '0', 10) },
+    }
+  }
+
+  async executeUnstartedWork() {
+    const OPERATION_FETCH_LIMIT = 100
+    let unassignableTaskCount = 0
+    const unstartedWork =
+      await this.ormService.db.query.folderOperationsTable.findMany({
+        where: or(
+          and(
+            eq(folderOperationsTable.started, false),
+            isNull(folderOperationsTable.assignedFolderWorkerId),
+          ),
+          and(
+            eq(folderOperationsTable.started, false),
+            isNotNull(folderOperationsTable.assignedFolderWorkerId),
+            lt(folderOperationsTable.assignedAt, new Date(Date.now() - 5000)),
+          ),
+        ),
+        limit: OPERATION_FETCH_LIMIT,
+      })
+
+    for (const folderOperation of unstartedWork) {
+      const assignedFolderWorkerId =
+        await this.socketService.sendFolderOperationToWorker(folderOperation)
+      if (assignedFolderWorkerId) {
+        await this.ormService.db
+          .update(folderOperationsTable)
+          .set({
+            assignedFolderWorkerId,
+            assignedAt: new Date(),
+          })
+          .where(eq(folderOperationsTable.id, folderOperation.id))
+      } else {
+        unassignableTaskCount++
+      }
+    }
+    if (
+      (unassignableTaskCount > 0 &&
+        (await this.queueService.getWaitingCount(
+          QueueName.ExecuteUnstartedWork,
+        )) === 0) ||
+      unstartedWork.length === OPERATION_FETCH_LIMIT
+    ) {
+      await this.queueService.add(QueueName.ExecuteUnstartedWork, {
+        jobId: uuidV4(),
+        delay: (unstartedWork.length / unassignableTaskCount) * 2000,
+      })
     }
   }
 }

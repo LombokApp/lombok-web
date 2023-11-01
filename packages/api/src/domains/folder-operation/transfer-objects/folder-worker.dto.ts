@@ -3,7 +3,7 @@ export interface FolderWorkerData {
   externalId: string
   paused: boolean
   ips: {
-    [key: string]: { firstSeen: Date; lastSeen: Date }
+    [key: string]: { firstSeen: Date; lastSeen: Date } | undefined
   }
   capabilities: string[]
   firstSeen: Date

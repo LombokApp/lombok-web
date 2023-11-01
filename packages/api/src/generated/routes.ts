@@ -271,9 +271,9 @@ export function RegisterRoutes(app: express.Router, validator: OpenApiValidator)
   
   // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
   app.post(
-    '/api/v1/worker/socket-auth',
+    '/api/v1/worker/socket',
     authenticateMiddleware([{"WorkerAccessToken":[]}]),
-    validator.validate('post', convertPath('/worker/socket-auth')),
+    validator.validate('post', convertPath('/worker/socket')),
     function WorkerController_createSocketAuthentication(request: any, response: any, next: any) {
       const args = {
           req: {"in":"request","name":"req","required":true,"dataType":"object"},

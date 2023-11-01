@@ -8,6 +8,7 @@ import { parseSort } from '../../../util/sort.util'
 import { PlatformRole } from '../../auth/constants/role.constants'
 import { JWTService } from '../../auth/services/jwt.service'
 import type { User } from '../../user/entities/user.entity'
+import type { NewFolderWorker } from '../entities/folder-worker.entity'
 import { folderWorkersTable } from '../entities/folder-worker.entity'
 import type {
   FolderWorkerKey,
@@ -40,6 +41,58 @@ export class FolderWorkerService {
     private readonly ormService: OrmService,
     private readonly jwtService: JWTService,
   ) {}
+
+  async upsertFolderWorker(
+    folderWorkerKey: FolderWorkerKey,
+    externalId: string,
+    capabilities: string[],
+    ipAddress: string,
+  ) {
+    return this.ormService.db.transaction(async (tx) => {
+      const now = new Date()
+      const existing = await tx.query.folderWorkersTable.findFirst({
+        where: and(
+          eq(folderWorkersTable.keyId, folderWorkerKey.id),
+          eq(folderWorkersTable.externalId, externalId),
+        ),
+      })
+      if (!existing) {
+        const newFolderWorker: NewFolderWorker = {
+          id: uuidV4(),
+          capabilities,
+          ips: {
+            ipAddress: {
+              firstSeen: now,
+              lastSeen: now,
+            },
+          },
+          externalId,
+          firstSeen: now,
+          lastSeen: now,
+          keyId: folderWorkerKey.id,
+          createdAt: now,
+          updatedAt: now,
+        }
+        await this.ormService.db
+          .insert(folderWorkersTable)
+          .values(newFolderWorker)
+        return newFolderWorker
+      } else {
+        existing.capabilities = capabilities
+        existing.ips[ipAddress] = {
+          firstSeen: existing.ips[ipAddress]?.firstSeen || now,
+          lastSeen: now,
+        }
+        existing.lastSeen = now
+        existing.updatedAt = now
+        await this.ormService.db
+          .update(folderWorkersTable)
+          .set(existing)
+          .where(eq(folderWorkersTable.id, existing.id))
+        return existing
+      }
+    })
+  }
 
   async createServerWorkerKeyAsAdmin(actor: User) {
     if (actor.role !== PlatformRole.Admin) {

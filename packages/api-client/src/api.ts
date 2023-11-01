@@ -639,7 +639,6 @@ export interface FolderOperationData {
  */
 
 export const FolderOperationName = {
-    IndexFolder: 'IndexFolder',
     IndexFolderObject: 'IndexFolderObject',
     TranscribeAudio: 'TranscribeAudio',
     DetectObjects: 'DetectObjects'
@@ -5130,7 +5129,7 @@ export const WorkerApiAxiosParamCreator = function (configuration?: Configuratio
          * @throws {RequiredError}
          */
         createSocketAuthentication: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/worker/socket-auth`;
+            const localVarPath = `/worker/socket`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;

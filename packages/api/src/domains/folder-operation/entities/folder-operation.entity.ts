@@ -8,6 +8,7 @@ import {
 } from 'drizzle-orm/pg-core'
 
 import { foldersTable } from '../../folder/entities/folder.entity'
+import { folderWorkersTable } from './folder-worker.entity'
 
 export const folderOperationsTable = pgTable('folder_operations', {
   id: uuid('id').primaryKey(),
@@ -21,6 +22,10 @@ export const folderOperationsTable = pgTable('folder_operations', {
   folderId: uuid('folderId')
     .notNull()
     .references(() => foldersTable.id),
+  assignedFolderWorkerId: uuid('assignedFolderWorkerId').references(
+    () => folderWorkersTable.id,
+  ),
+  assignedAt: timestamp('assignedAt'),
   createdAt: timestamp('createdAt').notNull(),
   updatedAt: timestamp('updatedAt').notNull(),
 })

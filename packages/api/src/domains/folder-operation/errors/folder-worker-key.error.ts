@@ -14,3 +14,13 @@ export class FolderWorkerKeyNotFoundError extends Error implements HttpError {
     formatErrorCode(ServiceErrorCode.FolderWorkerKeyNotFoundError),
   ]
 }
+
+@Log(LogLevel.Debug, 'stack')
+export class FolderWorkerInvalidError extends Error implements HttpError {
+  name = FolderWorkerInvalidError.name;
+
+  [HttpError.status] = HttpStatusCode.BadRequest;
+  [HttpError.errors] = [
+    formatErrorCode(ServiceErrorCode.FolderWorkerInvalidError),
+  ]
+}

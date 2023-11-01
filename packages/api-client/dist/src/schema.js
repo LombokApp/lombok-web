@@ -703,7 +703,6 @@ exports.schema = {
             },
             "FolderOperationName": {
                 "enum": [
-                    "IndexFolder",
                     "IndexFolderObject",
                     "TranscribeAudio",
                     "DetectObjects"
@@ -1678,7 +1677,7 @@ exports.schema = {
                 }
             }
         },
-        "/worker/socket-auth": {
+        "/worker/socket": {
             "post": {
                 "operationId": "createSocketAuthentication",
                 "responses": {

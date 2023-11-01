@@ -636,7 +636,6 @@ export interface FolderOperationData {
  * @enum {string}
  */
 export declare const FolderOperationName: {
-    readonly IndexFolder: "IndexFolder";
     readonly IndexFolderObject: "IndexFolderObject";
     readonly TranscribeAudio: "TranscribeAudio";
     readonly DetectObjects: "DetectObjects";

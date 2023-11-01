@@ -51,11 +51,11 @@ export const parseAuthorization = <
 const verify = (
   request: express.Request,
   scheme: AuthScheme,
-): Promise<{ actor?: User; session?: Session }> => {
+): Promise<{ actor?: User; session?: Session; worker?: FolderWorkerKey }> => {
   const authService = container.resolve(AuthService)
   switch (scheme) {
     case AuthScheme.WorkerAccessToken:
-      return authService.verifyWorkerAccessToken(
+      return authService.verifyWorkerWithAccessToken(
         parseAuthorization(request, 'bearer', true),
       )
 

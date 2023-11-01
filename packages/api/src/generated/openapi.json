@@ -700,7 +700,6 @@
       },
       "FolderOperationName": {
         "enum": [
-          "IndexFolder",
           "IndexFolderObject",
           "TranscribeAudio",
           "DetectObjects"
@@ -1675,7 +1674,7 @@
         }
       }
     },
-    "/worker/socket-auth": {
+    "/worker/socket": {
       "post": {
         "operationId": "createSocketAuthentication",
         "responses": {

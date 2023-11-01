@@ -159,7 +159,7 @@ export class WorkerController extends Controller {
   @Security(AuthScheme.WorkerAccessToken)
   @Response<ErrorResponse>('4XX')
   @OperationId('createSocketAuthentication')
-  @Post('/socket-auth')
+  @Post('/socket')
   createSocketAuthentication(@Request() req: Express.Request) {
     if (!req.worker) {
       throw new UnauthorizedError()

@@ -13,14 +13,10 @@ export const folderWorkersTable = pgTable('folder_workers', {
   id: uuid('id').primaryKey(),
   externalId: text('externalId').notNull(),
   paused: boolean('paused').notNull().default(false),
-  capabilities: text('capabilities')
-    .array()
-    .$type<string[]>()
-    .notNull()
-    .default([]),
+  capabilities: text('capabilities').array().$type<string[]>().notNull(),
   ips: jsonb('ips')
     .$type<{
-      [key: string]: { firstSeen: Date; lastSeen: Date }
+      [key: string]: { firstSeen: Date; lastSeen: Date } | undefined
     }>()
     .notNull(),
   firstSeen: timestamp('firstSeen').notNull(),

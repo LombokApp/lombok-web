@@ -1,19 +1,17 @@
-import type {
-  FolderOperationName,
-  QueueProcessorFunc,
-} from '@stellariscloud/workers'
-import { QueueProcessor } from '@stellariscloud/workers'
 import { Lifecycle, scoped } from 'tsyringe'
 
+import type { QueueName } from '../../../constants/app-worker-constants'
+import type { QueueProcessorFunc } from '../../../util/queue.util'
+import { QueueProcessor } from '../../../util/queue.util'
 import { FolderService } from '../services/folder.service'
 
 @scoped(Lifecycle.ContainerScoped)
-export class IndexFolderProcessor extends QueueProcessor<FolderOperationName.IndexFolder> {
+export class IndexFolderProcessor extends QueueProcessor<QueueName.IndexFolder> {
   constructor(private readonly folderService: FolderService) {
     super()
   }
 
-  run: QueueProcessorFunc<FolderOperationName.IndexFolder> = (job) => {
+  run: QueueProcessorFunc<QueueName.IndexFolder> = (job) => {
     return this.folderService.refreshFolder(job.data.folderId, job.data.userId)
   }
 }

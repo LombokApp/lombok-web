@@ -568,7 +568,7 @@ export declare const schema: {
                 readonly additionalProperties: false;
             };
             readonly FolderOperationName: {
-                readonly enum: readonly ["IndexFolder", "IndexFolderObject", "TranscribeAudio", "DetectObjects"];
+                readonly enum: readonly ["IndexFolderObject", "TranscribeAudio", "DetectObjects"];
                 readonly type: "string";
             };
             readonly FolderOperationData: {
@@ -1383,7 +1383,7 @@ export declare const schema: {
                 };
             };
         };
-        readonly "/worker/socket-auth": {
+        readonly "/worker/socket": {
             readonly post: {
                 readonly operationId: "createSocketAuthentication";
                 readonly responses: {

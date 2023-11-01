@@ -26,7 +26,6 @@ const base_1 = require("./base");
  * @enum {string}
  */
 exports.FolderOperationName = {
-    IndexFolder: 'IndexFolder',
     IndexFolderObject: 'IndexFolderObject',
     TranscribeAudio: 'TranscribeAudio',
     DetectObjects: 'DetectObjects'
@@ -2626,7 +2625,7 @@ const WorkerApiAxiosParamCreator = function (configuration) {
          * @throws {RequiredError}
          */
         createSocketAuthentication: async (options = {}) => {
-            const localVarPath = `/worker/socket-auth`;
+            const localVarPath = `/worker/socket`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
             let baseOptions;
