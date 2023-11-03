@@ -279,6 +279,25 @@ export interface CreateOutputUploadUrlsPayloadOutputFilesInner {
 /**
  * 
  * @export
+ * @interface CreateServerWorkerKey200Response
+ */
+export interface CreateServerWorkerKey200Response {
+    /**
+     * 
+     * @type {FolderWorkerKeyData}
+     * @memberof CreateServerWorkerKey200Response
+     */
+    'workerKey': FolderWorkerKeyData;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateServerWorkerKey200Response
+     */
+    'token': string;
+}
+/**
+ * 
+ * @export
  * @interface CreateSocketAuthentication200Response
  */
 export interface CreateSocketAuthentication200Response {
@@ -620,7 +639,6 @@ export interface FolderOperationData {
  */
 
 export const FolderOperationName = {
-    IndexFolder: 'IndexFolder',
     IndexFolderObject: 'IndexFolderObject',
     TranscribeAudio: 'TranscribeAudio',
     DetectObjects: 'DetectObjects'
@@ -689,10 +707,10 @@ export type FolderOperationStatus = typeof FolderOperationStatus[keyof typeof Fo
 export interface FolderOperationsResponse {
     /**
      * 
-     * @type {ListFoldersResponseMeta}
+     * @type {ListServerWorkerKeys200ResponseMeta}
      * @memberof FolderOperationsResponse
      */
-    'meta': ListFoldersResponseMeta;
+    'meta': ListServerWorkerKeys200ResponseMeta;
     /**
      * 
      * @type {Array<FolderOperationData>}
@@ -717,6 +735,159 @@ export const FolderPermissionName = {
 } as const;
 
 export type FolderPermissionName = typeof FolderPermissionName[keyof typeof FolderPermissionName];
+
+
+/**
+ * 
+ * @export
+ * @interface FolderWorkerData
+ */
+export interface FolderWorkerData {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderWorkerData
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderWorkerData
+     */
+    'externalId': string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof FolderWorkerData
+     */
+    'paused': boolean;
+    /**
+     * 
+     * @type {{ [key: string]: FolderWorkerDataIpsValue | undefined; }}
+     * @memberof FolderWorkerData
+     */
+    'ips': { [key: string]: FolderWorkerDataIpsValue | undefined; };
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof FolderWorkerData
+     */
+    'capabilities': Array<string>;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderWorkerData
+     */
+    'firstSeen': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderWorkerData
+     */
+    'lastSeen': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderWorkerData
+     */
+    'keyId': string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderWorkerData
+     */
+    'createdAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderWorkerData
+     */
+    'updatedAt': string;
+}
+/**
+ * 
+ * @export
+ * @interface FolderWorkerDataIpsValue
+ */
+export interface FolderWorkerDataIpsValue {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderWorkerDataIpsValue
+     */
+    'lastSeen': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderWorkerDataIpsValue
+     */
+    'firstSeen': string;
+}
+/**
+ * 
+ * @export
+ * @interface FolderWorkerKeyData
+ */
+export interface FolderWorkerKeyData {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderWorkerKeyData
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderWorkerKeyData
+     */
+    'accessTokenExpiresAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderWorkerKeyData
+     */
+    'createdAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderWorkerKeyData
+     */
+    'updatedAt': string;
+}
+/**
+ * 
+ * @export
+ * @enum {string}
+ */
+
+export const FolderWorkerKeySort = {
+    CreatedAtAsc: 'createdAt-asc',
+    CreatedAtDesc: 'createdAt-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
+} as const;
+
+export type FolderWorkerKeySort = typeof FolderWorkerKeySort[keyof typeof FolderWorkerKeySort];
+
+
+/**
+ * 
+ * @export
+ * @enum {string}
+ */
+
+export const FolderWorkerSort = {
+    CreatedAtAsc: 'createdAt-asc',
+    CreatedAtDesc: 'createdAt-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc',
+    LastSeenAsc: 'lastSeen-asc',
+    LastSeenDesc: 'lastSeen-desc',
+    FirstSeenAsc: 'firstSeen-asc',
+    FirstSeenDesc: 'firstSeen-desc'
+} as const;
+
+export type FolderWorkerSort = typeof FolderWorkerSort[keyof typeof FolderWorkerSort];
 
 
 /**
@@ -823,29 +994,16 @@ export interface ListFolderObjects200Response {
 export interface ListFoldersResponse {
     /**
      * 
-     * @type {ListFoldersResponseMeta}
+     * @type {ListServerWorkerKeys200ResponseMeta}
      * @memberof ListFoldersResponse
      */
-    'meta': ListFoldersResponseMeta;
+    'meta': ListServerWorkerKeys200ResponseMeta;
     /**
      * 
      * @type {Array<FolderAndPermission>}
      * @memberof ListFoldersResponse
      */
     'result': Array<FolderAndPermission>;
-}
-/**
- * 
- * @export
- * @interface ListFoldersResponseMeta
- */
-export interface ListFoldersResponseMeta {
-    /**
-     * 
-     * @type {number}
-     * @memberof ListFoldersResponseMeta
-     */
-    'totalCount': number;
 }
 /**
  * 
@@ -863,15 +1021,66 @@ export interface ListResponseMeta {
 /**
  * 
  * @export
+ * @interface ListServerWorkerKeys200Response
+ */
+export interface ListServerWorkerKeys200Response {
+    /**
+     * 
+     * @type {Array<FolderWorkerKeyData>}
+     * @memberof ListServerWorkerKeys200Response
+     */
+    'result': Array<FolderWorkerKeyData>;
+    /**
+     * 
+     * @type {ListServerWorkerKeys200ResponseMeta}
+     * @memberof ListServerWorkerKeys200Response
+     */
+    'meta': ListServerWorkerKeys200ResponseMeta;
+}
+/**
+ * 
+ * @export
+ * @interface ListServerWorkerKeys200ResponseMeta
+ */
+export interface ListServerWorkerKeys200ResponseMeta {
+    /**
+     * 
+     * @type {number}
+     * @memberof ListServerWorkerKeys200ResponseMeta
+     */
+    'totalCount': number;
+}
+/**
+ * 
+ * @export
+ * @interface ListServerWorkers200Response
+ */
+export interface ListServerWorkers200Response {
+    /**
+     * 
+     * @type {Array<FolderWorkerData>}
+     * @memberof ListServerWorkers200Response
+     */
+    'result': Array<FolderWorkerData>;
+    /**
+     * 
+     * @type {ListServerWorkerKeys200ResponseMeta}
+     * @memberof ListServerWorkers200Response
+     */
+    'meta': ListServerWorkerKeys200ResponseMeta;
+}
+/**
+ * 
+ * @export
  * @interface ListUsersResponse
  */
 export interface ListUsersResponse {
     /**
      * 
-     * @type {ListFoldersResponseMeta}
+     * @type {ListServerWorkerKeys200ResponseMeta}
      * @memberof ListUsersResponse
      */
-    'meta': ListFoldersResponseMeta;
+    'meta': ListServerWorkerKeys200ResponseMeta;
     /**
      * 
      * @type {Array<UserData>}
@@ -3353,6 +3562,39 @@ export const ServerApiAxiosParamCreator = function (configuration?: Configuratio
         },
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createServerWorkerKey: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/server/worker-keys`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication AccessToken required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {CreateUserData} createUserData 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3405,6 +3647,43 @@ export const ServerApiAxiosParamCreator = function (configuration?: Configuratio
             const localVarPath = `/server/settings/locations/{locationType}/{locationId}`
                 .replace(`{${"locationType"}}`, encodeURIComponent(String(locationType)))
                 .replace(`{${"locationId"}}`, encodeURIComponent(String(locationId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication AccessToken required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} workerKeyId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteServerWorkerKey: async (workerKeyId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'workerKeyId' is not null or undefined
+            assertParamExists('deleteServerWorkerKey', 'workerKeyId', workerKeyId)
+            const localVarPath = `/server/worker-keys/{workerKeyId}`
+                .replace(`{${"workerKeyId"}}`, encodeURIComponent(String(workerKeyId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -3563,6 +3842,102 @@ export const ServerApiAxiosParamCreator = function (configuration?: Configuratio
             // authentication AccessToken required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {FolderWorkerKeySort} [sort] 
+         * @param {number} [limit] 
+         * @param {number} [offset] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerWorkerKeys: async (sort?: FolderWorkerKeySort, limit?: number, offset?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/server/worker-keys`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication AccessToken required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {FolderWorkerSort} [sort] 
+         * @param {number} [limit] 
+         * @param {number} [offset] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerWorkers: async (sort?: FolderWorkerSort, limit?: number, offset?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/server/workers`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication AccessToken required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
 
 
     
@@ -3754,6 +4129,15 @@ export const ServerApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createServerWorkerKey(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateServerWorkerKey200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createServerWorkerKey(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
          * @param {CreateUserData} createUserData 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3771,6 +4155,16 @@ export const ServerApiFp = function(configuration?: Configuration) {
          */
         async deleteServerLocation(locationType: ServerLocationType, locationId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.deleteServerLocation(locationType, locationId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {string} workerKeyId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteServerWorkerKey(workerKeyId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DeleteFolder200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteServerWorkerKey(workerKeyId, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -3810,6 +4204,30 @@ export const ServerApiFp = function(configuration?: Configuration) {
          */
         async listServerLocations(locationType: ServerLocationType, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ServerLocationData>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listServerLocations(locationType, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {FolderWorkerKeySort} [sort] 
+         * @param {number} [limit] 
+         * @param {number} [offset] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listServerWorkerKeys(sort?: FolderWorkerKeySort, limit?: number, offset?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ListServerWorkerKeys200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listServerWorkerKeys(sort, limit, offset, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {FolderWorkerSort} [sort] 
+         * @param {number} [limit] 
+         * @param {number} [offset] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listServerWorkers(sort?: FolderWorkerSort, limit?: number, offset?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ListServerWorkers200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listServerWorkers(sort, limit, offset, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -3874,6 +4292,14 @@ export const ServerApiFactory = function (configuration?: Configuration, basePat
         },
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createServerWorkerKey(options?: AxiosRequestConfig): AxiosPromise<CreateServerWorkerKey200Response> {
+            return localVarFp.createServerWorkerKey(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {ServerApiCreateUserRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3889,6 +4315,15 @@ export const ServerApiFactory = function (configuration?: Configuration, basePat
          */
         deleteServerLocation(requestParameters: ServerApiDeleteServerLocationRequest, options?: AxiosRequestConfig): AxiosPromise<boolean> {
             return localVarFp.deleteServerLocation(requestParameters.locationType, requestParameters.locationId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {ServerApiDeleteServerWorkerKeyRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteServerWorkerKey(requestParameters: ServerApiDeleteServerWorkerKeyRequest, options?: AxiosRequestConfig): AxiosPromise<DeleteFolder200Response> {
+            return localVarFp.deleteServerWorkerKey(requestParameters.workerKeyId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -3924,6 +4359,24 @@ export const ServerApiFactory = function (configuration?: Configuration, basePat
          */
         listServerLocations(requestParameters: ServerApiListServerLocationsRequest, options?: AxiosRequestConfig): AxiosPromise<Array<ServerLocationData>> {
             return localVarFp.listServerLocations(requestParameters.locationType, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {ServerApiListServerWorkerKeysRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerWorkerKeys(requestParameters: ServerApiListServerWorkerKeysRequest = {}, options?: AxiosRequestConfig): AxiosPromise<ListServerWorkerKeys200Response> {
+            return localVarFp.listServerWorkerKeys(requestParameters.sort, requestParameters.limit, requestParameters.offset, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {ServerApiListServerWorkersRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerWorkers(requestParameters: ServerApiListServerWorkersRequest = {}, options?: AxiosRequestConfig): AxiosPromise<ListServerWorkers200Response> {
+            return localVarFp.listServerWorkers(requestParameters.sort, requestParameters.limit, requestParameters.offset, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -4020,6 +4473,20 @@ export interface ServerApiDeleteServerLocationRequest {
 }
 
 /**
+ * Request parameters for deleteServerWorkerKey operation in ServerApi.
+ * @export
+ * @interface ServerApiDeleteServerWorkerKeyRequest
+ */
+export interface ServerApiDeleteServerWorkerKeyRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerApiDeleteServerWorkerKey
+     */
+    readonly workerKeyId: string
+}
+
+/**
  * Request parameters for deleteUser operation in ServerApi.
  * @export
  * @interface ServerApiDeleteUserRequest
@@ -4059,6 +4526,62 @@ export interface ServerApiListServerLocationsRequest {
      * @memberof ServerApiListServerLocations
      */
     readonly locationType: ServerLocationType
+}
+
+/**
+ * Request parameters for listServerWorkerKeys operation in ServerApi.
+ * @export
+ * @interface ServerApiListServerWorkerKeysRequest
+ */
+export interface ServerApiListServerWorkerKeysRequest {
+    /**
+     * 
+     * @type {FolderWorkerKeySort}
+     * @memberof ServerApiListServerWorkerKeys
+     */
+    readonly sort?: FolderWorkerKeySort
+
+    /**
+     * 
+     * @type {number}
+     * @memberof ServerApiListServerWorkerKeys
+     */
+    readonly limit?: number
+
+    /**
+     * 
+     * @type {number}
+     * @memberof ServerApiListServerWorkerKeys
+     */
+    readonly offset?: number
+}
+
+/**
+ * Request parameters for listServerWorkers operation in ServerApi.
+ * @export
+ * @interface ServerApiListServerWorkersRequest
+ */
+export interface ServerApiListServerWorkersRequest {
+    /**
+     * 
+     * @type {FolderWorkerSort}
+     * @memberof ServerApiListServerWorkers
+     */
+    readonly sort?: FolderWorkerSort
+
+    /**
+     * 
+     * @type {number}
+     * @memberof ServerApiListServerWorkers
+     */
+    readonly limit?: number
+
+    /**
+     * 
+     * @type {number}
+     * @memberof ServerApiListServerWorkers
+     */
+    readonly offset?: number
 }
 
 /**
@@ -4137,6 +4660,16 @@ export class ServerApi extends BaseAPI {
 
     /**
      * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    public createServerWorkerKey(options?: AxiosRequestConfig) {
+        return ServerApiFp(this.configuration).createServerWorkerKey(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
      * @param {ServerApiCreateUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -4155,6 +4688,17 @@ export class ServerApi extends BaseAPI {
      */
     public deleteServerLocation(requestParameters: ServerApiDeleteServerLocationRequest, options?: AxiosRequestConfig) {
         return ServerApiFp(this.configuration).deleteServerLocation(requestParameters.locationType, requestParameters.locationId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {ServerApiDeleteServerWorkerKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    public deleteServerWorkerKey(requestParameters: ServerApiDeleteServerWorkerKeyRequest, options?: AxiosRequestConfig) {
+        return ServerApiFp(this.configuration).deleteServerWorkerKey(requestParameters.workerKeyId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4198,6 +4742,28 @@ export class ServerApi extends BaseAPI {
      */
     public listServerLocations(requestParameters: ServerApiListServerLocationsRequest, options?: AxiosRequestConfig) {
         return ServerApiFp(this.configuration).listServerLocations(requestParameters.locationType, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {ServerApiListServerWorkerKeysRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    public listServerWorkerKeys(requestParameters: ServerApiListServerWorkerKeysRequest = {}, options?: AxiosRequestConfig) {
+        return ServerApiFp(this.configuration).listServerWorkerKeys(requestParameters.sort, requestParameters.limit, requestParameters.offset, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {ServerApiListServerWorkersRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    public listServerWorkers(requestParameters: ServerApiListServerWorkersRequest = {}, options?: AxiosRequestConfig) {
+        return ServerApiFp(this.configuration).listServerWorkers(requestParameters.sort, requestParameters.limit, requestParameters.offset, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4456,7 +5022,7 @@ export const WorkerApiAxiosParamCreator = function (configuration?: Configuratio
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
-            // authentication WorkerServiceToken required
+            // authentication WorkerAccessToken required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
@@ -4496,7 +5062,7 @@ export const WorkerApiAxiosParamCreator = function (configuration?: Configuratio
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
-            // authentication WorkerServiceToken required
+            // authentication WorkerAccessToken required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
@@ -4539,7 +5105,7 @@ export const WorkerApiAxiosParamCreator = function (configuration?: Configuratio
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
-            // authentication WorkerServiceToken required
+            // authentication WorkerAccessToken required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
@@ -4551,6 +5117,39 @@ export const WorkerApiAxiosParamCreator = function (configuration?: Configuratio
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(createOutputUploadUrlsPayload, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createSocketAuthentication: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/worker/socket`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication WorkerAccessToken required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -4579,7 +5178,7 @@ export const WorkerApiAxiosParamCreator = function (configuration?: Configuratio
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
-            // authentication WorkerServiceToken required
+            // authentication WorkerAccessToken required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
@@ -4615,7 +5214,7 @@ export const WorkerApiAxiosParamCreator = function (configuration?: Configuratio
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
-            // authentication WorkerServiceToken required
+            // authentication WorkerAccessToken required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
@@ -4654,7 +5253,7 @@ export const WorkerApiAxiosParamCreator = function (configuration?: Configuratio
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
-            // authentication WorkerServiceToken required
+            // authentication WorkerAccessToken required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
@@ -4712,6 +5311,15 @@ export const WorkerApiFp = function(configuration?: Configuration) {
          */
         async createOutputUploadUrls(operationId: string, createOutputUploadUrlsPayload: CreateOutputUploadUrlsPayload, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateOutputUploadUrls200Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.createOutputUploadUrls(operationId, createOutputUploadUrlsPayload, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createSocketAuthentication(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateSocketAuthentication200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createSocketAuthentication(options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -4780,6 +5388,14 @@ export const WorkerApiFactory = function (configuration?: Configuration, basePat
          */
         createOutputUploadUrls(requestParameters: WorkerApiCreateOutputUploadUrlsRequest, options?: AxiosRequestConfig): AxiosPromise<CreateOutputUploadUrls200Response> {
             return localVarFp.createOutputUploadUrls(requestParameters.operationId, requestParameters.createOutputUploadUrlsPayload, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createSocketAuthentication(options?: AxiosRequestConfig): AxiosPromise<CreateSocketAuthentication200Response> {
+            return localVarFp.createSocketAuthentication(options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -4947,6 +5563,16 @@ export class WorkerApi extends BaseAPI {
      */
     public createOutputUploadUrls(requestParameters: WorkerApiCreateOutputUploadUrlsRequest, options?: AxiosRequestConfig) {
         return WorkerApiFp(this.configuration).createOutputUploadUrls(requestParameters.operationId, requestParameters.createOutputUploadUrlsPayload, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof WorkerApi
+     */
+    public createSocketAuthentication(options?: AxiosRequestConfig) {
+        return WorkerApiFp(this.configuration).createSocketAuthentication(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

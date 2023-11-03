@@ -5,7 +5,7 @@ import {
   objectIdentifierToObjectKey,
 } from '@stellariscloud/utils'
 import { FolderOperationName } from '@stellariscloud/workers'
-import { and, eq, like, sql } from 'drizzle-orm'
+import { and, eq, isNull, like, sql } from 'drizzle-orm'
 import mime from 'mime'
 import * as r from 'runtypes'
 import { Lifecycle, scoped } from 'tsyringe'
@@ -13,6 +13,7 @@ import { v4 as uuidV4 } from 'uuid'
 import type { Logger } from 'winston'
 
 import { EnvConfigProvider } from '../../../config/env-config.provider'
+import { QueueName } from '../../../constants/app-worker-constants'
 import type { FolderOperationRequestPayload } from '../../../controllers/folders.controller'
 import { OrmService } from '../../../orm/orm.service'
 import { LoggingService } from '../../../services/logging.service'
@@ -20,8 +21,10 @@ import { QueueService } from '../../../services/queue.service'
 import { configureS3Client, S3Service } from '../../../services/s3.service'
 import { SocketService } from '../../../services/socket.service'
 import { parseSort } from '../../../util/sort.util'
-import type { Actor } from '../../auth/actor'
 import { JWTService } from '../../auth/services/jwt.service'
+import type { FolderOperation } from '../../folder-operation/entities/folder-operation.entity'
+import { folderOperationsTable } from '../../folder-operation/entities/folder-operation.entity'
+import { folderOperationObjectsTable } from '../../folder-operation/entities/folder-operation-object.entity'
 import { FolderOperationService } from '../../folder-operation/services/folder-operation.service'
 import { ServerLocationType } from '../../server/constants/server.constants'
 import { ServerConfigurationService } from '../../server/services/server-configuration.service'
@@ -32,6 +35,7 @@ import {
   StorageLocationNotFoundError,
 } from '../../storage-location/errors/storage-location.error'
 import type { UserLocationInputData } from '../../storage-location/transfer-objects/s3-location.dto'
+import type { User } from '../../user/entities/user.entity'
 import { UserService } from '../../user/services/user.service'
 import type { Folder } from '../entities/folder.entity'
 import { foldersTable } from '../entities/folder.entity'
@@ -493,7 +497,7 @@ export class FolderService {
     return obj
   }
 
-  async enqueueFolderOperation({
+  async enqueueFolderOperationAsUser({
     userId,
     folderId,
     folderOperation,
@@ -507,10 +511,10 @@ export class FolderService {
       userId,
     })
 
-    return this.folderOperationService.enqueueFolderOperation({
+    return this.folderOperationService.enqueueFolderOperations({
       userId,
       folderId: folder.id,
-      operation: folderOperation,
+      operations: [folderOperation],
     })
   }
 
@@ -549,7 +553,7 @@ export class FolderService {
   }
 
   async listFolderObjectsAsUser(
-    actor: Actor,
+    actor: User,
     {
       folderId,
       search,
@@ -639,52 +643,82 @@ export class FolderService {
   //   }
   // }
 
+  async indexAllUnindexedContentAsUser({
+    userId,
+    folderId,
+  }: {
+    userId: string
+    folderId: string
+  }): Promise<FolderOperation[]> {
+    const _folder = await this.getFolderAsUser({ folderId, userId })
+    return this.indexAllUnindexedContent({ userId, folderId })
+  }
+
   async indexAllUnindexedContent({
     userId,
     folderId,
   }: {
     userId: string
     folderId: string
-  }): Promise<FolderObject[]> {
-    const _folder = await this.getFolderAsUser({ folderId, userId })
+  }): Promise<FolderOperation[]> {
+    const MAX_BATCH_SIZE = 50
 
-    // const qb = this.qb('fo')
+    const unindexedObjects = await this.ormService.db
+      .select({ objectKey: folderObjectsTable.objectKey })
+      .from(folderObjectsTable)
+      .leftJoin(
+        folderOperationObjectsTable,
+        and(
+          eq(folderOperationObjectsTable.operationRelationType, 'INPUT'),
+          eq(
+            folderOperationObjectsTable.objectKey,
+            folderObjectsTable.objectKey,
+          ),
+          eq(folderOperationObjectsTable.folderId, folderObjectsTable.folderId),
+        ),
+      )
+      .leftJoin(
+        folderOperationsTable,
+        and(
+          eq(
+            folderOperationsTable.operationName,
+            FolderOperationName.IndexFolderObject,
+          ),
+          eq(folderOperationObjectsTable.operationId, folderOperationsTable.id),
+        ),
+      )
+      .where(
+        and(
+          eq(folderObjectsTable.folderId, folderId),
+          isNull(folderObjectsTable.hash),
+          isNull(folderOperationsTable.operationName),
+        ),
+      )
+      .limit(MAX_BATCH_SIZE)
+      .groupBy(folderObjectsTable.id)
+    if (unindexedObjects.length > 0) {
+      const ops = await this.folderOperationService.enqueueFolderOperations({
+        userId,
+        folderId,
+        operations: unindexedObjects.map((o) => ({
+          operationData: { folderId, objectKey: o.objectKey },
+          operationName: FolderOperationName.IndexFolderObject,
+        })),
+      })
 
-    // const results = await qb
-    //   .select(['*'])
-    //   .leftJoin('operations', 'fop', {
-    //     'fop.operation_name': 'IndexFolderObject',
-    //     'f1.operation_relation_type': 'INPUT',
-    //   })
-    //   .where({
-    //     folder: folderId,
-    //     hash: null,
-    //     'fop.operation_name': null,
-    //   })
-    //   .groupBy('fo.id')
-    //   .limit(limit)
-
-    // return results
-
-    // const unindexedObjects = await this.ormService.db
-    //   .select('*')
-    //   .from(folderObjectsTable)
-    //   .where(eq(folderObjectsTable.folderId, folderId))
-
-    // await Promise.all(
-    //   unindexedObjects.map((o) => {
-    //     return this.enqueueFolderOperation({
-    //       userId,
-    //       folderId,
-    //       folderOperation: {
-    //         operationData: { folderId, objectKey: o.objectKey },
-    //         operationName: FolderOperationName.IndexFolderObject,
-    //       },
-    //     })
-    //   }),
-    // )
-    const unindexedObjects: FolderObject[] = []
-    return unindexedObjects
+      if (ops.length === MAX_BATCH_SIZE) {
+        await this.queueService.add(
+          QueueName.IndexAllUnindexedInFolder,
+          {
+            folderId,
+            userId,
+          },
+          { jobId: uuidV4(), delay: 5000 },
+        )
+      }
+      return ops
+    }
+    return []
   }
 
   // async createFolderShareAsUser({
@@ -968,7 +1002,7 @@ export class FolderService {
 
   async queueRefreshFolder(folderId: string, userId: string) {
     return this.queueService.add(
-      FolderOperationName.IndexFolder,
+      QueueName.IndexFolder,
       { folderId, userId },
       { jobId: uuidV4() },
     )

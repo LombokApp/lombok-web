@@ -2,7 +2,6 @@ import type express from 'express'
 import * as r from 'runtypes'
 import { container } from 'tsyringe'
 
-import type { Actor } from '../domains/auth/actor'
 import { PlatformRole } from '../domains/auth/constants/role.constants'
 import {
   AuthScheme,
@@ -15,6 +14,7 @@ import {
 } from '../domains/auth/constants/scope.constants'
 import type { Session } from '../domains/auth/entities/session.entity'
 import { AuthService } from '../domains/auth/services/auth.service'
+import type { FolderWorkerKey } from '../domains/folder-operation/entities/folder-worker-key.entity'
 import type { User } from '../domains/user/entities/user.entity'
 import {
   AuthorizationHeaderInvalidError,
@@ -51,11 +51,11 @@ export const parseAuthorization = <
 const verify = (
   request: express.Request,
   scheme: AuthScheme,
-): Promise<{ viewer: Actor; session?: Session }> => {
+): Promise<{ actor?: User; session?: Session; worker?: FolderWorkerKey }> => {
   const authService = container.resolve(AuthService)
   switch (scheme) {
-    case AuthScheme.WorkerServiceToken:
-      return authService.verifyWorkerAccessToken(
+    case AuthScheme.WorkerAccessToken:
+      return authService.verifyWorkerWithAccessToken(
         parseAuthorization(request, 'bearer', true),
       )
 
@@ -76,19 +76,7 @@ const verify = (
       )
 
     case AuthScheme.Public:
-      // if (parseAuthorization(request, 'bearer', true)) {
-      //   return authService.verifyAndExtendSessionWithRefreshToken(
-      //     parseAuthorization(request, 'bearer', false),
-      //   )
-      // }
-      return Promise.resolve({
-        viewer: {
-          id: '',
-          user: {} as unknown as User,
-          role: PlatformRole.Anonymous,
-          authenticated: false,
-        },
-      })
+      return Promise.resolve({})
 
     case AuthScheme.PasswordChange:
       // apiKeyType = ApiKeyType.PASSWORD_CHANGE
@@ -111,56 +99,47 @@ export const expressAuthentication = async (
   AuthScopesType.assert(requiredScopes)
 
   const handleResult = ({
-    viewer,
     user,
+    worker,
     session,
   }: {
-    viewer: Actor
     user?: User
+    worker?: FolderWorkerKey
     session?: Session
   }) => {
-    if (!user) {
-      // unauthenticated
-      request.viewer = {
-        id: '',
-        user: {} as unknown as User,
-        role: PlatformRole.Anonymous,
-        authenticated: false,
-      }
-      request.session = session
-      return request.viewer
-    }
+    if (user) {
+      // TODO: fix scopes checking...
+      const scopes: AuthScope[] =
+        session?.scopes ?? ALLOWED_SCOPES[PlatformRole.User]
 
-    const scopes: AuthScope[] =
-      session?.scopes ?? ALLOWED_SCOPES[PlatformRole.User]
-
-    for (const scope of requiredScopes) {
-      if (!scopes.includes(scope)) {
-        throw new ScopeRequiredError(requiredScopes, scopes)
+      for (const scope of requiredScopes) {
+        if (!scopes.includes(scope)) {
+          throw new ScopeRequiredError(requiredScopes, scopes)
+        }
       }
     }
 
-    request.viewer = viewer as unknown as Actor
     request.user = user
     request.session = session
+    request.worker = worker
 
-    return viewer
+    return user
   }
 
   const result = verify(request, scheme)
 
-  return (
-    result as Promise<{ viewer: Actor; user?: User; session?: Session }>
-  ).then(handleResult)
+  return (result as Promise<{ user?: User; session?: Session }>).then(
+    handleResult,
+  )
 }
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
-      viewer: Actor
       session?: Session
-      user: User
+      user?: User
+      worker?: FolderWorkerKey
     }
   }
 }

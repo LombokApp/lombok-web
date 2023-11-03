@@ -15,5 +15,6 @@ export const enum AuthDurationMs {
  */
 export const enum AuthDurationSeconds {
   AccessToken = 60 * 60,
+  WorkerAccessToken = 60 * 60 * 24 * 365,
 }
 /* eslint-enable @typescript-eslint/prefer-literal-enum-member */

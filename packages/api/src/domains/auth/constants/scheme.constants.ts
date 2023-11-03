@@ -3,7 +3,7 @@ import type * as r from 'runtypes'
 import { EnumType } from '../../../util/types.util'
 
 export enum AuthScheme {
-  WorkerServiceToken = 'WorkerServiceToken',
+  WorkerAccessToken = 'WorkerAccessToken',
   Public = 'Public',
   AccessToken = 'AccessToken',
   RefreshToken = 'RefreshToken',

@@ -4,7 +4,7 @@ import type { AuthScope } from '../constants/scope.constants'
 
 export const sessionsTable = pgTable('session', {
   id: uuid('id').primaryKey(),
-  hash: text('hash'),
+  hash: text('hash').notNull(),
   userId: uuid('userId').notNull(),
   scopes: text('scopes').array().$type<AuthScope[]>(),
   expiresAt: timestamp('expiresAt').notNull(),

@@ -7,7 +7,9 @@ import {
   Path,
   Post,
   Put,
+  Query,
   Request,
+  Response,
   Route,
   Security,
   Tags,
@@ -16,6 +18,13 @@ import { Lifecycle, scoped } from 'tsyringe'
 
 import { AuthScheme } from '../domains/auth/constants/scheme.constants'
 import { AuthScope } from '../domains/auth/constants/scope.constants'
+import {
+  FolderWorkerKeySort,
+  FolderWorkerService,
+  FolderWorkerSort,
+} from '../domains/folder-operation/services/folder-worker.service'
+import { transformFolderWorkerToFolderWorkerDTO } from '../domains/folder-operation/transforms/folder-worker-dto.transform'
+import { transformFolderWorkerKeyToFolderWorkerKeyDTO } from '../domains/folder-operation/transforms/folder-worker-key-dto.transform'
 import { ServerLocationType } from '../domains/server/constants/server.constants'
 import { ServerConfigurationService } from '../domains/server/services/server-configuration.service'
 import type { ServerSettings } from '../domains/server/transfer-objects/settings.dto'
@@ -28,6 +37,8 @@ import {
   UpdateUserData,
 } from '../domains/user/transfer-objects/user.dto'
 import { transformUserToUserDTO } from '../domains/user/transforms/user-dto.transform'
+import { UnauthorizedError } from '../errors/auth.error'
+import type { ErrorResponse } from '../transfer-objects/error-response.dto'
 
 export interface ListUsersResponse {
   meta: { totalCount: number }
@@ -41,6 +52,7 @@ export class ServerController extends Controller {
   constructor(
     private readonly userService: UserService,
     private readonly serverConfigurationService: ServerConfigurationService,
+    private readonly serverWorkerService: FolderWorkerService,
   ) {
     super()
   }
@@ -52,9 +64,12 @@ export class ServerController extends Controller {
     @Request() req: Express.Request,
     @Path() locationType: ServerLocationType,
   ): Promise<ServerLocationData[]> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     const results =
       await this.serverConfigurationService.listConfiguredServerLocationsAsUser(
-        req.viewer.id,
+        req.user.id,
         locationType,
       )
 
@@ -69,9 +84,12 @@ export class ServerController extends Controller {
     @Body() payload: ServerLocationInputData,
     @Path() locationType: ServerLocationType,
   ): Promise<ServerLocationData> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     const record =
       await this.serverConfigurationService.addServerLocationServerConfigurationAsUser(
-        req.viewer.id,
+        req.user.id,
         locationType,
         payload,
       )
@@ -95,10 +113,12 @@ export class ServerController extends Controller {
     @Path() locationType: ServerLocationType,
     @Path() locationId: string,
   ) {
-    const _user = await this.userService.getById({ id: req.viewer.id })
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
 
     await this.serverConfigurationService.deleteServerLocationServerConfigurationAsUser(
-      req.viewer.id,
+      req.user.id,
       locationType,
       locationId,
     )
@@ -110,8 +130,11 @@ export class ServerController extends Controller {
   @OperationId('listUsers')
   @Get('/users')
   async listUsers(@Request() req: Express.Request): Promise<ListUsersResponse> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     const { results, totalCount } = await this.userService.listUsersAsAdmin(
-      req.viewer.id,
+      req.user.id,
       {
         limit: 100,
         offset: 0,
@@ -130,8 +153,11 @@ export class ServerController extends Controller {
     @Request() req: Express.Request,
     @Path() userId: string,
   ): Promise<{ result: UserData }> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     const result = await this.userService.getUserByIdAsAdmin(
-      req.viewer.id,
+      req.user.id,
       userId,
     )
     return {
@@ -147,8 +173,11 @@ export class ServerController extends Controller {
     @Body()
     body: CreateUserData,
   ) {
-    const user = await this.userService.createUserAsAdmin(req.viewer, body)
-    return { user: transformUserToUserDTO(user) }
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
+    const createdUser = await this.userService.createUserAsAdmin(req.user, body)
+    return { user: transformUserToUserDTO(createdUser) }
   }
 
   @Security(AuthScheme.AccessToken, [AuthScope.CreateUsers])
@@ -160,18 +189,26 @@ export class ServerController extends Controller {
     @Body()
     body: UpdateUserData,
   ) {
-    const user = await this.userService.updateUserAsAdmin(req.viewer, {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
+
+    const updatedUser = await this.userService.updateUserAsAdmin(req.user, {
       id: userId,
       ...body,
     })
-    return { user: transformUserToUserDTO(user) }
+    return { user: transformUserToUserDTO(updatedUser) }
   }
 
   @Security(AuthScheme.AccessToken, [AuthScope.CreateUsers])
   @OperationId('deleteUser')
   @Delete('/users/:userId')
   async deleteUser(@Request() req: Express.Request, @Path() userId: string) {
-    await this.userService.deleteUserAsAdmin(req.viewer, userId)
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
+
+    await this.userService.deleteUserAsAdmin(req.user, userId)
     return true
   }
 
@@ -181,9 +218,12 @@ export class ServerController extends Controller {
   async getSettings(
     @Request() req: Express.Request,
   ): Promise<{ settings: ServerSettings }> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     return {
       settings: await this.serverConfigurationService.getServerSettingsAsUser(
-        req.viewer,
+        req.user,
       ),
     }
   }
@@ -196,14 +236,18 @@ export class ServerController extends Controller {
     @Path() settingsKey: string,
     @Body() settingsValue: { value: any },
   ): Promise<{ settings: ServerSettings }> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
+
     await this.serverConfigurationService.setServerSettingAsUser(
-      req.viewer,
+      req.user,
       settingsKey,
       settingsValue.value,
     )
     return {
       settings: await this.serverConfigurationService.getServerSettingsAsUser(
-        req.viewer,
+        req.user,
       ),
     }
   }
@@ -215,13 +259,111 @@ export class ServerController extends Controller {
     @Request() req: Express.Request,
     @Path() settingsKey: string,
   ): Promise<{ settings: ServerSettings }> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
     await this.serverConfigurationService.resetServerSettingAsUser(
-      req.viewer,
+      req.user,
       settingsKey,
     )
     return {
       settings: await this.serverConfigurationService.getServerSettingsAsUser(
-        req.viewer,
+        req.user,
+      ),
+    }
+  }
+
+  @Security(AuthScheme.AccessToken, [AuthScope.CreateServerWorkerKey])
+  @Response<ErrorResponse>('4XX')
+  @OperationId('createServerWorkerKey')
+  @Post('/worker-keys')
+  async createServerWorkerKey(@Request() req: Express.Request) {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
+    const result = await this.serverWorkerService.createServerWorkerKeyAsAdmin(
+      req.user,
+    )
+    return {
+      token: result.token,
+      workerKey: transformFolderWorkerKeyToFolderWorkerKeyDTO(result.workerKey),
+    }
+  }
+
+  @Security(AuthScheme.AccessToken, [AuthScope.DeleteServerWorkerKey])
+  @Response<ErrorResponse>('4XX')
+  @OperationId('deleteServerWorkerKey')
+  @Delete('/worker-keys/:workerKeyId')
+  async deleteServerWorkerKey(
+    @Request() req: Express.Request,
+    @Path() workerKeyId: string,
+  ) {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
+    await this.serverWorkerService.deleteServerWorkerKeyAsAdmin(
+      req.user,
+      workerKeyId,
+    )
+    return {
+      success: true,
+    }
+  }
+
+  @Security(AuthScheme.AccessToken, [AuthScope.ReadServerWorkerKey])
+  @Response<ErrorResponse>('4XX')
+  @OperationId('listServerWorkerKeys')
+  @Get('/worker-keys')
+  async listServerWorkerKeys(
+    @Request() req: Express.Request,
+    @Query() sort?: FolderWorkerKeySort,
+    @Query() limit?: number,
+    @Query() offset?: number,
+  ) {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
+    const result = await this.serverWorkerService.listServerWorkerKeysAsAdmin(
+      req.user,
+      {
+        limit,
+        offset,
+        sort,
+      },
+    )
+    return {
+      meta: result.meta,
+      result: result.result.map((folderWorkerKey) =>
+        transformFolderWorkerKeyToFolderWorkerKeyDTO(folderWorkerKey),
+      ),
+    }
+  }
+
+  @Security(AuthScheme.AccessToken, [AuthScope.ReadServerWorkerKey])
+  @Response<ErrorResponse>('4XX')
+  @OperationId('listServerWorkers')
+  @Get('/workers')
+  async listServerWorkers(
+    @Request() req: Express.Request,
+    @Query() sort?: FolderWorkerSort,
+    @Query() limit?: number,
+    @Query() offset?: number,
+  ) {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
+    const result = await this.serverWorkerService.listServerWorkersAsAdmin(
+      req.user,
+      {
+        limit,
+        offset,
+        sort,
+      },
+    )
+    return {
+      meta: result.meta,
+      result: result.result.map((folderWorker) =>
+        transformFolderWorkerToFolderWorkerDTO(folderWorker),
       ),
     }
   }

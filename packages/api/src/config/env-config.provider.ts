@@ -1,17 +1,14 @@
-import { WorkerClass } from '@stellariscloud/workers'
 import * as r from 'runtypes'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 import { singleton } from 'tsyringe'
 
 import { LogLevel, LogLevelType } from '../constants/logging.constants'
-import { EnumType } from '../util/types.util'
 import type {
   ApiConfig,
   AuthConfig,
   ConfigProvider,
   DbConfig,
   DbSeedConfig,
-  InstanceClassConfig,
   LoggingConfig,
   RedisConfig,
   SendgridConfig,
@@ -21,7 +18,7 @@ import { EnvConfigError } from './env-config.error'
 const minLength = (length: number) => (value: string) =>
   value.length >= length || `must be at lest ${length} chars`
 
-const isBoolean = (value: string) =>
+const _isBoolean = (value: string) =>
   ['0', 'false', '1', 'true'].includes(value) || `${value} is not a boolean`
 
 const isInteger = (value: string) =>
@@ -52,10 +49,12 @@ export class EnvConfigProvider implements ConfigProvider {
     if (!this.api) {
       const env = parseEnv({
         API_PORT: r.String.withConstraint(isInteger),
+        APP_HOST_ID: r.String,
       })
 
       this.api = {
         port: parseInt(env.API_PORT, 10),
+        hostId: env.APP_HOST_ID,
       }
     }
 
@@ -68,12 +67,10 @@ export class EnvConfigProvider implements ConfigProvider {
     if (!this.auth) {
       const env = parseEnv({
         AUTH_JWT_SECRET: r.String.withConstraint(minLength(32)),
-        WORKER_PUBLIC_KEY: r.String.withConstraint(minLength(128)),
       })
 
       this.auth = {
         jwtSecret: env.AUTH_JWT_SECRET,
-        workerPublicKey: `-----BEGIN PUBLIC KEY-----\n${env.WORKER_PUBLIC_KEY}\n-----END PUBLIC KEY-----`,
       }
     }
 
@@ -170,7 +167,6 @@ export class EnvConfigProvider implements ConfigProvider {
       const env = parseEnv({
         REDIS_HOST: r.String,
         REDIS_PORT: r.String.withConstraint(isInteger).optional(),
-        REDIS_MAX_RETRIES: r.String.withConstraint(isInteger).optional(),
       })
 
       this.redis = {
@@ -179,44 +175,9 @@ export class EnvConfigProvider implements ConfigProvider {
           env.REDIS_PORT === undefined
             ? undefined
             : parseInt(env.REDIS_PORT, 10),
-        maxRetries:
-          env.REDIS_MAX_RETRIES === undefined
-            ? undefined
-            : parseInt(env.REDIS_MAX_RETRIES, 10),
       }
     }
 
     return this.redis
-  }
-
-  private instanceClass?: InstanceClassConfig
-
-  getInstanceClassConfig() {
-    if (!this.instanceClass) {
-      const env = parseEnv({
-        SERVE_API: r.String.withConstraint(isBoolean).optional(),
-        WORKER_CLASSES: r.String.withConstraint((value: string) => {
-          const failed = value
-            .split(',')
-            .find((s) => !EnumType(WorkerClass).validate(s.trim()).success)
-
-          if (failed) {
-            return `Failed for ${failed}`
-          }
-          return true
-        }).optional(),
-      })
-
-      this.instanceClass = {
-        serveAPI: env.SERVE_API === 'true' || env.SERVE_API === '1',
-        workerClasses: env.WORKER_CLASSES
-          ? env.WORKER_CLASSES.split(',').map(
-              (s) => (WorkerClass as any)[s.trim()],
-            )
-          : [],
-      }
-    }
-
-    return this.instanceClass
   }
 }

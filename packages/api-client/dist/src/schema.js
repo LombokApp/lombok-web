@@ -703,7 +703,6 @@ exports.schema = {
             },
             "FolderOperationName": {
                 "enum": [
-                    "IndexFolder",
                     "IndexFolderObject",
                     "TranscribeAudio",
                     "DetectObjects"
@@ -1039,6 +1038,129 @@ exports.schema = {
                 "type": "object",
                 "additionalProperties": false
             },
+            "FolderWorkerKeyData": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "accessTokenExpiresAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "accessTokenExpiresAt",
+                    "createdAt",
+                    "updatedAt"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "FolderWorkerKeySort": {
+                "enum": [
+                    "createdAt-asc",
+                    "createdAt-desc",
+                    "updatedAt-asc",
+                    "updatedAt-desc"
+                ],
+                "type": "string"
+            },
+            "FolderWorkerData": {
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "externalId": {
+                        "type": "string"
+                    },
+                    "paused": {
+                        "type": "boolean"
+                    },
+                    "ips": {
+                        "properties": {},
+                        "additionalProperties": {
+                            "properties": {
+                                "lastSeen": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "firstSeen": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                }
+                            },
+                            "required": [
+                                "lastSeen",
+                                "firstSeen"
+                            ],
+                            "type": "object"
+                        },
+                        "type": "object"
+                    },
+                    "capabilities": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array"
+                    },
+                    "firstSeen": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastSeen": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "keyId": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "externalId",
+                    "paused",
+                    "ips",
+                    "capabilities",
+                    "firstSeen",
+                    "lastSeen",
+                    "keyId",
+                    "createdAt",
+                    "updatedAt"
+                ],
+                "type": "object",
+                "additionalProperties": false
+            },
+            "FolderWorkerSort": {
+                "enum": [
+                    "createdAt-asc",
+                    "createdAt-desc",
+                    "updatedAt-asc",
+                    "updatedAt-desc",
+                    "lastSeen-asc",
+                    "lastSeen-desc",
+                    "firstSeen-asc",
+                    "firstSeen-desc"
+                ],
+                "type": "string"
+            },
             "ViewerUpdatePayload": {
                 "properties": {
                     "name": {
@@ -1063,7 +1185,7 @@ exports.schema = {
                 "scheme": "bearer",
                 "bearerFormat": "JWT"
             },
-            "WorkerServiceToken": {
+            "WorkerAccessToken": {
                 "type": "http",
                 "scheme": "bearer",
                 "bearerFormat": "JWT"
@@ -1286,7 +1408,7 @@ exports.schema = {
                 ],
                 "security": [
                     {
-                        "WorkerServiceToken": []
+                        "WorkerAccessToken": []
                     }
                 ],
                 "parameters": [
@@ -1324,7 +1446,7 @@ exports.schema = {
                 ],
                 "security": [
                     {
-                        "WorkerServiceToken": []
+                        "WorkerAccessToken": []
                     }
                 ],
                 "parameters": [
@@ -1380,7 +1502,7 @@ exports.schema = {
                 ],
                 "security": [
                     {
-                        "WorkerServiceToken": []
+                        "WorkerAccessToken": []
                     }
                 ],
                 "parameters": [
@@ -1446,7 +1568,7 @@ exports.schema = {
                 ],
                 "security": [
                     {
-                        "WorkerServiceToken": []
+                        "WorkerAccessToken": []
                     }
                 ],
                 "parameters": [
@@ -1494,7 +1616,7 @@ exports.schema = {
                 ],
                 "security": [
                     {
-                        "WorkerServiceToken": []
+                        "WorkerAccessToken": []
                     }
                 ],
                 "parameters": [],
@@ -1536,7 +1658,7 @@ exports.schema = {
                 ],
                 "security": [
                     {
-                        "WorkerServiceToken": []
+                        "WorkerAccessToken": []
                     }
                 ],
                 "parameters": [],
@@ -1553,6 +1675,50 @@ exports.schema = {
                         }
                     }
                 }
+            }
+        },
+        "/worker/socket": {
+            "post": {
+                "operationId": "createSocketAuthentication",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "token": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "token"
+                                    ],
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Worker"
+                ],
+                "security": [
+                    {
+                        "WorkerAccessToken": []
+                    }
+                ],
+                "parameters": []
             }
         },
         "/folders": {
@@ -2904,6 +3070,287 @@ exports.schema = {
                         "required": true,
                         "schema": {
                             "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/server/worker-keys": {
+            "post": {
+                "operationId": "createServerWorkerKey",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "workerKey": {
+                                            "$ref": "#/components/schemas/FolderWorkerKeyData"
+                                        },
+                                        "token": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "workerKey",
+                                        "token"
+                                    ],
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Server"
+                ],
+                "security": [
+                    {
+                        "AccessToken": [
+                            "server_worker_key:create"
+                        ]
+                    }
+                ],
+                "parameters": []
+            },
+            "get": {
+                "operationId": "listServerWorkerKeys",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "result": {
+                                            "items": {
+                                                "$ref": "#/components/schemas/FolderWorkerKeyData"
+                                            },
+                                            "type": "array"
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "totalCount": {
+                                                    "type": "number",
+                                                    "format": "double"
+                                                }
+                                            },
+                                            "required": [
+                                                "totalCount"
+                                            ],
+                                            "type": "object"
+                                        }
+                                    },
+                                    "required": [
+                                        "result",
+                                        "meta"
+                                    ],
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Server"
+                ],
+                "security": [
+                    {
+                        "AccessToken": [
+                            "server_worker_key:read"
+                        ]
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "sort",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/components/schemas/FolderWorkerKeySort"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "required": false,
+                        "schema": {
+                            "format": "double",
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "required": false,
+                        "schema": {
+                            "format": "double",
+                            "type": "number"
+                        }
+                    }
+                ]
+            }
+        },
+        "/server/worker-keys/{workerKeyId}": {
+            "delete": {
+                "operationId": "deleteServerWorkerKey",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    "required": [
+                                        "success"
+                                    ],
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Server"
+                ],
+                "security": [
+                    {
+                        "AccessToken": [
+                            "server_worker_key:delete"
+                        ]
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "workerKeyId",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ]
+            }
+        },
+        "/server/workers": {
+            "get": {
+                "operationId": "listServerWorkers",
+                "responses": {
+                    "200": {
+                        "description": "Ok",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "result": {
+                                            "items": {
+                                                "$ref": "#/components/schemas/FolderWorkerData"
+                                            },
+                                            "type": "array"
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "totalCount": {
+                                                    "type": "number",
+                                                    "format": "double"
+                                                }
+                                            },
+                                            "required": [
+                                                "totalCount"
+                                            ],
+                                            "type": "object"
+                                        }
+                                    },
+                                    "required": [
+                                        "result",
+                                        "meta"
+                                    ],
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "4XX": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Server"
+                ],
+                "security": [
+                    {
+                        "AccessToken": [
+                            "server_worker_key:read"
+                        ]
+                    }
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "sort",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/components/schemas/FolderWorkerSort"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "required": false,
+                        "schema": {
+                            "format": "double",
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "required": false,
+                        "schema": {
+                            "format": "double",
+                            "type": "number"
                         }
                     }
                 ]

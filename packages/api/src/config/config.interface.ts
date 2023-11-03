@@ -1,14 +1,12 @@
-import type { WorkerClass } from '@stellariscloud/workers'
-
 import type { LogLevel } from '../constants/logging.constants'
 
 export interface ApiConfig {
   port: number
+  hostId: string
 }
 
 export interface AuthConfig {
   jwtSecret: string
-  workerPublicKey: string
 }
 
 export interface LoggingConfig {
@@ -35,12 +33,6 @@ export interface DbSeedConfig {
 export interface RedisConfig {
   host?: string
   port?: number
-  maxRetries?: number
-}
-
-export interface InstanceClassConfig {
-  workerClasses: WorkerClass[]
-  serveAPI: boolean
 }
 
 export interface SendgridConfig {
@@ -55,5 +47,4 @@ export interface ConfigProvider {
   getLoggingConfig: () => LoggingConfig
   getSendgridConfig: () => SendgridConfig
   getRedisConfig: () => RedisConfig
-  getInstanceClassConfig: () => InstanceClassConfig
 }

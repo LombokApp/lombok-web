@@ -28,6 +28,11 @@ export enum AuthScope {
   ReadPublicServerSettings = 'public_server_settings:read',
   ReadServerSettings = 'server_settings:read',
   UpdateServerSettings = 'server_settings:update',
+
+  ReadServerWorkerKey = 'server_worker_key:read',
+  CreateServerWorkerKey = 'server_worker_key:create',
+  UpdateServerWorkerKey = 'server_worker_key:update',
+  DeleteServerWorkerKey = 'server_worker_key:delete',
 }
 
 export const AuthScopeType: r.Runtype<AuthScope> = EnumType(AuthScope)
@@ -58,6 +63,10 @@ const ADMIN_SCOPES = [
   AuthScope.DeleteUsers,
   AuthScope.ReadServerSettings,
   AuthScope.UpdateServerSettings,
+  AuthScope.ReadServerWorkerKey,
+  AuthScope.DeleteServerWorkerKey,
+  AuthScope.CreateServerWorkerKey,
+  AuthScope.UpdateServerWorkerKey,
 ]
 
 export const ALLOWED_SCOPES: Record<PlatformRole, AuthScope[]> = {

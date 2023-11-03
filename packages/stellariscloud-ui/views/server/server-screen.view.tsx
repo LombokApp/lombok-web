@@ -9,6 +9,7 @@ import { ServerOverview } from './server-overview/server-overview'
 import { ServerSettingsScreen } from './server-settings-screen/server-settings-screen'
 import { ServerStorageConfig } from './server-storage-config/server-storage-config.view'
 import { ServerTabs } from './server-tabs'
+import { ServerWorkerKeysScreen } from './server-worker-keys-screen/server-worker-keys-screen.view'
 
 export function ServerScreen() {
   const router = useRouter()
@@ -44,6 +45,7 @@ export function ServerScreen() {
             )}
             {activeTab === 'users' && <ServerUsers />}
             {activeTab === 'storage' && <ServerStorageConfig />}
+            {activeTab === 'workers' && <ServerWorkerKeysScreen />}
             {activeTab === 'settings' && <ServerSettingsScreen />}
           </div>
         </div>

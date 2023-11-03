@@ -1,10 +1,9 @@
-FROM node:18 as install
+FROM node:18-alpine as install
 
 WORKDIR /usr/src/app
 
 COPY .yarn .yarn
 COPY packages/worker packages/worker
-COPY packages/api packages/api
 COPY packages/api-client packages/api-client
 COPY packages/shared/packages/api-utils packages/shared/packages/api-utils
 COPY packages/shared/packages/stellaris-workers packages/shared/packages/stellaris-workers
@@ -67,43 +66,8 @@ WORKDIR /usr/src/app
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.8.0/wait /wait
 RUN chmod +x /wait
 
-ENV LD_LIBRARY_PATH=/usr/local/lib
-ENV LIBRARY_PATH=/usr/local/lib
-
-# Run all the things....
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y curl gnupg && \
-    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
-    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
-    # end yarn source setup
-    # start install necessary packages
-    apt-get update && apt-get install -y --fix-missing --no-install-recommends yarn ffmpeg make g++ wget && \
-    # end install necessary packages
-    # start yarn install
-    yarn set version ./.yarn/releases/yarn-3.5.1.cjs && \
-    yarn && \
-    # end yarn install
-    # start tensorflow bindings build
-    wget https://storage.googleapis.com/tf-builds/libtensorflow_r2_8_linux_arm64.tar.gz -q && \
-    tar -C /usr/local -xzf libtensorflow_r2_8_linux_arm64.tar.gz && \
-    rm libtensorflow_r2_8_linux_arm64.tar.gz && \
-    cd .yarn/unplugged/@tensorflow-tfjs-node-npm-4.11.0-99248add48/node_modules/@tensorflow/tfjs-node && \
-    rm -rf deps && rm -rf lib && \
-    yarn dlx node-pre-gyp install --build-from-source && \
-    # end tensorflow bindings build
-    # start whisper build
-    cd ../../../../whisper-node-ts-npm-0.0.16-572b4b5e83/node_modules/whisper-node-ts/lib/whisper.cpp && \
-    lines_to_comment="213 214 215 216"; for line_number in $lines_to_comment; do sed -i "${line_number}s/^/#/" Makefile; done && make && \
-    cd /usr/src/app && \
-    # end whisper build
-    # start cleanup
-    apt-get remove -y imagemagick gcc g++ make npm curl gnupg wget python3 perl && \
-    rm -rf ./packages/stellariscloud-ui ./packages/build-test /usr/local/lib/node_modules && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /usr/local/src/* && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache ffmpeg
 
 VOLUME ["/home/node"]

@@ -2,10 +2,9 @@ import { and, eq } from 'drizzle-orm'
 import { Lifecycle, scoped } from 'tsyringe'
 import { v4 as uuidV4 } from 'uuid'
 
+import { UnauthorizedError } from '../../../errors/auth.error'
 import { OrmService } from '../../../orm/orm.service'
-import { usersTable } from '../../user/entities/user.entity'
-import { UserNotFoundError } from '../../user/errors/user.error'
-import type { Actor } from '../actor'
+import type { User } from '../../user/entities/user.entity'
 import { ALLOWED_SCOPES } from '../constants/scope.constants'
 import type { NewSession, Session } from '../entities/session.entity'
 import { sessionsTable } from '../entities/session.entity'
@@ -26,15 +25,7 @@ export class SessionService {
     private readonly ormService: OrmService,
   ) {}
 
-  async createSession(actor: Actor) {
-    const user = await this.ormService.db.query.usersTable.findFirst({
-      where: eq(usersTable.id, actor.id),
-    })
-
-    if (!user) {
-      throw new UserNotFoundError()
-    }
-
+  async createSession(user: User) {
     const secret = hashedTokenHelper.createSecretKey()
 
     const now = new Date()
@@ -52,9 +43,7 @@ export class SessionService {
       .values(newSession)
       .returning()
 
-    const accessToken = await this.jwtService.createAccessTokenFromSession(
-      session,
-    )
+    const accessToken = await this.jwtService.createSessionAccessToken(session)
     const refreshToken = hashedTokenHelper.encode(session.id, secret)
 
     return {
@@ -78,7 +67,10 @@ export class SessionService {
     }
   }
 
-  async getById(actor: Actor, id: string) {
+  async getById(actor: User, id: string) {
+    if (!actor.id) {
+      throw new UnauthorizedError()
+    }
     const session = await this.ormService.db.query.sessionsTable.findFirst({
       where: and(eq(sessionsTable.userId, actor.id), eq(sessionsTable.id, id)),
     })
@@ -135,7 +127,7 @@ export class SessionService {
       .returning()
 
     // Create new access and refresh tokens
-    const accessToken = await this.jwtService.createAccessTokenFromSession(
+    const accessToken = await this.jwtService.createSessionAccessToken(
       updatedSession,
     )
     const refreshToken = hashedTokenHelper.encode(updatedSession.id, secret)

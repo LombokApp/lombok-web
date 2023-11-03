@@ -1,28 +1,25 @@
 import * as Sentry from '@sentry/node'
-import type { FolderOperationNameDataTypes } from '@stellariscloud/workers'
-import { FolderOperationName } from '@stellariscloud/workers'
-import { Queue } from 'bullmq'
+import { Queue, Worker } from 'bullmq'
 import { singleton } from 'tsyringe'
 
 import { EnvConfigProvider } from '../config/env-config.provider'
+import type {
+  AppWorkerOperationNameDataTypes,
+  QueueName,
+} from '../constants/app-worker-constants'
 import { registerExitHandler } from '../util/process.util'
+import type { QueueProcessor } from '../util/queue.util'
+import { createProcessor } from '../util/queue.util'
 
 @singleton()
 export class QueueService {
   queues: { [key: string]: Queue } = {}
 
-  constructor(private readonly config: EnvConfigProvider) {
-    this._setupQueue(FolderOperationName.IndexFolder)
-    this._setupQueue(FolderOperationName.IndexFolderObject)
-    this._setupQueue(FolderOperationName.TranscribeAudio)
-    this._setupQueue(FolderOperationName.DetectObjects)
-    // this._setupQueue(QueueName.GenerateHLS)
-    // this._setupQueue(QueueName.GenerateMpegDash)
-  }
+  constructor(private readonly config: EnvConfigProvider) {}
 
   _setupQueue<
-    N extends FolderOperationName,
-    D extends FolderOperationNameDataTypes[N],
+    N extends QueueName,
+    D extends AppWorkerOperationNameDataTypes[N],
   >(name: N) {
     this.queues[name] = new Queue<D>(name, {
       connection: {
@@ -43,14 +40,56 @@ export class QueueService {
   }
 
   add<
-    N extends FolderOperationName,
-    D extends { [key: string]: any },
-    O extends { jobId: string },
+    N extends QueueName,
+    D extends { [key: string]: any } | undefined,
+    O extends { jobId: string; delay?: number },
   >(...inputs: D extends undefined ? [N, O] : [N, D, O]) {
+    if (!(inputs[0] in this.queues)) {
+      throw new Error(`Queue '${inputs[0]}' is not initialised.`)
+    }
+    const options =
+      typeof inputs[2] === 'undefined' ? (inputs[1] as D) : inputs[2]
     return this.queues[inputs[0]].add(
       inputs[0],
       typeof inputs[2] === 'undefined' ? undefined : inputs[1],
-      typeof inputs[2] === 'undefined' ? (inputs[1] as D) : inputs[2],
+      options,
     )
+  }
+
+  getWaitingCount(queueName: QueueName) {
+    return this.queues[queueName].getWaitingCount()
+  }
+
+  getActiveCount(queueName: QueueName) {
+    return this.queues[queueName].getActiveCount()
+  }
+
+  bindQueueProcessor<N extends QueueName>(
+    queue: QueueName,
+    processorFunc: new (...args: any[]) => QueueProcessor<N>,
+  ) {
+    this._setupQueue(queue)
+    const worker = new Worker<AppWorkerOperationNameDataTypes[N], void, N>(
+      queue,
+      (job) => createProcessor(processorFunc)(job),
+      {
+        runRetryDelay: 2000,
+        connection: {
+          host: this.config.getRedisConfig().host,
+          port: this.config.getRedisConfig().port,
+        },
+      },
+    )
+
+    worker.on('error', (error) => {
+      Sentry.captureException(error)
+    })
+
+    return {
+      close: async () => {
+        await worker.close()
+        await worker.disconnect()
+      },
+    }
   }
 }

@@ -3,6 +3,7 @@ import {
   Cog8ToothIcon,
   ServerIcon,
   UserGroupIcon,
+  WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import Link from 'next/link'
@@ -22,6 +23,12 @@ export function ServerTabs({ activeTab }: { activeTab: string }) {
       label: 'Storage',
       icon: CircleStackIcon,
       href: '/server/storage',
+    },
+    {
+      name: 'workers',
+      label: 'Workers',
+      icon: WrenchScrewdriverIcon,
+      href: '/server/workers',
     },
     {
       name: 'settings',
