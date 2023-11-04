@@ -1,7 +1,7 @@
 const path = require('path')
 
 module.exports = {
-  extends: ['../../eslint-config/react', '../../eslint-config/strict'],
+  extends: ['../../eslint-config/react', '../../eslint-config/strict', 'plugin:storybook/recommended'],
   overrides: [
     {
       files: ['./test/**/*', '**/*.test.ts'],
