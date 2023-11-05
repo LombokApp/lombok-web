@@ -23,14 +23,6 @@
     "dev:docker:down": "bash -c \"export $(cat ./packages/api/env/env.dev | xargs) && docker compose down\"",
     "dev:docker:kill": "bash -c \"export $(cat ./packages/api/env/env.dev | xargs) && docker compose kill\"",
     "api:dev": "CMD_ENV=dev yarn workspace @stellariscloud/api dev",
-    "api:db:migrate:format": "CMD_ENV=dev yarn workspace @stellariscloud/api db:migrate:format",
-    "api:db:migrate:new": "CMD_ENV=dev yarn workspace @stellariscloud/api db:migrate:new",
-    "api:db:migrate:up": "CMD_ENV=dev yarn workspace @stellariscloud/api db:migrate:up",
-    "api:db:reset": "CMD_ENV=dev yarn workspace @stellariscloud/api db:reset",
-    "api:db:seed:dev": "CMD_ENV=dev yarn workspace @stellariscloud/api db:seed:dev",
-    "api:test:check": "CMD_ENV=test yarn workspace @stellariscloud/api test:check",
-    "api:test:unit": "CMD_ENV=test yarn workspace @stellariscloud/api test:unit",
-    "api:test:integration": "CMD_ENV=test yarn workspace @stellariscloud/api test:integration",
     "dev:check-all": "sh ./dev-check-all.sh"
   },
   "devDependencies": {
