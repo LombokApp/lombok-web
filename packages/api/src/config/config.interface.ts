@@ -24,6 +24,7 @@ export interface DbConfig {
   port?: number
   runMigrations: boolean
   user: string
+  disableNoticeLogging: boolean
 }
 
 export interface DbSeedConfig {

@@ -29,6 +29,7 @@
     "dev": "./cmd/dev.sh",
     "test:integration:docker:clean": "bash -c \"export $(cat ./env/env.test | xargs) && docker compose -f ../../docker-compose.test.yml down\"",
     "test:integration:docker": "bash -c \"export $(cat ./env/env.test | xargs) && docker compose -f ../../docker-compose.test.yml up\"",
+    "test:integration:docker:down": "bash -c \"export $(cat ./env/env.test | xargs) && docker compose -f ../../docker-compose.test.yml down\"",
     "generate:routes-and-clients": "yarn generate:routes && yarn generate:clients",
     "generate:routes": "yarn tsoa spec-and-routes",
     "generate:clients": "yarn build && ./cmd/generate-clients.sh",

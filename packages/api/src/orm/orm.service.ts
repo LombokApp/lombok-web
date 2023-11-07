@@ -54,6 +54,9 @@ export class OrmService {
       }@${this.configProvider.getDbConfig().host}:${
         this.configProvider.getDbConfig().port
       }/${this.configProvider.getDbConfig().name}`,
+      this.configProvider.getDbConfig().disableNoticeLogging
+        ? { onnotice: () => undefined }
+        : undefined,
     )
     this._db = drizzle(queryClient, {
       schema,
