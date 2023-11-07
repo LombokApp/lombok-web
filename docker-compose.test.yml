@@ -4,9 +4,9 @@ services:
   dbtest:
     image: postgres:13.2-alpine
     environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=stellariscloud_test
+      - POSTGRES_PASSWORD=XXXXXXXXXXXXXXXXXXXXXXXX
+      - POSTGRES_DB=stellariscloud_test
     ports:
       - 10001:5432
   redistest:

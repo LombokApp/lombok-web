@@ -1,38 +1,36 @@
 import 'reflect-metadata'
 
-import * as r from 'runtypes'
+import { sql } from 'drizzle-orm'
+import { migrate } from 'drizzle-orm/postgres-js/migrator'
+import path from 'path'
 import { container } from 'tsyringe'
 
 import { App } from '../../src/app'
-import { EnvConfigProvider } from '../../src/config/env-config.provider'
 import { OrmService } from '../../src/orm/orm.service'
 
 const app = container.resolve(App)
 const ormService = container.resolve(OrmService)
-const configProvider = container.resolve(EnvConfigProvider)
-
-const templateDbName = `${configProvider.getDbConfig().name}_test_template`
-const dbName = `${configProvider.getDbConfig().name}_test_${r.String.check(
-  process.env.JEST_WORKER_ID,
-)}`
 
 jest.setTimeout(25000)
 
 global.beforeAll(async () => {
   await app.init()
 
-  const driver = ormService.orm.em.getDriver()
+  await ormService.db.execute(sql`DROP SCHEMA public CASCADE;`)
+  await ormService.db.execute(sql`CREATE SCHEMA public;`)
+  await ormService.db.execute(sql`GRANT ALL ON SCHEMA public TO public;`)
 
-  await ormService.orm.getSchemaGenerator().dropDatabase(dbName)
-  await driver.execute(`CREATE DATABASE ${dbName} TEMPLATE ${templateDbName};`)
+  await ormService.db.execute(sql`DROP SCHEMA IF EXISTS drizzle CASCADE;`)
+  await ormService.db.execute(sql`CREATE SCHEMA drizzle;`)
+  await ormService.db.execute(sql`GRANT ALL ON SCHEMA drizzle TO public;`)
 
-  ormService.orm.config.set('dbName', dbName)
-  await driver.reconnect()
+  await migrate(ormService.db, {
+    migrationsFolder: path.join(__dirname, '../../src/orm/migrations'),
+  })
 })
 
 global.afterEach(async () => {
-  const driver = ormService.orm.em.getDriver()
-  await driver.execute(`
+  await ormService.db.execute(sql`
     DO
     $func$
     BEGIN
@@ -51,7 +49,7 @@ global.afterEach(async () => {
       END IF;
     END
     $func$;
-  `)
+`)
 })
 
 global.afterAll(async () => {

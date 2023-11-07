@@ -6,6 +6,7 @@ export const transformUserToUserDTO = (user: User): UserData => ({
   id: user.id,
   name: user.name,
   permissions: user.permissions,
+  username: user.username,
   role: user.role,
   email: user.email,
   emailVerified: user.emailVerified,

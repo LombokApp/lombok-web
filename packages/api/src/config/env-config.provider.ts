@@ -112,6 +112,7 @@ export class EnvConfigProvider implements ConfigProvider {
         DB_PORT: r.String.withConstraint(isInteger).optional(),
         DB_RUN_MIGRATIONS: r.String.optional(),
         DB_USER: r.String,
+        DB_DISABLE_NOTICE_LOGGING: r.String.optional(),
       })
 
       this.db = {
@@ -122,6 +123,9 @@ export class EnvConfigProvider implements ConfigProvider {
         runMigrations:
           env.DB_RUN_MIGRATIONS === 'true' || env.DB_RUN_MIGRATIONS === '1',
         user: env.DB_USER,
+        disableNoticeLogging:
+          env.DB_DISABLE_NOTICE_LOGGING === 'true' ||
+          env.DB_DISABLE_NOTICE_LOGGING === '1',
       }
     }
 

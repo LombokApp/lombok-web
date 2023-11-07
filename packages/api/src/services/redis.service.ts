@@ -3,6 +3,7 @@ import { createClient } from 'redis'
 import { singleton } from 'tsyringe'
 
 import { EnvConfigProvider } from '../config/env-config.provider'
+import { registerExitHandler } from '../util/process.util'
 
 @singleton()
 export class RedisService {
@@ -14,5 +15,10 @@ export class RedisService {
 
   constructor(private readonly config: EnvConfigProvider) {
     void this.client.connect()
+    registerExitHandler(async () => this.client.disconnect())
+  }
+
+  async close() {
+    await this.client.disconnect()
   }
 }

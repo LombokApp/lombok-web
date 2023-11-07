@@ -8,6 +8,7 @@ import { App } from '../../src/app'
 const app = container.resolve(App).app
 
 const mockAxios = {
+  defaults: {},
   request: async (config: {
     url: string
     headers: any
