@@ -48,8 +48,6 @@ export const iconForOperationType = (operationName: FolderOperationName) => {
       return MagnifyingGlassIcon
     case FolderOperationName.TranscribeAudio:
       return ChatBubbleBottomCenterTextIcon
-    case FolderOperationName.IndexFolder:
-      return MagnifyingGlassIcon
     case FolderOperationName.DetectObjects:
       return CubeIcon
   }

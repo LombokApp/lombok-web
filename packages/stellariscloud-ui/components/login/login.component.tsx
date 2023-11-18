@@ -35,9 +35,11 @@ export const LoginComponent = ({
   })
 
   const handleSubmit = React.useCallback(() => {
-    const v = form.getValues()
-    if (v.login && v.password) {
-      void onSubmit({ login: v.login, password: v.password })
+    if (form.values.login && form.values.password) {
+      void onSubmit({
+        login: form.values.login,
+        password: form.values.password,
+      })
     }
   }, [form, onSubmit])
 
@@ -92,8 +94,15 @@ export const LoginComponent = ({
                   type="login"
                   autoComplete="login"
                   required={true}
-                  value={form.getValues().login}
-                  onChange={(e) => form.setValue('login', e.target.value)}
+                  value={form.values.login}
+                  onChange={(e) => {
+                    form.setValue('login', e.target.value)
+                    console.log(
+                      'new login value [%s] [%s]',
+                      e.target.value,
+                      form.values.login,
+                    )
+                  }}
                 />
               </div>
             </div>
@@ -119,7 +128,7 @@ export const LoginComponent = ({
                   name="password"
                   type="password"
                   autoComplete="current-password"
-                  value={form.getValues().password}
+                  value={form.values.password}
                   required={true}
                   onChange={(e) => form.setValue('password', e.target.value)}
                 />

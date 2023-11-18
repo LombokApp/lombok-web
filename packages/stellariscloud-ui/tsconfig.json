@@ -27,6 +27,8 @@
     "postcss.config.js",
     "lint-staged.config.js",
     "tailwind.config.js",
+    "jest.config.mjs",
+    "next.config.mjs",
     "sentry.client.config.ts"
   ],
   "exclude": []

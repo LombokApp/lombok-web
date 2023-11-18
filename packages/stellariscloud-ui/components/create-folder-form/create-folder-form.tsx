@@ -67,7 +67,7 @@ export const CreateFolderForm = ({
   })
 
   const serverContentLocationValidation = ServerLocationRecord.validate(
-    form.getValues().contentLocation,
+    form.values.contentLocation,
   )
   const selectedContentServerLocation = serverContentLocationValidation.success
     ? serverLocations.USER_CONTENT.find(
@@ -76,7 +76,7 @@ export const CreateFolderForm = ({
     : undefined
 
   // const serverMetadataLocationValidation = ServerLocationRecord.validate(
-  //   form.getValues().metadataLocation,
+  //   form.values.metadataLocation,
   // )
   // const selectedMetadataServerLocation =
   //   serverMetadataLocationValidation.success
@@ -99,11 +99,11 @@ export const CreateFolderForm = ({
         label="Name"
         placeholder="Choose a meaningful name for the folder"
         error={
-          form.state?.fields.name.valid === false
+          !form.state.fields.name.valid
             ? form.state.fields.name.error
             : undefined
         }
-        value={form.getValues().name}
+        value={form.values.name}
         onChange={(e) => form.setValue('name', e.target.value)}
       />
       <div className="flex flex-col gap-4 justify-stretch">
@@ -143,12 +143,15 @@ export const CreateFolderForm = ({
         <Button onClick={onCancel}>Cancel</Button>
         <Button
           primary
-          onClick={() => onSubmit(form.getValues())}
-          disabled={!form.state?.valid}
+          onClick={() => onSubmit(form.values as CreateFolderFormValues)}
+          disabled={!form.state.valid}
         >
           Create
         </Button>
       </div>
+      <pre>
+        {JSON.stringify({ values: form.values, state: form.state }, null, 2)}
+      </pre>
     </div>
   )
 }

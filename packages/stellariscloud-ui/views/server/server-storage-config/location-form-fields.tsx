@@ -44,13 +44,13 @@ export const LocationFormFields = ({
     <>
       <Input
         label="Name"
-        value={form.getValues().name}
+        value={form.values.name}
         onChange={(e) => form.setValue('name', e.target.value)}
-        error={form.state?.fields.name.error}
+        error={form.state.fields.name.error}
       />
       <Input
         label="Access Key ID"
-        value={form.getValues().accessKeyId}
+        value={form.values.accessKeyId}
         onChange={(e) => form.setValue('accessKeyId', e.target.value)}
       />
       <Input
@@ -58,31 +58,31 @@ export const LocationFormFields = ({
         disabled={secretAccessKeyObfuscated}
         value={
           secretAccessKeyObfuscated
-            ? form.getValues().secretAccessKey ??
+            ? form.values.secretAccessKey ??
               '_______________________________________'
-            : form.getValues().secretAccessKey
+            : form.values.secretAccessKey
         }
         type={'password'}
         onChange={(e) => form.setValue('secretAccessKey', e.target.value)}
       />
       <Input
         label="Endpoint"
-        value={form.getValues().endpoint}
+        value={form.values.endpoint}
         onChange={(e) => form.setValue('endpoint', e.target.value)}
       />
       <Input
         label="Region"
-        value={form.getValues().region}
+        value={form.values.region}
         onChange={(e) => form.setValue('region', e.target.value)}
       />
       <Input
         label="Bucket"
-        value={form.getValues().bucket}
+        value={form.values.bucket}
         onChange={(e) => form.setValue('bucket', e.target.value)}
       />
       <Input
         label="Prefix"
-        value={form.getValues().prefix}
+        value={form.values.prefix}
         onChange={(e) => form.setValue('prefix', e.target.value)}
       />
     </>
