@@ -13,6 +13,7 @@ export interface FormFieldConfig<T> {
 
 interface FormFieldState {
   valid: boolean
+  dirty: boolean
   error?: string
 }
 
@@ -59,103 +60,175 @@ export const useFormState = <
   // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   type F = {
     valid: boolean
+    dirty: boolean
     error: string
     fields: FS
   }
 
-  const [formState, setFormState] = React.useState<F>()
-  const [formValues, setFormValues] = React.useState<T>(values as T)
-
-  const lastStateRef = React.useRef(JSON.stringify(values))
-  // update internal values with incoming external ones
-  React.useEffect(() => {
-    const incomingStringifiedValues = JSON.stringify(values)
-    if (lastStateRef.current !== incomingStringifiedValues) {
-      lastStateRef.current = incomingStringifiedValues
-      setFormValues({ ...values } as T)
-    }
-  }, [values])
-
-  const lastConfigRef = React.useRef(fieldConfigs)
-
-  const updateFormState = React.useCallback(
-    (v: T) => {
-      let formValidity = true
-
-      const fields = Object.keys(lastConfigRef.current).reduce(
-        (acc, next) => {
-          const nextFieldName: keyof typeof fieldConfigs = next as keyof C
-          const fieldConfig = lastConfigRef.current[nextFieldName]
-          const validation = fieldConfig.validator.validate(v[nextFieldName])
-          let error = ''
-          if (!validation.success) {
-            if (validation.code === 'CONSTRAINT_FAILED') {
-              error = validation.message.slice(
-                'Failed constraint check for '.length, // TODO: Apparently I should be parsing this from 'details' which I can't see
-              )
-            } else {
-              error = validation.message
-            }
-          }
-          const result = {
-            ...acc,
-            [nextFieldName]: {
-              valid: validation.success,
-              error,
-              // errorDetails: validation.success ? '' : validation.details,
-            },
-          }
-          if (!validation.success) {
-            formValidity = false
-          }
-          return result
+  const [formState, setFormState] = React.useState<F>({
+    fields: Object.keys(fieldConfigs).reduce<FS>(
+      (acc, next) => ({
+        ...acc,
+        [next]: {
+          valid: false,
+          dirty: false,
+          error: undefined,
         },
-        // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
-        {} as FS,
-      )
+      }),
+      // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
+      {} as FS,
+    ),
+    valid: false,
+    error: '',
+    dirty: false,
+  })
+  const [formValues, setFormValues] = React.useState<Partial<T>>(values)
 
-      setFormState({
+  // update internal values and configs with incoming ones
+  const incomingStringifiedValues = JSON.stringify(values)
+  const incomingStringifiedConfigs = serializeFieldConfigs(fieldConfigs)
+
+  const hasSetup = React.useRef(false)
+  const renderCounter = React.useRef(0)
+  renderCounter.current++
+
+  const lastValuesStateRef = React.useRef({
+    stringified: incomingStringifiedValues,
+    regular: values,
+  })
+
+  const lastConfigsStateRef = React.useRef({
+    stringified: incomingStringifiedConfigs,
+    regular: fieldConfigs,
+  })
+
+  const updateFormState = (v: Partial<T>, c: C) => {
+    let formValidity = true
+    let formError = ''
+
+    // check validity of fields
+    const fields = Object.keys(c).reduce(
+      (acc, next) => {
+        const nextFieldName: keyof typeof fieldConfigs = next as keyof C
+        const fieldConfig = c[nextFieldName]
+        const validation = fieldConfig.validator.validate(v[nextFieldName])
+        let error = ''
+        if (!validation.success) {
+          if (validation.code === 'CONSTRAINT_FAILED') {
+            error = validation.message.slice(
+              'Failed constraint check for '.length, // TODO: Apparently I should be parsing this from 'details' which I can't see
+            )
+          } else {
+            error = validation.message
+          }
+          formError = error
+        }
+
+        const result = {
+          ...acc,
+          [nextFieldName]: {
+            valid: validation.success,
+            error,
+            // errorDetails: validation.success ? '' : validation.details,
+          },
+        }
+        if (!validation.success) {
+          formValidity = false
+        }
+        return result
+      },
+      // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
+      {} as FS,
+    )
+
+    setFormState((_s) => {
+      for (const fieldName of Object.keys(c)) {
+        const field = fields[fieldName as keyof FS] as any
+        field.dirty = (_s as any).fields[fieldName].dirty
+      }
+      const newState = {
         valid: formValidity,
-        error: '',
+        error: formError,
+        dirty: !!Object.keys(c).find(
+          (fieldName) => (_s as any).fields[fieldName]?.dirty,
+        ),
         fields,
-      })
-    },
-    [setFormState],
-  )
-
-  React.useEffect(() => {
-    const incomingStringifiedConfigs = serializeFieldConfigs(fieldConfigs)
-    if (
-      serializeFieldConfigs(lastConfigRef.current) !==
-      incomingStringifiedConfigs
-    ) {
-      lastConfigRef.current = JSON.parse(incomingStringifiedConfigs)
-      updateFormState(formValues)
-    }
-  }, [fieldConfigs, formValues, updateFormState])
-
-  // React.useEffect(() => updateFormState(), [updateFormState])
-
-  const setValue = <K extends keyof C>(key: K, value: T[K] | undefined) => {
-    setFormValues((existingValues) => {
-      const newFormValues = {
-        ...existingValues,
-        [key]: value,
       }
-      updateFormState(newFormValues)
-      if (onChange) {
-        setTimeout(
-          () =>
-            onChange({
-              valid: true,
-              value: newFormValues,
-            }),
-          1,
-        )
-      }
-      return newFormValues
+      return newState
     })
+
+    // update values with default if value is undefined
+    const newDefaultValues = Object.keys(c).reduce((acc, next) => {
+      const nextFieldName: keyof typeof fieldConfigs = next as keyof C
+      const defaultValue = c[nextFieldName].defaultValue
+      if (
+        typeof defaultValue !== 'undefined' &&
+        typeof v[nextFieldName] === 'undefined'
+      ) {
+        return { ...acc, [nextFieldName]: defaultValue }
+      }
+      return acc
+    }, {})
+    if (Object.keys(newDefaultValues).length) {
+      setFormValues((_v) => {
+        const newFormValues = { ..._v, ...newDefaultValues }
+        updateFormState(newFormValues, c)
+        return newFormValues
+      })
+    }
   }
 
-  return { state: formState, setValue, formValues, getValues: () => formValues }
+  // handle any incoming changes to the field values or configs
+
+  if (
+    lastValuesStateRef.current.stringified !== incomingStringifiedValues ||
+    lastConfigsStateRef.current.stringified !== incomingStringifiedConfigs ||
+    !hasSetup.current
+  ) {
+    hasSetup.current = true
+    lastValuesStateRef.current = {
+      stringified: incomingStringifiedValues,
+      regular: values,
+    }
+    setFormValues(values)
+    lastConfigsStateRef.current = {
+      stringified: incomingStringifiedConfigs,
+      regular: fieldConfigs,
+    }
+    updateFormState(values, fieldConfigs)
+  }
+
+  const setValue = <K extends keyof C>(
+    fieldName: K,
+    value: T[K] | undefined,
+  ) => {
+    if (value !== formValues[fieldName]) {
+      setFormState((_s) => ({
+        ..._s,
+        dirty: true,
+        fields: {
+          ..._s.fields,
+          [fieldName]: { ...(_s.fields as any)[fieldName], dirty: true },
+        },
+      }))
+      setFormValues((_v) => {
+        const newFormValues = { ..._v, [fieldName]: value }
+        updateFormState(newFormValues, fieldConfigs)
+        if (onChange) {
+          setTimeout(() =>
+            onChange({
+              valid: formState.valid,
+              value: newFormValues as T,
+            }),
+          )
+        }
+        return newFormValues
+      })
+    }
+  }
+  return {
+    state: formState,
+    setValue,
+    values: formValues,
+  }
 }

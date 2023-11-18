@@ -37,9 +37,9 @@ export const ProfileUserForm = ({
       <div>
         <Input
           label="Name"
-          value={form.getValues().name}
+          value={form.values.name}
           onChange={(e) => form.setValue('name', e.target.value)}
-          error={form.state?.fields.name.error}
+          error={form.state.fields.name.error}
         />
       </div>
       <div>
@@ -52,9 +52,9 @@ export const ProfileUserForm = ({
         <Input
           label={value.id ? 'Reset password' : 'Password'}
           type="password"
-          value={form.getValues().password}
+          value={form.values.password}
           onChange={(e) => form.setValue('password', e.target.value)}
-          error={form.state?.fields.password.error}
+          error={form.state.fields.password.error}
         />
       </div>
     </div>

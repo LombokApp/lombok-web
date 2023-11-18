@@ -32,24 +32,24 @@ const Contact: NextPage = () => {
                 elementSize={'lg'}
                 placeholder="Name"
                 type="text"
-                value={form.getValues().name}
+                value={form.values.name}
                 onChange={(e) => form.setValue('name', e.target.value)}
               />
               <Input
-                error={form.state?.fields.email.error}
+                error={form.state.fields.email.error}
                 className="flex-1 h-full w-full"
                 elementSize={'lg'}
                 placeholder="Email"
                 type="email"
                 onChange={(e) => form.setValue('email', e.target.value)}
-                value={form.getValues().email}
+                value={form.values.email}
               />
             </div>
             <textarea
               rows={15}
               className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 dark:ring-gray-600 dark:bg-gray-400/5 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
               id="message"
-              value={form.getValues().message}
+              value={form.values.message}
               onChange={(e) => form.setValue('message', e.target.value)}
             />
             <Button primary size="lg" className="w-full">

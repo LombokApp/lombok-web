@@ -72,34 +72,34 @@ export const ServerUserForm = ({
       <div>
         <Input
           label="Name"
-          value={form.getValues().name}
+          value={form.values.name}
           onChange={(e) => form.setValue('name', e.target.value)}
-          error={form.state?.fields.name.error}
+          error={form.state.fields.name.error}
         />
       </div>
       <div>
         <Input
           label="Username"
-          value={form.getValues().username}
+          value={form.values.username}
           onChange={(e) => form.setValue('username', e.target.value)}
-          error={form.state?.fields.username.error}
+          error={form.state.fields.username.error}
         />
       </div>
       <div>
         <Input
           label="Email"
-          value={form.getValues().email}
+          value={form.values.email}
           onChange={(e) => form.setValue('email', e.target.value)}
-          error={form.state?.fields.email.error}
+          error={form.state.fields.email.error}
         />
       </div>
       <div>
         <Input
           label={value.id ? 'Reset password' : 'Password'}
           type="password"
-          value={form.getValues().password}
+          value={form.values.password}
           onChange={(e) => form.setValue('password', e.target.value)}
-          error={form.state?.fields.password.error}
+          error={form.state.fields.password.error}
         />
       </div>
       <div>
@@ -107,7 +107,7 @@ export const ServerUserForm = ({
           onChange={(newValues) =>
             form.setValue('permissions', newValues.values)
           }
-          values={form.getValues().permissions}
+          values={form.values.permissions}
         />
       </div>
     </div>

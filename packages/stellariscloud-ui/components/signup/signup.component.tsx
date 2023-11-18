@@ -54,11 +54,11 @@ export const SignupComponent = ({
   const form = useFormState(formFields)
 
   const handleSubmit = React.useCallback(() => {
-    const v = form.getValues()
+    const v = form.values
     if (v.username && v.password) {
       void onSubmit({
         username: v.username,
-        email: v.email,
+        email: v.email ?? '',
         password: v.password,
       })
     }
@@ -103,7 +103,7 @@ export const SignupComponent = ({
               <div>
                 <Input
                   error={
-                    form.state?.fields.username.valid === false
+                    !form.state.fields.username.valid
                       ? form.state.fields.username.error
                       : undefined
                   }
@@ -112,7 +112,7 @@ export const SignupComponent = ({
                   type="username"
                   autoComplete="username"
                   required={true}
-                  value={form.getValues().username}
+                  value={form.values.username}
                   onChange={(e) => form.setValue('username', e.target.value)}
                 />
               </div>
@@ -132,10 +132,10 @@ export const SignupComponent = ({
                   type="email"
                   autoComplete="email"
                   required={true}
-                  value={form.getValues().email}
+                  value={form.values.email}
                   onChange={(e) => form.setValue('email', e.target.value)}
                   error={
-                    form.state?.fields.email.valid === false
+                    form.state.fields.email.valid
                       ? form.state.fields.email.error
                       : undefined
                   }
@@ -156,11 +156,11 @@ export const SignupComponent = ({
                 <Input
                   id="password"
                   name="password"
-                  value={form.getValues().password}
+                  value={form.values.password}
                   type="password"
                   error={
-                    !form.state?.fields.password.valid
-                      ? form.state?.fields.username.error
+                    !form.state.fields.password.valid
+                      ? form.state.fields.username.error
                       : undefined
                   }
                   autoComplete="current-password"
@@ -183,13 +183,13 @@ export const SignupComponent = ({
                   id="confirm_password"
                   name="password"
                   type="password"
-                  value={form.getValues().confirmPassword}
+                  value={form.values.confirmPassword}
                   required={true}
                   onChange={(e) =>
                     form.setValue('confirmPassword', e.target.value)
                   }
                   error={
-                    form.state?.fields.confirmPassword.valid === false
+                    !form.state.fields.confirmPassword.valid
                       ? form.state.fields.confirmPassword.error
                       : undefined
                   }
@@ -202,7 +202,7 @@ export const SignupComponent = ({
                 className="w-full py-1.5"
                 onClick={handleSubmit}
                 primary
-                disabled={!form.state?.valid}
+                disabled={!form.state.valid}
               >
                 Create your account
               </Button>
