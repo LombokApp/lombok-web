@@ -5,7 +5,11 @@ import { v4 as uuidV4 } from 'uuid'
 import { UnauthorizedError } from '../../../errors/auth.error'
 import { OrmService } from '../../../orm/orm.service'
 import type { User } from '../../user/entities/user.entity'
-import { ALLOWED_SCOPES } from '../constants/scope.constants'
+import { PlatformRole } from '../constants/role.constants'
+import {
+  APP_ADMIN_SCOPES,
+  APP_SCOPES_BY_PLATFORM_ROLE,
+} from '../constants/scope.constants'
 import type { NewSession, Session } from '../entities/session.entity'
 import { sessionsTable } from '../entities/session.entity'
 import {
@@ -31,7 +35,9 @@ export class SessionService {
     const now = new Date()
     const newSession: NewSession = {
       id: uuidV4(),
-      scopes: ALLOWED_SCOPES[user.role],
+      scopes: user.isAdmin
+        ? APP_ADMIN_SCOPES
+        : APP_SCOPES_BY_PLATFORM_ROLE[PlatformRole.User],
       userId: user.id,
       hash: hashedTokenHelper.createHash(secret),
       expiresAt: sessionExpiresAt(new Date()),

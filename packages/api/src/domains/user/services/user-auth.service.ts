@@ -41,8 +41,6 @@ export class UserAuthService {
     //   // TODO: Check 2FA
     // }
 
-    // const scopes = ALLOWED_SCOPES[PlatformRole.Authenticated]
-
     const { session, accessToken, refreshToken } =
       await this.sessionService.createSession(user)
 

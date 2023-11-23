@@ -1,10 +1,8 @@
 import type { TimestampData } from '../../../transfer-objects/timestamps.dto'
 import type { EmailFormat, UsernameFormat } from '../../../util/validation.util'
-import type { PlatformRole } from '../../auth/constants/role.constants'
 
 export interface UserData extends TimestampData {
   readonly id: string
-  readonly role: PlatformRole
   name: string | null
   email: EmailFormat | null
   emailVerified: boolean
@@ -14,7 +12,7 @@ export interface UserData extends TimestampData {
 }
 
 export interface UpdateUserData {
-  admin?: boolean
+  isAdmin?: boolean
   emailVerified?: boolean
   password?: string
 

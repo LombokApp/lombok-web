@@ -10,12 +10,6 @@ EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
-DO $$ BEGIN
- CREATE TYPE "role" AS ENUM('ADMIN', 'USER');
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "session" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"hash" text NOT NULL,
@@ -122,7 +116,7 @@ CREATE TABLE IF NOT EXISTS "storage_locations" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "users" (
 	"id" uuid PRIMARY KEY NOT NULL,
-	"role" "role" NOT NULL,
+	"isAdmin" boolean DEFAULT false NOT NULL,
 	"name" text,
 	"username" text NOT NULL,
 	"email" text,

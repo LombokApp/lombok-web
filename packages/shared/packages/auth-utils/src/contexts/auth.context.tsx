@@ -1,4 +1,8 @@
-import type { LoginParams, SignupParams } from '@stellariscloud/api-client'
+import type {
+  LoginParams,
+  SignupParams,
+  UserData,
+} from '@stellariscloud/api-client'
 import React from 'react'
 
 import type { Authenticator } from '..'
@@ -10,6 +14,7 @@ export interface IAuthContext {
   authState: AuthenticatorStateType
   isLoggingIn: boolean
   isAuthenticated: boolean
+  viewer?: UserData
   isLoggingOut: boolean
   login: (loginParams: LoginParams) => Promise<boolean>
   signup: (signupParams: SignupParams) => Promise<boolean>
@@ -29,6 +34,13 @@ export const AuthContextProvider = ({
   const [authState, setAuthState] = React.useState<AuthenticatorStateType>(
     {} as AuthenticatorStateType,
   )
+  const viewerRequested = React.useRef<{ [key: string]: boolean }>({
+    ___: false,
+  })
+  const [viewerRefreshKey, _setViewerRefreshKey] = React.useState('___')
+  const [viewer, setViewer] = React.useState<{
+    [key: string]: UserData | undefined
+  }>()
   const [error, setError] = React.useState<AuthError>()
   const { isAuthenticated } = authState
 
@@ -62,12 +74,10 @@ export const AuthContextProvider = ({
       if (isAuthenticated) {
         return true
       }
-
       try {
         await authenticator.login(loginParams)
         return true
       } catch (err: unknown) {
-        console.log('error:', err)
         setError(err as AuthError)
         return false
       }
@@ -96,6 +106,14 @@ export const AuthContextProvider = ({
       .finally(() => setIsLoggingOut(false))
   }
 
+  React.useEffect(() => {
+    if (!viewerRequested.current[viewerRefreshKey]) {
+      void authenticator.getViewer().then(({ user }) => {
+        setViewer((_viewerMap) => ({ [`${viewerRefreshKey}`]: user }))
+      })
+    }
+  }, [authState.isAuthenticated, viewerRefreshKey])
+
   return (
     <AuthContext.Provider
       value={{
@@ -103,6 +121,7 @@ export const AuthContextProvider = ({
         isLoggingIn,
         isAuthenticated,
         isLoggingOut,
+        viewer: viewer?.[viewerRefreshKey],
         login,
         signup,
         logout,

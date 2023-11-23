@@ -1,12 +1,21 @@
 import type { ExifData } from 'exif'
 import { ExifImage } from 'exif'
 
-export const getExifTagsFromImage = (filePath: string): Promise<ExifData | undefined> => {
+export const getExifTagsFromImage = (
+  filePath: string,
+): Promise<ExifData | undefined> => {
   return new Promise<ExifData>((resolve, reject) => {
     new ExifImage({ image: filePath }, (error, exifData) => {
       if (error) {
         if ((error as any)?.code === 'NO_EXIF_SEGMENT') {
-          resolve({exif: {}, gps: {}, image: {}, interoperability: {}, makernote: {}, thumbnail: {} })
+          resolve({
+            exif: {},
+            gps: {},
+            image: {},
+            interoperability: {},
+            makernote: {},
+            thumbnail: {},
+          })
         }
         reject(error)
       } else {

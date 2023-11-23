@@ -24,9 +24,10 @@ body {
 }
 
 .light-transparent-gradient {
-  background: li  near-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.1625) -21.69%,
-    rgba(255, 255, 255, 0.2015) 78.31%
-  );
+  background: li
+    near-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.1625) -21.69%,
+      rgba(255, 255, 255, 0.2015) 78.31%
+    );
 }

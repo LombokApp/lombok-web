@@ -16,13 +16,13 @@ export function UserProfileScreen() {
 
   React.useEffect(() => {
     void viewerApi.getViewer().then((u) => {
-      setUser(u.data.data)
+      setUser(u.data.user)
       setUserFormState({
         password: '',
-        name: u.data.data.name ?? '',
-        username: u.data.data.username ?? '',
-        email: u.data.data.email ?? '',
-        id: u.data.data.id,
+        name: u.data.user.name ?? '',
+        username: u.data.user.username ?? '',
+        email: u.data.user.email ?? '',
+        id: u.data.user.id,
       })
     })
   }, [])

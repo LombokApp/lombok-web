@@ -23,7 +23,7 @@
     "dev:docker:down": "bash -c \"export $(cat ./packages/api/env/env.dev | xargs) && docker compose down\"",
     "dev:docker:kill": "bash -c \"export $(cat ./packages/api/env/env.dev | xargs) && docker compose kill\"",
     "api:dev": "CMD_ENV=dev yarn workspace @stellariscloud/api dev",
-    "dev:check-all": "sh ./dev-check-all.sh"
+    "dev:check-all": "sh ./cmd/dev-check-all.sh"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "6.4.0",

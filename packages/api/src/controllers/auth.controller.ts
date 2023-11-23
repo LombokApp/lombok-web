@@ -43,11 +43,9 @@ export interface SignupParams {
 }
 
 export interface SessionResponse {
-  data: {
-    accessToken: SessionData['accessToken']
-    refreshToken: SessionData['refreshToken']
-    expiresAt: SessionData['expiresAt']
-  }
+  accessToken: SessionData['accessToken']
+  refreshToken: SessionData['refreshToken']
+  expiresAt: SessionData['expiresAt']
 }
 
 export interface LoginParams {
@@ -104,11 +102,9 @@ export class AuthController extends Controller {
 
     // return { data: session } as SessionResponse
     return {
-      data: {
-        accessToken,
-        refreshToken,
-        expiresAt,
-      },
+      accessToken,
+      refreshToken,
+      expiresAt,
     }
   }
 
@@ -118,10 +114,8 @@ export class AuthController extends Controller {
   @SuccessResponse(201)
   @OperationId('Signup')
   @Post('signup')
-  async signup(
-    @Body() body: { data: SignupParams },
-  ): Promise<{ user: UserData }> {
-    const user = await this.authService.signup(body.data)
+  async signup(@Body() body: SignupParams): Promise<{ user: UserData }> {
+    const user = await this.authService.signup(body)
 
     this.setStatus(201)
 
@@ -138,8 +132,7 @@ export class AuthController extends Controller {
         body.login,
         body.password,
       )
-
-    return { data: { accessToken, refreshToken, expiresAt } }
+    return { accessToken, refreshToken, expiresAt }
   }
 
   @Security(AuthScheme.AccessToken)

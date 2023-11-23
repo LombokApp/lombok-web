@@ -38,7 +38,7 @@ export class ViewerController extends Controller {
       throw new UnauthorizedError()
     }
 
-    const res: { data: UserData } = { data: transformUserToUserDTO(req.user) }
+    const res: { user: UserData } = { user: transformUserToUserDTO(req.user) }
     return res
   }
 
@@ -58,8 +58,8 @@ export class ViewerController extends Controller {
       viewerUpdatePayload,
     )
 
-    const res: { data: UserData } = {
-      data: transformUserToUserDTO(updatedViewer),
+    const res: { user: UserData } = {
+      user: transformUserToUserDTO(updatedViewer),
     }
     return res
   }

@@ -8,24 +8,18 @@ export declare const schema: {
         readonly schemas: {
             readonly SessionResponse: {
                 readonly properties: {
-                    readonly data: {
-                        readonly properties: {
-                            readonly expiresAt: {
-                                readonly type: "string";
-                                readonly format: "date-time";
-                            };
-                            readonly refreshToken: {
-                                readonly type: "string";
-                            };
-                            readonly accessToken: {
-                                readonly type: "string";
-                            };
-                        };
-                        readonly required: readonly ["expiresAt", "refreshToken", "accessToken"];
-                        readonly type: "object";
+                    readonly accessToken: {
+                        readonly type: "string";
+                    };
+                    readonly refreshToken: {
+                        readonly type: "string";
+                    };
+                    readonly expiresAt: {
+                        readonly type: "string";
+                        readonly format: "date-time";
                     };
                 };
-                readonly required: readonly ["data"];
+                readonly required: readonly ["accessToken", "refreshToken", "expiresAt"];
                 readonly type: "object";
                 readonly additionalProperties: false;
             };
@@ -69,10 +63,6 @@ export declare const schema: {
                 readonly type: "object";
                 readonly additionalProperties: false;
             };
-            readonly PlatformRole: {
-                readonly enum: readonly ["ANONYMOUS", "USER", "ADMIN", "SERVICE"];
-                readonly type: "string";
-            };
             readonly EmailFormat: {
                 readonly type: "string";
                 readonly format: "email";
@@ -95,9 +85,6 @@ export declare const schema: {
                     };
                     readonly id: {
                         readonly type: "string";
-                    };
-                    readonly role: {
-                        readonly $ref: "#/components/schemas/PlatformRole";
                     };
                     readonly name: {
                         readonly type: "string";
@@ -125,7 +112,7 @@ export declare const schema: {
                         readonly type: "array";
                     };
                 };
-                readonly required: readonly ["createdAt", "updatedAt", "id", "role", "name", "email", "emailVerified", "isAdmin", "permissions"];
+                readonly required: readonly ["createdAt", "updatedAt", "id", "name", "email", "emailVerified", "isAdmin", "permissions"];
                 readonly type: "object";
                 readonly additionalProperties: false;
             };
@@ -766,7 +753,7 @@ export declare const schema: {
             };
             readonly CreateUserData: {
                 readonly properties: {
-                    readonly admin: {
+                    readonly isAdmin: {
                         readonly type: "boolean";
                     };
                     readonly emailVerified: {
@@ -800,7 +787,7 @@ export declare const schema: {
             };
             readonly UpdateUserData: {
                 readonly properties: {
-                    readonly admin: {
+                    readonly isAdmin: {
                         readonly type: "boolean";
                     };
                     readonly emailVerified: {
@@ -1025,13 +1012,7 @@ export declare const schema: {
                     readonly content: {
                         readonly "application/json": {
                             readonly schema: {
-                                readonly properties: {
-                                    readonly data: {
-                                        readonly $ref: "#/components/schemas/SignupParams";
-                                    };
-                                };
-                                readonly required: readonly ["data"];
-                                readonly type: "object";
+                                readonly $ref: "#/components/schemas/SignupParams";
                             };
                         };
                     };
@@ -2802,11 +2783,11 @@ export declare const schema: {
                             readonly "application/json": {
                                 readonly schema: {
                                     readonly properties: {
-                                        readonly data: {
+                                        readonly user: {
                                             readonly $ref: "#/components/schemas/UserData";
                                         };
                                     };
-                                    readonly required: readonly ["data"];
+                                    readonly required: readonly ["user"];
                                     readonly type: "object";
                                 };
                             };
@@ -2828,11 +2809,11 @@ export declare const schema: {
                             readonly "application/json": {
                                 readonly schema: {
                                     readonly properties: {
-                                        readonly data: {
+                                        readonly user: {
                                             readonly $ref: "#/components/schemas/UserData";
                                         };
                                     };
-                                    readonly required: readonly ["data"];
+                                    readonly required: readonly ["user"];
                                     readonly type: "object";
                                 };
                             };

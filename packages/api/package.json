@@ -39,7 +39,6 @@
     "prettier:check": "prettier --check . || { echo; echo 'run prettier:fix to fix this issue'; exit 1; }",
     "prettier:fix": "prettier --write .",
     "start": "./cmd/start.sh",
-    "test:check": "./cmd/test-check.sh",
     "test:integration": "sh -c \"export $(cat ./env/env.test | xargs) && ./cmd/test-integration.sh\"",
     "test:unit": "./cmd/test-unit.sh",
     "ts:check": "tsc --noEmit --project tsconfig.json"

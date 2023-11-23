@@ -11,29 +11,21 @@ exports.schema = {
         "schemas": {
             "SessionResponse": {
                 "properties": {
-                    "data": {
-                        "properties": {
-                            "expiresAt": {
-                                "type": "string",
-                                "format": "date-time"
-                            },
-                            "refreshToken": {
-                                "type": "string"
-                            },
-                            "accessToken": {
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "expiresAt",
-                            "refreshToken",
-                            "accessToken"
-                        ],
-                        "type": "object"
+                    "accessToken": {
+                        "type": "string"
+                    },
+                    "refreshToken": {
+                        "type": "string"
+                    },
+                    "expiresAt": {
+                        "type": "string",
+                        "format": "date-time"
                     }
                 },
                 "required": [
-                    "data"
+                    "accessToken",
+                    "refreshToken",
+                    "expiresAt"
                 ],
                 "type": "object",
                 "additionalProperties": false
@@ -82,15 +74,6 @@ exports.schema = {
                 "type": "object",
                 "additionalProperties": false
             },
-            "PlatformRole": {
-                "enum": [
-                    "ANONYMOUS",
-                    "USER",
-                    "ADMIN",
-                    "SERVICE"
-                ],
-                "type": "string"
-            },
             "EmailFormat": {
                 "type": "string",
                 "format": "email",
@@ -113,9 +96,6 @@ exports.schema = {
                     },
                     "id": {
                         "type": "string"
-                    },
-                    "role": {
-                        "$ref": "#/components/schemas/PlatformRole"
                     },
                     "name": {
                         "type": "string",
@@ -149,7 +129,6 @@ exports.schema = {
                     "createdAt",
                     "updatedAt",
                     "id",
-                    "role",
                     "name",
                     "email",
                     "emailVerified",
@@ -962,7 +941,7 @@ exports.schema = {
             },
             "CreateUserData": {
                 "properties": {
-                    "admin": {
+                    "isAdmin": {
                         "type": "boolean"
                     },
                     "emailVerified": {
@@ -999,7 +978,7 @@ exports.schema = {
             },
             "UpdateUserData": {
                 "properties": {
-                    "admin": {
+                    "isAdmin": {
                         "type": "boolean"
                     },
                     "emailVerified": {
@@ -1269,15 +1248,7 @@ exports.schema = {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "properties": {
-                                    "data": {
-                                        "$ref": "#/components/schemas/SignupParams"
-                                    }
-                                },
-                                "required": [
-                                    "data"
-                                ],
-                                "type": "object"
+                                "$ref": "#/components/schemas/SignupParams"
                             }
                         }
                     }
@@ -3366,12 +3337,12 @@ exports.schema = {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "data": {
+                                        "user": {
                                             "$ref": "#/components/schemas/UserData"
                                         }
                                     },
                                     "required": [
-                                        "data"
+                                        "user"
                                     ],
                                     "type": "object"
                                 }
@@ -3400,12 +3371,12 @@ exports.schema = {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "data": {
+                                        "user": {
                                             "$ref": "#/components/schemas/UserData"
                                         }
                                     },
                                     "required": [
-                                        "data"
+                                        "user"
                                     ],
                                     "type": "object"
                                 }

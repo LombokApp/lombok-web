@@ -9,7 +9,7 @@ import {
 } from '../domains/auth/constants/scheme.constants'
 import type { AuthScope } from '../domains/auth/constants/scope.constants'
 import {
-  ALLOWED_SCOPES,
+  APP_SCOPES_BY_PLATFORM_ROLE,
   AuthScopeType,
 } from '../domains/auth/constants/scope.constants'
 import type { Session } from '../domains/auth/entities/session.entity'
@@ -110,7 +110,7 @@ export const expressAuthentication = async (
     if (user) {
       // TODO: fix scopes checking...
       const scopes: AuthScope[] =
-        session?.scopes ?? ALLOWED_SCOPES[PlatformRole.User]
+        session?.scopes ?? APP_SCOPES_BY_PLATFORM_ROLE[PlatformRole.User]
 
       for (const scope of requiredScopes) {
         if (!scopes.includes(scope)) {

@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "pg",
-  "id": "31d8633b-5fdf-4dac-87c9-0ffb93bcd8d3",
+  "id": "0f5a6008-363b-461c-8eda-bed67238a6a2",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "session": {
@@ -718,11 +718,12 @@
           "primaryKey": true,
           "notNull": true
         },
-        "role": {
-          "name": "role",
-          "type": "role",
+        "isAdmin": {
+          "name": "isAdmin",
+          "type": "boolean",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": false
         },
         "name": {
           "name": "name",
@@ -814,13 +815,6 @@
       "name": "providerType",
       "values": {
         "SERVER": "SERVER",
-        "USER": "USER"
-      }
-    },
-    "role": {
-      "name": "role",
-      "values": {
-        "ADMIN": "ADMIN",
         "USER": "USER"
       }
     }

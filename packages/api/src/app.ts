@@ -134,10 +134,11 @@ export class App {
     await this.initI18n()
     await this.initOrm()
     this.initWorkers()
-
     await this.initRoutes()
-    await this.listen()
-    this.initSocketServer()
+    if (!this.config.getApiConfig().disable_http) {
+      await this.listen()
+      this.initSocketServer()
+    }
   }
 
   private async initI18n() {

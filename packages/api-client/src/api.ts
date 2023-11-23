@@ -319,7 +319,7 @@ export interface CreateUserData {
      * @type {boolean}
      * @memberof CreateUserData
      */
-    'admin'?: boolean;
+    'isAdmin'?: boolean;
     /**
      * 
      * @type {boolean}
@@ -957,19 +957,6 @@ export interface GetUser200Response {
 /**
  * 
  * @export
- * @interface GetViewer200Response
- */
-export interface GetViewer200Response {
-    /**
-     * 
-     * @type {UserData}
-     * @memberof GetViewer200Response
-     */
-    'data': UserData;
-}
-/**
- * 
- * @export
  * @interface ListFolderObjects200Response
  */
 export interface ListFolderObjects200Response {
@@ -1202,22 +1189,6 @@ export interface OutputUploadUrlsResponse {
 /**
  * 
  * @export
- * @enum {string}
- */
-
-export const PlatformRole = {
-    Anonymous: 'ANONYMOUS',
-    User: 'USER',
-    Admin: 'ADMIN',
-    Service: 'SERVICE'
-} as const;
-
-export type PlatformRole = typeof PlatformRole[keyof typeof PlatformRole];
-
-
-/**
- * 
- * @export
  * @interface RefreshFolderObjectS3MetadataRequest
  */
 export interface RefreshFolderObjectS3MetadataRequest {
@@ -1362,35 +1333,22 @@ export interface ServerSettings {
 export interface SessionResponse {
     /**
      * 
-     * @type {SessionResponseData}
+     * @type {string}
      * @memberof SessionResponse
      */
-    'data': SessionResponseData;
-}
-/**
- * 
- * @export
- * @interface SessionResponseData
- */
-export interface SessionResponseData {
+    'accessToken': string;
     /**
      * 
      * @type {string}
-     * @memberof SessionResponseData
-     */
-    'expiresAt': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof SessionResponseData
+     * @memberof SessionResponse
      */
     'refreshToken': string;
     /**
      * 
      * @type {string}
-     * @memberof SessionResponseData
+     * @memberof SessionResponse
      */
-    'accessToken': string;
+    'expiresAt': string;
 }
 /**
  * 
@@ -1465,19 +1423,6 @@ export interface SignupParams {
      * @memberof SignupParams
      */
     'password': string;
-}
-/**
- * 
- * @export
- * @interface SignupRequest
- */
-export interface SignupRequest {
-    /**
-     * 
-     * @type {SignupParams}
-     * @memberof SignupRequest
-     */
-    'data': SignupParams;
 }
 /**
  * 
@@ -1609,7 +1554,7 @@ export interface UpdateUserData {
      * @type {boolean}
      * @memberof UpdateUserData
      */
-    'admin'?: boolean;
+    'isAdmin'?: boolean;
     /**
      * 
      * @type {boolean}
@@ -1667,12 +1612,6 @@ export interface UserData {
     'id': string;
     /**
      * 
-     * @type {PlatformRole}
-     * @memberof UserData
-     */
-    'role': PlatformRole;
-    /**
-     * 
      * @type {string}
      * @memberof UserData
      */
@@ -1708,8 +1647,6 @@ export interface UserData {
      */
     'permissions': Array<string>;
 }
-
-
 /**
  * 
  * @export
@@ -1899,13 +1836,13 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
         },
         /**
          * Given a user\'s credentials, this endpoint will create a new user.
-         * @param {SignupRequest} signupRequest 
+         * @param {SignupParams} signupParams 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        signup: async (signupRequest: SignupRequest, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'signupRequest' is not null or undefined
-            assertParamExists('signup', 'signupRequest', signupRequest)
+        signup: async (signupParams: SignupParams, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'signupParams' is not null or undefined
+            assertParamExists('signup', 'signupParams', signupParams)
             const localVarPath = `/signup`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1925,7 +1862,7 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(signupRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(signupParams, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -1972,12 +1909,12 @@ export const AuthApiFp = function(configuration?: Configuration) {
         },
         /**
          * Given a user\'s credentials, this endpoint will create a new user.
-         * @param {SignupRequest} signupRequest 
+         * @param {SignupParams} signupParams 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async signup(signupRequest: SignupRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Signup201Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.signup(signupRequest, options);
+        async signup(signupParams: SignupParams, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Signup201Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.signup(signupParams, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -2022,7 +1959,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          * @throws {RequiredError}
          */
         signup(requestParameters: AuthApiSignupRequest, options?: AxiosRequestConfig): AxiosPromise<Signup201Response> {
-            return localVarFp.signup(requestParameters.signupRequest, options).then((request) => request(axios, basePath));
+            return localVarFp.signup(requestParameters.signupParams, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -2049,10 +1986,10 @@ export interface AuthApiLoginRequest {
 export interface AuthApiSignupRequest {
     /**
      * 
-     * @type {SignupRequest}
+     * @type {SignupParams}
      * @memberof AuthApiSignup
      */
-    readonly signupRequest: SignupRequest
+    readonly signupParams: SignupParams
 }
 
 /**
@@ -2101,7 +2038,7 @@ export class AuthApi extends BaseAPI {
      * @memberof AuthApi
      */
     public signup(requestParameters: AuthApiSignupRequest, options?: AxiosRequestConfig) {
-        return AuthApiFp(this.configuration).signup(requestParameters.signupRequest, options).then((request) => request(this.axios, this.basePath));
+        return AuthApiFp(this.configuration).signup(requestParameters.signupParams, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -4905,7 +4842,7 @@ export const ViewerApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getViewer(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GetViewer200Response>> {
+        async getViewer(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Signup201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getViewer(options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -4915,7 +4852,7 @@ export const ViewerApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateViewer(viewerUpdatePayload: ViewerUpdatePayload, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GetViewer200Response>> {
+        async updateViewer(viewerUpdatePayload: ViewerUpdatePayload, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Signup201Response>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.updateViewer(viewerUpdatePayload, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -4934,7 +4871,7 @@ export const ViewerApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getViewer(options?: AxiosRequestConfig): AxiosPromise<GetViewer200Response> {
+        getViewer(options?: AxiosRequestConfig): AxiosPromise<Signup201Response> {
             return localVarFp.getViewer(options).then((request) => request(axios, basePath));
         },
         /**
@@ -4943,7 +4880,7 @@ export const ViewerApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): AxiosPromise<GetViewer200Response> {
+        updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): AxiosPromise<Signup201Response> {
             return localVarFp.updateViewer(requestParameters.viewerUpdatePayload, options).then((request) => request(axios, basePath));
         },
     };
