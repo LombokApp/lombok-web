@@ -149,9 +149,6 @@ export const CreateFolderForm = ({
           Create
         </Button>
       </div>
-      <pre>
-        {JSON.stringify({ values: form.values, state: form.state }, null, 2)}
-      </pre>
     </div>
   )
 }

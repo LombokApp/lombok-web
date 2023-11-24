@@ -96,8 +96,7 @@ const UnauthenticatedContent = ({ Component, pageProps }: AppProps) => {
 }
 
 const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
-  const { authState, logout } = useAuthContext()
-
+  const { authState, viewer, logout } = useAuthContext()
   const handleLogoutPress = (
     e?:
       | React.MouseEvent<HTMLButtonElement>
@@ -126,12 +125,16 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
       icon: FolderOpenIcon,
       current: router.pathname.startsWith('/folders'),
     },
-    {
-      name: 'Server',
-      href: '/server',
-      icon: ServerStackIcon,
-      current: router.pathname.startsWith('/server'),
-    },
+    ...(viewer?.isAdmin
+      ? [
+          {
+            name: 'Server',
+            href: '/server',
+            icon: ServerStackIcon,
+            current: router.pathname.startsWith('/server'),
+          },
+        ]
+      : []),
   ]
 
   const userNavigation = [{ name: 'Your profile', href: '/profile' }]
@@ -160,61 +163,63 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
               />
             </Link>
           </div>
-          <div className="flex flex-col flex-1">
-            <nav className="mt-8">
-              <ul className="flex flex-col items-center space-y-1">
-                {navigation.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      className={clsx(
-                        item.current
-                          ? 'bg-white/10 text-white'
-                          : 'text-gray-400 hover:text-white hover:bg-white/10',
-                        'group flex gap-x-3 rounded-md p-3 text-sm leading-6 font-semibold',
-                      )}
-                    >
-                      <item.icon
-                        className="h-6 w-6 shrink-0"
-                        aria-hidden="true"
-                      />
-                      <span className="sr-only">{item.name}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-            <div className="flex-1 flex flex-col items-center justify-end">
-              <ul className="flex flex-col gap-6 pb-4">
-                <li>
-                  <ProfileMenu
-                    onProfileClick={() => void router.push('/profile')}
-                    profileAvatarUniqueKey={'asdfsadf'}
-                    profileMenuItems={userNavigation}
-                    profileName="Tom Kek"
-                  />
-                </li>
-                <li>
-                  <div className="flex flex-col items-center">
-                    <ThemeSwitch />
-                  </div>
-                </li>
-                {authState.isAuthenticated && (
-                  <li>
-                    <div className="flex justify-center">
-                      <button onClick={handleLogoutPress}>
-                        <Icon
-                          size="md"
-                          icon={ArrowRightOnRectangleIcon}
-                          className="text-gray-100 dark:text-gray-400 hover:text-gray-500"
+          {viewer && (
+            <div className="flex flex-col flex-1">
+              <nav className="mt-8">
+                <ul className="flex flex-col items-center space-y-1">
+                  {navigation.map((item) => (
+                    <li key={item.name}>
+                      <Link
+                        href={item.href}
+                        className={clsx(
+                          item.current
+                            ? 'bg-white/10 text-white'
+                            : 'text-gray-400 hover:text-white hover:bg-white/10',
+                          'group flex gap-x-3 rounded-md p-3 text-sm leading-6 font-semibold',
+                        )}
+                      >
+                        <item.icon
+                          className="h-6 w-6 shrink-0"
+                          aria-hidden="true"
                         />
-                      </button>
+                        <span className="sr-only">{item.name}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+              <div className="flex-1 flex flex-col items-center justify-end">
+                <ul className="flex flex-col gap-6 pb-4">
+                  <li>
+                    <ProfileMenu
+                      onProfileClick={() => void router.push('/profile')}
+                      profileAvatarUniqueKey={'asdfsadf'}
+                      profileMenuItems={userNavigation}
+                      profileName="Tom Kek"
+                    />
+                  </li>
+                  <li>
+                    <div className="flex flex-col items-center">
+                      <ThemeSwitch />
                     </div>
                   </li>
-                )}
-              </ul>
+                  {authState.isAuthenticated && (
+                    <li>
+                      <div className="flex justify-center">
+                        <button onClick={handleLogoutPress}>
+                          <Icon
+                            size="md"
+                            icon={ArrowRightOnRectangleIcon}
+                            className="text-gray-100 dark:text-gray-400 hover:text-gray-500"
+                          />
+                        </button>
+                      </div>
+                    </li>
+                  )}
+                </ul>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

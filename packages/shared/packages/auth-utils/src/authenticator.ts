@@ -1,5 +1,5 @@
 import type { ConfigurationParameters } from '@stellariscloud/api-client'
-import { AuthApi, Configuration } from '@stellariscloud/api-client'
+import { AuthApi, Configuration, ViewerApi } from '@stellariscloud/api-client'
 import Cookies from 'js-cookie'
 
 import { verifyToken } from './jwt.util'
@@ -65,7 +65,7 @@ export class Authenticator {
             password: loginParams.password,
           },
         })
-      ).data.data
+      ).data
       this.tokens.accessToken = loginResult.accessToken
       this.tokens.refreshToken = loginResult.refreshToken
       this.saveTokens({
@@ -79,6 +79,14 @@ export class Authenticator {
     }
   }
 
+  public async getViewer() {
+    const viewerApi = this.newViewerApi({})
+    const viewerResponse = await viewerApi.getViewer({
+      headers: { Authorization: `Bearer ${this.tokens.accessToken}` },
+    })
+    return viewerResponse.data
+  }
+
   public async signup(signupParams: {
     username: string
     email: string
@@ -87,12 +95,10 @@ export class Authenticator {
     try {
       const authApi = this.newAuthApi()
       await authApi.signup({
-        signupRequest: {
-          data: {
-            username: signupParams.username,
-            email: signupParams.email,
-            password: signupParams.password,
-          },
+        signupParams: {
+          username: signupParams.username,
+          email: signupParams.email,
+          password: signupParams.password,
         },
       })
     } catch (error: unknown) {
@@ -197,6 +203,15 @@ export class Authenticator {
     )
   }
 
+  private newViewerApi(config?: ConfigurationParameters): ViewerApi {
+    return new ViewerApi(
+      new Configuration({
+        ...(config ?? {}),
+        basePath: this.options.basePath,
+      }),
+    )
+  }
+
   private async refresh() {
     if (!this.tokens.refreshToken) {
       throw new Error('no refresh token set')
@@ -209,7 +224,7 @@ export class Authenticator {
 
     try {
       const { accessToken, refreshToken } = (await authApi.refreshToken()).data
-        .data
+
       this.tokens.accessToken = accessToken
       this.tokens.refreshToken = refreshToken
       this.saveTokens({ accessToken, refreshToken })

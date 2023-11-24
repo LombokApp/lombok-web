@@ -18,7 +18,7 @@ import { EnvConfigError } from './env-config.error'
 const minLength = (length: number) => (value: string) =>
   value.length >= length || `must be at lest ${length} chars`
 
-const _isBoolean = (value: string) =>
+const isBoolean = (value: string) =>
   ['0', 'false', '1', 'true'].includes(value) || `${value} is not a boolean`
 
 const isInteger = (value: string) =>
@@ -50,11 +50,13 @@ export class EnvConfigProvider implements ConfigProvider {
       const env = parseEnv({
         API_PORT: r.String.withConstraint(isInteger),
         APP_HOST_ID: r.String,
+        DISABLE_HTTP: r.String.withConstraint(isBoolean).optional(),
       })
 
       this.api = {
         port: parseInt(env.API_PORT, 10),
         hostId: env.APP_HOST_ID,
+        disable_http: env.DISABLE_HTTP === '1' || env.DISABLE_HTTP === 'true',
       }
     }
 

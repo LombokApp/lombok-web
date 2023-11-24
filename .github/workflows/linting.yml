@@ -42,8 +42,8 @@ jobs:
       - run: yarn workspace @stellariscloud/api lint:check
       - run: yarn workspace @stellariscloud/api ts:check
 
-  check-design-system:
-    name: Check @stellariscloud/design-system package
+  check-worker:
+    name: Check @stellariscloud/worker package
     runs-on: ubuntu-latest
 
     steps:
@@ -55,9 +55,26 @@ jobs:
           node-version: '16.x'
       - run: yarn
       - run: yarn tsc -v
-      - run: yarn workspace @stellariscloud/design-system prettier:check
-      - run: yarn workspace @stellariscloud/design-system lint:check
-      - run: yarn workspace @stellariscloud/design-system ts:check
+      - run: yarn workspace @stellariscloud/worker prettier:check
+      - run: yarn workspace @stellariscloud/worker lint:check
+      - run: yarn workspace @stellariscloud/worker ts:check
+
+  check-workers:
+    name: Check @stellariscloud/workers package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16.x'
+      - run: yarn
+      - run: yarn tsc -v
+      - run: yarn workspace @stellariscloud/workers prettier:check
+      - run: yarn workspace @stellariscloud/workers lint:check
+      - run: yarn workspace @stellariscloud/workers ts:check
 
   check-types:
     name: Check @stellariscloud/types package

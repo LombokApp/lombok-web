@@ -11,7 +11,6 @@ import type { NewUser, User } from '../../user/entities/user.entity'
 import { usersTable } from '../../user/entities/user.entity'
 import { UserIdentityConflictError } from '../../user/errors/user.error'
 import { AuthDurationMs } from '../constants/duration.constants'
-import { PlatformRole } from '../constants/role.constants'
 import type { Session } from '../entities/session.entity'
 import { AccessTokenInvalidError } from '../errors/access-token.error'
 import { SessionInvalidError } from '../errors/session.error'
@@ -68,7 +67,7 @@ export class AuthService {
     const newUser: NewUser = {
       id: uuidV4(),
       email: data.email,
-      role: PlatformRole.User,
+      isAdmin: false,
       emailVerified: false,
       username: data.username,
       passwordHash: authHelper

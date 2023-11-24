@@ -10,20 +10,21 @@ export const createUser = async ({
   username,
   email,
   password,
+  isAdmin = false,
 }: {
   username: string
   email: string
   password: string
+  isAdmin?: boolean
 }) => {
-  await authApi().signup({
-    signupRequest: {
-      data: {
-        username,
-        email,
-        password,
-      },
+  const response = await authApi().signup({
+    signupParams: {
+      username,
+      email,
+      password,
     },
   })
 
-  await ormService.db.update(usersTable).set({ emailVerified: true })
+  await ormService.db.update(usersTable).set({ emailVerified: true, isAdmin })
+  return response
 }

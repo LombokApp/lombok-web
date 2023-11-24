@@ -5,7 +5,6 @@ import { v4 as uuidV4 } from 'uuid'
 import { UnauthorizedError } from '../../../errors/auth.error'
 import { OrmService } from '../../../orm/orm.service'
 import { parseSort } from '../../../util/sort.util'
-import { PlatformRole } from '../../auth/constants/role.constants'
 import { JWTService } from '../../auth/services/jwt.service'
 import type { User } from '../../user/entities/user.entity'
 import type { NewFolderWorker } from '../entities/folder-worker.entity'
@@ -95,7 +94,7 @@ export class FolderWorkerService {
   }
 
   async createServerWorkerKeyAsAdmin(actor: User) {
-    if (actor.role !== PlatformRole.Admin) {
+    if (!actor.isAdmin) {
       throw new UnauthorizedError()
     }
 
@@ -135,7 +134,7 @@ export class FolderWorkerService {
   }
 
   async deleteServerWorkerKeyAsAdmin(actor: User, workerKeyId: string) {
-    if (actor.role !== PlatformRole.Admin) {
+    if (!actor.isAdmin) {
       throw new UnauthorizedError()
     }
     const workerKey =
@@ -166,7 +165,7 @@ export class FolderWorkerService {
       sort?: FolderWorkerKeySort
     },
   ) {
-    if (actor.role !== PlatformRole.Admin) {
+    if (!actor.isAdmin) {
       throw new UnauthorizedError()
     }
 
@@ -200,7 +199,7 @@ export class FolderWorkerService {
       sort?: FolderWorkerSort
     },
   ) {
-    if (actor.role !== PlatformRole.Admin) {
+    if (!actor.isAdmin) {
       throw new UnauthorizedError()
     }
 

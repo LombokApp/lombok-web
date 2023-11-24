@@ -311,7 +311,7 @@ export interface CreateUserData {
      * @type {boolean}
      * @memberof CreateUserData
      */
-    'admin'?: boolean;
+    'isAdmin'?: boolean;
     /**
      *
      * @type {boolean}
@@ -933,19 +933,6 @@ export interface GetUser200Response {
 /**
  *
  * @export
- * @interface GetViewer200Response
- */
-export interface GetViewer200Response {
-    /**
-     *
-     * @type {UserData}
-     * @memberof GetViewer200Response
-     */
-    'data': UserData;
-}
-/**
- *
- * @export
  * @interface ListFolderObjects200Response
  */
 export interface ListFolderObjects200Response {
@@ -1176,18 +1163,6 @@ export interface OutputUploadUrlsResponse {
 /**
  *
  * @export
- * @enum {string}
- */
-export declare const PlatformRole: {
-    readonly Anonymous: "ANONYMOUS";
-    readonly User: "USER";
-    readonly Admin: "ADMIN";
-    readonly Service: "SERVICE";
-};
-export type PlatformRole = typeof PlatformRole[keyof typeof PlatformRole];
-/**
- *
- * @export
  * @interface RefreshFolderObjectS3MetadataRequest
  */
 export interface RefreshFolderObjectS3MetadataRequest {
@@ -1328,35 +1303,22 @@ export interface ServerSettings {
 export interface SessionResponse {
     /**
      *
-     * @type {SessionResponseData}
+     * @type {string}
      * @memberof SessionResponse
      */
-    'data': SessionResponseData;
-}
-/**
- *
- * @export
- * @interface SessionResponseData
- */
-export interface SessionResponseData {
+    'accessToken': string;
     /**
      *
      * @type {string}
-     * @memberof SessionResponseData
-     */
-    'expiresAt': string;
-    /**
-     *
-     * @type {string}
-     * @memberof SessionResponseData
+     * @memberof SessionResponse
      */
     'refreshToken': string;
     /**
      *
      * @type {string}
-     * @memberof SessionResponseData
+     * @memberof SessionResponse
      */
-    'accessToken': string;
+    'expiresAt': string;
 }
 /**
  *
@@ -1425,19 +1387,6 @@ export interface SignupParams {
      * @memberof SignupParams
      */
     'password': string;
-}
-/**
- *
- * @export
- * @interface SignupRequest
- */
-export interface SignupRequest {
-    /**
-     *
-     * @type {SignupParams}
-     * @memberof SignupRequest
-     */
-    'data': SignupParams;
 }
 /**
  *
@@ -1566,7 +1515,7 @@ export interface UpdateUserData {
      * @type {boolean}
      * @memberof UpdateUserData
      */
-    'admin'?: boolean;
+    'isAdmin'?: boolean;
     /**
      *
      * @type {boolean}
@@ -1622,12 +1571,6 @@ export interface UserData {
      * @memberof UserData
      */
     'id': string;
-    /**
-     *
-     * @type {PlatformRole}
-     * @memberof UserData
-     */
-    'role': PlatformRole;
     /**
      *
      * @type {string}
@@ -1771,11 +1714,11 @@ export declare const AuthApiAxiosParamCreator: (configuration?: Configuration) =
     refreshToken: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      * Given a user\'s credentials, this endpoint will create a new user.
-     * @param {SignupRequest} signupRequest
+     * @param {SignupParams} signupParams
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    signup: (signupRequest: SignupRequest, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    signup: (signupParams: SignupParams, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * AuthApi - functional programming interface
@@ -1803,11 +1746,11 @@ export declare const AuthApiFp: (configuration?: Configuration) => {
     refreshToken(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SessionResponse>>;
     /**
      * Given a user\'s credentials, this endpoint will create a new user.
-     * @param {SignupRequest} signupRequest
+     * @param {SignupParams} signupParams
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    signup(signupRequest: SignupRequest, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Signup201Response>>;
+    signup(signupParams: SignupParams, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Signup201Response>>;
 };
 /**
  * AuthApi - factory interface
@@ -1862,10 +1805,10 @@ export interface AuthApiLoginRequest {
 export interface AuthApiSignupRequest {
     /**
      *
-     * @type {SignupRequest}
+     * @type {SignupParams}
      * @memberof AuthApiSignup
      */
-    readonly signupRequest: SignupRequest;
+    readonly signupParams: SignupParams;
 }
 /**
  * AuthApi - object-oriented interface
@@ -3346,14 +3289,14 @@ export declare const ViewerApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getViewer(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GetViewer200Response>>;
+    getViewer(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Signup201Response>>;
     /**
      *
      * @param {ViewerUpdatePayload} viewerUpdatePayload
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    updateViewer(viewerUpdatePayload: ViewerUpdatePayload, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GetViewer200Response>>;
+    updateViewer(viewerUpdatePayload: ViewerUpdatePayload, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Signup201Response>>;
 };
 /**
  * ViewerApi - factory interface
@@ -3365,14 +3308,14 @@ export declare const ViewerApiFactory: (configuration?: Configuration, basePath?
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getViewer(options?: AxiosRequestConfig): AxiosPromise<GetViewer200Response>;
+    getViewer(options?: AxiosRequestConfig): AxiosPromise<Signup201Response>;
     /**
      *
      * @param {ViewerApiUpdateViewerRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): AxiosPromise<GetViewer200Response>;
+    updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): AxiosPromise<Signup201Response>;
 };
 /**
  * Request parameters for updateViewer operation in ViewerApi.
@@ -3400,7 +3343,7 @@ export declare class ViewerApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof ViewerApi
      */
-    getViewer(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<GetViewer200Response, any>>;
+    getViewer(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<Signup201Response, any>>;
     /**
      *
      * @param {ViewerApiUpdateViewerRequest} requestParameters Request parameters.
@@ -3408,7 +3351,7 @@ export declare class ViewerApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof ViewerApi
      */
-    updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<GetViewer200Response, any>>;
+    updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<Signup201Response, any>>;
 }
 /**
  * WorkerApi - axios parameter creator

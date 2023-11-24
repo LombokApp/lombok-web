@@ -1,11 +1,9 @@
-import { eq, inArray, sql } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { Lifecycle, scoped } from 'tsyringe'
 import { v4 as uuidV4 } from 'uuid'
 
 import { OrmService } from '../../../orm/orm.service'
 import { parseSort } from '../../../util/sort.util'
-import type { SaveablePlatformRole } from '../../auth/constants/role.constants'
-import { PlatformRole } from '../../auth/constants/role.constants'
 import { authHelper } from '../../auth/utils/auth-helper'
 import type { NewUser, User } from '../entities/user.entity'
 import { usersTable } from '../entities/user.entity'
@@ -80,19 +78,17 @@ export class UserService {
     limit = 10,
     offset = 0,
     sort = UserSort.CreatedAtDesc,
-    roles,
+    isAdmin,
   }: {
     limit?: number
     offset?: number
     sort?: UserSort
-    roles?: (PlatformRole.Admin | PlatformRole.User)[]
+    isAdmin?: boolean
   }) {
+    const where = isAdmin ? eq(usersTable.isAdmin, isAdmin) : undefined
+
     const users = await this.ormService.db.query.usersTable.findMany({
-      ...(roles
-        ? {
-            where: inArray(usersTable.role, roles),
-          }
-        : undefined),
+      where,
       limit,
       offset,
       orderBy: parseSort(usersTable, sort),
@@ -100,6 +96,7 @@ export class UserService {
     const [userCountResult] = await this.ormService.db
       .select({ count: sql<string | null>`count(*)` })
       .from(usersTable)
+      .where(where)
 
     return {
       results: users,
@@ -113,16 +110,16 @@ export class UserService {
       limit = 10,
       offset = 0,
       sort = UserSort.CreatedAtDesc,
-      roles,
+      isAdmin,
     }: {
       limit?: number
       offset?: number
       sort?: UserSort
-      roles?: (PlatformRole.Admin | PlatformRole.User)[]
+      isAdmin?: boolean
     },
   ) {
     // TODO: ACL
-    return this.listUsers({ limit, offset, sort, roles })
+    return this.listUsers({ limit, offset, sort, isAdmin })
   }
 
   getUserByIdAsAdmin(actorId: string, userId: string) {
@@ -141,7 +138,7 @@ export class UserService {
       id: uuidV4(),
       name: userPayload.name,
       email: userPayload.email,
-      role: userPayload.admin ? PlatformRole.Admin : PlatformRole.User,
+      isAdmin: userPayload.isAdmin,
       emailVerified: userPayload.emailVerified ?? false,
       username: userPayload.username,
       passwordHash: authHelper
@@ -177,7 +174,7 @@ export class UserService {
     }
 
     const updates: {
-      role?: SaveablePlatformRole
+      isAdmin?: boolean
       name?: string
       emailVerified?: boolean
       passwordHash?: string
@@ -185,10 +182,10 @@ export class UserService {
       permissions?: string[]
     } = {}
 
-    if (userPayload.admin && existingUser.role !== PlatformRole.Admin) {
-      updates.role = PlatformRole.Admin
-    } else if (!userPayload.admin && existingUser.role === PlatformRole.Admin) {
-      updates.role = PlatformRole.User
+    if (userPayload.isAdmin && !existingUser.isAdmin) {
+      updates.isAdmin = true
+    } else if (!userPayload.isAdmin && existingUser.isAdmin) {
+      updates.isAdmin = false
     }
 
     if (userPayload.name) {

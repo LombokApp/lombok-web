@@ -46,7 +46,7 @@ const BASE_SCOPES = [
   AuthScope.ReadPublicServerSettings,
 ]
 
-const ADMIN_SCOPES = [
+export const APP_ADMIN_SCOPES = [
   ...BASE_SCOPES,
   AuthScope.CreateMetadataLocation,
   AuthScope.UpdateMetadataLocation,
@@ -69,11 +69,10 @@ const ADMIN_SCOPES = [
   AuthScope.UpdateServerWorkerKey,
 ]
 
-export const ALLOWED_SCOPES: Record<PlatformRole, AuthScope[]> = {
+export const APP_SCOPES_BY_PLATFORM_ROLE: Record<PlatformRole, AuthScope[]> = {
   [PlatformRole.Anonymous]: [],
   [PlatformRole.User]: BASE_SCOPES,
   [PlatformRole.Service]: BASE_SCOPES,
-  [PlatformRole.Admin]: ADMIN_SCOPES,
 }
 
 export const API_KEY_SCOPES = [AuthScope.ReadViewer]

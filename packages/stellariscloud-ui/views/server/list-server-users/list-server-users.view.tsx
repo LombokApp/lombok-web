@@ -1,5 +1,6 @@
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline'
 import type { UserData } from '@stellariscloud/api-client'
+import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import React from 'react'
 
@@ -27,7 +28,7 @@ export function ServerUsers() {
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
               <Table
-                headers={['Name', 'Role', 'Permissions', 'Edit']}
+                headers={['Name', 'Admin', 'Permissions', 'Edit']}
                 rows={users.map((u, i) => [
                   <div key={i} className="flex items-center gap-4">
                     <Avatar
@@ -43,11 +44,22 @@ export function ServerUsers() {
                   </div>,
                   <span
                     key={1}
-                    className="inline-flex items-center rounded-md bg-green-50 dark:bg-green-50/10 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-400 ring-1 ring-inset ring-green-600/20 dark:ring-green-600/60"
+                    className={clsx(
+                      'inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ',
+                      u.isAdmin
+                        ? 'bg-green-50 dark:bg-green-50/10 ring-green-600/20 dark:ring-green-600/60 text-green-700 dark:text-green-400'
+                        : 'bg-yellow-50 dark:bg-yellow-50/10 ring-yellow-600/20 dark:ring-yellow-600/60 text-yellow-700 dark:text-yellow-400',
+                    )}
                   >
-                    {u.role}
+                    {u.isAdmin ? 'true' : 'false'}
                   </span>,
-                  u.permissions.map((perm, j) => <span key={j}>{perm}</span>),
+                  <div key={i}>
+                    {u.permissions.length > 0
+                      ? u.permissions.map((perm, j) => (
+                          <span key={j}>{perm}</span>
+                        ))
+                      : '[]'}
+                  </div>,
                   <ButtonGroup
                     key={i}
                     buttons={[

@@ -21,7 +21,11 @@ const Login: NextPage = () => {
   return (
     <div className="h-full w-full flex flex-col justify-around">
       <LoginComponent
-        error={(authContext.error as any)?.response.data.errors[0].code}
+        error={
+          (authContext.error as any)?.response?.errors
+            ? (authContext.error as any)?.response?.errors[0].code
+            : undefined
+        }
         onSignup={() => void router.push('/signup')}
         onSubmit={handleLoginSubmit}
       />

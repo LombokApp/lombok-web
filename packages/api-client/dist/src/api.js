@@ -13,7 +13,7 @@
  * Do not edit the class manually.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WorkerApi = exports.WorkerApiFactory = exports.WorkerApiFp = exports.WorkerApiAxiosParamCreator = exports.ViewerApi = exports.ViewerApiFactory = exports.ViewerApiFp = exports.ViewerApiAxiosParamCreator = exports.ServerApi = exports.ServerApiFactory = exports.ServerApiFp = exports.ServerApiAxiosParamCreator = exports.FoldersApi = exports.FoldersApiFactory = exports.FoldersApiFp = exports.FoldersApiAxiosParamCreator = exports.AuthApi = exports.AuthApiFactory = exports.AuthApiFp = exports.AuthApiAxiosParamCreator = exports.StorageLocationDataProviderTypeEnum = exports.SignedURLsRequestMethod = exports.ServerLocationType = exports.PlatformRole = exports.MediaType = exports.FolderWorkerSort = exports.FolderWorkerKeySort = exports.FolderPermissionName = exports.FolderOperationStatus = exports.FolderOperationSort = exports.FolderOperationName = void 0;
+exports.WorkerApi = exports.WorkerApiFactory = exports.WorkerApiFp = exports.WorkerApiAxiosParamCreator = exports.ViewerApi = exports.ViewerApiFactory = exports.ViewerApiFp = exports.ViewerApiAxiosParamCreator = exports.ServerApi = exports.ServerApiFactory = exports.ServerApiFp = exports.ServerApiAxiosParamCreator = exports.FoldersApi = exports.FoldersApiFactory = exports.FoldersApiFp = exports.FoldersApiAxiosParamCreator = exports.AuthApi = exports.AuthApiFactory = exports.AuthApiFp = exports.AuthApiAxiosParamCreator = exports.StorageLocationDataProviderTypeEnum = exports.SignedURLsRequestMethod = exports.ServerLocationType = exports.MediaType = exports.FolderWorkerSort = exports.FolderWorkerKeySort = exports.FolderPermissionName = exports.FolderOperationStatus = exports.FolderOperationSort = exports.FolderOperationName = void 0;
 const axios_1 = require("axios");
 // Some imports not used depending on template conditions
 // @ts-ignore
@@ -102,17 +102,6 @@ exports.MediaType = {
     Audio: 'AUDIO',
     Document: 'DOCUMENT',
     Unknown: 'UNKNOWN'
-};
-/**
- *
- * @export
- * @enum {string}
- */
-exports.PlatformRole = {
-    Anonymous: 'ANONYMOUS',
-    User: 'USER',
-    Admin: 'ADMIN',
-    Service: 'SERVICE'
 };
 /**
  *
@@ -228,13 +217,13 @@ const AuthApiAxiosParamCreator = function (configuration) {
         },
         /**
          * Given a user\'s credentials, this endpoint will create a new user.
-         * @param {SignupRequest} signupRequest
+         * @param {SignupParams} signupParams
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        signup: async (signupRequest, options = {}) => {
-            // verify required parameter 'signupRequest' is not null or undefined
-            (0, common_1.assertParamExists)('signup', 'signupRequest', signupRequest);
+        signup: async (signupParams, options = {}) => {
+            // verify required parameter 'signupParams' is not null or undefined
+            (0, common_1.assertParamExists)('signup', 'signupParams', signupParams);
             const localVarPath = `/signup`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
@@ -249,7 +238,7 @@ const AuthApiAxiosParamCreator = function (configuration) {
             (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(signupRequest, localVarRequestOptions, configuration);
+            localVarRequestOptions.data = (0, common_1.serializeDataIfNeeded)(signupParams, localVarRequestOptions, configuration);
             return {
                 url: (0, common_1.toPathString)(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -295,12 +284,12 @@ const AuthApiFp = function (configuration) {
         },
         /**
          * Given a user\'s credentials, this endpoint will create a new user.
-         * @param {SignupRequest} signupRequest
+         * @param {SignupParams} signupParams
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async signup(signupRequest, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.signup(signupRequest, options);
+        async signup(signupParams, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.signup(signupParams, options);
             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
         },
     };
@@ -345,7 +334,7 @@ const AuthApiFactory = function (configuration, basePath, axios) {
          * @throws {RequiredError}
          */
         signup(requestParameters, options) {
-            return localVarFp.signup(requestParameters.signupRequest, options).then((request) => request(axios, basePath));
+            return localVarFp.signup(requestParameters.signupParams, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -393,7 +382,7 @@ class AuthApi extends base_1.BaseAPI {
      * @memberof AuthApi
      */
     signup(requestParameters, options) {
-        return (0, exports.AuthApiFp)(this.configuration).signup(requestParameters.signupRequest, options).then((request) => request(this.axios, this.basePath));
+        return (0, exports.AuthApiFp)(this.configuration).signup(requestParameters.signupParams, options).then((request) => request(this.axios, this.basePath));
     }
 }
 exports.AuthApi = AuthApi;

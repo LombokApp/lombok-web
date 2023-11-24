@@ -14,23 +14,15 @@ export enum PlatformRole {
   User = 'USER',
 
   /**
-   * Full read and write access to platform resources.
-   */
-  Admin = 'ADMIN',
-
-  /**
-   * A system microservice, like a worker
+   * A system microservice, like a server worker
    */
   Service = 'SERVICE',
 }
 
 export const PlatformRoleType: r.Runtype<PlatformRole> = EnumType(PlatformRole)
 
-export type SaveablePlatformRole = PlatformRole.Admin | PlatformRole.User
-
 export const PLATFORM_ROLES: Record<PlatformRole, number> = {
   [PlatformRole.Anonymous]: 0,
   [PlatformRole.User]: 1,
-  [PlatformRole.Admin]: 2,
   [PlatformRole.Service]: 3,
 }

@@ -1,20 +1,15 @@
 import {
   boolean,
   jsonb,
-  pgEnum,
   pgTable,
   text,
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core'
 
-import { PlatformRole } from '../../auth/constants/role.constants'
-
-export const roleEnum = pgEnum('role', [PlatformRole.Admin, PlatformRole.User])
-
 export const usersTable = pgTable('users', {
   id: uuid('id').primaryKey(),
-  role: roleEnum('role').notNull(),
+  isAdmin: boolean('isAdmin').default(false).notNull(),
   name: text('name'),
   username: text('username').notNull().unique(),
   email: text('email').unique(),
