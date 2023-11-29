@@ -40,19 +40,17 @@ const Landing: NextPage = () => {
         <div className="mx-auto max-w-3xl py-32 sm:py-48 lg:py-56">
           <div className="text-center">
             <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl">
-              Open-source federated storage and compute. Without Big-tech.
+              Open-source sovereign storage and compute infrastructure.
             </h1>
             <p className="mt-6 text-lg leading-8 text-gray-300">
-              Wether you're launching a new project or setting up a family
-              cloud, Stellaris Cloud provides a zero cost, zero lock-in, secure
-              file storage and management solution that you can run on anywhere
-              on any hardware.
+              Stellaris Cloud is a zero cost, zero lock-in, secure file storage
+              and compute solution that you can run anywhere on any hardware.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Button onClick={handleGetStarted} primary>
                 Get started
               </Button>
-              <Link href="/how-it-works">
+              <Link href="https://github.com/stellariscloud/stellariscloud-monorepo">
                 <Button
                   link
                   className="text-sm font-semibold leading-6 text-white"
