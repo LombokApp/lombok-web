@@ -1,6 +1,9 @@
-# Stellaris cloud
+# StellarisCloud
 
-## Packages
+## What is StellarisCloud?
 
-- [API](./packages/api/README.md)
-- [UI](./packages/ui/README.md)
+StellarisCloud is free and sovereign storage and compute infrastructure.
+
+## How do I run StellarisCloud?
+
+Self-hosted on a home server, on an old laptop or a raspberry pie. Alternatively, on cloud platforms like AWS or digital ocean.

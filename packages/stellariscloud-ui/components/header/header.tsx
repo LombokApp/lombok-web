@@ -12,29 +12,6 @@ import { Icon } from '../../design-system/icon'
 import { useBreakPoints } from '../../utils/hooks'
 import { ThemeSwitch } from '../theme-switch/theme-switch'
 
-const HEADER_PAGES = [
-  {
-    title: 'Home',
-    href: '/',
-  },
-  {
-    title: 'How it works',
-    href: '/how-it-works',
-  },
-  {
-    title: 'Sponsor',
-    href: '/sponsor',
-  },
-  {
-    title: 'Contact',
-    href: '/contact',
-  },
-  {
-    title: 'Docs',
-    href: 'https://docs.stellariscloud.com',
-  },
-]
-
 export const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false)
   const { authState } = useAuthContext()
@@ -93,24 +70,6 @@ export const Header = () => {
             </div>
           </div>
         </Link>
-      </div>
-      <div className="flex w-full justify-center gap-4 absolute -z-10">
-        <div className="flex gap-4">
-          {HEADER_PAGES.map((page, i) => (
-            <Link key={i} href={page.href}>
-              <Button
-                link
-                className={clsx(
-                  'z-10 capitalise',
-                  router.pathname === '/' && 'text-white',
-                )}
-                size="md"
-              >
-                {page.title}
-              </Button>
-            </Link>
-          ))}
-        </div>
       </div>
       <div className="flex items-center self-end align-end content-end gap-3">
         <ThemeSwitch isVertical={false} />
