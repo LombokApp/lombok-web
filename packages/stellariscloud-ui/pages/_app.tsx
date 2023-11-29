@@ -5,6 +5,7 @@ import '../fonts/inter/inter.css'
 import { Menu } from '@headlessui/react'
 import {
   ArrowRightOnRectangleIcon,
+  CubeIcon,
   FolderOpenIcon,
   ServerStackIcon,
 } from '@heroicons/react/24/outline'
@@ -34,7 +35,6 @@ const SHOW_HEADER_ROUTES = ['/', '/sponsor', '/how-it-works', '/contact']
 const SIDEBAR_COLOR =
   // 'lg:bg-indigo-600 dark:lg:bg-indigo-800 transition duration-100'
   'bg-gradient-to-l from-indigo-900 to-indigo-950 dark:bg-gradient-to-r dark:from-blue-950 dark:to-indigo-950 transition duration-100'
-const _BODY_COLOR = 'bg-gray-100 dark:bg-indigo-950 transition duration-100'
 const BODY_GRADIENT =
   'bg-gray-100 transition duration-100 dark:bg-gradient-to-r dark:from-blue-950 dark:to-indigo-950'
 
@@ -135,17 +135,23 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
           },
         ]
       : []),
+    {
+      name: 'TestModule',
+      href: '/modules/test',
+      icon: CubeIcon,
+      current: router.pathname.startsWith('/modules/test'),
+    },
   ]
 
   const userNavigation = [{ name: 'Your profile', href: '/profile' }]
-  const hideSidebar = SHOW_HEADER_ROUTES.includes(router.pathname)
+  const hideHeader = !SHOW_HEADER_ROUTES.includes(router.pathname)
+  const hideSidebar = !hideHeader
 
   return (
     <div className="h-full overflow-hidden">
       <div
         className={clsx(
-          SHOW_HEADER_ROUTES.includes(router.pathname) &&
-            'max-w-0 overflow-hidden opacity-0',
+          hideSidebar && 'max-w-0 overflow-hidden opacity-0',
           'hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-20 lg:overflow-y-auto lg:pb-4',
           SIDEBAR_COLOR,
         )}
@@ -229,7 +235,7 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
           !hideSidebar && 'lg:pl-20',
         )}
       >
-        {SHOW_HEADER_ROUTES.includes(router.pathname) && (
+        {!hideHeader && (
           <div className="w-full flex shrink-0 grow-0 absolute right-0 top-0 overflow-visible">
             <Header />
           </div>

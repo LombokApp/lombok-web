@@ -3,7 +3,8 @@ import type { LogLevel } from '../constants/logging.constants'
 export interface ApiConfig {
   port: number
   hostId: string
-  disable_http: boolean
+  disableHttp: boolean
+  uiServerPort: number
 }
 
 export interface AuthConfig {

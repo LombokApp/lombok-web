@@ -4,6 +4,7 @@ import * as Tracing from '@sentry/tracing'
 import type Ajv from 'ajv'
 import formatsPlugin from 'ajv-formats'
 import cors from 'cors'
+import type { NextFunction, Request, Response } from 'express'
 import express from 'express'
 import type { OpenApiDocument } from 'express-openapi-validate'
 import { OpenApiValidator } from 'express-openapi-validate'
@@ -12,7 +13,6 @@ import type http from 'http'
 import type { LoggerModule } from 'i18next'
 import i18next from 'i18next'
 import I18NextFsBackend from 'i18next-fs-backend'
-import type { AddressInfo } from 'net'
 import { singleton } from 'tsyringe'
 
 import { EnvConfigProvider } from './config/env-config.provider'
@@ -33,6 +33,7 @@ import { SocketService } from './services/socket.service'
 import { stringifyLog } from './util/i18n.util'
 import { registerExitHandler, runExitHandlers } from './util/process.util'
 import { formats } from './util/validation.util'
+import { injectIntoHead } from '@stellariscloud/utils'
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -72,7 +73,9 @@ declare global {
 export class App {
   closing = false
   server?: http.Server
+  uiServer?: http.Server
   readonly app
+  readonly uiApp
 
   constructor(
     private readonly config: EnvConfigProvider,
@@ -84,6 +87,9 @@ export class App {
   ) {
     this.app = express()
     this.app.disable('x-powered-by')
+
+    this.uiApp = express()
+    this.uiApp.disable('x-powered-by')
 
     Sentry.init({
       dsn: config.getLoggingConfig().sentryKey,
@@ -134,8 +140,9 @@ export class App {
     await this.initI18n()
     await this.initOrm()
     this.initWorkers()
-    await this.initRoutes()
-    if (!this.config.getApiConfig().disable_http) {
+    await this.initApiRoutes()
+    await this.initUIServer()
+    if (!this.config.getApiConfig().disableHttp) {
       await this.listen()
       this.initSocketServer()
     }
@@ -169,13 +176,10 @@ export class App {
     await this.ormService.init(true)
   }
 
-  private async initRoutes() {
+  private async initApiRoutes() {
     const apiSpec = (await import('./generated/openapi.json'))
       .default as unknown as OpenApiDocument
 
-    // TODO: Update terraform config to use /health instead of /api/health once
-    // the risk of reporting unwanted unhealthy state is ruled out.
-    this.app.get('/health', this.healthManager.requestHandler())
     this.app.get('/api/health', (req, res) => res.sendStatus(200))
 
     this.app.use(Sentry.Handlers.requestHandler())
@@ -234,6 +238,111 @@ export class App {
     this.app.use(unhandledErrorMiddleware(this.loggingService))
   }
 
+  private async initUIServer() {
+    this.uiApp.use(cors())
+    this.uiApp.use(
+      helmet({
+        contentSecurityPolicy: {
+          useDefaults: false,
+          directives: {
+            'default-src': "'self'",
+            'frame-ancestors': ["'self'", 'stellariscloud.localhost:3000'],
+            'script-src':
+              "'sha256-mnquucvB/C4p9HEVErNfh1uhjqqNyuMG+NYhzk0XtAs='",
+          },
+        },
+      }),
+    )
+
+    this.uiApp.use((req: Request, res: Response, next: NextFunction) => {
+      if (!req.headers.host) {
+        next()
+        return
+      }
+      let host =
+        'x-forwarded-host' in req.headers
+          ? (req.headers['x-forwarded-host'] as string) ?? ''
+          : req.headers.host.split(':')[0]
+      const hostnameParts = host.split('.')
+      const isModuleUIHost =
+        hostnameParts.length === 5 && hostnameParts[2] === 'modules'
+      const moduleName: string | undefined = isModuleUIHost
+        ? hostnameParts[1]
+        : undefined
+      const uiId: string | undefined = isModuleUIHost
+        ? hostnameParts[0]
+        : undefined
+
+      if (!moduleName || !uiId) {
+        next()
+        return
+      }
+
+      const SCRIPT_SRC = `
+      // setup http interceptors to handle route config
+      // provide core API
+      console.log('Hello from the script!!')
+
+      // setInterval(() => {
+      //   const req = new XMLHttpRequest();
+      //   req.addEventListener("load", (e) => {
+      //     console.log('this.responseText:', e.target.responseText);
+      //   });  
+      //   req.open("GET", '/test.md');
+      //   req.send();
+      // }, 2000)
+    `
+      const INDEX_HTML = `<!DOCTYPE html><head><script>${SCRIPT_SRC}</script><link type="text/css" rel="stylesheet" href="/styles.css"></head><body>${moduleName}</body></html>`
+
+      const CONTENT = {
+        '/': INDEX_HTML,
+        '/index.html': INDEX_HTML,
+        '/styles.css': 'html { color: #999 }',
+      }
+
+      const HEADERS = {
+        '/': {
+          'Content-Type': 'text/html',
+        },
+        '/index.html': {
+          'Content-Type': 'text/html',
+        },
+        '/styles.css': { 'Content-Type': 'text/css' },
+      }
+
+      const path = req.url.split('?')[0]
+      console.log('host: %s - headers[path:"%s"]:', host, path, req.headers)
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
+      console.log('testing path[host:%s]:', host, path)
+      if (path in CONTENT) {
+        const returnContent = CONTENT[path as keyof typeof CONTENT]
+        let response = res.status(200)
+        const headers = HEADERS[path as keyof typeof HEADERS] ?? {}
+        Object.keys(headers).forEach(
+          (headerKey) =>
+            (response = response.setHeader(
+              headerKey,
+              headers[headerKey as keyof typeof headers],
+            )),
+        )
+
+        // .setHeader('Cross-Origin-Embedder-Policy', 'cross-origin')
+        console.log('got response [%s]: ', typeof returnContent, returnContent)
+        response.send(returnContent)
+      }
+    })
+    this.uiApp.use(
+      (
+        req: express.Request,
+        res: express.Response,
+        next: express.NextFunction,
+      ) => {
+        res.status(404).send()
+      },
+    )
+  }
+
   private initSocketServer() {
     if (!this.server) {
       throw new Error('HTTP Server should be initialised before socket server.')
@@ -266,21 +375,21 @@ export class App {
       return
     }
 
-    const { port } = this.config.getApiConfig()
+    const { port, uiServerPort, hostId } = this.config.getApiConfig()
 
     const { logger } = this.loggingService
 
-    return new Promise<void>((resolve) => {
-      const server = this.app.listen(port, () => {
-        const address = server.address() as AddressInfo
-        logger.info(`👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍`)
-        logger.info(`API:  http://<whatever>:${address.port}/api/v1`)
-        logger.info(`Docs: http://<whatever>:${address.port}/docs`)
-        logger.info(`Websocket: http://<whatever>:${address.port}`)
-
-        resolve()
-        this.server = server
-      })
+    this.server = this.app.listen(port, () => {
+      logger.info(`API 👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍`)
+      logger.info(`HTTP base:  ${hostId}:${port}/api/v1`)
+      logger.info(`Websocket: ${hostId}:${port}`)
+      logger.info(`Docs: ${hostId}:${port}/docs`)
+    })
+    this.uiServer = this.uiApp.listen(uiServerPort, () => {
+      logger.info(`UI server 👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍`)
+      logger.info(
+        `http://<module>.modules.stellariscloud.localhost:${uiServerPort}`,
+      )
     })
   }
 

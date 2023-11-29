@@ -51,12 +51,14 @@ export class EnvConfigProvider implements ConfigProvider {
         API_PORT: r.String.withConstraint(isInteger),
         APP_HOST_ID: r.String,
         DISABLE_HTTP: r.String.withConstraint(isBoolean).optional(),
+        UI_SERVER_PORT: r.String.withConstraint(isInteger),
       })
 
       this.api = {
         port: parseInt(env.API_PORT, 10),
         hostId: env.APP_HOST_ID,
-        disable_http: env.DISABLE_HTTP === '1' || env.DISABLE_HTTP === 'true',
+        disableHttp: env.DISABLE_HTTP === '1' || env.DISABLE_HTTP === 'true',
+        uiServerPort: parseInt(env.UI_SERVER_PORT, 10),
       }
     }
 

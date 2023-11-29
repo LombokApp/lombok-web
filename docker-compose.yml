@@ -34,6 +34,7 @@ services:
     command: ['yarn', 'workspace', '@stellariscloud/api', 'dev']
     ports:
       - 3001:3001
+      - 3002:3002
   redis:
     image: redis:alpine
     command: redis-server
