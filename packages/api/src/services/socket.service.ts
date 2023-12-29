@@ -1,26 +1,44 @@
 import { createAdapter } from '@socket.io/redis-adapter'
-import type { FolderPushMessage } from '@stellariscloud/types'
+import type {
+  ConnectedModuleInstancesMap,
+  FolderPushMessage,
+} from '@stellariscloud/types'
 import type http from 'http'
+import * as r from 'runtypes'
 import io from 'socket.io'
 import { container, singleton } from 'tsyringe'
 
-import { AuthTokenExpiredError } from '../domains/auth/errors/auth-token.error'
+import {
+  AuthTokenExpiredError,
+  AuthTokenInvalidError,
+} from '../domains/auth/errors/auth-token.error'
 import {
   AccessTokenJWT,
   JWTService,
 } from '../domains/auth/services/jwt.service'
 import { FolderService } from '../domains/folder/services/folder.service'
-import type { FolderOperation } from '../domains/folder-operation/entities/folder-operation.entity'
-import { FolderWorkerInvalidError } from '../domains/folder-operation/errors/folder-worker-key.error'
-import { FolderWorkerService } from '../domains/folder-operation/services/folder-worker.service'
+import { ModuleService } from '../domains/module/services/module.service'
 import { UnauthorizedError } from '../errors/auth.error'
 import { RedisService } from './redis.service'
 
+const ModuleAuthPayload = r.Record({
+  moduleId: r.String,
+  name: r.String,
+  token: r.String,
+})
+
+const UserAuthPayload = r.Record({
+  userId: r.String,
+  token: r.String,
+})
+
 @singleton()
 export class SocketService {
-  ioServer?: io.Server
+  moduleConnections: ConnectedModuleInstancesMap = {}
+  userServer?: io.Server
+  moduleServer?: io.Server
   _folderService?: FolderService
-  _folderWorkerService?: FolderWorkerService
+  _moduleService?: ModuleService
 
   get folderService() {
     if (!this._folderService) {
@@ -29,11 +47,11 @@ export class SocketService {
     return this._folderService
   }
 
-  get workerService() {
-    if (!this._folderWorkerService) {
-      this._folderWorkerService = container.resolve(FolderWorkerService)
+  get moduleService() {
+    if (!this._moduleService) {
+      this._moduleService = container.resolve(ModuleService)
     }
-    return this._folderWorkerService
+    return this._moduleService
   }
 
   constructor(
@@ -41,166 +59,142 @@ export class SocketService {
     private readonly jwtService: JWTService,
   ) {}
 
-  init(server: http.Server) {
-    if (this.ioServer) {
-      throw new Error('Socket server is already initialised.')
+  initModuleServer(server: http.Server) {
+    if (this.moduleServer) {
+      throw new Error('Module socket server is already initialised.')
     }
-    this.ioServer = new io.Server(server, {
+
+    console.log('Setting up module socket.')
+
+    this.moduleServer = new io.Server(server, {
       cors: {
         origin: '*', // TODO: constrain this
         allowedHeaders: [],
       },
     })
 
-    this.ioServer.adapter(
+    this.moduleServer.adapter(
       createAdapter(
         this.redisService.client,
         this.redisService.client.duplicate(),
       ),
     )
 
-    this.ioServer.use((socket, next) => {
-      const token = socket.handshake.query.token
-      if (typeof token !== 'string') {
-        next(new UnauthorizedError())
-        return
-      }
-      try {
-        const verifiedToken = AccessTokenJWT.parse(
-          this.jwtService.verifyJWT(token),
-        )
-        const scpParts = verifiedToken.scp[0]?.split(':') ?? []
-        const subParts = verifiedToken.sub.split(':')
-        if (scpParts[0] !== 'socket_connect') {
+    this.moduleServer.use((client, next) => {
+      const auth = client.handshake.auth
+      if (ModuleAuthPayload.guard(auth)) {
+        void this.moduleService.getModule(auth.moduleId).then((module) => {
+          if (!module) {
+            client.disconnect()
+            throw new UnauthorizedError()
+            // TODO: represent error better for the socket client
+          }
+
+          // verifies the token using the publicKey we have on file for this module
+          try {
+            this.jwtService.verifyModuleJWT(module.publicKey, auth.token)
+            const moduleConnections = (this.moduleConnections[auth.moduleId] =
+              this.moduleConnections[auth.moduleId] ?? {})
+            if (moduleConnections[auth.name]) {
+              // worker still connected by that name
+              client.disconnect()
+              throw new UnauthorizedError()
+            } else {
+              // add the socket connection to a reference map of all modules
+              moduleConnections[auth.name] = moduleConnections[auth.name] ?? {
+                id: client.id,
+                name: auth.name,
+                ip: client.handshake.address,
+              }
+            }
+
+            // register listener for requests from the module
+            client.on('MODULE_API', (message) => {
+              return this.moduleService.handleModuleRequest(
+                auth.moduleId,
+                message,
+              )
+            })
+            client.on('disconnect', () => {
+              // remove client in module reference map
+              // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+              delete this.moduleConnections[client.id]
+            })
+            next()
+          } catch (e) {
+            if (
+              e instanceof AuthTokenInvalidError ||
+              e instanceof AuthTokenExpiredError
+            ) {
+              console.log('SOCKET AUTH ERROR [%s]:', e.name, e.message)
+            }
+            client.disconnect()
+            throw new UnauthorizedError()
+          }
+        })
+      } else if (UserAuthPayload.guard(auth)) {
+        const token = auth.token
+        if (typeof token !== 'string') {
           next(new UnauthorizedError())
           return
         }
-
-        if (verifiedToken.sub.startsWith('USER') && scpParts[1]) {
-          // folder event subscribe
-          void this.folderService
-            .getFolderAsUser({
-              folderId: scpParts[1],
-              userId: verifiedToken.jti.split(':')[0],
-            })
-            .then(({ folder }) => socket.join(`folder:${folder.id}`))
-            .then(() => next())
-        } else if (subParts[0] === 'WORKER') {
-          // worker subscribe
-          const workerKeyId = subParts[1]
-          const externalId = socket.handshake.query.externalId
-          const capabilities = socket.handshake.query.capabilities
-          if (
-            typeof externalId !== 'string' ||
-            typeof capabilities !== 'string'
-          ) {
-            throw new FolderWorkerInvalidError()
+        try {
+          const verifiedToken = AccessTokenJWT.parse(
+            this.jwtService.verifyJWT(token),
+          )
+          const scpParts = verifiedToken.scp[0]?.split(':') ?? []
+          if (scpParts[0] !== 'socket_connect') {
+            next(new UnauthorizedError())
+            return
           }
 
-          void this.workerService
-            .getWorkerKey(workerKeyId)
-            .then(async (workerKey) => {
-              const worker = await this.workerService.upsertFolderWorker(
-                workerKey,
-                externalId,
-                capabilities.split(','),
-                socket.handshake.address,
-              )
-              if (!workerKey.ownerId) {
-                const folderWorkerKey = `folderWorker:${worker.id}`
-                await socket.join(folderWorkerKey)
-                await this.redisService.client.set(
-                  folderWorkerKey,
-                  JSON.stringify({
-                    connectedAt: Date.now(),
-                    capabilities:
-                      typeof capabilities === 'string'
-                        ? [capabilities]
-                        : capabilities,
-                  }),
-                )
-                socket.on('close', () => {
-                  console.log('Worker [%s] socket closed', worker.id)
-                  void this.redisService.client.del(folderWorkerKey)
-                })
-              } else {
-                // TODO: implement user worker logic
-              }
-              next()
-            })
-            .catch((_e) => {
-              console.log('ERROR:', _e)
-              next(new UnauthorizedError())
-            })
-        } else {
-          next(new UnauthorizedError())
+          if (verifiedToken.sub.startsWith('USER') && scpParts[1]) {
+            // folder event subscribe
+            void this.folderService
+              .getFolderAsUser({
+                folderId: scpParts[1],
+                userId: verifiedToken.jti.split(':')[0],
+              })
+              .then(({ folder }) => client.join(`folder:${folder.id}`))
+              .then(() => next())
+          } else {
+            next(new UnauthorizedError())
+          }
+        } catch (e: any) {
+          if (e instanceof AuthTokenExpiredError) {
+            client.conn.close()
+          }
+          next(e as Error)
         }
-      } catch (e: any) {
-        if (e instanceof AuthTokenExpiredError) {
-          socket.conn.close()
-        }
-        next(e as Error)
+      } else {
+        // auth payload does not match expected
+        client.disconnect()
+        throw new UnauthorizedError()
       }
+    })
+
+    this.moduleServer.on('message', (msg, client) => {
+      console.log("client 'message':", msg, client)
+    })
+
+    this.moduleServer.on('open', (client) => {
+      console.log("client: 'open'", client)
     })
   }
 
-  async sendFolderOperationToWorker(folderOperation: FolderOperation) {
-    const capabilitiesToWorkersMap: { [key: string]: string[] | undefined } = {}
-    const folderWorkerRedisKeys = await this.redisService.client.keys(
-      `folderWorker:*`,
-    )
-
-    // create map of workers by their capabilities
-    for (const folderWorkerRedisKey of folderWorkerRedisKeys) {
-      const keyValue = JSON.parse(
-        (await this.redisService.client.get(folderWorkerRedisKey)) ?? '',
-      )
-      if (!keyValue) {
-        continue
-      }
-      for (const capability of keyValue.capabilities) {
-        capabilitiesToWorkersMap[capability] =
-          capabilitiesToWorkersMap[capability] ?? []
-        capabilitiesToWorkersMap[capability]?.push(folderWorkerRedisKey)
-      }
-    }
-
-    for (const folderWorkerRedisKey of capabilitiesToWorkersMap[
-      folderOperation.operationName
-    ] ?? []) {
-      const clientIds = Array.from(
-        this.ioServer?.sockets.adapter.rooms.get(folderWorkerRedisKey) ?? [],
-      )
-      const clientSocket = this.ioServer?.sockets.sockets.get(clientIds[0])
-      if (!clientSocket) {
-        continue
-      }
-      const response: { willComplete: boolean } = await clientSocket
-        .timeout(250)
-        .emitWithAck('WORK_REQUEST', {
-          messageType: 'CHECK_AVAILABILITY',
-          task: {
-            id: folderOperation.id,
-            name: folderOperation.operationName,
-            data: folderOperation.operationData,
-          },
-        })
-        .catch(() => ({
-          willComplete: false,
-        }))
-
-      if (response.willComplete) {
-        // return the folder worker ID so it can be recorded as the assignee of this operation
-        return folderWorkerRedisKey.split(':')[1]
-      }
-    }
+  init(server: http.Server) {
+    this.initModuleServer(server)
   }
 
   sendToFolderRoom(folderId: string, name: FolderPushMessage, msg: any) {
-    this.ioServer?.to(`folder:${folderId}`).emit(name, msg)
+    this.userServer?.to(`folder:${folderId}`).emit(name, msg)
+  }
+
+  getModuleConnections() {
+    return this.moduleConnections
   }
 
   close() {
-    this.ioServer?.close()
+    this.userServer?.close()
   }
 }

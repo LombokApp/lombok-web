@@ -1,4 +1,3 @@
-import type { FolderOperationName } from '@stellariscloud/workers'
 import {
   Body,
   Controller,
@@ -28,13 +27,6 @@ import type { FolderData } from '../domains/folder/transfer-objects/folder.dto'
 import type { FolderObjectData } from '../domains/folder/transfer-objects/folder-object.dto'
 import { transformFolderToFolderDTO } from '../domains/folder/transforms/folder-dto.transform'
 import { transformFolderObjectToFolderObjectDTO } from '../domains/folder/transforms/folder-object-dto.transform'
-import {
-  FolderOperationSort,
-  FolderOperationStatus,
-} from '../domains/folder-operation/constants/folder-operation.constants'
-import { FolderOperationService } from '../domains/folder-operation/services/folder-operation.service'
-import type { FolderOperationData } from '../domains/folder-operation/transfer-objects/folder-operation.dto'
-import { transformFolderOperationToFolderOperationDTO } from '../domains/folder-operation/transforms/folder-operation-dto.transform'
 import type { UserLocationInputData } from '../domains/storage-location/transfer-objects/s3-location.dto'
 import { UnauthorizedError } from '../errors/auth.error'
 import type { ErrorResponse } from '../transfer-objects/error-response.dto'
@@ -45,29 +37,16 @@ export interface FolderAndPermission {
   permissions: string[]
 }
 
-export interface FolderOperationsResponse {
-  meta: { totalCount: number }
-  result: FolderOperationData[]
-}
-
 export interface ListFoldersResponse {
   meta: { totalCount: number }
   result: FolderAndPermission[]
-}
-
-export interface FolderOperationRequestPayload {
-  operationName: FolderOperationName
-  operationData: { [key: string]: any }
 }
 
 @scoped(Lifecycle.ContainerScoped)
 @Route('folders')
 @Tags('Folders')
 export class FoldersController extends Controller {
-  constructor(
-    private readonly folderService: FolderService,
-    private readonly folderOperationService: FolderOperationService,
-  ) {
+  constructor(private readonly folderService: FolderService) {
     super()
   }
 
@@ -194,26 +173,6 @@ export class FoldersController extends Controller {
 
   @Security(AuthScheme.AccessToken)
   @Response<ErrorResponse>('4XX')
-  @OperationId('enqueueFolderOperation')
-  @Post('/:folderId/operations')
-  async enqueueFolderOperation(
-    @Request() req: Express.Request,
-    @Path() folderId: string,
-    @Body() folderOperation: FolderOperationRequestPayload,
-  ): Promise<FolderOperationData> {
-    if (!req.user) {
-      throw new UnauthorizedError()
-    }
-    const result = await this.folderService.enqueueFolderOperationAsUser({
-      userId: req.user.id,
-      folderId,
-      folderOperation,
-    })
-    return transformFolderOperationToFolderOperationDTO(result[0])
-  }
-
-  @Security(AuthScheme.AccessToken)
-  @Response<ErrorResponse>('4XX')
   @OperationId('deleteFolderObject')
   @Delete('/:folderId/objects/:objectKey')
   async deleteFolderObject(
@@ -277,24 +236,6 @@ export class FoldersController extends Controller {
   //   })
   //   return result.toFolderShareData()
   // }
-
-  @Security(AuthScheme.AccessToken)
-  @Response<ErrorResponse>('4XX')
-  @OperationId('indexAllContent')
-  @Post('/:folderId/index-all')
-  async indexAllContent(
-    @Request() req: Express.Request,
-    @Path() folderId: string,
-  ) {
-    if (!req.user) {
-      throw new UnauthorizedError()
-    }
-    await this.folderService.indexAllUnindexedContentAsUser({
-      userId: req.user.id,
-      folderId,
-    })
-    return true
-  }
 
   // @Security(AuthScheme.AccessToken)
   // @Response<ErrorResponse>('4XX')
@@ -520,23 +461,6 @@ export class FoldersController extends Controller {
     )
   }
 
-  @Security(AuthScheme.AccessToken)
-  @Response<ErrorResponse>('4XX')
-  @OperationId('createSocketAuthentication')
-  @Post('/:folderId/socket-auth')
-  createSocketAuthentication(
-    @Request() req: Express.Request,
-    @Path() folderId: string,
-  ) {
-    if (!req.user) {
-      throw new UnauthorizedError()
-    }
-    return this.folderService.createSocketAuthenticationAsUser(
-      req.user.id,
-      folderId,
-    )
-  }
-
   // @Security(AuthScheme.AccessToken)
   // @Response<ErrorResponse>('4XX')
   // @OperationId('getFolderOperation')
@@ -556,37 +480,4 @@ export class FoldersController extends Controller {
   //   })
   //   return result.toFolderOperationData()
   // }
-
-  @Security(AuthScheme.AccessToken)
-  @Response<ErrorResponse>('4XX')
-  @OperationId('listFolderOperations')
-  @Get('/:folderId/operations')
-  async listFolderOperations(
-    @Request() req: Express.Request,
-    @Path() folderId: string,
-    @Query() sort?: FolderOperationSort,
-    @Query() status?: FolderOperationStatus,
-    @Query() limit?: number,
-    @Query() offset?: number,
-  ): Promise<FolderOperationsResponse> {
-    if (!req.user) {
-      throw new UnauthorizedError()
-    }
-    const result = await this.folderOperationService.listFolderOperationsAsUser(
-      req.user,
-      {
-        folderId,
-        sort,
-        status,
-        limit,
-        offset,
-      },
-    )
-    return {
-      meta: result.meta,
-      result: result.result.map((folderOperation) =>
-        transformFolderOperationToFolderOperationDTO(folderOperation),
-      ),
-    }
-  }
 }

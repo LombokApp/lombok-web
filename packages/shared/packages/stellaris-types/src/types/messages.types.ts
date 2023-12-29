@@ -6,3 +6,12 @@ export enum FolderPushMessage {
   OBJECT_REMOVED = 'OBJECT_REMOVED',
   OBJECT_UPDATED = 'OBJECT_UPDATED',
 }
+
+export interface ModuleLogEntry {
+  level: 'error' | 'warning' | 'info' | 'debug'
+  name: string
+  message: string
+  data: {
+    [key: string]: any
+  }
+}

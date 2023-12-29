@@ -4,8 +4,7 @@ import {
   mediaTypeFromExtension,
   objectIdentifierToObjectKey,
 } from '@stellariscloud/utils'
-import { FolderOperationName } from '@stellariscloud/workers'
-import { and, eq, isNull, like, sql } from 'drizzle-orm'
+import { and, eq, like, sql } from 'drizzle-orm'
 import mime from 'mime'
 import * as r from 'runtypes'
 import { Lifecycle, scoped } from 'tsyringe'
@@ -14,7 +13,6 @@ import type { Logger } from 'winston'
 
 import { EnvConfigProvider } from '../../../config/env-config.provider'
 import { QueueName } from '../../../constants/app-worker-constants'
-import type { FolderOperationRequestPayload } from '../../../controllers/folders.controller'
 import { OrmService } from '../../../orm/orm.service'
 import { LoggingService } from '../../../services/logging.service'
 import { QueueService } from '../../../services/queue.service'
@@ -22,10 +20,8 @@ import { configureS3Client, S3Service } from '../../../services/s3.service'
 import { SocketService } from '../../../services/socket.service'
 import { parseSort } from '../../../util/sort.util'
 import { JWTService } from '../../auth/services/jwt.service'
-import type { FolderOperation } from '../../folder-operation/entities/folder-operation.entity'
-import { folderOperationsTable } from '../../folder-operation/entities/folder-operation.entity'
-import { folderOperationObjectsTable } from '../../folder-operation/entities/folder-operation-object.entity'
-import { FolderOperationService } from '../../folder-operation/services/folder-operation.service'
+import { EventService } from '../../event/services/event.service'
+import { CORE_MODULE_ID } from '../../module/constants/core-module.config'
 import { ServerLocationType } from '../../server/constants/server.constants'
 import { ServerConfigurationService } from '../../server/services/server-configuration.service'
 import type { StorageLocation } from '../../storage-location/entities/storage-location.entity'
@@ -129,9 +125,9 @@ export class FolderService {
   constructor(
     private readonly queueService: QueueService,
     private readonly serverConfigurationService: ServerConfigurationService,
-    private readonly folderOperationService: FolderOperationService,
     private readonly jwtService: JWTService,
     private readonly socketService: SocketService,
+    private readonly eventService: EventService,
     private readonly userService: UserService,
     private readonly loggingService: LoggingService,
     private readonly s3Service: S3Service,
@@ -497,27 +493,6 @@ export class FolderService {
     return obj
   }
 
-  async enqueueFolderOperationAsUser({
-    userId,
-    folderId,
-    folderOperation,
-  }: {
-    userId: string
-    folderId: string
-    folderOperation: FolderOperationRequestPayload
-  }) {
-    const { folder } = await this.getFolderAsUser({
-      folderId,
-      userId,
-    })
-
-    return this.folderOperationService.enqueueFolderOperations({
-      userId,
-      folderId: folder.id,
-      operations: [folderOperation],
-    })
-  }
-
   async getFolderAsUser({
     folderId,
     userId,
@@ -593,333 +568,6 @@ export class FolderService {
     return {
       result: folderObjects,
       meta: { totalCount: parseInt(folderObjectsCount.count ?? '0', 10) },
-    }
-  }
-
-  // async getFolderShareAsUser({
-  //   userId,
-  //   folderId,
-  //   shareId,
-  // }: {
-  //   userId: string
-  //   folderId: string
-  //   shareId: string
-  // }) {
-  //   const _folder = await this.getFolderAsUser({ userId, folderId })
-  //   const share = await this.folderShareRepository.findOne({
-  //     id: shareId,
-  //     folder: folderId,
-  //   })
-
-  //   if (!share) {
-  //     throw new FolderShareNotFoundError()
-  //   }
-  //   return share
-  // }
-
-  // async listFolderShares({
-  //   userId,
-  //   folderId,
-  //   offset,
-  //   limit,
-  // }: {
-  //   userId: string
-  //   folderId: string
-  //   offset?: number
-  //   limit?: number
-  // }) {
-  //   const _folder = await this.getFolderAsUser({ userId, folderId })
-  //   const [folderShares, folderSharesCount] =
-  //     await this.folderShareRepository.findAndCount(
-  //       {
-  //         folder: folderId,
-  //       },
-  //       { offset: offset ?? 0, limit: limit ?? 25 },
-  //     )
-
-  //   return {
-  //     result: folderShares,
-  //     meta: { totalCount: folderSharesCount },
-  //   }
-  // }
-
-  async indexAllUnindexedContentAsUser({
-    userId,
-    folderId,
-  }: {
-    userId: string
-    folderId: string
-  }): Promise<FolderOperation[]> {
-    const _folder = await this.getFolderAsUser({ folderId, userId })
-    return this.indexAllUnindexedContent({ userId, folderId })
-  }
-
-  async indexAllUnindexedContent({
-    userId,
-    folderId,
-  }: {
-    userId: string
-    folderId: string
-  }): Promise<FolderOperation[]> {
-    const MAX_BATCH_SIZE = 50
-
-    const unindexedObjects = await this.ormService.db
-      .select({ objectKey: folderObjectsTable.objectKey })
-      .from(folderObjectsTable)
-      .leftJoin(
-        folderOperationObjectsTable,
-        and(
-          eq(folderOperationObjectsTable.operationRelationType, 'INPUT'),
-          eq(
-            folderOperationObjectsTable.objectKey,
-            folderObjectsTable.objectKey,
-          ),
-          eq(folderOperationObjectsTable.folderId, folderObjectsTable.folderId),
-        ),
-      )
-      .leftJoin(
-        folderOperationsTable,
-        and(
-          eq(
-            folderOperationsTable.operationName,
-            FolderOperationName.IndexFolderObject,
-          ),
-          eq(folderOperationObjectsTable.operationId, folderOperationsTable.id),
-        ),
-      )
-      .where(
-        and(
-          eq(folderObjectsTable.folderId, folderId),
-          isNull(folderObjectsTable.hash),
-          isNull(folderOperationsTable.operationName),
-        ),
-      )
-      .limit(MAX_BATCH_SIZE)
-      .groupBy(folderObjectsTable.id)
-    if (unindexedObjects.length > 0) {
-      const ops = await this.folderOperationService.enqueueFolderOperations({
-        userId,
-        folderId,
-        operations: unindexedObjects.map((o) => ({
-          operationData: { folderId, objectKey: o.objectKey },
-          operationName: FolderOperationName.IndexFolderObject,
-        })),
-      })
-
-      if (ops.length === MAX_BATCH_SIZE) {
-        await this.queueService.add(
-          QueueName.IndexAllUnindexedInFolder,
-          {
-            folderId,
-            userId,
-          },
-          { jobId: uuidV4(), delay: 5000 },
-        )
-      }
-      return ops
-    }
-    return []
-  }
-
-  // async createFolderShareAsUser({
-  //   userId,
-  //   folderId,
-  //   share,
-  // }: {
-  //   userId: string
-  //   folderId: string
-  //   share: CreateFolderSharePayload
-  // }): Promise<FolderShare> {
-  //   const _folder = await this.getFolderAsUser({ folderId, userId })
-
-  //   let sharedUserId: string | undefined = undefined
-  //   try {
-  //     sharedUserId = await this.userService
-  //       .getByEmail({
-  //         email: share.userInviteEmail,
-  //       })
-  //       .then((u) => u.id)
-  //   } catch (e) {
-  //     // pass
-  //   }
-
-  //   const folderShare = this.folderShareRepository.create({
-  //     folder: folderId,
-  //     shareConfiguration: share.shareConfiguration,
-  //     userInviteEmail: share.userInviteEmail,
-  //     userLabel: share.userInviteEmail,
-  //     user: sharedUserId,
-  //   })
-  //   await this.folderRepository.getEntityManager().flush()
-  //   return folderShare
-  // }
-
-  // async updateFolderShareAsUser({
-  //   userId,
-  //   folderId,
-  //   shareId,
-  //   shareConfiguration,
-  // }: {
-  //   userId: string
-  //   folderId: string
-  //   shareId: string
-  //   shareConfiguration: CreateFolderSharePayload['shareConfiguration']
-  // }) {
-  //   const permissionValues = Object.values(FolderPermissionName)
-  //   const _folder = await this.getFolderAsUser({ folderId, userId })
-  //   const share = await this.getFolderShareAsUser({ userId, folderId, shareId })
-  //   shareConfiguration.permissions.forEach((p) => {
-  //     if (!permissionValues.includes(p)) {
-  //       throw new FolderPermissionInvalidError()
-  //     }
-  //   })
-  //   share.shareConfiguration = shareConfiguration
-  //   await this.folderRepository.getEntityManager().flush()
-  //   return share
-  // }
-
-  // async deleteFolderShareAsUser({
-  //   userId,
-  //   folderId,
-  //   shareId,
-  // }: {
-  //   userId: string
-  //   folderId: string
-  //   shareId: string
-  // }): Promise<boolean> {
-  //   const folder = await this.folderRepository.findOne({
-  //     id: folderId,
-  //     owner: userId,
-  //   })
-
-  //   if (!folder) {
-  //     throw new FolderNotFoundError()
-  //   }
-
-  //   const folderShare = await this.folderShareRepository.findOne({
-  //     id: shareId,
-  //     folder: folderId,
-  //   })
-  //   if (!folderShare) {
-  //     throw new FolderShareNotFoundError()
-  //   }
-  //   this.folderRepository.getEntityManager().remove(folderShare)
-  //   await this.folderRepository.getEntityManager().flush()
-  //   return true
-  // }
-
-  // async listTags({
-  //   // userId,
-  //   folderId,
-  //   offset,
-  //   limit,
-  // }: {
-  //   userId: string
-  //   folderId: string
-  //   offset?: number
-  //   limit?: number
-  // }) {
-  //   const [objectTags, objectTagsCount] =
-  //     await this.objectTagRepository.findAndCount(
-  //       {
-  //         folder: folderId,
-  //       },
-  //       { offset: offset ?? 0, limit: limit ?? 25 },
-  //     )
-
-  //   return {
-  //     result: objectTags,
-  //     meta: { totalCount: objectTagsCount },
-  //   }
-  // }
-
-  // async createTag({
-  //   userId,
-  //   folderId,
-  //   body,
-  // }: {
-  //   body: { name: string }
-  //   userId: string
-  //   folderId: string
-  // }): Promise<ObjectTag> {
-  //   const { permissions } = await this.getFolderAsUser({ folderId, userId })
-  //   if (!permissions.includes(FolderPermissionName.TAG_CREATE)) {
-  //     throw new FolderPermissionMissingError()
-  //   }
-  //   const objectTag = this.objectTagRepository.create({
-  //     folder: folderId,
-  //     name: body.name,
-  //   })
-  //   await this.objectTagRepository.getEntityManager().flush()
-  //   return objectTag
-  // }
-
-  // async updateTag({
-  //   userId,
-  //   tagId,
-  //   folderId,
-  //   body,
-  // }: {
-  //   body: { name: string }
-  //   userId: string
-  //   tagId: string
-  //   folderId: string
-  // }) {
-  //   const { permissions } = await this.getFolderAsUser({ folderId, userId })
-  //   if (!permissions.includes(FolderPermissionName.TAG_CREATE)) {
-  //     throw new FolderPermissionMissingError()
-  //   }
-  //   const objectTag = await this.objectTagRepository.findOne({
-  //     id: tagId,
-  //     folder: folderId,
-  //   })
-
-  //   if (!objectTag) {
-  //     throw new FolderTagNotFoundError()
-  //   }
-
-  //   if (!body.name || body.name.length <= 0) {
-  //     throw new FolderTagNotFoundError()
-  //   }
-
-  //   objectTag.name = body.name
-  //   await this.objectTagRepository.getEntityManager().flush()
-  //   return objectTag
-  // }
-
-  // async deleteTag({
-  //   userId,
-  //   folderId,
-  //   tagId,
-  // }: {
-  //   userId: string
-  //   folderId: string
-  //   tagId: string
-  // }): Promise<boolean> {
-  //   const { permissions } = await this.getFolderAsUser({ folderId, userId })
-
-  //   if (!permissions.includes(FolderPermissionName.OBJECT_EDIT)) {
-  //     throw new FolderPermissionMissingError()
-  //   }
-
-  //   const tag = await this.objectTagRepository.findOne({
-  //     id: tagId,
-  //     folder: folderId,
-  //   })
-
-  //   if (!tag) {
-  //     throw new FolderObjectNotFoundError()
-  //   }
-
-  //   this.folderRepository.getEntityManager().remove(tag)
-  //   await this.folderRepository.getEntityManager().flush()
-  //   return true
-  // }
-
-  async createSocketAuthenticationAsUser(userId: string, folderId: string) {
-    const { folder } = await this.getFolderAsUser({ userId, folderId })
-    return {
-      token: this.jwtService.createFolderSocketAccessToken(userId, folder.id),
     }
   }
 
@@ -1032,8 +680,9 @@ export class FolderService {
     // TODO: implement folder object refreshing from bucket
 
     // consume the objects in the bucket, 1000 at a time, turning them into FolderObject entities
+    let contentCount = 0
+    let metadataCount = 0
     let continuationToken: string | undefined = ''
-    let batch: S3ObjectInternal[] = []
     while (typeof continuationToken === 'string') {
       // list objects in the bucket, with the given prefix
       const response: {
@@ -1048,12 +697,7 @@ export class FolderService {
             : continuationToken,
         prefix: contentStorageLocation.prefix,
       })
-
-      // swap in the new batch and the continuationToken for the next batch
-      batch = response.result
-      continuationToken = response.continuationToken
-
-      for (const obj of batch) {
+      for (const obj of response.result) {
         const objectKey = obj.key
         if (
           objectKey.startsWith(
@@ -1065,29 +709,27 @@ export class FolderService {
             }.stellaris_folder_metadata`,
           )
         ) {
-          continue
-        }
-        if (obj.size > 0) {
+          metadataCount++
+        } else if (obj.size > 0) {
+          contentCount++
           // this is a user file
           // console.log('Trying to update key metadata [%s]:', objectKey, obj)
           await this.updateFolderObjectInDB(folder.id, objectKey, obj)
         }
-
-        // if (!this.indexingJobContext.lastNotify) {
-        //   this.indexingJobContext.lastNotify = Date.now()
-        // } else if (this.indexingJobContext.lastNotify < Date.now() - 10000) {
-        //   this.indexingJobContext.lastNotify = Date.now()
-        //   this.sessions.forEach(({ webSocket }) => {
-        //     webSocket.send(
-        //       JSON.stringify({
-        //         name: FolderPushMessage.REINDEX_BATCH_COMPLETE,
-        //         payload: {},
-        //       }),
-        //     )
-        //   })
-        // }
       }
-      console.log('Finished batch of length: %d', batch.length)
+      console.log(
+        'Finished batch: %s',
+        JSON.stringify(
+          {
+            length: response.result.length,
+            contentCount,
+            metadataCount,
+          },
+          null,
+          2,
+        ),
+      )
+      continuationToken = response.continuationToken
     }
   }
 
@@ -1188,90 +830,12 @@ export class FolderService {
       { folderObject: record },
     )
 
+    await this.eventService.emitEvent({
+      moduleId: CORE_MODULE_ID,
+      eventKey: previousRecord ? 'CORE:OBJECT_UPDATED' : 'CORE:OBJECT_ADDED',
+      data: record,
+    })
+
     return record
   }
-
-  // async tagObject({
-  //   userId,
-  //   folderId,
-  //   objectKey,
-  //   tagId,
-  // }: {
-  //   userId: string
-  //   folderId: string
-  //   objectKey: string
-  //   tagId: string
-  // }) {
-  //   const folderAndPermission = await this.getFolderAsUser({ folderId, userId })
-  //   if (
-  //     !folderAndPermission.permissions.includes(
-  //       FolderPermissionName.OBJECT_MANAGE,
-  //     )
-  //   ) {
-  //     throw new FolderPermissionMissingError()
-  //   }
-
-  //   const folderObject = await this.folderObjectRepository.findOne({
-  //     objectKey,
-  //     folder: folderId,
-  //   })
-  //   const tag = await this.objectTagRepository.findOne({
-  //     id: tagId,
-  //     folder: folderId,
-  //   })
-
-  //   if (!tag || !folderObject) {
-  //     throw new ObjectTagInvalidError()
-  //   }
-
-  //   this.objectTagRelationRepository.create({
-  //     tag: tagId,
-  //     object: folderObject.id,
-  //   })
-
-  //   await this.objectTagRelationRepository.getEntityManager().flush()
-  // }
-
-  // async untagObject({
-  //   userId,
-  //   folderId,
-  //   objectKey,
-  //   tagId,
-  // }: {
-  //   userId: string
-  //   folderId: string
-  //   objectKey: string
-  //   tagId: string
-  // }) {
-  //   const folderAndPermission = await this.getFolderAsUser({ folderId, userId })
-  //   if (
-  //     !folderAndPermission.permissions.includes(
-  //       FolderPermissionName.OBJECT_MANAGE,
-  //     )
-  //   ) {
-  //     throw new FolderPermissionMissingError()
-  //   }
-
-  //   const folderObject = await this.folderObjectRepository.findOne({
-  //     objectKey,
-  //     folder: folderId,
-  //   })
-
-  //   if (!folderObject) {
-  //     throw new ObjectTagInvalidError()
-  //   }
-
-  //   const tagRelation = await this.objectTagRelationRepository.findOne({
-  //     tag: tagId,
-  //     object: folderObject.id,
-  //   })
-
-  //   if (!tagRelation) {
-  //     throw new ObjectTagInvalidError()
-  //   }
-
-  //   await this.objectTagRelationRepository
-  //     .getEntityManager()
-  //     .removeAndFlush(tagRelation)
-  // }
 }

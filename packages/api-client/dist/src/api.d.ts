@@ -16,37 +16,6 @@ import { BaseAPI } from './base';
 /**
  *
  * @export
- * @interface ContentAttibutesPayload
- */
-export interface ContentAttibutesPayload {
-    /**
-     *
-     * @type {string}
-     * @memberof ContentAttibutesPayload
-     */
-    'folderId': string;
-    /**
-     *
-     * @type {string}
-     * @memberof ContentAttibutesPayload
-     */
-    'objectKey': string;
-    /**
-     *
-     * @type {string}
-     * @memberof ContentAttibutesPayload
-     */
-    'hash': string;
-    /**
-     *
-     * @type {ContentAttributesType}
-     * @memberof ContentAttibutesPayload
-     */
-    'attributes': ContentAttributesType;
-}
-/**
- *
- * @export
  * @interface ContentAttributesType
  */
 export interface ContentAttributesType {
@@ -96,39 +65,6 @@ export interface ContentAttributesType {
 /**
  *
  * @export
- * @interface ContentMetadataPayload
- */
-export interface ContentMetadataPayload {
-    /**
-     *
-     * @type {string}
-     * @memberof ContentMetadataPayload
-     */
-    'folderId': string;
-    /**
-     *
-     * @type {string}
-     * @memberof ContentMetadataPayload
-     */
-    'objectKey': string;
-    /**
-     *
-     * @type {string}
-     * @memberof ContentMetadataPayload
-     */
-    'hash': string;
-    /**
-     *
-     * @type {{ [key: string]: MetadataEntry | undefined; }}
-     * @memberof ContentMetadataPayload
-     */
-    'metadata': {
-        [key: string]: MetadataEntry | undefined;
-    };
-}
-/**
- *
- * @export
  * @interface CreateFolder200Response
  */
 export interface CreateFolder200Response {
@@ -163,142 +99,6 @@ export interface CreateFolderRequest {
      * @memberof CreateFolderRequest
      */
     'name': string;
-}
-/**
- *
- * @export
- * @interface CreateMetadataUploadUrls200Response
- */
-export interface CreateMetadataUploadUrls200Response {
-    /**
-     *
-     * @type {Array<MetadataUploadUrlsResponse>}
-     * @memberof CreateMetadataUploadUrls200Response
-     */
-    'metadataUploadUrls': Array<MetadataUploadUrlsResponse>;
-}
-/**
- *
- * @export
- * @interface CreateMetadataUploadUrlsPayload
- */
-export interface CreateMetadataUploadUrlsPayload {
-    /**
-     *
-     * @type {string}
-     * @memberof CreateMetadataUploadUrlsPayload
-     */
-    'contentHash': string;
-    /**
-     *
-     * @type {Array<CreateMetadataUploadUrlsPayloadMetadataFilesInner>}
-     * @memberof CreateMetadataUploadUrlsPayload
-     */
-    'metadataFiles': Array<CreateMetadataUploadUrlsPayloadMetadataFilesInner>;
-}
-/**
- *
- * @export
- * @interface CreateMetadataUploadUrlsPayloadMetadataFilesInner
- */
-export interface CreateMetadataUploadUrlsPayloadMetadataFilesInner {
-    /**
-     *
-     * @type {{ [key: string]: string | undefined; }}
-     * @memberof CreateMetadataUploadUrlsPayloadMetadataFilesInner
-     */
-    'metadataHashes': {
-        [key: string]: string | undefined;
-    };
-    /**
-     *
-     * @type {string}
-     * @memberof CreateMetadataUploadUrlsPayloadMetadataFilesInner
-     */
-    'objectKey': string;
-    /**
-     *
-     * @type {string}
-     * @memberof CreateMetadataUploadUrlsPayloadMetadataFilesInner
-     */
-    'folderId': string;
-}
-/**
- *
- * @export
- * @interface CreateOutputUploadUrls200Response
- */
-export interface CreateOutputUploadUrls200Response {
-    /**
-     *
-     * @type {Array<OutputUploadUrlsResponse>}
-     * @memberof CreateOutputUploadUrls200Response
-     */
-    'outputUploadUrls': Array<OutputUploadUrlsResponse>;
-}
-/**
- *
- * @export
- * @interface CreateOutputUploadUrlsPayload
- */
-export interface CreateOutputUploadUrlsPayload {
-    /**
-     *
-     * @type {Array<CreateOutputUploadUrlsPayloadOutputFilesInner>}
-     * @memberof CreateOutputUploadUrlsPayload
-     */
-    'outputFiles': Array<CreateOutputUploadUrlsPayloadOutputFilesInner>;
-}
-/**
- *
- * @export
- * @interface CreateOutputUploadUrlsPayloadOutputFilesInner
- */
-export interface CreateOutputUploadUrlsPayloadOutputFilesInner {
-    /**
-     *
-     * @type {string}
-     * @memberof CreateOutputUploadUrlsPayloadOutputFilesInner
-     */
-    'objectKey': string;
-    /**
-     *
-     * @type {string}
-     * @memberof CreateOutputUploadUrlsPayloadOutputFilesInner
-     */
-    'folderId': string;
-}
-/**
- *
- * @export
- * @interface CreateServerWorkerKey200Response
- */
-export interface CreateServerWorkerKey200Response {
-    /**
-     *
-     * @type {FolderWorkerKeyData}
-     * @memberof CreateServerWorkerKey200Response
-     */
-    'workerKey': FolderWorkerKeyData;
-    /**
-     *
-     * @type {string}
-     * @memberof CreateServerWorkerKey200Response
-     */
-    'token': string;
-}
-/**
- *
- * @export
- * @interface CreateSocketAuthentication200Response
- */
-export interface CreateSocketAuthentication200Response {
-    /**
-     *
-     * @type {string}
-     * @memberof CreateSocketAuthentication200Response
-     */
-    'token': string;
 }
 /**
  *
@@ -576,137 +376,6 @@ export interface FolderObjectData {
 /**
  *
  * @export
- * @interface FolderOperationData
- */
-export interface FolderOperationData {
-    /**
-     *
-     * @type {string}
-     * @memberof FolderOperationData
-     */
-    'createdAt': string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderOperationData
-     */
-    'updatedAt': string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderOperationData
-     */
-    'id': string;
-    /**
-     *
-     * @type {FolderOperationName}
-     * @memberof FolderOperationData
-     */
-    'operationName': FolderOperationName;
-    /**
-     *
-     * @type {{ [key: string]: any | undefined; }}
-     * @memberof FolderOperationData
-     */
-    'operationData': {
-        [key: string]: any | undefined;
-    };
-    /**
-     *
-     * @type {boolean}
-     * @memberof FolderOperationData
-     */
-    'started': boolean;
-    /**
-     *
-     * @type {boolean}
-     * @memberof FolderOperationData
-     */
-    'completed': boolean;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderOperationData
-     */
-    'error': string | null;
-}
-/**
- *
- * @export
- * @enum {string}
- */
-export declare const FolderOperationName: {
-    readonly IndexFolderObject: "IndexFolderObject";
-    readonly TranscribeAudio: "TranscribeAudio";
-    readonly DetectObjects: "DetectObjects";
-};
-export type FolderOperationName = typeof FolderOperationName[keyof typeof FolderOperationName];
-/**
- *
- * @export
- * @interface FolderOperationRequestPayload
- */
-export interface FolderOperationRequestPayload {
-    /**
-     *
-     * @type {FolderOperationName}
-     * @memberof FolderOperationRequestPayload
-     */
-    'operationName': FolderOperationName;
-    /**
-     *
-     * @type {{ [key: string]: any | undefined; }}
-     * @memberof FolderOperationRequestPayload
-     */
-    'operationData': {
-        [key: string]: any | undefined;
-    };
-}
-/**
- *
- * @export
- * @enum {string}
- */
-export declare const FolderOperationSort: {
-    readonly CreatedAtAsc: "createdAt-asc";
-    readonly CreatedAtDesc: "createdAt-desc";
-    readonly UpdatedAtAsc: "updatedAt-asc";
-    readonly UpdatedAtDesc: "updatedAt-desc";
-};
-export type FolderOperationSort = typeof FolderOperationSort[keyof typeof FolderOperationSort];
-/**
- *
- * @export
- * @enum {string}
- */
-export declare const FolderOperationStatus: {
-    readonly Pending: "PENDING";
-    readonly Failed: "FAILED";
-    readonly Complete: "COMPLETE";
-};
-export type FolderOperationStatus = typeof FolderOperationStatus[keyof typeof FolderOperationStatus];
-/**
- *
- * @export
- * @interface FolderOperationsResponse
- */
-export interface FolderOperationsResponse {
-    /**
-     *
-     * @type {ListServerWorkerKeys200ResponseMeta}
-     * @memberof FolderOperationsResponse
-     */
-    'meta': ListServerWorkerKeys200ResponseMeta;
-    /**
-     *
-     * @type {Array<FolderOperationData>}
-     * @memberof FolderOperationsResponse
-     */
-    'result': Array<FolderOperationData>;
-}
-/**
- *
- * @export
  * @enum {string}
  */
 export declare const FolderPermissionName: {
@@ -719,153 +388,6 @@ export declare const FolderPermissionName: {
     readonly TagAssociate: "tag_associate";
 };
 export type FolderPermissionName = typeof FolderPermissionName[keyof typeof FolderPermissionName];
-/**
- *
- * @export
- * @interface FolderWorkerData
- */
-export interface FolderWorkerData {
-    /**
-     *
-     * @type {string}
-     * @memberof FolderWorkerData
-     */
-    'id': string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderWorkerData
-     */
-    'externalId': string;
-    /**
-     *
-     * @type {boolean}
-     * @memberof FolderWorkerData
-     */
-    'paused': boolean;
-    /**
-     *
-     * @type {{ [key: string]: FolderWorkerDataIpsValue | undefined; }}
-     * @memberof FolderWorkerData
-     */
-    'ips': {
-        [key: string]: FolderWorkerDataIpsValue | undefined;
-    };
-    /**
-     *
-     * @type {Array<string>}
-     * @memberof FolderWorkerData
-     */
-    'capabilities': Array<string>;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderWorkerData
-     */
-    'firstSeen': string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderWorkerData
-     */
-    'lastSeen': string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderWorkerData
-     */
-    'keyId': string | null;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderWorkerData
-     */
-    'createdAt': string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderWorkerData
-     */
-    'updatedAt': string;
-}
-/**
- *
- * @export
- * @interface FolderWorkerDataIpsValue
- */
-export interface FolderWorkerDataIpsValue {
-    /**
-     *
-     * @type {string}
-     * @memberof FolderWorkerDataIpsValue
-     */
-    'lastSeen': string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderWorkerDataIpsValue
-     */
-    'firstSeen': string;
-}
-/**
- *
- * @export
- * @interface FolderWorkerKeyData
- */
-export interface FolderWorkerKeyData {
-    /**
-     *
-     * @type {string}
-     * @memberof FolderWorkerKeyData
-     */
-    'id': string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderWorkerKeyData
-     */
-    'accessTokenExpiresAt': string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderWorkerKeyData
-     */
-    'createdAt': string;
-    /**
-     *
-     * @type {string}
-     * @memberof FolderWorkerKeyData
-     */
-    'updatedAt': string;
-}
-/**
- *
- * @export
- * @enum {string}
- */
-export declare const FolderWorkerKeySort: {
-    readonly CreatedAtAsc: "createdAt-asc";
-    readonly CreatedAtDesc: "createdAt-desc";
-    readonly UpdatedAtAsc: "updatedAt-asc";
-    readonly UpdatedAtDesc: "updatedAt-desc";
-};
-export type FolderWorkerKeySort = typeof FolderWorkerKeySort[keyof typeof FolderWorkerKeySort];
-/**
- *
- * @export
- * @enum {string}
- */
-export declare const FolderWorkerSort: {
-    readonly CreatedAtAsc: "createdAt-asc";
-    readonly CreatedAtDesc: "createdAt-desc";
-    readonly UpdatedAtAsc: "updatedAt-asc";
-    readonly UpdatedAtDesc: "updatedAt-desc";
-    readonly LastSeenAsc: "lastSeen-asc";
-    readonly LastSeenDesc: "lastSeen-desc";
-    readonly FirstSeenAsc: "firstSeen-asc";
-    readonly FirstSeenDesc: "firstSeen-desc";
-};
-export type FolderWorkerSort = typeof FolderWorkerSort[keyof typeof FolderWorkerSort];
 /**
  *
  * @export
@@ -957,16 +479,52 @@ export interface ListFolderObjects200Response {
 export interface ListFoldersResponse {
     /**
      *
-     * @type {ListServerWorkerKeys200ResponseMeta}
+     * @type {ListFoldersResponseMeta}
      * @memberof ListFoldersResponse
      */
-    'meta': ListServerWorkerKeys200ResponseMeta;
+    'meta': ListFoldersResponseMeta;
     /**
      *
      * @type {Array<FolderAndPermission>}
      * @memberof ListFoldersResponse
      */
     'result': Array<FolderAndPermission>;
+}
+/**
+ *
+ * @export
+ * @interface ListFoldersResponseMeta
+ */
+export interface ListFoldersResponseMeta {
+    /**
+     *
+     * @type {number}
+     * @memberof ListFoldersResponseMeta
+     */
+    'totalCount': number;
+}
+/**
+ *
+ * @export
+ * @interface ListModules200Response
+ */
+export interface ListModules200Response {
+    /**
+     *
+     * @type {{ [key: string]: { [key: string]: ModuleConnectionsMapValueValue | undefined; } | undefined; }}
+     * @memberof ListModules200Response
+     */
+    'connected': {
+        [key: string]: {
+            [key: string]: ModuleConnectionsMapValueValue | undefined;
+        } | undefined;
+    };
+    /**
+     *
+     * @type {Array<ModuleData>}
+     * @memberof ListModules200Response
+     */
+    'installed': Array<ModuleData>;
 }
 /**
  *
@@ -984,66 +542,15 @@ export interface ListResponseMeta {
 /**
  *
  * @export
- * @interface ListServerWorkerKeys200Response
- */
-export interface ListServerWorkerKeys200Response {
-    /**
-     *
-     * @type {Array<FolderWorkerKeyData>}
-     * @memberof ListServerWorkerKeys200Response
-     */
-    'result': Array<FolderWorkerKeyData>;
-    /**
-     *
-     * @type {ListServerWorkerKeys200ResponseMeta}
-     * @memberof ListServerWorkerKeys200Response
-     */
-    'meta': ListServerWorkerKeys200ResponseMeta;
-}
-/**
- *
- * @export
- * @interface ListServerWorkerKeys200ResponseMeta
- */
-export interface ListServerWorkerKeys200ResponseMeta {
-    /**
-     *
-     * @type {number}
-     * @memberof ListServerWorkerKeys200ResponseMeta
-     */
-    'totalCount': number;
-}
-/**
- *
- * @export
- * @interface ListServerWorkers200Response
- */
-export interface ListServerWorkers200Response {
-    /**
-     *
-     * @type {Array<FolderWorkerData>}
-     * @memberof ListServerWorkers200Response
-     */
-    'result': Array<FolderWorkerData>;
-    /**
-     *
-     * @type {ListServerWorkerKeys200ResponseMeta}
-     * @memberof ListServerWorkers200Response
-     */
-    'meta': ListServerWorkerKeys200ResponseMeta;
-}
-/**
- *
- * @export
  * @interface ListUsersResponse
  */
 export interface ListUsersResponse {
     /**
      *
-     * @type {ListServerWorkerKeys200ResponseMeta}
+     * @type {ListFoldersResponseMeta}
      * @memberof ListUsersResponse
      */
-    'meta': ListServerWorkerKeys200ResponseMeta;
+    'meta': ListFoldersResponseMeta;
     /**
      *
      * @type {Array<UserData>}
@@ -1111,54 +618,121 @@ export interface MetadataEntry {
 /**
  *
  * @export
- * @interface MetadataUploadUrlsResponse
+ * @interface ModuleAction
  */
-export interface MetadataUploadUrlsResponse {
+export interface ModuleAction {
     /**
      *
      * @type {string}
-     * @memberof MetadataUploadUrlsResponse
+     * @memberof ModuleAction
      */
-    'folderId': string;
+    'key': string;
     /**
      *
      * @type {string}
-     * @memberof MetadataUploadUrlsResponse
+     * @memberof ModuleAction
      */
-    'objectKey': string;
-    /**
-     *
-     * @type {{ [key: string]: string | undefined; }}
-     * @memberof MetadataUploadUrlsResponse
-     */
-    'urls': {
-        [key: string]: string | undefined;
-    };
+    'description': string;
 }
 /**
  *
  * @export
- * @interface OutputUploadUrlsResponse
+ * @interface ModuleConfig
  */
-export interface OutputUploadUrlsResponse {
+export interface ModuleConfig {
     /**
      *
      * @type {string}
-     * @memberof OutputUploadUrlsResponse
+     * @memberof ModuleConfig
      */
-    'folderId': string;
+    'publicKey': string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof ModuleConfig
+     */
+    'subscribedEvents': Array<string>;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof ModuleConfig
+     */
+    'emitEvents': Array<string>;
+    /**
+     *
+     * @type {ModuleConfigActions}
+     * @memberof ModuleConfig
+     */
+    'actions': ModuleConfigActions;
+}
+/**
+ *
+ * @export
+ * @interface ModuleConfigActions
+ */
+export interface ModuleConfigActions {
+    /**
+     *
+     * @type {Array<ModuleAction>}
+     * @memberof ModuleConfigActions
+     */
+    'object': Array<ModuleAction>;
+    /**
+     *
+     * @type {Array<ModuleAction>}
+     * @memberof ModuleConfigActions
+     */
+    'folder': Array<ModuleAction>;
+}
+/**
+ *
+ * @export
+ * @interface ModuleConnectionsMapValueValue
+ */
+export interface ModuleConnectionsMapValueValue {
     /**
      *
      * @type {string}
-     * @memberof OutputUploadUrlsResponse
+     * @memberof ModuleConnectionsMapValueValue
      */
-    'objectKey': string;
+    'ip': string;
     /**
      *
      * @type {string}
-     * @memberof OutputUploadUrlsResponse
+     * @memberof ModuleConnectionsMapValueValue
      */
-    'url': string;
+    'name': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ModuleConnectionsMapValueValue
+     */
+    'id': string;
+}
+/**
+ *
+ * @export
+ * @interface ModuleData
+ */
+export interface ModuleData {
+    /**
+     *
+     * @type {string}
+     * @memberof ModuleData
+     */
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ModuleData
+     */
+    'name': string;
+    /**
+     *
+     * @type {ModuleConfig}
+     * @memberof ModuleData
+     */
+    'config': ModuleConfig;
 }
 /**
  *
@@ -1387,31 +961,6 @@ export interface SignupParams {
      * @memberof SignupParams
      */
     'password': string;
-}
-/**
- *
- * @export
- * @interface StartJob200ResponseInner
- */
-export interface StartJob200ResponseInner {
-    /**
-     *
-     * @type {string}
-     * @memberof StartJob200ResponseInner
-     */
-    'url': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StartJob200ResponseInner
-     */
-    'objectKey': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StartJob200ResponseInner
-     */
-    'folderId': string;
 }
 /**
  *
@@ -1874,13 +1423,6 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createSocketAuthentication: (folderId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
     deleteFolder: (folderId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
@@ -1890,14 +1432,6 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
      * @throws {RequiredError}
      */
     deleteFolderObject: (folderId: string, objectKey: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {FolderOperationRequestPayload} folderOperationRequestPayload
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    enqueueFolderOperation: (folderId: string, folderOperationRequestPayload: FolderOperationRequestPayload, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {string} folderId
@@ -1923,13 +1457,6 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
     /**
      *
      * @param {string} folderId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    indexAllContent: (folderId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} folderId
      * @param {string} [search]
      * @param {number} [offset]
      * @param {number} [limit]
@@ -1937,17 +1464,6 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
      * @throws {RequiredError}
      */
     listFolderObjects: (folderId: string, search?: string, offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {FolderOperationSort} [sort]
-     * @param {FolderOperationStatus} [status]
-     * @param {number} [limit]
-     * @param {number} [offset]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listFolderOperations: (folderId: string, sort?: FolderOperationSort, status?: FolderOperationStatus, limit?: number, offset?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {*} [options] Override http request option.
@@ -1997,13 +1513,6 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createSocketAuthentication(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateSocketAuthentication200Response>>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
     deleteFolder(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DeleteFolder200Response>>;
     /**
      *
@@ -2013,14 +1522,6 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
      * @throws {RequiredError}
      */
     deleteFolderObject(folderId: string, objectKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DeleteFolder200Response>>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {FolderOperationRequestPayload} folderOperationRequestPayload
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    enqueueFolderOperation(folderId: string, folderOperationRequestPayload: FolderOperationRequestPayload, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderOperationData>>;
     /**
      *
      * @param {string} folderId
@@ -2046,13 +1547,6 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
     /**
      *
      * @param {string} folderId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    indexAllContent(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>>;
-    /**
-     *
-     * @param {string} folderId
      * @param {string} [search]
      * @param {number} [offset]
      * @param {number} [limit]
@@ -2060,17 +1554,6 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
      * @throws {RequiredError}
      */
     listFolderObjects(folderId: string, search?: string, offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ListFolderObjects200Response>>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {FolderOperationSort} [sort]
-     * @param {FolderOperationStatus} [status]
-     * @param {number} [limit]
-     * @param {number} [offset]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listFolderOperations(folderId: string, sort?: FolderOperationSort, status?: FolderOperationStatus, limit?: number, offset?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderOperationsResponse>>;
     /**
      *
      * @param {*} [options] Override http request option.
@@ -2115,13 +1598,6 @@ export declare const FoldersApiFactory: (configuration?: Configuration, basePath
     createPresignedUrls(requestParameters: FoldersApiCreatePresignedUrlsRequest, options?: AxiosRequestConfig): AxiosPromise<Array<string>>;
     /**
      *
-     * @param {FoldersApiCreateSocketAuthenticationRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createSocketAuthentication(requestParameters: FoldersApiCreateSocketAuthenticationRequest, options?: AxiosRequestConfig): AxiosPromise<CreateSocketAuthentication200Response>;
-    /**
-     *
      * @param {FoldersApiDeleteFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2134,13 +1610,6 @@ export declare const FoldersApiFactory: (configuration?: Configuration, basePath
      * @throws {RequiredError}
      */
     deleteFolderObject(requestParameters: FoldersApiDeleteFolderObjectRequest, options?: AxiosRequestConfig): AxiosPromise<DeleteFolder200Response>;
-    /**
-     *
-     * @param {FoldersApiEnqueueFolderOperationRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    enqueueFolderOperation(requestParameters: FoldersApiEnqueueFolderOperationRequest, options?: AxiosRequestConfig): AxiosPromise<FolderOperationData>;
     /**
      *
      * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
@@ -2164,25 +1633,11 @@ export declare const FoldersApiFactory: (configuration?: Configuration, basePath
     getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: AxiosRequestConfig): AxiosPromise<FolderObjectData>;
     /**
      *
-     * @param {FoldersApiIndexAllContentRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    indexAllContent(requestParameters: FoldersApiIndexAllContentRequest, options?: AxiosRequestConfig): AxiosPromise<boolean>;
-    /**
-     *
      * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: AxiosRequestConfig): AxiosPromise<ListFolderObjects200Response>;
-    /**
-     *
-     * @param {FoldersApiListFolderOperationsRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listFolderOperations(requestParameters: FoldersApiListFolderOperationsRequest, options?: AxiosRequestConfig): AxiosPromise<FolderOperationsResponse>;
     /**
      *
      * @param {*} [options] Override http request option.
@@ -2237,19 +1692,6 @@ export interface FoldersApiCreatePresignedUrlsRequest {
     readonly signedURLsRequest: Array<SignedURLsRequest>;
 }
 /**
- * Request parameters for createSocketAuthentication operation in FoldersApi.
- * @export
- * @interface FoldersApiCreateSocketAuthenticationRequest
- */
-export interface FoldersApiCreateSocketAuthenticationRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiCreateSocketAuthentication
-     */
-    readonly folderId: string;
-}
-/**
  * Request parameters for deleteFolder operation in FoldersApi.
  * @export
  * @interface FoldersApiDeleteFolderRequest
@@ -2280,25 +1722,6 @@ export interface FoldersApiDeleteFolderObjectRequest {
      * @memberof FoldersApiDeleteFolderObject
      */
     readonly objectKey: string;
-}
-/**
- * Request parameters for enqueueFolderOperation operation in FoldersApi.
- * @export
- * @interface FoldersApiEnqueueFolderOperationRequest
- */
-export interface FoldersApiEnqueueFolderOperationRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiEnqueueFolderOperation
-     */
-    readonly folderId: string;
-    /**
-     *
-     * @type {FolderOperationRequestPayload}
-     * @memberof FoldersApiEnqueueFolderOperation
-     */
-    readonly folderOperationRequestPayload: FolderOperationRequestPayload;
 }
 /**
  * Request parameters for getFolder operation in FoldersApi.
@@ -2346,19 +1769,6 @@ export interface FoldersApiGetFolderObjectRequest {
     readonly objectKey: string;
 }
 /**
- * Request parameters for indexAllContent operation in FoldersApi.
- * @export
- * @interface FoldersApiIndexAllContentRequest
- */
-export interface FoldersApiIndexAllContentRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiIndexAllContent
-     */
-    readonly folderId: string;
-}
-/**
  * Request parameters for listFolderObjects operation in FoldersApi.
  * @export
  * @interface FoldersApiListFolderObjectsRequest
@@ -2388,43 +1798,6 @@ export interface FoldersApiListFolderObjectsRequest {
      * @memberof FoldersApiListFolderObjects
      */
     readonly limit?: number;
-}
-/**
- * Request parameters for listFolderOperations operation in FoldersApi.
- * @export
- * @interface FoldersApiListFolderOperationsRequest
- */
-export interface FoldersApiListFolderOperationsRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof FoldersApiListFolderOperations
-     */
-    readonly folderId: string;
-    /**
-     *
-     * @type {FolderOperationSort}
-     * @memberof FoldersApiListFolderOperations
-     */
-    readonly sort?: FolderOperationSort;
-    /**
-     *
-     * @type {FolderOperationStatus}
-     * @memberof FoldersApiListFolderOperations
-     */
-    readonly status?: FolderOperationStatus;
-    /**
-     *
-     * @type {number}
-     * @memberof FoldersApiListFolderOperations
-     */
-    readonly limit?: number;
-    /**
-     *
-     * @type {number}
-     * @memberof FoldersApiListFolderOperations
-     */
-    readonly offset?: number;
 }
 /**
  * Request parameters for refreshFolder operation in FoldersApi.
@@ -2489,14 +1862,6 @@ export declare class FoldersApi extends BaseAPI {
     createPresignedUrls(requestParameters: FoldersApiCreatePresignedUrlsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<string[], any>>;
     /**
      *
-     * @param {FoldersApiCreateSocketAuthenticationRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FoldersApi
-     */
-    createSocketAuthentication(requestParameters: FoldersApiCreateSocketAuthenticationRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CreateSocketAuthentication200Response, any>>;
-    /**
-     *
      * @param {FoldersApiDeleteFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2511,14 +1876,6 @@ export declare class FoldersApi extends BaseAPI {
      * @memberof FoldersApi
      */
     deleteFolderObject(requestParameters: FoldersApiDeleteFolderObjectRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<DeleteFolder200Response, any>>;
-    /**
-     *
-     * @param {FoldersApiEnqueueFolderOperationRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FoldersApi
-     */
-    enqueueFolderOperation(requestParameters: FoldersApiEnqueueFolderOperationRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderOperationData, any>>;
     /**
      *
      * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
@@ -2545,28 +1902,12 @@ export declare class FoldersApi extends BaseAPI {
     getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderObjectData, any>>;
     /**
      *
-     * @param {FoldersApiIndexAllContentRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FoldersApi
-     */
-    indexAllContent(requestParameters: FoldersApiIndexAllContentRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<boolean, any>>;
-    /**
-     *
      * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
     listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ListFolderObjects200Response, any>>;
-    /**
-     *
-     * @param {FoldersApiListFolderOperationsRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof FoldersApi
-     */
-    listFolderOperations(requestParameters: FoldersApiListFolderOperationsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderOperationsResponse, any>>;
     /**
      *
      * @param {*} [options] Override http request option.
@@ -2606,12 +1947,6 @@ export declare const ServerApiAxiosParamCreator: (configuration?: Configuration)
     addServerLocation: (locationType: ServerLocationType, serverLocationInputData: ServerLocationInputData, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createServerWorkerKey: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
      * @param {CreateUserData} createUserData
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2625,13 +1960,6 @@ export declare const ServerApiAxiosParamCreator: (configuration?: Configuration)
      * @throws {RequiredError}
      */
     deleteServerLocation: (locationType: ServerLocationType, locationId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} workerKeyId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    deleteServerWorkerKey: (workerKeyId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {string} userId
@@ -2654,29 +1982,17 @@ export declare const ServerApiAxiosParamCreator: (configuration?: Configuration)
     getUser: (userId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listModules: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
      * @param {ServerLocationType} locationType
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     listServerLocations: (locationType: ServerLocationType, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {FolderWorkerKeySort} [sort]
-     * @param {number} [limit]
-     * @param {number} [offset]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listServerWorkerKeys: (sort?: FolderWorkerKeySort, limit?: number, offset?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {FolderWorkerSort} [sort]
-     * @param {number} [limit]
-     * @param {number} [offset]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listServerWorkers: (sort?: FolderWorkerSort, limit?: number, offset?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {*} [options] Override http request option.
@@ -2722,12 +2038,6 @@ export declare const ServerApiFp: (configuration?: Configuration) => {
     addServerLocation(locationType: ServerLocationType, serverLocationInputData: ServerLocationInputData, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ServerLocationData>>;
     /**
      *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createServerWorkerKey(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateServerWorkerKey200Response>>;
-    /**
-     *
      * @param {CreateUserData} createUserData
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2741,13 +2051,6 @@ export declare const ServerApiFp: (configuration?: Configuration) => {
      * @throws {RequiredError}
      */
     deleteServerLocation(locationType: ServerLocationType, locationId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>>;
-    /**
-     *
-     * @param {string} workerKeyId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    deleteServerWorkerKey(workerKeyId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<DeleteFolder200Response>>;
     /**
      *
      * @param {string} userId
@@ -2770,29 +2073,17 @@ export declare const ServerApiFp: (configuration?: Configuration) => {
     getUser(userId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GetUser200Response>>;
     /**
      *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listModules(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ListModules200Response>>;
+    /**
+     *
      * @param {ServerLocationType} locationType
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     listServerLocations(locationType: ServerLocationType, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ServerLocationData>>>;
-    /**
-     *
-     * @param {FolderWorkerKeySort} [sort]
-     * @param {number} [limit]
-     * @param {number} [offset]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listServerWorkerKeys(sort?: FolderWorkerKeySort, limit?: number, offset?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ListServerWorkerKeys200Response>>;
-    /**
-     *
-     * @param {FolderWorkerSort} [sort]
-     * @param {number} [limit]
-     * @param {number} [offset]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listServerWorkers(sort?: FolderWorkerSort, limit?: number, offset?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ListServerWorkers200Response>>;
     /**
      *
      * @param {*} [options] Override http request option.
@@ -2837,12 +2128,6 @@ export declare const ServerApiFactory: (configuration?: Configuration, basePath?
     addServerLocation(requestParameters: ServerApiAddServerLocationRequest, options?: AxiosRequestConfig): AxiosPromise<ServerLocationData>;
     /**
      *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createServerWorkerKey(options?: AxiosRequestConfig): AxiosPromise<CreateServerWorkerKey200Response>;
-    /**
-     *
      * @param {ServerApiCreateUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2855,13 +2140,6 @@ export declare const ServerApiFactory: (configuration?: Configuration, basePath?
      * @throws {RequiredError}
      */
     deleteServerLocation(requestParameters: ServerApiDeleteServerLocationRequest, options?: AxiosRequestConfig): AxiosPromise<boolean>;
-    /**
-     *
-     * @param {ServerApiDeleteServerWorkerKeyRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    deleteServerWorkerKey(requestParameters: ServerApiDeleteServerWorkerKeyRequest, options?: AxiosRequestConfig): AxiosPromise<DeleteFolder200Response>;
     /**
      *
      * @param {ServerApiDeleteUserRequest} requestParameters Request parameters.
@@ -2884,25 +2162,17 @@ export declare const ServerApiFactory: (configuration?: Configuration, basePath?
     getUser(requestParameters: ServerApiGetUserRequest, options?: AxiosRequestConfig): AxiosPromise<GetUser200Response>;
     /**
      *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listModules(options?: AxiosRequestConfig): AxiosPromise<ListModules200Response>;
+    /**
+     *
      * @param {ServerApiListServerLocationsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     listServerLocations(requestParameters: ServerApiListServerLocationsRequest, options?: AxiosRequestConfig): AxiosPromise<Array<ServerLocationData>>;
-    /**
-     *
-     * @param {ServerApiListServerWorkerKeysRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listServerWorkerKeys(requestParameters?: ServerApiListServerWorkerKeysRequest, options?: AxiosRequestConfig): AxiosPromise<ListServerWorkerKeys200Response>;
-    /**
-     *
-     * @param {ServerApiListServerWorkersRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listServerWorkers(requestParameters?: ServerApiListServerWorkersRequest, options?: AxiosRequestConfig): AxiosPromise<ListServerWorkers200Response>;
     /**
      *
      * @param {*} [options] Override http request option.
@@ -2983,19 +2253,6 @@ export interface ServerApiDeleteServerLocationRequest {
     readonly locationId: string;
 }
 /**
- * Request parameters for deleteServerWorkerKey operation in ServerApi.
- * @export
- * @interface ServerApiDeleteServerWorkerKeyRequest
- */
-export interface ServerApiDeleteServerWorkerKeyRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof ServerApiDeleteServerWorkerKey
-     */
-    readonly workerKeyId: string;
-}
-/**
  * Request parameters for deleteUser operation in ServerApi.
  * @export
  * @interface ServerApiDeleteUserRequest
@@ -3033,56 +2290,6 @@ export interface ServerApiListServerLocationsRequest {
      * @memberof ServerApiListServerLocations
      */
     readonly locationType: ServerLocationType;
-}
-/**
- * Request parameters for listServerWorkerKeys operation in ServerApi.
- * @export
- * @interface ServerApiListServerWorkerKeysRequest
- */
-export interface ServerApiListServerWorkerKeysRequest {
-    /**
-     *
-     * @type {FolderWorkerKeySort}
-     * @memberof ServerApiListServerWorkerKeys
-     */
-    readonly sort?: FolderWorkerKeySort;
-    /**
-     *
-     * @type {number}
-     * @memberof ServerApiListServerWorkerKeys
-     */
-    readonly limit?: number;
-    /**
-     *
-     * @type {number}
-     * @memberof ServerApiListServerWorkerKeys
-     */
-    readonly offset?: number;
-}
-/**
- * Request parameters for listServerWorkers operation in ServerApi.
- * @export
- * @interface ServerApiListServerWorkersRequest
- */
-export interface ServerApiListServerWorkersRequest {
-    /**
-     *
-     * @type {FolderWorkerSort}
-     * @memberof ServerApiListServerWorkers
-     */
-    readonly sort?: FolderWorkerSort;
-    /**
-     *
-     * @type {number}
-     * @memberof ServerApiListServerWorkers
-     */
-    readonly limit?: number;
-    /**
-     *
-     * @type {number}
-     * @memberof ServerApiListServerWorkers
-     */
-    readonly offset?: number;
 }
 /**
  * Request parameters for resetSetting operation in ServerApi.
@@ -3152,13 +2359,6 @@ export declare class ServerApi extends BaseAPI {
     addServerLocation(requestParameters: ServerApiAddServerLocationRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ServerLocationData, any>>;
     /**
      *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ServerApi
-     */
-    createServerWorkerKey(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CreateServerWorkerKey200Response, any>>;
-    /**
-     *
      * @param {ServerApiCreateUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3173,14 +2373,6 @@ export declare class ServerApi extends BaseAPI {
      * @memberof ServerApi
      */
     deleteServerLocation(requestParameters: ServerApiDeleteServerLocationRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<boolean, any>>;
-    /**
-     *
-     * @param {ServerApiDeleteServerWorkerKeyRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ServerApi
-     */
-    deleteServerWorkerKey(requestParameters: ServerApiDeleteServerWorkerKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<DeleteFolder200Response, any>>;
     /**
      *
      * @param {ServerApiDeleteUserRequest} requestParameters Request parameters.
@@ -3206,28 +2398,19 @@ export declare class ServerApi extends BaseAPI {
     getUser(requestParameters: ServerApiGetUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<GetUser200Response, any>>;
     /**
      *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    listModules(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ListModules200Response, any>>;
+    /**
+     *
      * @param {ServerApiListServerLocationsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerApi
      */
     listServerLocations(requestParameters: ServerApiListServerLocationsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ServerLocationData[], any>>;
-    /**
-     *
-     * @param {ServerApiListServerWorkerKeysRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ServerApi
-     */
-    listServerWorkerKeys(requestParameters?: ServerApiListServerWorkerKeysRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ListServerWorkerKeys200Response, any>>;
-    /**
-     *
-     * @param {ServerApiListServerWorkersRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ServerApi
-     */
-    listServerWorkers(requestParameters?: ServerApiListServerWorkersRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ListServerWorkers200Response, any>>;
     /**
      *
      * @param {*} [options] Override http request option.
@@ -3352,323 +2535,4 @@ export declare class ViewerApi extends BaseAPI {
      * @memberof ViewerApi
      */
     updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<Signup201Response, any>>;
-}
-/**
- * WorkerApi - axios parameter creator
- * @export
- */
-export declare const WorkerApiAxiosParamCreator: (configuration?: Configuration) => {
-    /**
-     *
-     * @param {string} operationId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    completeJob: (operationId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} operationId
-     * @param {CreateMetadataUploadUrlsPayload} createMetadataUploadUrlsPayload
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createMetadataUploadUrls: (operationId: string, createMetadataUploadUrlsPayload: CreateMetadataUploadUrlsPayload, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} operationId
-     * @param {CreateOutputUploadUrlsPayload} createOutputUploadUrlsPayload
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createOutputUploadUrls: (operationId: string, createOutputUploadUrlsPayload: CreateOutputUploadUrlsPayload, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createSocketAuthentication: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} operationId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    startJob: (operationId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {Array<ContentAttibutesPayload>} contentAttibutesPayload
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateContentAttributes: (contentAttibutesPayload: Array<ContentAttibutesPayload>, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {Array<ContentMetadataPayload>} contentMetadataPayload
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateContentMetadata: (contentMetadataPayload: Array<ContentMetadataPayload>, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-};
-/**
- * WorkerApi - functional programming interface
- * @export
- */
-export declare const WorkerApiFp: (configuration?: Configuration) => {
-    /**
-     *
-     * @param {string} operationId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    completeJob(operationId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
-    /**
-     *
-     * @param {string} operationId
-     * @param {CreateMetadataUploadUrlsPayload} createMetadataUploadUrlsPayload
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createMetadataUploadUrls(operationId: string, createMetadataUploadUrlsPayload: CreateMetadataUploadUrlsPayload, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateMetadataUploadUrls200Response>>;
-    /**
-     *
-     * @param {string} operationId
-     * @param {CreateOutputUploadUrlsPayload} createOutputUploadUrlsPayload
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createOutputUploadUrls(operationId: string, createOutputUploadUrlsPayload: CreateOutputUploadUrlsPayload, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateOutputUploadUrls200Response>>;
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createSocketAuthentication(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CreateSocketAuthentication200Response>>;
-    /**
-     *
-     * @param {string} operationId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    startJob(operationId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<StartJob200ResponseInner>>>;
-    /**
-     *
-     * @param {Array<ContentAttibutesPayload>} contentAttibutesPayload
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateContentAttributes(contentAttibutesPayload: Array<ContentAttibutesPayload>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
-    /**
-     *
-     * @param {Array<ContentMetadataPayload>} contentMetadataPayload
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateContentMetadata(contentMetadataPayload: Array<ContentMetadataPayload>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
-};
-/**
- * WorkerApi - factory interface
- * @export
- */
-export declare const WorkerApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
-    /**
-     *
-     * @param {WorkerApiCompleteJobRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    completeJob(requestParameters: WorkerApiCompleteJobRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
-    /**
-     *
-     * @param {WorkerApiCreateMetadataUploadUrlsRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createMetadataUploadUrls(requestParameters: WorkerApiCreateMetadataUploadUrlsRequest, options?: AxiosRequestConfig): AxiosPromise<CreateMetadataUploadUrls200Response>;
-    /**
-     *
-     * @param {WorkerApiCreateOutputUploadUrlsRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createOutputUploadUrls(requestParameters: WorkerApiCreateOutputUploadUrlsRequest, options?: AxiosRequestConfig): AxiosPromise<CreateOutputUploadUrls200Response>;
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createSocketAuthentication(options?: AxiosRequestConfig): AxiosPromise<CreateSocketAuthentication200Response>;
-    /**
-     *
-     * @param {WorkerApiStartJobRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    startJob(requestParameters: WorkerApiStartJobRequest, options?: AxiosRequestConfig): AxiosPromise<Array<StartJob200ResponseInner>>;
-    /**
-     *
-     * @param {WorkerApiUpdateContentAttributesRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateContentAttributes(requestParameters: WorkerApiUpdateContentAttributesRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
-    /**
-     *
-     * @param {WorkerApiUpdateContentMetadataRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateContentMetadata(requestParameters: WorkerApiUpdateContentMetadataRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
-};
-/**
- * Request parameters for completeJob operation in WorkerApi.
- * @export
- * @interface WorkerApiCompleteJobRequest
- */
-export interface WorkerApiCompleteJobRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof WorkerApiCompleteJob
-     */
-    readonly operationId: string;
-}
-/**
- * Request parameters for createMetadataUploadUrls operation in WorkerApi.
- * @export
- * @interface WorkerApiCreateMetadataUploadUrlsRequest
- */
-export interface WorkerApiCreateMetadataUploadUrlsRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof WorkerApiCreateMetadataUploadUrls
-     */
-    readonly operationId: string;
-    /**
-     *
-     * @type {CreateMetadataUploadUrlsPayload}
-     * @memberof WorkerApiCreateMetadataUploadUrls
-     */
-    readonly createMetadataUploadUrlsPayload: CreateMetadataUploadUrlsPayload;
-}
-/**
- * Request parameters for createOutputUploadUrls operation in WorkerApi.
- * @export
- * @interface WorkerApiCreateOutputUploadUrlsRequest
- */
-export interface WorkerApiCreateOutputUploadUrlsRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof WorkerApiCreateOutputUploadUrls
-     */
-    readonly operationId: string;
-    /**
-     *
-     * @type {CreateOutputUploadUrlsPayload}
-     * @memberof WorkerApiCreateOutputUploadUrls
-     */
-    readonly createOutputUploadUrlsPayload: CreateOutputUploadUrlsPayload;
-}
-/**
- * Request parameters for startJob operation in WorkerApi.
- * @export
- * @interface WorkerApiStartJobRequest
- */
-export interface WorkerApiStartJobRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof WorkerApiStartJob
-     */
-    readonly operationId: string;
-}
-/**
- * Request parameters for updateContentAttributes operation in WorkerApi.
- * @export
- * @interface WorkerApiUpdateContentAttributesRequest
- */
-export interface WorkerApiUpdateContentAttributesRequest {
-    /**
-     *
-     * @type {Array<ContentAttibutesPayload>}
-     * @memberof WorkerApiUpdateContentAttributes
-     */
-    readonly contentAttibutesPayload: Array<ContentAttibutesPayload>;
-}
-/**
- * Request parameters for updateContentMetadata operation in WorkerApi.
- * @export
- * @interface WorkerApiUpdateContentMetadataRequest
- */
-export interface WorkerApiUpdateContentMetadataRequest {
-    /**
-     *
-     * @type {Array<ContentMetadataPayload>}
-     * @memberof WorkerApiUpdateContentMetadata
-     */
-    readonly contentMetadataPayload: Array<ContentMetadataPayload>;
-}
-/**
- * WorkerApi - object-oriented interface
- * @export
- * @class WorkerApi
- * @extends {BaseAPI}
- */
-export declare class WorkerApi extends BaseAPI {
-    /**
-     *
-     * @param {WorkerApiCompleteJobRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof WorkerApi
-     */
-    completeJob(requestParameters: WorkerApiCompleteJobRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
-    /**
-     *
-     * @param {WorkerApiCreateMetadataUploadUrlsRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof WorkerApi
-     */
-    createMetadataUploadUrls(requestParameters: WorkerApiCreateMetadataUploadUrlsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CreateMetadataUploadUrls200Response, any>>;
-    /**
-     *
-     * @param {WorkerApiCreateOutputUploadUrlsRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof WorkerApi
-     */
-    createOutputUploadUrls(requestParameters: WorkerApiCreateOutputUploadUrlsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CreateOutputUploadUrls200Response, any>>;
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof WorkerApi
-     */
-    createSocketAuthentication(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CreateSocketAuthentication200Response, any>>;
-    /**
-     *
-     * @param {WorkerApiStartJobRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof WorkerApi
-     */
-    startJob(requestParameters: WorkerApiStartJobRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<StartJob200ResponseInner[], any>>;
-    /**
-     *
-     * @param {WorkerApiUpdateContentAttributesRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof WorkerApi
-     */
-    updateContentAttributes(requestParameters: WorkerApiUpdateContentAttributesRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
-    /**
-     *
-     * @param {WorkerApiUpdateContentMetadataRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof WorkerApi
-     */
-    updateContentMetadata(requestParameters: WorkerApiUpdateContentMetadataRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
 }

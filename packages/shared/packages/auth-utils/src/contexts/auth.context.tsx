@@ -19,6 +19,7 @@ export interface IAuthContext {
   login: (loginParams: LoginParams) => Promise<boolean>
   signup: (signupParams: SignupParams) => Promise<boolean>
   logout: () => Promise<void>
+  getAccessToken: () => Promise<string | undefined>
 }
 const AuthContext = React.createContext<IAuthContext>({} as IAuthContext)
 
@@ -107,12 +108,20 @@ export const AuthContextProvider = ({
   }
 
   React.useEffect(() => {
-    if (!viewerRequested.current[viewerRefreshKey]) {
+    if (
+      authState.isAuthenticated &&
+      !viewerRequested.current[viewerRefreshKey]
+    ) {
       void authenticator.getViewer().then(({ user }) => {
-        setViewer((_viewerMap) => ({ [`${viewerRefreshKey}`]: user }))
+        setViewer((_viewerMap) => ({ [viewerRefreshKey]: user }))
       })
     }
   }, [authState.isAuthenticated, viewerRefreshKey])
+
+  const getAccessToken = React.useCallback(
+    () => authenticator.getAccessToken(),
+    [],
+  )
 
   return (
     <AuthContext.Provider
@@ -126,6 +135,7 @@ export const AuthContextProvider = ({
         signup,
         logout,
         authState,
+        getAccessToken,
       }}
     >
       {children}

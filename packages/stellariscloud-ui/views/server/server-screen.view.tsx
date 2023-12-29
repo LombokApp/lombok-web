@@ -5,16 +5,16 @@ import React from 'react'
 
 import { PageHeading } from '../../design-system/page-heading/page-heading'
 import { ServerUsers } from './list-server-users/list-server-users.view'
+import { ServerModulesScreen } from './server-modules-screen/server-modules-screen.view'
 import { ServerOverview } from './server-overview/server-overview'
 import { ServerSettingsScreen } from './server-settings-screen/server-settings-screen'
 import { ServerStorageConfig } from './server-storage-config/server-storage-config.view'
 import { ServerTabs } from './server-tabs'
-import { ServerWorkerKeysScreen } from './server-worker-keys-screen/server-worker-keys-screen.view'
 
 export function ServerScreen() {
   const router = useRouter()
 
-  const [activeTab, setActiveTab] = React.useState('info')
+  const [activeTab, setActiveTab] = React.useState('overview')
   React.useEffect(() => {
     if (typeof router.query.tab === 'string') {
       setActiveTab(router.query.tab)
@@ -40,12 +40,12 @@ export function ServerScreen() {
             <ServerTabs activeTab={activeTab} />
           </div>
           <div className="pt-8">
-            {activeTab === 'info' && (
+            {activeTab === 'overview' && (
               <ServerOverview serverInfo={SERVER_INFO} />
             )}
             {activeTab === 'users' && <ServerUsers />}
             {activeTab === 'storage' && <ServerStorageConfig />}
-            {activeTab === 'workers' && <ServerWorkerKeysScreen />}
+            {activeTab === 'modules' && <ServerModulesScreen />}
             {activeTab === 'settings' && <ServerSettingsScreen />}
           </div>
         </div>

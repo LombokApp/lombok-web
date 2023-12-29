@@ -6577,9 +6577,9 @@ __metadata:
     "@sentry/tracing": 6.3.6
     "@socket.io/redis-adapter": 8.2.1
     "@stellariscloud/api-client": "workspace:*"
+    "@stellariscloud/core-worker": "workspace:*"
     "@stellariscloud/types": "workspace:*"
     "@stellariscloud/utils": "workspace:*"
-    "@stellariscloud/workers": "workspace:*"
     "@tsoa/runtime": 5.0.0
     "@types/aws4": 1.11.3
     "@types/bull-arena": 3.0.7
@@ -6621,6 +6621,7 @@ __metadata:
     express: 4.18.2
     express-openapi-validate: 0.6.1
     express-winston: 4.2.0
+    fluent-ffmpeg: 2.1.2
     glob: 7.1.7
     helmet: 5.0.2
     i18next: 20.2.4
@@ -6641,7 +6642,7 @@ __metadata:
     sql-formatter: 4.0.2
     supertest: 6.3.3
     ts-jest: 29.1.1
-    ts-node: 10.9.1
+    ts-node: 10.9.2
     ts-node-dev: 2.0.0
     tsoa: 5.1.1
     tsyringe: 4.8.0
@@ -6690,6 +6691,47 @@ __metadata:
     runtypes: 6.7.0
     ts-jest: 29.1.1
     typescript: 5.0.2
+  languageName: unknown
+  linkType: soft
+
+"@stellariscloud/core-worker@workspace:*, @stellariscloud/core-worker@workspace:packages/shared/packages/stellaris-core-worker":
+  version: 0.0.0-use.local
+  resolution: "@stellariscloud/core-worker@workspace:packages/shared/packages/stellaris-core-worker"
+  dependencies:
+    "@jest/types": 29.3.1
+    "@stellariscloud/types": "workspace:*"
+    "@stellariscloud/utils": "workspace:*"
+    "@types/exif": 0.6.5
+    "@types/fluent-ffmpeg": 2.1.21
+    "@types/jest": 29.2.3
+    "@typescript-eslint/eslint-plugin": 6.4.0
+    "@typescript-eslint/parser": 6.4.0
+    axios: 1.6.3
+    eslint: 8.47.0
+    eslint-config-prettier: 9.0.0
+    eslint-import-resolver-node: 0.3.9
+    eslint-plugin-eslint-comments: 3.2.0
+    eslint-plugin-import: 2.28.1
+    eslint-plugin-jest: 27.2.3
+    eslint-plugin-jsx-a11y: 6.7.1
+    eslint-plugin-node: 11.1.0
+    eslint-plugin-promise: 6.1.1
+    eslint-plugin-react: 7.33.1
+    eslint-plugin-react-hooks: 4.6.0
+    eslint-plugin-regexp: 1.15.0
+    eslint-plugin-simple-import-sort: 10.0.0
+    eslint-plugin-sonarjs: 0.20.0
+    exif: 0.6.0
+    fast-json-stable-stringify: 2.1.0
+    fluent-ffmpeg: 2.1.2
+    jest: 29.6.2
+    mime: 4.0.1
+    prettier: 2.8.8
+    runtypes: 6.7.0
+    socket.io-client: 4.7.2
+    ts-jest: 29.1.1
+    typescript: 5.0.2
+    utility-types: 3.10.0
   languageName: unknown
   linkType: soft
 
@@ -6792,7 +6834,7 @@ __metadata:
     react-use: 17.4.0
     runtypes: 6.7.0
     socket.io-client: 4.7.2
-    storybook: ^7.5.2
+    storybook: 7.5.2
     tailwindcss: 3.3.3
     ts-md5: 1.3.1
     typescript: 5.0.2
@@ -6829,87 +6871,6 @@ __metadata:
     jest: 29.6.2
     prettier: 2.8.8
     runtypes: 6.7.0
-    ts-jest: 29.1.1
-    typescript: 5.0.2
-    utility-types: 3.10.0
-  languageName: unknown
-  linkType: soft
-
-"@stellariscloud/worker@workspace:packages/worker":
-  version: 0.0.0-use.local
-  resolution: "@stellariscloud/worker@workspace:packages/worker"
-  dependencies:
-    "@jest/types": 29.6.1
-    "@stellariscloud/api-client": "workspace:*"
-    "@stellariscloud/api-utils": "workspace:*"
-    "@stellariscloud/types": "workspace:*"
-    "@stellariscloud/utils": "workspace:*"
-    "@stellariscloud/workers": "workspace:*"
-    "@types/exif": 0.6.3
-    "@types/fluent-ffmpeg": 2.1.21
-    "@types/jest": 29.5.3
-    "@types/mime": 3.0.1
-    "@types/supertest": 2.0.11
-    "@types/uuid": 9.0.1
-    "@typescript-eslint/eslint-plugin": 6.4.0
-    axios: 1.4.0
-    env-cmd: 10.1.0
-    eslint: 8.47.0
-    eslint-config-prettier: 9.0.0
-    eslint-import-resolver-node: 0.3.9
-    eslint-plugin-eslint-comments: 3.2.0
-    eslint-plugin-import: 2.28.1
-    eslint-plugin-jest: 27.2.3
-    eslint-plugin-node: 11.1.0
-    eslint-plugin-promise: 6.1.1
-    eslint-plugin-regexp: 1.15.0
-    eslint-plugin-simple-import-sort: 10.0.0
-    eslint-plugin-sonarjs: 0.20.0
-    exif: 0.6.0
-    fluent-ffmpeg: 2.1.2
-    jest: 29.6.2
-    mime: 3.0.0
-    prettier: 2.8.8
-    runtypes: 6.7.0
-    supertest: 6.3.3
-    ts-jest: 29.1.1
-    ts-node: 10.9.1
-    ts-node-dev: 2.0.0
-    typescript: 5.0.2
-    uuid: 9.0.0
-  languageName: unknown
-  linkType: soft
-
-"@stellariscloud/workers@workspace:*, @stellariscloud/workers@workspace:packages/shared/packages/stellaris-workers":
-  version: 0.0.0-use.local
-  resolution: "@stellariscloud/workers@workspace:packages/shared/packages/stellaris-workers"
-  dependencies:
-    "@jest/types": 29.6.1
-    "@stellariscloud/api-client": "workspace:*"
-    "@stellariscloud/types": "workspace:*"
-    "@types/jest": 29.5.3
-    "@typescript-eslint/eslint-plugin": 6.4.0
-    "@typescript-eslint/parser": 6.4.0
-    axios: 1.4.0
-    eslint: 8.47.0
-    eslint-config-prettier: 9.0.0
-    eslint-import-resolver-node: 0.3.9
-    eslint-plugin-eslint-comments: 3.2.0
-    eslint-plugin-import: 2.28.1
-    eslint-plugin-jest: 27.2.3
-    eslint-plugin-jsx-a11y: 6.7.1
-    eslint-plugin-node: 11.1.0
-    eslint-plugin-promise: 6.1.1
-    eslint-plugin-react: 7.33.1
-    eslint-plugin-react-hooks: 4.6.0
-    eslint-plugin-regexp: 1.15.0
-    eslint-plugin-simple-import-sort: 10.0.0
-    eslint-plugin-sonarjs: 0.20.0
-    fast-json-stable-stringify: 2.1.0
-    jest: 29.6.2
-    prettier: 2.8.8
-    runtypes: 6.7.0
-    socket.io-client: 4.7.2
     ts-jest: 29.1.1
     typescript: 5.0.2
     utility-types: 3.10.0
@@ -8631,12 +8592,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/exif@npm:0.6.3":
-  version: 0.6.3
-  resolution: "@types/exif@npm:0.6.3"
+"@types/exif@npm:0.6.5":
+  version: 0.6.5
+  resolution: "@types/exif@npm:0.6.5"
   dependencies:
     "@types/node": "*"
-  checksum: 1232275f2e94cdb303b62a9c2dc8e5fcaee29018f07ae87cd6c2b1070716f6b7f6a6774c274667d825053e3dc12eb5c9483ea302e26491855c073a30f0e8b90f
+  checksum: 98413f8662652d836cc27b60b59405dfe21714d500ac9f7b41f2b2dae54c4c24a8ead8ee51caa682d735e54df37c8ad09e27d9a03fb06027b341c41a8259609c
   languageName: node
   linkType: hard
 
@@ -10434,9 +10395,9 @@ __metadata:
   linkType: hard
 
 "async@npm:>=0.2.9":
-  version: 3.2.4
-  resolution: "async@npm:3.2.4"
-  checksum: 43d07459a4e1d09b84a20772414aa684ff4de085cbcaec6eea3c7a8f8150e8c62aa6cd4e699fe8ee93c3a5b324e777d34642531875a0817a35697522c1b02e89
+  version: 3.2.5
+  resolution: "async@npm:3.2.5"
+  checksum: 5ec77f1312301dee02d62140a6b1f7ee0edd2a0f983b6fd2b0849b969f245225b990b47b8243e7b9ad16451a53e7f68e753700385b706198ced888beedba3af4
   languageName: node
   linkType: hard
 
@@ -10535,6 +10496,17 @@ __metadata:
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
   checksum: 7fb6a4313bae7f45e89d62c70a800913c303df653f19eafec88e56cea2e3821066b8409bc68be1930ecca80e861c52aa787659df0ffec6ad4d451c7816b9386b
+  languageName: node
+  linkType: hard
+
+"axios@npm:1.6.3":
+  version: 1.6.3
+  resolution: "axios@npm:1.6.3"
+  dependencies:
+    follow-redirects: ^1.15.0
+    form-data: ^4.0.0
+    proxy-from-env: ^1.1.0
+  checksum: 07ef3bb83fc2dacc1ae2c97f2bbd04ef7701f5655f9037789d79ee78b698ffa50eaa8465c2017d4d3e9ce7d94cb779f730acaab32ce9036d0a4933c1e89df4da
   languageName: node
   linkType: hard
 
@@ -19244,6 +19216,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mime@npm:4.0.1":
+  version: 4.0.1
+  resolution: "mime@npm:4.0.1"
+  bin:
+    mime: bin/cli.js
+  checksum: a931283bc31570cc9c63fbad24fdf178b4dd545462f93543eff634b24d2b65064585eb347cdf0720316bfa5ca0943115694672f2bc4895f8e2366d280ad481f2
+  languageName: node
+  linkType: hard
+
 "mimic-fn@npm:^2.1.0":
   version: 2.1.0
   resolution: "mimic-fn@npm:2.1.0"
@@ -19604,11 +19585,11 @@ __metadata:
   linkType: hard
 
 "nanoid@npm:^3.3.4":
-  version: 3.3.4
-  resolution: "nanoid@npm:3.3.4"
+  version: 3.3.7
+  resolution: "nanoid@npm:3.3.7"
   bin:
     nanoid: bin/nanoid.cjs
-  checksum: 2fddd6dee994b7676f008d3ffa4ab16035a754f4bb586c61df5a22cf8c8c94017aadd360368f47d653829e0569a92b129979152ff97af23a558331e47e37cd9c
+  checksum: d36c427e530713e4ac6567d488b489a36582ef89da1d6d4e3b87eded11eb10d7042a877958c6f104929809b2ab0bafa17652b076cdf84324aa75b30b722204f2
   languageName: node
   linkType: hard
 
@@ -23288,7 +23269,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"storybook@npm:^7.5.2":
+"storybook@npm:7.5.2":
   version: 7.5.2
   resolution: "storybook@npm:7.5.2"
   dependencies:
@@ -24310,6 +24291,44 @@ __metadata:
     ts-node-transpile-only: dist/bin-transpile.js
     ts-script: dist/bin-script-deprecated.js
   checksum: 090adff1302ab20bd3486e6b4799e90f97726ed39e02b39e566f8ab674fd5bd5f727f43615debbfc580d33c6d9d1c6b1b3ce7d8e3cca3e20530a145ffa232c35
+  languageName: node
+  linkType: hard
+
+"ts-node@npm:10.9.2":
+  version: 10.9.2
+  resolution: "ts-node@npm:10.9.2"
+  dependencies:
+    "@cspotcode/source-map-support": ^0.8.0
+    "@tsconfig/node10": ^1.0.7
+    "@tsconfig/node12": ^1.0.7
+    "@tsconfig/node14": ^1.0.0
+    "@tsconfig/node16": ^1.0.2
+    acorn: ^8.4.1
+    acorn-walk: ^8.1.1
+    arg: ^4.1.0
+    create-require: ^1.1.0
+    diff: ^4.0.1
+    make-error: ^1.1.1
+    v8-compile-cache-lib: ^3.0.1
+    yn: 3.1.1
+  peerDependencies:
+    "@swc/core": ">=1.2.50"
+    "@swc/wasm": ">=1.2.50"
+    "@types/node": "*"
+    typescript: ">=2.7"
+  peerDependenciesMeta:
+    "@swc/core":
+      optional: true
+    "@swc/wasm":
+      optional: true
+  bin:
+    ts-node: dist/bin.js
+    ts-node-cwd: dist/bin-cwd.js
+    ts-node-esm: dist/bin-esm.js
+    ts-node-script: dist/bin-script.js
+    ts-node-transpile-only: dist/bin-transpile.js
+    ts-script: dist/bin-script-deprecated.js
+  checksum: fde256c9073969e234526e2cfead42591b9a2aec5222bac154b0de2fa9e4ceb30efcd717ee8bc785a56f3a119bdd5aa27b333d9dbec94ed254bd26f8944c67ac
   languageName: node
   linkType: hard
 

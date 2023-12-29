@@ -1,7 +1,4 @@
-import type {
-  FolderAndPermission,
-  FolderOperationData,
-} from '@stellariscloud/api-client'
+import type { FolderAndPermission } from '@stellariscloud/api-client'
 import type { FolderMetadata } from '@stellariscloud/types'
 import { FolderPushMessage } from '@stellariscloud/types'
 import React from 'react'
@@ -59,8 +56,6 @@ export const FolderContextProvider = ({
   const [folderMetadata, setFolderMetadata] = React.useState<FolderMetadata>()
   const notifications = React.useRef<Notification[]>([])
   const [newNotificationFlag, setNewNotificationFlag] = React.useState<string>()
-  const [_folderOperations, setFolderOperations] =
-    React.useState<FolderOperationData[]>()
 
   const fetchFolder = React.useCallback(
     () =>
@@ -128,31 +123,6 @@ export const FolderContextProvider = ({
     folderId,
     messageHandler,
   )
-
-  // const fetchFolderTags = React.useCallback(
-  //   () =>
-  //     foldersApi
-  //       .listTags({ folderId })
-  //       .then((response) => setObjectTags(response.data.result)),
-  //   [folderId],
-  // )
-
-  const _fetchFolderOperations = React.useCallback(
-    () =>
-      foldersApi
-        .listFolderOperations({ folderId })
-        .then((response) => setFolderOperations(response.data.result)),
-    [folderId],
-  )
-
-  // const createFolderTag = (tagName: string) => {
-  //   return foldersApi
-  //     .createTag({ folderId, createTagRequest: { name: tagName } })
-  //     .then((response) => {
-  //       void fetchFolderTags()
-  //       return response.data
-  //     })
-  // }
 
   const showNotification = React.useCallback((notification: Notification) => {
     const randomId = (Math.random() + 1).toString(36).substring(7)

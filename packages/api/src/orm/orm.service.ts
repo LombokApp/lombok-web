@@ -7,15 +7,15 @@ import { singleton } from 'tsyringe'
 
 import { EnvConfigProvider } from '../config/env-config.provider'
 import { sessionsTable } from '../domains/auth/entities/session.entity'
+import { eventsTable } from '../domains/event/entities/event.entity'
+import { eventReceiptsTable } from '../domains/event/entities/event-receipt.entity'
 import {
   foldersRelations,
   foldersTable,
 } from '../domains/folder/entities/folder.entity'
 import { folderObjectsTable } from '../domains/folder/entities/folder-object.entity'
-import { folderOperationsTable } from '../domains/folder-operation/entities/folder-operation.entity'
-import { folderOperationObjectsTable } from '../domains/folder-operation/entities/folder-operation-object.entity'
-import { folderWorkersTable } from '../domains/folder-operation/entities/folder-worker.entity'
-import { folderWorkerKeysTable } from '../domains/folder-operation/entities/folder-worker-key.entity'
+import { modulesTable } from '../domains/module/entities/module.entity'
+import { moduleLogEntriesTable } from '../domains/module/entities/module-log-entry.entity'
 import { serverConfigurationsTable } from '../domains/server/entities/server-configuration.entity'
 import { storageLocationsTable } from '../domains/storage-location/entities/storage-location.entity'
 import { usersTable } from '../domains/user/entities/user.entity'
@@ -28,10 +28,10 @@ export const schema = {
   foldersTable,
   foldersRelations,
   folderObjectsTable,
-  folderOperationsTable,
-  folderOperationObjectsTable,
-  folderWorkersTable,
-  folderWorkerKeysTable,
+  modulesTable,
+  moduleLogEntriesTable,
+  eventsTable,
+  eventReceiptsTable,
 }
 
 @singleton()

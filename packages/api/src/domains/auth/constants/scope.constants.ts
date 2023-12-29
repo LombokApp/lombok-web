@@ -29,6 +29,9 @@ export enum AuthScope {
   ReadServerSettings = 'server_settings:read',
   UpdateServerSettings = 'server_settings:update',
 
+  ReadServerModules = 'server_modules:read',
+  UpdateServerModules = 'server_modules:update',
+
   ReadServerWorkerKey = 'server_worker_key:read',
   CreateServerWorkerKey = 'server_worker_key:create',
   UpdateServerWorkerKey = 'server_worker_key:update',
@@ -67,6 +70,8 @@ export const APP_ADMIN_SCOPES = [
   AuthScope.DeleteServerWorkerKey,
   AuthScope.CreateServerWorkerKey,
   AuthScope.UpdateServerWorkerKey,
+  AuthScope.ReadServerModules,
+  AuthScope.UpdateServerModules,
 ]
 
 export const APP_SCOPES_BY_PLATFORM_ROLE: Record<PlatformRole, AuthScope[]> = {

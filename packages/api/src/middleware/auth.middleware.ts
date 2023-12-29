@@ -14,7 +14,6 @@ import {
 } from '../domains/auth/constants/scope.constants'
 import type { Session } from '../domains/auth/entities/session.entity'
 import { AuthService } from '../domains/auth/services/auth.service'
-import type { FolderWorkerKey } from '../domains/folder-operation/entities/folder-worker-key.entity'
 import type { User } from '../domains/user/entities/user.entity'
 import {
   AuthorizationHeaderInvalidError,
@@ -51,14 +50,13 @@ export const parseAuthorization = <
 const verify = (
   request: express.Request,
   scheme: AuthScheme,
-): Promise<{ actor?: User; session?: Session; worker?: FolderWorkerKey }> => {
+): Promise<{
+  actor?: User
+  session?: Session
+  module?: { id: string; name: string }
+}> => {
   const authService = container.resolve(AuthService)
   switch (scheme) {
-    case AuthScheme.WorkerAccessToken:
-      return authService.verifyWorkerWithAccessToken(
-        parseAuthorization(request, 'bearer', true),
-      )
-
     case AuthScheme.AccessToken:
       // TODO: reimplement api key check
       // if (request.headers['x-api-key']) {
@@ -100,11 +98,9 @@ export const expressAuthentication = async (
 
   const handleResult = ({
     user,
-    worker,
     session,
   }: {
     user?: User
-    worker?: FolderWorkerKey
     session?: Session
   }) => {
     if (user) {
@@ -121,7 +117,6 @@ export const expressAuthentication = async (
 
     request.user = user
     request.session = session
-    request.worker = worker
 
     return user
   }
@@ -139,7 +134,6 @@ declare global {
     interface Request {
       session?: Session
       user?: User
-      worker?: FolderWorkerKey
     }
   }
 }

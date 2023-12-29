@@ -3,6 +3,12 @@ import postgres from 'postgres'
 import { v4 as uuidV4 } from 'uuid'
 
 import { foldersTable } from '../src/domains/folder/entities/folder.entity'
+import {
+  CORE_MODULE_CONFIG,
+  CORE_MODULE_ID,
+} from '../src/domains/module/constants/core-module.config'
+import type { NewModule } from '../src/domains/module/entities/module.entity'
+import { modulesTable } from '../src/domains/module/entities/module.entity'
 import type { NewStorageLocation } from '../src/domains/storage-location/entities/storage-location.entity'
 import { storageLocationsTable } from '../src/domains/storage-location/entities/storage-location.entity'
 import type { NewUser } from '../src/domains/user/entities/user.entity'
@@ -18,6 +24,17 @@ async function main(): Promise<void> {
   const ADMIN_1_ID = '3bc93392-d38f-4a59-8668-c16c5a9f3250'
 
   const db = drizzle(sql)
+  const coreModule: NewModule = {
+    id: CORE_MODULE_ID,
+    config: CORE_MODULE_CONFIG,
+    name: 'core',
+    publicKey: Buffer.from(
+      '-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAtZHutXvuk8CmFq21LxKQ05M21huiFzVtro5ilWE+avVt9OEmSzAghtE3N7a6CrBiy55Dyz0XYirtVVVfsxDJfjR1Ia+XKJnvIQ8aMX96sHnVKzLt8DSsyzAUM1/HO0ueSixwQBojVaDVYr8k6ow0CCF/Hx+9P+tbbQyejWsE8Kz3RcZKqjhaSmwBa+tHEe3CkMO9ePf8NEUqIfseOAucc6hETRsta2Uzci5jvy9njcIHZn0c7tCEnGybWpPTtBH4o2nBuioCvsEULZMTpKSk/TKkMslHCBybFvLIZdNKc1xHucvcJg45FxXkanDiN5Ell5kWweI15mYTCnoMfQgB1a58RsrM9pB6iMruehvR305qUQUN/VZNUsgYq67i1SJZT/9Nzt5mHzGNg6HtaO9ubLv5AqcQ6j9gnKg1DIOiB/HjtadXpIKy5xTX8l3YRaiTYvqbqAeJ2SQRIauha0MZoPpsVT1p/GeUo1nZSkLOwwIVzwVGB3SdtpOilfPJv3SuF7oMnRlNnP8wBQYnTIrz2UWcm+GcuLPkk/y2m9JO1Cgs4rKKaixWKKsRDoyYD1Yxo0CznT2TjeTMep2B/urf8dlMwUIbIya2oFUeyWE6Mb+PbdJX3npm3pm+Of3le2+FJQVAaIAt5+/YNZiKqRPR+ARnD9BgMCLdrfQM/yVXufUCAwEAAQ==\n-----END PUBLIC KEY-----',
+    ),
+    enabled: true,
+    createdAt: new Date('2023-11-01 22:49:00.93'),
+    updatedAt: new Date('2023-11-01 22:49:00.93'),
+  }
   const admin: NewUser = {
     id: ADMIN_1_ID,
     username: 'Admin1',
@@ -76,6 +93,7 @@ async function main(): Promise<void> {
     },
   ]
 
+  await db.insert(modulesTable).values(coreModule)
   await db.insert(usersTable).values(data)
   await db.insert(storageLocationsTable).values(storageLocations)
   await db.insert(foldersTable).values({

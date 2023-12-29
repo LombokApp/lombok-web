@@ -7,6 +7,7 @@ import type {
   ApiConfig,
   AuthConfig,
   ConfigProvider,
+  CoreModuleConfig,
   DbConfig,
   DbSeedConfig,
   LoggingConfig,
@@ -43,6 +44,24 @@ const parseEnv = <T extends Record<string, RuntypeBase>>(fields: T) => {
 
 @singleton()
 export class EnvConfigProvider implements ConfigProvider {
+  private coreModule?: CoreModuleConfig
+
+  getCoreModuleConfig() {
+    if (!this.coreModule) {
+      const env = parseEnv({
+        CORE_MODULE_PUBLIC_KEY: r.String,
+        EMBEDDED_CORE_MODULE_TOKEN: r.String.optional(),
+      })
+
+      this.coreModule = {
+        publicKey: `-----BEGIN PUBLIC KEY-----\n${env.CORE_MODULE_PUBLIC_KEY}\n-----END PUBLIC KEY-----`,
+        embeddedCoreModuleToken: env.EMBEDDED_CORE_MODULE_TOKEN,
+      }
+    }
+
+    return this.coreModule
+  }
+
   private api?: ApiConfig
 
   getApiConfig() {

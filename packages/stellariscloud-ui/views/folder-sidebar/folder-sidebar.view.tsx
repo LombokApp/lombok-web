@@ -16,7 +16,6 @@ import React from 'react'
 import { Button } from '../../design-system/button/button'
 import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
-import { FolderWorkersTab } from './folder-workers-tab/folder-workers-tab.view'
 
 const MAIN_TEXT_COLOR = 'text-gray-500 dark:text-gray-400'
 const MAIN_ICON_COLOR = 'text-gray-500'
@@ -218,9 +217,6 @@ export const FolderSidebar = ({
             ))}
           </ul>
         </>
-      )}
-      {tab === 'workers' && folderAndPermission && (
-        <FolderWorkersTab folderAndPermission={folderAndPermission} />
       )}
     </div>
   )

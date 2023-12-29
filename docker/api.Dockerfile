@@ -32,7 +32,7 @@ WORKDIR /home/node
 
 RUN addgroup -g 1000 node \
   && adduser -u 1000 -G node -s /bin/sh -D node \
-  && apk add --no-cache tini libstdc++
+  && apk add --no-cache tini libstdc++ ffmpeg
 
 ENV NODE_ENV "production"
 ENV NODE_OPTIONS "--require ./.pnp.cjs"

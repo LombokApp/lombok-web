@@ -7,6 +7,11 @@ export interface ApiConfig {
   uiServerPort: number
 }
 
+export interface CoreModuleConfig {
+  publicKey: string
+  embeddedCoreModuleToken?: string
+}
+
 export interface AuthConfig {
   jwtSecret: string
 }
@@ -50,4 +55,5 @@ export interface ConfigProvider {
   getLoggingConfig: () => LoggingConfig
   getSendgridConfig: () => SendgridConfig
   getRedisConfig: () => RedisConfig
+  getCoreModuleConfig: () => CoreModuleConfig
 }

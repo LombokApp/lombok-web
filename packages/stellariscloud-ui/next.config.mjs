@@ -62,7 +62,6 @@ export default withSentryConfig({
     '@stellariscloud/types',
     '@stellariscloud/utils',
     '@stellariscloud/auth-utils',
-    '@stellariscloud/utils',
   ],
   sentry: {
     disableServerWebpackPlugin: true,

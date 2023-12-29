@@ -1,6 +1,7 @@
 import { RewriteFrames } from '@sentry/integrations'
 import * as Sentry from '@sentry/node'
 import * as Tracing from '@sentry/tracing'
+import * as _coreWorker from '@stellariscloud/core-worker'
 import type Ajv from 'ajv'
 import formatsPlugin from 'ajv-formats'
 import cors from 'cors'
@@ -17,9 +18,7 @@ import { singleton } from 'tsyringe'
 
 import { EnvConfigProvider } from './config/env-config.provider'
 import { QueueName } from './constants/app-worker-constants'
-import { IndexAllUnindexedInFolderProcessor } from './domains/folder/workers/index-all-unindexed-in-folder.worker'
 import { IndexFolderProcessor } from './domains/folder/workers/index-folder.worker'
-import { ExecuteUnstartedWorkProcessor } from './domains/folder-operation/workers/execute-unstarted-work.worker'
 import { RouteNotFoundError } from './errors/app.error'
 import { RegisterRoutes } from './generated/routes'
 import { HealthManager } from './health/health-manager'
@@ -27,13 +26,13 @@ import { httpErrorMiddleware } from './middleware/http-error.middleware'
 import { unhandledErrorMiddleware } from './middleware/unhandled-error.middleware'
 import { validationErrorMiddleware } from './middleware/validation-error.middleware'
 import { OrmService } from './orm/orm.service'
+import { CoreModuleService } from './services/core-module.service'
 import { LoggingService } from './services/logging.service'
 import { QueueService } from './services/queue.service'
 import { SocketService } from './services/socket.service'
 import { stringifyLog } from './util/i18n.util'
 import { registerExitHandler, runExitHandlers } from './util/process.util'
 import { formats } from './util/validation.util'
-import { injectIntoHead } from '@stellariscloud/utils'
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -84,6 +83,7 @@ export class App {
     private readonly healthManager: HealthManager,
     private readonly socketService: SocketService,
     private readonly queueService: QueueService,
+    private readonly coreModuleService: CoreModuleService,
   ) {
     this.app = express()
     this.app.disable('x-powered-by')
@@ -143,9 +143,10 @@ export class App {
     await this.initApiRoutes()
     await this.initUIServer()
     if (!this.config.getApiConfig().disableHttp) {
-      await this.listen()
+      this.listen()
       this.initSocketServer()
     }
+    this.initCoreModule()
   }
 
   private async initI18n() {
@@ -238,6 +239,7 @@ export class App {
     this.app.use(unhandledErrorMiddleware(this.loggingService))
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   private async initUIServer() {
     this.uiApp.use(cors())
     this.uiApp.use(
@@ -259,9 +261,9 @@ export class App {
         next()
         return
       }
-      let host =
+      const host =
         'x-forwarded-host' in req.headers
-          ? (req.headers['x-forwarded-host'] as string) ?? ''
+          ? (req.headers['x-forwarded-host'] as string | undefined) ?? ''
           : req.headers.host.split(':')[0]
       const hostnameParts = host.split('.')
       const isModuleUIHost =
@@ -312,12 +314,12 @@ export class App {
 
       const path = req.url.split('?')[0]
       console.log('host: %s - headers[path:"%s"]:', host, path, req.headers)
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 
       console.log('testing path[host:%s]:', host, path)
       if (path in CONTENT) {
         const returnContent = CONTENT[path as keyof typeof CONTENT]
         let response = res.status(200)
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         const headers = HEADERS[path as keyof typeof HEADERS] ?? {}
         Object.keys(headers).forEach(
           (headerKey) =>
@@ -336,7 +338,7 @@ export class App {
       (
         req: express.Request,
         res: express.Response,
-        next: express.NextFunction,
+        _next: express.NextFunction,
       ) => {
         res.status(404).send()
       },
@@ -350,19 +352,15 @@ export class App {
     this.socketService.init(this.server)
   }
 
+  private initCoreModule() {
+    this.coreModuleService.startCoreModuleThread()
+  }
+
   private initWorkers() {
     const processors = [
       this.queueService.bindQueueProcessor(
         QueueName.IndexFolder,
         IndexFolderProcessor,
-      ),
-      this.queueService.bindQueueProcessor(
-        QueueName.ExecuteUnstartedWork,
-        ExecuteUnstartedWorkProcessor,
-      ),
-      this.queueService.bindQueueProcessor(
-        QueueName.IndexAllUnindexedInFolder,
-        IndexAllUnindexedInFolderProcessor,
       ),
     ]
     registerExitHandler(async () => {
@@ -370,7 +368,7 @@ export class App {
     })
   }
 
-  async listen() {
+  listen() {
     if (this.closing) {
       return
     }

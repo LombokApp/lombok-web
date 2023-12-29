@@ -174,243 +174,6 @@
         "type": "object",
         "additionalProperties": false
       },
-      "OutputUploadUrlsResponse": {
-        "properties": {
-          "folderId": {
-            "type": "string"
-          },
-          "objectKey": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "folderId",
-          "objectKey",
-          "url"
-        ],
-        "type": "object",
-        "additionalProperties": false
-      },
-      "CreateOutputUploadUrlsPayload": {
-        "properties": {
-          "outputFiles": {
-            "items": {
-              "properties": {
-                "objectKey": {
-                  "type": "string"
-                },
-                "folderId": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "objectKey",
-                "folderId"
-              ],
-              "type": "object"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "outputFiles"
-        ],
-        "type": "object",
-        "additionalProperties": false
-      },
-      "MetadataUploadUrlsResponse": {
-        "properties": {
-          "folderId": {
-            "type": "string"
-          },
-          "objectKey": {
-            "type": "string"
-          },
-          "urls": {
-            "properties": {},
-            "additionalProperties": {
-              "type": "string"
-            },
-            "type": "object"
-          }
-        },
-        "required": [
-          "folderId",
-          "objectKey",
-          "urls"
-        ],
-        "type": "object",
-        "additionalProperties": false
-      },
-      "CreateMetadataUploadUrlsPayload": {
-        "properties": {
-          "contentHash": {
-            "type": "string"
-          },
-          "metadataFiles": {
-            "items": {
-              "properties": {
-                "metadataHashes": {
-                  "properties": {},
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "objectKey": {
-                  "type": "string"
-                },
-                "folderId": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "metadataHashes",
-                "objectKey",
-                "folderId"
-              ],
-              "type": "object"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "contentHash",
-          "metadataFiles"
-        ],
-        "type": "object",
-        "additionalProperties": false
-      },
-      "MediaType": {
-        "enum": [
-          "IMAGE",
-          "VIDEO",
-          "AUDIO",
-          "DOCUMENT",
-          "UNKNOWN"
-        ],
-        "type": "string"
-      },
-      "ContentAttributesType": {
-        "properties": {
-          "mediaType": {
-            "$ref": "#/components/schemas/MediaType"
-          },
-          "mimeType": {
-            "type": "string"
-          },
-          "height": {
-            "type": "number",
-            "format": "double"
-          },
-          "width": {
-            "type": "number",
-            "format": "double"
-          },
-          "orientation": {
-            "type": "number",
-            "format": "double"
-          },
-          "lengthMs": {
-            "type": "number",
-            "format": "double"
-          },
-          "bitrate": {
-            "type": "number",
-            "format": "double"
-          }
-        },
-        "required": [
-          "mediaType",
-          "mimeType",
-          "height",
-          "width",
-          "orientation",
-          "lengthMs",
-          "bitrate"
-        ],
-        "type": "object",
-        "additionalProperties": false
-      },
-      "ContentAttibutesPayload": {
-        "properties": {
-          "folderId": {
-            "type": "string"
-          },
-          "objectKey": {
-            "type": "string"
-          },
-          "hash": {
-            "type": "string"
-          },
-          "attributes": {
-            "$ref": "#/components/schemas/ContentAttributesType"
-          }
-        },
-        "required": [
-          "folderId",
-          "objectKey",
-          "hash",
-          "attributes"
-        ],
-        "type": "object",
-        "additionalProperties": false
-      },
-      "MetadataEntry": {
-        "properties": {
-          "mimeType": {
-            "type": "string"
-          },
-          "size": {
-            "type": "number",
-            "format": "double"
-          },
-          "hash": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "mimeType",
-          "size",
-          "hash"
-        ],
-        "type": "object",
-        "additionalProperties": false
-      },
-      "ContentMetadataType": {
-        "properties": {},
-        "type": "object",
-        "additionalProperties": {
-          "$ref": "#/components/schemas/MetadataEntry"
-        }
-      },
-      "ContentMetadataPayload": {
-        "properties": {
-          "folderId": {
-            "type": "string"
-          },
-          "objectKey": {
-            "type": "string"
-          },
-          "hash": {
-            "type": "string"
-          },
-          "metadata": {
-            "$ref": "#/components/schemas/ContentMetadataType"
-          }
-        },
-        "required": [
-          "folderId",
-          "objectKey",
-          "hash",
-          "metadata"
-        ],
-        "type": "object",
-        "additionalProperties": false
-      },
       "StorageLocationData": {
         "properties": {
           "createdAt": {
@@ -598,11 +361,90 @@
         "type": "object",
         "additionalProperties": false
       },
+      "MediaType": {
+        "enum": [
+          "IMAGE",
+          "VIDEO",
+          "AUDIO",
+          "DOCUMENT",
+          "UNKNOWN"
+        ],
+        "type": "string"
+      },
+      "ContentAttributesType": {
+        "properties": {
+          "mediaType": {
+            "$ref": "#/components/schemas/MediaType"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "height": {
+            "type": "number",
+            "format": "double"
+          },
+          "width": {
+            "type": "number",
+            "format": "double"
+          },
+          "orientation": {
+            "type": "number",
+            "format": "double"
+          },
+          "lengthMs": {
+            "type": "number",
+            "format": "double"
+          },
+          "bitrate": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "required": [
+          "mediaType",
+          "mimeType",
+          "height",
+          "width",
+          "orientation",
+          "lengthMs",
+          "bitrate"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
       "ContentAttributesByHash": {
         "properties": {},
         "type": "object",
         "additionalProperties": {
           "$ref": "#/components/schemas/ContentAttributesType"
+        }
+      },
+      "MetadataEntry": {
+        "properties": {
+          "mimeType": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number",
+            "format": "double"
+          },
+          "hash": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "mimeType",
+          "size",
+          "hash"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "ContentMetadataType": {
+        "properties": {},
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/components/schemas/MetadataEntry"
         }
       },
       "ContentMetadataByHash": {
@@ -677,77 +519,6 @@
         "type": "object",
         "additionalProperties": false
       },
-      "FolderOperationName": {
-        "enum": [
-          "IndexFolderObject",
-          "TranscribeAudio",
-          "DetectObjects"
-        ],
-        "type": "string"
-      },
-      "FolderOperationData": {
-        "properties": {
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "id": {
-            "type": "string"
-          },
-          "operationName": {
-            "$ref": "#/components/schemas/FolderOperationName"
-          },
-          "operationData": {
-            "properties": {},
-            "additionalProperties": {},
-            "type": "object"
-          },
-          "started": {
-            "type": "boolean"
-          },
-          "completed": {
-            "type": "boolean"
-          },
-          "error": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "createdAt",
-          "updatedAt",
-          "id",
-          "operationName",
-          "operationData",
-          "started",
-          "completed",
-          "error"
-        ],
-        "type": "object",
-        "additionalProperties": false
-      },
-      "FolderOperationRequestPayload": {
-        "properties": {
-          "operationName": {
-            "$ref": "#/components/schemas/FolderOperationName"
-          },
-          "operationData": {
-            "properties": {},
-            "additionalProperties": {},
-            "type": "object"
-          }
-        },
-        "required": [
-          "operationName",
-          "operationData"
-        ],
-        "type": "object",
-        "additionalProperties": false
-      },
       "ListResponseMeta": {
         "properties": {
           "totalCount": {
@@ -784,51 +555,6 @@
         ],
         "type": "object",
         "additionalProperties": false
-      },
-      "FolderOperationsResponse": {
-        "properties": {
-          "meta": {
-            "properties": {
-              "totalCount": {
-                "type": "number",
-                "format": "double"
-              }
-            },
-            "required": [
-              "totalCount"
-            ],
-            "type": "object"
-          },
-          "result": {
-            "items": {
-              "$ref": "#/components/schemas/FolderOperationData"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "meta",
-          "result"
-        ],
-        "type": "object",
-        "additionalProperties": false
-      },
-      "FolderOperationSort": {
-        "enum": [
-          "createdAt-asc",
-          "createdAt-desc",
-          "updatedAt-asc",
-          "updatedAt-desc"
-        ],
-        "type": "string"
-      },
-      "FolderOperationStatus": {
-        "enum": [
-          "PENDING",
-          "FAILED",
-          "COMPLETE"
-        ],
-        "type": "string"
       },
       "ServerLocationData": {
         "properties": {
@@ -1014,128 +740,116 @@
         "type": "object",
         "additionalProperties": false
       },
-      "FolderWorkerKeyData": {
+      "ModuleAction": {
         "properties": {
-          "id": {
+          "key": {
             "type": "string"
           },
-          "accessTokenExpiresAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
+          "description": {
+            "type": "string"
           }
         },
         "required": [
-          "id",
-          "accessTokenExpiresAt",
-          "createdAt",
-          "updatedAt"
+          "key",
+          "description"
         ],
         "type": "object",
         "additionalProperties": false
       },
-      "FolderWorkerKeySort": {
-        "enum": [
-          "createdAt-asc",
-          "createdAt-desc",
-          "updatedAt-asc",
-          "updatedAt-desc"
-        ],
-        "type": "string"
-      },
-      "FolderWorkerData": {
+      "ModuleConfig": {
         "properties": {
-          "id": {
+          "publicKey": {
             "type": "string"
           },
-          "externalId": {
-            "type": "string"
-          },
-          "paused": {
-            "type": "boolean"
-          },
-          "ips": {
-            "properties": {},
-            "additionalProperties": {
-              "properties": {
-                "lastSeen": {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                "firstSeen": {
-                  "type": "string",
-                  "format": "date-time"
-                }
-              },
-              "required": [
-                "lastSeen",
-                "firstSeen"
-              ],
-              "type": "object"
-            },
-            "type": "object"
-          },
-          "capabilities": {
+          "subscribedEvents": {
             "items": {
               "type": "string"
             },
             "type": "array"
           },
-          "firstSeen": {
-            "type": "string",
-            "format": "date-time"
+          "emitEvents": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           },
-          "lastSeen": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "keyId": {
-            "type": "string",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
+          "actions": {
+            "properties": {
+              "object": {
+                "items": {
+                  "$ref": "#/components/schemas/ModuleAction"
+                },
+                "type": "array"
+              },
+              "folder": {
+                "items": {
+                  "$ref": "#/components/schemas/ModuleAction"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "object",
+              "folder"
+            ],
+            "type": "object"
           }
         },
         "required": [
-          "id",
-          "externalId",
-          "paused",
-          "ips",
-          "capabilities",
-          "firstSeen",
-          "lastSeen",
-          "keyId",
-          "createdAt",
-          "updatedAt"
+          "publicKey",
+          "subscribedEvents",
+          "emitEvents",
+          "actions"
         ],
         "type": "object",
         "additionalProperties": false
       },
-      "FolderWorkerSort": {
-        "enum": [
-          "createdAt-asc",
-          "createdAt-desc",
-          "updatedAt-asc",
-          "updatedAt-desc",
-          "lastSeen-asc",
-          "lastSeen-desc",
-          "firstSeen-asc",
-          "firstSeen-desc"
+      "ModuleData": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "config": {
+            "$ref": "#/components/schemas/ModuleConfig"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "config"
         ],
-        "type": "string"
+        "type": "object",
+        "additionalProperties": false
+      },
+      "ModuleConnectionsMap": {
+        "properties": {},
+        "type": "object",
+        "additionalProperties": {
+          "properties": {},
+          "additionalProperties": {
+            "properties": {
+              "ip": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "ip",
+              "name",
+              "id"
+            ],
+            "type": "object"
+          },
+          "type": "object"
+        }
       },
       "ViewerUpdatePayload": {
         "properties": {
@@ -1322,368 +1036,6 @@
         "security": [
           {
             "AccessToken": []
-          }
-        ],
-        "parameters": []
-      }
-    },
-    "/worker/{operationId}/start": {
-      "get": {
-        "operationId": "startJob",
-        "responses": {
-          "200": {
-            "description": "Ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "properties": {
-                      "url": {
-                        "type": "string"
-                      },
-                      "objectKey": {
-                        "type": "string"
-                      },
-                      "folderId": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "url",
-                      "objectKey",
-                      "folderId"
-                    ],
-                    "type": "object"
-                  },
-                  "type": "array"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Worker"
-        ],
-        "security": [
-          {
-            "WorkerAccessToken": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "operationId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ]
-      }
-    },
-    "/worker/{operationId}/complete": {
-      "post": {
-        "operationId": "completeJob",
-        "responses": {
-          "204": {
-            "description": "No content"
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Worker"
-        ],
-        "security": [
-          {
-            "WorkerAccessToken": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "operationId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ]
-      }
-    },
-    "/worker/{operationId}/output-upload-urls": {
-      "post": {
-        "operationId": "createOutputUploadUrls",
-        "responses": {
-          "200": {
-            "description": "Ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "outputUploadUrls": {
-                      "items": {
-                        "$ref": "#/components/schemas/OutputUploadUrlsResponse"
-                      },
-                      "type": "array"
-                    }
-                  },
-                  "required": [
-                    "outputUploadUrls"
-                  ],
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Worker"
-        ],
-        "security": [
-          {
-            "WorkerAccessToken": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "operationId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOutputUploadUrlsPayload"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/worker/{operationId}/metadata-upload-urls": {
-      "post": {
-        "operationId": "createMetadataUploadUrls",
-        "responses": {
-          "200": {
-            "description": "Ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "metadataUploadUrls": {
-                      "items": {
-                        "$ref": "#/components/schemas/MetadataUploadUrlsResponse"
-                      },
-                      "type": "array"
-                    }
-                  },
-                  "required": [
-                    "metadataUploadUrls"
-                  ],
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Worker"
-        ],
-        "security": [
-          {
-            "WorkerAccessToken": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "operationId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateMetadataUploadUrlsPayload"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/worker/content-attributes": {
-      "post": {
-        "operationId": "updateContentAttributes",
-        "responses": {
-          "204": {
-            "description": "No content"
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Worker"
-        ],
-        "security": [
-          {
-            "WorkerAccessToken": []
-          }
-        ],
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "items": {
-                  "$ref": "#/components/schemas/ContentAttibutesPayload"
-                },
-                "type": "array"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/worker/content-metadata": {
-      "post": {
-        "operationId": "updateContentMetadata",
-        "responses": {
-          "204": {
-            "description": "No content"
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Worker"
-        ],
-        "security": [
-          {
-            "WorkerAccessToken": []
-          }
-        ],
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "items": {
-                  "$ref": "#/components/schemas/ContentMetadataPayload"
-                },
-                "type": "array"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/worker/socket": {
-      "post": {
-        "operationId": "createSocketAuthentication",
-        "responses": {
-          "200": {
-            "description": "Ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "token": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "token"
-                  ],
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Worker"
-        ],
-        "security": [
-          {
-            "WorkerAccessToken": []
           }
         ],
         "parameters": []
@@ -2140,138 +1492,6 @@
         }
       }
     },
-    "/folders/{folderId}/operations": {
-      "post": {
-        "operationId": "enqueueFolderOperation",
-        "responses": {
-          "200": {
-            "description": "Ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FolderOperationData"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Folders"
-        ],
-        "security": [
-          {
-            "AccessToken": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "folderId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FolderOperationRequestPayload"
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "operationId": "listFolderOperations",
-        "responses": {
-          "200": {
-            "description": "Ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FolderOperationsResponse"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Folders"
-        ],
-        "security": [
-          {
-            "AccessToken": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "folderId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "sort",
-            "required": false,
-            "schema": {
-              "$ref": "#/components/schemas/FolderOperationSort"
-            }
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "required": false,
-            "schema": {
-              "$ref": "#/components/schemas/FolderOperationStatus"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "format": "double",
-              "type": "number"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "format": "double",
-              "type": "number"
-            }
-          }
-        ]
-      }
-    },
     "/folders/{folderId}/objects": {
       "get": {
         "operationId": "listFolderObjects",
@@ -2353,51 +1573,6 @@
             "schema": {
               "format": "double",
               "type": "number"
-            }
-          }
-        ]
-      }
-    },
-    "/folders/{folderId}/index-all": {
-      "post": {
-        "operationId": "indexAllContent",
-        "responses": {
-          "200": {
-            "description": "Ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "boolean"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Folders"
-        ],
-        "security": [
-          {
-            "AccessToken": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "folderId",
-            "required": true,
-            "schema": {
-              "type": "string"
             }
           }
         ]
@@ -2511,59 +1686,6 @@
             }
           }
         }
-      }
-    },
-    "/folders/{folderId}/socket-auth": {
-      "post": {
-        "operationId": "createSocketAuthentication",
-        "responses": {
-          "200": {
-            "description": "Ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "token": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "token"
-                  ],
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Folders"
-        ],
-        "security": [
-          {
-            "AccessToken": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "folderId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ]
       }
     },
     "/server/settings/server-locations/{locationType}": {
@@ -2939,6 +2061,49 @@
         "parameters": []
       }
     },
+    "/server/modules": {
+      "get": {
+        "operationId": "listModules",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "connected": {
+                      "$ref": "#/components/schemas/ModuleConnectionsMap"
+                    },
+                    "installed": {
+                      "items": {
+                        "$ref": "#/components/schemas/ModuleData"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "connected",
+                    "installed"
+                  ],
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Server"
+        ],
+        "security": [
+          {
+            "AccessToken": [
+              "server_modules:read"
+            ]
+          }
+        ],
+        "parameters": []
+      }
+    },
     "/server/settings/{settingsKey}": {
       "put": {
         "operationId": "updateSetting",
@@ -3038,287 +2203,6 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
-          }
-        ]
-      }
-    },
-    "/server/worker-keys": {
-      "post": {
-        "operationId": "createServerWorkerKey",
-        "responses": {
-          "200": {
-            "description": "Ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "workerKey": {
-                      "$ref": "#/components/schemas/FolderWorkerKeyData"
-                    },
-                    "token": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "workerKey",
-                    "token"
-                  ],
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Server"
-        ],
-        "security": [
-          {
-            "AccessToken": [
-              "server_worker_key:create"
-            ]
-          }
-        ],
-        "parameters": []
-      },
-      "get": {
-        "operationId": "listServerWorkerKeys",
-        "responses": {
-          "200": {
-            "description": "Ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "result": {
-                      "items": {
-                        "$ref": "#/components/schemas/FolderWorkerKeyData"
-                      },
-                      "type": "array"
-                    },
-                    "meta": {
-                      "properties": {
-                        "totalCount": {
-                          "type": "number",
-                          "format": "double"
-                        }
-                      },
-                      "required": [
-                        "totalCount"
-                      ],
-                      "type": "object"
-                    }
-                  },
-                  "required": [
-                    "result",
-                    "meta"
-                  ],
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Server"
-        ],
-        "security": [
-          {
-            "AccessToken": [
-              "server_worker_key:read"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "sort",
-            "required": false,
-            "schema": {
-              "$ref": "#/components/schemas/FolderWorkerKeySort"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "format": "double",
-              "type": "number"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "format": "double",
-              "type": "number"
-            }
-          }
-        ]
-      }
-    },
-    "/server/worker-keys/{workerKeyId}": {
-      "delete": {
-        "operationId": "deleteServerWorkerKey",
-        "responses": {
-          "200": {
-            "description": "Ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    }
-                  },
-                  "required": [
-                    "success"
-                  ],
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Server"
-        ],
-        "security": [
-          {
-            "AccessToken": [
-              "server_worker_key:delete"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "workerKeyId",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ]
-      }
-    },
-    "/server/workers": {
-      "get": {
-        "operationId": "listServerWorkers",
-        "responses": {
-          "200": {
-            "description": "Ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "result": {
-                      "items": {
-                        "$ref": "#/components/schemas/FolderWorkerData"
-                      },
-                      "type": "array"
-                    },
-                    "meta": {
-                      "properties": {
-                        "totalCount": {
-                          "type": "number",
-                          "format": "double"
-                        }
-                      },
-                      "required": [
-                        "totalCount"
-                      ],
-                      "type": "object"
-                    }
-                  },
-                  "required": [
-                    "result",
-                    "meta"
-                  ],
-                  "type": "object"
-                }
-              }
-            }
-          },
-          "4XX": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Server"
-        ],
-        "security": [
-          {
-            "AccessToken": [
-              "server_worker_key:read"
-            ]
-          }
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "sort",
-            "required": false,
-            "schema": {
-              "$ref": "#/components/schemas/FolderWorkerSort"
-            }
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "required": false,
-            "schema": {
-              "format": "double",
-              "type": "number"
-            }
-          },
-          {
-            "in": "query",
-            "name": "offset",
-            "required": false,
-            "schema": {
-              "format": "double",
-              "type": "number"
             }
           }
         ]

@@ -16,8 +16,6 @@
     "dev:docker:clean": "(rm -rf ./.docker/postgres/* || true) && (rm -rf ./.docker/redis/* || true) && (rm -rf ./.docker/minio || true)",
     "dev:docker:api:build": "bash -c \"export $(cat ./packages/api/env/env.dev | xargs) && docker compose up api --build\"",
     "dev:docker:api": "bash -c \"export $(cat ./packages/api/env/env.dev | xargs) && docker compose up api\"",
-    "dev:docker:worker": "bash -c \"export $(cat ./packages/worker/env/env.dev | xargs) && docker compose up worker\"",
-    "dev:docker:worker:build": "bash -c \"export $(cat ./packages/worker/env/env.dev | xargs) && docker compose up worker --build\"",
     "dev:docker:db:up": "bash -c \"export $(cat ./packages/api/env/env.dev | xargs) && docker compose up db\"",
     "dev:docker:services": "bash -c \"export $(cat ./packages/api/env/env.dev | xargs) && docker compose up db redis swagger\"",
     "dev:docker:down": "bash -c \"export $(cat ./packages/api/env/env.dev | xargs) && docker compose down\"",

@@ -32,3 +32,4 @@ storybook-static
 package.tgz
 .docker-credentials
 env.dev
+.docker

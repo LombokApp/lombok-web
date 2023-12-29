@@ -1,3 +1,4 @@
+import type { ConnectedModuleInstancesMap } from '@stellariscloud/types'
 import {
   Body,
   Controller,
@@ -7,9 +8,7 @@ import {
   Path,
   Post,
   Put,
-  Query,
   Request,
-  Response,
   Route,
   Security,
   Tags,
@@ -18,13 +17,8 @@ import { Lifecycle, scoped } from 'tsyringe'
 
 import { AuthScheme } from '../domains/auth/constants/scheme.constants'
 import { AuthScope } from '../domains/auth/constants/scope.constants'
-import {
-  FolderWorkerKeySort,
-  FolderWorkerService,
-  FolderWorkerSort,
-} from '../domains/folder-operation/services/folder-worker.service'
-import { transformFolderWorkerToFolderWorkerDTO } from '../domains/folder-operation/transforms/folder-worker-dto.transform'
-import { transformFolderWorkerKeyToFolderWorkerKeyDTO } from '../domains/folder-operation/transforms/folder-worker-key-dto.transform'
+import { ModuleService } from '../domains/module/services/module.service'
+import type { ModuleData } from '../domains/module/transfer-objects/module.dto'
 import { ServerLocationType } from '../domains/server/constants/server.constants'
 import { ServerConfigurationService } from '../domains/server/services/server-configuration.service'
 import type { ServerSettings } from '../domains/server/transfer-objects/settings.dto'
@@ -38,7 +32,6 @@ import {
 } from '../domains/user/transfer-objects/user.dto'
 import { transformUserToUserDTO } from '../domains/user/transforms/user-dto.transform'
 import { UnauthorizedError } from '../errors/auth.error'
-import type { ErrorResponse } from '../transfer-objects/error-response.dto'
 
 export interface ListUsersResponse {
   meta: { totalCount: number }
@@ -52,7 +45,7 @@ export class ServerController extends Controller {
   constructor(
     private readonly userService: UserService,
     private readonly serverConfigurationService: ServerConfigurationService,
-    private readonly serverWorkerService: FolderWorkerService,
+    private readonly modulesService: ModuleService,
   ) {
     super()
   }
@@ -228,6 +221,19 @@ export class ServerController extends Controller {
     }
   }
 
+  @Security(AuthScheme.AccessToken, [AuthScope.ReadServerModules])
+  @OperationId('listModules')
+  @Get('/modules')
+  async listModules(@Request() req: Express.Request): Promise<{
+    installed: ModuleData[]
+    connected: ConnectedModuleInstancesMap
+  }> {
+    if (!req.user) {
+      throw new UnauthorizedError()
+    }
+    return this.modulesService.listModulesAsAdmin(req.user)
+  }
+
   @Security(AuthScheme.AccessToken, [AuthScope.UpdateServerSettings])
   @OperationId('updateSetting')
   @Put('/settings/:settingsKey')
@@ -273,98 +279,30 @@ export class ServerController extends Controller {
     }
   }
 
-  @Security(AuthScheme.AccessToken, [AuthScope.CreateServerWorkerKey])
-  @Response<ErrorResponse>('4XX')
-  @OperationId('createServerWorkerKey')
-  @Post('/worker-keys')
-  async createServerWorkerKey(@Request() req: Express.Request) {
-    if (!req.user) {
-      throw new UnauthorizedError()
-    }
-    const result = await this.serverWorkerService.createServerWorkerKeyAsAdmin(
-      req.user,
-    )
-    return {
-      token: result.token,
-      workerKey: transformFolderWorkerKeyToFolderWorkerKeyDTO(result.workerKey),
-    }
-  }
-
-  @Security(AuthScheme.AccessToken, [AuthScope.DeleteServerWorkerKey])
-  @Response<ErrorResponse>('4XX')
-  @OperationId('deleteServerWorkerKey')
-  @Delete('/worker-keys/:workerKeyId')
-  async deleteServerWorkerKey(
-    @Request() req: Express.Request,
-    @Path() workerKeyId: string,
-  ) {
-    if (!req.user) {
-      throw new UnauthorizedError()
-    }
-    await this.serverWorkerService.deleteServerWorkerKeyAsAdmin(
-      req.user,
-      workerKeyId,
-    )
-    return {
-      success: true,
-    }
-  }
-
-  @Security(AuthScheme.AccessToken, [AuthScope.ReadServerWorkerKey])
-  @Response<ErrorResponse>('4XX')
-  @OperationId('listServerWorkerKeys')
-  @Get('/worker-keys')
-  async listServerWorkerKeys(
-    @Request() req: Express.Request,
-    @Query() sort?: FolderWorkerKeySort,
-    @Query() limit?: number,
-    @Query() offset?: number,
-  ) {
-    if (!req.user) {
-      throw new UnauthorizedError()
-    }
-    const result = await this.serverWorkerService.listServerWorkerKeysAsAdmin(
-      req.user,
-      {
-        limit,
-        offset,
-        sort,
-      },
-    )
-    return {
-      meta: result.meta,
-      result: result.result.map((folderWorkerKey) =>
-        transformFolderWorkerKeyToFolderWorkerKeyDTO(folderWorkerKey),
-      ),
-    }
-  }
-
-  @Security(AuthScheme.AccessToken, [AuthScope.ReadServerWorkerKey])
-  @Response<ErrorResponse>('4XX')
-  @OperationId('listServerWorkers')
-  @Get('/workers')
-  async listServerWorkers(
-    @Request() req: Express.Request,
-    @Query() sort?: FolderWorkerSort,
-    @Query() limit?: number,
-    @Query() offset?: number,
-  ) {
-    if (!req.user) {
-      throw new UnauthorizedError()
-    }
-    const result = await this.serverWorkerService.listServerWorkersAsAdmin(
-      req.user,
-      {
-        limit,
-        offset,
-        sort,
-      },
-    )
-    return {
-      meta: result.meta,
-      result: result.result.map((folderWorker) =>
-        transformFolderWorkerToFolderWorkerDTO(folderWorker),
-      ),
-    }
-  }
+  // @Security(AuthScheme.AccessToken, [AuthScope.ReadServerWorkerKey])
+  // @Response<ErrorResponse>('4XX')
+  // @OperationId('listModuleInstances')
+  // @Get('/workers')
+  // async listServerWorkers(
+  //   @Request() req: Express.Request,
+  //   @Query() sort?: ModuleInstancesSort,
+  //   @Query() limit?: number,
+  //   @Query() offset?: number,
+  // ) {
+  //   if (!req.user) {
+  //     throw new UnauthorizedError()
+  //   }
+  //   const result = await this.serverWorkerService.listServerWorkersAsAdmin(
+  //     req.user,
+  //     {
+  //       limit,
+  //       offset,
+  //       sort,
+  //     },
+  //   )
+  //   return {
+  //     meta: result.meta,
+  //     result: result.something,
+  //   }
+  // }
 }
