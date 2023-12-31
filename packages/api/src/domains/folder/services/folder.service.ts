@@ -1,4 +1,8 @@
-import type { S3ObjectInternal } from '@stellariscloud/types'
+import type {
+  ContentAttributesType,
+  ContentMetadataType,
+  S3ObjectInternal,
+} from '@stellariscloud/types'
 import { FolderPushMessage, MediaType } from '@stellariscloud/types'
 import {
   mediaTypeFromExtension,
@@ -7,11 +11,10 @@ import {
 import { and, eq, like, sql } from 'drizzle-orm'
 import mime from 'mime'
 import * as r from 'runtypes'
-import { Lifecycle, scoped } from 'tsyringe'
+import { container, singleton } from 'tsyringe'
 import { v4 as uuidV4 } from 'uuid'
 import type { Logger } from 'winston'
 
-import { EnvConfigProvider } from '../../../config/env-config.provider'
 import { QueueName } from '../../../constants/app-worker-constants'
 import { OrmService } from '../../../orm/orm.service'
 import { LoggingService } from '../../../services/logging.service'
@@ -19,7 +22,6 @@ import { QueueService } from '../../../services/queue.service'
 import { configureS3Client, S3Service } from '../../../services/s3.service'
 import { SocketService } from '../../../services/socket.service'
 import { parseSort } from '../../../util/sort.util'
-import { JWTService } from '../../auth/services/jwt.service'
 import { EventService } from '../../event/services/event.service'
 import { CORE_MODULE_ID } from '../../module/constants/core-module.config'
 import { ServerLocationType } from '../../server/constants/server.constants'
@@ -32,7 +34,6 @@ import {
 } from '../../storage-location/errors/storage-location.error'
 import type { UserLocationInputData } from '../../storage-location/transfer-objects/s3-location.dto'
 import type { User } from '../../user/entities/user.entity'
-import { UserService } from '../../user/services/user.service'
 import type { Folder } from '../entities/folder.entity'
 import { foldersTable } from '../entities/folder.entity'
 import type { FolderObject } from '../entities/folder-object.entity'
@@ -48,10 +49,30 @@ import type { FolderObjectData } from '../transfer-objects/folder-object.dto'
 import { transformFolderToFolderDTO } from '../transforms/folder-dto.transform'
 import { transformFolderObjectToFolderObjectDTO } from '../transforms/folder-object-dto.transform'
 
+export interface OutputUploadUrlsResponse {
+  folderId: string
+  objectKey: string
+  url: string
+}
+
 export enum SignedURLsRequestMethod {
   PUT = 'PUT',
   DELETE = 'DELETE',
   GET = 'GET',
+}
+
+export interface ContentAttibutesPayload {
+  folderId: string
+  objectKey: string
+  hash: string
+  attributes: ContentAttributesType
+}
+
+export interface ContentMetadataPayload {
+  folderId: string
+  objectKey: string
+  hash: string
+  metadata: ContentMetadataType
 }
 
 export interface SignedURLsRequest {
@@ -118,23 +139,41 @@ const ServerLocationPayloadRunType = r.Record({
   serverLocationId: r.String,
 })
 
-@scoped(Lifecycle.ContainerScoped)
+@singleton()
 export class FolderService {
   private readonly logger: Logger
+  _eventService?: EventService
+  _socketService?: SocketService
+  _s3Service?: S3Service
 
   constructor(
     private readonly queueService: QueueService,
     private readonly serverConfigurationService: ServerConfigurationService,
-    private readonly jwtService: JWTService,
-    private readonly socketService: SocketService,
-    private readonly eventService: EventService,
-    private readonly userService: UserService,
     private readonly loggingService: LoggingService,
-    private readonly s3Service: S3Service,
-    private readonly configProvider: EnvConfigProvider,
     private readonly ormService: OrmService,
   ) {
     this.logger = this.loggingService.logger
+  }
+
+  private get s3Service() {
+    if (!this._s3Service) {
+      this._s3Service = container.resolve(S3Service)
+    }
+    return this._s3Service
+  }
+
+  private get eventService() {
+    if (!this._eventService) {
+      this._eventService = container.resolve(EventService)
+    }
+    return this._eventService
+  }
+
+  private get socketService() {
+    if (!this._socketService) {
+      this._socketService = container.resolve(SocketService)
+    }
+    return this._socketService
   }
 
   async createFolder({
@@ -825,7 +864,7 @@ export class FolderService {
     this.socketService.sendToFolderRoom(
       folderId,
       previousRecord
-        ? FolderPushMessage.OBJECTS_UPDATED
+        ? FolderPushMessage.OBJECT_UPDATED
         : FolderPushMessage.OBJECT_ADDED,
       { folderObject: record },
     )
@@ -837,5 +876,89 @@ export class FolderService {
     })
 
     return record
+  }
+
+  async updateFolderObjectAttributes(
+    payload: ContentAttibutesPayload[],
+  ): Promise<void> {
+    for (const { folderId, objectKey, hash, attributes } of payload) {
+      const folderObject =
+        await this.ormService.db.query.folderObjectsTable.findFirst({
+          where: and(
+            eq(folderObjectsTable.folderId, folderId),
+            eq(folderObjectsTable.objectKey, objectKey),
+          ),
+        })
+      if (!folderObject) {
+        throw new FolderObjectNotFoundError()
+      }
+
+      const updatedObject = (
+        await this.ormService.db
+          .update(folderObjectsTable)
+          .set({
+            hash,
+            contentAttributes: {
+              ...folderObject.contentAttributes,
+              [hash]: {
+                ...folderObject.contentAttributes[hash],
+                ...attributes,
+              },
+            },
+          })
+          .where(
+            and(
+              eq(folderObjectsTable.folderId, folderId),
+              eq(folderObjectsTable.objectKey, objectKey),
+            ),
+          )
+          .returning()
+      )[0]
+      this.socketService.sendToFolderRoom(
+        folderId,
+        FolderPushMessage.OBJECTS_UPDATED,
+        updatedObject,
+      )
+    }
+  }
+
+  async updateFolderObjectMetadata(
+    payload: ContentMetadataPayload[],
+  ): Promise<void> {
+    for (const { folderId, objectKey, hash, metadata } of payload) {
+      const folderObject =
+        await this.ormService.db.query.folderObjectsTable.findFirst({
+          where: and(
+            eq(folderObjectsTable.folderId, folderId),
+            eq(folderObjectsTable.objectKey, objectKey),
+          ),
+        })
+
+      if (!folderObject) {
+        throw new FolderObjectNotFoundError()
+      }
+
+      const updates = {
+        hash,
+        contentMetadata: {
+          ...folderObject.contentMetadata,
+          [hash]: { ...folderObject.contentMetadata[hash], ...metadata },
+        },
+      }
+
+      const updatedObject = (
+        await this.ormService.db
+          .update(folderObjectsTable)
+          .set(updates)
+          .where(eq(folderObjectsTable.id, folderObject.id))
+          .returning()
+      )[0]
+
+      this.socketService.sendToFolderRoom(
+        folderId,
+        FolderPushMessage.OBJECT_UPDATED,
+        updatedObject,
+      )
+    }
   }
 }

@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import { eq, or } from 'drizzle-orm'
-import { Lifecycle, scoped } from 'tsyringe'
+import { singleton } from 'tsyringe'
 
 import { OrmService } from '../../../orm/orm.service'
 import { SessionService } from '../../auth/services/session.service'
@@ -17,7 +17,7 @@ export enum ApiKeyType {
   PasswordChange = 'PasswordChange',
 }
 
-@scoped(Lifecycle.ContainerScoped)
+@singleton()
 export class UserAuthService {
   constructor(
     private readonly sessionService: SessionService,

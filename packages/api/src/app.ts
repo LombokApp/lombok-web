@@ -18,6 +18,7 @@ import { singleton } from 'tsyringe'
 
 import { EnvConfigProvider } from './config/env-config.provider'
 import { QueueName } from './constants/app-worker-constants'
+import { NotifyPendingEventsProcessor } from './domains/event/workers/notify-pending-events.worker'
 import { IndexFolderProcessor } from './domains/folder/workers/index-folder.worker'
 import { RouteNotFoundError } from './errors/app.error'
 import { RegisterRoutes } from './generated/routes'
@@ -353,7 +354,9 @@ export class App {
   }
 
   private initCoreModule() {
-    this.coreModuleService.startCoreModuleThread()
+    this.coreModuleService.startCoreModuleThread(
+      'embedded_core_module_worker__1',
+    )
   }
 
   private initWorkers() {
@@ -362,7 +365,22 @@ export class App {
         QueueName.IndexFolder,
         IndexFolderProcessor,
       ),
+      this.queueService.bindQueueProcessor(
+        QueueName.NotifyPendingEvents,
+        NotifyPendingEventsProcessor,
+      ),
     ]
+
+    // naive repeating job to get event handling going
+    void this.queueService.queues[QueueName.NotifyPendingEvents].add(
+      QueueName.NotifyPendingEvents,
+      undefined,
+      {
+        repeat: {
+          every: 5000,
+        },
+      },
+    )
     registerExitHandler(async () => {
       await Promise.all(processors.map((p) => p.close()))
     })

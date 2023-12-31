@@ -25,6 +25,7 @@ const ModuleAuthPayload = r.Record({
   moduleId: r.String,
   name: r.String,
   token: r.String,
+  eventSubscriptionKeys: r.Array(r.String),
 })
 
 const UserAuthPayload = r.Record({
@@ -109,18 +110,27 @@ export class SocketService {
             }
 
             // register listener for requests from the module
-            client.on('MODULE_API', (message) => {
-              return this.moduleService.handleModuleRequest(
+            client.on('MODULE_API', async (message, ack) => {
+              const response = await this.moduleService.handleModuleRequest(
+                auth.name,
                 auth.moduleId,
                 message,
               )
+              return ack(response)
             })
+
             client.on('disconnect', () => {
               // remove client in module reference map
               // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
               delete this.moduleConnections[client.id]
             })
-            next()
+            void Promise.all(
+              auth.eventSubscriptionKeys.map((eventKey) => {
+                const roomKey = `module:${auth.moduleId}__event:${eventKey}`
+                return client.join(roomKey)
+              }),
+              // eslint-disable-next-line promise/no-nesting
+            ).then(() => next())
           } catch (e) {
             if (
               e instanceof AuthTokenInvalidError ||
@@ -169,7 +179,7 @@ export class SocketService {
       } else {
         // auth payload does not match expected
         client.disconnect()
-        throw new UnauthorizedError()
+        next(new UnauthorizedError())
       }
     })
 
@@ -188,6 +198,17 @@ export class SocketService {
 
   sendToFolderRoom(folderId: string, name: FolderPushMessage, msg: any) {
     this.userServer?.to(`folder:${folderId}`).emit(name, msg)
+  }
+
+  notifyModuleWorkersOfPendingEvents(
+    moduleId: string,
+    eventKey: string,
+    count: number,
+  ) {
+    const roomKey = `module:${moduleId}__event:${eventKey}`
+    this.moduleServer
+      ?.to(roomKey)
+      .emit('PENDING_EVENTS_NOTIFICATION', { eventKey, count })
   }
 
   getModuleConnections() {

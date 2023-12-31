@@ -8,19 +8,18 @@ import { EnvConfigProvider } from '../config/env-config.provider'
 
 @singleton()
 export class CoreModuleService {
-  worker?: Worker
+  workers: { [workerKey: string]: Worker | undefined } = {}
 
   constructor(private readonly config: EnvConfigProvider) {}
 
-  startCoreModuleThread() {
+  startCoreModuleThread(externalId: string) {
     const embeddedCoreModuleToken =
       this.config.getCoreModuleConfig().embeddedCoreModuleToken
     if (!embeddedCoreModuleToken) {
       throw new Error('Missing EMBEDDED_CORE_MODULE_TOKEN env variable.')
     }
-    if (!this.worker) {
-      const externalId = 'embedded_core_module_worker__1'
-      this.worker = new Worker(
+    if (!this.workers[externalId]) {
+      const worker = (this.workers[externalId] = new Worker(
         path.join(__dirname, '..', 'core-module-worker'),
         {
           name: externalId,
@@ -30,27 +29,21 @@ export class CoreModuleService {
             externalId,
           },
         },
-      )
+      ))
 
       console.log('worker thread executed')
 
-      this.worker.on('error', (err) => {
+      worker.on('error', (err) => {
         console.log('worker thread error:', err)
       })
 
-      this.worker.on('exit', (err) => {
+      worker.on('exit', (err) => {
         console.log('worker thread exit:', err)
       })
 
-      this.worker.on('message', (msg) => {
+      worker.on('message', (msg) => {
         console.log('worker thread message:', msg)
       })
-    }
-  }
-  async stopCoreModuleThread() {
-    if (this.worker) {
-      await this.worker.terminate()
-      this.worker = undefined
     }
   }
 }

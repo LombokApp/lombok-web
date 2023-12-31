@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { Lifecycle, scoped } from 'tsyringe'
+import { singleton } from 'tsyringe'
 import type { Logger } from 'winston'
 
 import { EnvConfigProvider } from '../../../config/env-config.provider'
@@ -8,7 +8,7 @@ import { LoggingService } from '../../../services/logging.service'
 import { S3Service } from '../../../services/s3.service'
 import { storageLocationsTable } from '../entities/storage-location.entity'
 
-@scoped(Lifecycle.ContainerScoped)
+@singleton()
 export class StorageLocationService {
   private readonly logger: Logger
 

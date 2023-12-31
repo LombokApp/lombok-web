@@ -8,7 +8,10 @@ import { singleton } from 'tsyringe'
 import { EnvConfigProvider } from '../config/env-config.provider'
 import { sessionsTable } from '../domains/auth/entities/session.entity'
 import { eventsTable } from '../domains/event/entities/event.entity'
-import { eventReceiptsTable } from '../domains/event/entities/event-receipt.entity'
+import {
+  eventReceiptRelations,
+  eventReceiptsTable,
+} from '../domains/event/entities/event-receipt.entity'
 import {
   foldersRelations,
   foldersTable,
@@ -32,6 +35,7 @@ export const schema = {
   moduleLogEntriesTable,
   eventsTable,
   eventReceiptsTable,
+  eventReceiptRelations,
 }
 
 @singleton()

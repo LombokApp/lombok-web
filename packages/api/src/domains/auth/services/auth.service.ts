@@ -1,6 +1,6 @@
 import { addMs, earliest } from '@stellariscloud/utils'
 import { eq } from 'drizzle-orm'
-import { container, Lifecycle, scoped } from 'tsyringe'
+import { container, singleton } from 'tsyringe'
 import { v4 as uuidV4 } from 'uuid'
 
 import type { SignupParams } from '../../../controllers/auth.controller'
@@ -32,7 +32,7 @@ export const sessionExpiresAt = (createdAt: Date) =>
     addMs(createdAt, AuthDurationMs.SessionAbsolute),
   )
 
-@scoped(Lifecycle.ContainerScoped)
+@singleton()
 export class AuthService {
   constructor(private readonly jwtService: JWTService) {}
   ormService = container.resolve(OrmService)

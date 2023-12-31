@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "pg",
-  "id": "fad66ec1-0d00-4bd9-af9a-dbd55bc91678",
+  "id": "1563ea8c-20b4-4b19-800f-4d1c99481c3d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "session": {
@@ -86,7 +86,7 @@
         },
         "handlerId": {
           "name": "handlerId",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -99,6 +99,18 @@
         "completedAt": {
           "name": "completedAt",
           "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "errorAt": {
+          "name": "errorAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "error": {
+          "name": "error",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -160,6 +172,12 @@
         "eventKey": {
           "name": "eventKey",
           "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": true
         },

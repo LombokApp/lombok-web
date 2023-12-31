@@ -2,8 +2,7 @@ import * as r from 'runtypes'
 
 export enum QueueName {
   IndexFolder = 'IndexFolder',
-  IndexAllUnindexedInFolder = 'IndexAllUnindexedInFolder',
-  ExecuteUnstartedWork = 'ExecuteUnstartedWork',
+  NotifyPendingEvents = 'NotifyPendingEvents',
 }
 
 export const FOLDER_OPERATION_VALIDATOR_TYPES = {
@@ -11,11 +10,7 @@ export const FOLDER_OPERATION_VALIDATOR_TYPES = {
     folderId: r.String,
     userId: r.String,
   }),
-  [QueueName.ExecuteUnstartedWork]: r.Undefined,
-  [QueueName.IndexAllUnindexedInFolder]: r.Record({
-    folderId: r.String,
-    userId: r.String,
-  }),
+  [QueueName.NotifyPendingEvents]: r.Undefined,
 }
 
 export type AppWorkerOperationNameDataTypes = {

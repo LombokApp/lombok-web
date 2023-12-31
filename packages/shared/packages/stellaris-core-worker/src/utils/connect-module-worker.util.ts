@@ -6,30 +6,35 @@ import type {
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
 
+const SOCKET_RESPONSE_TIMEOUT = 2000
+
 export const buildModuleClient = (
   socket: Socket,
 ): CoreServerMessageInterface => {
   return {
     saveLogEntry(entry) {
-      return socket.emitWithAck('MODULE_API', {
+      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('MODULE_API', {
         name: 'SAVE_LOG_ENTRY',
         data: entry,
       })
     },
-    getSignedUrls(requests) {
-      return socket.emitWithAck('MODULE_API', {
-        name: 'GET_SIGNED_URLS',
-        data: requests,
+    getContentSignedUrls(requests, eventId) {
+      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('MODULE_API', {
+        name: 'GET_CONTENT_SIGNED_URLS',
+        data: { eventId, requests },
       })
     },
-    getMetadataSignedUrls(requests) {
-      return socket.emitWithAck('MODULE_API', {
+    getMetadataSignedUrls(requests, eventId) {
+      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('MODULE_API', {
         name: 'GET_METADATA_SIGNED_URLS',
-        data: requests,
+        data: {
+          eventId,
+          requests,
+        },
       })
     },
     updateContentAttributes(updates, eventId) {
-      return socket.emitWithAck('MODULE_API', {
+      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('MODULE_API', {
         name: 'UPDATE_CONTENT_ATTRIBUTES',
         data: {
           eventId,
@@ -38,7 +43,7 @@ export const buildModuleClient = (
       })
     },
     updateContentMetadata(updates, eventId) {
-      return socket.emitWithAck('MODULE_API', {
+      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('MODULE_API', {
         name: 'UPDATE_CONTENT_METADATA',
         data: {
           eventId,
@@ -47,15 +52,15 @@ export const buildModuleClient = (
       })
     },
     completeHandleEvent(eventId) {
-      return socket.emitWithAck('MODULE_API', {
+      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('MODULE_API', {
         name: 'COMPLETE_HANDLE_EVENT',
         data: eventId,
       })
     },
-    startHandleEvent(eventId) {
-      return socket.emitWithAck('MODULE_API', {
-        name: 'START_HANDLE_EVENT',
-        data: eventId,
+    attemptStartHandleEvent(eventKeys: string[]) {
+      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('MODULE_API', {
+        name: 'ATTEMPT_START_HANDLE_EVENT',
+        data: { eventKeys },
       })
     },
     failHandleEvent(eventId) {
@@ -67,30 +72,46 @@ export const buildModuleClient = (
   }
 }
 
+interface ModuleAPIResponse<T> {
+  result: T
+  error?: { code: string; message: string }
+}
 export interface CoreServerMessageInterface {
   saveLogEntry: (entry: ModuleLogEntry) => Promise<boolean>
-  startHandleEvent: (eventId: string) => Promise<boolean>
+  attemptStartHandleEvent: (
+    eventKeys: string[],
+  ) => Promise<ModuleAPIResponse<ModuleEvent>>
   failHandleEvent: (
     eventId: string,
     error: { code: string; message: string },
   ) => Promise<void>
-  completeHandleEvent: (eventId: string) => Promise<void>
+  completeHandleEvent: (eventId: string) => Promise<ModuleAPIResponse<void>>
   getMetadataSignedUrls: (
-    eventId: string,
     objects: {
       folderId: string
       objectKey: string
+      contentHash: string
       metadataHash: string
       method: 'GET' | 'PUT' | 'DELETE'
     }[],
-  ) => Promise<string[]>
-  getSignedUrls: (
+    eventId?: string,
+  ) => Promise<
+    ModuleAPIResponse<{
+      urls: { url: string; folderId: string; objectKey: string }[]
+    }>
+  >
+  getContentSignedUrls: (
     objects: {
       folderId: string
       objectKey: string
       method: 'GET' | 'PUT' | 'DELETE'
     }[],
-  ) => Promise<string[]>
+    eventId?: string,
+  ) => Promise<
+    ModuleAPIResponse<{
+      urls: { url: string; folderId: string; objectKey: string }[]
+    }>
+  >
   updateContentAttributes: (
     updates: {
       folderId: string
@@ -99,7 +120,7 @@ export interface CoreServerMessageInterface {
       attributes: ContentAttributesType
     }[],
     eventId?: string,
-  ) => Promise<void>
+  ) => Promise<ModuleAPIResponse<void>>
   updateContentMetadata: (
     updates: {
       folderId: string
@@ -108,15 +129,21 @@ export interface CoreServerMessageInterface {
       metadata: ContentMetadataType
     }[],
     eventId?: string,
-  ) => Promise<void>
+  ) => Promise<ModuleAPIResponse<void>>
 }
 
 export interface ModuleEvent {
   id: string
-  name: string
-  data: {
-    folderId: string
-    objectKey?: string
+  eventKey: string
+  data: any
+}
+
+export class ModuleAPIError extends Error {
+  errorCode: string
+  constructor(errorCode: string, errorMessage: string = '') {
+    super()
+    this.errorCode = errorCode
+    this.message = errorMessage
   }
 }
 
@@ -133,39 +160,64 @@ export const connectAndPerformWork = (
   },
   _log: (entry: Partial<ModuleLogEntry>) => void,
 ) => {
+  const eventSubscriptionKeys = Object.keys(eventHandlers)
   const socket = io(`${socketBaseUrl}`, {
     query: { externalId },
-    auth: { moduleId, token: moduleToken, name: externalId },
+    auth: {
+      moduleId,
+      token: moduleToken,
+      name: externalId,
+      eventSubscriptionKeys,
+    },
     reconnection: false,
   })
+  let concurrentTasks = 0
 
   const serverClient = buildModuleClient(socket)
 
   const shutdown = () => {
-    socket.close()
+    socket.disconnect()
   }
 
   const wait = new Promise<void>((resolve, reject) => {
     socket.on('connect', () => {
-      console.log('Worker connected.', externalId)
-      socket.on('EVENT', async (event: ModuleEvent) => {
-        if (event.name in eventHandlers) {
-          await serverClient.startHandleEvent(event.id)
-          await eventHandlers[event.name](event, serverClient)
-            .then(() => serverClient.completeHandleEvent(event.id))
-            .catch((e) =>
-              serverClient.failHandleEvent(event.id, {
-                code: 'MODULE_WORKER_EXECUTION_ERROR',
-                message: `${e.name}: ${e.message}`,
-              }),
-            )
-        }
-      })
+      console.log('Worker connected.')
     })
-
     socket.on('disconnect', (reason) => {
       console.log('Worker disconnected. Reason:', reason)
       resolve()
+    })
+    socket.onAny((_data) => {
+      console.log('Got event in worker thread:', _data)
+    })
+
+    socket.on('PENDING_EVENTS_NOTIFICATION', async (_data) => {
+      if (concurrentTasks < 10) {
+        try {
+          concurrentTasks++
+          const attemptStartHandleResponse =
+            await serverClient.attemptStartHandleEvent(eventSubscriptionKeys)
+          const event = attemptStartHandleResponse.result
+          if (attemptStartHandleResponse.error) {
+            const errorMessage = `${attemptStartHandleResponse.error.code} - ${attemptStartHandleResponse.error.message}`
+            _log({ message: errorMessage, name: 'Error' })
+          } else {
+            await eventHandlers[event.eventKey](event, serverClient)
+              .then(() => serverClient.completeHandleEvent(event.id))
+              .catch((e) => {
+                return serverClient.failHandleEvent(event.id, {
+                  code:
+                    e instanceof ModuleAPIError
+                      ? e.errorCode
+                      : 'MODULE_WORKER_EXECUTION_ERROR',
+                  message: `${e.name}: ${e.message}`,
+                })
+              })
+          }
+        } finally {
+          concurrentTasks--
+        }
+      }
     })
 
     socket.on('error', (error) => {

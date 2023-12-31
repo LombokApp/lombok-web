@@ -9,6 +9,7 @@ import type {
   CoreServerMessageInterface,
   ModuleEvent,
 } from '../utils/connect-module-worker.util'
+import { ModuleAPIError } from '../utils/connect-module-worker.util'
 import type { FFMpegOutput } from '../utils/ffmpeg.util'
 import { resizeWithFFmpeg } from '../utils/ffmpeg.util'
 import {
@@ -21,41 +22,52 @@ export const objectAddedEventHandler = async (
   event: ModuleEvent,
   server: CoreServerMessageInterface,
 ) => {
-  console.log('Got event:', event)
+  console.log('Starting work for event:', event)
   if (!event.id) {
-    throw new Error('No event id!')
+    throw new ModuleAPIError('INVALID_EVENT', 'Missing event id.')
   }
 
   if (!event.data.objectKey) {
-    throw new Error('objectKey should not be null for this event')
+    throw new ModuleAPIError('INVALID_EVENT', 'Missing objectKey.')
   }
 
-  console.log('handling event [%s]:', event.id, event.data)
-  const [downloadUrl] = await server.getSignedUrls([
-    {
-      folderId: event.data.folderId,
-      objectKey: event.data.objectKey,
-      method: 'GET',
-    },
-  ])
+  if (!event.data.folderId) {
+    throw new ModuleAPIError('INVALID_EVENT', 'Missing folderId.')
+  }
+
+  const response = await server.getContentSignedUrls(
+    [
+      {
+        folderId: event.data.folderId,
+        objectKey: event.data.objectKey,
+        method: 'GET',
+      },
+    ],
+    event.id,
+  )
+
+  if (response.error) {
+    throw new ModuleAPIError(response.error.code, response.error.message)
+  }
+
   const tempDir = fs.mkdtempSync(
     path.join(os.tmpdir(), `stellaris_event_${event.id}_`),
   )
 
-  const inFilepath = path.join(tempDir, event.data.objectKey)
+  const inFilepath = path.join(tempDir, event.data.objectKey as string)
 
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir)
   }
-
   const { mimeType } = await downloadFileToDisk(
-    downloadUrl,
+    response.result.urls[0].url,
     inFilepath,
-    event.data.objectKey,
+    event.data.objectKey as string,
   )
 
   if (!mimeType) {
-    throw new Error(
+    throw new ModuleAPIError(
+      'UNRECOGNIZED_MIME_TYPE',
       `Cannot resolve mimeType for objectKey ${event.data.objectKey}`,
     )
   }
@@ -89,23 +101,27 @@ export const objectAddedEventHandler = async (
       thumbnailLg: await hashLocalFile(lgThumbnailOutFilePath),
     }
     const metadataKeys = Object.keys(metadataHashes)
-    const uploadUrls = await server
+    const metadtaSignedUrlsResponse = await server
       .getMetadataSignedUrls(
-        event.id,
         metadataKeys.map((k) => ({
           folderId: event.data.folderId,
+          contentHash,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           objectKey: event.data.objectKey!,
           method: 'PUT',
           metadataHash: metadataHashes[k as keyof typeof metadataHashes],
         })),
+        event.id,
       )
-      .then((result) => {
-        return result.reduce<typeof metadataHashes>(
+      .then(({ result, error }) => {
+        if (error) {
+          throw new ModuleAPIError(error.code, error.message)
+        }
+        return result.urls.reduce<typeof metadataHashes>(
           (acc, next, i) => {
             return {
               ...acc,
-              [metadataKeys[i]]: next,
+              [metadataKeys[i]]: next.url,
             }
           },
           {
@@ -136,48 +152,62 @@ export const objectAddedEventHandler = async (
 
     await streamUploadFile(
       compressedOutFilePath,
-      uploadUrls.compressedVersion,
+      metadtaSignedUrlsResponse.compressedVersion,
       outMimeType,
     )
 
     await streamUploadFile(
       lgThumbnailOutFilePath,
-      uploadUrls.thumbnailLg,
+      metadtaSignedUrlsResponse.thumbnailLg,
       outMimeType,
     )
 
     await streamUploadFile(
       smThumbnailOutFilePath,
-      uploadUrls.thumbnailSm,
+      metadtaSignedUrlsResponse.thumbnailSm,
       outMimeType,
     )
   }
 
-  await server.updateContentAttributes([
-    {
-      folderId: event.data.folderId,
-      objectKey: event.data.objectKey,
-      hash: contentHash,
-      attributes: {
-        mimeType,
-        mediaType: MediaType.Image,
-        bitrate: 0,
-        height: ffmpegResult?.originalHeight ?? 0,
-        width: ffmpegResult?.originalWidth ?? 0,
-        lengthMs: ffmpegResult?.lengthMs ?? 0,
-        orientation: ffmpegResult?.originalOrientation ?? 0,
+  const updateContentAttributesResponse = await server.updateContentAttributes(
+    [
+      {
+        folderId: event.data.folderId,
+        objectKey: event.data.objectKey,
+        hash: contentHash,
+        attributes: {
+          mimeType,
+          mediaType: MediaType.Image,
+          bitrate: 0,
+          height: ffmpegResult?.originalHeight ?? 0,
+          width: ffmpegResult?.originalWidth ?? 0,
+          lengthMs: ffmpegResult?.lengthMs ?? 0,
+          orientation: ffmpegResult?.originalOrientation ?? 0,
+        },
       },
-    },
-  ])
+    ],
+    event.id,
+  )
 
-  await server.updateContentMetadata([
-    {
-      folderId: event.data.folderId,
-      objectKey: event.data.objectKey,
-      hash: contentHash,
-      metadata: metadataDescription,
-    },
-  ])
+  if (updateContentAttributesResponse.error) {
+    throw new ModuleAPIError('UPDATE_CONTENT_ATTRIBUTES_FAILED')
+  }
+
+  const metadataUpdateResponse = await server.updateContentMetadata(
+    [
+      {
+        folderId: event.data.folderId,
+        objectKey: event.data.objectKey,
+        hash: contentHash,
+        metadata: metadataDescription,
+      },
+    ],
+    event.id,
+  )
+
+  if (metadataUpdateResponse.error) {
+    throw new ModuleAPIError('UPDATE_CONTENT_METADATA_FAILED')
+  }
 
   // remove the temporary directory
   for (const f of fs.readdirSync(tempDir)) {

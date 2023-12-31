@@ -13,7 +13,7 @@ export const streamUploadFile = async (
     throw e
   })
   const { size } = fs.statSync(filepath)
-  console.log('Uploading file of size:', size)
+  console.log('Uploading file of size %d bytes to "%s":', size, uploadUrl)
   await axios.put(uploadUrl, readmeStream, {
     headers: {
       'Content-Type': mimeType,

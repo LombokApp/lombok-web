@@ -1,5 +1,5 @@
 import { and, eq } from 'drizzle-orm'
-import { Lifecycle, scoped } from 'tsyringe'
+import { singleton } from 'tsyringe'
 import { v4 as uuidV4 } from 'uuid'
 
 import { UnauthorizedError } from '../../../errors/auth.error'
@@ -22,7 +22,7 @@ import { sessionExpiresAt } from './auth.service'
 import type { AccessTokenJWT } from './jwt.service'
 import { JWTService } from './jwt.service'
 
-@scoped(Lifecycle.ContainerScoped)
+@singleton()
 export class SessionService {
   constructor(
     private readonly jwtService: JWTService,

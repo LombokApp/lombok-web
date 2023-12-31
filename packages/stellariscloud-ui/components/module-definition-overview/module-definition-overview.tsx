@@ -18,9 +18,13 @@ export function ModuleDefinitionOverview({
       </div>
       <div>
         <Heading level={6}>Connected instances</Heading>
-        {connectedModuleInstances.map((instance) => (
-          <>- {JSON.stringify({ ip: instance.ip, name: instance.name })}</>
-        ))}
+        <div className="flex flex-col">
+          {connectedModuleInstances.map((instance) => (
+            <div key={instance.id}>
+              - {JSON.stringify({ ip: instance.ip, name: instance.name })}
+            </div>
+          ))}
+        </div>
       </div>
       <div>
         <Heading level={6}>Config</Heading>

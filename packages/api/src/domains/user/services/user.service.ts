@@ -1,5 +1,5 @@
 import { eq, sql } from 'drizzle-orm'
-import { Lifecycle, scoped } from 'tsyringe'
+import { singleton } from 'tsyringe'
 import { v4 as uuidV4 } from 'uuid'
 
 import { OrmService } from '../../../orm/orm.service'
@@ -29,7 +29,7 @@ export enum UserSort {
   UpdatedAtDesc = 'updatedAt-desc',
 }
 
-@scoped(Lifecycle.ContainerScoped)
+@singleton()
 export class UserService {
   constructor(
     private readonly ormService: OrmService,

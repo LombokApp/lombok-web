@@ -1,5 +1,5 @@
 import { eq, inArray } from 'drizzle-orm'
-import { Lifecycle, scoped } from 'tsyringe'
+import { singleton } from 'tsyringe'
 import { v4 as uuidV4 } from 'uuid'
 
 import { OrmService } from '../../../orm/orm.service'
@@ -21,7 +21,7 @@ import {
 } from '../errors/server-configuration.error'
 import type { PublicServerSettings } from '../transfer-objects/settings.dto'
 
-@scoped(Lifecycle.ContainerScoped)
+@singleton()
 export class ServerConfigurationService {
   constructor(private readonly ormService: OrmService) {}
 

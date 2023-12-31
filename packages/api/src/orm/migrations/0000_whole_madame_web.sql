@@ -19,9 +19,11 @@ CREATE TABLE IF NOT EXISTS "event_receipts" (
 	"moduleId" uuid NOT NULL,
 	"eventId" uuid NOT NULL,
 	"eventKey" text NOT NULL,
-	"handlerId" uuid,
+	"handlerId" text,
 	"startedAt" timestamp,
 	"completedAt" timestamp,
+	"errorAt" timestamp,
+	"error" text,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL
 );
@@ -29,6 +31,7 @@ CREATE TABLE IF NOT EXISTS "event_receipts" (
 CREATE TABLE IF NOT EXISTS "events" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"eventKey" text NOT NULL,
+	"data" jsonb NOT NULL,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL
 );

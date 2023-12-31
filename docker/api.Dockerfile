@@ -56,4 +56,6 @@ FROM install as local
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.8.0/wait /wait
 RUN chmod +x /wait
 
+RUN apk add --no-cache ffmpeg
+
 VOLUME ["/home/node"]
