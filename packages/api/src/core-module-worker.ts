@@ -8,8 +8,6 @@ import type { ModuleLogEntry } from '@stellariscloud/types'
 import * as r from 'runtypes'
 import workerThreads from 'worker_threads'
 
-import { CORE_MODULE_ID } from './domains/module/constants/core-module.config'
-
 const sendLogEntry = (logEntryProperties: Partial<ModuleLogEntry>) => {
   const logEntry: ModuleLogEntry = {
     data: logEntryProperties.data ?? {},
@@ -21,7 +19,7 @@ const sendLogEntry = (logEntryProperties: Partial<ModuleLogEntry>) => {
 }
 
 const WorkerDataPayloadRuntype = r.Record({
-  externalId: r.String,
+  moduleWorkerId: r.String,
   moduleToken: r.String,
   socketBaseUrl: r.String,
 })
@@ -32,16 +30,16 @@ if (
 ) {
   sendLogEntry({
     message: 'Core module worker thread start...',
+    name: 'CoreModuleWorkerStartup',
     data: {
-      externalId: workerThreads.workerData.externalId,
+      moduleWorkerId: workerThreads.workerData.moduleWorkerId,
     },
   })
 
   const { wait } = connectAndPerformWork(
     workerThreads.workerData.socketBaseUrl as string,
-    CORE_MODULE_ID,
+    workerThreads.workerData.moduleWorkerId as string,
     workerThreads.workerData.moduleToken as string,
-    workerThreads.workerData.externalId as string,
     {
       ['CORE:OBJECT_ADDED']: objectAddedEventHandler,
     },
@@ -53,14 +51,21 @@ if (
       console.log('Finished.')
     })
     .catch((e) => {
-      console.log('Error:', e)
-      const logEntry: ModuleLogEntry = {
-        data: {},
-        name: 'module_worker_error',
+      sendLogEntry({
+        message: 'Core module worker thread error.',
         level: 'error',
-        message: e.message,
-      }
-      workerThreads.parentPort?.postMessage(JSON.stringify(logEntry, null, 2))
+        name: 'CoreModuleWorkerError',
+        data: {
+          name: e.name,
+          message: e.message,
+          stacktrace: e.stacktrace,
+          moduleWorkerId: workerThreads.workerData.moduleWorkerId,
+        },
+      })
+      throw e
+    })
+    .finally(() => {
+      console.log('Finally Finished.')
     })
 } else if (!workerThreads.isMainThread) {
   sendLogEntry({ message: `Didn't run.` })

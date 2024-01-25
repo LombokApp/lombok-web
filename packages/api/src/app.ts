@@ -14,12 +14,15 @@ import type http from 'http'
 import type { LoggerModule } from 'i18next'
 import i18next from 'i18next'
 import I18NextFsBackend from 'i18next-fs-backend'
+import mime from 'mime'
+import * as redis from 'redis'
 import { singleton } from 'tsyringe'
 
 import { EnvConfigProvider } from './config/env-config.provider'
 import { QueueName } from './constants/app-worker-constants'
 import { NotifyPendingEventsProcessor } from './domains/event/workers/notify-pending-events.worker'
 import { IndexFolderProcessor } from './domains/folder/workers/index-folder.worker'
+import { ModuleService } from './domains/module/services/module.service'
 import { RouteNotFoundError } from './errors/app.error'
 import { RegisterRoutes } from './generated/routes'
 import { HealthManager } from './health/health-manager'
@@ -30,6 +33,7 @@ import { OrmService } from './orm/orm.service'
 import { CoreModuleService } from './services/core-module.service'
 import { LoggingService } from './services/logging.service'
 import { QueueService } from './services/queue.service'
+import { RedisService } from './services/redis.service'
 import { SocketService } from './services/socket.service'
 import { stringifyLog } from './util/i18n.util'
 import { registerExitHandler, runExitHandlers } from './util/process.util'
@@ -73,24 +77,21 @@ declare global {
 export class App {
   closing = false
   server?: http.Server
-  uiServer?: http.Server
   readonly app
-  readonly uiApp
 
   constructor(
     private readonly config: EnvConfigProvider,
+    private readonly redisService: RedisService,
     private readonly ormService: OrmService,
     private readonly loggingService: LoggingService,
     private readonly healthManager: HealthManager,
     private readonly socketService: SocketService,
     private readonly queueService: QueueService,
     private readonly coreModuleService: CoreModuleService,
+    private readonly moduleService: ModuleService,
   ) {
     this.app = express()
     this.app.disable('x-powered-by')
-
-    this.uiApp = express()
-    this.uiApp.disable('x-powered-by')
 
     Sentry.init({
       dsn: config.getLoggingConfig().sentryKey,
@@ -141,8 +142,13 @@ export class App {
     await this.initI18n()
     await this.initOrm()
     this.initWorkers()
-    await this.initApiRoutes()
+
+    // load any modules from disk
+    await this.loadModulesFromDisk()
+
     await this.initUIServer()
+    await this.initApiRoutes()
+
     if (!this.config.getApiConfig().disableHttp) {
       this.listen()
       this.initSocketServer()
@@ -176,6 +182,12 @@ export class App {
 
   private async initOrm() {
     await this.ormService.init(true)
+  }
+
+  private async loadModulesFromDisk() {
+    await this.moduleService.updateModulesFromDisk(
+      this.config.getModulesConfig().modulesDirectory,
+    )
   }
 
   private async initApiRoutes() {
@@ -242,22 +254,7 @@ export class App {
 
   // eslint-disable-next-line @typescript-eslint/require-await
   private async initUIServer() {
-    this.uiApp.use(cors())
-    this.uiApp.use(
-      helmet({
-        contentSecurityPolicy: {
-          useDefaults: false,
-          directives: {
-            'default-src': "'self'",
-            'frame-ancestors': ["'self'", 'stellariscloud.localhost:3000'],
-            'script-src':
-              "'sha256-mnquucvB/C4p9HEVErNfh1uhjqqNyuMG+NYhzk0XtAs='",
-          },
-        },
-      }),
-    )
-
-    this.uiApp.use((req: Request, res: Response, next: NextFunction) => {
+    this.app.use((req: Request, res: Response, next: NextFunction) => {
       if (!req.headers.host) {
         next()
         return
@@ -272,78 +269,39 @@ export class App {
       const moduleName: string | undefined = isModuleUIHost
         ? hostnameParts[1]
         : undefined
-      const uiId: string | undefined = isModuleUIHost
+      const uiName: string | undefined = isModuleUIHost
         ? hostnameParts[0]
         : undefined
-
-      if (!moduleName || !uiId) {
+      const resolvedContentPath = req.path === '/' ? '/index.html' : req.path
+      if (!moduleName || !uiName) {
         next()
         return
       }
 
-      const SCRIPT_SRC = `
-      // setup http interceptors to handle route config
-      // provide core API
-      console.log('Hello from the script!!')
-
-      // setInterval(() => {
-      //   const req = new XMLHttpRequest();
-      //   req.addEventListener("load", (e) => {
-      //     console.log('this.responseText:', e.target.responseText);
-      //   });  
-      //   req.open("GET", '/test.md');
-      //   req.send();
-      // }, 2000)
-    `
-      const INDEX_HTML = `<!DOCTYPE html><head><script>${SCRIPT_SRC}</script><link type="text/css" rel="stylesheet" href="/styles.css"></head><body>${moduleName}</body></html>`
-
-      const CONTENT = {
-        '/': INDEX_HTML,
-        '/index.html': INDEX_HTML,
-        '/styles.css': 'html { color: #999 }',
-      }
-
-      const HEADERS = {
-        '/': {
-          'Content-Type': 'text/html',
-        },
-        '/index.html': {
-          'Content-Type': 'text/html',
-        },
-        '/styles.css': { 'Content-Type': 'text/css' },
-      }
-
-      const path = req.url.split('?')[0]
-      console.log('host: %s - headers[path:"%s"]:', host, path, req.headers)
-
-      console.log('testing path[host:%s]:', host, path)
-      if (path in CONTENT) {
-        const returnContent = CONTENT[path as keyof typeof CONTENT]
-        let response = res.status(200)
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        const headers = HEADERS[path as keyof typeof HEADERS] ?? {}
-        Object.keys(headers).forEach(
-          (headerKey) =>
-            (response = response.setHeader(
-              headerKey,
-              headers[headerKey as keyof typeof headers],
-            )),
-        )
-
-        // .setHeader('Cross-Origin-Embedder-Policy', 'cross-origin')
-        console.log('got response [%s]: ', typeof returnContent, returnContent)
-        response.send(returnContent)
-      }
+      const REDIS_KEY = `MODULE_UI:${moduleName}:${uiName}:${resolvedContentPath}`
+      const mimeType = mime.getType(resolvedContentPath) ?? 'text/html'
+      void this.redisService.client
+        .GET(redis.commandOptions({ returnBuffers: true }), REDIS_KEY)
+        .then((returnContent) => {
+          if (returnContent) {
+            console.log(
+              '"%s" got response [%s] %d bytes',
+              resolvedContentPath,
+              mimeType,
+              returnContent.length,
+            )
+            return res
+              .setHeader('content-type', mimeType)
+              .setHeader('Cross-Origin-Embedder-Policy', 'cross-origin')
+              .send(returnContent)
+              .status(200)
+          } else {
+            return res
+              .setHeader('Cross-Origin-Embedder-Policy', 'cross-origin')
+              .sendStatus(404)
+          }
+        })
     })
-    this.uiApp.use(
-      (
-        req: express.Request,
-        res: express.Response,
-        _next: express.NextFunction,
-      ) => {
-        res.status(404).send()
-      },
-    )
   }
 
   private initSocketServer() {
@@ -391,7 +349,7 @@ export class App {
       return
     }
 
-    const { port, uiServerPort, hostId } = this.config.getApiConfig()
+    const { port, hostId } = this.config.getApiConfig()
 
     const { logger } = this.loggingService
 
@@ -400,12 +358,7 @@ export class App {
       logger.info(`HTTP base:  ${hostId}:${port}/api/v1`)
       logger.info(`Websocket: ${hostId}:${port}`)
       logger.info(`Docs: ${hostId}:${port}/docs`)
-    })
-    this.uiServer = this.uiApp.listen(uiServerPort, () => {
-      logger.info(`UI server 👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍👍`)
-      logger.info(
-        `http://<module>.modules.stellariscloud.localhost:${uiServerPort}`,
-      )
+      logger.info(`http://<uiName>.<module>.modules.stellariscloud.localhost`)
     })
   }
 

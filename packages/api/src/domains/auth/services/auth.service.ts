@@ -1,3 +1,4 @@
+import type { ModuleConfig } from '@stellariscloud/types'
 import { addMs, earliest } from '@stellariscloud/utils'
 import { eq } from 'drizzle-orm'
 import { container, singleton } from 'tsyringe'
@@ -5,12 +6,7 @@ import { v4 as uuidV4 } from 'uuid'
 
 import type { SignupParams } from '../../../controllers/auth.controller'
 import { OrmService } from '../../../orm/orm.service'
-import {
-  CORE_MODULE_CONFIG,
-  CORE_MODULE_ID,
-} from '../../module/constants/core-module.config'
-import type { Module } from '../../module/entities/module.entity'
-import { modulesTable } from '../../module/entities/module.entity'
+import { ModuleService } from '../../module/services/module.service'
 import type { NewUser, User } from '../../user/entities/user.entity'
 import { usersTable } from '../../user/entities/user.entity'
 import { UserIdentityConflictError } from '../../user/errors/user.error'
@@ -34,7 +30,10 @@ export const sessionExpiresAt = (createdAt: Date) =>
 
 @singleton()
 export class AuthService {
-  constructor(private readonly jwtService: JWTService) {}
+  constructor(
+    private readonly jwtService: JWTService,
+    private readonly moduleService: ModuleService,
+  ) {}
   ormService = container.resolve(OrmService)
   sessionService = container.resolve(SessionService)
   async signup(data: SignupParams) {
@@ -94,29 +93,17 @@ export class AuthService {
   async verifyModuleWithToken(
     moduleId: string,
     tokenString: string,
-  ): Promise<{ module?: Module }> {
-    const module: Module | undefined =
-      moduleId === CORE_MODULE_ID
-        ? {
-            publicKey: Buffer.from(CORE_MODULE_CONFIG.publicKey),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            id: CORE_MODULE_ID,
-            name: 'core',
-            enabled: true,
-            config: CORE_MODULE_CONFIG,
-          }
-        : moduleId
-        ? await this.ormService.db.query.modulesTable.findFirst({
-            where: eq(modulesTable.id, moduleId),
-          })
-        : undefined
+  ): Promise<{ module?: ModuleConfig }> {
+    const module: ModuleConfig | undefined = await this.moduleService.getModule(
+      moduleId,
+    )
 
     if (!module) {
       throw new AccessTokenInvalidError()
     }
 
     const parsed = this.jwtService.verifyModuleJWT(
+      moduleId,
       module.publicKey,
       tokenString,
     )

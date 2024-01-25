@@ -23,7 +23,6 @@ import { configureS3Client, S3Service } from '../../../services/s3.service'
 import { SocketService } from '../../../services/socket.service'
 import { parseSort } from '../../../util/sort.util'
 import { EventService } from '../../event/services/event.service'
-import { CORE_MODULE_ID } from '../../module/constants/core-module.config'
 import { ServerLocationType } from '../../server/constants/server.constants'
 import { ServerConfigurationService } from '../../server/services/server-configuration.service'
 import type { StorageLocation } from '../../storage-location/entities/storage-location.entity'
@@ -870,7 +869,7 @@ export class FolderService {
     )
 
     await this.eventService.emitEvent({
-      moduleId: CORE_MODULE_ID,
+      moduleIdentifier: 'core',
       eventKey: previousRecord ? 'CORE:OBJECT_UPDATED' : 'CORE:OBJECT_ADDED',
       data: record,
     })

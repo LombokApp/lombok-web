@@ -1,0 +1,16 @@
+{
+  "publicKey": "-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAmcnU9plPjlKnWuMobAJ0\nyjs32bTHoZiYkOW6z85ch9LH8O1NbNhWDE7zJiCQHY2Wk95Tqcigy1FyjDpcsvjv\ntnNAklqHyuBCNq5+miu1b+oIjvOu41DUZWVyQjnhCiSwVgfUNQy1HnM1ST54MYZl\nnKIvcaGdLVAiR70v1GRthIAhwc8wiPcsZoXbaLbYlLAmVKIhbN/8kocdE3JZq90M\nGQV2+2LI8RT80nkW9K5MHO4y4JXkD3yljbHKZoJgqPtWklgenYm7DOH/j8dNNOcH\nHljMBOXiqdhmxWFhvwA5dw9y8/AWSfzZ7Im3O9nmtaTIct3Jz45pGCOl/5YWtepP\nlbZ6RTsLaex6awNJum/E+W6v8MHi6Ii1ZAadxyNrTbGgH088DaMh/Lvxi5a3LKrW\ndHmqK023ec8YfyQuO6scgMqwg77CUk4510TjCxrgdKakbJQMke8Gwt4ZJ3SLmQo7\nwF27JvtpN5bRM4dXcpuKQCGplnITD5uHN1770IQNeySKl341o7cj+rdAJQFaWNFP\n3YLeyxAsbjRBLCL2FtCkV+LBB5n4ia/kz67neCmftH+v2c3W1zPXCVuCc1LTOHGJ\ngiT446+PSl12CXszxm5ufuC+aW8ocNM2ZISBiV6lEakfKJ5SzITQhDEbeZhkIWnU\nGGN3OXce3Zjf+QCDgNSxbYsCAwEAAQ==\n-----END PUBLIC KEY-----",
+  "description": "The dev module",
+  "actions": {
+    "folder": [],
+    "object": []
+  },
+  "emitEvents": [],
+  "subscribedEvents": [],
+  "menuItems": [{
+    "name": "dev-main",
+    "label": "Dev Module",
+    "iconPath": "/assets/logo.png",
+    "uiName": "main"
+  }]
+}

@@ -103,13 +103,29 @@ export class JWTService {
     }
   }
 
-  verifyModuleJWT(publicKey: Buffer, token: string) {
+  verifyModuleJWT(moduleIdentifier: string, publicKey: string, token: string) {
     try {
       return jwt.verify(token, publicKey, {
         algorithms: ['RS512'],
-        // audience: hostId,
-        // subject:
+        subject: `MODULE:${moduleIdentifier}`,
       }) as JwtPayload
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new AuthTokenExpiredError(token, error)
+      }
+      if (error instanceof jwt.JsonWebTokenError) {
+        console.log('error:', error)
+        throw new AuthTokenInvalidError(token, error)
+      }
+      throw error
+    }
+  }
+
+  decodeModuleJWT(token: string) {
+    try {
+      return jwt.decode(token, {
+        complete: true,
+      })
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
         throw new AuthTokenExpiredError(token, error)

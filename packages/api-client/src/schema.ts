@@ -732,10 +732,14 @@ export const schema = {
         "properties": {
           "SIGNUP_ENABLED": {
             "type": "boolean"
+          },
+          "SERVER_HOSTNAME": {
+            "type": "string"
           }
         },
         "required": [
-          "SIGNUP_ENABLED"
+          "SIGNUP_ENABLED",
+          "SERVER_HOSTNAME"
         ],
         "type": "object",
         "additionalProperties": false
@@ -756,9 +760,31 @@ export const schema = {
         "type": "object",
         "additionalProperties": false
       },
+      "ModuleMenuItem": {
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "iconPath": {
+            "type": "string"
+          },
+          "uiName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "uiName"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
       "ModuleConfig": {
         "properties": {
           "publicKey": {
+            "type": "string"
+          },
+          "description": {
             "type": "string"
           },
           "subscribedEvents": {
@@ -793,62 +819,57 @@ export const schema = {
               "folder"
             ],
             "type": "object"
+          },
+          "menuItems": {
+            "items": {
+              "$ref": "#/components/schemas/ModuleMenuItem"
+            },
+            "type": "array"
           }
         },
         "required": [
           "publicKey",
+          "description",
           "subscribedEvents",
           "emitEvents",
-          "actions"
+          "actions",
+          "menuItems"
         ],
         "type": "object",
         "additionalProperties": false
       },
-      "ModuleData": {
+      "ConnectedModuleInstance": {
         "properties": {
+          "moduleIdentifier": {
+            "type": "string"
+          },
           "id": {
             "type": "string"
           },
           "name": {
             "type": "string"
           },
-          "config": {
-            "$ref": "#/components/schemas/ModuleConfig"
+          "ip": {
+            "type": "string"
           }
         },
         "required": [
+          "moduleIdentifier",
           "id",
           "name",
-          "config"
+          "ip"
         ],
         "type": "object",
         "additionalProperties": false
       },
-      "ModuleConnectionsMap": {
+      "ConnectedModuleInstancesMap": {
         "properties": {},
         "type": "object",
         "additionalProperties": {
-          "properties": {},
-          "additionalProperties": {
-            "properties": {
-              "ip": {
-                "type": "string"
-              },
-              "name": {
-                "type": "string"
-              },
-              "id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "ip",
-              "name",
-              "id"
-            ],
-            "type": "object"
+          "items": {
+            "$ref": "#/components/schemas/ConnectedModuleInstance"
           },
-          "type": "object"
+          "type": "array"
         }
       },
       "ViewerUpdatePayload": {
@@ -2072,11 +2093,23 @@ export const schema = {
                 "schema": {
                   "properties": {
                     "connected": {
-                      "$ref": "#/components/schemas/ModuleConnectionsMap"
+                      "$ref": "#/components/schemas/ConnectedModuleInstancesMap"
                     },
                     "installed": {
                       "items": {
-                        "$ref": "#/components/schemas/ModuleData"
+                        "properties": {
+                          "config": {
+                            "$ref": "#/components/schemas/ModuleConfig"
+                          },
+                          "identifier": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "config",
+                          "identifier"
+                        ],
+                        "type": "object"
                       },
                       "type": "array"
                     }

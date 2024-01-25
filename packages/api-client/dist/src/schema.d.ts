@@ -605,8 +605,11 @@ export declare const schema: {
                     readonly SIGNUP_ENABLED: {
                         readonly type: "boolean";
                     };
+                    readonly SERVER_HOSTNAME: {
+                        readonly type: "string";
+                    };
                 };
-                readonly required: readonly ["SIGNUP_ENABLED"];
+                readonly required: readonly ["SIGNUP_ENABLED", "SERVER_HOSTNAME"];
                 readonly type: "object";
                 readonly additionalProperties: false;
             };
@@ -623,9 +626,28 @@ export declare const schema: {
                 readonly type: "object";
                 readonly additionalProperties: false;
             };
+            readonly ModuleMenuItem: {
+                readonly properties: {
+                    readonly label: {
+                        readonly type: "string";
+                    };
+                    readonly iconPath: {
+                        readonly type: "string";
+                    };
+                    readonly uiName: {
+                        readonly type: "string";
+                    };
+                };
+                readonly required: readonly ["label", "uiName"];
+                readonly type: "object";
+                readonly additionalProperties: false;
+            };
             readonly ModuleConfig: {
                 readonly properties: {
                     readonly publicKey: {
+                        readonly type: "string";
+                    };
+                    readonly description: {
                         readonly type: "string";
                     };
                     readonly subscribedEvents: {
@@ -658,48 +680,44 @@ export declare const schema: {
                         readonly required: readonly ["object", "folder"];
                         readonly type: "object";
                     };
+                    readonly menuItems: {
+                        readonly items: {
+                            readonly $ref: "#/components/schemas/ModuleMenuItem";
+                        };
+                        readonly type: "array";
+                    };
                 };
-                readonly required: readonly ["publicKey", "subscribedEvents", "emitEvents", "actions"];
+                readonly required: readonly ["publicKey", "description", "subscribedEvents", "emitEvents", "actions", "menuItems"];
                 readonly type: "object";
                 readonly additionalProperties: false;
             };
-            readonly ModuleData: {
+            readonly ConnectedModuleInstance: {
                 readonly properties: {
+                    readonly moduleIdentifier: {
+                        readonly type: "string";
+                    };
                     readonly id: {
                         readonly type: "string";
                     };
                     readonly name: {
                         readonly type: "string";
                     };
-                    readonly config: {
-                        readonly $ref: "#/components/schemas/ModuleConfig";
+                    readonly ip: {
+                        readonly type: "string";
                     };
                 };
-                readonly required: readonly ["id", "name", "config"];
+                readonly required: readonly ["moduleIdentifier", "id", "name", "ip"];
                 readonly type: "object";
                 readonly additionalProperties: false;
             };
-            readonly ModuleConnectionsMap: {
+            readonly ConnectedModuleInstancesMap: {
                 readonly properties: {};
                 readonly type: "object";
                 readonly additionalProperties: {
-                    readonly properties: {};
-                    readonly additionalProperties: {
-                        readonly properties: {
-                            readonly ip: {
-                                readonly type: "string";
-                            };
-                            readonly name: {
-                                readonly type: "string";
-                            };
-                            readonly id: {
-                                readonly type: "string";
-                            };
-                        };
-                        readonly required: readonly ["ip", "name", "id"];
-                        readonly type: "object";
+                    readonly items: {
+                        readonly $ref: "#/components/schemas/ConnectedModuleInstance";
                     };
-                    readonly type: "object";
+                    readonly type: "array";
                 };
             };
             readonly ViewerUpdatePayload: {
@@ -1742,11 +1760,20 @@ export declare const schema: {
                                 readonly schema: {
                                     readonly properties: {
                                         readonly connected: {
-                                            readonly $ref: "#/components/schemas/ModuleConnectionsMap";
+                                            readonly $ref: "#/components/schemas/ConnectedModuleInstancesMap";
                                         };
                                         readonly installed: {
                                             readonly items: {
-                                                readonly $ref: "#/components/schemas/ModuleData";
+                                                readonly properties: {
+                                                    readonly config: {
+                                                        readonly $ref: "#/components/schemas/ModuleConfig";
+                                                    };
+                                                    readonly identifier: {
+                                                        readonly type: "string";
+                                                    };
+                                                };
+                                                readonly required: readonly ["config", "identifier"];
+                                                readonly type: "object";
                                             };
                                             readonly type: "array";
                                         };

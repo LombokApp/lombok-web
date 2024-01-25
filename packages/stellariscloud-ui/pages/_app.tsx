@@ -23,6 +23,10 @@ import { Header } from '../components/header'
 import { ThemeSwitch } from '../components/theme-switch/theme-switch'
 import { LocalFileCacheContextProvider } from '../contexts/local-file-cache.context'
 import { LoggingContextProvider } from '../contexts/logging.context'
+import {
+  ServerContextProvider,
+  useServerContext,
+} from '../contexts/server.context'
 import { ThemeContextProvider } from '../contexts/theme.context'
 import { Avatar } from '../design-system/avatar'
 import { Icon } from '../design-system/icon'
@@ -107,6 +111,7 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
     void logout()
   }
   const router = useRouter()
+  const { menuItems } = useServerContext()
 
   React.useEffect(() => {
     if (
@@ -135,18 +140,14 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
           },
         ]
       : []),
-    {
-      name: 'TestModule',
-      href: '/modules/test',
-      icon: CubeIcon,
-      current: router.pathname.startsWith('/modules/test'),
-    },
   ]
 
   const userNavigation = [{ name: 'Your profile', href: '/profile' }]
   const hideHeader = !SHOW_HEADER_ROUTES.includes(router.pathname)
   const hideSidebar = !hideHeader
+  const scheme = 'http' //TODO: Fix!
 
+  // console.log('moduleUIs:', moduleUIs)
   return (
     <div className="h-full overflow-hidden">
       <div
@@ -189,6 +190,35 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
                           aria-hidden="true"
                         />
                         <span className="sr-only">{item.name}</span>
+                      </Link>
+                    </li>
+                  ))}
+                  {menuItems.map((item, i) => (
+                    <li key={i}>
+                      <Link
+                        href={item.href}
+                        className={clsx(
+                          router.pathname.startsWith(item.href)
+                            ? 'bg-white/10 text-white'
+                            : 'text-gray-400 hover:text-white hover:bg-white/10',
+                          'group flex gap-x-3 rounded-md p-1 text-sm leading-6 font-semibold',
+                        )}
+                      >
+                        {item.iconPath ? (
+                          <img
+                            className="rounded-lg bg-black/50"
+                            width={40}
+                            height={40}
+                            alt={item.label}
+                            src={`${scheme}://${item.uiName}.${item.moduleIdentifier}.modules.${process.env.NEXT_PUBLIC_API_HOST}${item.iconPath}`}
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <>
+                            <Icon size="md" icon={CubeIcon} />
+                          </>
+                        )}
+                        <span className="sr-only">{item.label}</span>
                       </Link>
                     </li>
                   ))}
@@ -269,24 +299,26 @@ const Layout = (appProps: AppProps) => {
     <LoggingContextProvider>
       <QueryClientProvider client={queryClient}>
         <AuthContextProvider authenticator={authenticator}>
-          <LocalFileCacheContextProvider>
-            <ThemeContextProvider>
-              <Head>
-                <meta
-                  name="viewport"
-                  content="initial-scale=1.0, width=device-width"
-                />
-                <link rel="icon" href="/favicon.ico" />
-              </Head>
-              <div className="w-full h-full" id="takeover-root">
-                {loaded && authenticator.state.isAuthenticated ? (
-                  <AuthenticatedContent {...appProps} />
-                ) : (
-                  <UnauthenticatedContent {...appProps} />
-                )}
-              </div>
-            </ThemeContextProvider>
-          </LocalFileCacheContextProvider>
+          <ThemeContextProvider>
+            <Head>
+              <meta
+                name="viewport"
+                content="initial-scale=1.0, width=device-width"
+              />
+              <link rel="icon" href="/favicon.ico" />
+            </Head>
+            <div className="w-full h-full" id="takeover-root">
+              {loaded && authenticator.state.isAuthenticated ? (
+                <LocalFileCacheContextProvider>
+                  <ServerContextProvider>
+                    <AuthenticatedContent {...appProps} />
+                  </ServerContextProvider>
+                </LocalFileCacheContextProvider>
+              ) : (
+                <UnauthenticatedContent {...appProps} />
+              )}
+            </div>
+          </ThemeContextProvider>
         </AuthContextProvider>
       </QueryClientProvider>
     </LoggingContextProvider>

@@ -1,15 +1,12 @@
 import { relations } from 'drizzle-orm'
 import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
-import { modulesTable } from '../../module/entities/module.entity'
 import type { Event } from './event.entity'
 import { eventsTable } from './event.entity'
 
 export const eventReceiptsTable = pgTable('event_receipts', {
   id: uuid('id').primaryKey(),
-  moduleId: uuid('moduleId')
-    .notNull()
-    .references(() => modulesTable.id),
+  moduleIdentifier: text('moduleIdentifier').notNull(),
   eventId: uuid('eventId')
     .notNull()
     .references(() => eventsTable.id),

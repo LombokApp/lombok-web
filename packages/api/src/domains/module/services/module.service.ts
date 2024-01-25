@@ -1,14 +1,19 @@
+import type { ModuleConfig } from '@stellariscloud/types'
 import { MediaType } from '@stellariscloud/types'
 import { EnumType } from '@stellariscloud/utils'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
+import fs from 'fs'
+import path from 'path'
 import * as r from 'runtypes'
 import { container, singleton } from 'tsyringe'
 import { v4 as uuidV4 } from 'uuid'
 
 import { UnauthorizedError } from '../../../errors/auth.error'
 import { OrmService } from '../../../orm/orm.service'
+import { RedisService } from '../../../services/redis.service'
 import { S3Service } from '../../../services/s3.service'
 import { SocketService } from '../../../services/socket.service'
+import { readDirRecursive } from '../../../util/fs.util'
 import { eventReceiptsTable } from '../../event/entities/event-receipt.entity'
 import type { FolderWithoutLocations } from '../../folder/entities/folder.entity'
 import { foldersTable } from '../../folder/entities/folder.entity'
@@ -21,11 +26,10 @@ import {
 import { storageLocationsTable } from '../../storage-location/entities/storage-location.entity'
 import { StorageLocationNotFoundError } from '../../storage-location/errors/storage-location.error'
 import type { User } from '../../user/entities/user.entity'
-import { CORE_MODULE_ID } from '../constants/core-module.config'
 import { ModuleSocketAPIRequest } from '../constants/module-api-messages'
-import type { Module } from '../entities/module.entity'
-import { modulesTable } from '../entities/module.entity'
 import { moduleLogEntriesTable } from '../entities/module-log-entry.entity'
+
+const FROM_DISK_MODULE_TREE_REDIS_KEY = '__STELLARIS_FROM_DISK_MODULE_TREE'
 
 export type MetadataUploadUrlsResponse = {
   folderId: string
@@ -115,11 +119,13 @@ const FailHandleEventValidator = r.Record({
 export class ModuleService {
   constructor(
     private readonly ormService: OrmService,
+    private readonly redisService: RedisService,
     private readonly s3Service: S3Service,
     private readonly folderService: FolderService,
   ) {}
 
   _socketService?: SocketService
+  _modulesFromDisk: { [key: string]: { config: ModuleConfig } } = {}
 
   get socketService() {
     if (!this._socketService) {
@@ -132,7 +138,8 @@ export class ModuleService {
     if (!user.isAdmin) {
       throw new UnauthorizedError()
     }
-    const connectedModuleInstances = this.socketService.getModuleConnections()
+    const connectedModuleInstances =
+      await this.socketService.getModuleConnections()
     return {
       connected: connectedModuleInstances,
       installed: await this.listModules(),
@@ -140,43 +147,46 @@ export class ModuleService {
   }
 
   async listModules() {
-    const modules = await this.ormService.db.query.modulesTable.findMany()
-    return modules
+    const modulesFromDiskRaw = await this.redisService.client.GET(
+      FROM_DISK_MODULE_TREE_REDIS_KEY,
+    )
+    const modulesFromDisk: ReturnType<typeof this.loadModulesFromDisk> =
+      modulesFromDiskRaw ? JSON.parse(modulesFromDiskRaw) : {}
+
+    return Object.keys(modulesFromDisk).map((moduleName) => {
+      const module = modulesFromDisk[moduleName]
+      return {
+        identifier: moduleName,
+        config: module.config,
+      }
+    })
   }
 
-  async getModuleAsAdmin(user: User, moduleId: string) {
+  async getModuleAsAdmin(user: User, moduleName: string) {
     if (!user.isAdmin) {
       throw new UnauthorizedError()
     }
 
-    const module = await this.ormService.db.query.modulesTable.findFirst({
-      where: and(eq(modulesTable.id, moduleId), eq(modulesTable.enabled, true)),
-    })
-
-    return module
+    return this.getModule(moduleName)
   }
 
-  async getModule(moduleId: string) {
-    const module = await this.ormService.db.query.modulesTable.findFirst({
-      where: and(eq(modulesTable.id, moduleId), eq(modulesTable.enabled, true)),
-    })
+  async getModule(moduleName: string): Promise<ModuleConfig | undefined> {
+    const modulesFromDiskRaw = await this.redisService.client.GET(
+      FROM_DISK_MODULE_TREE_REDIS_KEY,
+    )
+    const modulesFromDisk: ReturnType<typeof this.loadModulesFromDisk> =
+      modulesFromDiskRaw ? JSON.parse(modulesFromDiskRaw) : {}
 
-    return module
+    return moduleName in modulesFromDisk
+      ? modulesFromDisk[moduleName].config
+      : undefined
   }
 
-  async getCoreModuleAsAdmin(user: User) {
-    if (!user.isAdmin) {
-      throw new UnauthorizedError()
-    }
-
-    return this.getCoreModule()
-  }
-
-  async getCoreModule(): Promise<Module | undefined> {
-    return this.getModule(CORE_MODULE_ID)
-  }
-
-  async handleModuleRequest(handlerId: string, moduleId: string, message: any) {
+  async handleModuleRequest(
+    handlerId: string,
+    moduleName: string,
+    message: any,
+  ) {
     const now = new Date()
     if (ModuleSocketAPIRequest.guard(message)) {
       const requestData = message.data
@@ -188,7 +198,7 @@ export class ModuleService {
                 ...requestData,
                 createdAt: now,
                 updatedAt: now,
-                moduleId,
+                moduleId: moduleName,
                 id: uuidV4(),
               },
             ])
@@ -267,7 +277,7 @@ export class ModuleService {
               await this.ormService.db.query.eventReceiptsTable.findFirst({
                 where: and(
                   eq(eventReceiptsTable.id, requestData),
-                  eq(eventReceiptsTable.moduleId, moduleId),
+                  eq(eventReceiptsTable.moduleIdentifier, moduleName),
                 ),
               })
             if (
@@ -297,7 +307,7 @@ export class ModuleService {
             const eventReceipt =
               await this.ormService.db.query.eventReceiptsTable.findFirst({
                 where: and(
-                  eq(eventReceiptsTable.moduleId, moduleId),
+                  eq(eventReceiptsTable.moduleIdentifier, moduleName),
                   inArray(eventReceiptsTable.eventKey, requestData.eventKeys),
                   isNull(eventReceiptsTable.startedAt),
                 ),
@@ -344,7 +354,7 @@ export class ModuleService {
               await this.ormService.db.query.eventReceiptsTable.findFirst({
                 where: and(
                   eq(eventReceiptsTable.id, requestData.eventReceiptId),
-                  eq(eventReceiptsTable.moduleId, moduleId),
+                  eq(eventReceiptsTable.moduleIdentifier, moduleName),
                 ),
               })
             if (
@@ -365,7 +375,12 @@ export class ModuleService {
               result: await this.ormService.db
                 .update(eventReceiptsTable)
                 .set({ error: requestData.error, errorAt: new Date() })
-                .where(eq(eventReceiptsTable.id, eventReceipt.id)),
+                .where(
+                  and(
+                    eq(eventReceiptsTable.id, eventReceipt.id),
+                    eq(eventReceiptsTable.moduleIdentifier, moduleName),
+                  ),
+                ),
             }
           }
           break
@@ -620,5 +635,98 @@ export class ModuleService {
       folderId: signedUrl.folderId,
       objectKey: signedUrl.objectKey,
     }))
+  }
+
+  public async updateModulesFromDisk(modulesDirectory: string) {
+    console.log('Refreshing modules from disk...')
+
+    // load the modules from disk
+    const modulesFromDisk = this.loadModulesFromDisk(modulesDirectory)
+    console.log(
+      'Loaded modules from disk:',
+      JSON.stringify(modulesFromDisk, null, 2),
+    )
+
+    // push all module UI file content into redis
+    for (const module of Object.keys(modulesFromDisk)) {
+      for (const moduleUi of Object.keys(modulesFromDisk[module].ui)) {
+        for (const filename of Object.keys(
+          modulesFromDisk[module].ui[moduleUi].files,
+        )) {
+          const fullFilePath = path.join(
+            modulesDirectory,
+            module,
+            'ui',
+            moduleUi,
+            filename,
+          )
+          const REDIS_KEY = `MODULE_UI:${module}:${moduleUi}:${filename}`
+          await this.redisService.client.SET(
+            REDIS_KEY,
+            fs.readFileSync(fullFilePath),
+          )
+        }
+      }
+    }
+
+    // push module config tree into redis
+    await this.redisService.client.SET(
+      FROM_DISK_MODULE_TREE_REDIS_KEY,
+      JSON.stringify(modulesFromDisk),
+    )
+  }
+
+  public loadModulesFromDisk(modulesDirectory: string) {
+    const configs: {
+      [key: string]: {
+        config: ModuleConfig
+        ui: {
+          [key: string]: {
+            path: string
+            name: string
+            files: { [key: string]: { size: number; hash: string } }
+          }
+        }
+      }
+    } = {}
+
+    for (const moduleName of fs.readdirSync(modulesDirectory)) {
+      const parentPath = path.join(modulesDirectory, moduleName)
+      const configPath = path.join(modulesDirectory, moduleName, 'config.json')
+      const uiDirPath = path.join(modulesDirectory, moduleName, 'ui')
+      if (!fs.lstatSync(parentPath).isDirectory()) {
+        continue
+      }
+
+      if (fs.existsSync(configPath)) {
+        const configJson = fs.readFileSync(configPath, 'utf-8')
+        configs[moduleName] = { ui: {}, config: JSON.parse(configJson) }
+        // load all the frontend assets provided by the module
+        if (fs.existsSync(uiDirPath) && fs.lstatSync(uiDirPath).isDirectory()) {
+          for (const uiName of fs.readdirSync(uiDirPath)) {
+            const uiPayloadRoot = path.join(uiDirPath, uiName)
+            if (fs.lstatSync(uiPayloadRoot).isDirectory()) {
+              const uiPath = path.join(uiDirPath, uiName)
+              const moduleUiPath = path.join(uiDirPath, uiName)
+              configs[moduleName].ui[uiName] = {
+                name: uiName,
+                path: uiPath,
+                files: readDirRecursive(moduleUiPath).reduce(
+                  (acc, entryPath) => ({
+                    ...acc,
+                    [entryPath.slice(moduleUiPath.length)]: {
+                      hash: '',
+                      size: 1,
+                    },
+                  }),
+                  {},
+                ),
+              }
+            }
+          }
+        }
+      }
+    }
+    return configs
   }
 }

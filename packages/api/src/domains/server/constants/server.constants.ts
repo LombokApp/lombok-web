@@ -23,6 +23,11 @@ export const SIGNUP_ENABLED_KEY: ServerConfigKey = {
   private: false,
 }
 
+export const SERVER_HOSTNAME: ServerConfigKey = {
+  key: 'SERVER_HOSTNAME',
+  private: false,
+}
+
 export const SIGNUP_PERMISSIONS_KEY: ServerConfigKey = {
   key: 'SIGNUP_PERMISSIONS',
   private: true,
@@ -46,6 +51,7 @@ export const CONFIGURATION_KEYS = [
   USER_BACKUP_LOCATIONS_KEY,
   SIGNUP_ENABLED_KEY,
   SIGNUP_PERMISSIONS_KEY,
+  SERVER_HOSTNAME,
 ].reduce<{ [key: string]: ServerConfigKey }>(
   (acc, next) => ({ ...acc, [next.key]: next }),
   {},

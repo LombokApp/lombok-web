@@ -17,19 +17,19 @@ export class EventService {
   ) {}
 
   async emitEvent({
-    moduleId,
+    moduleIdentifier,
     eventKey,
     data,
   }: {
-    moduleId: string // id of the inserting module
+    moduleIdentifier: string // id of the inserting module
     eventKey: string
     data: any
   }) {
     const now = new Date()
 
     // check this module can emit this event
-    const actorModule = await this.moduleService.getModule(moduleId)
-    if (!actorModule?.config.emitEvents.includes(eventKey)) {
+    const actorModule = await this.moduleService.getModule(moduleIdentifier)
+    if (!actorModule?.emitEvents.includes(eventKey)) {
       throw new ForbiddenEmitEvent()
     }
 
@@ -44,11 +44,9 @@ export class EventService {
         .listModules()
         .then((modules) =>
           modules
-            .filter(
-              (m) => m.enabled && m.config.subscribedEvents.includes(eventKey),
-            )
+            .filter((m) => m.config.subscribedEvents.includes(eventKey))
             .map((m) => ({
-              moduleId: m.id,
+              moduleIdentifier: m.identifier,
               eventKey: event.eventKey,
               id: uuidV4(),
               createdAt: now,
@@ -64,20 +62,20 @@ export class EventService {
     const pendingEventReceipts = await this.ormService.db
       .select({
         eventKey: eventReceiptsTable.eventKey,
-        moduleId: eventReceiptsTable.moduleId,
+        moduleIdentifier: eventReceiptsTable.moduleIdentifier,
         count: sql<number>`cast(count(${eventReceiptsTable.id}) as int)`,
       })
       .from(eventReceiptsTable)
       .where(isNull(eventReceiptsTable.startedAt))
-      .groupBy(eventReceiptsTable.eventKey, eventReceiptsTable.moduleId)
+      .groupBy(eventReceiptsTable.eventKey, eventReceiptsTable.moduleIdentifier)
 
     const pendingEventsByModule = pendingEventReceipts.reduce<{
       [moduleId: string]: { [key: string]: number }
     }>(
       (acc, next) => ({
         ...acc,
-        [next.moduleId]: {
-          ...(next.moduleId in acc ? acc[next.moduleId] : {}),
+        [next.moduleIdentifier]: {
+          ...(next.moduleIdentifier in acc ? acc[next.moduleIdentifier] : {}),
           [next.eventKey]: next.count,
         },
       }),

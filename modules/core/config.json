@@ -1,0 +1,36 @@
+{
+  "publicKey": "-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAohzlsPw6/pJj9v1wEt0B\nFtoBs4rPxwm4vp3+Bf8N0yDTXLgVDpUrxJ1yDmuBY0vhHoU9da/k9p7jvJwtoyQ1\nbOO/JC4e6nr524JlVo3IzL571vsiU8buNXvZxt8+jnIjqeIo5LHsIugu64fgd0x7\nrXaPppYyi7OuMP+izEptp1AqctSnMi4yKWMWT+ds51TgybYigefSeqcp/YzGeBaj\nYMsWMwUQNS2PDc1b712K3a6kXKaoPGmvaWxLTStPHLdf8C7BFXWBUOCdUXtk9mqg\nkeH1QYsHU+qeUCWSlWQRWv4Knz19o407EvI10dPW1sO9Bx1VRx7vl67w2pRMiMI4\nqElKfCyamQyxr8PFAJSnkoDUUOycgcVxkz/2sLPAS8HNzZ5+qKIJaQVT4iVvruB/\nrqfGpi14eC7sk/8Ed2hRlNhH22rxSQmAGTIVNDht8eJ0+pGNm4kdx/dQ1sVp4X3G\n2TlsQgU8VqSN8azTYV7sEK/XtPAgjpCkR9gFHTLLAdbdx9ljkKl1B9YpgN2tI3er\nJ4HWGcmw6F1ye1w14OpFSRfVjCx3f0t2muXceruU4julkk4mAVWpoh2GOkT4lLzF\nCeuxDvmJgPBv+jJLpj+YCW3VRQTTkXdb8KPzmROvP/jXfY7T1N2NVaLHnA5Cq5vy\nZy6afSvLrL/C7b347dXdQlUCAwEAAQ==\n-----END PUBLIC KEY-----\n",
+  "description": "A module implementing core functionality. This is a separate node process and can be run alongside the core app or deployed on another host.",
+  "actions": {
+    "folder": [
+      {
+        "key": "CORE:GENERATE_MISSING_PREVIEW_VERSIONS",
+        "description": "Generate preview representations for all content in this folder"
+      }
+    ],
+    "object": [
+      {
+        "key": "CORE:GENERATE_PREVIEW_VERSIONS",
+        "description": "Generate preview representations for this content"
+      }
+    ]
+  },
+  "emitEvents": [
+    "CORE:OBJECT_ADDED",
+    "CORE:OBJECT_REMOVED",
+    "CORE:FOLDER_CREATED",
+    "CORE:FOLDER_UPDATED",
+    "CORE:FOLDER_REMOVED",
+    "CORE:OBJECT_SCANNED",
+    "CORE:OBJECT_ATTRIBUTES_UPDATED",
+    "CORE:OBJECT_METADATA_UPDATED"
+  ],
+  "subscribedEvents": [
+    "CORE:OBJECT_ADDED",
+    "CORE:OBJECT_REMOVED",
+    "CORE:FOLDER_CREATED",
+    "CORE:FOLDER_UPDATED",
+    "CORE:FOLDER_REMOVED"
+  ],
+  "menuItems": []
+}

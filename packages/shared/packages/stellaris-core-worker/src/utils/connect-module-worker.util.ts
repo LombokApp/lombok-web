@@ -149,9 +149,8 @@ export class ModuleAPIError extends Error {
 
 export const connectAndPerformWork = (
   socketBaseUrl: string,
-  moduleId: string,
+  moduleWorkerId: string,
   moduleToken: string,
-  externalId: string,
   eventHandlers: {
     [eventName: string]: (
       event: ModuleEvent,
@@ -162,11 +161,9 @@ export const connectAndPerformWork = (
 ) => {
   const eventSubscriptionKeys = Object.keys(eventHandlers)
   const socket = io(`${socketBaseUrl}`, {
-    query: { externalId },
     auth: {
-      moduleId,
+      moduleWorkerId,
       token: moduleToken,
-      name: externalId,
       eventSubscriptionKeys,
     },
     reconnection: false,
@@ -185,6 +182,13 @@ export const connectAndPerformWork = (
     })
     socket.on('disconnect', (reason) => {
       console.log('Worker disconnected. Reason:', reason)
+      _log({
+        message: 'Core module worker websocket disconnected.',
+        name: 'CoreModuleWorkerDisconnect',
+        data: {
+          moduleWorkerId,
+        },
+      })
       resolve()
     })
     socket.onAny((_data) => {
@@ -221,7 +225,18 @@ export const connectAndPerformWork = (
     })
 
     socket.on('error', (error) => {
-      console.log('Socker error:', error, externalId)
+      console.log('Socket error:', error, moduleWorkerId)
+      _log({
+        message: 'Core module worker websocket disconnected.',
+        name: 'CoreModuleWorkerSocketError',
+        level: 'error',
+        data: {
+          moduleWorkerId,
+          name: error.name,
+          stacktrace: error.stacktrace,
+          message: error.message,
+        },
+      })
       socket.close()
       reject(error)
     })

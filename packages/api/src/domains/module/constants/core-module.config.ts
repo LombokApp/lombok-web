@@ -1,9 +1,8 @@
 import type { ModuleConfig } from '@stellariscloud/types'
 
-export const CORE_MODULE_ID = '0805ac65-2cae-48c1-8ff0-d9c044d9a659'
-
 export const CORE_MODULE_CONFIG: ModuleConfig = {
   publicKey: '',
+  description: `A module implementing core functionality. This is a separate node process and can be run alongside the core app or deployed on another host.`,
   actions: {
     folder: [
       {
@@ -37,4 +36,5 @@ export const CORE_MODULE_CONFIG: ModuleConfig = {
     'CORE:FOLDER_UPDATED',
     'CORE:FOLDER_REMOVED',
   ],
+  menuItems: [],
 }

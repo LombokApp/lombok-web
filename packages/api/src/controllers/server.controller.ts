@@ -1,4 +1,7 @@
-import type { ConnectedModuleInstancesMap } from '@stellariscloud/types'
+import type {
+  ConnectedModuleInstancesMap,
+  ModuleConfig,
+} from '@stellariscloud/types'
 import {
   Body,
   Controller,
@@ -18,7 +21,6 @@ import { Lifecycle, scoped } from 'tsyringe'
 import { AuthScheme } from '../domains/auth/constants/scheme.constants'
 import { AuthScope } from '../domains/auth/constants/scope.constants'
 import { ModuleService } from '../domains/module/services/module.service'
-import type { ModuleData } from '../domains/module/transfer-objects/module.dto'
 import { ServerLocationType } from '../domains/server/constants/server.constants'
 import { ServerConfigurationService } from '../domains/server/services/server-configuration.service'
 import type { ServerSettings } from '../domains/server/transfer-objects/settings.dto'
@@ -225,7 +227,7 @@ export class ServerController extends Controller {
   @OperationId('listModules')
   @Get('/modules')
   async listModules(@Request() req: Express.Request): Promise<{
-    installed: ModuleData[]
+    installed: { identifier: string; config: ModuleConfig }[]
     connected: ConnectedModuleInstancesMap
   }> {
     if (!req.user) {

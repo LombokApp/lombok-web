@@ -16,6 +16,37 @@ import { BaseAPI } from './base';
 /**
  *
  * @export
+ * @interface ConnectedModuleInstance
+ */
+export interface ConnectedModuleInstance {
+    /**
+     *
+     * @type {string}
+     * @memberof ConnectedModuleInstance
+     */
+    'moduleIdentifier': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ConnectedModuleInstance
+     */
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ConnectedModuleInstance
+     */
+    'name': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ConnectedModuleInstance
+     */
+    'ip': string;
+}
+/**
+ *
+ * @export
  * @interface ContentAttributesType
  */
 export interface ContentAttributesType {
@@ -511,20 +542,37 @@ export interface ListFoldersResponseMeta {
 export interface ListModules200Response {
     /**
      *
-     * @type {{ [key: string]: { [key: string]: ModuleConnectionsMapValueValue | undefined; } | undefined; }}
+     * @type {{ [key: string]: Array<ConnectedModuleInstance> | undefined; }}
      * @memberof ListModules200Response
      */
     'connected': {
-        [key: string]: {
-            [key: string]: ModuleConnectionsMapValueValue | undefined;
-        } | undefined;
+        [key: string]: Array<ConnectedModuleInstance> | undefined;
     };
     /**
      *
-     * @type {Array<ModuleData>}
+     * @type {Array<ListModules200ResponseInstalledInner>}
      * @memberof ListModules200Response
      */
-    'installed': Array<ModuleData>;
+    'installed': Array<ListModules200ResponseInstalledInner>;
+}
+/**
+ *
+ * @export
+ * @interface ListModules200ResponseInstalledInner
+ */
+export interface ListModules200ResponseInstalledInner {
+    /**
+     *
+     * @type {ModuleConfig}
+     * @memberof ListModules200ResponseInstalledInner
+     */
+    'config': ModuleConfig;
+    /**
+     *
+     * @type {string}
+     * @memberof ListModules200ResponseInstalledInner
+     */
+    'identifier': string;
 }
 /**
  *
@@ -648,6 +696,12 @@ export interface ModuleConfig {
     'publicKey': string;
     /**
      *
+     * @type {string}
+     * @memberof ModuleConfig
+     */
+    'description': string;
+    /**
+     *
      * @type {Array<string>}
      * @memberof ModuleConfig
      */
@@ -664,6 +718,12 @@ export interface ModuleConfig {
      * @memberof ModuleConfig
      */
     'actions': ModuleConfigActions;
+    /**
+     *
+     * @type {Array<ModuleMenuItem>}
+     * @memberof ModuleConfig
+     */
+    'menuItems': Array<ModuleMenuItem>;
 }
 /**
  *
@@ -687,52 +747,27 @@ export interface ModuleConfigActions {
 /**
  *
  * @export
- * @interface ModuleConnectionsMapValueValue
+ * @interface ModuleMenuItem
  */
-export interface ModuleConnectionsMapValueValue {
+export interface ModuleMenuItem {
     /**
      *
      * @type {string}
-     * @memberof ModuleConnectionsMapValueValue
+     * @memberof ModuleMenuItem
      */
-    'ip': string;
+    'label': string;
     /**
      *
      * @type {string}
-     * @memberof ModuleConnectionsMapValueValue
+     * @memberof ModuleMenuItem
      */
-    'name': string;
+    'iconPath'?: string;
     /**
      *
      * @type {string}
-     * @memberof ModuleConnectionsMapValueValue
+     * @memberof ModuleMenuItem
      */
-    'id': string;
-}
-/**
- *
- * @export
- * @interface ModuleData
- */
-export interface ModuleData {
-    /**
-     *
-     * @type {string}
-     * @memberof ModuleData
-     */
-    'id': string;
-    /**
-     *
-     * @type {string}
-     * @memberof ModuleData
-     */
-    'name': string;
-    /**
-     *
-     * @type {ModuleConfig}
-     * @memberof ModuleData
-     */
-    'config': ModuleConfig;
+    'uiName': string;
 }
 /**
  *
@@ -868,6 +903,12 @@ export interface ServerSettings {
      * @memberof ServerSettings
      */
     'SIGNUP_ENABLED': boolean;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerSettings
+     */
+    'SERVER_HOSTNAME': string;
 }
 /**
  *

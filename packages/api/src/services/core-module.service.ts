@@ -12,21 +12,21 @@ export class CoreModuleService {
 
   constructor(private readonly config: EnvConfigProvider) {}
 
-  startCoreModuleThread(externalId: string) {
+  startCoreModuleThread(moduleWorkerId: string) {
     const embeddedCoreModuleToken =
       this.config.getCoreModuleConfig().embeddedCoreModuleToken
     if (!embeddedCoreModuleToken) {
       throw new Error('Missing EMBEDDED_CORE_MODULE_TOKEN env variable.')
     }
-    if (!this.workers[externalId]) {
-      const worker = (this.workers[externalId] = new Worker(
+    if (!this.workers[moduleWorkerId]) {
+      const worker = (this.workers[moduleWorkerId] = new Worker(
         path.join(__dirname, '..', 'core-module-worker'),
         {
-          name: externalId,
+          name: moduleWorkerId,
           workerData: {
             socketBaseUrl: 'http://127.0.0.1:3001',
             moduleToken: embeddedCoreModuleToken,
-            externalId,
+            moduleWorkerId,
           },
         },
       ))

@@ -17,7 +17,6 @@ import {
   foldersTable,
 } from '../domains/folder/entities/folder.entity'
 import { folderObjectsTable } from '../domains/folder/entities/folder-object.entity'
-import { modulesTable } from '../domains/module/entities/module.entity'
 import { moduleLogEntriesTable } from '../domains/module/entities/module-log-entry.entity'
 import { serverConfigurationsTable } from '../domains/server/entities/server-configuration.entity'
 import { storageLocationsTable } from '../domains/storage-location/entities/storage-location.entity'
@@ -31,7 +30,6 @@ export const schema = {
   foldersTable,
   foldersRelations,
   folderObjectsTable,
-  modulesTable,
   moduleLogEntriesTable,
   eventsTable,
   eventReceiptsTable,

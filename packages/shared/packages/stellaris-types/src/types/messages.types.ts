@@ -7,6 +7,13 @@ export enum FolderPushMessage {
   OBJECT_UPDATED = 'OBJECT_UPDATED',
 }
 
+export enum ServerPushMessage {
+  MODULES_UPDATED = 'MODULES_UPDATED',
+  SETTINGS_UPDATED = 'SETTINGS_UPDATED',
+}
+
+export type AppPushMessage = ServerPushMessage | FolderPushMessage
+
 export interface ModuleLogEntry {
   level: 'error' | 'warning' | 'info' | 'debug'
   name: string

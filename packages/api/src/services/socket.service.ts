@@ -1,6 +1,6 @@
 import { createAdapter } from '@socket.io/redis-adapter'
 import type {
-  ConnectedModuleInstancesMap,
+  ConnectedModuleInstance,
   FolderPushMessage,
 } from '@stellariscloud/types'
 import type http from 'http'
@@ -22,8 +22,7 @@ import { UnauthorizedError } from '../errors/auth.error'
 import { RedisService } from './redis.service'
 
 const ModuleAuthPayload = r.Record({
-  moduleId: r.String,
-  name: r.String,
+  moduleWorkerId: r.String,
   token: r.String,
   eventSubscriptionKeys: r.Array(r.String),
 })
@@ -35,7 +34,6 @@ const UserAuthPayload = r.Record({
 
 @singleton()
 export class SocketService {
-  moduleConnections: ConnectedModuleInstancesMap = {}
   userServer?: io.Server
   moduleServer?: io.Server
   _folderService?: FolderService
@@ -84,63 +82,87 @@ export class SocketService {
     this.moduleServer.use((client, next) => {
       const auth = client.handshake.auth
       if (ModuleAuthPayload.guard(auth)) {
-        void this.moduleService.getModule(auth.moduleId).then((module) => {
+        const jwt = this.jwtService.decodeModuleJWT(auth.token)
+        const sub = jwt?.payload.sub as string | undefined
+        const moduleIdentifier = sub?.startsWith('MODULE:')
+          ? sub.slice('MODULE:'.length)
+          : undefined
+
+        if (!moduleIdentifier) {
+          console.log('No module identifier in jwt')
+          client.disconnect(true)
+          next(new UnauthorizedError())
+          return
+        }
+        void this.moduleService.getModule(moduleIdentifier).then((module) => {
           if (!module) {
-            client.disconnect()
-            throw new UnauthorizedError()
-            // TODO: represent error better for the socket client
+            console.log(
+              'Module "%s" not recognised. Disconnecting...',
+              moduleIdentifier,
+            )
+            client.disconnect(true)
+            next(new UnauthorizedError())
+            return
           }
 
-          // verifies the token using the publicKey we have on file for this module
           try {
-            this.jwtService.verifyModuleJWT(module.publicKey, auth.token)
-            const moduleConnections = (this.moduleConnections[auth.moduleId] =
-              this.moduleConnections[auth.moduleId] ?? {})
-            if (moduleConnections[auth.name]) {
-              // worker still connected by that name
-              client.disconnect()
-              throw new UnauthorizedError()
-            } else {
-              // add the socket connection to a reference map of all modules
-              moduleConnections[auth.name] = moduleConnections[auth.name] ?? {
-                id: client.id,
-                name: auth.name,
-                ip: client.handshake.address,
-              }
-            }
-
-            // register listener for requests from the module
-            client.on('MODULE_API', async (message, ack) => {
-              const response = await this.moduleService.handleModuleRequest(
-                auth.name,
-                auth.moduleId,
-                message,
-              )
-              return ack(response)
-            })
-
-            client.on('disconnect', () => {
-              // remove client in module reference map
-              // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-              delete this.moduleConnections[client.id]
-            })
-            void Promise.all(
-              auth.eventSubscriptionKeys.map((eventKey) => {
-                const roomKey = `module:${auth.moduleId}__event:${eventKey}`
-                return client.join(roomKey)
-              }),
-              // eslint-disable-next-line promise/no-nesting
-            ).then(() => next())
-          } catch (e) {
+            // verifies the token using the publicKey we have on file for this module
+            const _verifiedJwt = this.jwtService.verifyModuleJWT(
+              moduleIdentifier,
+              module.publicKey,
+              auth.token,
+            )
+            // console.log('verifiedJwt:', _verifiedJwt)
+          } catch (e: any) {
             if (
               e instanceof AuthTokenInvalidError ||
               e instanceof AuthTokenExpiredError
             ) {
-              console.log('SOCKET AUTH ERROR [%s]:', e.name, e.message)
+              console.log('SOCKET AUTH ERROR [%s]:', e.name)
+            } else {
+              console.log('SOCKET ERROR [%s]:', e.name)
             }
-            client.disconnect()
-            throw new UnauthorizedError()
+            client.disconnect(true)
+            next(new UnauthorizedError())
+            return
           }
+
+          // persist worker state to redis
+          const workerRedisStateKey = `MODULE_WORKER:${moduleIdentifier}:${auth.moduleWorkerId}`
+          void this.redisService.client.SET(
+            workerRedisStateKey,
+            JSON.stringify({
+              moduleIdentifier,
+              socketClientId: client.id,
+              name: auth.moduleWorkerId,
+              ip: client.handshake.address,
+            }),
+          )
+
+          // register listener for requests from the module
+          client.on('MODULE_API', async (message, ack) => {
+            const response = await this.moduleService.handleModuleRequest(
+              auth.moduleWorkerId,
+              moduleIdentifier,
+              message,
+            )
+            return ack(response)
+          })
+
+          client.on('disconnect', () => {
+            // remove client state from redis
+            console.log('Removing worker state from redis...')
+            void this.redisService.client.del(workerRedisStateKey)
+          })
+
+          // add the clients to the rooms corresponding to their subscriptions
+          void Promise.all(
+            auth.eventSubscriptionKeys.map((eventKey) => {
+              const roomKey = `module:${moduleIdentifier}__event:${eventKey}`
+              return client.join(roomKey)
+            }),
+            // eslint-disable-next-line promise/no-nesting
+          ).then(() => next())
         })
       } else if (UserAuthPayload.guard(auth)) {
         const token = auth.token
@@ -178,7 +200,8 @@ export class SocketService {
         }
       } else {
         // auth payload does not match expected
-        client.disconnect()
+        console.log('Bad auth payload.', auth)
+        client.disconnect(true)
         next(new UnauthorizedError())
       }
     })
@@ -211,8 +234,43 @@ export class SocketService {
       .emit('PENDING_EVENTS_NOTIFICATION', { eventKey, count })
   }
 
-  getModuleConnections() {
-    return this.moduleConnections
+  async getModuleConnections(): Promise<{
+    [key: string]: ConnectedModuleInstance[]
+  }> {
+    let cursor = 0
+    let started = false
+    let keys: string[] = []
+    while (!started || cursor !== 0) {
+      started = true
+      const scanResult = await this.redisService.client.scan(cursor, {
+        MATCH: 'MODULE_WORKER:*',
+        TYPE: 'string',
+        COUNT: 10000,
+      })
+      keys = keys.concat(scanResult.keys)
+      cursor = scanResult.cursor
+    }
+
+    return keys.length
+      ? (await this.redisService.client.mGet(keys))
+          .filter((_r) => _r)
+          .reduce<{ [k: string]: ConnectedModuleInstance[] }>((acc, _r) => {
+            const parsedRecord: ConnectedModuleInstance | undefined = _r
+              ? JSON.parse(_r)
+              : undefined
+            if (!parsedRecord) {
+              return acc
+            }
+            return {
+              ...acc,
+              [parsedRecord.moduleIdentifier]: (parsedRecord.moduleIdentifier in
+              acc
+                ? acc[parsedRecord.moduleIdentifier]
+                : []
+              ).concat([parsedRecord]),
+            }
+          }, {})
+      : {}
   }
 
   close() {
