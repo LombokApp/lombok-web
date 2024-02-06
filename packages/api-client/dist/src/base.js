@@ -1,4 +1,3 @@
-"use strict";
 /* tslint:disable */
 /* eslint-disable */
 /**
@@ -12,15 +11,13 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.RequiredError = exports.BaseAPI = exports.COLLECTION_FORMATS = exports.BASE_PATH = void 0;
-const axios_1 = require("axios");
-exports.BASE_PATH = "http://localhost:3001/api/v1".replace(/\/+$/, "");
+import globalAxios from 'axios';
+export const BASE_PATH = "http://localhost:3001/api/v1".replace(/\/+$/, "");
 /**
  *
  * @export
  */
-exports.COLLECTION_FORMATS = {
+export const COLLECTION_FORMATS = {
     csv: ",",
     ssv: " ",
     tsv: "\t",
@@ -31,8 +28,11 @@ exports.COLLECTION_FORMATS = {
  * @export
  * @class BaseAPI
  */
-class BaseAPI {
-    constructor(configuration, basePath = exports.BASE_PATH, axios = axios_1.default) {
+export class BaseAPI {
+    basePath;
+    axios;
+    configuration;
+    constructor(configuration, basePath = BASE_PATH, axios = globalAxios) {
         this.basePath = basePath;
         this.axios = axios;
         if (configuration) {
@@ -41,7 +41,6 @@ class BaseAPI {
         }
     }
 }
-exports.BaseAPI = BaseAPI;
 ;
 /**
  *
@@ -49,11 +48,11 @@ exports.BaseAPI = BaseAPI;
  * @class RequiredError
  * @extends {Error}
  */
-class RequiredError extends Error {
+export class RequiredError extends Error {
+    field;
     constructor(field, msg) {
         super(msg);
         this.field = field;
         this.name = "RequiredError";
     }
 }
-exports.RequiredError = RequiredError;

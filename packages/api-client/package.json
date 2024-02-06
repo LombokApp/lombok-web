@@ -1,15 +1,16 @@
 {
   "name": "@stellariscloud/api-client",
-  "private": true,
-  "types": "src/index.ts",
+  "main": "dist/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc -p ./tsconfig.json",
+    "build:clean": "yarn clean && yarn build",
+    "clean": "(rm -rf ./*.tsbuildinfo ||  true) && rm -rf ./dist"
   },
   "devDependencies": {
-    "axios": "1.4.0",
+    "axios": "1.6.7",
     "typescript": "5.0.2"
   },
   "peerDependencies": {
-    "axios": "1.4.0"
+    "axios": "1.6.7"
   }
 }

@@ -1,8 +1,10 @@
 {
   "name": "@stellariscloud/api-utils",
-  "private": true,
+  "main": "dist/index.js",
   "scripts": {
-    "build": "(rm -rf ./*.tsbuildinfo ||  true) && tsc -p ./tsconfig-build.json",
+    "build:clean": "yarn clean && yarn build",
+    "clean": "(rm -rf ./*.tsbuildinfo ||  true) && rm -rf ./dist",
+    "build": "tsc -p ./tsconfig.json",
     "lint:check": "eslint .",
     "lint:fix": "eslint --fix .",
     "ts:check": "tsc --noEmit --project tsconfig.json",
@@ -36,7 +38,7 @@
   },
   "dependencies": {
     "@stellariscloud/api-client": "workspace:*",
-    "axios": "1.4.0",
+    "axios": "1.6.7",
     "react-query": "3.34.16",
     "runtypes": "6.7.0"
   }

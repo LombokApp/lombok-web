@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "noImplicitAny": true,
+    "module": "ESNext",
+    "target": "ESNext",
+    "outDir": "dist",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "composite": true,
@@ -11,13 +14,10 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
-    "module": "commonjs",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "outDir": "dist"
+    "isolatedModules": true
   },
-  "include": [".", "index.ts", ".eslintrc.js"],
+  "include": [".", "src", "index.ts"],
   "exclude": ["dist"]
 }

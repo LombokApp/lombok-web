@@ -38,7 +38,7 @@
     "typescript": "5.0.2"
   },
   "dependencies": {
-    "axios": "1.4.0",
+    "axios": "1.6.7",
     "fast-json-stable-stringify": "2.1.0",
     "fast-memoize": "2.5.2",
     "runtypes": "6.7.0",

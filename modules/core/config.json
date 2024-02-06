@@ -4,6 +4,15 @@
   "actions": {
     "folder": [
       {
+        "key": "CORE:SAVE_URL_TO_FOLDER_OBJECT",
+        "description": "Download content at a url to a folder.",
+        "params": {
+          "url": "string",
+          "mimeType": "string",
+          "objectKey": "string"
+        }
+      },
+      {
         "key": "CORE:GENERATE_MISSING_PREVIEW_VERSIONS",
         "description": "Generate preview representations for all content in this folder"
       }

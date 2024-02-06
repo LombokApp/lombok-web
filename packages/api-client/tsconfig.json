@@ -1,12 +1,23 @@
 {
   "compilerOptions": {
     "noImplicitAny": true,
-    "moduleResolution": "node",
-    "module": "commonjs",
+    "module": "ESNext",
+    "target": "ESNext",
     "outDir": "dist",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
     "composite": true,
-    "target": "es2020"
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "strictNullChecks": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true
   },
-  "include": ["src", "index.ts"],
+  "include": [".", "src", "index.ts"],
   "exclude": ["dist"]
 }
