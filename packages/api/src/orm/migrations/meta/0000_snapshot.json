@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "pg",
-  "id": "1563ea8c-20b4-4b19-800f-4d1c99481c3d",
+  "id": "a1cc1eaa-f61a-4de4-a8f1-18460c5c8c5e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "session": {
@@ -66,9 +66,9 @@
           "primaryKey": true,
           "notNull": true
         },
-        "moduleId": {
-          "name": "moduleId",
-          "type": "uuid",
+        "moduleIdentifier": {
+          "name": "moduleIdentifier",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -129,19 +129,6 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "event_receipts_moduleId_modules_id_fk": {
-          "name": "event_receipts_moduleId_modules_id_fk",
-          "tableFrom": "event_receipts",
-          "tableTo": "modules",
-          "columnsFrom": [
-            "moduleId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
         "event_receipts_eventId_events_id_fk": {
           "name": "event_receipts_eventId_events_id_fk",
           "tableFrom": "event_receipts",
@@ -419,73 +406,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'info'"
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "module_log_entries_moduleId_modules_id_fk": {
-          "name": "module_log_entries_moduleId_modules_id_fk",
-          "tableFrom": "module_log_entries",
-          "tableTo": "modules",
-          "columnsFrom": [
-            "moduleId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "modules": {
-      "name": "modules",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "enabled": {
-          "name": "enabled",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "publicKey": {
-          "name": "publicKey",
-          "type": "bytea",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "config": {
-          "name": "config",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
         },
         "createdAt": {
           "name": "createdAt",

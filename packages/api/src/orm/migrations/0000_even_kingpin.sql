@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS "session" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "event_receipts" (
 	"id" uuid PRIMARY KEY NOT NULL,
-	"moduleId" uuid NOT NULL,
+	"moduleIdentifier" text NOT NULL,
 	"eventId" uuid NOT NULL,
 	"eventKey" text NOT NULL,
 	"handlerId" text,
@@ -73,16 +73,6 @@ CREATE TABLE IF NOT EXISTS "module_log_entries" (
 	"updatedAt" timestamp NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "modules" (
-	"id" uuid PRIMARY KEY NOT NULL,
-	"name" text NOT NULL,
-	"enabled" boolean DEFAULT false NOT NULL,
-	"publicKey" "bytea" NOT NULL,
-	"config" jsonb NOT NULL,
-	"createdAt" timestamp NOT NULL,
-	"updatedAt" timestamp NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "server_configurations" (
 	"key" text PRIMARY KEY NOT NULL,
 	"value" jsonb,
@@ -122,12 +112,6 @@ CREATE TABLE IF NOT EXISTS "users" (
 );
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "event_receipts" ADD CONSTRAINT "event_receipts_moduleId_modules_id_fk" FOREIGN KEY ("moduleId") REFERENCES "modules"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
  ALTER TABLE "event_receipts" ADD CONSTRAINT "event_receipts_eventId_events_id_fk" FOREIGN KEY ("eventId") REFERENCES "events"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
@@ -147,12 +131,6 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "folders" ADD CONSTRAINT "folders_ownerId_users_id_fk" FOREIGN KEY ("ownerId") REFERENCES "users"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "module_log_entries" ADD CONSTRAINT "module_log_entries_moduleId_modules_id_fk" FOREIGN KEY ("moduleId") REFERENCES "modules"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

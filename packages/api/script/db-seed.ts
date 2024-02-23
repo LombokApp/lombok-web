@@ -16,6 +16,7 @@ async function main(): Promise<void> {
   const USER_1_ID = 'ad619a15-7326-44e9-a68b-0170a3cf4a94'
   const USER_1_FOLDER_ID = '67137165-2df6-46a4-8770-ecc0deab39b5'
   const ADMIN_1_ID = '3bc93392-d38f-4a59-8668-c16c5a9f3250'
+  const ADMIN_1_FOLDER_ID = 'b85646a9-3c5c-40c6-afe8-6035fdb827da'
   const db = drizzle(sql)
   const admin: NewUser = {
     id: ADMIN_1_ID,
@@ -73,6 +74,11 @@ async function main(): Promise<void> {
       ...buildDevSeedLocation(USER_1_ID),
       prefix: `.stellaris_folder_metadata_${uuidV4()}`,
     },
+    buildDevSeedLocation(ADMIN_1_ID),
+    {
+      ...buildDevSeedLocation(ADMIN_1_ID),
+      prefix: `.stellaris_folder_metadata_${uuidV4()}`,
+    },
   ]
 
   await db.insert(usersTable).values(data)
@@ -83,6 +89,15 @@ async function main(): Promise<void> {
     contentLocationId: storageLocations[0].id,
     metadataLocationId: storageLocations[1].id,
     ownerId: USER_1_ID,
+    createdAt: new Date('2023-11-01 22:49:00.93'),
+    updatedAt: new Date('2023-11-01 22:49:00.93'),
+  })
+  await db.insert(foldersTable).values({
+    id: ADMIN_1_FOLDER_ID,
+    name: 'Admin1Folder',
+    contentLocationId: storageLocations[2].id,
+    metadataLocationId: storageLocations[3].id,
+    ownerId: ADMIN_1_ID,
     createdAt: new Date('2023-11-01 22:49:00.93'),
     updatedAt: new Date('2023-11-01 22:49:00.93'),
   })
