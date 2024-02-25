@@ -18,6 +18,23 @@ services:
     ports:
       - 3001:3001
       - 3002:3002
+  nestjsapi:
+    container_name: 'stellariscloud-nestjsapi'
+    build:
+      context: .
+      dockerfile: docker/nestjsapi.Dockerfile
+      target: local
+    volumes:
+      - ./:/usr/src/app:cached
+    env_file: packages/nestjsapi/env/env.${CMD_ENV:-dev}
+    environment:
+      WAIT_HOSTS: db:${DB_PORT:-0}, redis:${REDIS_PORT:-0}
+    deploy:
+      replicas: 1
+    command: ['yarn', 'workspace', '@stellariscloud/nestjsapi', 'dev']
+    ports:
+      - 3001:3001
+      - 3002:3002
   redis:
     image: redis:alpine
     command: redis-server
