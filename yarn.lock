@@ -7270,6 +7270,45 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@stellariscloud/modules-worker-sdk@workspace:packages/modules-worker-sdk":
+  version: 0.0.0-use.local
+  resolution: "@stellariscloud/modules-worker-sdk@workspace:packages/modules-worker-sdk"
+  dependencies:
+    "@jest/types": "npm:29.6.1"
+    "@rollup/plugin-alias": "npm:5.1.0"
+    "@rollup/plugin-node-resolve": "npm:15.2.3"
+    "@rollup/plugin-typescript": "npm:11.1.6"
+    "@stellariscloud/api-client": "workspace:*"
+    "@stellariscloud/api-utils": "workspace:*"
+    "@stellariscloud/types": "workspace:*"
+    "@types/jest": "npm:29.5.3"
+    "@typescript-eslint/eslint-plugin": "npm:6.4.0"
+    "@typescript-eslint/parser": "npm:6.4.0"
+    axios: "npm:1.6.7"
+    eslint: "npm:8.47.0"
+    eslint-config-prettier: "npm:9.0.0"
+    eslint-import-resolver-node: "npm:0.3.9"
+    eslint-plugin-eslint-comments: "npm:3.2.0"
+    eslint-plugin-import: "npm:2.28.1"
+    eslint-plugin-jest: "npm:27.2.3"
+    eslint-plugin-jsx-a11y: "npm:6.7.1"
+    eslint-plugin-node: "npm:11.1.0"
+    eslint-plugin-promise: "npm:6.1.1"
+    eslint-plugin-react: "npm:7.33.1"
+    eslint-plugin-react-hooks: "npm:4.6.0"
+    eslint-plugin-regexp: "npm:1.15.0"
+    eslint-plugin-simple-import-sort: "npm:10.0.0"
+    eslint-plugin-sonarjs: "npm:0.20.0"
+    jest: "npm:29.6.2"
+    prettier: "npm:2.8.8"
+    rollup: "npm:4.12.0"
+    rollup-plugin-dts: "npm:6.1.0"
+    ts-jest: "npm:29.1.1"
+    tslib: "npm:2.6.2"
+    typescript: "npm:5.3.3"
+  languageName: unknown
+  linkType: soft
+
 "@stellariscloud/nestjsapi@workspace:packages/nestjsapi":
   version: 0.0.0-use.local
   resolution: "@stellariscloud/nestjsapi@workspace:packages/nestjsapi"

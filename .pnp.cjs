@@ -26,6 +26,10 @@ const RAW_RUNTIME_STATE =
       "reference": "workspace:packages/modules-browser-sdk"\
     },\
     {\
+      "name": "@stellariscloud/modules-worker-sdk",\
+      "reference": "workspace:packages/modules-worker-sdk"\
+    },\
+    {\
       "name": "@stellariscloud/nestjsapi",\
       "reference": "workspace:packages/nestjsapi"\
     },\
@@ -11178,6 +11182,47 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./packages/modules-browser-sdk/",\
         "packageDependencies": [\
           ["@stellariscloud/modules-browser-sdk", "workspace:packages/modules-browser-sdk"],\
+          ["@jest/types", "npm:29.6.1"],\
+          ["@rollup/plugin-alias", "virtual:02886f048969c303a06fe75fd41aef847f040f5a37fb1613338de3a70ddf48dd1693d3680f54dea44044635b594ba5a764d70cdb5d9f747653fdb31b06a07a2f#npm:5.1.0"],\
+          ["@rollup/plugin-node-resolve", "virtual:02886f048969c303a06fe75fd41aef847f040f5a37fb1613338de3a70ddf48dd1693d3680f54dea44044635b594ba5a764d70cdb5d9f747653fdb31b06a07a2f#npm:15.2.3"],\
+          ["@rollup/plugin-typescript", "virtual:02886f048969c303a06fe75fd41aef847f040f5a37fb1613338de3a70ddf48dd1693d3680f54dea44044635b594ba5a764d70cdb5d9f747653fdb31b06a07a2f#npm:11.1.6"],\
+          ["@stellariscloud/api-client", "virtual:be84fdde325dfc374286220591bce7c0a3ffe5d5ae14b7bcf54302a0d42ac087bead27ac4677ce00079e284f72ea4a85ef5217847a014e385a2c94093f83628d#workspace:packages/api-client"],\
+          ["@stellariscloud/api-utils", "workspace:packages/shared/packages/api-utils"],\
+          ["@stellariscloud/types", "workspace:packages/shared/packages/stellaris-types"],\
+          ["@types/jest", "npm:29.5.3"],\
+          ["@typescript-eslint/eslint-plugin", "virtual:02886f048969c303a06fe75fd41aef847f040f5a37fb1613338de3a70ddf48dd1693d3680f54dea44044635b594ba5a764d70cdb5d9f747653fdb31b06a07a2f#npm:6.4.0"],\
+          ["@typescript-eslint/parser", "virtual:02886f048969c303a06fe75fd41aef847f040f5a37fb1613338de3a70ddf48dd1693d3680f54dea44044635b594ba5a764d70cdb5d9f747653fdb31b06a07a2f#npm:6.4.0"],\
+          ["axios", "npm:1.6.7"],\
+          ["eslint", "npm:8.47.0"],\
+          ["eslint-config-prettier", "virtual:3c005dd81792cdf7f6b6e99f5870c399835d77dce372ced2e33b59c67730bd5c93cfef1ab114cd91436b7813c625be2906a46c6115cc208b28bebcb7f52276ba#npm:9.0.0"],\
+          ["eslint-import-resolver-node", "npm:0.3.9"],\
+          ["eslint-plugin-eslint-comments", "virtual:3c005dd81792cdf7f6b6e99f5870c399835d77dce372ced2e33b59c67730bd5c93cfef1ab114cd91436b7813c625be2906a46c6115cc208b28bebcb7f52276ba#npm:3.2.0"],\
+          ["eslint-plugin-import", "virtual:02886f048969c303a06fe75fd41aef847f040f5a37fb1613338de3a70ddf48dd1693d3680f54dea44044635b594ba5a764d70cdb5d9f747653fdb31b06a07a2f#npm:2.28.1"],\
+          ["eslint-plugin-jest", "virtual:02886f048969c303a06fe75fd41aef847f040f5a37fb1613338de3a70ddf48dd1693d3680f54dea44044635b594ba5a764d70cdb5d9f747653fdb31b06a07a2f#npm:27.2.3"],\
+          ["eslint-plugin-jsx-a11y", "virtual:3c005dd81792cdf7f6b6e99f5870c399835d77dce372ced2e33b59c67730bd5c93cfef1ab114cd91436b7813c625be2906a46c6115cc208b28bebcb7f52276ba#npm:6.7.1"],\
+          ["eslint-plugin-node", "virtual:3c005dd81792cdf7f6b6e99f5870c399835d77dce372ced2e33b59c67730bd5c93cfef1ab114cd91436b7813c625be2906a46c6115cc208b28bebcb7f52276ba#npm:11.1.0"],\
+          ["eslint-plugin-promise", "virtual:3c005dd81792cdf7f6b6e99f5870c399835d77dce372ced2e33b59c67730bd5c93cfef1ab114cd91436b7813c625be2906a46c6115cc208b28bebcb7f52276ba#npm:6.1.1"],\
+          ["eslint-plugin-react", "virtual:e3438f379a77df42448d3be79cc7c243a806ed9fc9eb9d38247a72631308479468e0a6e28fdccd5b4f92c1a4ae41db9744e409c24524087b5914d9a059dad686#npm:7.33.1"],\
+          ["eslint-plugin-react-hooks", "virtual:e3438f379a77df42448d3be79cc7c243a806ed9fc9eb9d38247a72631308479468e0a6e28fdccd5b4f92c1a4ae41db9744e409c24524087b5914d9a059dad686#npm:4.6.0"],\
+          ["eslint-plugin-regexp", "virtual:3c005dd81792cdf7f6b6e99f5870c399835d77dce372ced2e33b59c67730bd5c93cfef1ab114cd91436b7813c625be2906a46c6115cc208b28bebcb7f52276ba#npm:1.15.0"],\
+          ["eslint-plugin-simple-import-sort", "virtual:3c005dd81792cdf7f6b6e99f5870c399835d77dce372ced2e33b59c67730bd5c93cfef1ab114cd91436b7813c625be2906a46c6115cc208b28bebcb7f52276ba#npm:10.0.0"],\
+          ["eslint-plugin-sonarjs", "virtual:3c005dd81792cdf7f6b6e99f5870c399835d77dce372ced2e33b59c67730bd5c93cfef1ab114cd91436b7813c625be2906a46c6115cc208b28bebcb7f52276ba#npm:0.20.0"],\
+          ["jest", "virtual:e3438f379a77df42448d3be79cc7c243a806ed9fc9eb9d38247a72631308479468e0a6e28fdccd5b4f92c1a4ae41db9744e409c24524087b5914d9a059dad686#npm:29.6.2"],\
+          ["prettier", "npm:2.8.8"],\
+          ["rollup", "npm:4.12.0"],\
+          ["rollup-plugin-dts", "virtual:02886f048969c303a06fe75fd41aef847f040f5a37fb1613338de3a70ddf48dd1693d3680f54dea44044635b594ba5a764d70cdb5d9f747653fdb31b06a07a2f#npm:6.1.0"],\
+          ["ts-jest", "virtual:02886f048969c303a06fe75fd41aef847f040f5a37fb1613338de3a70ddf48dd1693d3680f54dea44044635b594ba5a764d70cdb5d9f747653fdb31b06a07a2f#npm:29.1.1"],\
+          ["tslib", "npm:2.6.2"],\
+          ["typescript", "patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>::version=5.3.3&hash=e012d7"]\
+        ],\
+        "linkType": "SOFT"\
+      }]\
+    ]],\
+    ["@stellariscloud/modules-worker-sdk", [\
+      ["workspace:packages/modules-worker-sdk", {\
+        "packageLocation": "./packages/modules-worker-sdk/",\
+        "packageDependencies": [\
+          ["@stellariscloud/modules-worker-sdk", "workspace:packages/modules-worker-sdk"],\
           ["@jest/types", "npm:29.6.1"],\
           ["@rollup/plugin-alias", "virtual:02886f048969c303a06fe75fd41aef847f040f5a37fb1613338de3a70ddf48dd1693d3680f54dea44044635b594ba5a764d70cdb5d9f747653fdb31b06a07a2f#npm:5.1.0"],\
           ["@rollup/plugin-node-resolve", "virtual:02886f048969c303a06fe75fd41aef847f040f5a37fb1613338de3a70ddf48dd1693d3680f54dea44044635b594ba5a764d70cdb5d9f747653fdb31b06a07a2f#npm:15.2.3"],\
