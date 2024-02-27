@@ -7,8 +7,6 @@ generator.generate({
     new ReadonlyVisitor({ introspectComments: true, pathToSource: __dirname }),
   ],
   outputDir: __dirname,
-  watch: true,
-  // tsconfigPath: path.join(__dirname, '..', 'tsconfig.json'),
+  printDiagnostics: true,
   tsconfigPath: 'tsconfig.json',
 })
-console.log('done')
