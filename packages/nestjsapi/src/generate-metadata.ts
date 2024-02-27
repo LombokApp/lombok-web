@@ -1,17 +1,32 @@
 import { PluginMetadataGenerator } from '@nestjs/cli/lib/compiler/plugins'
+import { NestFactory } from '@nestjs/core'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { ReadonlyVisitor } from '@nestjs/swagger/dist/plugin'
-import fs from 'fs/promises'
+import fs from 'fs'
 import path from 'path'
+
+import { AppModule } from './app.module'
 
 const generator = new PluginMetadataGenerator()
 
 async function main() {
-  const generatedDir = path.join(__dirname, 'generated')
-  const generatedDirStat = await fs.stat(generatedDir)
+  const app = await NestFactory.create(AppModule)
 
-  if (!generatedDirStat.isDirectory()) {
-    await fs.mkdir(generatedDir)
-  }
+  const options = new DocumentBuilder()
+    .setTitle('@stellariscloud/api')
+    .setDescription('The Stellaris Cloud core API')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build()
+
+  const document = SwaggerModule.createDocument(app, options)
+
+  fs.writeFileSync(
+    path.join(__dirname, './generated-openapi.json'),
+    JSON.stringify(document, null, 2),
+  )
+
+  console.log('Generated OpenAPI spec:', document)
 
   generator.generate({
     visitors: [
@@ -23,7 +38,7 @@ async function main() {
     outputDir: __dirname,
     printDiagnostics: true,
     tsconfigPath: 'tsconfig.json',
-    filename: 'generated/metadata.ts',
+    filename: 'generated-metadata.ts',
   })
 }
 

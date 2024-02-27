@@ -2,9 +2,10 @@
   "name": "@stellariscloud/nestjsapi",
   "private": true,
   "scripts": {
-    "dev": "bun --bun src/main.ts",
+    "dev": "bun --watch --bun src/main.ts",
+    "build": "nest build",
     "reset:sdk": "(rm -rf ./node_modules/@stellariscloud/modules-worker-sdk || true)",
-    "metadata:generate": "npx ts-node src/generate-metadata.ts",
+    "metadata:generate": "rm -rf ./src/generated-metadata.ts && npx ts-node src/generate-metadata.ts",
     "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
     "prettier:write": "prettier --write \"./**/*.(ts|tsx)\"",
     "dev:docker:nestjsapi:build": "bash -c \"export $(cat ./packages/api/env/env.dev | xargs) && docker compose up api --build\"",
