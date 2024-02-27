@@ -2,8 +2,7 @@
   "name": "@stellariscloud/nestjsapi",
   "private": true,
   "scripts": {
-    "reset:install": "bun pm cache rm && (rm -rf ./node_modules || true) && (rm -rf ./ui/node_modules || true) && (rm -rf ./api/node_modules || true) && bun install",
-    "reset:sdk": "(rm -rf ./node_modules/@stellariscloud/modules-browser-sdk || true)",
+    "reset:sdk": "(rm -rf ./node_modules/@stellariscloud/modules-worker-sdk || true)",
     "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
     "prettier:write": "prettier --write \"./**/*.(ts|tsx)\"",
     "dev:docker:nestjsapi:build": "bash -c \"export $(cat ./packages/api/env/env.dev | xargs) && docker compose up api --build\"",
