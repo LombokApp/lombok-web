@@ -25,5 +25,5 @@
     "src/**/*.json",
     "script/*.ts",
     ".eslintrc.js"
-  ],
+  ]
 }

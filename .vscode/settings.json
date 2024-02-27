@@ -10,5 +10,6 @@
   "git.ignoreLimitWarning": true,
   "typescript.format.enable": false,
   "javascript.format.enable": false,
-  "prettier.requireConfig": true
+  "prettier.requireConfig": true,
+  "typescript.tsdk": "node_modules/typescript/lib"
 }
