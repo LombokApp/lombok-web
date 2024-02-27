@@ -38,7 +38,7 @@
     "eslint-plugin-regexp": "1.15.0",
     "eslint-plugin-simple-import-sort": "10.0.0",
     "eslint-plugin-sonarjs": "0.20.0",
-    "prettier": "2.8.8",
+    "prettier": "3.2.5",
     "ts-node": "10.9.1",
     "ts-node-dev": "2.0.0",
     "typescript": "5.0.2"

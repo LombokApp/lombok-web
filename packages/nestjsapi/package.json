@@ -14,6 +14,7 @@
   "dependencies": {
     "@nestjs/bullmq": "10.1.0",
     "@nestjs/common": "10.3.3",
+    "@nestjs/swagger": "7.3.0",
     "@nestjs/config": "3.2.0",
     "@nestjs/core": "10.3.3",
     "@nestjs/jwt": "10.2.0",
@@ -37,7 +38,7 @@
     "eslint-plugin-regexp": "2.2.0",
     "eslint-plugin-simple-import-sort": "10.0.0",
     "eslint-plugin-sonarjs": "0.23.0",
-    "prettier": "3.2.4"
+    "prettier": "3.2.5"
   },
   "engines": {
     "node": "18"
