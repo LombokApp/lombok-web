@@ -7,6 +7,7 @@
     "test": "jest",
     "reset:sdk": "(rm -rf ./node_modules/@stellariscloud/modules-worker-sdk || true)",
     "metadata:generate": "rm -rf ./src/generated-metadata.ts && npx ts-node src/generate-metadata.ts",
+    "api-client:generate": "./cmd/generate-clients.sh",
     "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
     "prettier:write": "prettier --write \"./**/*.(ts|tsx)\"",
     "dev:docker:nestjsapi:build": "bash -c \"export $(cat ./packages/api/env/env.dev | xargs) && docker compose up api --build\"",

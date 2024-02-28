@@ -22,7 +22,7 @@ async function main() {
   const document = SwaggerModule.createDocument(app, options)
 
   fs.writeFileSync(
-    path.join(__dirname, './generated-openapi.json'),
+    path.join(__dirname, './openapi.json'),
     JSON.stringify(document, null, 2),
   )
 
