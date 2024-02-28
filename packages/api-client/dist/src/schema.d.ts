@@ -3,7 +3,7 @@ export declare const schema: {
     readonly paths: {
         readonly "/": {
             readonly get: {
-                readonly operationId: "AppController_getAppInfo";
+                readonly operationId: "getAppInfo";
                 readonly parameters: readonly [];
                 readonly responses: {
                     readonly "200": {
@@ -17,11 +17,12 @@ export declare const schema: {
                         };
                     };
                 };
+                readonly tags: readonly ["App"];
             };
         };
         readonly "/auth/login": {
             readonly post: {
-                readonly operationId: "AuthController_login";
+                readonly operationId: "login";
                 readonly parameters: readonly [];
                 readonly requestBody: {
                     readonly required: true;
@@ -34,7 +35,7 @@ export declare const schema: {
                     };
                 };
                 readonly responses: {
-                    readonly "200": {
+                    readonly "201": {
                         readonly description: "Authenticate the user and return access and refresh tokens.";
                         readonly content: {
                             readonly "application/json": {
@@ -45,6 +46,7 @@ export declare const schema: {
                         };
                     };
                 };
+                readonly tags: readonly ["Auth"];
             };
         };
     };
@@ -67,15 +69,36 @@ export declare const schema: {
         readonly schemas: {
             readonly AppInfoDTO: {
                 readonly type: "object";
-                readonly properties: {};
+                readonly properties: {
+                    readonly version: {
+                        readonly type: "string";
+                    };
+                };
+                readonly required: readonly ["version"];
             };
             readonly LoginDTO: {
                 readonly type: "object";
-                readonly properties: {};
+                readonly properties: {
+                    readonly login: {
+                        readonly type: "string";
+                    };
+                    readonly password: {
+                        readonly type: "string";
+                    };
+                };
+                readonly required: readonly ["login", "password"];
             };
             readonly UserSessionDTO: {
                 readonly type: "object";
-                readonly properties: {};
+                readonly properties: {
+                    readonly accessToken: {
+                        readonly type: "string";
+                    };
+                    readonly refreshToken: {
+                        readonly type: "string";
+                    };
+                };
+                readonly required: readonly ["accessToken", "refreshToken"];
             };
         };
     };

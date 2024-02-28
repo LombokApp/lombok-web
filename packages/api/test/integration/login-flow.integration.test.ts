@@ -20,7 +20,7 @@ describe('authentication flow', () => {
       })
 
       const res = await authApi().login({
-        loginParams: {
+        body: {
           login: USER_1_USERNAME,
           password: USER_1_USER_PASS,
         },

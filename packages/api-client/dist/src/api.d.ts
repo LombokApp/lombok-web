@@ -14,95 +14,172 @@ import type { AxiosPromise, AxiosInstance, AxiosRequestConfig } from 'axios';
 import type { RequestArgs } from './base';
 import { BaseAPI } from './base';
 /**
- * DefaultApi - axios parameter creator
+ *
  * @export
+ * @interface AppInfoDTO
  */
-export declare const DefaultApiAxiosParamCreator: (configuration?: Configuration) => {
+export interface AppInfoDTO {
     /**
      *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
+     * @type {string}
+     * @memberof AppInfoDTO
      */
-    appControllerGetAppInfo: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {object} body
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    authControllerLogin: (body: object, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-};
-/**
- * DefaultApi - functional programming interface
- * @export
- */
-export declare const DefaultApiFp: (configuration?: Configuration) => {
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    appControllerGetAppInfo(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>>;
-    /**
-     *
-     * @param {object} body
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    authControllerLogin(body: object, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>>;
-};
-/**
- * DefaultApi - factory interface
- * @export
- */
-export declare const DefaultApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    appControllerGetAppInfo(options?: AxiosRequestConfig): AxiosPromise<object>;
-    /**
-     *
-     * @param {DefaultApiAuthControllerLoginRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    authControllerLogin(requestParameters: DefaultApiAuthControllerLoginRequest, options?: AxiosRequestConfig): AxiosPromise<object>;
-};
-/**
- * Request parameters for authControllerLogin operation in DefaultApi.
- * @export
- * @interface DefaultApiAuthControllerLoginRequest
- */
-export interface DefaultApiAuthControllerLoginRequest {
-    /**
-     *
-     * @type {object}
-     * @memberof DefaultApiAuthControllerLogin
-     */
-    readonly body: object;
+    'version': string;
 }
 /**
- * DefaultApi - object-oriented interface
+ *
  * @export
- * @class DefaultApi
+ * @interface LoginDTO
+ */
+export interface LoginDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof LoginDTO
+     */
+    'login': string;
+    /**
+     *
+     * @type {string}
+     * @memberof LoginDTO
+     */
+    'password': string;
+}
+/**
+ *
+ * @export
+ * @interface UserSessionDTO
+ */
+export interface UserSessionDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof UserSessionDTO
+     */
+    'accessToken': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserSessionDTO
+     */
+    'refreshToken': string;
+}
+/**
+ * AppApi - axios parameter creator
+ * @export
+ */
+export declare const AppApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAppInfo: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * AppApi - functional programming interface
+ * @export
+ */
+export declare const AppApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAppInfo(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppInfoDTO>>;
+};
+/**
+ * AppApi - factory interface
+ * @export
+ */
+export declare const AppApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAppInfo(options?: AxiosRequestConfig): AxiosPromise<AppInfoDTO>;
+};
+/**
+ * AppApi - object-oriented interface
+ * @export
+ * @class AppApi
  * @extends {BaseAPI}
  */
-export declare class DefaultApi extends BaseAPI {
+export declare class AppApi extends BaseAPI {
     /**
      *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof DefaultApi
+     * @memberof AppApi
      */
-    appControllerGetAppInfo(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+    getAppInfo(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AppInfoDTO, any>>;
+}
+/**
+ * AuthApi - axios parameter creator
+ * @export
+ */
+export declare const AuthApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
-     * @param {DefaultApiAuthControllerLoginRequest} requestParameters Request parameters.
+     * @param {LoginDTO} loginDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof DefaultApi
      */
-    authControllerLogin(requestParameters: DefaultApiAuthControllerLoginRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+    login: (loginDTO: LoginDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * AuthApi - functional programming interface
+ * @export
+ */
+export declare const AuthApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {LoginDTO} loginDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    login(loginDTO: LoginDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserSessionDTO>>;
+};
+/**
+ * AuthApi - factory interface
+ * @export
+ */
+export declare const AuthApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {AuthApiLoginRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig): AxiosPromise<UserSessionDTO>;
+};
+/**
+ * Request parameters for login operation in AuthApi.
+ * @export
+ * @interface AuthApiLoginRequest
+ */
+export interface AuthApiLoginRequest {
+    /**
+     *
+     * @type {LoginDTO}
+     * @memberof AuthApiLogin
+     */
+    readonly loginDTO: LoginDTO;
+}
+/**
+ * AuthApi - object-oriented interface
+ * @export
+ * @class AuthApi
+ * @extends {BaseAPI}
+ */
+export declare class AuthApi extends BaseAPI {
+    /**
+     *
+     * @param {AuthApiLoginRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApi
+     */
+    login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<UserSessionDTO, any>>;
 }

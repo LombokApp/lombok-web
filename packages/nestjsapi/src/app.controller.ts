@@ -1,19 +1,17 @@
 import { Controller, Get } from '@nestjs/common'
-import { ApiResponse } from '@nestjs/swagger'
+import { ApiTags } from '@nestjs/swagger'
 
 import { AppService } from './app.service'
-import { AppInfoDTO } from './app-info.dto'
 
 @Controller()
+@ApiTags('App')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  /**
+   * The app info.
+   */
   @Get('/')
-  @ApiResponse({
-    status: 200,
-    description: 'The app info.',
-    type: AppInfoDTO,
-  })
   getAppInfo() {
     return this.appService.getAppInfo()
   }

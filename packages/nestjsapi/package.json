@@ -3,10 +3,11 @@
   "private": true,
   "scripts": {
     "dev": "bun --watch --bun src/main.ts",
+    "nestdev": "nest start",
     "build": "nest build",
     "test": "jest",
     "reset:sdk": "(rm -rf ./node_modules/@stellariscloud/modules-worker-sdk || true)",
-    "metadata:generate": "rm -rf ./src/generated-metadata.ts && npx ts-node src/generate-metadata.ts",
+    "metadata:generate": "rm -rf ./src/nestjs-metadata.ts && npx ts-node src/generate-metadata.ts",
     "api-client:generate": "./cmd/generate-clients.sh",
     "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
     "prettier:write": "prettier --write \"./**/*.(ts|tsx)\"",
@@ -19,6 +20,7 @@
   "dependencies": {
     "@nestjs/bullmq": "10.1.0",
     "@nestjs/common": "10.3.3",
+    "@nestjs/testing": "10.3.3",
     "@nestjs/swagger": "7.3.0",
     "@nestjs/config": "3.2.0",
     "@nestjs/core": "10.3.3",
@@ -27,6 +29,7 @@
     "supertest": "6.3.4"
   },
   "devDependencies": {
+    "@types/bun": "1.0.8",
     "joi": "17.12.2",
     "@nestjs/cli": "10.3.2",
     "@nestjs/schematics": "10.1.1",

@@ -2,8 +2,8 @@ import { PluginMetadataGenerator } from '@nestjs/cli/lib/compiler/plugins'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { ReadonlyVisitor } from '@nestjs/swagger/dist/plugin'
-import fs from 'fs'
-import path from 'path'
+import * as fs from 'fs'
+import * as path from 'path'
 
 import { AppModule } from './app.module'
 
@@ -12,6 +12,27 @@ const generator = new PluginMetadataGenerator()
 async function main() {
   const app = await NestFactory.create(AppModule)
 
+  generator.generate({
+    visitors: [
+      new ReadonlyVisitor({
+        introspectComments: true,
+        pathToSource: __dirname,
+        classValidatorShim: false,
+      }),
+    ],
+    outputDir: __dirname,
+    printDiagnostics: true,
+    tsconfigPath: 'tsconfig.json',
+    filename: 'nestjs-metadata.ts',
+  })
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const metadata = require('./nestjs-metadata').default
+
+  await SwaggerModule.loadPluginMetadata(
+    metadata as unknown as () => Promise<Record<string, any>>,
+  )
+
   const options = new DocumentBuilder()
     .setTitle('@stellariscloud/api')
     .setDescription('The Stellaris Cloud core API')
@@ -19,7 +40,12 @@ async function main() {
     .addBearerAuth()
     .build()
 
-  const document = SwaggerModule.createDocument(app, options)
+  const document = SwaggerModule.createDocument(app, options, {
+    operationIdFactory: (_controllerKey: string, methodKey: string) =>
+      methodKey,
+  })
+
+  console.log('document:', JSON.stringify(document, null, 2))
 
   fs.writeFileSync(
     path.join(__dirname, './openapi.json'),
@@ -27,21 +53,6 @@ async function main() {
   )
 
   console.log('Generated OpenAPI spec:', JSON.stringify(document, null, 2))
-
-  generator.generate({
-    visitors: [
-      new ReadonlyVisitor({
-        introspectComments: true,
-        pathToSource: __dirname,
-        classValidatorShim: false,
-        debug: true,
-      }),
-    ],
-    outputDir: __dirname,
-    printDiagnostics: true,
-    tsconfigPath: 'tsconfig.json',
-    filename: 'generated-metadata.ts',
-  })
 }
 
 void main()

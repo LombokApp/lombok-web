@@ -23,19 +23,70 @@ import type { RequestArgs } from './base';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError } from './base';
 
+/**
+ * 
+ * @export
+ * @interface AppInfoDTO
+ */
+export interface AppInfoDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppInfoDTO
+     */
+    'version': string;
+}
+/**
+ * 
+ * @export
+ * @interface LoginDTO
+ */
+export interface LoginDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof LoginDTO
+     */
+    'login': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LoginDTO
+     */
+    'password': string;
+}
+/**
+ * 
+ * @export
+ * @interface UserSessionDTO
+ */
+export interface UserSessionDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof UserSessionDTO
+     */
+    'accessToken': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserSessionDTO
+     */
+    'refreshToken': string;
+}
 
 /**
- * DefaultApi - axios parameter creator
+ * AppApi - axios parameter creator
  * @export
  */
-export const DefaultApiAxiosParamCreator = function (configuration?: Configuration) {
+export const AppApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
          * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        appControllerGetAppInfo: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getAppInfo: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -59,15 +110,81 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
                 options: localVarRequestOptions,
             };
         },
+    }
+};
+
+/**
+ * AppApi - functional programming interface
+ * @export
+ */
+export const AppApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = AppApiAxiosParamCreator(configuration)
+    return {
         /**
          * 
-         * @param {object} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authControllerLogin: async (body: object, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'body' is not null or undefined
-            assertParamExists('authControllerLogin', 'body', body)
+        async getAppInfo(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppInfoDTO>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getAppInfo(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * AppApi - factory interface
+ * @export
+ */
+export const AppApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = AppApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAppInfo(options?: AxiosRequestConfig): AxiosPromise<AppInfoDTO> {
+            return localVarFp.getAppInfo(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * AppApi - object-oriented interface
+ * @export
+ * @class AppApi
+ * @extends {BaseAPI}
+ */
+export class AppApi extends BaseAPI {
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AppApi
+     */
+    public getAppInfo(options?: AxiosRequestConfig) {
+        return AppApiFp(this.configuration).getAppInfo(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * AuthApi - axios parameter creator
+ * @export
+ */
+export const AuthApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {LoginDTO} loginDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        login: async (loginDTO: LoginDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'loginDTO' is not null or undefined
+            assertParamExists('login', 'loginDTO', loginDTO)
             const localVarPath = `/auth/login`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -87,7 +204,7 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(loginDTO, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -98,101 +215,74 @@ export const DefaultApiAxiosParamCreator = function (configuration?: Configurati
 };
 
 /**
- * DefaultApi - functional programming interface
+ * AuthApi - functional programming interface
  * @export
  */
-export const DefaultApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = DefaultApiAxiosParamCreator(configuration)
+export const AuthApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = AuthApiAxiosParamCreator(configuration)
     return {
         /**
          * 
+         * @param {LoginDTO} loginDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async appControllerGetAppInfo(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.appControllerGetAppInfo(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * 
-         * @param {object} body 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async authControllerLogin(body: object, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerLogin(body, options);
+        async login(loginDTO: LoginDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserSessionDTO>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.login(loginDTO, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
 };
 
 /**
- * DefaultApi - factory interface
+ * AuthApi - factory interface
  * @export
  */
-export const DefaultApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = DefaultApiFp(configuration)
+export const AuthApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = AuthApiFp(configuration)
     return {
         /**
          * 
+         * @param {AuthApiLoginRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        appControllerGetAppInfo(options?: AxiosRequestConfig): AxiosPromise<object> {
-            return localVarFp.appControllerGetAppInfo(options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @param {DefaultApiAuthControllerLoginRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        authControllerLogin(requestParameters: DefaultApiAuthControllerLoginRequest, options?: AxiosRequestConfig): AxiosPromise<object> {
-            return localVarFp.authControllerLogin(requestParameters.body, options).then((request) => request(axios, basePath));
+        login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig): AxiosPromise<UserSessionDTO> {
+            return localVarFp.login(requestParameters.loginDTO, options).then((request) => request(axios, basePath));
         },
     };
 };
 
 /**
- * Request parameters for authControllerLogin operation in DefaultApi.
+ * Request parameters for login operation in AuthApi.
  * @export
- * @interface DefaultApiAuthControllerLoginRequest
+ * @interface AuthApiLoginRequest
  */
-export interface DefaultApiAuthControllerLoginRequest {
+export interface AuthApiLoginRequest {
     /**
      * 
-     * @type {object}
-     * @memberof DefaultApiAuthControllerLogin
+     * @type {LoginDTO}
+     * @memberof AuthApiLogin
      */
-    readonly body: object
+    readonly loginDTO: LoginDTO
 }
 
 /**
- * DefaultApi - object-oriented interface
+ * AuthApi - object-oriented interface
  * @export
- * @class DefaultApi
+ * @class AuthApi
  * @extends {BaseAPI}
  */
-export class DefaultApi extends BaseAPI {
+export class AuthApi extends BaseAPI {
     /**
      * 
+     * @param {AuthApiLoginRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof DefaultApi
+     * @memberof AuthApi
      */
-    public appControllerGetAppInfo(options?: AxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).appControllerGetAppInfo(options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @param {DefaultApiAuthControllerLoginRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof DefaultApi
-     */
-    public authControllerLogin(requestParameters: DefaultApiAuthControllerLoginRequest, options?: AxiosRequestConfig) {
-        return DefaultApiFp(this.configuration).authControllerLogin(requestParameters.body, options).then((request) => request(this.axios, this.basePath));
+    public login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig) {
+        return AuthApiFp(this.configuration).login(requestParameters.loginDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

@@ -3,7 +3,7 @@ export const schema = {
   "paths": {
     "/": {
       "get": {
-        "operationId": "AppController_getAppInfo",
+        "operationId": "getAppInfo",
         "parameters": [],
         "responses": {
           "200": {
@@ -16,12 +16,15 @@ export const schema = {
               }
             }
           }
-        }
+        },
+        "tags": [
+          "App"
+        ]
       }
     },
     "/auth/login": {
       "post": {
-        "operationId": "AuthController_login",
+        "operationId": "login",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -34,7 +37,7 @@ export const schema = {
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Authenticate the user and return access and refresh tokens.",
             "content": {
               "application/json": {
@@ -44,7 +47,10 @@ export const schema = {
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Auth"
+        ]
       }
     }
   },
@@ -67,15 +73,44 @@ export const schema = {
     "schemas": {
       "AppInfoDTO": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "version"
+        ]
       },
       "LoginDTO": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "login": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "login",
+          "password"
+        ]
       },
       "UserSessionDTO": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken"
+        ]
       }
     }
   }
