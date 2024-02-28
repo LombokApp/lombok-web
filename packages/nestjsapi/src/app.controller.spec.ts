@@ -17,8 +17,8 @@ describe('AppController', () => {
   })
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getAppInfo()).toBe('Hello World!')
+    it(`should return "{ version: '1.0.0' }"`, () => {
+      expect(appController.getAppInfo()).toEqual({ version: '1.0.0' })
     })
   })
 })

@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "bun --watch --bun src/main.ts",
     "build": "nest build",
+    "test": "jest",
     "reset:sdk": "(rm -rf ./node_modules/@stellariscloud/modules-worker-sdk || true)",
     "metadata:generate": "rm -rf ./src/generated-metadata.ts && npx ts-node src/generate-metadata.ts",
     "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",

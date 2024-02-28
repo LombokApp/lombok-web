@@ -7,7 +7,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "The app info."
+            "description": "The app info.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppInfoDTO"
+                }
+              }
+            }
           }
         }
       }
@@ -16,9 +23,26 @@
       "post": {
         "operationId": "AuthController_login",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDTO"
+              }
+            }
+          }
+        },
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "Authenticate the user and return access and refresh tokens.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserSessionDTO"
+                }
+              }
+            }
           }
         }
       }
@@ -40,6 +64,19 @@
         "type": "http"
       }
     },
-    "schemas": {}
+    "schemas": {
+      "AppInfoDTO": {
+        "type": "object",
+        "properties": {}
+      },
+      "LoginDTO": {
+        "type": "object",
+        "properties": {}
+      },
+      "UserSessionDTO": {
+        "type": "object",
+        "properties": {}
+      }
+    }
   }
 }
