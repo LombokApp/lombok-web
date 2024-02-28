@@ -7,16 +7,15 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule)
 
   const options = new DocumentBuilder()
-    .setTitle('Cats example')
-    .setDescription('The cats API description')
+    .setTitle('@stellariscloud/api')
+    .setDescription('The Stellaris Cloud core API')
     .setVersion('1.0')
-    .addTag('cats')
     .addBearerAuth()
     .build()
 
   const document = SwaggerModule.createDocument(app, options)
 
-  console.log('document:', document)
+  console.log('Serving OpenAPI spec:', document)
 
   SwaggerModule.setup('api', app, document)
 

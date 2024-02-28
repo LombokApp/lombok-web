@@ -26,13 +26,15 @@ async function main() {
     JSON.stringify(document, null, 2),
   )
 
-  console.log('Generated OpenAPI spec:', document)
+  console.log('Generated OpenAPI spec:', JSON.stringify(document, null, 2))
 
   generator.generate({
     visitors: [
       new ReadonlyVisitor({
         introspectComments: true,
         pathToSource: __dirname,
+        classValidatorShim: false,
+        debug: true,
       }),
     ],
     outputDir: __dirname,

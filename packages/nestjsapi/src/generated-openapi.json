@@ -3,11 +3,11 @@
   "paths": {
     "/": {
       "get": {
-        "operationId": "AppController_getHello",
+        "operationId": "AppController_getAppInfo",
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "The app info."
           }
         }
       }
@@ -22,22 +22,11 @@
           }
         }
       }
-    },
-    "/auth/test": {
-      "get": {
-        "operationId": "AuthController_test",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        }
-      }
     }
   },
   "info": {
     "title": "@stellariscloud/api",
-    "description": "The StellarisCloud Core API",
+    "description": "The Stellaris Cloud core API",
     "version": "1.0",
     "contact": {}
   },

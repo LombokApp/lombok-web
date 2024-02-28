@@ -1,5 +1,5 @@
 /* eslint-disable */
 export default async () => {
     const t = {};
-    return { "@nestjs/swagger": { "models": [], "controllers": [[import("./app.controller"), { "AppController": { "getHello": { type: String } } }], [import("./auth/auth.controller"), { "AuthController": { "login": { type: String }, "test": { type: String } } }]] } };
+    return { "@nestjs/swagger": { "models": [], "controllers": [[import("./app.controller"), { "AppController": { "getAppInfo": { type: Object } } }], [import("./auth/auth.controller"), { "AuthController": { "login": { type: Object } } }]] } };
 };
