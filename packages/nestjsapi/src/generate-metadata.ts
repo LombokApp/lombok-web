@@ -5,12 +5,12 @@ import { ReadonlyVisitor } from '@nestjs/swagger/dist/plugin'
 import * as fs from 'fs'
 import * as path from 'path'
 
-import { AppModule } from './app.module'
+import { CoreModule } from './core/core.module'
 
 const generator = new PluginMetadataGenerator()
 
 async function main() {
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create(CoreModule)
 
   generator.generate({
     visitors: [

@@ -1,5 +1,5 @@
 export const randomHex = (len = 1) => {
-  const result = []
+  const result: string[] = []
   const characters = 'ABCDEFabcdef0123456789'
   for (let i = 0; i < len; i++) {
     result.push(
@@ -19,8 +19,8 @@ export const generateDummyAddress = (
     position === 'start'
       ? 0
       : position === 'end'
-      ? charsToFill
-      : Math.floor(Math.random() * charsToFill)
+        ? charsToFill
+        : Math.floor(Math.random() * charsToFill)
   const suffixLength = charsToFill - prefixLength
   return [
     '0x',

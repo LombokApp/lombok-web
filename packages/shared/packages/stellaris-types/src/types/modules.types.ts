@@ -23,7 +23,7 @@ export interface ConnectedModuleInstancesMap {
 }
 
 export interface ConnectedModuleInstance {
-  moduleIdentifier: string
+  appIdentifier: string
   id: string
   name: string
   ip: string
