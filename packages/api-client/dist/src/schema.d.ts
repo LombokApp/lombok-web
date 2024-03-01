@@ -1,25 +1,6 @@
 export declare const schema: {
     readonly openapi: "3.0.0";
     readonly paths: {
-        readonly "/": {
-            readonly get: {
-                readonly operationId: "getAppInfo";
-                readonly parameters: readonly [];
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "The app info.";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/AppInfoDTO";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["App"];
-            };
-        };
         readonly "/auth/login": {
             readonly post: {
                 readonly operationId: "login";
@@ -49,6 +30,37 @@ export declare const schema: {
                 readonly tags: readonly ["Auth"];
             };
         };
+        readonly "/{folderId}": {
+            readonly get: {
+                readonly operationId: "getAppInfo";
+                readonly parameters: readonly [];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Get a folder by id.";
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+            };
+        };
+        readonly "/{eventId}": {
+            readonly get: {
+                readonly operationId: "getAppInfo";
+                readonly parameters: readonly [];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Get an event by id.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/EventDTO";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Event"];
+            };
+        };
     };
     readonly info: {
         readonly title: "@stellariscloud/api";
@@ -67,15 +79,6 @@ export declare const schema: {
             };
         };
         readonly schemas: {
-            readonly AppInfoDTO: {
-                readonly type: "object";
-                readonly properties: {
-                    readonly version: {
-                        readonly type: "string";
-                    };
-                };
-                readonly required: readonly ["version"];
-            };
             readonly LoginDTO: {
                 readonly type: "object";
                 readonly properties: {
@@ -99,6 +102,18 @@ export declare const schema: {
                     };
                 };
                 readonly required: readonly ["accessToken", "refreshToken"];
+            };
+            readonly EventDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly id: {
+                        readonly type: "string";
+                    };
+                    readonly eventKey: {
+                        readonly type: "string";
+                    };
+                };
+                readonly required: readonly ["id", "eventKey"];
             };
         };
     };

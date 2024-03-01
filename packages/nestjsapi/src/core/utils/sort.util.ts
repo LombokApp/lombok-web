@@ -1,7 +1,8 @@
 import { asc, desc } from 'drizzle-orm'
 import type { PgTableWithColumns } from 'drizzle-orm/pg-core'
 
-import { InvalidSortColumnError } from '../errors/app.error'
+import { InvalidSortColumnException } from '../exceptions/invalid-sort-column.exception'
+
 export type Sort<T extends string, O extends string = 'asc' | 'desc'> =
   | `${T}-${O}`
   | undefined
@@ -25,7 +26,7 @@ export const parseSort = <
 ) => {
   const [column, order] = splitSort(sort)
   if (!(column in table)) {
-    throw new InvalidSortColumnError(column)
+    throw new InvalidSortColumnException(column)
   }
   return (order === 'asc' ? asc : desc)(table[column])
 }

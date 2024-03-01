@@ -1,13 +1,11 @@
 import { Injectable } from '@nestjs/common'
 import { eq, inArray } from 'drizzle-orm'
+import type { ServerLocationDTO } from 'src/locations/transfer-objects/server-location.dto'
+import type { ServerLocationInputDTO } from 'src/locations/transfer-objects/server-location-input.dto'
 import { OrmService } from 'src/orm/orm.service'
+import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
-import type {
-  ServerLocationData,
-  ServerLocationInputData,
-} from '../../locations/transfer-objects/location.dto'
-import type { User } from '../../users/entities/user.entity'
 import type { ServerLocationType } from '../constants/server.constants'
 import {
   CONFIGURATION_KEYS,
@@ -15,10 +13,8 @@ import {
 } from '../constants/server.constants'
 import type { NewServerConfiguration } from '../entities/server-configuration.entity'
 import { serverConfigurationsTable } from '../entities/server-configuration.entity'
-import {
-  ServerConfigurationInvalidError,
-  ServerConfigurationNotFoundError,
-} from '../errors/server-configuration.error'
+import { ServerConfigurationInvalidException } from '../exceptions/server-configuration-invalid.exception'
+import { ServerConfigurationNotFoundException } from '../exceptions/server-configuration-not-found.exception'
 import type { PublicServerSettings } from '../transfer-objects/settings.dto'
 
 @Injectable()
@@ -49,7 +45,7 @@ export class ServerConfigurationService {
     // TODO: check user permissions for access to server configuration values
 
     if (!(configurationKey in CONFIGURATION_KEYS)) {
-      throw new ServerConfigurationNotFoundError()
+      throw new ServerConfigurationNotFoundException()
     }
 
     return this.ormService.db.query.serverConfigurationsTable.findFirst({
@@ -65,7 +61,7 @@ export class ServerConfigurationService {
     // TODO: check user permissions for access to server configuration values
 
     if (!(settingKey in CONFIGURATION_KEYS)) {
-      throw new ServerConfigurationNotFoundError()
+      throw new ServerConfigurationNotFoundException()
     }
 
     // TODO: validate value
@@ -109,12 +105,12 @@ export class ServerConfigurationService {
   async addServerLocationServerConfigurationAsUser(
     userId: string,
     type: ServerLocationType,
-    location: ServerLocationInputData,
+    location: ServerLocationInputDTO,
   ) {
     // TODO: check user permissions for access to server configuration values
 
     if (!ServerLocationTypeRunType.validate(type).success) {
-      throw new ServerConfigurationInvalidError()
+      throw new ServerConfigurationInvalidException()
     }
 
     const locationWithId = { ...location, id: uuidV4() }
@@ -152,7 +148,7 @@ export class ServerConfigurationService {
     // TODO: check user permissions for access to server configuration values
 
     if (!ServerLocationTypeRunType.validate(type).success) {
-      throw new ServerConfigurationInvalidError()
+      throw new ServerConfigurationInvalidException()
     }
 
     const record =
@@ -161,7 +157,7 @@ export class ServerConfigurationService {
       })
 
     if (!record) {
-      throw new ServerConfigurationNotFoundError()
+      throw new ServerConfigurationNotFoundException()
     }
 
     const previousCount = record.value.length
@@ -171,7 +167,7 @@ export class ServerConfigurationService {
     )
 
     if (record.value.length === previousCount) {
-      throw new ServerConfigurationNotFoundError()
+      throw new ServerConfigurationNotFoundException()
     }
 
     return record
@@ -184,7 +180,7 @@ export class ServerConfigurationService {
     // TODO: check user permissions for access to server configuration values
 
     if (!ServerLocationTypeRunType.validate(type).success) {
-      throw new ServerConfigurationInvalidError()
+      throw new ServerConfigurationInvalidException()
     }
 
     const record =
@@ -192,7 +188,7 @@ export class ServerConfigurationService {
         where: eq(serverConfigurationsTable.key, `${type}_LOCATIONS`),
       })) ?? { value: [] }
 
-    return (record.value as (ServerLocationInputData & { id: string })[]).find(
+    return (record.value as (ServerLocationInputDTO & { id: string })[]).find(
       (v) => v.id === serverLocationId,
     )
   }
@@ -205,7 +201,7 @@ export class ServerConfigurationService {
 
     const locationTypeValidation = ServerLocationTypeRunType.validate(type)
     if (!locationTypeValidation.success) {
-      throw new ServerConfigurationInvalidError()
+      throw new ServerConfigurationInvalidException()
     }
 
     const record =
@@ -220,7 +216,7 @@ export class ServerConfigurationService {
       return []
     }
 
-    return record.value.map((location: ServerLocationData) => ({
+    return record.value.map((location: ServerLocationDTO) => ({
       id: location.id,
       name: location.name,
       endpoint: location.endpoint,
@@ -228,7 +224,7 @@ export class ServerConfigurationService {
       accessKeyId: location.accessKeyId,
       bucket: location.bucket,
       prefix: location.prefix,
-    })) as ServerLocationData[]
+    })) as ServerLocationDTO[]
   }
 
   // async getUserFolderLocationsServerConfigurationAsUser(_userId: string) {

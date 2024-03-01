@@ -1,39 +1,11 @@
-import type { TimestampData } from '../../../transfer-objects/timestamps.dto'
-import type { EmailFormat, UsernameFormat } from '../../../util/validation.util'
+import type { TimestampDTO } from 'src/core/transfer-objects/timestamps.dto'
 
-export interface UserData extends TimestampData {
+export interface UserDTO extends TimestampDTO {
   readonly id: string
   name: string | null
-  email: EmailFormat | null
+  email: string | null
   emailVerified: boolean
   isAdmin: boolean
-  username?: UsernameFormat
+  username?: string
   permissions: string[]
-}
-
-export interface UpdateUserData {
-  isAdmin?: boolean
-  emailVerified?: boolean
-  password?: string
-
-  /**
-   * @maxLength 255
-   */
-  name?: string
-
-  /**
-   * @maxLength 255
-   */
-  email?: string
-
-  permissions?: string[]
-}
-
-export interface CreateUserData extends UpdateUserData {
-  /**
-   * @maxLength 64
-   */
-  username: string
-
-  password: string
 }

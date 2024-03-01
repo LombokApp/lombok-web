@@ -6,7 +6,7 @@ import { eventsTable } from './event.entity'
 
 export const eventReceiptsTable = pgTable('event_receipts', {
   id: uuid('id').primaryKey(),
-  moduleIdentifier: text('moduleIdentifier').notNull(),
+  appIdentifier: text('appIdentifier').notNull(),
   eventId: uuid('eventId')
     .notNull()
     .references(() => eventsTable.id),

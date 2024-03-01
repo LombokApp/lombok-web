@@ -1,17 +1,15 @@
 import { Injectable } from '@nestjs/common'
 import { eq, sql } from 'drizzle-orm'
+import { authHelper } from 'src/auth/utils/auth-helper'
 import { parseSort } from 'src/core/utils/sort.util'
+import { OrmService } from 'src/orm/orm.service'
 import { v4 as uuidV4 } from 'uuid'
 
-import { authHelper } from '../../auth/utils/auth-helper'
-import { OrmService } from '../../orm/orm.service'
 import type { NewUser, User } from '../entities/user.entity'
 import { usersTable } from '../entities/user.entity'
-import { UserNotFoundError } from '../errors/user.error'
-import type {
-  CreateUserData,
-  UpdateUserData,
-} from '../transfer-objects/user.dto'
+import { UserNotFoundException } from '../exceptions/user-not-found.exception'
+import type { CreateUserDTO } from '../transfer-objects/create-user.dto'
+import type { UpdateUserDTO } from '../transfer-objects/update-user.dto'
 import { UserAuthService } from './user-auth.service'
 
 export enum UserSort {
@@ -56,7 +54,7 @@ export class UserService {
     })
 
     if (!user) {
-      throw new UserNotFoundError()
+      throw new UserNotFoundException()
     }
 
     return user
@@ -68,7 +66,7 @@ export class UserService {
     })
 
     if (!user) {
-      throw new UserNotFoundError()
+      throw new UserNotFoundException()
     }
 
     return user
@@ -127,7 +125,7 @@ export class UserService {
     return this.getById({ id: userId })
   }
 
-  async createUserAsAdmin(actor: User, userPayload: CreateUserData) {
+  async createUserAsAdmin(actor: User, userPayload: CreateUserDTO) {
     // TODO: ACL
     // TODO: input validation
 
@@ -160,7 +158,7 @@ export class UserService {
 
   async updateUserAsAdmin(
     actor: User,
-    userPayload: UpdateUserData & { id: string },
+    userPayload: UpdateUserDTO & { id: string },
   ) {
     // TODO: ACL
     // TODO: input validation
@@ -170,7 +168,7 @@ export class UserService {
     })
 
     if (!existingUser) {
-      throw new UserNotFoundError()
+      throw new UserNotFoundException()
     }
 
     const updates: {

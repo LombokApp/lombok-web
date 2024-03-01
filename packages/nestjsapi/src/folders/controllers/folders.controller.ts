@@ -1,7 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 
-import { FolderService } from '../services/folders.service'
+import { FolderService } from '../services/folder.service'
 
 @Controller()
 @ApiTags('Folders')

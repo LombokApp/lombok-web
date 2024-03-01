@@ -1,13 +1,16 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { and, eq } from 'drizzle-orm'
-import type { AccessTokenJWT } from 'src/core/services/jwt.service'
-import { JWTService } from 'src/core/services/jwt.service'
+import type { AccessTokenJWT } from 'src/auth/services/jwt.service'
+import { JWTService } from 'src/auth/services/jwt.service'
+import { OrmService } from 'src/orm/orm.service'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
-import { OrmService } from '../../orm/orm.service'
 import type { NewSession, Session } from '../entities/session.entity'
 import { sessionsTable } from '../entities/session.entity'
+import { SessionExpiredException } from '../exceptions/session-expired.exception'
+import { SessionInvalidException } from '../exceptions/session-invalid.exception'
+import { SessionNotFoundException } from '../exceptions/session-not-found.exception'
 import { hashedTokenHelper } from '../utils/hashed-token-helper'
 import { sessionExpiresAt } from './auth.service'
 
@@ -53,7 +56,7 @@ export class SessionService {
     try {
       await this.delete(session)
     } catch (error) {
-      if (!(error instanceof SessionNotFoundError)) {
+      if (!(error instanceof SessionNotFoundException)) {
         throw error
       }
     }
@@ -68,7 +71,7 @@ export class SessionService {
     })
 
     if (!session) {
-      throw new SessionNotFoundError()
+      throw new SessionNotFoundException()
     }
 
     return session
@@ -91,11 +94,11 @@ export class SessionService {
     })
 
     if (!session) {
-      throw new SessionInvalidError()
+      throw new SessionInvalidException()
     }
 
     if (Date.now() > new Date(session.expiresAt).getTime()) {
-      throw new SessionExpiredError(new Date(session.expiresAt))
+      throw new SessionExpiredException()
     }
 
     return session
@@ -103,7 +106,7 @@ export class SessionService {
 
   async extendSession(session: Session) {
     if (Date.now() > new Date(session.expiresAt).getTime()) {
-      throw new SessionExpiredError(new Date(session.expiresAt))
+      throw new SessionExpiredException()
     }
 
     // Create a new secret
@@ -137,13 +140,13 @@ export class SessionService {
       .where(eq(sessionsTable.id, accessToken.jti.split(':')[0]))
 
     if (returnedSessions.length === 0) {
-      throw new SessionInvalidError()
+      throw new SessionInvalidException()
     }
 
     const session = returnedSessions[0]
 
     if (Date.now() > new Date(session.expiresAt).getTime()) {
-      throw new SessionExpiredError(new Date(session.expiresAt))
+      throw new SessionExpiredException()
     }
 
     return session

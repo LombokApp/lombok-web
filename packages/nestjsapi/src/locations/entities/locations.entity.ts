@@ -1,6 +1,5 @@
 import { pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
-
-import { usersTable } from '../../users/entities/user.entity'
+import { usersTable } from 'src/users/entities/user.entity'
 
 export const providerTypeEnum = pgEnum('providerType', ['SERVER', 'USER'])
 

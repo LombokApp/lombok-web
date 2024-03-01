@@ -1,4 +1,9 @@
 import { Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
+import { authConfig } from 'src/auth/config'
+import { CacheModule } from 'src/cache/cache.module'
+import { S3Module } from 'src/s3/s3.module'
+import { SocketModule } from 'src/socket/socket.module'
 
 import { AppModule } from '../app/app.module'
 import { AuthModule } from '../auth/auth.module'
@@ -8,14 +13,13 @@ import { LocationsModule } from '../locations/locations.module'
 import { OrmModule } from '../orm/orm.module'
 import { ServerModule } from '../server/server.module'
 import { UsersModule } from '../users/users.module'
-import { AppController } from './core.controller'
-import { CoreService } from './core.service'
-import { RedisService } from './services/redis.service'
-import { S3Service } from './services/s3.service'
-import { SocketService } from './services/socket.service'
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+    }),
+    ConfigModule.forFeature(authConfig),
     AuthModule,
     OrmModule,
     FoldersModule,
@@ -24,9 +28,11 @@ import { SocketService } from './services/socket.service'
     UsersModule,
     LocationsModule,
     ServerModule,
+    CacheModule,
+    SocketModule,
+    S3Module,
   ],
-  controllers: [AppController],
-  providers: [CoreService, RedisService, S3Service, SocketService],
+  controllers: [],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class CoreModule {}

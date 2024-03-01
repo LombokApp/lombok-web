@@ -7,7 +7,7 @@ export interface RequestMetadata {
   path: string
   query: { [key: string]: string }
   subdomains: string[]
-  ip: string
+  ip?: string
   method: string
   ips: string[]
 }

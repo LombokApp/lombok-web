@@ -263,8 +263,9 @@ export class SocketService {
             }
             return {
               ...acc,
-              [parsedRecord.appIdentifier]: (parsedRecord.appIdentifier in acc
-                ? acc[parsedRecord.appIdentifier]
+              [parsedRecord.moduleIdentifier]: (parsedRecord.moduleIdentifier in
+              acc
+                ? acc[parsedRecord.moduleIdentifier]
                 : []
               ).concat([parsedRecord]),
             }

@@ -7,7 +7,7 @@
     "build": "nest build",
     "test": "jest",
     "reset:sdk": "(rm -rf ./node_modules/@stellariscloud/modules-worker-sdk || true)",
-    "metadata:generate": "rm -rf ./src/nestjs-metadata.ts && npx ts-node src/generate-metadata.ts",
+    "metadata:generate": "rm -f ./src/nestjs-metadata.ts && npx ts-node -r tsconfig-paths/register src/generate-metadata.ts",
     "api-client:generate": "./cmd/generate-clients.sh",
     "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
     "prettier:write": "prettier --write \"./**/*.(ts|tsx)\"",
@@ -34,6 +34,7 @@
     "socket.io": "4.7.2",
     "fluent-ffmpeg": "2.1.2",
     "@nestjs/platform-express": "10.3.3",
+    "express": "4.18.3",
     "mime": "3.0.0",
     "bullmq": "5.4.0",
     "axios": "1.6.7",
@@ -43,10 +44,10 @@
     "supertest": "6.3.4"
   },
   "devDependencies": {
-    "@types/bun": "1.0.8",
     "@nestjs/cli": "10.3.2",
     "@nestjs/schematics": "10.1.1",
     "@nestjs/testing": "10.3.3",
+    "@types/bun": "1.0.8",
     "@typescript-eslint/eslint-plugin": "6.4.0",
     "@typescript-eslint/parser": "6.4.0",
     "drizzle-kit": "0.20.14",
@@ -62,7 +63,9 @@
     "eslint-plugin-regexp": "2.2.0",
     "eslint-plugin-simple-import-sort": "10.0.0",
     "eslint-plugin-sonarjs": "0.23.0",
-    "prettier": "3.2.5"
+    "prettier": "3.2.5",
+    "ts-node": "10.9.2",
+    "tsconfig-paths": "4.2.0"
   },
   "engines": {
     "node": "18"

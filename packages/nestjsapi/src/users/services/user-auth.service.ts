@@ -1,16 +1,14 @@
 import { Injectable } from '@nestjs/common'
 import crypto from 'crypto'
 import { eq, or } from 'drizzle-orm'
+import { LoginInvalidException } from 'src/auth/exceptions/login-invalid.exception'
 import { SessionService } from 'src/auth/services/session.service'
+import { authHelper } from 'src/auth/utils/auth-helper'
 import { OrmService } from 'src/orm/orm.service'
 
-import { authHelper } from '../../auth/utils/auth-helper'
 import type { User } from '../entities/user.entity'
 import { usersTable } from '../entities/user.entity'
-import {
-  LoginInvalidError,
-  UserEmailNotVerifiedError,
-} from '../errors/user.error'
+import { UserEmailNotVerifiedException } from '../exceptions/user-email-not-verified.exception'
 
 export enum ApiKeyType {
   EmailVerify = 'EmailVerify',
@@ -30,11 +28,11 @@ export class UserAuthService {
     })
 
     if (!user || !this.verifyPassword(user, password)) {
-      throw new LoginInvalidError(login)
+      throw new LoginInvalidException(login)
     }
 
     if (!user.emailVerified) {
-      throw new UserEmailNotVerifiedError()
+      throw new UserEmailNotVerifiedException()
     }
 
     // if (user.totpEnabled()) {

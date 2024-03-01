@@ -3,7 +3,7 @@ import type { ModuleConfig } from '@stellariscloud/types'
 import { addMs, earliest } from '@stellariscloud/utils'
 import { eq } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
-import { AccessTokenJWT, JWTService } from 'src/core/services/jwt.service'
+import { AccessTokenJWT, JWTService } from 'src/auth/services/jwt.service'
 import { OrmService } from 'src/orm/orm.service'
 import type { NewUser, User } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
@@ -11,8 +11,8 @@ import { v4 as uuidV4 } from 'uuid'
 
 import { AuthDurationMs } from '../constants/duration.constants'
 import type { Session } from '../entities/session.entity'
-import { AccessTokenInvalidError } from '../errors/access-token.error'
-import { SessionInvalidError } from '../errors/session.error'
+import { AccessTokenInvalidException } from '../exceptions/auth-token-invalid.exception'
+import { SessionInvalidException } from '../exceptions/session-invalid.exception'
 import type { SignupDTO } from '../transfer-objects/signup.dto'
 import { authHelper } from '../utils/auth-helper'
 import { SessionService } from './session.service'
@@ -100,7 +100,7 @@ export class AuthService {
       await this.appService.getModule(moduleId)
 
     if (!module) {
-      throw new AccessTokenInvalidError()
+      throw new AccessTokenInvalidException()
     }
 
     const parsed = this.jwtService.verifyModuleJWT(
@@ -110,7 +110,7 @@ export class AuthService {
     )
 
     if (!parsed.sub?.startsWith('MODULE')) {
-      throw new AccessTokenInvalidError()
+      throw new AccessTokenInvalidException()
     }
 
     return Promise.resolve({
@@ -131,7 +131,7 @@ export class AuthService {
     })
 
     if (!user) {
-      throw new SessionInvalidError()
+      throw new SessionInvalidException()
     }
 
     return {
@@ -151,7 +151,7 @@ export class AuthService {
     })
 
     if (!user) {
-      throw new SessionInvalidError()
+      throw new SessionInvalidException()
     }
 
     return {

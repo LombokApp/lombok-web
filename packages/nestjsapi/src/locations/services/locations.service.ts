@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { eq } from 'drizzle-orm'
-import { S3Service } from 'src/core/services/s3.service'
 import { OrmService } from 'src/orm/orm.service'
+import { S3Service } from 'src/s3/s3.service'
 
 import { locationsTable } from '../entities/locations.entity'
 

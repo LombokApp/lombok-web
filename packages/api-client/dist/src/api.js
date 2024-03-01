@@ -18,90 +18,6 @@ import { DUMMY_BASE_URL, assertParamExists, setSearchParams, serializeDataIfNeed
 // @ts-ignore
 import { BASE_PATH, BaseAPI } from './base';
 /**
- * AppApi - axios parameter creator
- * @export
- */
-export const AppApiAxiosParamCreator = function (configuration) {
-    return {
-        /**
-         *
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getAppInfo: async (options = {}) => {
-            const localVarPath = `/`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
-            const localVarHeaderParameter = {};
-            const localVarQueryParameter = {};
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    };
-};
-/**
- * AppApi - functional programming interface
- * @export
- */
-export const AppApiFp = function (configuration) {
-    const localVarAxiosParamCreator = AppApiAxiosParamCreator(configuration);
-    return {
-        /**
-         *
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getAppInfo(options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getAppInfo(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-    };
-};
-/**
- * AppApi - factory interface
- * @export
- */
-export const AppApiFactory = function (configuration, basePath, axios) {
-    const localVarFp = AppApiFp(configuration);
-    return {
-        /**
-         *
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getAppInfo(options) {
-            return localVarFp.getAppInfo(options).then((request) => request(axios, basePath));
-        },
-    };
-};
-/**
- * AppApi - object-oriented interface
- * @export
- * @class AppApi
- * @extends {BaseAPI}
- */
-export class AppApi extends BaseAPI {
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof AppApi
-     */
-    getAppInfo(options) {
-        return AppApiFp(this.configuration).getAppInfo(options).then((request) => request(this.axios, this.basePath));
-    }
-}
-/**
  * AuthApi - axios parameter creator
  * @export
  */
@@ -191,5 +107,173 @@ export class AuthApi extends BaseAPI {
      */
     login(requestParameters, options) {
         return AuthApiFp(this.configuration).login(requestParameters.loginDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+/**
+ * EventApi - axios parameter creator
+ * @export
+ */
+export const EventApiAxiosParamCreator = function (configuration) {
+    return {
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAppInfo: async (options = {}) => {
+            const localVarPath = `/{eventId}`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    };
+};
+/**
+ * EventApi - functional programming interface
+ * @export
+ */
+export const EventApiFp = function (configuration) {
+    const localVarAxiosParamCreator = EventApiAxiosParamCreator(configuration);
+    return {
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getAppInfo(options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getAppInfo(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    };
+};
+/**
+ * EventApi - factory interface
+ * @export
+ */
+export const EventApiFactory = function (configuration, basePath, axios) {
+    const localVarFp = EventApiFp(configuration);
+    return {
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAppInfo(options) {
+            return localVarFp.getAppInfo(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+/**
+ * EventApi - object-oriented interface
+ * @export
+ * @class EventApi
+ * @extends {BaseAPI}
+ */
+export class EventApi extends BaseAPI {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof EventApi
+     */
+    getAppInfo(options) {
+        return EventApiFp(this.configuration).getAppInfo(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+/**
+ * FoldersApi - axios parameter creator
+ * @export
+ */
+export const FoldersApiAxiosParamCreator = function (configuration) {
+    return {
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAppInfo: async (options = {}) => {
+            const localVarPath = `/{folderId}`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    };
+};
+/**
+ * FoldersApi - functional programming interface
+ * @export
+ */
+export const FoldersApiFp = function (configuration) {
+    const localVarAxiosParamCreator = FoldersApiAxiosParamCreator(configuration);
+    return {
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getAppInfo(options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getAppInfo(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    };
+};
+/**
+ * FoldersApi - factory interface
+ * @export
+ */
+export const FoldersApiFactory = function (configuration, basePath, axios) {
+    const localVarFp = FoldersApiFp(configuration);
+    return {
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAppInfo(options) {
+            return localVarFp.getAppInfo(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+/**
+ * FoldersApi - object-oriented interface
+ * @export
+ * @class FoldersApi
+ * @extends {BaseAPI}
+ */
+export class FoldersApi extends BaseAPI {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    getAppInfo(options) {
+        return FoldersApiFp(this.configuration).getAppInfo(options).then((request) => request(this.axios, this.basePath));
     }
 }

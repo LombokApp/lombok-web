@@ -5,30 +5,27 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import type { ModuleConfig } from '@stellariscloud/types'
-import { MediaType } from '@stellariscloud/types'
+import { MediaType, SignedURLsRequestMethod } from '@stellariscloud/types'
 import { EnumType } from '@stellariscloud/utils'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
 import fs from 'fs'
 import path from 'path'
 import * as r from 'runtypes'
+import { RedisService } from 'src/cache/redis.service'
+import { readDirRecursive } from 'src/core/utils/fs.util'
+import { eventReceiptsTable } from 'src/event/entities/event-receipt.entity'
+import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
+import { foldersTable } from 'src/folders/entities/folder.entity'
+import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
+import { FolderNotFoundException } from 'src/folders/exceptions/folder-not-found.exception'
+import { FolderService } from 'src/folders/services/folder.service'
+import { locationsTable } from 'src/locations/entities/locations.entity'
+import { OrmService } from 'src/orm/orm.service'
+import { S3Service } from 'src/s3/s3.service'
+import { SocketService } from 'src/socket/socket.service'
+import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
-import { RedisService } from '../../core/services/redis.service'
-import { S3Service } from '../../core/services/s3.service'
-import { SocketService } from '../../core/services/socket.service'
-import { readDirRecursive } from '../../core/utils/fs.util'
-import { eventReceiptsTable } from '../../event/entities/event-receipt.entity'
-import type { FolderWithoutLocations } from '../../folders/entities/folder.entity'
-import { foldersTable } from '../../folders/entities/folder.entity'
-import { folderObjectsTable } from '../../folders/entities/folder-object.entity'
-import { FolderNotFoundError } from '../../folders/errors/folder.error'
-import {
-  FolderService,
-  SignedURLsRequestMethod,
-} from '../../folders/services/folders.service'
-import { locationsTable } from '../../locations/entities/locations.entity'
-import { OrmService } from '../../orm/orm.service'
-import type { User } from '../../users/entities/user.entity'
 import { ModuleSocketAPIRequest } from '../constants/app-api-messages'
 import { moduleLogEntriesTable } from '../entities/app-log-entry.entity'
 
@@ -124,8 +121,8 @@ export class AppService {
     private readonly ormService: OrmService,
     private readonly redisService: RedisService,
     private readonly s3Service: S3Service,
-    private readonly socketService: SocketService,
     private readonly folderService: FolderService,
+    private readonly socketService: SocketService,
   ) {}
 
   _modulesFromDisk: { [key: string]: { config: ModuleConfig } } = {}
@@ -135,18 +132,18 @@ export class AppService {
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND)
     }
     const connectedModuleInstances =
-      await this.socketService.getModuleConnections()
+      await this.socketService.getAppConnections()
     return {
       connected: connectedModuleInstances,
-      installed: await this.listModules(),
+      installed: await this.listApps(),
     }
   }
 
-  async listModules() {
+  async listApps() {
     const modulesFromDiskRaw = await this.redisService.client.GET(
       FROM_DISK_MODULE_TREE_REDIS_KEY,
     )
-    const modulesFromDisk: ReturnType<typeof this.loadModulesFromDisk> =
+    const modulesFromDisk: ReturnType<typeof this.loadAppsFromDisk> =
       modulesFromDiskRaw ? JSON.parse(modulesFromDiskRaw) : {}
 
     return Object.keys(modulesFromDisk).map((moduleName) => {
@@ -170,7 +167,7 @@ export class AppService {
     const modulesFromDiskRaw = await this.redisService.client.GET(
       FROM_DISK_MODULE_TREE_REDIS_KEY,
     )
-    const modulesFromDisk: ReturnType<typeof this.loadModulesFromDisk> =
+    const modulesFromDisk: ReturnType<typeof this.loadAppsFromDisk> =
       modulesFromDiskRaw ? JSON.parse(modulesFromDiskRaw) : {}
 
     return moduleName in modulesFromDisk
@@ -273,7 +270,7 @@ export class AppService {
               await this.ormService.db.query.eventReceiptsTable.findFirst({
                 where: and(
                   eq(eventReceiptsTable.id, requestData),
-                  eq(eventReceiptsTable.moduleIdentifier, moduleName),
+                  eq(eventReceiptsTable.appIdentifier, moduleName),
                 ),
               })
             if (
@@ -303,7 +300,7 @@ export class AppService {
             const eventReceipt =
               await this.ormService.db.query.eventReceiptsTable.findFirst({
                 where: and(
-                  eq(eventReceiptsTable.moduleIdentifier, moduleName),
+                  eq(eventReceiptsTable.appIdentifier, moduleName),
                   inArray(eventReceiptsTable.eventKey, requestData.eventKeys),
                   isNull(eventReceiptsTable.startedAt),
                 ),
@@ -350,7 +347,7 @@ export class AppService {
               await this.ormService.db.query.eventReceiptsTable.findFirst({
                 where: and(
                   eq(eventReceiptsTable.id, requestData.eventReceiptId),
-                  eq(eventReceiptsTable.moduleIdentifier, moduleName),
+                  eq(eventReceiptsTable.appIdentifier, moduleName),
                 ),
               })
             if (
@@ -374,7 +371,7 @@ export class AppService {
                 .where(
                   and(
                     eq(eventReceiptsTable.id, eventReceipt.id),
-                    eq(eventReceiptsTable.moduleIdentifier, moduleName),
+                    eq(eventReceiptsTable.appIdentifier, moduleName),
                   ),
                 ),
             }
@@ -439,7 +436,7 @@ export class AppService {
             folders[request.folderId] = folder
 
             if (!folder) {
-              throw new FolderNotFoundError()
+              throw new FolderNotFoundException()
             }
 
             const metadataLocation =
@@ -590,7 +587,7 @@ export class AppService {
         // { populate: ['contentLocation', 'metadataLocation'] },
       )
       if (!folder) {
-        throw new FolderNotFoundError()
+        throw new FolderNotFoundException()
       }
       const folderRequests = presignedUrlRequestsByFolderId[folderId]
 
@@ -643,7 +640,7 @@ export class AppService {
     console.log('Refreshing modules from disk...')
 
     // load the modules from disk
-    const modulesFromDisk = this.loadModulesFromDisk(modulesDirectory)
+    const modulesFromDisk = this.loadAppsFromDisk(modulesDirectory)
     console.log(
       'Loaded modules from disk:',
       JSON.stringify(modulesFromDisk, null, 2),
@@ -678,7 +675,7 @@ export class AppService {
     )
   }
 
-  public loadModulesFromDisk(modulesDirectory: string) {
+  public loadAppsFromDisk(modulesDirectory: string) {
     const configs: {
       [key: string]: {
         config: ModuleConfig

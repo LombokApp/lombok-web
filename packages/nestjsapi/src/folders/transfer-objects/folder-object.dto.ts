@@ -3,10 +3,9 @@ import type {
   ContentMetadataByHash,
   MediaType,
 } from '@stellariscloud/types'
+import { TimestampDTO } from 'src/core/transfer-objects/timestamps.dto'
 
-import type { TimestampData } from '../../../transfer-objects/timestamps.dto'
-
-export interface FolderObjectData extends TimestampData {
+export class FolderObjectDTO extends TimestampDTO {
   id: string
   objectKey: string
   folderId: string

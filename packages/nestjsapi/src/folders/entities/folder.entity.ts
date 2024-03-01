@@ -1,9 +1,8 @@
 import { relations } from 'drizzle-orm'
 import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
-
-import type { Location } from '../../locations/entities/locations.entity'
-import { locationsTable } from '../../locations/entities/locations.entity'
-import { usersTable } from '../../users/entities/user.entity'
+import type { Location } from 'src/locations/entities/locations.entity'
+import { locationsTable } from 'src/locations/entities/locations.entity'
+import { usersTable } from 'src/users/entities/user.entity'
 
 export const foldersTable = pgTable('folders', {
   id: uuid('id').primaryKey(),

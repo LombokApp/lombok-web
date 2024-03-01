@@ -1,27 +1,6 @@
 export const schema = {
     "openapi": "3.0.0",
     "paths": {
-        "/": {
-            "get": {
-                "operationId": "getAppInfo",
-                "parameters": [],
-                "responses": {
-                    "200": {
-                        "description": "The app info.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AppInfoDTO"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "App"
-                ]
-            }
-        },
         "/auth/login": {
             "post": {
                 "operationId": "login",
@@ -52,6 +31,41 @@ export const schema = {
                     "Auth"
                 ]
             }
+        },
+        "/{folderId}": {
+            "get": {
+                "operationId": "getAppInfo",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Get a folder by id."
+                    }
+                },
+                "tags": [
+                    "Folders"
+                ]
+            }
+        },
+        "/{eventId}": {
+            "get": {
+                "operationId": "getAppInfo",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Get an event by id.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EventDTO"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Event"
+                ]
+            }
         }
     },
     "info": {
@@ -71,17 +85,6 @@ export const schema = {
             }
         },
         "schemas": {
-            "AppInfoDTO": {
-                "type": "object",
-                "properties": {
-                    "version": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "version"
-                ]
-            },
             "LoginDTO": {
                 "type": "object",
                 "properties": {
@@ -110,6 +113,21 @@ export const schema = {
                 "required": [
                     "accessToken",
                     "refreshToken"
+                ]
+            },
+            "EventDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "eventKey": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "eventKey"
                 ]
             }
         }

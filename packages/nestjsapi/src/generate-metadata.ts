@@ -10,7 +10,7 @@ import { CoreModule } from './core/core.module'
 const generator = new PluginMetadataGenerator()
 
 async function main() {
-  const app = await NestFactory.create(CoreModule)
+  const app = await NestFactory.create(CoreModule, { preview: true })
 
   generator.generate({
     visitors: [

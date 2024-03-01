@@ -16,15 +16,21 @@ import { BaseAPI } from './base';
 /**
  *
  * @export
- * @interface AppInfoDTO
+ * @interface EventDTO
  */
-export interface AppInfoDTO {
+export interface EventDTO {
     /**
      *
      * @type {string}
-     * @memberof AppInfoDTO
+     * @memberof EventDTO
      */
-    'version': string;
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof EventDTO
+     */
+    'eventKey': string;
 }
 /**
  *
@@ -63,57 +69,6 @@ export interface UserSessionDTO {
      * @memberof UserSessionDTO
      */
     'refreshToken': string;
-}
-/**
- * AppApi - axios parameter creator
- * @export
- */
-export declare const AppApiAxiosParamCreator: (configuration?: Configuration) => {
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getAppInfo: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
-};
-/**
- * AppApi - functional programming interface
- * @export
- */
-export declare const AppApiFp: (configuration?: Configuration) => {
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getAppInfo(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppInfoDTO>>;
-};
-/**
- * AppApi - factory interface
- * @export
- */
-export declare const AppApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getAppInfo(options?: AxiosRequestConfig): AxiosPromise<AppInfoDTO>;
-};
-/**
- * AppApi - object-oriented interface
- * @export
- * @class AppApi
- * @extends {BaseAPI}
- */
-export declare class AppApi extends BaseAPI {
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof AppApi
-     */
-    getAppInfo(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AppInfoDTO, any>>;
 }
 /**
  * AuthApi - axios parameter creator
@@ -182,4 +137,106 @@ export declare class AuthApi extends BaseAPI {
      * @memberof AuthApi
      */
     login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<UserSessionDTO, any>>;
+}
+/**
+ * EventApi - axios parameter creator
+ * @export
+ */
+export declare const EventApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAppInfo: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * EventApi - functional programming interface
+ * @export
+ */
+export declare const EventApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAppInfo(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventDTO>>;
+};
+/**
+ * EventApi - factory interface
+ * @export
+ */
+export declare const EventApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAppInfo(options?: AxiosRequestConfig): AxiosPromise<EventDTO>;
+};
+/**
+ * EventApi - object-oriented interface
+ * @export
+ * @class EventApi
+ * @extends {BaseAPI}
+ */
+export declare class EventApi extends BaseAPI {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof EventApi
+     */
+    getAppInfo(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<EventDTO, any>>;
+}
+/**
+ * FoldersApi - axios parameter creator
+ * @export
+ */
+export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAppInfo: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * FoldersApi - functional programming interface
+ * @export
+ */
+export declare const FoldersApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAppInfo(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+};
+/**
+ * FoldersApi - factory interface
+ * @export
+ */
+export declare const FoldersApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAppInfo(options?: AxiosRequestConfig): AxiosPromise<void>;
+};
+/**
+ * FoldersApi - object-oriented interface
+ * @export
+ * @class FoldersApi
+ * @extends {BaseAPI}
+ */
+export declare class FoldersApi extends BaseAPI {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    getAppInfo(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
 }

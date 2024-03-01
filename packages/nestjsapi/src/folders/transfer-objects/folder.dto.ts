@@ -1,10 +1,10 @@
-import type { TimestampData } from '../../../transfer-objects/timestamps.dto'
-import type { StorageLocationData } from '../../locations/transfer-objects/location.dto'
+import { TimestampDTO } from 'src/core/transfer-objects/timestamps.dto'
+import type { LocationDTO } from 'src/locations/transfer-objects/location.dto'
 
-export interface FolderData extends TimestampData {
+export class FolderDTO extends TimestampDTO {
   id: string
   ownerId?: string
   name: string
-  metadataLocation: StorageLocationData
-  contentLocation: StorageLocationData
+  metadataLocation: LocationDTO
+  contentLocation: LocationDTO
 }
