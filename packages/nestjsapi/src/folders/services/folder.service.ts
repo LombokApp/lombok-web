@@ -1,3 +1,4 @@
+import { InjectQueue } from '@nestjs/bullmq'
 import {
   BadRequestException,
   Injectable,
@@ -17,6 +18,7 @@ import {
   mediaTypeFromExtension,
   objectIdentifierToObjectKey,
 } from '@stellariscloud/utils'
+import { Queue } from 'bullmq'
 import { and, eq, like, sql } from 'drizzle-orm'
 import mime from 'mime'
 import * as r from 'runtypes'
@@ -27,6 +29,7 @@ import { locationsTable } from 'src/locations/entities/locations.entity'
 import { LocationNotFoundException } from 'src/locations/exceptions/location-not-found.exceptions'
 import type { UserLocationInputDTO } from 'src/locations/transfer-objects/user-location-input.dto'
 import { OrmService } from 'src/orm/orm.service'
+import { QueueName } from 'src/queue/queue.constants'
 import { configureS3Client, S3Service } from 'src/s3/s3.service'
 import { ServerLocationType } from 'src/server/constants/server.constants'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
@@ -136,6 +139,12 @@ export class FolderService {
     private readonly socketService: SocketService,
     private readonly ormService: OrmService,
     private readonly serverConfigurationService: ServerConfigurationService,
+    @InjectQueue(QueueName.IndexFolder)
+    private readonly indexFolderQueue: Queue<
+      { folderId: string; userId: string },
+      void,
+      QueueName.IndexFolder
+    >,
   ) {}
 
   async createFolder({
@@ -649,13 +658,13 @@ export class FolderService {
     )
   }
 
-  // queueRefreshFolder(folderId: string, userId: string) {
-  //   return this.queueService.add(
-  //     QueueName.IndexFolder,
-  //     { folderId, userId },
-  //     { jobId: uuidV4() },
-  //   )
-  // }
+  queueRefreshFolder(folderId: string, userId: string) {
+    return this.indexFolderQueue.add(
+      QueueName.IndexFolder,
+      { folderId, userId },
+      { jobId: uuidV4() },
+    )
+  }
 
   async refreshFolder(folderId: string, userId: string) {
     const { folder, permissions } = await this.getFolderAsUser({

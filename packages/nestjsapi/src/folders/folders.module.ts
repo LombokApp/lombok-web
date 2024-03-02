@@ -9,6 +9,7 @@ import { ServerConfigurationService } from 'src/server/services/server-configura
 import { SocketService } from 'src/socket/socket.service'
 
 import { FoldersController } from './controllers/folders.controller'
+import { IndexFolderProcessor } from './processors/index-folder.processor'
 import { FolderService } from './services/folder.service'
 
 @Module({
@@ -25,6 +26,7 @@ import { FolderService } from './services/folder.service'
     SocketService,
     AppService,
     ServerConfigurationService,
+    IndexFolderProcessor,
   ],
   exports: [FolderService],
 })

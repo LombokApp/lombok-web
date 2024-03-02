@@ -1,7 +1,10 @@
+import { BullModule } from '@nestjs/bullmq'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { authConfig } from 'src/auth/config'
 import { CacheModule } from 'src/cache/cache.module'
+import { redisConfig } from 'src/cache/redis.config'
+import { QueueModule } from 'src/queue/queue.module'
 import { S3Module } from 'src/s3/s3.module'
 import { SocketModule } from 'src/socket/socket.module'
 
@@ -19,6 +22,13 @@ import { UsersModule } from '../users/users.module'
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST,
+        port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
+      },
+    }),
+    ConfigModule.forFeature(redisConfig),
     ConfigModule.forFeature(authConfig),
     AuthModule,
     OrmModule,
@@ -31,6 +41,7 @@ import { UsersModule } from '../users/users.module'
     CacheModule,
     SocketModule,
     S3Module,
+    QueueModule,
   ],
   controllers: [],
 })
