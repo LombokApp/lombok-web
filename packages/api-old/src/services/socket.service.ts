@@ -1,6 +1,6 @@
 import { createAdapter } from '@socket.io/redis-adapter'
 import type {
-  ConnectedModuleInstance,
+  ConnectedAppInstance,
   FolderPushMessage,
 } from '@stellariscloud/types'
 import type http from 'http'
@@ -235,7 +235,7 @@ export class SocketService {
   }
 
   async getModuleConnections(): Promise<{
-    [key: string]: ConnectedModuleInstance[]
+    [key: string]: ConnectedAppInstance[]
   }> {
     let cursor = 0
     let started = false
@@ -254,8 +254,8 @@ export class SocketService {
     return keys.length
       ? (await this.redisService.client.mGet(keys))
           .filter((_r) => _r)
-          .reduce<{ [k: string]: ConnectedModuleInstance[] }>((acc, _r) => {
-            const parsedRecord: ConnectedModuleInstance | undefined = _r
+          .reduce<{ [k: string]: ConnectedAppInstance[] }>((acc, _r) => {
+            const parsedRecord: ConnectedAppInstance | undefined = _r
               ? JSON.parse(_r)
               : undefined
             if (!parsedRecord) {

@@ -1,8 +1,9 @@
+import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
 import { createAdapter } from '@socket.io/redis-adapter'
 import type {
-  ConnectedModuleInstance,
+  ConnectedAppInstance,
   FolderPushMessage,
 } from '@stellariscloud/types'
 import type http from 'http'
@@ -26,16 +27,16 @@ const UserAuthPayload = r.Record({
 })
 
 @Injectable()
-export class SocketService {
+export class SocketService implements OnModuleInit, OnModuleDestroy {
   userServer?: io.Server
   appServer?: io.Server
   private appService: AppService
   private folderService: FolderService
 
   constructor(
-    private readonly redisService: RedisService,
-    private readonly jwtService: JWTService,
     private readonly moduleRef: ModuleRef,
+    private readonly jwtService: JWTService,
+    private readonly redisService: RedisService,
   ) {}
 
   onModuleInit() {
@@ -91,7 +92,7 @@ export class SocketService {
           }
 
           try {
-            // verifies the token using the publicKey we have on file for this module
+            // verifies the token using the publicKey we have on file for this app
             const _verifiedJwt = this.jwtService.verifyModuleJWT(
               appIdentifier,
               app.publicKey,
@@ -106,7 +107,7 @@ export class SocketService {
           }
 
           // persist worker state to redis
-          const workerRedisStateKey = `MODULE_WORKER:${appIdentifier}:${auth.appWorkerId}`
+          const workerRedisStateKey = `APP_WORKER:${appIdentifier}:${auth.appWorkerId}`
           void this.redisService.client.SET(
             workerRedisStateKey,
             JSON.stringify({
@@ -117,8 +118,8 @@ export class SocketService {
             }),
           )
 
-          // register listener for requests from the module
-          client.on('MODULE_API', async (message, ack) => {
+          // register listener for requests from the app
+          client.on('APP_API', async (message, ack) => {
             const response = await this.appService.handleModuleRequest(
               auth.appWorkerId,
               appIdentifier,
@@ -136,7 +137,7 @@ export class SocketService {
           // add the clients to the rooms corresponding to their subscriptions
           void Promise.all(
             auth.eventSubscriptionKeys.map((eventKey) => {
-              const roomKey = `module:${appIdentifier}__event:${eventKey}`
+              const roomKey = `app:${appIdentifier}__event:${eventKey}`
               return client.join(roomKey)
             }),
             // eslint-disable-next-line promise/no-nesting
@@ -211,7 +212,7 @@ export class SocketService {
   }
 
   async getAppConnections(): Promise<{
-    [key: string]: ConnectedModuleInstance[]
+    [key: string]: ConnectedAppInstance[]
   }> {
     let cursor = 0
     let started = false
@@ -230,8 +231,8 @@ export class SocketService {
     return keys.length
       ? (await this.redisService.client.mGet(keys))
           .filter((_r) => _r)
-          .reduce<{ [k: string]: ConnectedModuleInstance[] }>((acc, _r) => {
-            const parsedRecord: ConnectedModuleInstance | undefined = _r
+          .reduce<{ [k: string]: ConnectedAppInstance[] }>((acc, _r) => {
+            const parsedRecord: ConnectedAppInstance | undefined = _r
               ? JSON.parse(_r)
               : undefined
             if (!parsedRecord) {

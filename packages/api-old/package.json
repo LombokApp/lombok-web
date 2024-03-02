@@ -1,5 +1,5 @@
 {
-  "name": "@stellariscloud/api",
+  "name": "@stellariscloud/api-old",
   "private": true,
   "files": [
     ".orm-cache/**",

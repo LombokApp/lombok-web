@@ -18,18 +18,18 @@ export interface ModuleConfig {
   menuItems: ModuleMenuItem[]
 }
 
-export interface ConnectedModuleInstancesMap {
-  [name: string]: ConnectedModuleInstance[]
+export interface ConnectedAppInstancesMap {
+  [name: string]: ConnectedAppInstance[]
 }
 
-export interface ConnectedModuleInstance {
+export interface ConnectedAppInstance {
   appIdentifier: string
   id: string
   name: string
   ip: string
 }
 
-export interface ModuleData {
+export interface AppData {
   identifier: string
   config: ModuleConfig
 }

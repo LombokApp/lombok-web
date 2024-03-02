@@ -1,6 +1,4 @@
-import type { OnModuleInit } from '@nestjs/common'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
-import { ModuleRef } from '@nestjs/core'
 import { isNull, sql } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
 import { OrmService } from 'src/orm/orm.service'
@@ -12,16 +10,11 @@ import type { NewEventReceipt } from '../entities/event-receipt.entity'
 import { eventReceiptsTable } from '../entities/event-receipt.entity'
 
 @Injectable()
-export class EventService implements OnModuleInit {
-  private appService: AppService
+export class EventService {
   constructor(
     private readonly ormService: OrmService,
-    private readonly moduleRef: ModuleRef,
+    private readonly appService: AppService,
   ) {}
-
-  onModuleInit() {
-    this.appService = this.moduleRef.get(AppService)
-  }
 
   async emitEvent({
     appIdentifier,
@@ -89,13 +82,12 @@ export class EventService implements OnModuleInit {
       {},
     )
 
-    for (const moduleId of Object.keys(pendingEventsByModule)) {
-      for (const eventKey of Object.keys(pendingEventsByModule[moduleId])) {
-        // Object.keys(pendingEventsByModule[moduleId]).map(moduleId)
+    for (const appId of Object.keys(pendingEventsByModule)) {
+      for (const eventKey of Object.keys(pendingEventsByModule[appId])) {
         this.appService.broadcastEventsPending(
-          moduleId,
+          appId,
           eventKey,
-          pendingEventsByModule[moduleId][eventKey],
+          pendingEventsByModule[appId][eventKey],
         )
       }
     }

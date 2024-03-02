@@ -1,8 +1,8 @@
 import { forwardRef, Module } from '@nestjs/common'
 import { AppModule } from 'src/app/app.module'
 import { AppService } from 'src/app/services/app.service'
-import { CacheModule } from 'src/cache/cache.module'
 import { EventModule } from 'src/event/event.module'
+import { EventService } from 'src/event/services/event.service'
 import { QueueModule } from 'src/queue/queue.module'
 import { S3Module } from 'src/s3/s3.module'
 import { ServerModule } from 'src/server/server.module'
@@ -18,7 +18,6 @@ import { FolderService } from './services/folder.service'
   controllers: [FoldersController],
   imports: [
     S3Module,
-    CacheModule,
     ServerModule,
     EventModule,
     QueueModule,
@@ -26,6 +25,7 @@ import { FolderService } from './services/folder.service'
     forwardRef(() => AppModule),
   ],
   providers: [
+    EventService,
     FolderService,
     SocketService,
     AppService,

@@ -1,4 +1,5 @@
 import { InjectQueue } from '@nestjs/bullmq'
+import type { OnModuleInit } from '@nestjs/common'
 import {
   BadRequestException,
   Injectable,
@@ -24,7 +25,7 @@ import { and, eq, like, sql } from 'drizzle-orm'
 import mime from 'mime'
 import * as r from 'runtypes'
 import { parseSort } from 'src/core/utils/sort.util'
-import { EventService } from 'src/event/services/event.service'
+import type { EventService } from 'src/event/services/event.service'
 import type { Location } from 'src/locations/entities/locations.entity'
 import { locationsTable } from 'src/locations/entities/locations.entity'
 import { LocationNotFoundException } from 'src/locations/exceptions/location-not-found.exceptions'
@@ -34,7 +35,7 @@ import { QueueName } from 'src/queue/queue.constants'
 import { configureS3Client, S3Service } from 'src/s3/s3.service'
 import { ServerLocationType } from 'src/server/constants/server.constants'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
-import type { SocketService } from 'src/socket/socket.service'
+import { SocketService } from 'src/socket/socket.service'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -97,12 +98,9 @@ export enum FolderSort {
 
 export enum FolderPermissionName {
   FOLDER_REFRESH = 'folder_refresh',
-  FOLDER_MANAGE_SHARES = 'folder_manage_shares',
   FOLDER_FORGET = 'folder_forget',
   OBJECT_EDIT = 'object_edit',
   OBJECT_MANAGE = 'object_manage',
-  TAG_CREATE = 'tag_create',
-  TAG_ASSOCIATE = 'tag_associate',
 }
 
 const OWNER_PERMISSIONS = Object.values(FolderPermissionName)
@@ -133,12 +131,12 @@ const ServerLocationPayloadRunType = r.Record({
 })
 
 @Injectable()
-export class FolderService {
-  socketService: SocketService
+export class FolderService implements OnModuleInit {
+  eventService: EventService
   constructor(
     private readonly moduleRef: ModuleRef,
+    private readonly socketService: SocketService,
     private readonly s3Service: S3Service,
-    private readonly eventService: EventService,
     private readonly ormService: OrmService,
     private readonly serverConfigurationService: ServerConfigurationService,
     @InjectQueue(QueueName.IndexFolder)
@@ -147,8 +145,11 @@ export class FolderService {
       void,
       QueueName.IndexFolder
     >,
-  ) {
-    this.socketService = this.moduleRef.get(FolderService)
+  ) {}
+
+  onModuleInit() {
+    // this.socketService = this.moduleRef.get(SocketService)
+    // this.eventService = this.moduleRef.get(EventService)
   }
 
   async createFolder({

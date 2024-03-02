@@ -1,4 +1,4 @@
-import type { ConnectedModuleInstance, ModuleData } from '@stellariscloud/types'
+import type { ConnectedAppInstance, AppData } from '@stellariscloud/types'
 import React from 'react'
 
 import type { ModulesTab } from './modules-tabs'
@@ -8,9 +8,9 @@ export function InstalledModuleDataPanel({
   moduleInfo,
   connectedModuleInstances,
 }: {
-  moduleInfo: ModuleData
+  moduleInfo: AppData
   connectedModuleInstances: {
-    [name: string]: ConnectedModuleInstance | undefined
+    [name: string]: ConnectedAppInstance | undefined
   }
 }) {
   const [activeTab, setActiveTab] = React.useState<ModulesTab>('config')

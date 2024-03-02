@@ -1,5 +1,5 @@
 import type {
-  ConnectedModuleInstancesMap,
+  ConnectedAppInstancesMap,
   ModuleConfig,
 } from '@stellariscloud/types'
 import {
@@ -228,7 +228,7 @@ export class ServerController extends Controller {
   @Get('/modules')
   async listModules(@Request() req: Express.Request): Promise<{
     installed: { identifier: string; config: ModuleConfig }[]
-    connected: ConnectedModuleInstancesMap
+    connected: ConnectedAppInstancesMap
   }> {
     if (!req.user) {
       throw new UnauthorizedError()

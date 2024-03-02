@@ -1,8 +1,5 @@
 import { ComputerDesktopIcon } from '@heroicons/react/24/outline'
-import type {
-  ConnectedModuleInstancesMap,
-  ModuleData,
-} from '@stellariscloud/types'
+import type { ConnectedAppInstancesMap, AppData } from '@stellariscloud/types'
 import React from 'react'
 
 import { InstalledModuleDataPanel } from '../../../components/installed-module-data-panel/installed-module-data-panel'
@@ -11,9 +8,9 @@ import { serverApi } from '../../../services/api'
 
 export function ServerModulesScreen() {
   const [coreModuleResetKey, _setCoreModuleResetKey] = React.useState('__')
-  const [installedModules, setInstalledModules] = React.useState<ModuleData[]>()
+  const [installedModules, setInstalledModules] = React.useState<AppData[]>()
   const [connectedModuleInstances, setConnectedModuleInstances] =
-    React.useState<ConnectedModuleInstancesMap>()
+    React.useState<ConnectedAppInstancesMap>()
 
   React.useEffect(() => {
     void serverApi.listModules().then((modules) => {

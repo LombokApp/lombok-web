@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import type { ModuleConfig } from '@stellariscloud/types'
+import type { ConnectedAppInstance, ModuleConfig } from '@stellariscloud/types'
 import { MediaType, SignedURLsRequestMethod } from '@stellariscloud/types'
 import { EnumType } from '@stellariscloud/utils'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
@@ -22,7 +22,6 @@ import { FolderService } from 'src/folders/services/folder.service'
 import { locationsTable } from 'src/locations/entities/locations.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { S3Service } from 'src/s3/s3.service'
-import { SocketService } from 'src/socket/socket.service'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -122,7 +121,6 @@ export class AppService {
     private readonly redisService: RedisService,
     private readonly s3Service: S3Service,
     private readonly folderService: FolderService,
-    private readonly socketService: SocketService,
   ) {}
 
   _modulesFromDisk: { [key: string]: { config: ModuleConfig } } = {}
@@ -131,8 +129,7 @@ export class AppService {
     if (!user.isAdmin) {
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND)
     }
-    const connectedModuleInstances =
-      await this.socketService.getAppConnections()
+    const connectedModuleInstances = await this.getAppConnections()
     return {
       connected: connectedModuleInstances,
       installed: await this.listApps(),
@@ -388,12 +385,12 @@ export class AppService {
       }
     }
   }
-  broadcastEventsPending(moduleId: string, eventKey: string, count: number) {
-    this.socketService.notifyAppWorkersOfPendingEvents(
-      moduleId,
-      eventKey,
-      count,
-    )
+  broadcastEventsPending(_moduleId: string, _eventKey: string, _count: number) {
+    // this.socketService.notifyAppWorkersOfPendingEvents(
+    //   moduleId,
+    //   eventKey,
+    //   count,
+    // )
   }
 
   async createSignedContentUrls(payload: {
@@ -727,5 +724,43 @@ export class AppService {
       }
     }
     return configs
+  }
+
+  async getAppConnections(): Promise<{
+    [key: string]: ConnectedAppInstance[]
+  }> {
+    let cursor = 0
+    let started = false
+    let keys: string[] = []
+    while (!started || cursor !== 0) {
+      started = true
+      const scanResult = await this.redisService.client.scan(cursor, {
+        MATCH: 'APP_WORKER:*',
+        TYPE: 'string',
+        COUNT: 10000,
+      })
+      keys = keys.concat(scanResult.keys)
+      cursor = scanResult.cursor
+    }
+
+    return keys.length
+      ? (await this.redisService.client.mGet(keys))
+          .filter((_r) => _r)
+          .reduce<{ [k: string]: ConnectedAppInstance[] }>((acc, _r) => {
+            const parsedRecord: ConnectedAppInstance | undefined = _r
+              ? JSON.parse(_r)
+              : undefined
+            if (!parsedRecord) {
+              return acc
+            }
+            return {
+              ...acc,
+              [parsedRecord.appIdentifier]: (parsedRecord.appIdentifier in acc
+                ? acc[parsedRecord.appIdentifier]
+                : []
+              ).concat([parsedRecord]),
+            }
+          }, {})
+      : {}
   }
 }
