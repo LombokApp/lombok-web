@@ -9,7 +9,7 @@ export const redisConfig = registerAs('redis', () => {
     REDIS_PORT: r.String.withConstraint(isInteger),
   })
   return {
-    redisHost: env.REDIS_HOST,
-    redisPort: parseInt(env.REDIS_PORT, 10),
+    host: env.REDIS_HOST,
+    port: parseInt(env.REDIS_PORT, 10),
   }
 })

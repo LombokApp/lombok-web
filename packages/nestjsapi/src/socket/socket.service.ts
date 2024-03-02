@@ -11,7 +11,7 @@ import type {
 } from '@stellariscloud/types'
 import type http from 'http'
 import * as r from 'runtypes'
-import io from 'socket.io'
+import * as io from 'socket.io'
 import { AppService } from 'src/app/services/app.service'
 import { RedisService } from 'src/cache/redis.service'
 import { FolderService } from 'src/folders/services/folder.service'

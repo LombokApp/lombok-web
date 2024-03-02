@@ -23,16 +23,8 @@ import { UsersModule } from '../users/users.module'
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),
-    BullModule.forRootAsync({
-      useFactory: (configService: ConfigType<typeof redisConfig>) => ({
-        connection: {
-          host: configService.redisHost,
-          port: configService.redisPort,
-        },
-      }),
-    }),
-    ConfigModule.forFeature(redisConfig),
     ConfigModule.forFeature(authConfig),
+    ConfigModule.forFeature(redisConfig),
     AuthModule,
     OrmModule,
     FoldersModule,
@@ -45,6 +37,16 @@ import { UsersModule } from '../users/users.module'
     SocketModule,
     S3Module,
     QueueModule,
+    BullModule.forRootAsync({
+      useFactory: (_redisConfig: ConfigType<typeof redisConfig>) => ({
+        connection: {
+          host: _redisConfig.host,
+          port: _redisConfig.port,
+        },
+      }),
+      inject: [redisConfig.KEY],
+      imports: [ConfigModule.forFeature(redisConfig)],
+    }),
   ],
   controllers: [],
 })

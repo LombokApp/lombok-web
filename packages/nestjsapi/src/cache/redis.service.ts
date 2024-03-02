@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { ConfigType } from '@nestjs/config'
+import { type ConfigType } from '@nestjs/config'
 import type { RedisClientType } from 'redis'
 import { createClient } from 'redis'
 
@@ -14,7 +14,7 @@ export class RedisService {
     private readonly _redisConfig: ConfigType<typeof redisConfig>,
   ) {
     this.client = createClient({
-      url: `redis://${this._redisConfig.redisHost}:${this._redisConfig.redisPort}`,
+      url: `redis://${this._redisConfig.host}:${this._redisConfig.port}`,
     })
     void this.client.connect()
   }

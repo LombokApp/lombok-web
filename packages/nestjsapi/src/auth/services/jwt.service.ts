@@ -3,7 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common'
-import { ConfigType } from '@nestjs/config'
+import { type ConfigType } from '@nestjs/config'
 import { eq } from 'drizzle-orm'
 import type {
   JsonWebTokenError,
