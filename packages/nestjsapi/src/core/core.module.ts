@@ -1,5 +1,6 @@
 import { BullModule } from '@nestjs/bullmq'
 import { Module } from '@nestjs/common'
+import type { ConfigType } from '@nestjs/config'
 import { ConfigModule } from '@nestjs/config'
 import { authConfig } from 'src/auth/config'
 import { CacheModule } from 'src/cache/cache.module'
@@ -22,11 +23,13 @@ import { UsersModule } from '../users/users.module'
     ConfigModule.forRoot({
       envFilePath: '.env',
     }),
-    BullModule.forRoot({
-      connection: {
-        host: process.env.REDIS_HOST,
-        port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
-      },
+    BullModule.forRootAsync({
+      useFactory: (configService: ConfigType<typeof redisConfig>) => ({
+        connection: {
+          host: configService.redisHost,
+          port: configService.redisPort,
+        },
+      }),
     }),
     ConfigModule.forFeature(redisConfig),
     ConfigModule.forFeature(authConfig),

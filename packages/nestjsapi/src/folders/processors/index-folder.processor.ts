@@ -14,4 +14,3 @@ export class IndexFolderProcessor extends WorkerHost {
     await this.folderService.refreshFolder(job.data.folderId, job.data.userId)
   }
 }
-
