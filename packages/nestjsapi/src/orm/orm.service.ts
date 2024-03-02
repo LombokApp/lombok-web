@@ -41,8 +41,4 @@ export class OrmService {
     }
     return this._db
   }
-
-  login(_input: { login: string; password: string }): string {
-    return 'Hello World!'
-  }
 }

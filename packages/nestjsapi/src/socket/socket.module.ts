@@ -8,8 +8,8 @@ import { SocketService } from './socket.service'
 
 @Module({
   controllers: [],
-  providers: [SocketService, AppService],
   imports: [FoldersModule, AppModule, S3Module],
+  providers: [SocketService, AppService],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class SocketModule {}

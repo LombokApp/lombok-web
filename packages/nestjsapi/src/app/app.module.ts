@@ -8,11 +8,7 @@ import { SocketService } from 'src/socket/socket.service'
 import { AppService } from './services/app.service'
 
 @Module({
-  imports: [
-    S3Module,
-    forwardRef(() => SocketModule),
-    forwardRef(() => FoldersModule),
-  ],
+  imports: [S3Module, forwardRef(() => SocketModule), FoldersModule],
   providers: [AppService, SocketService, S3Service],
   exports: [AppService],
 })

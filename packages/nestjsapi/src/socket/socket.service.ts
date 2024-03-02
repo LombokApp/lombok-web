@@ -1,9 +1,5 @@
-import {
-  forwardRef,
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { ModuleRef } from '@nestjs/core'
 import { createAdapter } from '@socket.io/redis-adapter'
 import type {
   ConnectedModuleInstance,
@@ -33,15 +29,19 @@ const UserAuthPayload = r.Record({
 export class SocketService {
   userServer?: io.Server
   appServer?: io.Server
+  private appService: AppService
+  private folderService: FolderService
 
   constructor(
     private readonly redisService: RedisService,
     private readonly jwtService: JWTService,
-    // @Inject(forwardRef(() => FolderService))
-    // private readonly folderService: FolderService,
-    // @Inject(forwardRef(() => AppService))
-    // private readonly appService: AppService,
+    private readonly moduleRef: ModuleRef,
   ) {}
+
+  onModuleInit() {
+    this.appService = this.moduleRef.get(AppService)
+    this.folderService = this.moduleRef.get(FolderService)
+  }
 
   initAppServer(server: http.Server) {
     if (this.appServer) {

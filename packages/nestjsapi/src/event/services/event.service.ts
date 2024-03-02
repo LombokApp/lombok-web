@@ -1,10 +1,6 @@
-import {
-  forwardRef,
-  HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-} from '@nestjs/common'
+import type { OnModuleInit } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
+import { ModuleRef } from '@nestjs/core'
 import { isNull, sql } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
 import { OrmService } from 'src/orm/orm.service'
@@ -16,12 +12,16 @@ import type { NewEventReceipt } from '../entities/event-receipt.entity'
 import { eventReceiptsTable } from '../entities/event-receipt.entity'
 
 @Injectable()
-export class EventService {
+export class EventService implements OnModuleInit {
+  private appService: AppService
   constructor(
-    @Inject(forwardRef(() => AppService))
-    private readonly appService: AppService,
     private readonly ormService: OrmService,
+    private readonly moduleRef: ModuleRef,
   ) {}
+
+  onModuleInit() {
+    this.appService = this.moduleRef.get(AppService)
+  }
 
   async emitEvent({
     appIdentifier,

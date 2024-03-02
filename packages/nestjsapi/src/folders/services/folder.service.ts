@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
+import { ModuleRef } from '@nestjs/core'
 import type {
   ContentAttributesType,
   ContentMetadataType,
@@ -33,7 +34,7 @@ import { QueueName } from 'src/queue/queue.constants'
 import { configureS3Client, S3Service } from 'src/s3/s3.service'
 import { ServerLocationType } from 'src/server/constants/server.constants'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
-import { SocketService } from 'src/socket/socket.service'
+import type { SocketService } from 'src/socket/socket.service'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -133,10 +134,11 @@ const ServerLocationPayloadRunType = r.Record({
 
 @Injectable()
 export class FolderService {
+  socketService: SocketService
   constructor(
+    private readonly moduleRef: ModuleRef,
     private readonly s3Service: S3Service,
     private readonly eventService: EventService,
-    private readonly socketService: SocketService,
     private readonly ormService: OrmService,
     private readonly serverConfigurationService: ServerConfigurationService,
     @InjectQueue(QueueName.IndexFolder)
@@ -145,7 +147,9 @@ export class FolderService {
       void,
       QueueName.IndexFolder
     >,
-  ) {}
+  ) {
+    this.socketService = this.moduleRef.get(FolderService)
+  }
 
   async createFolder({
     userId,

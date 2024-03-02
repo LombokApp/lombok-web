@@ -7,6 +7,7 @@ import { QueueModule } from 'src/queue/queue.module'
 import { S3Module } from 'src/s3/s3.module'
 import { ServerModule } from 'src/server/server.module'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
+import { SocketModule } from 'src/socket/socket.module'
 import { SocketService } from 'src/socket/socket.service'
 
 import { FoldersController } from './controllers/folders.controller'
@@ -21,6 +22,7 @@ import { FolderService } from './services/folder.service'
     ServerModule,
     EventModule,
     QueueModule,
+    forwardRef(() => SocketModule),
     forwardRef(() => AppModule),
   ],
   providers: [
