@@ -1,6 +1,8 @@
 import {
+  forwardRef,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
@@ -121,6 +123,7 @@ export class AppService {
     private readonly ormService: OrmService,
     private readonly redisService: RedisService,
     private readonly s3Service: S3Service,
+    // @Inject(forwardRef(() => FolderService))
     private readonly folderService: FolderService,
     private readonly socketService: SocketService,
   ) {}

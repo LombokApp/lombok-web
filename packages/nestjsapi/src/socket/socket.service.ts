@@ -37,10 +37,10 @@ export class SocketService {
   constructor(
     private readonly redisService: RedisService,
     private readonly jwtService: JWTService,
-    @Inject(forwardRef(() => FolderService))
-    private readonly folderService: FolderService,
-    @Inject(forwardRef(() => AppService))
-    private readonly appService: AppService,
+    // @Inject(forwardRef(() => FolderService))
+    // private readonly folderService: FolderService,
+    // @Inject(forwardRef(() => AppService))
+    // private readonly appService: AppService,
   ) {}
 
   initAppServer(server: http.Server) {
