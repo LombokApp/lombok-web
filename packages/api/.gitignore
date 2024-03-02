@@ -1,3 +1,1 @@
-/.orm-cache
-/dist
-/.env
+.env

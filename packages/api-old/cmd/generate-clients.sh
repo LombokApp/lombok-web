@@ -3,10 +3,11 @@ set -e
 set -x
 
 # Ensure the generated spec is up to date
-bun run metadata:generate
+yarn tsoa spec
+yarn ts-node script/generate-api-specs.ts
 
 ROOT_DIR="${PWD}/../../"
-SRC_PATH="packages/nestjsapi/"
+SRC_PATH="packages/api/"
 PUBLIC_API_OUT_PATH="packages/api-client/"
 
 buildclients() {
@@ -25,7 +26,7 @@ buildclients() {
   docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) \
     -v ${ROOT_DIR}:/local \
     openapitools/openapi-generator-cli:v7.0.0 generate \
-    -i "/local/${SRC_PATH}src/${SPEC_FILENAME}" \
+    -i "/local/${SRC_PATH}src/generated/${SPEC_FILENAME}" \
     --skip-validate-spec \
     -g typescript-axios \
     -o /local/${OUT_PATH}src \
@@ -39,7 +40,7 @@ buildclients() {
   rm "${ROOT_DIR}${OUT_PATH}src/git_push.sh"
 
   { set +x; } 2>/dev/null
-  echo "export const schema = $(cat "${ROOT_DIR}${SRC_PATH}src/${SPEC_FILENAME}" ) as const;" > "${ROOT_DIR}${OUT_PATH}src/schema.ts"
+  echo "export const schema = $(cat "${ROOT_DIR}${SRC_PATH}src/generated/${SPEC_FILENAME}" ) as const;" > "${ROOT_DIR}${OUT_PATH}src/schema.ts"
   set -x
 
   echo "export * from './schema';" >> "${ROOT_DIR}${OUT_PATH}src/index.ts"
@@ -50,4 +51,4 @@ buildclients() {
 buildclients "${PUBLIC_API_OUT_PATH}" "openapi.json"
 
 # Transpile generated .ts sources to js
-(cd "${ROOT_DIR}${PUBLIC_API_OUT_PATH}" && bun run build)
+yarn workspace @stellariscloud/api-client build

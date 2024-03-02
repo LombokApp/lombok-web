@@ -1,6 +1,23 @@
 version: '3.5'
 
 services:
+  # api:
+  #   container_name: 'stellariscloud-api'
+  #   build:
+  #     context: .
+  #     dockerfile: docker/api.Dockerfile
+  #     target: local
+  #   volumes:
+  #     - ./:/usr/src/app:cached
+  #   env_file: packages/api/env/env.${CMD_ENV:-dev}
+  #   environment:
+  #     WAIT_HOSTS: db:${DB_PORT:-0}, redis:${REDIS_PORT:-0}
+  #   deploy:
+  #     replicas: 1
+  #   command: ['yarn', 'workspace', '@stellariscloud/api', 'dev']
+  #   ports:
+  #     - 3001:3001
+  #     - 3002:3002
   api:
     container_name: 'stellariscloud-api'
     build:
@@ -9,29 +26,12 @@ services:
       target: local
     volumes:
       - ./:/usr/src/app:cached
-    env_file: packages/api/env/env.${CMD_ENV:-dev}
+    env_file: packages/api/.env
     environment:
       WAIT_HOSTS: db:${DB_PORT:-0}, redis:${REDIS_PORT:-0}
     deploy:
       replicas: 1
-    command: ['yarn', 'workspace', '@stellariscloud/api', 'dev']
-    ports:
-      - 3001:3001
-      - 3002:3002
-  nestjsapi:
-    container_name: 'stellariscloud-nestjsapi'
-    build:
-      context: .
-      dockerfile: docker/nestjsapi.Dockerfile
-      target: local
-    volumes:
-      - ./:/usr/src/app:cached
-    env_file: packages/nestjsapi/env/env.${CMD_ENV:-dev}
-    environment:
-      WAIT_HOSTS: db:${DB_PORT:-0}, redis:${REDIS_PORT:-0}
-    deploy:
-      replicas: 1
-    command: ['yarn', 'workspace', '@stellariscloud/nestjsapi', 'dev']
+    command: ['bun', 'api:dev']
     ports:
       - 3001:3001
       - 3002:3002
@@ -85,6 +85,7 @@ services:
     image: postgres:13.2-alpine
     ports:
       - 5432:${DB_PORT:-0}
+    env_file: packages/api/.env
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -102,4 +103,4 @@ services:
     ports:
       - 8080:8080
     volumes:
-      - ./packages/api/src/generated/openapi.json:/app/swagger.json
+      - ./packages/api/src/generated-openapi.json:/app/swagger.json

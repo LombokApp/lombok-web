@@ -1,28 +1,26 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "ts-node": {
-    "files": true
-  },
   "compilerOptions": {
+    "module": "CommonJS",
     "declaration": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "strictNullChecks": true,
-    "esModuleInterop": true,
-    "composite": true,
-    "forceConsistentCasingInFileNames": true,
-    "lib": ["es2020", "dom"],
-    "module": "commonjs",
-    "downlevelIteration": true,
-    "noImplicitAny": true,
-    "moduleResolution": "node",
     "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "allowJs": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2022",
     "sourceMap": true,
-    "strict": true,
-    "outDir": "dist",
-    "target": "es2020"
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "src": ["./src/index"]
+    }
   },
   "include": [
     "test",
@@ -30,10 +28,6 @@
     "src/**/*.ts",
     "src/**/*.json",
     "script/*.ts",
-    ".eslintrc.js",
-    "jest.config.unit.ts",
-    "jest.config.integration.ts",
-    "jest.config.ts"
-  ],
-  "exclude": ["dist"]
+    ".eslintrc.js"
+  ]
 }
