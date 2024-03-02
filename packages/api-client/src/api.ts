@@ -64,6 +64,19 @@ export interface LoginDTO {
 /**
  * 
  * @export
+ * @interface UpdateViewerInputDTO
+ */
+export interface UpdateViewerInputDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateViewerInputDTO
+     */
+    'name': string;
+}
+/**
+ * 
+ * @export
  * @interface UserSessionDTO
  */
 export interface UserSessionDTO {
@@ -384,6 +397,331 @@ export class FoldersApi extends BaseAPI {
      */
     public getAppInfo(options?: AxiosRequestConfig) {
         return FoldersApiFp(this.configuration).getAppInfo(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * ServerApi - axios parameter creator
+ * @export
+ */
+export const ServerApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getServerSettings: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/server/settings`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        setServerSetting: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/server/settings/{settingKey}`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ServerApi - functional programming interface
+ * @export
+ */
+export const ServerApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ServerApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getServerSettings(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getServerSettings(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async setServerSetting(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.setServerSetting(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * ServerApi - factory interface
+ * @export
+ */
+export const ServerApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ServerApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getServerSettings(options?: AxiosRequestConfig): AxiosPromise<object> {
+            return localVarFp.getServerSettings(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        setServerSetting(options?: AxiosRequestConfig): AxiosPromise<object> {
+            return localVarFp.setServerSetting(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * ServerApi - object-oriented interface
+ * @export
+ * @class ServerApi
+ * @extends {BaseAPI}
+ */
+export class ServerApi extends BaseAPI {
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    public getServerSettings(options?: AxiosRequestConfig) {
+        return ServerApiFp(this.configuration).getServerSettings(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    public setServerSetting(options?: AxiosRequestConfig) {
+        return ServerApiFp(this.configuration).setServerSetting(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * ViewerApi - axios parameter creator
+ * @export
+ */
+export const ViewerApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getViewer: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/viewer`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {UpdateViewerInputDTO} updateViewerInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateViewer: async (updateViewerInputDTO: UpdateViewerInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'updateViewerInputDTO' is not null or undefined
+            assertParamExists('updateViewer', 'updateViewerInputDTO', updateViewerInputDTO)
+            const localVarPath = `/viewer`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateViewerInputDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ViewerApi - functional programming interface
+ * @export
+ */
+export const ViewerApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ViewerApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getViewer(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getViewer(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {UpdateViewerInputDTO} updateViewerInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateViewer(updateViewerInputDTO: UpdateViewerInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateViewer(updateViewerInputDTO, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * ViewerApi - factory interface
+ * @export
+ */
+export const ViewerApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ViewerApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getViewer(options?: AxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.getViewer(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {ViewerApiUpdateViewerRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.updateViewer(requestParameters.updateViewerInputDTO, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for updateViewer operation in ViewerApi.
+ * @export
+ * @interface ViewerApiUpdateViewerRequest
+ */
+export interface ViewerApiUpdateViewerRequest {
+    /**
+     * 
+     * @type {UpdateViewerInputDTO}
+     * @memberof ViewerApiUpdateViewer
+     */
+    readonly updateViewerInputDTO: UpdateViewerInputDTO
+}
+
+/**
+ * ViewerApi - object-oriented interface
+ * @export
+ * @class ViewerApi
+ * @extends {BaseAPI}
+ */
+export class ViewerApi extends BaseAPI {
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ViewerApi
+     */
+    public getViewer(options?: AxiosRequestConfig) {
+        return ViewerApiFp(this.configuration).getViewer(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {ViewerApiUpdateViewerRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ViewerApi
+     */
+    public updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig) {
+        return ViewerApiFp(this.configuration).updateViewer(requestParameters.updateViewerInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

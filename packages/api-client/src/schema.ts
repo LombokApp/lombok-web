@@ -46,6 +46,48 @@ export const schema = {
         ]
       }
     },
+    "/server/settings": {
+      "get": {
+        "operationId": "getServerSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Get the server settings object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Server"
+        ]
+      }
+    },
+    "/server/settings/{settingKey}": {
+      "put": {
+        "operationId": "setServerSetting",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Set a setting in the server settings objects.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Server"
+        ]
+      }
+    },
     "/{eventId}": {
       "get": {
         "operationId": "getAppInfo",
@@ -64,6 +106,42 @@ export const schema = {
         },
         "tags": [
           "Event"
+        ]
+      }
+    },
+    "/viewer": {
+      "get": {
+        "operationId": "getViewer",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Viewer"
+        ]
+      },
+      "put": {
+        "operationId": "updateViewer",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateViewerInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Viewer"
         ]
       }
     }
@@ -128,6 +206,17 @@ export const schema = {
         "required": [
           "id",
           "eventKey"
+        ]
+      },
+      "UpdateViewerInputDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
         ]
       }
     }

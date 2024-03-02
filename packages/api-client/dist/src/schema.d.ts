@@ -42,6 +42,44 @@ export declare const schema: {
                 readonly tags: readonly ["Folders"];
             };
         };
+        readonly "/server/settings": {
+            readonly get: {
+                readonly operationId: "getServerSettings";
+                readonly parameters: readonly [];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Get the server settings object.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly type: "object";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Server"];
+            };
+        };
+        readonly "/server/settings/{settingKey}": {
+            readonly put: {
+                readonly operationId: "setServerSetting";
+                readonly parameters: readonly [];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Set a setting in the server settings objects.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly type: "object";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Server"];
+            };
+        };
         readonly "/{eventId}": {
             readonly get: {
                 readonly operationId: "getAppInfo";
@@ -59,6 +97,38 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Event"];
+            };
+        };
+        readonly "/viewer": {
+            readonly get: {
+                readonly operationId: "getViewer";
+                readonly parameters: readonly [];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "";
+                    };
+                };
+                readonly tags: readonly ["Viewer"];
+            };
+            readonly put: {
+                readonly operationId: "updateViewer";
+                readonly parameters: readonly [];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/UpdateViewerInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "";
+                    };
+                };
+                readonly tags: readonly ["Viewer"];
             };
         };
     };
@@ -114,6 +184,15 @@ export declare const schema: {
                     };
                 };
                 readonly required: readonly ["id", "eventKey"];
+            };
+            readonly UpdateViewerInputDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly name: {
+                        readonly type: "string";
+                    };
+                };
+                readonly required: readonly ["name"];
             };
         };
     };

@@ -54,6 +54,19 @@ export interface LoginDTO {
 /**
  *
  * @export
+ * @interface UpdateViewerInputDTO
+ */
+export interface UpdateViewerInputDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof UpdateViewerInputDTO
+     */
+    'name': string;
+}
+/**
+ *
+ * @export
  * @interface UserSessionDTO
  */
 export interface UserSessionDTO {
@@ -239,4 +252,173 @@ export declare class FoldersApi extends BaseAPI {
      * @memberof FoldersApi
      */
     getAppInfo(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+}
+/**
+ * ServerApi - axios parameter creator
+ * @export
+ */
+export declare const ServerApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getServerSettings: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    setServerSetting: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * ServerApi - functional programming interface
+ * @export
+ */
+export declare const ServerApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getServerSettings(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>>;
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    setServerSetting(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>>;
+};
+/**
+ * ServerApi - factory interface
+ * @export
+ */
+export declare const ServerApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getServerSettings(options?: AxiosRequestConfig): AxiosPromise<object>;
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    setServerSetting(options?: AxiosRequestConfig): AxiosPromise<object>;
+};
+/**
+ * ServerApi - object-oriented interface
+ * @export
+ * @class ServerApi
+ * @extends {BaseAPI}
+ */
+export declare class ServerApi extends BaseAPI {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    getServerSettings(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    setServerSetting(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+}
+/**
+ * ViewerApi - axios parameter creator
+ * @export
+ */
+export declare const ViewerApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getViewer: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {UpdateViewerInputDTO} updateViewerInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateViewer: (updateViewerInputDTO: UpdateViewerInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * ViewerApi - functional programming interface
+ * @export
+ */
+export declare const ViewerApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getViewer(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    /**
+     *
+     * @param {UpdateViewerInputDTO} updateViewerInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateViewer(updateViewerInputDTO: UpdateViewerInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+};
+/**
+ * ViewerApi - factory interface
+ * @export
+ */
+export declare const ViewerApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getViewer(options?: AxiosRequestConfig): AxiosPromise<void>;
+    /**
+     *
+     * @param {ViewerApiUpdateViewerRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
+};
+/**
+ * Request parameters for updateViewer operation in ViewerApi.
+ * @export
+ * @interface ViewerApiUpdateViewerRequest
+ */
+export interface ViewerApiUpdateViewerRequest {
+    /**
+     *
+     * @type {UpdateViewerInputDTO}
+     * @memberof ViewerApiUpdateViewer
+     */
+    readonly updateViewerInputDTO: UpdateViewerInputDTO;
+}
+/**
+ * ViewerApi - object-oriented interface
+ * @export
+ * @class ViewerApi
+ * @extends {BaseAPI}
+ */
+export declare class ViewerApi extends BaseAPI {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ViewerApi
+     */
+    getViewer(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+    /**
+     *
+     * @param {ViewerApiUpdateViewerRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ViewerApi
+     */
+    updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
 }
