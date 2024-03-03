@@ -14,6 +14,7 @@ import { S3Module } from 'src/s3/s3.module'
 import { ServerModule } from 'src/server/server.module'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 
+import { NotifyPendingEventsProcessor } from './processors/notify-pending-events.processor'
 import { SocketService } from './socket.service'
 
 @Module({
@@ -35,6 +36,7 @@ import { SocketService } from './socket.service'
     AppService,
     RedisService,
     ServerConfigurationService,
+    NotifyPendingEventsProcessor,
   ],
   exports: [SocketService, RedisService],
 })

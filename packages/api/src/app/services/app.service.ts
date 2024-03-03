@@ -119,8 +119,8 @@ export class AppService {
   constructor(
     private readonly ormService: OrmService,
     private readonly redisService: RedisService,
-    private readonly s3Service: S3Service,
     private readonly folderService: FolderService,
+    private readonly s3Service: S3Service,
   ) {}
 
   _modulesFromDisk: { [key: string]: { config: ModuleConfig } } = {}
@@ -384,13 +384,6 @@ export class AppService {
         },
       }
     }
-  }
-  broadcastEventsPending(_moduleId: string, _eventKey: string, _count: number) {
-    // this.socketService.notifyAppWorkersOfPendingEvents(
-    //   moduleId,
-    //   eventKey,
-    //   count,
-    // )
   }
 
   async createSignedContentUrls(payload: {

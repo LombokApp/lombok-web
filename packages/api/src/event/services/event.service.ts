@@ -2,6 +2,8 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { isNull, sql } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
 import { OrmService } from 'src/orm/orm.service'
+import { QueueName } from 'src/queue/queue.constants'
+import { QueueService } from 'src/queue/queue.service'
 import { v4 as uuidV4 } from 'uuid'
 
 import type { EventDTO } from '../dto/event.dto'
@@ -13,6 +15,7 @@ import { eventReceiptsTable } from '../entities/event-receipt.entity'
 export class EventService {
   constructor(
     private readonly ormService: OrmService,
+    private readonly queueService: QueueService,
     private readonly appService: AppService,
   ) {}
 
@@ -58,7 +61,7 @@ export class EventService {
     })
   }
 
-  async notifyPendingEvents() {
+  async notifyAllAppsOfPendingEvents() {
     const pendingEventReceipts = await this.ormService.db
       .select({
         eventKey: eventReceiptsTable.eventKey,
@@ -84,10 +87,14 @@ export class EventService {
 
     for (const appId of Object.keys(pendingEventsByModule)) {
       for (const eventKey of Object.keys(pendingEventsByModule[appId])) {
-        this.appService.broadcastEventsPending(
+        const jobPayload = {
           appId,
           eventKey,
-          pendingEventsByModule[appId][eventKey],
+          eventCount: pendingEventsByModule[appId][eventKey],
+        }
+        await this.queueService.addJob(
+          QueueName.NotifyAppOfPendingEvents,
+          jobPayload,
         )
       }
     }

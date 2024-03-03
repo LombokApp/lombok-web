@@ -1,4 +1,5 @@
 export enum QueueName {
   IndexFolder = 'IndexFolder',
-  NotifyPendingEvents = 'NotifyPendingEvents',
+  NotifyAppOfPendingEvents = 'NotifyAppOfPendingEvents',
+  NotifyAllAppsOfPendingEvents = 'NotifyAllAppsOfPendingEvents',
 }
