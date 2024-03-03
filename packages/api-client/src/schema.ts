@@ -10,7 +10,7 @@ export const schema = {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginDTO"
+                "$ref": "#/components/schemas/LoginCredentialsDTO"
               }
             }
           }
@@ -115,7 +115,14 @@ export const schema = {
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ViewerGetResponseDTO"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -163,7 +170,7 @@ export const schema = {
       }
     },
     "schemas": {
-      "LoginDTO": {
+      "LoginCredentialsDTO": {
         "type": "object",
         "properties": {
           "login": {
@@ -206,6 +213,49 @@ export const schema = {
         "required": [
           "id",
           "eventKey"
+        ]
+      },
+      "ViewerGetResponseDTO": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "emailVerified": {
+                "type": "boolean"
+              },
+              "isAdmin": {
+                "type": "boolean"
+              },
+              "username": {
+                "type": "boolean"
+              },
+              "permissions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "createdAt": {},
+              "updatedAt": {}
+            },
+            "required": [
+              "emailVerified",
+              "isAdmin",
+              "permissions",
+              "createdAt",
+              "updatedAt"
+            ]
+          }
+        },
+        "required": [
+          "user"
         ]
       },
       "UpdateViewerInputDTO": {

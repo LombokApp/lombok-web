@@ -25,13 +25,13 @@ export const AuthApiAxiosParamCreator = function (configuration) {
     return {
         /**
          *
-         * @param {LoginDTO} loginDTO
+         * @param {LoginCredentialsDTO} loginCredentialsDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login: async (loginDTO, options = {}) => {
-            // verify required parameter 'loginDTO' is not null or undefined
-            assertParamExists('login', 'loginDTO', loginDTO);
+        login: async (loginCredentialsDTO, options = {}) => {
+            // verify required parameter 'loginCredentialsDTO' is not null or undefined
+            assertParamExists('login', 'loginCredentialsDTO', loginCredentialsDTO);
             const localVarPath = `/auth/login`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -46,7 +46,7 @@ export const AuthApiAxiosParamCreator = function (configuration) {
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            localVarRequestOptions.data = serializeDataIfNeeded(loginDTO, localVarRequestOptions, configuration);
+            localVarRequestOptions.data = serializeDataIfNeeded(loginCredentialsDTO, localVarRequestOptions, configuration);
             return {
                 url: toPathString(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -63,12 +63,12 @@ export const AuthApiFp = function (configuration) {
     return {
         /**
          *
-         * @param {LoginDTO} loginDTO
+         * @param {LoginCredentialsDTO} loginCredentialsDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async login(loginDTO, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.login(loginDTO, options);
+        async login(loginCredentialsDTO, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.login(loginCredentialsDTO, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     };
@@ -87,7 +87,7 @@ export const AuthApiFactory = function (configuration, basePath, axios) {
          * @throws {RequiredError}
          */
         login(requestParameters, options) {
-            return localVarFp.login(requestParameters.loginDTO, options).then((request) => request(axios, basePath));
+            return localVarFp.login(requestParameters.loginCredentialsDTO, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -106,7 +106,7 @@ export class AuthApi extends BaseAPI {
      * @memberof AuthApi
      */
     login(requestParameters, options) {
-        return AuthApiFp(this.configuration).login(requestParameters.loginDTO, options).then((request) => request(this.axios, this.basePath));
+        return AuthApiFp(this.configuration).login(requestParameters.loginCredentialsDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
 /**

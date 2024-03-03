@@ -10,7 +10,7 @@ export declare const schema: {
                     readonly content: {
                         readonly "application/json": {
                             readonly schema: {
-                                readonly $ref: "#/components/schemas/LoginDTO";
+                                readonly $ref: "#/components/schemas/LoginCredentialsDTO";
                             };
                         };
                     };
@@ -106,6 +106,13 @@ export declare const schema: {
                 readonly responses: {
                     readonly "200": {
                         readonly description: "";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/ViewerGetResponseDTO";
+                                };
+                            };
+                        };
                     };
                 };
                 readonly tags: readonly ["Viewer"];
@@ -149,7 +156,7 @@ export declare const schema: {
             };
         };
         readonly schemas: {
-            readonly LoginDTO: {
+            readonly LoginCredentialsDTO: {
                 readonly type: "object";
                 readonly properties: {
                     readonly login: {
@@ -184,6 +191,41 @@ export declare const schema: {
                     };
                 };
                 readonly required: readonly ["id", "eventKey"];
+            };
+            readonly ViewerGetResponseDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly user: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly name: {
+                                readonly type: "string";
+                            };
+                            readonly email: {
+                                readonly type: "string";
+                            };
+                            readonly emailVerified: {
+                                readonly type: "boolean";
+                            };
+                            readonly isAdmin: {
+                                readonly type: "boolean";
+                            };
+                            readonly username: {
+                                readonly type: "boolean";
+                            };
+                            readonly permissions: {
+                                readonly type: "array";
+                                readonly items: {
+                                    readonly type: "string";
+                                };
+                            };
+                            readonly createdAt: {};
+                            readonly updatedAt: {};
+                        };
+                        readonly required: readonly ["emailVerified", "isAdmin", "permissions", "createdAt", "updatedAt"];
+                    };
+                };
+                readonly required: readonly ["user"];
             };
             readonly UpdateViewerInputDTO: {
                 readonly type: "object";

@@ -2,7 +2,7 @@ import { Body, Controller, Post } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 
 import { AuthService } from './services/auth.service'
-import { LoginDTO } from './transfer-objects/login.dto'
+import { LoginCredentialsDTO } from './transfer-objects/login-credentials.dto'
 import { UserSessionDTO } from './transfer-objects/user-session.dto'
 
 @Controller('/auth')
@@ -14,7 +14,7 @@ export class AuthController {
    * Authenticate the user and return access and refresh tokens.
    */
   @Post('/login')
-  login(@Body() _input: LoginDTO): UserSessionDTO {
+  login(@Body() _input: LoginCredentialsDTO): UserSessionDTO {
     return {
       accessToken: '',
       refreshToken: '',

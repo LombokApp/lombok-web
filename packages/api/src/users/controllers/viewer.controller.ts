@@ -1,27 +1,28 @@
 import { Body, Controller, Get, Put } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
+import { ZodSerializerDto } from 'nestjs-zod'
 import type { User } from 'src/users/entities/user.entity'
 
 import { UserService } from '../services/users.service'
-import { UpdateViewerInputDTO } from '../transfer-objects/update-viewer-input.dto'
-import type { UserDTO } from '../transfer-objects/user.dto'
+import { UpdateViewerInputDTO } from './transfer-objects/update-viewer-input.dto'
+import { UserDTO } from './transfer-objects/user.dto'
+import { ViewerGetResponseDTO } from './transfer-objects/viewer-get-response.dto'
 
 @Controller('/viewer')
 @ApiTags('Viewer')
 export class ViewerController {
   constructor(private readonly userService: UserService) {}
 
+  @ZodSerializerDto(UserDTO) // TODO: Does this do anything?
   @Get()
-  getViewer() {
+  getViewer(): ViewerGetResponseDTO {
     // if (!req.user) {
     //   throw new UnauthorizedError()
     // }
 
-    const res: { user: UserDTO } = {
-      // user: this.userService.getById({ id: '' }),
-      user: {} as UserDTO,
-    }
-    return res
+    // const user = this.userService.getById({ id: '' })
+    return { user: {} as UserDTO }
+    // return {} as UserDTO
   }
 
   @Put()
