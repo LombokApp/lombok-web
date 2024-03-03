@@ -32,6 +32,27 @@ export const schema = {
                 ]
             }
         },
+        "/{eventId}": {
+            "get": {
+                "operationId": "getAppInfo",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "Get an event by id.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EventDTO"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Event"
+                ]
+            }
+        },
         "/{folderId}": {
             "get": {
                 "operationId": "getAppInfo",
@@ -85,27 +106,6 @@ export const schema = {
                 },
                 "tags": [
                     "Server"
-                ]
-            }
-        },
-        "/{eventId}": {
-            "get": {
-                "operationId": "getAppInfo",
-                "parameters": [],
-                "responses": {
-                    "200": {
-                        "description": "Get an event by id.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/EventDTO"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "Event"
                 ]
             }
         },

@@ -2,8 +2,8 @@
   "name": "@stellariscloud/auth-utils",
   "private": true,
   "scripts": {
-    "build": "(rm -rf ./*.tsbuildinfo ||  true) && yarn tsc -p tsconfig-build.json",
-    "build:clean": "yarn clean && yarn build",
+    "build": "bun build .",
+    "build:clean": "bun clean && bun run build",
     "lint:check": "eslint .",
     "lint:fix": "eslint --fix .",
     "ts:check": "tsc --noEmit --project tsconfig.json",

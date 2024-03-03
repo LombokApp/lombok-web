@@ -30,6 +30,25 @@ export declare const schema: {
                 readonly tags: readonly ["Auth"];
             };
         };
+        readonly "/{eventId}": {
+            readonly get: {
+                readonly operationId: "getAppInfo";
+                readonly parameters: readonly [];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Get an event by id.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/EventDTO";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Event"];
+            };
+        };
         readonly "/{folderId}": {
             readonly get: {
                 readonly operationId: "getAppInfo";
@@ -78,25 +97,6 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Server"];
-            };
-        };
-        readonly "/{eventId}": {
-            readonly get: {
-                readonly operationId: "getAppInfo";
-                readonly parameters: readonly [];
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Get an event by id.";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/EventDTO";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Event"];
             };
         };
         readonly "/viewer": {

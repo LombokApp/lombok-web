@@ -2,9 +2,9 @@
   "name": "@stellariscloud/api-utils",
   "main": "dist/index.js",
   "scripts": {
-    "build:clean": "yarn clean && yarn build",
+    "build": "bun build .",
+    "build:clean": "bun clean && bun run build",
     "clean": "(rm -rf ./*.tsbuildinfo ||  true) && rm -rf ./dist",
-    "build": "tsc -p ./tsconfig.json",
     "lint:check": "eslint .",
     "lint:fix": "eslint --fix .",
     "ts:check": "tsc --noEmit --project tsconfig.json",

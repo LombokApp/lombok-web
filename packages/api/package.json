@@ -6,16 +6,16 @@
     "build": "nest build",
     "test": "jest",
     "reset:sdk": "(rm -rf ./node_modules/@stellariscloud/modules-worker-sdk || true)",
-    "db:migrate:up": "./cmd/db-migrate-up.sh",
+    "db:migrate:new": "bunx drizzle-kit generate:pg --config ./src/orm/drizzle.config.ts",
+    "db:migrate:up": "bun --bun ./script/db-migrate-up.ts",
     "db:migrate:check": "./cmd/db-migrate-check.sh",
     "db:migrate:drop": "./cmd/db-migrate-drop.sh",
-    "db:reset": "./cmd/db-reset.sh",
+    "db:reset": "bun ./script/db-reset.ts && bun ./script/db-migrate-up.ts",
     "db:seed": "./cmd/db-seed.sh",
-    "db:migrate-new:dev": "./cmd/db-migrate-new.sh",
-    "db:migrate-up:dev": "docker exec -it stellariscloud-api bun db:migrate:up",
-    "db:seed:dev": "docker exec -it stellariscloud-api db:seed",
-    "db:reset:dev": "docker exec -it stellariscloud-api db:reset",
-    "metadata:generate": "rm -f ./src/nestjs-metadata.ts && npx ts-node -r tsconfig-paths/register src/generate-metadata.ts",
+    "db:migrate-up:dev": "docker exec -it stellariscloud-api bun --cwd ./packages/api db:migrate:up",
+    "db:seed:dev": "docker exec -it stellariscloud-api bun --bun --cwd ./packages/api db:seed",
+    "db:reset:dev": "docker exec -it stellariscloud-api bun --bun --cwd ./packages/api db:reset",
+    "metadata:generate": "rm -f ./src/nestjs-metadata.ts && npx ts-node -r tsconfig-paths/register script/generate-metadata.ts",
     "api-client:generate": "./cmd/generate-api-client.sh",
     "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
     "prettier:write": "prettier --write \"./**/*.(ts|tsx)\""
@@ -69,9 +69,5 @@
     "prettier": "3.2.5",
     "ts-node": "10.9.2",
     "tsconfig-paths": "4.2.0"
-  },
-  "engines": {
-    "node": "18"
-  },
-  "packageManager": "yarn@4.1.0"
+  }
 }

@@ -4,11 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "NEXT_PUBLIC_BACKEND_ENV=local next dev",
-    "dev:staging": "NEXT_PUBLIC_BACKEND_ENV=staging yarn next dev",
-    "build:prod": "NEXT_PUBLIC_BACKEND_ENV=live yarn next build",
-    "build:prod-export": "NEXT_PUBLIC_BACKEND_ENV=live yarn next build && yarn next export",
-    "build:staging": "NEXT_PUBLIC_BACKEND_ENV=staging yarn next build",
-    "build": "yarn next build",
+    "dev:staging": "NEXT_PUBLIC_BACKEND_ENV=staging next dev",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint .",
     "lint:check": "eslint .",

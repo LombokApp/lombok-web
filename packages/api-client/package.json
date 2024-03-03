@@ -3,7 +3,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc -p ./tsconfig.json",
-    "build:clean": "yarn clean && yarn build",
+    "build:clean": "bun clean && bun run build",
     "clean": "(rm -rf ./*.tsbuildinfo ||  true) && rm -rf ./dist"
   },
   "devDependencies": {

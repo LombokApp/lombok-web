@@ -1,6 +1,4 @@
 #!/usr/bin/env sh
-set -e
-set -x
 
 # Ensure the generated spec is up to date
 bun run metadata:generate
@@ -50,4 +48,4 @@ buildclients() {
 buildclients "${PUBLIC_API_OUT_PATH}" "openapi.json"
 
 # Transpile generated .ts sources to js
-(cd "${ROOT_DIR}${PUBLIC_API_OUT_PATH}" && bun run build)
+(cd "${ROOT_DIR}${PUBLIC_API_OUT_PATH}" && bun run build:clean)

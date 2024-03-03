@@ -4,8 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { ReadonlyVisitor } from '@nestjs/swagger/dist/plugin'
 import * as fs from 'fs'
 import * as path from 'path'
-
-import { CoreModule } from './core/core.module'
+import { CoreModule } from 'src/core/core.module'
 
 const generator = new PluginMetadataGenerator()
 
@@ -23,11 +22,11 @@ async function main() {
     outputDir: __dirname,
     printDiagnostics: true,
     tsconfigPath: 'tsconfig.json',
-    filename: 'nestjs-metadata.ts',
+    filename: '../src/nestjs-metadata.ts',
   })
 
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const metadata = require('./nestjs-metadata').default
+  const metadata = require('../src/nestjs-metadata').default
 
   await SwaggerModule.loadPluginMetadata(
     metadata as unknown as () => Promise<Record<string, any>>,
@@ -48,7 +47,7 @@ async function main() {
   console.log('document:', JSON.stringify(document, null, 2))
 
   fs.writeFileSync(
-    path.join(__dirname, './openapi.json'),
+    path.join(__dirname, '..', 'src', './openapi.json'),
     JSON.stringify(document, null, 2),
   )
 
