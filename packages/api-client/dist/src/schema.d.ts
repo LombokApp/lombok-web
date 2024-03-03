@@ -109,7 +109,7 @@ export declare const schema: {
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
-                                    readonly $ref: "#/components/schemas/ViewerGetResponseDTO";
+                                    readonly $ref: "#/components/schemas/ViewerGetResponse";
                                 };
                             };
                         };
@@ -192,37 +192,46 @@ export declare const schema: {
                 };
                 readonly required: readonly ["id", "eventKey"];
             };
-            readonly ViewerGetResponseDTO: {
+            readonly UserDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly name: {
+                        readonly type: "string";
+                    };
+                    readonly email: {
+                        readonly type: "string";
+                    };
+                    readonly emailVerified: {
+                        readonly type: "boolean";
+                    };
+                    readonly isAdmin: {
+                        readonly type: "boolean";
+                    };
+                    readonly username: {
+                        readonly type: "boolean";
+                    };
+                    readonly permissions: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "string";
+                        };
+                    };
+                    readonly createdAt: {
+                        readonly type: "string";
+                        readonly format: "date-time";
+                    };
+                    readonly updatedAt: {
+                        readonly type: "string";
+                        readonly format: "date-time";
+                    };
+                };
+                readonly required: readonly ["emailVerified", "isAdmin", "permissions", "createdAt", "updatedAt"];
+            };
+            readonly ViewerGetResponse: {
                 readonly type: "object";
                 readonly properties: {
                     readonly user: {
-                        readonly type: "object";
-                        readonly properties: {
-                            readonly name: {
-                                readonly type: "string";
-                            };
-                            readonly email: {
-                                readonly type: "string";
-                            };
-                            readonly emailVerified: {
-                                readonly type: "boolean";
-                            };
-                            readonly isAdmin: {
-                                readonly type: "boolean";
-                            };
-                            readonly username: {
-                                readonly type: "boolean";
-                            };
-                            readonly permissions: {
-                                readonly type: "array";
-                                readonly items: {
-                                    readonly type: "string";
-                                };
-                            };
-                            readonly createdAt: {};
-                            readonly updatedAt: {};
-                        };
-                        readonly required: readonly ["emailVerified", "isAdmin", "permissions", "createdAt", "updatedAt"];
+                        readonly $ref: "#/components/schemas/UserDTO";
                     };
                 };
                 readonly required: readonly ["user"];

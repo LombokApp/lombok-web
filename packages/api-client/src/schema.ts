@@ -119,7 +119,7 @@ export const schema = {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ViewerGetResponseDTO"
+                  "$ref": "#/components/schemas/ViewerGetResponse"
                 }
               }
             }
@@ -215,43 +215,52 @@ export const schema = {
           "eventKey"
         ]
       },
-      "ViewerGetResponseDTO": {
+      "UserDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          },
+          "username": {
+            "type": "boolean"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "emailVerified",
+          "isAdmin",
+          "permissions",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ViewerGetResponse": {
         "type": "object",
         "properties": {
           "user": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string"
-              },
-              "email": {
-                "type": "string"
-              },
-              "emailVerified": {
-                "type": "boolean"
-              },
-              "isAdmin": {
-                "type": "boolean"
-              },
-              "username": {
-                "type": "boolean"
-              },
-              "permissions": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "createdAt": {},
-              "updatedAt": {}
-            },
-            "required": [
-              "emailVerified",
-              "isAdmin",
-              "permissions",
-              "createdAt",
-              "updatedAt"
-            ]
+            "$ref": "#/components/schemas/UserDTO"
           }
         },
         "required": [

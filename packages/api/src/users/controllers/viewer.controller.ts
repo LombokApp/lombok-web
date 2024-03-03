@@ -1,21 +1,20 @@
 import { Body, Controller, Get, Put } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
-import { ZodSerializerDto } from 'nestjs-zod'
 import type { User } from 'src/users/entities/user.entity'
 
 import { UserService } from '../services/users.service'
-import { UpdateViewerInputDTO } from './transfer-objects/update-viewer-input.dto'
-import { UserDTO } from './transfer-objects/user.dto'
-import { ViewerGetResponseDTO } from './transfer-objects/viewer-get-response.dto'
+import { UpdateViewerInputDTO } from './dto/update-viewer-input.dto'
+import type { UserDTO } from './dto/user.dto'
+import type { ViewerGetResponse } from './responses/viewer-get.response'
 
 @Controller('/viewer')
 @ApiTags('Viewer')
 export class ViewerController {
   constructor(private readonly userService: UserService) {}
 
-  @ZodSerializerDto(UserDTO) // TODO: Does this do anything?
+  // eslint-disable-next-line @typescript-eslint/require-await
   @Get()
-  getViewer(): ViewerGetResponseDTO {
+  async getViewer(): Promise<ViewerGetResponse> {
     // if (!req.user) {
     //   throw new UnauthorizedError()
     // }

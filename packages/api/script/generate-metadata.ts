@@ -1,9 +1,9 @@
+import { patchNestjsSwagger } from '@anatine/zod-nestjs'
 import { PluginMetadataGenerator } from '@nestjs/cli/lib/compiler/plugins'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { ReadonlyVisitor } from '@nestjs/swagger/dist/plugin'
 import * as fs from 'fs'
-import { patchNestJsSwagger } from 'nestjs-zod'
 import * as path from 'path'
 import { CoreModule } from 'src/core/core.module'
 
@@ -31,7 +31,7 @@ async function main() {
 
   // necessary to integrate nestjs-zod with swagger such that
   // all the zod infered DTOs are included in the openapi spec
-  patchNestJsSwagger()
+  patchNestjsSwagger()
 
   await SwaggerModule.loadPluginMetadata(
     metadata as unknown as () => Promise<Record<string, any>>,

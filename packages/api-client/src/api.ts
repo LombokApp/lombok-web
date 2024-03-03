@@ -77,6 +77,61 @@ export interface UpdateViewerInputDTO {
 /**
  * 
  * @export
+ * @interface UserDTO
+ */
+export interface UserDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof UserDTO
+     */
+    'name'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserDTO
+     */
+    'email'?: string;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UserDTO
+     */
+    'emailVerified': boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UserDTO
+     */
+    'isAdmin': boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UserDTO
+     */
+    'username'?: boolean;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof UserDTO
+     */
+    'permissions': Array<string>;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserDTO
+     */
+    'createdAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserDTO
+     */
+    'updatedAt': string;
+}
+/**
+ * 
+ * @export
  * @interface UserSessionDTO
  */
 export interface UserSessionDTO {
@@ -96,70 +151,15 @@ export interface UserSessionDTO {
 /**
  * 
  * @export
- * @interface ViewerGetResponseDTO
+ * @interface ViewerGetResponse
  */
-export interface ViewerGetResponseDTO {
+export interface ViewerGetResponse {
     /**
      * 
-     * @type {ViewerGetResponseDTOUser}
-     * @memberof ViewerGetResponseDTO
+     * @type {UserDTO}
+     * @memberof ViewerGetResponse
      */
-    'user': ViewerGetResponseDTOUser;
-}
-/**
- * 
- * @export
- * @interface ViewerGetResponseDTOUser
- */
-export interface ViewerGetResponseDTOUser {
-    /**
-     * 
-     * @type {string}
-     * @memberof ViewerGetResponseDTOUser
-     */
-    'name'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ViewerGetResponseDTOUser
-     */
-    'email'?: string;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof ViewerGetResponseDTOUser
-     */
-    'emailVerified': boolean;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof ViewerGetResponseDTOUser
-     */
-    'isAdmin': boolean;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof ViewerGetResponseDTOUser
-     */
-    'username'?: boolean;
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof ViewerGetResponseDTOUser
-     */
-    'permissions': Array<string>;
-    /**
-     * 
-     * @type {any}
-     * @memberof ViewerGetResponseDTOUser
-     */
-    'createdAt': any;
-    /**
-     * 
-     * @type {any}
-     * @memberof ViewerGetResponseDTOUser
-     */
-    'updatedAt': any;
+    'user': UserDTO;
 }
 
 /**
@@ -706,7 +706,7 @@ export const ViewerApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getViewer(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ViewerGetResponseDTO>> {
+        async getViewer(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ViewerGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getViewer(options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -735,7 +735,7 @@ export const ViewerApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getViewer(options?: AxiosRequestConfig): AxiosPromise<ViewerGetResponseDTO> {
+        getViewer(options?: AxiosRequestConfig): AxiosPromise<ViewerGetResponse> {
             return localVarFp.getViewer(options).then((request) => request(axios, basePath));
         },
         /**
