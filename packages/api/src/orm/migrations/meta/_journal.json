@@ -1,0 +1,13 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1709471327659,
+      "tag": "0000_true_tigra",
+      "breakpoints": true
+    }
+  ]
+}
