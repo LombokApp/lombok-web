@@ -2,10 +2,10 @@ import { Body, Controller, Get, Put } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import type { User } from 'src/users/entities/user.entity'
 
+import type { ViewerGetResponse } from '../dto/responses/viewer-get-response.dto'
+import { UpdateViewerInputDTO } from '../dto/update-viewer-input.dto'
+import type { UserDTO } from '../dto/user.dto'
 import { UserService } from '../services/users.service'
-import { UpdateViewerInputDTO } from './dto/update-viewer-input.dto'
-import type { UserDTO } from './dto/user.dto'
-import type { ViewerGetResponse } from './responses/viewer-get.response'
 
 @Controller('/viewer')
 @ApiTags('Viewer')
@@ -25,7 +25,9 @@ export class ViewerController {
   }
 
   @Put()
-  async updateViewer(@Body() updateViewerInput: UpdateViewerInputDTO) {
+  async updateViewer(
+    @Body() updateViewerInput: UpdateViewerInputDTO,
+  ): Promise<ViewerGetResponse> {
     // if (!req.user) {
     //   throw new UnauthorizedError()
     // }

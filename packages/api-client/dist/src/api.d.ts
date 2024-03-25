@@ -54,6 +54,57 @@ export interface LoginCredentialsDTO {
 /**
  *
  * @export
+ * @interface LoginResponse
+ */
+export interface LoginResponse {
+    /**
+     *
+     * @type {UserSessionDTO}
+     * @memberof LoginResponse
+     */
+    'session': UserSessionDTO;
+}
+/**
+ *
+ * @export
+ * @interface SignupCredentialsDTO
+ */
+export interface SignupCredentialsDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof SignupCredentialsDTO
+     */
+    'username': string;
+    /**
+     *
+     * @type {string}
+     * @memberof SignupCredentialsDTO
+     */
+    'email': string;
+    /**
+     *
+     * @type {string}
+     * @memberof SignupCredentialsDTO
+     */
+    'password': string;
+}
+/**
+ *
+ * @export
+ * @interface SignupResponse
+ */
+export interface SignupResponse {
+    /**
+     *
+     * @type {UserDTO}
+     * @memberof SignupResponse
+     */
+    'user': UserDTO;
+}
+/**
+ *
+ * @export
  * @interface UpdateViewerInputDTO
  */
 export interface UpdateViewerInputDTO {
@@ -72,16 +123,16 @@ export interface UpdateViewerInputDTO {
 export interface UserDTO {
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof UserDTO
      */
-    'name'?: string;
+    'name'?: any;
     /**
      *
-     * @type {string}
+     * @type {any}
      * @memberof UserDTO
      */
-    'email'?: string;
+    'email'?: any;
     /**
      *
      * @type {boolean}
@@ -96,10 +147,10 @@ export interface UserDTO {
     'isAdmin': boolean;
     /**
      *
-     * @type {boolean}
+     * @type {string}
      * @memberof UserDTO
      */
-    'username'?: boolean;
+    'username': string;
     /**
      *
      * @type {Array<string>}
@@ -163,6 +214,13 @@ export declare const AuthApiAxiosParamCreator: (configuration?: Configuration) =
      * @throws {RequiredError}
      */
     login: (loginCredentialsDTO: LoginCredentialsDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {SignupCredentialsDTO} signupCredentialsDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    signup: (signupCredentialsDTO: SignupCredentialsDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * AuthApi - functional programming interface
@@ -175,7 +233,14 @@ export declare const AuthApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    login(loginCredentialsDTO: LoginCredentialsDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserSessionDTO>>;
+    login(loginCredentialsDTO: LoginCredentialsDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<LoginResponse>>;
+    /**
+     *
+     * @param {SignupCredentialsDTO} signupCredentialsDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    signup(signupCredentialsDTO: SignupCredentialsDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SignupResponse>>;
 };
 /**
  * AuthApi - factory interface
@@ -188,7 +253,14 @@ export declare const AuthApiFactory: (configuration?: Configuration, basePath?: 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig): AxiosPromise<UserSessionDTO>;
+    login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig): AxiosPromise<LoginResponse>;
+    /**
+     *
+     * @param {AuthApiSignupRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    signup(requestParameters: AuthApiSignupRequest, options?: AxiosRequestConfig): AxiosPromise<SignupResponse>;
 };
 /**
  * Request parameters for login operation in AuthApi.
@@ -204,6 +276,19 @@ export interface AuthApiLoginRequest {
     readonly loginCredentialsDTO: LoginCredentialsDTO;
 }
 /**
+ * Request parameters for signup operation in AuthApi.
+ * @export
+ * @interface AuthApiSignupRequest
+ */
+export interface AuthApiSignupRequest {
+    /**
+     *
+     * @type {SignupCredentialsDTO}
+     * @memberof AuthApiSignup
+     */
+    readonly signupCredentialsDTO: SignupCredentialsDTO;
+}
+/**
  * AuthApi - object-oriented interface
  * @export
  * @class AuthApi
@@ -217,7 +302,15 @@ export declare class AuthApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof AuthApi
      */
-    login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<UserSessionDTO, any>>;
+    login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<LoginResponse, any>>;
+    /**
+     *
+     * @param {AuthApiSignupRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApi
+     */
+    signup(requestParameters: AuthApiSignupRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SignupResponse, any>>;
 }
 /**
  * EventApi - axios parameter creator
@@ -433,7 +526,7 @@ export declare const ViewerApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    updateViewer(updateViewerInputDTO: UpdateViewerInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    updateViewer(updateViewerInputDTO: UpdateViewerInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ViewerGetResponse>>;
 };
 /**
  * ViewerApi - factory interface
@@ -452,7 +545,7 @@ export declare const ViewerApiFactory: (configuration?: Configuration, basePath?
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
+    updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): AxiosPromise<ViewerGetResponse>;
 };
 /**
  * Request parameters for updateViewer operation in ViewerApi.
@@ -488,5 +581,5 @@ export declare class ViewerApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof ViewerApi
      */
-    updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+    updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ViewerGetResponse, any>>;
 }

@@ -1,7 +1,17 @@
 # use the official Bun image
 # see all versions at https://hub.docker.com/r/oven/bun/tags
-FROM oven/bun:1 as local
+FROM oven/bun:1.0.35-alpine as local
 WORKDIR /usr/src/app
+
+FROM local AS test
+
+WORKDIR /usr/src/app/packages/api
+RUN set -eux \
+    & apk add \
+        --no-cache \
+        nodejs \
+        yarn
+ENTRYPOINT yarn test:e2e
 
 # install dependencies into temp directory
 # this will cache them and speed up future builds

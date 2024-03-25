@@ -1,8 +1,8 @@
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 
+import { AuthService } from '../services/auth.service'
 import { AuthController } from './auth.controller'
-import { AuthService } from './services/auth.service'
 
 describe('AuthController', () => {
   let authController: AuthController
@@ -16,7 +16,7 @@ describe('AuthController', () => {
     authController = app.get<AuthController>(AuthController)
   })
 
-  describe('login', () => {
+  describe('/auth/signup', () => {
     it(`should return "{ version: '1.0.0' }"`, () => {
       expect(authController.login({ login: '', password: '' })).toEqual({
         version: '1.0.0',

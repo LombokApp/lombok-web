@@ -21,7 +21,38 @@ export const schema = {
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/UserSessionDTO"
+                                    "$ref": "#/components/schemas/LoginResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Auth"
+                ]
+            }
+        },
+        "/auth/signup": {
+            "post": {
+                "operationId": "signup",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SignupCredentialsDTO"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Register a new user.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SignupResponse"
                                 }
                             }
                         }
@@ -144,7 +175,14 @@ export const schema = {
                 },
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ViewerGetResponse"
+                                }
+                            }
+                        }
                     }
                 },
                 "tags": [
@@ -200,29 +238,53 @@ export const schema = {
                     "refreshToken"
                 ]
             },
-            "EventDTO": {
+            "LoginResponse": {
                 "type": "object",
                 "properties": {
-                    "id": {
-                        "type": "string"
-                    },
-                    "eventKey": {
-                        "type": "string"
+                    "session": {
+                        "$ref": "#/components/schemas/UserSessionDTO"
                     }
                 },
                 "required": [
-                    "id",
-                    "eventKey"
+                    "session"
+                ]
+            },
+            "SignupCredentialsDTO": {
+                "type": "object",
+                "properties": {
+                    "username": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "email": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "password": {
+                        "type": "string",
+                        "maxLength": 255
+                    }
+                },
+                "required": [
+                    "username",
+                    "email",
+                    "password"
                 ]
             },
             "UserDTO": {
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "email": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "emailVerified": {
                         "type": "boolean"
@@ -231,7 +293,7 @@ export const schema = {
                         "type": "boolean"
                     },
                     "username": {
-                        "type": "boolean"
+                        "type": "string"
                     },
                     "permissions": {
                         "type": "array",
@@ -251,9 +313,36 @@ export const schema = {
                 "required": [
                     "emailVerified",
                     "isAdmin",
+                    "username",
                     "permissions",
                     "createdAt",
                     "updatedAt"
+                ]
+            },
+            "SignupResponse": {
+                "type": "object",
+                "properties": {
+                    "user": {
+                        "$ref": "#/components/schemas/UserDTO"
+                    }
+                },
+                "required": [
+                    "user"
+                ]
+            },
+            "EventDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "eventKey": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "eventKey"
                 ]
             },
             "ViewerGetResponse": {

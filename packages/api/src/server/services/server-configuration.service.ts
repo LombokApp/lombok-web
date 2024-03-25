@@ -11,11 +11,11 @@ import {
   CONFIGURATION_KEYS,
   ServerLocationTypeRunType,
 } from '../constants/server.constants'
+import type { PublicServerSettings } from '../dto/settings.dto'
 import type { NewServerConfiguration } from '../entities/server-configuration.entity'
 import { serverConfigurationsTable } from '../entities/server-configuration.entity'
 import { ServerConfigurationInvalidException } from '../exceptions/server-configuration-invalid.exception'
 import { ServerConfigurationNotFoundException } from '../exceptions/server-configuration-not-found.exception'
-import type { PublicServerSettings } from '../transfer-objects/settings.dto'
 
 @Injectable()
 export class ServerConfigurationService {

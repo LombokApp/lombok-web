@@ -1,6 +1,17 @@
 version: '3.5'
 
 services:
+  apitest:
+    container_name: 'stellariscloud-api-test'
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+      target: test
+    volumes:
+      - ./:/usr/src/app
+    env_file: packages/api/.env.test
+    environment:
+      WAIT_HOSTS: db:${DB_PORT:-0}, redis:${REDIS_PORT:-0}
   dbtest:
     image: postgres:13.2-alpine
     environment:

@@ -8,8 +8,8 @@ import { v4 as uuidV4 } from 'uuid'
 import type { NewUser, User } from '../entities/user.entity'
 import { usersTable } from '../entities/user.entity'
 import { UserNotFoundException } from '../exceptions/user-not-found.exception'
-import type { CreateUserDTO } from '../controllers/dto/create-user.dto'
-import type { UpdateUserDTO } from '../controllers/dto/update-user.dto'
+import type { CreateUserDTO } from '../dto/create-user.dto'
+import type { UpdateUserDTO } from '../dto/update-user.dto'
 import { UserAuthService } from './user-auth.service'
 
 export enum UserSort {

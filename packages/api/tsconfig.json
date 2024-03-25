@@ -17,10 +17,7 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false,
-    "paths": {
-      "src": ["./src/index"]
-    }
+    "noFallthroughCasesInSwitch": false
   },
   "include": [
     "test",

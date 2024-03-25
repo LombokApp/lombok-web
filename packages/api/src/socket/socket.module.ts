@@ -22,7 +22,7 @@ import { SocketService } from './socket.service'
   imports: [
     forwardRef(() => FoldersModule),
     forwardRef(() => AppModule),
-    AuthModule,
+    forwardRef(() => AuthModule),
     ServerModule,
     S3Module,
     ConfigModule.forFeature(redisConfig),

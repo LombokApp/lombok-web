@@ -21,7 +21,36 @@ export declare const schema: {
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
-                                    readonly $ref: "#/components/schemas/UserSessionDTO";
+                                    readonly $ref: "#/components/schemas/LoginResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Auth"];
+            };
+        };
+        readonly "/auth/signup": {
+            readonly post: {
+                readonly operationId: "signup";
+                readonly parameters: readonly [];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/SignupCredentialsDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Register a new user.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/SignupResponse";
                                 };
                             };
                         };
@@ -133,6 +162,13 @@ export declare const schema: {
                 readonly responses: {
                     readonly "200": {
                         readonly description: "";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/ViewerGetResponse";
+                                };
+                            };
+                        };
                     };
                 };
                 readonly tags: readonly ["Viewer"];
@@ -180,26 +216,41 @@ export declare const schema: {
                 };
                 readonly required: readonly ["accessToken", "refreshToken"];
             };
-            readonly EventDTO: {
+            readonly LoginResponse: {
                 readonly type: "object";
                 readonly properties: {
-                    readonly id: {
-                        readonly type: "string";
-                    };
-                    readonly eventKey: {
-                        readonly type: "string";
+                    readonly session: {
+                        readonly $ref: "#/components/schemas/UserSessionDTO";
                     };
                 };
-                readonly required: readonly ["id", "eventKey"];
+                readonly required: readonly ["session"];
+            };
+            readonly SignupCredentialsDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly username: {
+                        readonly type: "string";
+                        readonly maxLength: 255;
+                    };
+                    readonly email: {
+                        readonly type: "string";
+                        readonly maxLength: 255;
+                    };
+                    readonly password: {
+                        readonly type: "string";
+                        readonly maxLength: 255;
+                    };
+                };
+                readonly required: readonly ["username", "email", "password"];
             };
             readonly UserDTO: {
                 readonly type: "object";
                 readonly properties: {
                     readonly name: {
-                        readonly type: "string";
+                        readonly type: readonly ["string", "null"];
                     };
                     readonly email: {
-                        readonly type: "string";
+                        readonly type: readonly ["string", "null"];
                     };
                     readonly emailVerified: {
                         readonly type: "boolean";
@@ -208,7 +259,7 @@ export declare const schema: {
                         readonly type: "boolean";
                     };
                     readonly username: {
-                        readonly type: "boolean";
+                        readonly type: "string";
                     };
                     readonly permissions: {
                         readonly type: "array";
@@ -225,7 +276,28 @@ export declare const schema: {
                         readonly format: "date-time";
                     };
                 };
-                readonly required: readonly ["emailVerified", "isAdmin", "permissions", "createdAt", "updatedAt"];
+                readonly required: readonly ["emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
+            };
+            readonly SignupResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly user: {
+                        readonly $ref: "#/components/schemas/UserDTO";
+                    };
+                };
+                readonly required: readonly ["user"];
+            };
+            readonly EventDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly id: {
+                        readonly type: "string";
+                    };
+                    readonly eventKey: {
+                        readonly type: "string";
+                    };
+                };
+                readonly required: readonly ["id", "eventKey"];
             };
             readonly ViewerGetResponse: {
                 readonly type: "object";

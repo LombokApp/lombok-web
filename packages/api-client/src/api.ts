@@ -64,6 +64,57 @@ export interface LoginCredentialsDTO {
 /**
  * 
  * @export
+ * @interface LoginResponse
+ */
+export interface LoginResponse {
+    /**
+     * 
+     * @type {UserSessionDTO}
+     * @memberof LoginResponse
+     */
+    'session': UserSessionDTO;
+}
+/**
+ * 
+ * @export
+ * @interface SignupCredentialsDTO
+ */
+export interface SignupCredentialsDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof SignupCredentialsDTO
+     */
+    'username': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SignupCredentialsDTO
+     */
+    'email': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SignupCredentialsDTO
+     */
+    'password': string;
+}
+/**
+ * 
+ * @export
+ * @interface SignupResponse
+ */
+export interface SignupResponse {
+    /**
+     * 
+     * @type {UserDTO}
+     * @memberof SignupResponse
+     */
+    'user': UserDTO;
+}
+/**
+ * 
+ * @export
  * @interface UpdateViewerInputDTO
  */
 export interface UpdateViewerInputDTO {
@@ -82,16 +133,16 @@ export interface UpdateViewerInputDTO {
 export interface UserDTO {
     /**
      * 
-     * @type {string}
+     * @type {any}
      * @memberof UserDTO
      */
-    'name'?: string;
+    'name'?: any;
     /**
      * 
-     * @type {string}
+     * @type {any}
      * @memberof UserDTO
      */
-    'email'?: string;
+    'email'?: any;
     /**
      * 
      * @type {boolean}
@@ -106,10 +157,10 @@ export interface UserDTO {
     'isAdmin': boolean;
     /**
      * 
-     * @type {boolean}
+     * @type {string}
      * @memberof UserDTO
      */
-    'username'?: boolean;
+    'username': string;
     /**
      * 
      * @type {Array<string>}
@@ -203,6 +254,41 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @param {SignupCredentialsDTO} signupCredentialsDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        signup: async (signupCredentialsDTO: SignupCredentialsDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'signupCredentialsDTO' is not null or undefined
+            assertParamExists('signup', 'signupCredentialsDTO', signupCredentialsDTO)
+            const localVarPath = `/auth/signup`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(signupCredentialsDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -219,8 +305,18 @@ export const AuthApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async login(loginCredentialsDTO: LoginCredentialsDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserSessionDTO>> {
+        async login(loginCredentialsDTO: LoginCredentialsDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<LoginResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.login(loginCredentialsDTO, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {SignupCredentialsDTO} signupCredentialsDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async signup(signupCredentialsDTO: SignupCredentialsDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SignupResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.signup(signupCredentialsDTO, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -239,8 +335,17 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig): AxiosPromise<UserSessionDTO> {
+        login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig): AxiosPromise<LoginResponse> {
             return localVarFp.login(requestParameters.loginCredentialsDTO, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {AuthApiSignupRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        signup(requestParameters: AuthApiSignupRequest, options?: AxiosRequestConfig): AxiosPromise<SignupResponse> {
+            return localVarFp.signup(requestParameters.signupCredentialsDTO, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -260,6 +365,20 @@ export interface AuthApiLoginRequest {
 }
 
 /**
+ * Request parameters for signup operation in AuthApi.
+ * @export
+ * @interface AuthApiSignupRequest
+ */
+export interface AuthApiSignupRequest {
+    /**
+     * 
+     * @type {SignupCredentialsDTO}
+     * @memberof AuthApiSignup
+     */
+    readonly signupCredentialsDTO: SignupCredentialsDTO
+}
+
+/**
  * AuthApi - object-oriented interface
  * @export
  * @class AuthApi
@@ -275,6 +394,17 @@ export class AuthApi extends BaseAPI {
      */
     public login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig) {
         return AuthApiFp(this.configuration).login(requestParameters.loginCredentialsDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {AuthApiSignupRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApi
+     */
+    public signup(requestParameters: AuthApiSignupRequest, options?: AxiosRequestConfig) {
+        return AuthApiFp(this.configuration).signup(requestParameters.signupCredentialsDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -716,7 +846,7 @@ export const ViewerApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateViewer(updateViewerInputDTO: UpdateViewerInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async updateViewer(updateViewerInputDTO: UpdateViewerInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ViewerGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.updateViewer(updateViewerInputDTO, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -744,7 +874,7 @@ export const ViewerApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): AxiosPromise<void> {
+        updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): AxiosPromise<ViewerGetResponse> {
             return localVarFp.updateViewer(requestParameters.updateViewerInputDTO, options).then((request) => request(axios, basePath));
         },
     };

@@ -1,19 +1,22 @@
 import { ConflictException, Injectable } from '@nestjs/common'
 import type { ModuleConfig } from '@stellariscloud/types'
 import { addMs, earliest } from '@stellariscloud/utils'
-import { eq } from 'drizzle-orm'
+import { eq, or } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
 import { AccessTokenJWT, JWTService } from 'src/auth/services/jwt.service'
 import { OrmService } from 'src/orm/orm.service'
 import type { NewUser, User } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
+import { UserEmailNotVerifiedException } from 'src/users/exceptions/user-email-not-verified.exception'
 import { v4 as uuidV4 } from 'uuid'
 
 import { AuthDurationMs } from '../constants/duration.constants'
+import type { LoginCredentialsDTO } from '../dto/login-credentials.dto'
+import type { SignupCredentialsDTO } from '../dto/signup-credentials.dto'
 import type { Session } from '../entities/session.entity'
 import { AccessTokenInvalidException } from '../exceptions/auth-token-invalid.exception'
+import { LoginInvalidException } from '../exceptions/login-invalid.exception'
 import { SessionInvalidException } from '../exceptions/session-invalid.exception'
-import type { SignupDTO } from '../transfer-objects/signup.dto'
 import { authHelper } from '../utils/auth-helper'
 import { SessionService } from './session.service'
 
@@ -36,14 +39,14 @@ export class AuthService {
     private readonly sessionService: SessionService,
   ) {}
 
-  async signup(data: SignupDTO) {
+  async signup(data: SignupCredentialsDTO) {
     const user = await this.createSignup(data)
     // await this.sendEmailVerification(data.email)
 
     return user
   }
 
-  async createSignup(data: SignupDTO) {
+  async createSignup(data: SignupCredentialsDTO) {
     const { username, email } = data
 
     const existingByEmail = await this.ormService.db.query.usersTable.findFirst(
@@ -90,6 +93,44 @@ export class AuthService {
       .returning()
 
     return createdUser
+  }
+
+  async login({ login, password }: LoginCredentialsDTO) {
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: or(eq(usersTable.email, login), eq(usersTable.username, login)),
+    })
+
+    if (!user || !this.verifyPassword(user, password)) {
+      throw new LoginInvalidException(login)
+    }
+
+    if (!user.emailVerified) {
+      throw new UserEmailNotVerifiedException()
+    }
+
+    // if (user.totpEnabled()) {
+    //   // TODO: Check 2FA
+    // }
+
+    const { session, accessToken, refreshToken } =
+      await this.sessionService.createSession(user)
+
+    return {
+      user: session.user,
+      accessToken,
+      refreshToken,
+      expiresAt: session.expiresAt,
+    }
+  }
+
+  verifyPassword(user: User, password: string) {
+    if (!user.passwordHash || !password) {
+      return false
+    }
+
+    return authHelper
+      .createPasswordHash(password, user.passwordSalt)
+      .compare(Buffer.from(user.passwordHash, 'hex'))
   }
 
   async verifyModuleWithToken(

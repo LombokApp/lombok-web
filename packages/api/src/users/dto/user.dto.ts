@@ -2,11 +2,11 @@ import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
 export const userSchema = z.object({
-  name: z.string().optional(),
-  email: z.string().optional(),
+  name: z.string().nullish(),
+  email: z.string().nullish(),
   emailVerified: z.boolean(),
   isAdmin: z.boolean(),
-  username: z.boolean().optional(),
+  username: z.string(),
   permissions: z.array(z.string()),
   createdAt: z.date(),
   updatedAt: z.date(),

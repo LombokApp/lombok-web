@@ -39,6 +39,7 @@ import { SocketService } from 'src/socket/socket.service'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
+import type { FolderObjectDTO } from '../dto/folder-object.dto'
 import type { Folder } from '../entities/folder.entity'
 import { foldersTable } from '../entities/folder.entity'
 import type { FolderObject } from '../entities/folder-object.entity'
@@ -47,7 +48,6 @@ import { FolderMetadataWriteUnauthorisedException } from '../exceptions/folder-m
 import { FolderNotFoundException } from '../exceptions/folder-not-found.exception'
 import { FolderObjectNotFoundException } from '../exceptions/folder-object-not-found.exception'
 import { FolderPermissionUnauthorizedException } from '../exceptions/folder-permission-unauthorized.exception'
-import type { FolderObjectDTO } from '../transfer-objects/folder-object.dto'
 
 export interface OutputUploadUrlsResponse {
   folderId: string
