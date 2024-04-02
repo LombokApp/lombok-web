@@ -1,6 +1,8 @@
 import type { OnModuleInit } from '@nestjs/common'
-import { forwardRef, Module } from '@nestjs/common'
+import { forwardRef, Inject, Module } from '@nestjs/common'
+import { ConfigModule, ConfigType } from '@nestjs/config'
 import { AppModule } from 'src/app/app.module'
+import { coreConfig } from 'src/core/config/core.config'
 import { QueueName } from 'src/queue/queue.constants'
 import { QueueService } from 'src/queue/queue.service'
 
@@ -9,23 +11,31 @@ import { NotifyAllAppsOfPendingEventsProcessor } from './processors/notify-all-a
 import { EventService } from './services/event.service'
 
 @Module({
-  imports: [forwardRef(() => AppModule)],
+  imports: [forwardRef(() => AppModule), ConfigModule.forFeature(coreConfig)],
   controllers: [EventController],
   providers: [EventService, NotifyAllAppsOfPendingEventsProcessor],
   exports: [EventService],
 })
 export class EventModule implements OnModuleInit {
-  constructor(private readonly queueService: QueueService) {}
+  constructor(
+    @Inject(coreConfig.KEY)
+    private readonly _coreConfig: ConfigType<typeof coreConfig>,
+    private readonly queueService: QueueService,
+  ) {}
 
   onModuleInit() {
-    void this.queueService.addJob(
-      QueueName.NotifyAllAppsOfPendingEvents,
-      undefined,
-      {
-        repeat: {
-          every: 5000,
+    if (this._coreConfig.initEventJobs) {
+      void this.queueService.addJob(
+        QueueName.NotifyAllAppsOfPendingEvents,
+        undefined,
+        {
+          jobId: '__NotifyAllAppsOfPendingEvents__',
+          repeat: {
+            every: 5000,
+            immediately: false,
+          },
         },
-      },
-    )
+      )
+    }
   }
 }

@@ -8,6 +8,8 @@ async function bootstrap() {
 
   app.useGlobalFilters(new HttpExceptionFilter())
 
+  app.enableShutdownHooks()
+
   await app.listen(3001)
 }
 

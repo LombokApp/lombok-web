@@ -1,9 +1,6 @@
-import { BullModule } from '@nestjs/bullmq'
 import { Module } from '@nestjs/common'
-import type { ConfigType } from '@nestjs/config'
 import { ConfigModule } from '@nestjs/config'
 import { CacheModule } from 'src/cache/cache.module'
-import { redisConfig } from 'src/cache/redis.config'
 import { QueueModule } from 'src/queue/queue.module'
 import { S3Module } from 'src/s3/s3.module'
 import { SocketModule } from 'src/socket/socket.module'
@@ -27,23 +24,14 @@ import { UsersModule } from '../users/users.module'
     AppModule,
     UsersModule,
     LocationsModule,
-    ServerModule,
-    CacheModule,
-    SocketModule,
-    S3Module,
     QueueModule,
-    BullModule.forRootAsync({
-      useFactory: (_redisConfig: ConfigType<typeof redisConfig>) => ({
-        connection: {
-          host: _redisConfig.host,
-          port: _redisConfig.port,
-        },
-      }),
-      inject: [redisConfig.KEY],
-      imports: [ConfigModule.forFeature(redisConfig)],
-    }),
+    ServerModule,
+    SocketModule,
+    CacheModule,
+    S3Module,
   ],
+  exports: [],
   controllers: [],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
-export class CoreModule {}
+export class CoreTestModule {}

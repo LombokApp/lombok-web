@@ -7,10 +7,16 @@ FROM local AS test
 
 WORKDIR /usr/src/app/packages/api
 RUN set -eux \
-    & apk add \
-        --no-cache \
-        nodejs \
-        yarn
+  & apk add \
+  --update \
+  --no-cache \
+  --update-cache \
+  --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
+  --allow-untrusted \
+  nodejs \
+  yarn \
+  && yarn set version berry
+
 ENTRYPOINT yarn test:e2e
 
 # install dependencies into temp directory

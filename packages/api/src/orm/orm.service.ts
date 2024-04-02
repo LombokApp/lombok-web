@@ -1,5 +1,9 @@
-import { Injectable } from '@nestjs/common'
-import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
+import { Inject, Injectable } from '@nestjs/common'
+import { ConfigType } from '@nestjs/config'
+import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js'
+import { migrate } from 'drizzle-orm/postgres-js/migrator'
+import * as path from 'path'
+import * as postgres from 'postgres'
 
 import { moduleLogEntriesTable } from '../app/entities/app-log-entry.entity'
 import { sessionsTable } from '../auth/entities/session.entity'
@@ -16,6 +20,7 @@ import { folderObjectsTable } from '../folders/entities/folder-object.entity'
 import { locationsTable } from '../locations/entities/locations.entity'
 import { serverConfigurationsTable } from '../server/entities/server-configuration.entity'
 import { usersTable } from '../users/entities/user.entity'
+import { ormConfig } from './config'
 
 export const schema = {
   usersTable,
@@ -33,12 +38,41 @@ export const schema = {
 
 @Injectable()
 export class OrmService {
-  private readonly _db?: PostgresJsDatabase<typeof schema>
+  private _db?: PostgresJsDatabase<typeof schema>
+  private _client?: postgres.Sql
+
+  constructor(
+    @Inject(ormConfig.KEY)
+    private readonly _ormConfig: ConfigType<typeof ormConfig>,
+  ) {}
 
   get db(): PostgresJsDatabase<typeof schema> {
     if (!this._db) {
       throw new Error('DB is not initialized')
     }
     return this._db
+  }
+
+  async initDatabase(runMigrations: boolean = false) {
+    console.log('Initializing Database:', this._ormConfig)
+    this._client = postgres(
+      `postgres://${this._ormConfig.dbUser}:${this._ormConfig.dbPassword}@${this._ormConfig.dbHost}:${this._ormConfig.dbPort}/${this._ormConfig.dbName}`,
+      this._ormConfig.disableNoticeLogging
+        ? { onnotice: () => undefined }
+        : undefined,
+    )
+
+    this._db = drizzle(this._client, {
+      schema,
+    })
+    if (runMigrations) {
+      await migrate(this._db, {
+        migrationsFolder: path.join(__dirname, './migrations'),
+      })
+    }
+  }
+
+  async close() {
+    await this._client?.end()
   }
 }

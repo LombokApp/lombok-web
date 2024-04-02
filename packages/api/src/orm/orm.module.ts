@@ -1,12 +1,23 @@
+import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common'
 import { Global, Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
 
+import { ormConfig } from './config'
 import { OrmService } from './orm.service'
 
 @Global()
 @Module({
-  controllers: [],
   providers: [OrmService],
-  exports: [OrmService],
+  imports: [ConfigModule.forFeature(ormConfig)],
+  exports: [OrmService, ConfigModule.forFeature(ormConfig)],
 })
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
-export class OrmModule {}
+export class OrmModule implements OnModuleInit, OnModuleDestroy {
+  constructor(private readonly ormService: OrmService) {}
+  async onModuleInit() {
+    await this.ormService.initDatabase(true)
+  }
+
+  async onModuleDestroy() {
+    await this.ormService.close()
+  }
+}

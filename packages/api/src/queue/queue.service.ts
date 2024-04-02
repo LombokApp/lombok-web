@@ -41,4 +41,10 @@ export class QueueService {
       return this.queues[queueName].add(queueName, data, opts)
     }
   }
+
+  async closeQueues() {
+    for (const queueName in this.queues) {
+      await this.queues[queueName].close()
+    }
+  }
 }

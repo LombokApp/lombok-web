@@ -8,10 +8,13 @@ export const coreConfig = registerAs('core', () => {
     API_PORT: r.String.withConstraint(isInteger),
     APP_HOST_ID: r.String,
     DISABLE_HTTP: r.String.withConstraint(isBoolean).optional(),
+    INIT_EVENT_JOBS: r.String.withConstraint(isBoolean).optional(),
   })
   return {
     port: parseInt(env.API_PORT, 10),
     hostId: env.APP_HOST_ID,
     disableHttp: env.DISABLE_HTTP === '1' || env.DISABLE_HTTP === 'true',
+    initEventJobs:
+      env.INIT_EVENT_JOBS === '1' || env.INIT_EVENT_JOBS === 'true',
   }
 })
