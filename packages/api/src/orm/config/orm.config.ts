@@ -10,6 +10,8 @@ export const ormConfig = registerAs('orm', () => {
     DB_NAME: r.String,
     DB_PASSWORD: r.String,
     DISABLE_NOTICE_LOGGING: r.String.withConstraint(isBoolean).optional(),
+    RUN_MIGRATIONS: r.String.withConstraint(isBoolean).optional(),
+    CREATE_DATABASE: r.String.withConstraint(isBoolean).optional(),
   })
   return {
     dbHost: env.DB_HOST,
@@ -20,5 +22,8 @@ export const ormConfig = registerAs('orm', () => {
     disableNoticeLogging:
       env.DISABLE_NOTICE_LOGGING === '1' ||
       env.DISABLE_NOTICE_LOGGING === 'true',
+    runMigrations: env.RUN_MIGRATIONS === '1' || env.RUN_MIGRATIONS === 'true',
+    createDatabase:
+      env.CREATE_DATABASE === '1' || env.CREATE_DATABASE === 'true',
   }
 })

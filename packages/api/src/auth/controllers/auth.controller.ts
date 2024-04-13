@@ -27,8 +27,9 @@ export class AuthController {
    * Register a new user.
    */
   @Post('/signup')
-  async signup(@Body() _input: SignupCredentialsDTO): Promise<SignupResponse> {
-    const user = await this.authService.signup(_input)
+  async signup(@Body() input: SignupCredentialsDTO): Promise<SignupResponse> {
+    console.log('input:', input)
+    const user = await this.authService.signup(input)
     return { user }
   }
 }

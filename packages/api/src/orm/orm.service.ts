@@ -53,8 +53,16 @@ export class OrmService {
     return this._db
   }
 
-  async initDatabase(runMigrations: boolean = false) {
-    console.log('Initializing Database:', this._ormConfig)
+  async initDatabase() {
+    if (this._ormConfig.createDatabase) {
+      const sql = postgres(
+        `postgres://${this._ormConfig.dbUser}:${this._ormConfig.dbPassword}@${this._ormConfig.dbHost}:${this._ormConfig.dbPort}/postgres`,
+      )
+      await sql
+        .unsafe(`CREATE DATABASE ${this._ormConfig.dbName};`)
+        .finally(() => void sql.end())
+    }
+
     this._client = postgres(
       `postgres://${this._ormConfig.dbUser}:${this._ormConfig.dbPassword}@${this._ormConfig.dbHost}:${this._ormConfig.dbPort}/${this._ormConfig.dbName}`,
       this._ormConfig.disableNoticeLogging
@@ -65,11 +73,20 @@ export class OrmService {
     this._db = drizzle(this._client, {
       schema,
     })
-    if (runMigrations) {
+    if (this._ormConfig.runMigrations) {
       await migrate(this._db, {
         migrationsFolder: path.join(__dirname, './migrations'),
       })
     }
+  }
+
+  async removeTestDatabase(databaseName: string) {
+    const sql = postgres(
+      `postgres://${this._ormConfig.dbUser}:${this._ormConfig.dbPassword}@${this._ormConfig.dbHost}:${this._ormConfig.dbPort}/postgres`,
+    )
+    await sql
+      .unsafe(`DROP DATABASE IF EXISTS stellaris_test__${databaseName};`)
+      .finally(() => void sql.end())
   }
 
   async close() {

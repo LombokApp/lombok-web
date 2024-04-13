@@ -14,7 +14,7 @@ import { OrmService } from './orm.service'
 export class OrmModule implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly ormService: OrmService) {}
   async onModuleInit() {
-    await this.ormService.initDatabase(true)
+    await this.ormService.initDatabase()
   }
 
   async onModuleDestroy() {

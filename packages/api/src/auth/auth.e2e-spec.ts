@@ -1,58 +1,27 @@
 import { type INestApplication } from '@nestjs/common'
-import { Test } from '@nestjs/testing'
-import { RedisService } from 'src/cache/redis.service'
-import { CoreTestModule } from 'src/core/core-test.module'
-import { ormConfig } from 'src/orm/config'
-import { QueueService } from 'src/queue/queue.service'
+import { OrmService } from 'src/orm/orm.service'
+import { buildTestModule } from 'src/core/utils/test.util'
 import * as request from 'supertest'
 
 describe('Auth', () => {
   let app: INestApplication
-  const mockedQueueService = {
-    addJob: () => undefined,
-  }
-
-  const redisService = {
-    getAll: jest.fn(),
-    get: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    markAsInActive: jest.fn(),
-  }
+  const TEST_DB_NAME = 'auth'
 
   beforeAll(async () => {
-    const moduleRef = await Test.createTestingModule({
-      imports: [CoreTestModule],
-      providers: [],
-    })
-      .overrideProvider(ormConfig.KEY)
-      .useValue({ ...ormConfig(), dbName: 'alsdfkjslf' })
-      .overrideProvider(QueueService)
-      .useValue(mockedQueueService)
-      .overrideProvider(RedisService)
-      .useValue(redisService)
-      .compile()
-
-    app = moduleRef.createNestApplication()
-    await app.enableShutdownHooks().init()
+    app = await buildTestModule(TEST_DB_NAME)
   })
 
   it(`POST /auth/signup`, async () => {
     const _response = await request(app.getHttpServer())
       .post('/auth/signup')
-      .send({ login: 'dsf', password: 'sdf' })
-      .expect(400)
-
-    // console.log('response:', response)
-    // .expect({
-    //   data: {},
-    // })
-    // expect(true).toBe(true)
+      .send({ username: 'dsf', email: 'dsf@poop.com', password: 'sdf' })
+      .expect(201)
   })
 
   afterAll(async () => {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     await app?.close()
+    const ormService = await app.resolve(OrmService)
+    await ormService.removeTestDatabase(TEST_DB_NAME)
   })
 })
