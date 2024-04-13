@@ -16,8 +16,8 @@ export class AuthController {
    * Authenticate the user and return access and refresh tokens.
    */
   @Post('/login')
-  async login(@Body() _input: LoginCredentialsDTO): Promise<LoginResponse> {
-    const session = await this.authService.login(_input)
+  async login(@Body() input: LoginCredentialsDTO): Promise<LoginResponse> {
+    const session = await this.authService.login(input)
     return {
       session,
     }
@@ -28,7 +28,6 @@ export class AuthController {
    */
   @Post('/signup')
   async signup(@Body() input: SignupCredentialsDTO): Promise<SignupResponse> {
-    console.log('input:', input)
     const user = await this.authService.signup(input)
     return { user }
   }

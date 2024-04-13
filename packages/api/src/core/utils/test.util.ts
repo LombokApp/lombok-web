@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing'
 import { RedisService } from 'src/cache/redis.service'
 import { CoreTestModule } from 'src/core/core-test.module'
+import { OrmService } from 'src/orm/orm.service'
 import { QueueService } from 'src/queue/queue.service'
 
 import { ormConfig } from '../../orm/config'
@@ -32,6 +33,16 @@ export async function buildTestModule(dbName: string) {
     .compile()
 
   const app = moduleRef.createNestApplication()
+
+  const ormService = await app.resolve(OrmService)
+  await ormService.removeTestDatabase(dbName)
+
   await app.enableShutdownHooks().init()
-  return app
+
+  return {
+    app,
+    shutdown: async () => {
+      await app.close()
+    },
+  }
 }

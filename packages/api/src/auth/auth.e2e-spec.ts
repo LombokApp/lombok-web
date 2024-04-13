@@ -1,27 +1,38 @@
-import { type INestApplication } from '@nestjs/common'
-import { OrmService } from 'src/orm/orm.service'
 import { buildTestModule } from 'src/core/utils/test.util'
 import * as request from 'supertest'
 
+const TEST_DB_NAME = 'auth'
+
 describe('Auth', () => {
-  let app: INestApplication
-  const TEST_DB_NAME = 'auth'
+  let testModule: Awaited<ReturnType<typeof buildTestModule>>
 
   beforeAll(async () => {
-    app = await buildTestModule(TEST_DB_NAME)
+    testModule = await buildTestModule(TEST_DB_NAME)
   })
 
   it(`POST /auth/signup`, async () => {
-    const _response = await request(app.getHttpServer())
+    const _response = await request(testModule.app.getHttpServer())
       .post('/auth/signup')
-      .send({ username: 'dsf', email: 'dsf@poop.com', password: 'sdf' })
+      .send({
+        username: 'mekpans',
+        email: 'steven@stellariscloud.com',
+        password: '123',
+      })
       .expect(201)
   })
 
+  it(`should fail with bad signup params`, async () => {
+    const _response = await request(testModule.app.getHttpServer())
+      .post('/auth/signup')
+      .send({
+        poop: 'mekpans',
+        email: 'steven@stellariscloud.com',
+        password: '123',
+      })
+      .expect(400)
+  })
+
   afterAll(async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    await app?.close()
-    const ormService = await app.resolve(OrmService)
-    await ormService.removeTestDatabase(TEST_DB_NAME)
+    await testModule.shutdown()
   })
 })
