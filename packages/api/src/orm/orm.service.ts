@@ -127,7 +127,6 @@ export class OrmService {
       const exists = existsResult.count > 0
 
       if (!exists) {
-        console.log('Database does not exist. No need to truncate.')
         return
       }
 
@@ -155,14 +154,13 @@ export class OrmService {
               await sql`SET CONSTRAINTS ALL DEFERRED`
               await sql.unsafe(`SET SCHEMA '${schema}';`)
               const truncateTablesQuery = `TRUNCATE TABLE ${tableNames} RESTART IDENTITY CASCADE;`
-              console.log('TRUNCATING SCHEMA WITH QUERY:', truncateTablesQuery)
+              // console.log('TRUNCATING SCHEMA WITH QUERY:', truncateTablesQuery)
               await sql.unsafe(truncateTablesQuery)
               await sql.unsafe(`SET SCHEMA 'public';`)
               await sql`SET CONSTRAINTS ALL IMMEDIATE`
             })
           }
         }
-        console.log('All tables truncated successfully!')
       } catch (error) {
         console.error('Failed to truncate tables:', error)
         throw error

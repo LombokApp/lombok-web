@@ -25,15 +25,30 @@ describe('Auth', () => {
       .expect(201)
   })
 
-  it(`should fail with bad signup params`, async () => {
-    const _response = await request(testModule?.app.getHttpServer())
-      .post('/auth/signup')
-      .send({
-        poop: 'mekpans',
+  it(`should fail with bad signup input`, async () => {
+    const inputs = [
+      {
+        INVALID_KEY: 'mekpans',
         email: 'steven@stellariscloud.com',
         password: '123',
-      })
-      .expect(400)
+      },
+      {
+        username: 'mekpans',
+        INVALID_KEY: 'steven@stellariscloud.com',
+        password: '123',
+      },
+      {
+        username: 'mekpans',
+        email: 'steven@stellariscloud.com',
+        INVALID_KEY: '123',
+      },
+    ]
+    for (const input of inputs) {
+      const _response = await request(testModule?.app.getHttpServer())
+        .post('/auth/signup')
+        .send(input)
+        .expect(400)
+    }
   })
 
   afterAll(async () => {
