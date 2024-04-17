@@ -22,7 +22,7 @@ import { serverConfigurationsTable } from '../server/entities/server-configurati
 import { usersTable } from '../users/entities/user.entity'
 import { ormConfig } from './config'
 
-export const schema = {
+export const dbSchema = {
   usersTable,
   sessionsTable,
   storageLocationsTable: locationsTable,
@@ -36,9 +36,11 @@ export const schema = {
   eventReceiptRelations,
 }
 
+export const TEST_DB_PREFIX = 'stellaris_test__'
+
 @Injectable()
 export class OrmService {
-  private _db?: PostgresJsDatabase<typeof schema>
+  private _db?: PostgresJsDatabase<typeof dbSchema>
   private _client?: postgres.Sql
 
   constructor(
@@ -46,47 +48,126 @@ export class OrmService {
     private readonly _ormConfig: ConfigType<typeof ormConfig>,
   ) {}
 
-  get db(): PostgresJsDatabase<typeof schema> {
+  get client() {
+    if (!this._client) {
+      this._client = postgres(
+        `postgres://${this._ormConfig.dbUser}:${this._ormConfig.dbPassword}@${this._ormConfig.dbHost}:${this._ormConfig.dbPort}/${this._ormConfig.dbName}`,
+        this._ormConfig.disableNoticeLogging
+          ? { onnotice: () => undefined }
+          : undefined,
+      )
+    }
+    return this._client
+  }
+
+  async runWithTestClient(func: (client: postgres.Sql<any>) => Promise<void>) {
+    const c = postgres(
+      `postgres://${this._ormConfig.dbUser}:${this._ormConfig.dbPassword}@${this._ormConfig.dbHost}:${this._ormConfig.dbPort}/postgres`,
+      this._ormConfig.disableNoticeLogging
+        ? { onnotice: () => undefined }
+        : undefined,
+    )
+    await func(c).finally(() => void c.end())
+  }
+
+  get db(): PostgresJsDatabase<typeof dbSchema> {
     if (!this._db) {
-      throw new Error('DB is not initialized')
+      this._db = drizzle(this.client, {
+        schema: dbSchema,
+      })
     }
     return this._db
   }
 
   async initDatabase() {
     if (this._ormConfig.createDatabase) {
-      const sql = postgres(
-        `postgres://${this._ormConfig.dbUser}:${this._ormConfig.dbPassword}@${this._ormConfig.dbHost}:${this._ormConfig.dbPort}/postgres`,
-      )
-      await sql
-        .unsafe(`CREATE DATABASE ${this._ormConfig.dbName};`)
-        .finally(() => void sql.end())
+      await this.runWithTestClient(async (_c) => {
+        const existsResult = await _c.unsafe(
+          `SELECT 1 FROM pg_database WHERE datname = '${this._ormConfig.dbName}'`,
+        )
+        const exists = existsResult.count > 0
+
+        if (!exists) {
+          await _c.unsafe(`CREATE DATABASE ${this._ormConfig.dbName};`)
+        }
+      })
     }
 
-    this._client = postgres(
-      `postgres://${this._ormConfig.dbUser}:${this._ormConfig.dbPassword}@${this._ormConfig.dbHost}:${this._ormConfig.dbPort}/${this._ormConfig.dbName}`,
-      this._ormConfig.disableNoticeLogging
-        ? { onnotice: () => undefined }
-        : undefined,
-    )
-
-    this._db = drizzle(this._client, {
-      schema,
-    })
     if (this._ormConfig.runMigrations) {
-      await migrate(this._db, {
-        migrationsFolder: path.join(__dirname, './migrations'),
-      })
+      await this.migrate()
     }
   }
 
-  async removeTestDatabase(databaseName: string) {
-    const sql = postgres(
-      `postgres://${this._ormConfig.dbUser}:${this._ormConfig.dbPassword}@${this._ormConfig.dbHost}:${this._ormConfig.dbPort}/postgres`,
-    )
-    await sql
-      .unsafe(`DROP DATABASE IF EXISTS stellaris_test__${databaseName};`)
-      .finally(() => void sql.end())
+  async migrate() {
+    await migrate(this.db, {
+      migrationsFolder: path.join(__dirname, './migrations'),
+    })
+  }
+
+  async resetTestDb() {
+    if (!this._ormConfig.dbName.startsWith(TEST_DB_PREFIX)) {
+      throw new Error('Attempt to reset non-test db.')
+    }
+    await this.truncateTestDatabase()
+    await this.migrate()
+  }
+
+  async truncateTestDatabase() {
+    if (!this._ormConfig.dbName.startsWith(TEST_DB_PREFIX)) {
+      throw new Error('Attempt to truncate non-test database.')
+    }
+    await this._truncateAllTables()
+  }
+
+  private async _truncateAllTables() {
+    await this.runWithTestClient(async (_c) => {
+      const existsResult = await _c.unsafe(
+        `SELECT 1 FROM pg_database WHERE datname = '${this._ormConfig.dbName}'`,
+      )
+      const exists = existsResult.count > 0
+
+      if (!exists) {
+        console.log('Database does not exist. No need to truncate.')
+        return
+      }
+
+      try {
+        const tables = await this.client.unsafe(
+          `SELECT tablename,schemaname FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema');`,
+        )
+
+        if (tables.length > 0) {
+          const schemaToTableMapping = tables.reduce(
+            (acc, next) => ({
+              ...acc,
+              [next.schemaname]: (acc[next.schemaname] ?? []).concat(
+                next.tablename,
+              ),
+            }),
+            {},
+          )
+
+          for (const schema of Object.keys(schemaToTableMapping)) {
+            const tableNames = schemaToTableMapping[schema]
+              .map((t) => `"${t}"`)
+              .join(', ')
+            await this.client.begin(async (sql) => {
+              await sql`SET CONSTRAINTS ALL DEFERRED`
+              await sql.unsafe(`SET SCHEMA '${schema}';`)
+              const truncateTablesQuery = `TRUNCATE TABLE ${tableNames} RESTART IDENTITY CASCADE;`
+              console.log('TRUNCATING SCHEMA WITH QUERY:', truncateTablesQuery)
+              await sql.unsafe(truncateTablesQuery)
+              await sql.unsafe(`SET SCHEMA 'public';`)
+              await sql`SET CONSTRAINTS ALL IMMEDIATE`
+            })
+          }
+        }
+        console.log('All tables truncated successfully!')
+      } catch (error) {
+        console.error('Failed to truncate tables:', error)
+        throw error
+      }
+    })
   }
 
   async close() {

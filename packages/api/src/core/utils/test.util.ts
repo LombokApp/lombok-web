@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing'
 import { RedisService } from 'src/cache/redis.service'
 import { CoreTestModule } from 'src/core/core-test.module'
-import { OrmService } from 'src/orm/orm.service'
+import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { QueueService } from 'src/queue/queue.service'
 
 import { ormConfig } from '../../orm/config'
@@ -25,7 +25,7 @@ export async function buildTestModule(dbName: string) {
     providers: [],
   })
     .overrideProvider(ormConfig.KEY)
-    .useValue({ ...ormConfig(), dbName: `stellaris_test__${dbName}` })
+    .useValue({ ...ormConfig(), dbName: `${TEST_DB_PREFIX}${dbName}` })
     .overrideProvider(QueueService)
     .useValue(mockedQueueService)
     .overrideProvider(RedisService)
@@ -35,7 +35,9 @@ export async function buildTestModule(dbName: string) {
   const app = moduleRef.createNestApplication()
 
   const ormService = await app.resolve(OrmService)
-  await ormService.removeTestDatabase(dbName)
+
+  // truncate the db before running first init (which will migrate the db)
+  await ormService.truncateTestDatabase()
 
   await app.enableShutdownHooks().init()
 
@@ -44,5 +46,6 @@ export async function buildTestModule(dbName: string) {
     shutdown: async () => {
       await app.close()
     },
+    resetDb: () => ormService.resetTestDb(),
   }
 }

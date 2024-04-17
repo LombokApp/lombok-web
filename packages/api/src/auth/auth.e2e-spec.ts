@@ -4,14 +4,18 @@ import * as request from 'supertest'
 const TEST_DB_NAME = 'auth'
 
 describe('Auth', () => {
-  let testModule: Awaited<ReturnType<typeof buildTestModule>>
+  let testModule: Awaited<ReturnType<typeof buildTestModule>> | undefined
 
   beforeAll(async () => {
     testModule = await buildTestModule(TEST_DB_NAME)
   })
 
+  afterEach(async () => {
+    await testModule?.resetDb()
+  })
+
   it(`POST /auth/signup`, async () => {
-    const _response = await request(testModule.app.getHttpServer())
+    const _response = await request(testModule?.app.getHttpServer())
       .post('/auth/signup')
       .send({
         username: 'mekpans',
@@ -22,7 +26,7 @@ describe('Auth', () => {
   })
 
   it(`should fail with bad signup params`, async () => {
-    const _response = await request(testModule.app.getHttpServer())
+    const _response = await request(testModule?.app.getHttpServer())
       .post('/auth/signup')
       .send({
         poop: 'mekpans',
@@ -33,6 +37,6 @@ describe('Auth', () => {
   })
 
   afterAll(async () => {
-    await testModule.shutdown()
+    await testModule?.shutdown()
   })
 })
