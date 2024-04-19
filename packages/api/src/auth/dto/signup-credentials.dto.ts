@@ -2,8 +2,8 @@ import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
 export const signupCredentialsSchema = z.object({
-  username: z.string().max(255),
-  email: z.string().max(255),
+  username: z.string().min(3).max(64),
+  email: z.string().max(255).optional(),
   password: z.string().max(255),
 })
 

@@ -16,8 +16,8 @@ export declare const schema: {
                     };
                 };
                 readonly responses: {
-                    readonly "201": {
-                        readonly description: "Authenticate the user and return access and refresh tokens.";
+                    readonly "200": {
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -230,7 +230,8 @@ export declare const schema: {
                 readonly properties: {
                     readonly username: {
                         readonly type: "string";
-                        readonly maxLength: 255;
+                        readonly minLength: 3;
+                        readonly maxLength: 64;
                     };
                     readonly email: {
                         readonly type: "string";
@@ -241,7 +242,7 @@ export declare const schema: {
                         readonly maxLength: 255;
                     };
                 };
-                readonly required: readonly ["username", "email", "password"];
+                readonly required: readonly ["username", "password"];
             };
             readonly UserDTO: {
                 readonly type: "object";

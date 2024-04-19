@@ -7,7 +7,6 @@ import { AccessTokenJWT, JWTService } from 'src/auth/services/jwt.service'
 import { OrmService } from 'src/orm/orm.service'
 import type { NewUser, User } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
-import { UserEmailNotVerifiedException } from 'src/users/exceptions/user-email-not-verified.exception'
 import { v4 as uuidV4 } from 'uuid'
 
 import { AuthDurationMs } from '../constants/duration.constants'
@@ -49,11 +48,11 @@ export class AuthService {
   async createSignup(data: SignupCredentialsDTO) {
     const { username, email } = data
 
-    const existingByEmail = await this.ormService.db.query.usersTable.findFirst(
-      {
-        where: eq(usersTable.email, email),
-      },
-    )
+    const existingByEmail = email
+      ? await this.ormService.db.query.usersTable.findFirst({
+          where: eq(usersTable.email, email),
+        })
+      : false
 
     if (email && existingByEmail) {
       throw new ConflictException(`User already exists with email "${email}".`)
@@ -61,7 +60,7 @@ export class AuthService {
 
     const existingByUsername =
       await this.ormService.db.query.usersTable.findFirst({
-        where: eq(usersTable.username, email),
+        where: eq(usersTable.username, username),
       })
 
     if (existingByUsername) {
@@ -99,18 +98,12 @@ export class AuthService {
     const user = await this.ormService.db.query.usersTable.findFirst({
       where: or(eq(usersTable.email, login), eq(usersTable.username, login)),
     })
+    const passwordVerificationSuccess =
+      user && this.verifyPassword(user, password)
 
-    if (!user || !this.verifyPassword(user, password)) {
+    if (!passwordVerificationSuccess) {
       throw new LoginInvalidException(login)
     }
-
-    if (!user.emailVerified) {
-      throw new UserEmailNotVerifiedException()
-    }
-
-    // if (user.totpEnabled()) {
-    //   // TODO: Check 2FA
-    // }
 
     const { session, accessToken, refreshToken } =
       await this.sessionService.createSession(user)
@@ -128,9 +121,11 @@ export class AuthService {
       return false
     }
 
-    return authHelper
-      .createPasswordHash(password, user.passwordSalt)
-      .compare(Buffer.from(user.passwordHash, 'hex'))
+    return (
+      authHelper
+        .createPasswordHash(password, user.passwordSalt)
+        .compare(Buffer.from(user.passwordHash, 'hex')) === 0
+    )
   }
 
   async verifyModuleWithToken(

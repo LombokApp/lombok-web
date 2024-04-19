@@ -91,7 +91,7 @@ export interface SignupCredentialsDTO {
      * @type {string}
      * @memberof SignupCredentialsDTO
      */
-    'email': string;
+    'email'?: string;
     /**
      * 
      * @type {string}

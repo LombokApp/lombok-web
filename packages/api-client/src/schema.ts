@@ -16,8 +16,8 @@ export const schema = {
           }
         },
         "responses": {
-          "201": {
-            "description": "Authenticate the user and return access and refresh tokens.",
+          "200": {
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -254,7 +254,8 @@ export const schema = {
         "properties": {
           "username": {
             "type": "string",
-            "maxLength": 255
+            "minLength": 3,
+            "maxLength": 64
           },
           "email": {
             "type": "string",
@@ -267,7 +268,6 @@ export const schema = {
         },
         "required": [
           "username",
-          "email",
           "password"
         ]
       },

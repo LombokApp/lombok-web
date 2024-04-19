@@ -10,7 +10,7 @@ import type {
   JwtPayload,
   TokenExpiredError,
 } from 'jsonwebtoken'
-import jwt from 'jsonwebtoken'
+import * as jwt from 'jsonwebtoken'
 import * as r from 'runtypes'
 import { authConfig } from 'src/auth/config'
 import { AuthDurationSeconds } from 'src/auth/constants/duration.constants'
