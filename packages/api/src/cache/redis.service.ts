@@ -1,6 +1,6 @@
 import type { OnModuleDestroy } from '@nestjs/common'
 import { Inject, Injectable } from '@nestjs/common'
-import { type ConfigType } from '@nestjs/config'
+import nestjsConfig from '@nestjs/config'
 import type { RedisClientType } from 'redis'
 import { createClient } from 'redis'
 
@@ -12,7 +12,7 @@ export class RedisService implements OnModuleDestroy {
 
   constructor(
     @Inject(redisConfig.KEY)
-    private readonly _redisConfig: ConfigType<typeof redisConfig>,
+    private readonly _redisConfig: nestjsConfig.ConfigType<typeof redisConfig>,
   ) {
     this.client = createClient({
       url: `redis://${this._redisConfig.host}:${this._redisConfig.port}`,

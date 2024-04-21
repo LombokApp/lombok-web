@@ -1,5 +1,11 @@
-import type { UserSessionDTO } from 'src/auth/dto/user-session.dto'
+import { createZodDto } from '@anatine/zod-nestjs'
+import { z } from 'zod'
 
-export class LoginResponse {
-  session: UserSessionDTO
-}
+export const loginResponseSchema = z.object({
+  session: z.object({
+    accessToken: z.string(),
+    refreshToken: z.string(),
+  }),
+})
+
+export class LoginResponse extends createZodDto(loginResponseSchema) {}

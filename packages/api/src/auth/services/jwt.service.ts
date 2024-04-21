@@ -3,7 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common'
-import { type ConfigType } from '@nestjs/config'
+import nestjsConfig from '@nestjs/config'
 import { eq } from 'drizzle-orm'
 import type {
   JsonWebTokenError,
@@ -101,9 +101,9 @@ export class AuthTokenExpiredError extends Error {
 export class JWTService {
   constructor(
     @Inject(authConfig.KEY)
-    private readonly _authConfig: ConfigType<typeof authConfig>,
+    private readonly _authConfig: nestjsConfig.ConfigType<typeof authConfig>,
     @Inject(coreConfig.KEY)
-    private readonly _coreConfig: ConfigType<typeof coreConfig>,
+    private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
   ) {}
 

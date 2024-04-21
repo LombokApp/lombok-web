@@ -2,6 +2,12 @@
 
 # Ensure the generated spec is up to date
 bun run metadata:generate
+result=$?
+
+# Check the result
+if [ $result -ne 0 ]; then
+    exit $result
+fi
 
 ROOT_DIR="${PWD}/../../"
 SRC_PATH="packages/api/"

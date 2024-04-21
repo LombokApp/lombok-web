@@ -16,8 +16,8 @@ export declare const schema: {
                     };
                 };
                 readonly responses: {
-                    readonly "200": {
-                        readonly description: "";
+                    readonly "201": {
+                        readonly description: "Authenticate the user and return access and refresh tokens.";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -204,23 +204,20 @@ export declare const schema: {
                 };
                 readonly required: readonly ["login", "password"];
             };
-            readonly UserSessionDTO: {
-                readonly type: "object";
-                readonly properties: {
-                    readonly accessToken: {
-                        readonly type: "string";
-                    };
-                    readonly refreshToken: {
-                        readonly type: "string";
-                    };
-                };
-                readonly required: readonly ["accessToken", "refreshToken"];
-            };
             readonly LoginResponse: {
                 readonly type: "object";
                 readonly properties: {
                     readonly session: {
-                        readonly $ref: "#/components/schemas/UserSessionDTO";
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly accessToken: {
+                                readonly type: "string";
+                            };
+                            readonly refreshToken: {
+                                readonly type: "string";
+                            };
+                        };
+                        readonly required: readonly ["accessToken", "refreshToken"];
                     };
                 };
                 readonly required: readonly ["session"];

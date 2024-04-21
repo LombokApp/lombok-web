@@ -16,8 +16,8 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "",
+          "201": {
+            "description": "Authenticate the user and return access and refresh tokens.",
             "content": {
               "application/json": {
                 "schema": {
@@ -223,26 +223,23 @@
           "password"
         ]
       },
-      "UserSessionDTO": {
-        "type": "object",
-        "properties": {
-          "accessToken": {
-            "type": "string"
-          },
-          "refreshToken": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "accessToken",
-          "refreshToken"
-        ]
-      },
       "LoginResponse": {
         "type": "object",
         "properties": {
           "session": {
-            "$ref": "#/components/schemas/UserSessionDTO"
+            "type": "object",
+            "properties": {
+              "accessToken": {
+                "type": "string"
+              },
+              "refreshToken": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "accessToken",
+              "refreshToken"
+            ]
           }
         },
         "required": [

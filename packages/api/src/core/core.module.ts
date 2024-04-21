@@ -1,7 +1,6 @@
 import { BullModule } from '@nestjs/bullmq'
 import { Module } from '@nestjs/common'
-import type { ConfigType } from '@nestjs/config'
-import { ConfigModule } from '@nestjs/config'
+import nestjsConfig from '@nestjs/config'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 import { CacheModule } from 'src/cache/cache.module'
 import { redisConfig } from 'src/cache/redis.config'
@@ -21,7 +20,7 @@ import { ZodSerializerInterceptor } from './serializer/serializer.util'
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true }),
+    nestjsConfig.ConfigModule.forRoot({ isGlobal: true, ignoreEnvFile: true }),
     AuthModule,
     OrmModule,
     FoldersModule,
@@ -35,14 +34,16 @@ import { ZodSerializerInterceptor } from './serializer/serializer.util'
     S3Module,
     QueueModule,
     BullModule.forRootAsync({
-      useFactory: (_redisConfig: ConfigType<typeof redisConfig>) => ({
+      useFactory: (
+        _redisConfig: nestjsConfig.ConfigType<typeof redisConfig>,
+      ) => ({
         connection: {
           host: _redisConfig.host,
           port: _redisConfig.port,
         },
       }),
       inject: [redisConfig.KEY],
-      imports: [ConfigModule.forFeature(redisConfig)],
+      imports: [nestjsConfig.ConfigModule.forFeature(redisConfig)],
     }),
   ],
   providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],

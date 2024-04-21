@@ -59,10 +59,29 @@ export interface LoginCredentialsDTO {
 export interface LoginResponse {
     /**
      *
-     * @type {UserSessionDTO}
+     * @type {LoginResponseSession}
      * @memberof LoginResponse
      */
-    'session': UserSessionDTO;
+    'session': LoginResponseSession;
+}
+/**
+ *
+ * @export
+ * @interface LoginResponseSession
+ */
+export interface LoginResponseSession {
+    /**
+     *
+     * @type {string}
+     * @memberof LoginResponseSession
+     */
+    'accessToken': string;
+    /**
+     *
+     * @type {string}
+     * @memberof LoginResponseSession
+     */
+    'refreshToken': string;
 }
 /**
  *
@@ -169,25 +188,6 @@ export interface UserDTO {
      * @memberof UserDTO
      */
     'updatedAt': string;
-}
-/**
- *
- * @export
- * @interface UserSessionDTO
- */
-export interface UserSessionDTO {
-    /**
-     *
-     * @type {string}
-     * @memberof UserSessionDTO
-     */
-    'accessToken': string;
-    /**
-     *
-     * @type {string}
-     * @memberof UserSessionDTO
-     */
-    'refreshToken': string;
 }
 /**
  *

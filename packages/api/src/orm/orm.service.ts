@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { ConfigType } from '@nestjs/config'
+import nestjsConfig from '@nestjs/config'
 import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import * as path from 'path'
@@ -45,7 +45,7 @@ export class OrmService {
 
   constructor(
     @Inject(ormConfig.KEY)
-    private readonly _ormConfig: ConfigType<typeof ormConfig>,
+    private readonly _ormConfig: nestjsConfig.ConfigType<typeof ormConfig>,
   ) {}
 
   get client() {

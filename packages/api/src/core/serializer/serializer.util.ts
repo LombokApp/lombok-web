@@ -3,102 +3,85 @@ import type {
   ExecutionContext,
   NestInterceptor,
 } from '@nestjs/common'
-import { Inject, Injectable, SetMetadata, StreamableFile } from '@nestjs/common'
-import { Reflector } from '@nestjs/core'
+import { Injectable, StreamableFile } from '@nestjs/common'
+import type { Controller } from '@nestjs/common/interfaces'
 import type { Observable } from 'rxjs'
 import { map } from 'rxjs'
-import type { ZodSchema, ZodTypeDef } from 'zod'
+import type { ZodObject } from 'zod'
+import { z } from 'zod'
 
 import nestJSMetadataLoader from '../../nestjs-metadata'
 import { createZodSerializationException } from './exception'
 
-// NOTE (external)
-// We need to deduplicate them here due to the circular dependency
-// between core and common packages
-
-export const ZodSerializerDtoOptions = 'ZOD_SERIALIZER_DTO_OPTIONS' as const
-
-const nestJSMetadataPromise = nestJSMetadataLoader()
-
-// export const ZodSerializerDto = (dto: ZodDto | ZodSchema) =>
-//   SetMetadata(ZodSerializerDtoOptions, dto)
-
-// export function validate<
-//   TOutput = any,
-//   TDef extends ZodTypeDef = ZodTypeDef,
-//   TInput = TOutput,
-// >(
-//   value: unknown,
-//   schemaOrDto:
-//     | ZodSchema<TOutput, TDef, TInput>
-//     | ZodDtoStatic<TOutput, TDef, TInput>,
-//   createValidationException: ZodExceptionCreator = createZodValidationException,
-// ) {
-//   const schema = isZodDto(schemaOrDto) ? schemaOrDto.schema : schemaOrDto
-
-//   const result = schema.safeParse(value)
-
-//   if (!result.success) {
-//     throw createValidationException(result.error)
-//   }
-
-//   return result.data
-// }
-
 @Injectable()
 export class ZodSerializerInterceptor implements NestInterceptor {
-  constructor(readonly reflector: Reflector) {}
+  nestJSMetadata = nestJSMetadataLoader()
+  controllers: { [key: string]: Controller } = {}
+  initialized = false
+
+  constructor() {
+    void this.init()
+  }
+
+  async init() {
+    if (this.initialized) {
+      return
+    }
+    const loadedMetadata = await this.nestJSMetadata
+    for (const c of loadedMetadata['@nestjs/swagger'].controllers) {
+      for (const controllerName of Object.keys(c[1])) {
+        this.controllers[controllerName] = Object.keys(
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          c[1][controllerName],
+        ).reduce(
+          (acc, handlerName) => ({
+            ...acc,
+            [handlerName]: c[1][controllerName][handlerName],
+          }),
+          {},
+        )
+      }
+    }
+    this.initialized = true
+  }
 
   async intercept(
     context: ExecutionContext,
     next: CallHandler,
   ): Promise<Observable<any>> {
-    // const responseSchema = this.getContextResponseSchema(context)
-    const responseSchema = '' as string
-    const nestJSMetadata = await nestJSMetadataPromise
+    await this.init()
     return next.handle().pipe(
       map((res: object | object[]) => {
-        console.log('ZodSerializerInterceptor res:', res, next)
-
-        // const responseTypeMetadata = this.reflector.getAll(
-        //   'swagger/apiResponse',
-        //   [context.getHandler(), context.getArgByIndex(0)],
-        // )
-        // const handler = context.getHandler()
-        const clz = context.getClass()
-        // const classMetadataKeys = Reflect.getMetadataKeys(clz)
-        // const handlerMetadataKeys = Reflect.getMetadataKeys(handler)
-        console.log('nestJSMetadata controller class:', clz)
-        // console.log(
-        //   'nestJSMetadata controller class (match):',
-        //   nestJSMetadata['@nestjs/swagger'].controllers.find((c) => c === clz),
-        // )
-        console.log('nestJSMetadata:', nestJSMetadata)
-
-        if (!responseSchema) {
-          return res
-        }
+        const cls = context.getClass()
+        const handler = context.getHandler()
+        const handlerDefinition: { type: any } | undefined =
+          this.controllers[cls.name][handler.name]
 
         if (typeof res !== 'object' || res instanceof StreamableFile) {
           return res
         }
 
-        return res
-        // return Array.isArray(res)
-        //   ? res.map((item) =>
-        //       validate(item, responseSchema, createZodSerializationException),
-        //     )
-        //   : validate(res, responseSchema, createZodSerializationException)
+        const responseType = handlerDefinition?.type
+        if (!responseType) {
+          return res
+        }
+
+        const schema: ZodObject<any> | undefined = responseType.zodSchema
+        if (!schema) {
+          return res
+        }
+
+        try {
+          return Array.isArray(res)
+            ? res.map((item: any) => schema.parse(item))
+            : schema.parse(res)
+        } catch (error) {
+          if (error instanceof z.ZodError) {
+            throw createZodSerializationException(error)
+          }
+          throw error
+        }
       }),
     )
   }
-
-  // protected getContextResponseSchema(
-  //   context: ExecutionContext,
-  // ): ZodDto | ZodSchema | undefined {
-  //   return this.reflector.getAllAndOverride(ZodSerializerDtoOptions, [
-  //     context.getHandler(),
-  //     context.getClass(),
-  //   ])
-  // }
 }

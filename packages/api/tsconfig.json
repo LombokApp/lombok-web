@@ -20,11 +20,11 @@
     "noFallthroughCasesInSwitch": false
   },
   "include": [
-    "test",
-    "test/**/*.ts",
     "src/**/*.ts",
     "src/**/*.json",
     "script/*.ts",
+    "test/**/*.js",
+    "babel.config.js",
     ".eslintrc.js"
   ]
 }
