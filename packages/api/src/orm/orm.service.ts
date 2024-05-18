@@ -3,7 +3,7 @@ import nestjsConfig from '@nestjs/config'
 import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import * as path from 'path'
-import * as postgres from 'postgres'
+import postgres from 'postgres'
 
 import { moduleLogEntriesTable } from '../app/entities/app-log-entry.entity'
 import { sessionsTable } from '../auth/entities/session.entity'

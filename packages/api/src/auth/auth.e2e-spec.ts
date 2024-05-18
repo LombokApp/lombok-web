@@ -1,5 +1,5 @@
 import { buildTestModule } from 'src/core/utils/test.util'
-import * as request from 'supertest'
+import request from 'supertest'
 
 const TEST_DB_NAME = 'auth'
 
