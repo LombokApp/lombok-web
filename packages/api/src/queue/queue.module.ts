@@ -1,5 +1,5 @@
 import { BullModule, getQueueToken } from '@nestjs/bullmq'
-import type { OnModuleDestroy } from '@nestjs/common'
+import type { OnModuleDestroy, Provider } from '@nestjs/common'
 import { Global, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { redisConfig } from 'src/cache/redis.config'
@@ -13,14 +13,13 @@ import { QueueService } from './queue.service'
   controllers: [],
   providers: [
     QueueService,
-    ...Object.keys(QueueName).map((queueName) => {
-      return {
-        provide: getQueueToken(queueName),
-        useValue: BullModule.registerQueue({
+    ...Object.keys(QueueName).reduce<Provider[]>((acc, queueName) => {
+      return acc.concat(
+        BullModule.registerQueue({
           name: queueName,
-        }),
-      }
-    }),
+        }).providers ?? [],
+      )
+    }, []),
   ],
   exports: [
     QueueService,
