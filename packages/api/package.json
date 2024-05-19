@@ -21,7 +21,7 @@
     "db:reset:docker": "docker exec -it stellariscloud-api bun --bun --cwd ./packages/api db:reset",
     "db:reset:dev": "bun --bun db:reset:docker && bun --bun db:seed:docker",
     "dev:docker:api": "docker compose --env-file \"./.env\" up api",
-    "dev:docker:services": "docker compose --env-file \"./.env\" up db redis swagger",
+    "dev:docker:services": "docker compose --env-file \"./.env\" up db redis",
     "dev:docker:e2e:db": "docker compose -f ../../docker-compose.test.yml --env-file \"./.env.test\" up dbtest",
     "dev:docker:e2e:watch": "docker compose -f ../../docker-compose.test.yml --env-file \"./.env.test\" up apitestwatch",
     "dev:docker:e2e:run": "docker compose -f ../../docker-compose.test.yml --env-file \"./.env.test\" up apitest",

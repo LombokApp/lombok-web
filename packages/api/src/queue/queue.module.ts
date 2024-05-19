@@ -1,25 +1,60 @@
 import { BullModule, getQueueToken } from '@nestjs/bullmq'
-import type { OnModuleDestroy, Provider } from '@nestjs/common'
+import type { DynamicModule, OnModuleDestroy, Provider } from '@nestjs/common'
 import { Global, Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
 import { redisConfig } from 'src/cache/redis.config'
 import { QueueName } from 'src/queue/queue.constants'
 
 import { QueueService } from './queue.service'
 
+const registerQueuesIfEnabled = (): {
+  [key: string]: DynamicModule | undefined
+} =>
+  Object.keys(QueueName).reduce<{ [key: string]: DynamicModule }>(
+    (acc, queueName) => {
+      // eslint-disable-next-line @typescript-eslint/no-extraneous-class
+      class InlineQueueModule {}
+
+      const module: DynamicModule = redisConfig().enabled
+        ? BullModule.registerQueue({
+            name: queueName,
+          })
+        : {
+            providers: [
+              {
+                provide: getQueueToken(queueName),
+                useValue: { add: (..._args: any[]) => undefined },
+              },
+            ],
+            imports: [],
+            module: InlineQueueModule,
+            exports: [],
+          }
+
+      return {
+        ...acc,
+        [queueName]: module,
+      }
+    },
+    {},
+  )
+
+const registeredQueues = registerQueuesIfEnabled()
+
 @Global()
 @Module({
-  imports: [ConfigModule.forFeature(redisConfig)],
-  controllers: [],
+  imports: [
+    ...Object.keys(registeredQueues).map(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      (queueName) => registeredQueues[queueName]!,
+    ),
+  ],
   providers: [
+    ...Object.keys(QueueName).reduce<Provider[]>(
+      (acc, queueName) =>
+        acc.concat(registeredQueues[queueName]?.providers ?? []),
+      [],
+    ),
     QueueService,
-    ...Object.keys(QueueName).reduce<Provider[]>((acc, queueName) => {
-      return acc.concat(
-        BullModule.registerQueue({
-          name: queueName,
-        }).providers ?? [],
-      )
-    }, []),
   ],
   exports: [
     QueueService,
@@ -27,9 +62,7 @@ import { QueueService } from './queue.service'
   ],
 })
 export class QueueModule implements OnModuleDestroy {
-  constructor(private readonly queueService: QueueService) {}
   onModuleDestroy() {
     // console.log('Executing OnDestroy Hook')
-    // await this.queueService.closeQueues()
   }
 }

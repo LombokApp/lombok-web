@@ -16,7 +16,7 @@
     "dev:docker:clean": "(rm -rf ./.docker/postgres/* || true) && (rm -rf ./.docker/redis/* || true) && (rm -rf ./.docker/minio || true)",
     "dev:docker:api:build": "docker compose --env-file \"./packages/api/.env\" up api --build",
     "dev:docker:api": "docker compose --env-file \"./packages/api/.env\" up api",
-    "dev:docker:services": "docker compose --env-file \"./packages/api/.env\" up db redis swagger",
+    "dev:docker:services": "docker compose --env-file \"./packages/api/.env\" up db redis",
     "dev:docker:down": "docker compose down",
     "dev:docker:kill": "docker compose kill",
     "dev:check-all": "sh ./cmd/dev-check-all.sh",
