@@ -4,6 +4,7 @@ import { CoreTestModule } from 'src/core/core-test.module'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 
 import { ormConfig } from '../../orm/config'
+import { setApp, setAppInitializing } from '../app-helper'
 
 export async function buildTestModule(dbName: string) {
   const redisService = {
@@ -15,7 +16,7 @@ export async function buildTestModule(dbName: string) {
     markAsInActive: jest.fn(),
   }
 
-  const moduleRef = await Test.createTestingModule({
+  const appPromise = Test.createTestingModule({
     imports: [CoreTestModule],
     providers: [],
   })
@@ -24,8 +25,12 @@ export async function buildTestModule(dbName: string) {
     .overrideProvider(RedisService)
     .useValue(redisService)
     .compile()
+    .then((moduleRef) => moduleRef.createNestApplication())
 
-  const app = moduleRef.createNestApplication()
+  setAppInitializing(appPromise)
+
+  const app = await appPromise
+  setApp(app)
 
   const ormService = await app.resolve(OrmService)
 

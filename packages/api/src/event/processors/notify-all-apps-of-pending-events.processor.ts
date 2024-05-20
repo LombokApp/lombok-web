@@ -11,6 +11,7 @@ export class NotifyAllAppsOfPendingEventsProcessor extends BaseProcessor {
   }
 
   async process(_job: Job): Promise<void> {
+    console.log('Executing notifyAllAppsOfPendingEvents...')
     await this.eventService.notifyAllAppsOfPendingEvents()
   }
 }

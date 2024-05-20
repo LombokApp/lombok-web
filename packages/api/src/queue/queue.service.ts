@@ -1,8 +1,8 @@
 import { getQueueToken } from '@nestjs/bullmq'
 import { Injectable } from '@nestjs/common'
 import type { JobsOptions } from 'bullmq'
+import { getApp } from 'src/core/app-helper'
 import type { BaseProcessor } from 'src/core/base-processor'
-import { getApp } from 'src/main'
 
 import { QueueName } from './queue.constants'
 import type { IQueue } from './queue.interface'
@@ -11,28 +11,34 @@ import type { IQueue } from './queue.interface'
 export class QueueService {
   queues: { [key: string]: IQueue } = {}
   processors: { [key: string]: BaseProcessor } = {}
-  initialized: boolean = false
   initPromise: Promise<void>
 
   constructor() {
-    this.initPromise = getApp().then(async (app) => {
-      const injectedQueues = await Promise.all(
-        Object.keys(QueueName).map(async (queueName) => ({
-          queue: await app.resolve(getQueueToken(queueName)),
-          name: queueName,
-        })),
-      )
-      for (const { name, queue } of injectedQueues) {
-        console.log('Registering queue', name, queue.constructor.name)
-        this.queues[name] = queue
-      }
-      this.initialized = true
-    })
+    // defer the init so the app can is created first
+    setTimeout(() => void this.init(), 100)
   }
-  async waitForInit() {
-    if (!this.initialized) {
-      await this.initPromise
+
+  async init() {
+    const app = await getApp()
+    if (!app) {
+      console.log('App did not exist when registering processor.')
+      return
     }
+
+    const injectedQueues = await Promise.all(
+      Object.keys(QueueName).map(async (queueName) => ({
+        queue: await app.resolve(getQueueToken(queueName)),
+        name: queueName,
+      })),
+    )
+    for (const { name, queue } of injectedQueues) {
+      console.log('Registering queue', name, queue.constructor.name)
+      this.queues[name] = queue
+    }
+  }
+
+  async waitForInit() {
+    await this.initPromise
   }
 
   // TODO: Add job data type constraints here
@@ -47,7 +53,8 @@ export class QueueService {
   }
 
   async closeQueues() {
-    for (const queueName in this.queues) {
+    await this.waitForInit()
+    for (const queueName of Object.keys(this.queues)) {
       await this.queues[queueName].close()
     }
   }

@@ -66,7 +66,8 @@ const registeredQueues = registerQueues()
   ],
 })
 export class QueueModule implements OnModuleDestroy {
-  onModuleDestroy() {
-    // console.log('Executing OnDestroy Hook')
+  constructor(private readonly queueService: QueueService) {}
+  async onModuleDestroy() {
+    await this.queueService.closeQueues()
   }
 }
