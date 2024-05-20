@@ -11,6 +11,12 @@ async function bootstrap() {
   app.enableShutdownHooks()
 
   await app.listen(3001)
+
+  return app
 }
 
-void bootstrap()
+const appPromise = bootstrap()
+
+export async function getApp() {
+  return appPromise
+}

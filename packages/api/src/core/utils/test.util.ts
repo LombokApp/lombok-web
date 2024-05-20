@@ -2,15 +2,10 @@ import { Test } from '@nestjs/testing'
 import { RedisService } from 'src/cache/redis.service'
 import { CoreTestModule } from 'src/core/core-test.module'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
-import { QueueService } from 'src/queue/queue.service'
 
 import { ormConfig } from '../../orm/config'
 
 export async function buildTestModule(dbName: string) {
-  const mockedQueueService = {
-    addJob: () => undefined,
-  }
-
   const redisService = {
     getAll: jest.fn(),
     get: jest.fn(),
@@ -26,8 +21,6 @@ export async function buildTestModule(dbName: string) {
   })
     .overrideProvider(ormConfig.KEY)
     .useValue({ ...ormConfig(), dbName: `${TEST_DB_PREFIX}${dbName}` })
-    .overrideProvider(QueueService)
-    .useValue(mockedQueueService)
     .overrideProvider(RedisService)
     .useValue(redisService)
     .compile()

@@ -1,11 +1,12 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq'
+import { Processor } from '@nestjs/bullmq'
 import type { Job } from 'bullmq'
+import { BaseProcessor } from 'src/core/base-processor'
 import { QueueName } from 'src/queue/queue.constants'
 
 import { FolderService } from '../services/folder.service'
 
 @Processor(QueueName.IndexFolder)
-export class IndexFolderProcessor extends WorkerHost {
+export class IndexFolderProcessor extends BaseProcessor {
   constructor(private readonly folderService: FolderService) {
     super()
   }

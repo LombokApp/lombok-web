@@ -1,11 +1,12 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq'
+import { Processor } from '@nestjs/bullmq'
 import type { Job } from 'bullmq'
+import { BaseProcessor } from 'src/core/base-processor'
 import { QueueName } from 'src/queue/queue.constants'
 
 import { SocketService } from '../socket.service'
 
 @Processor(QueueName.NotifyAppOfPendingEvents)
-export class NotifyPendingEventsProcessor extends WorkerHost {
+export class NotifyPendingEventsProcessor extends BaseProcessor {
   constructor(private readonly socketService: SocketService) {
     super()
   }

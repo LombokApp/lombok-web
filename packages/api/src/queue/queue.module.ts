@@ -4,9 +4,10 @@ import { Global, Module } from '@nestjs/common'
 import { redisConfig } from 'src/cache/redis.config'
 import { QueueName } from 'src/queue/queue.constants'
 
+import { InMemoryQueue } from './InMemoryQueue'
 import { QueueService } from './queue.service'
 
-const registerQueuesIfEnabled = (): {
+const registerQueues = (): {
   [key: string]: DynamicModule | undefined
 } =>
   Object.keys(QueueName).reduce<{ [key: string]: DynamicModule }>(
@@ -22,7 +23,10 @@ const registerQueuesIfEnabled = (): {
             providers: [
               {
                 provide: getQueueToken(queueName),
-                useValue: { add: (..._args: any[]) => undefined },
+                useFactory: (queueService: QueueService) => {
+                  return new InMemoryQueue(queueName, queueService)
+                },
+                inject: [QueueService],
               },
             ],
             imports: [],
@@ -38,7 +42,7 @@ const registerQueuesIfEnabled = (): {
     {},
   )
 
-const registeredQueues = registerQueuesIfEnabled()
+const registeredQueues = registerQueues()
 
 @Global()
 @Module({
