@@ -129,6 +129,55 @@ describe('Auth', () => {
     expect(response.body.session.refreshToken.length).toBeGreaterThan(0)
   })
 
+  it(`should succeed in fetching viewer with token`, async () => {
+    await request(testModule?.app.getHttpServer())
+      .post('/auth/signup')
+      .send({
+        username: 'mekpans',
+        password: '123',
+      })
+      .expect(201)
+
+    const {
+      body: {
+        session: { accessToken },
+      },
+    } = await request(testModule?.app.getHttpServer())
+      .post('/auth/login')
+      .send({
+        login: 'mekpans',
+        password: '123',
+      })
+
+    const viewerResponse = await request(testModule?.app.getHttpServer())
+      .get('/viewer')
+      .auth(accessToken as string, { type: 'bearer' })
+      .send()
+
+    expect(viewerResponse.statusCode).toEqual(200)
+    expect(viewerResponse.body).toBe({
+      user: {
+        createdAt: '2024-05-26T16:25:28.358Z',
+        email: 'steven@poop.com',
+        emailVerified: true,
+        isAdmin: true,
+        name: '',
+        permissions: [],
+        updatedAt: '2024-05-26T16:25:28.358Z',
+        username: 'wfsdfs',
+      },
+    })
+  })
+
+  it(`should fail in fetching viewer without token`, async () => {
+    const response = await request(testModule?.app.getHttpServer())
+      .get('/viewer')
+      .send()
+
+    // console.log(response)
+    expect(response.status).toBe(401)
+  })
+
   afterAll(async () => {
     await testModule?.shutdown()
   })

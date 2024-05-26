@@ -23,6 +23,10 @@ import { coreConfig } from '../../core/config'
 
 const ALGORITHM = 'HS256'
 
+export const USER_JWT_SUB_PREFIX = 'USER'
+export const APP_JWT_SUB_PREFIX = 'APP'
+export const APP_USER_JWT_SUB_PREFIX = 'APP_USER'
+
 export const accessTokenType: r.Runtype<AccessTokenJWT> = r.Record({
   aud: r.String,
   jti: r.String,
@@ -150,29 +154,49 @@ export class JWTService {
     }
   }
 
-  verifyModuleJWT(appIdentifier: string, publicKey: string, token: string) {
+  verifyAppUserJWT(appIdentifier: string, token: string) {
     try {
-      return jwt.verify(token, publicKey, {
+      return jwt.verify(token, this._authConfig.authJwtSecret, {
         algorithms: ['RS512'],
-        subject: `MODULE:${appIdentifier}`,
+        subject: `APP_USER:${appIdentifier}`,
       }) as JwtPayload
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
         throw new AuthTokenExpiredError(token, error)
       }
       if (error instanceof jwt.JsonWebTokenError) {
-        console.log('error:', error)
         throw new AuthTokenInvalidError(token, error)
       }
       throw error
     }
   }
 
-  decodeModuleJWT(token: string) {
+  verifyAppJWT(appIdentifier: string, publicKey: string, token: string) {
     try {
-      return jwt.decode(token, {
+      return jwt.verify(token, publicKey, {
+        algorithms: ['RS512'],
+        subject: `APP:${appIdentifier}`,
+      }) as JwtPayload
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new AuthTokenExpiredError(token, error)
+      }
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new AuthTokenInvalidError(token, error)
+      }
+      throw error
+    }
+  }
+
+  decodeJWT(token: string): jwt.Jwt {
+    try {
+      const decodedJWT = jwt.decode(token, {
         complete: true,
       })
+      if (!decodedJWT?.payload || typeof decodedJWT.payload == 'string') {
+        throw new AuthTokenInvalidError(token)
+      }
+      return decodedJWT
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
         throw new AuthTokenExpiredError(token, error)

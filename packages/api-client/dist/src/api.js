@@ -179,7 +179,7 @@ export const EventApiAxiosParamCreator = function (configuration) {
          * @throws {RequiredError}
          */
         getAppInfo: async (options = {}) => {
-            const localVarPath = `/{eventId}`;
+            const localVarPath = `/events/{eventId}`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -263,7 +263,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
          * @throws {RequiredError}
          */
         getAppInfo: async (options = {}) => {
-            const localVarPath = `/{folderId}`;
+            const localVarPath = `/folders/{folderId}`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;

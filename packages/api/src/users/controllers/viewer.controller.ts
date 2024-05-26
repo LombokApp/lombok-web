@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Put } from '@nestjs/common'
+import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
+import { AuthGuard } from 'src/auth/guards/auth.guard'
 import type { User } from 'src/users/entities/user.entity'
 
 import type { ViewerGetResponse } from '../dto/responses/viewer-get-response.dto'
@@ -9,6 +10,7 @@ import { UserService } from '../services/users.service'
 
 @Controller('/viewer')
 @ApiTags('Viewer')
+@UseGuards(AuthGuard)
 export class ViewerController {
   constructor(private readonly userService: UserService) {}
 
@@ -20,7 +22,18 @@ export class ViewerController {
     // }
 
     // const user = this.userService.getById({ id: '' })
-    return { user: {} as UserDTO }
+    return {
+      user: {
+        emailVerified: true,
+        isAdmin: true,
+        permissions: [],
+        username: 'wfsdfs',
+        email: 'steven@poop.com',
+        name: '',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    }
     // return {} as UserDTO
   }
 

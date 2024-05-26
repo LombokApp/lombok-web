@@ -207,10 +207,65 @@ export interface UserDTO {
 export interface ViewerGetResponse {
     /**
      * 
-     * @type {UserDTO}
+     * @type {ViewerGetResponseUser}
      * @memberof ViewerGetResponse
      */
-    'user': UserDTO;
+    'user': ViewerGetResponseUser;
+}
+/**
+ * 
+ * @export
+ * @interface ViewerGetResponseUser
+ */
+export interface ViewerGetResponseUser {
+    /**
+     * 
+     * @type {any}
+     * @memberof ViewerGetResponseUser
+     */
+    'name'?: any;
+    /**
+     * 
+     * @type {any}
+     * @memberof ViewerGetResponseUser
+     */
+    'email'?: any;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ViewerGetResponseUser
+     */
+    'emailVerified': boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ViewerGetResponseUser
+     */
+    'isAdmin': boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof ViewerGetResponseUser
+     */
+    'username': string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ViewerGetResponseUser
+     */
+    'permissions': Array<string>;
+    /**
+     * 
+     * @type {string}
+     * @memberof ViewerGetResponseUser
+     */
+    'createdAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ViewerGetResponseUser
+     */
+    'updatedAt': string;
 }
 
 /**
@@ -422,7 +477,7 @@ export const EventApiAxiosParamCreator = function (configuration?: Configuration
          * @throws {RequiredError}
          */
         getAppInfo: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/{eventId}`;
+            const localVarPath = `/events/{eventId}`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -517,7 +572,7 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
          * @throws {RequiredError}
          */
         getAppInfo: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/{folderId}`;
+            const localVarPath = `/folders/{folderId}`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;

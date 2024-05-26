@@ -59,7 +59,7 @@ export declare const schema: {
                 readonly tags: readonly ["Auth"];
             };
         };
-        readonly "/{eventId}": {
+        readonly "/events/{eventId}": {
             readonly get: {
                 readonly operationId: "getAppInfo";
                 readonly parameters: readonly [];
@@ -78,7 +78,7 @@ export declare const schema: {
                 readonly tags: readonly ["Event"];
             };
         };
-        readonly "/{folderId}": {
+        readonly "/folders/{folderId}": {
             readonly get: {
                 readonly operationId: "getAppInfo";
                 readonly parameters: readonly [];
@@ -301,7 +301,39 @@ export declare const schema: {
                 readonly type: "object";
                 readonly properties: {
                     readonly user: {
-                        readonly $ref: "#/components/schemas/UserDTO";
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly name: {
+                                readonly type: readonly ["string", "null"];
+                            };
+                            readonly email: {
+                                readonly type: readonly ["string", "null"];
+                            };
+                            readonly emailVerified: {
+                                readonly type: "boolean";
+                            };
+                            readonly isAdmin: {
+                                readonly type: "boolean";
+                            };
+                            readonly username: {
+                                readonly type: "string";
+                            };
+                            readonly permissions: {
+                                readonly type: "array";
+                                readonly items: {
+                                    readonly type: "string";
+                                };
+                            };
+                            readonly createdAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                            readonly updatedAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                        };
+                        readonly required: readonly ["emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
                     };
                 };
                 readonly required: readonly ["user"];

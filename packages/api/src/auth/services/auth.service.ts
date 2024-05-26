@@ -139,7 +139,7 @@ export class AuthService {
       throw new AccessTokenInvalidException()
     }
 
-    const parsed = this.jwtService.verifyModuleJWT(
+    const parsed = this.jwtService.verifyAppJWT(
       moduleId,
       module.publicKey,
       tokenString,

@@ -1,5 +1,10 @@
-import type { UserDTO } from '../user.dto'
+import { createZodDto } from '@anatine/zod-nestjs'
+import { z } from 'zod'
 
-export class ViewerGetResponse {
-  user: UserDTO
-}
+import { userSchema } from '../user.dto'
+
+export const viewerGetResponseSchema = z.object({
+  user: userSchema,
+})
+
+export class ViewerGetResponse extends createZodDto(viewerGetResponseSchema) {}

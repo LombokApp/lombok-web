@@ -63,7 +63,7 @@ export const schema = {
         ]
       }
     },
-    "/{eventId}": {
+    "/events/{eventId}": {
       "get": {
         "operationId": "getAppInfo",
         "parameters": [],
@@ -84,7 +84,7 @@ export const schema = {
         ]
       }
     },
-    "/{folderId}": {
+    "/folders/{folderId}": {
       "get": {
         "operationId": "getAppInfo",
         "parameters": [],
@@ -346,7 +346,52 @@ export const schema = {
         "type": "object",
         "properties": {
           "user": {
-            "$ref": "#/components/schemas/UserDTO"
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "email": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "emailVerified": {
+                "type": "boolean"
+              },
+              "isAdmin": {
+                "type": "boolean"
+              },
+              "username": {
+                "type": "string"
+              },
+              "permissions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "emailVerified",
+              "isAdmin",
+              "username",
+              "permissions",
+              "createdAt",
+              "updatedAt"
+            ]
           }
         },
         "required": [

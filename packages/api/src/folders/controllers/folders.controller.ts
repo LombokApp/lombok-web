@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger'
 
 import { FolderService } from '../services/folder.service'
 
-@Controller()
+@Controller('/folders')
 @ApiTags('Folders')
 export class FoldersController {
   constructor(private readonly folderService: FolderService) {}

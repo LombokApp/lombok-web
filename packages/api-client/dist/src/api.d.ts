@@ -197,10 +197,65 @@ export interface UserDTO {
 export interface ViewerGetResponse {
     /**
      *
-     * @type {UserDTO}
+     * @type {ViewerGetResponseUser}
      * @memberof ViewerGetResponse
      */
-    'user': UserDTO;
+    'user': ViewerGetResponseUser;
+}
+/**
+ *
+ * @export
+ * @interface ViewerGetResponseUser
+ */
+export interface ViewerGetResponseUser {
+    /**
+     *
+     * @type {any}
+     * @memberof ViewerGetResponseUser
+     */
+    'name'?: any;
+    /**
+     *
+     * @type {any}
+     * @memberof ViewerGetResponseUser
+     */
+    'email'?: any;
+    /**
+     *
+     * @type {boolean}
+     * @memberof ViewerGetResponseUser
+     */
+    'emailVerified': boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof ViewerGetResponseUser
+     */
+    'isAdmin': boolean;
+    /**
+     *
+     * @type {string}
+     * @memberof ViewerGetResponseUser
+     */
+    'username': string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof ViewerGetResponseUser
+     */
+    'permissions': Array<string>;
+    /**
+     *
+     * @type {string}
+     * @memberof ViewerGetResponseUser
+     */
+    'createdAt': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ViewerGetResponseUser
+     */
+    'updatedAt': string;
 }
 /**
  * AuthApi - axios parameter creator

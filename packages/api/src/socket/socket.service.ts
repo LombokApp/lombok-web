@@ -68,7 +68,7 @@ export class SocketService implements OnModuleInit, OnModuleDestroy {
     this.appServer.use((client, next) => {
       const auth = client.handshake.auth
       if (ModuleAuthPayload.guard(auth)) {
-        const jwt = this.jwtService.decodeModuleJWT(auth.token)
+        const jwt = this.jwtService.decodeJWT(auth.token)
         const sub = jwt?.payload.sub as string | undefined
         const appIdentifier = sub?.startsWith('APP:')
           ? sub.slice('APP:'.length)
@@ -93,7 +93,7 @@ export class SocketService implements OnModuleInit, OnModuleDestroy {
 
           try {
             // verifies the token using the publicKey we have on file for this app
-            const _verifiedJwt = this.jwtService.verifyModuleJWT(
+            const _verifiedJwt = this.jwtService.verifyAppJWT(
               appIdentifier,
               app.publicKey,
               auth.token,
