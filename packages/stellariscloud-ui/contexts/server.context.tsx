@@ -2,7 +2,7 @@ import type {
   ListModules200Response,
   ServerSettings,
 } from '@stellariscloud/api-client'
-import type { AppPushMessage, ModuleMenuItem } from '@stellariscloud/types'
+import type { AppMenuItem, AppPushMessage } from '@stellariscloud/types'
 import { ServerPushMessage } from '@stellariscloud/types'
 import React from 'react'
 import type { Socket } from 'socket.io-client'
@@ -15,7 +15,7 @@ import type { LogLevel } from './logging.context'
 export interface IServerContext {
   refreshModules: () => Promise<void>
   refreshSettings: () => Promise<void>
-  menuItems: ModuleMenuItemAndHref[]
+  menuItems: AppMenuItemAndHref[]
   settings?: ServerSettings
   modules?: ListModules200Response
   subscribeToMessages: (handler: SocketMessageHandler) => void
@@ -40,10 +40,10 @@ export interface Notification {
   id?: string
 }
 
-export type ModuleMenuItemAndHref = {
+export type AppMenuItemAndHref = {
   href: string
-  moduleIdentifier: string
-} & ModuleMenuItem
+  appIdentifier: string
+} & AppMenuItem
 
 export const ServerContextProvider = ({
   children,
@@ -53,9 +53,8 @@ export const ServerContextProvider = ({
   const _localFileCacheContext = useLocalFileCacheContext()
   //   const loggingContext = useLoggingContext()
   const [serverSettings, setServerSettings] = React.useState<ServerSettings>()
-  const [menuItems, setMenuItems] = React.useState<ModuleMenuItemAndHref[]>()
-  const [serverModules, setServerModules] =
-    React.useState<ListModules200Response>()
+  const [menuItems, setMenuItems] = React.useState<AppMenuItemAndHref[]>()
+  const [appModules, setServerApps] = React.useState<ListModules200Response>()
 
   const fetchServerSettings = React.useCallback(
     () =>
@@ -67,23 +66,20 @@ export const ServerContextProvider = ({
 
   const fetchServerModules = React.useCallback(
     async () =>
-      serverApi.listModules().then((response) => {
-        setServerModules(response.data)
+      serverApi.listApps().then((response) => {
+        setServerApps(response.data)
         setMenuItems(
-          response.data.installed.reduce<ModuleMenuItemAndHref[]>(
-            (acc, next) => {
-              return acc.concat(
-                next.config.menuItems.map((item) => ({
-                  iconPath: item.iconPath,
-                  href: `/modules/${next.identifier}/${item.uiName}`,
-                  label: item.label,
-                  uiName: item.uiName,
-                  moduleIdentifier: next.identifier,
-                })),
-              )
-            },
-            [],
-          ),
+          response.data.installed.reduce<AppMenuItemAndHref[]>((acc, next) => {
+            return acc.concat(
+              next.config.menuItems.map((item) => ({
+                iconPath: item.iconPath,
+                href: `/apps/${next.identifier}/${item.uiName}`,
+                label: item.label,
+                uiName: item.uiName,
+                appIdentifier: next.identifier,
+              })),
+            )
+          }, []),
         )
       }),
     [],
@@ -124,7 +120,7 @@ export const ServerContextProvider = ({
         socketConnected,
         menuItems: menuItems ?? [],
         settings: serverSettings,
-        modules: serverModules,
+        apps: appModules,
         subscribeToMessages,
         unsubscribeFromMessages,
         socket,

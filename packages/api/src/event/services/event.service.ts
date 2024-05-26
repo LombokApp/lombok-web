@@ -24,15 +24,15 @@ export class EventService {
     eventKey,
     data,
   }: {
-    appIdentifier: string // id of the inserting module
+    appIdentifier: string // id of the inserting app
     eventKey: string
     data: any
   }) {
     const now = new Date()
 
-    // check this module can emit this event
-    const actorModule = await this.appService.getModule(appIdentifier)
-    if (!actorModule?.emitEvents.includes(eventKey)) {
+    // check this app can emit this event
+    const actorApp = await this.appService.getApp(appIdentifier)
+    if (!actorApp?.emitEvents.includes(eventKey)) {
       throw new HttpException('ForbiddenEmitEvent', HttpStatus.FORBIDDEN)
     }
 
@@ -45,8 +45,8 @@ export class EventService {
         .returning()
       const eventReceipts: NewEventReceipt[] = await this.appService
         .listApps()
-        .then((modules) =>
-          modules
+        .then((apps) =>
+          apps
             .filter((m) => m.config.subscribedEvents.includes(eventKey))
             .map((m) => ({
               appIdentifier: m.identifier,
@@ -72,8 +72,8 @@ export class EventService {
       .where(isNull(eventReceiptsTable.startedAt))
       .groupBy(eventReceiptsTable.eventKey, eventReceiptsTable.appIdentifier)
 
-    const pendingEventsByModule = pendingEventReceipts.reduce<{
-      [moduleId: string]: { [key: string]: number }
+    const pendingEventsByApp = pendingEventReceipts.reduce<{
+      [appId: string]: { [key: string]: number }
     }>(
       (acc, next) => ({
         ...acc,
@@ -85,12 +85,12 @@ export class EventService {
       {},
     )
 
-    for (const appId of Object.keys(pendingEventsByModule)) {
-      for (const eventKey of Object.keys(pendingEventsByModule[appId])) {
+    for (const appId of Object.keys(pendingEventsByApp)) {
+      for (const eventKey of Object.keys(pendingEventsByApp[appId])) {
         const jobPayload = {
           appId,
           eventKey,
-          eventCount: pendingEventsByModule[appId][eventKey],
+          eventCount: pendingEventsByApp[appId][eventKey],
         }
         await this.queueService.addJob(
           QueueName.NotifyAppOfPendingEvents,

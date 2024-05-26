@@ -147,7 +147,7 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
   const hideSidebar = !hideHeader
   const scheme = 'http' //TODO: Fix!
 
-  // console.log('moduleUIs:', moduleUIs)
+  // console.log('appUIs:', appUIs)
   return (
     <div className="h-full overflow-hidden">
       <div
@@ -210,7 +210,7 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
                             width={40}
                             height={40}
                             alt={item.label}
-                            src={`${scheme}://${item.uiName}.${item.moduleIdentifier}.modules.${process.env.NEXT_PUBLIC_API_HOST}${item.iconPath}`}
+                            src={`${scheme}://${item.uiName}.${item.appIdentifier}.modules.${process.env.NEXT_PUBLIC_API_HOST}${item.iconPath}`}
                             aria-hidden="true"
                           />
                         ) : (

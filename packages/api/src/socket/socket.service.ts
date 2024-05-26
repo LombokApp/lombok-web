@@ -69,7 +69,7 @@ export class SocketService implements OnModuleInit, OnModuleDestroy {
       const auth = client.handshake.auth
       if (ModuleAuthPayload.guard(auth)) {
         const jwt = this.jwtService.decodeJWT(auth.token)
-        const sub = jwt?.payload.sub as string | undefined
+        const sub = jwt.payload.sub as string | undefined
         const appIdentifier = sub?.startsWith('APP:')
           ? sub.slice('APP:'.length)
           : undefined
@@ -80,7 +80,7 @@ export class SocketService implements OnModuleInit, OnModuleDestroy {
           next(new UnauthorizedException())
           return
         }
-        void this.appService.getModule(appIdentifier).then((app) => {
+        void this.appService.getApp(appIdentifier).then((app) => {
           if (!app) {
             console.log(
               'App "%s" not recognised. Disconnecting...',
@@ -120,7 +120,7 @@ export class SocketService implements OnModuleInit, OnModuleDestroy {
 
           // register listener for requests from the app
           client.on('APP_API', async (message, ack) => {
-            const response = await this.appService.handleModuleRequest(
+            const response = await this.appService.handleAppRequest(
               auth.appWorkerId,
               appIdentifier,
               message,

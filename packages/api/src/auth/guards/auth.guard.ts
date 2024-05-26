@@ -4,7 +4,6 @@ import { Reflector } from '@nestjs/core'
 import type { Request } from 'express'
 
 import {
-  APP_JWT_SUB_PREFIX,
   APP_USER_JWT_SUB_PREFIX,
   AuthTokenInvalidError,
   JWTService,
@@ -15,7 +14,7 @@ import { AllowedActor } from './auth.guard-config'
 const BEARER_PREFIX = 'Bearer '
 
 interface AuthGuardConfigType {
-  config: AllowedActor[]
+  allowedActors: AllowedActor[]
 }
 
 @Injectable()
@@ -35,19 +34,19 @@ export class AuthGuard implements CanActivate {
         throw new AuthTokenInvalidError(token)
       }
 
-      if (decodedJWT.payload.sub?.startsWith(USER_JWT_SUB_PREFIX)) {
+      if (
+        decodedJWT.payload.sub?.startsWith(USER_JWT_SUB_PREFIX) &&
+        config.allowedActors.includes(AllowedActor.USER)
+      ) {
         // user
         this.jwtService.verifyJWT(token)
         return true
-      } else if (decodedJWT.payload.sub?.startsWith(APP_USER_JWT_SUB_PREFIX)) {
+      } else if (
+        decodedJWT.payload.sub?.startsWith(APP_USER_JWT_SUB_PREFIX) &&
+        config.allowedActors.includes(AllowedActor.APP_USER)
+      ) {
         // app user
-        this.jwtService.verifyAppUserJWT(token)
-        return true
-      } else if (decodedJWT.payload.sub?.startsWith(APP_JWT_SUB_PREFIX)) {
-        // app
-        const publicKey = '' // load app public key
-        const appIdentifier = ''
-        this.jwtService.verifyAppJWT(appIdentifier, publicKey, token)
+        this.jwtService.verifyAppUserJWT('', token)
         return true
       }
 
@@ -57,7 +56,7 @@ export class AuthGuard implements CanActivate {
     throw new UnauthorizedException()
   }
 
-  resolveConfig(context: ExecutionContext) {
+  resolveConfig(context: ExecutionContext): AuthGuardConfigType {
     const handlerConfig = this.reflector.get<AuthGuardConfigType | undefined>(
       'authGuardConfig',
       context.getHandler(),
@@ -72,6 +71,6 @@ export class AuthGuard implements CanActivate {
       return controllerConfig
     }
 
-    return { allowedActors: [AllowedActor.APP, AllowedActor.APP_USER] }
+    return { allowedActors: [AllowedActor.USER, AllowedActor.APP_USER] }
   }
 }

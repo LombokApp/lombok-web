@@ -3,7 +3,6 @@ export const AUTH_GUARD_CONFIG_KEY = 'AUTH_GUARD_CONFIG'
 
 export enum AllowedActor {
   USER = 'USER',
-  APP = 'APP',
   APP_USER = 'APP_USER',
 }
 

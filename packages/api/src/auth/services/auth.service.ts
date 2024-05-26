@@ -1,5 +1,4 @@
 import { ConflictException, Injectable } from '@nestjs/common'
-import type { ModuleConfig } from '@stellariscloud/types'
 import { addMs, earliest } from '@stellariscloud/utils'
 import { eq, or } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
@@ -13,7 +12,6 @@ import { AuthDurationMs } from '../constants/duration.constants'
 import type { LoginCredentialsDTO } from '../dto/login-credentials.dto'
 import type { SignupCredentialsDTO } from '../dto/signup-credentials.dto'
 import type { Session } from '../entities/session.entity'
-import { AccessTokenInvalidException } from '../exceptions/auth-token-invalid.exception'
 import { LoginInvalidException } from '../exceptions/login-invalid.exception'
 import { SessionInvalidException } from '../exceptions/session-invalid.exception'
 import { authHelper } from '../utils/auth-helper'
@@ -126,32 +124,6 @@ export class AuthService {
         .createPasswordHash(password, user.passwordSalt)
         .compare(Buffer.from(user.passwordHash, 'hex')) === 0
     )
-  }
-
-  async verifyModuleWithToken(
-    moduleId: string,
-    tokenString: string,
-  ): Promise<{ module?: ModuleConfig }> {
-    const module: ModuleConfig | undefined =
-      await this.appService.getModule(moduleId)
-
-    if (!module) {
-      throw new AccessTokenInvalidException()
-    }
-
-    const parsed = this.jwtService.verifyAppJWT(
-      moduleId,
-      module.publicKey,
-      tokenString,
-    )
-
-    if (!parsed.sub?.startsWith('MODULE')) {
-      throw new AccessTokenInvalidException()
-    }
-
-    return Promise.resolve({
-      module,
-    })
   }
 
   async verifySessionWithAccessToken(

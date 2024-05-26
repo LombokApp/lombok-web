@@ -206,7 +206,7 @@ export class FolderService implements OnModuleInit {
       } else if (withExistingUserLocation.success) {
         // user has provided another location ID they apparently own, and a bucket + prefix override
         const existingLocation =
-          await this.ormService.db.query.storageLocationsTable.findFirst({
+          await this.ormService.db.query.locationsTable.findFirst({
             where: and(
               eq(locationsTable.providerType, 'USER'),
               eq(locationsTable.userId, userId),
@@ -319,11 +319,11 @@ export class FolderService implements OnModuleInit {
         )[0]
 
     // await this.ormService.db
-    //   .insert(storageLocationsTable)
+    //   .insert(locationsTable)
     //   .values(contentLocation)
 
     // await this.ormService.db
-    //   .insert(storageLocationsTable)
+    //   .insert(locationsTable)
     //   .values(metadataLocation)
 
     const folder = (
@@ -757,7 +757,7 @@ export class FolderService implements OnModuleInit {
     const { folder } = await this.getFolderAsUser({ folderId, userId })
 
     const contentStorageLocation =
-      await this.ormService.db.query.storageLocationsTable.findFirst({
+      await this.ormService.db.query.locationsTable.findFirst({
         where: eq(locationsTable.id, folder.contentLocationId),
       })
 

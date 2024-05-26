@@ -24,7 +24,6 @@ import { coreConfig } from '../../core/config'
 const ALGORITHM = 'HS256'
 
 export const USER_JWT_SUB_PREFIX = 'USER'
-export const APP_JWT_SUB_PREFIX = 'APP'
 export const APP_USER_JWT_SUB_PREFIX = 'APP_USER'
 
 export const accessTokenType: r.Runtype<AccessTokenJWT> = r.Record({

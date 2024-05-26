@@ -15,10 +15,9 @@ export class LocationsService {
   async listServerLocationsAsUser(_userId: string) {
     // TODO: check ACL
     // TODO: add type filter
-    const results =
-      await this.ormService.db.query.storageLocationsTable.findMany({
-        where: eq(locationsTable.providerType, 'SERVER'),
-      })
+    const results = await this.ormService.db.query.locationsTable.findMany({
+      where: eq(locationsTable.providerType, 'SERVER'),
+    })
 
     return results
   }

@@ -1,9 +1,9 @@
 import { jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
-export const moduleLogEntriesTable = pgTable('module_log_entries', {
+export const appLogEntriesTable = pgTable('app_log_entries', {
   id: uuid('id').primaryKey(),
   name: text('name').notNull(),
-  moduleId: uuid('moduleId').notNull(),
+  appId: uuid('appId').notNull(),
   message: text('message').notNull(),
   data: jsonb('data').$type<any>(),
   level: text('level').notNull().default('info'),
@@ -11,5 +11,5 @@ export const moduleLogEntriesTable = pgTable('module_log_entries', {
   updatedAt: timestamp('updatedAt').notNull(),
 })
 
-export type ModuleLogEntry = typeof moduleLogEntriesTable.$inferSelect
-export type NewModuleLogEntry = typeof moduleLogEntriesTable.$inferInsert
+export type AppLogEntry = typeof appLogEntriesTable.$inferSelect
+export type NewAppLogEntry = typeof appLogEntriesTable.$inferInsert

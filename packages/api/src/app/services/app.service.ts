@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import type { ConnectedAppInstance, ModuleConfig } from '@stellariscloud/types'
+import type { AppConfig, ConnectedAppInstance } from '@stellariscloud/types'
 import { MediaType, SignedURLsRequestMethod } from '@stellariscloud/types'
 import { EnumType } from '@stellariscloud/utils'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
@@ -25,10 +25,10 @@ import { S3Service } from 'src/s3/s3.service'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
-import { ModuleSocketAPIRequest } from '../constants/app-api-messages'
-import { moduleLogEntriesTable } from '../entities/app-log-entry.entity'
+import { AppSocketAPIRequest } from '../constants/app-api-messages'
+import { appLogEntriesTable } from '../entities/app-log-entry.entity'
 
-const FROM_DISK_MODULE_TREE_REDIS_KEY = '__STELLARIS_FROM_DISK_MODULE_TREE'
+const FROM_DISK_APP_TREE_REDIS_KEY = '__STELLARIS_FROM_DISK_APP_TREE'
 
 export type MetadataUploadUrlsResponse = {
   folderId: string
@@ -36,7 +36,7 @@ export type MetadataUploadUrlsResponse = {
   url: string
 }[]
 
-const ModuleLogEntryValidator = r.Record({
+const AppLogEntryValidator = r.Record({
   name: r.String,
   message: r.String,
   level: r.String,
@@ -123,72 +123,66 @@ export class AppService {
     private readonly s3Service: S3Service,
   ) {}
 
-  _modulesFromDisk: { [key: string]: { config: ModuleConfig } } = {}
-
-  async listModulesAsAdmin(user: User) {
+  async listAppsAsAdmin(user: User) {
     if (!user.isAdmin) {
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND)
     }
-    const connectedModuleInstances = await this.getAppConnections()
+    const connectedAppInstances = await this.getAppConnections()
     return {
-      connected: connectedModuleInstances,
+      connected: connectedAppInstances,
       installed: await this.listApps(),
     }
   }
 
   async listApps() {
-    const modulesFromDiskRaw = await this.redisService.client.GET(
-      FROM_DISK_MODULE_TREE_REDIS_KEY,
+    const appsFromDiskRaw = await this.redisService.client.GET(
+      FROM_DISK_APP_TREE_REDIS_KEY,
     )
-    const modulesFromDisk: ReturnType<typeof this.loadAppsFromDisk> =
-      modulesFromDiskRaw ? JSON.parse(modulesFromDiskRaw) : {}
+    const appsFromDisk: ReturnType<typeof this.loadAppsFromDisk> =
+      appsFromDiskRaw ? JSON.parse(appsFromDiskRaw) : {}
 
-    return Object.keys(modulesFromDisk).map((moduleName) => {
-      const module = modulesFromDisk[moduleName]
+    return Object.keys(appsFromDisk).map((appName) => {
+      const app = appsFromDisk[appName]
       return {
-        identifier: moduleName,
-        config: module.config,
+        identifier: appName,
+        config: app.config,
       }
     })
   }
 
-  async getModuleAsAdmin(user: User, moduleName: string) {
+  async getAppAsAdmin(user: User, moduleName: string) {
     if (!user.isAdmin) {
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND)
     }
 
-    return this.getModule(moduleName)
+    return this.getApp(moduleName)
   }
 
-  async getModule(moduleName: string): Promise<ModuleConfig | undefined> {
+  async getApp(appName: string): Promise<AppConfig | undefined> {
     const modulesFromDiskRaw = await this.redisService.client.GET(
-      FROM_DISK_MODULE_TREE_REDIS_KEY,
+      FROM_DISK_APP_TREE_REDIS_KEY,
     )
     const modulesFromDisk: ReturnType<typeof this.loadAppsFromDisk> =
       modulesFromDiskRaw ? JSON.parse(modulesFromDiskRaw) : {}
 
-    return moduleName in modulesFromDisk
-      ? modulesFromDisk[moduleName].config
+    return appName in modulesFromDisk
+      ? modulesFromDisk[appName].config
       : undefined
   }
 
-  async handleModuleRequest(
-    handlerId: string,
-    moduleName: string,
-    message: any,
-  ) {
+  async handleAppRequest(handlerId: string, appName: string, message: any) {
     const now = new Date()
-    if (ModuleSocketAPIRequest.guard(message)) {
+    if (AppSocketAPIRequest.guard(message)) {
       const requestData = message.data
       switch (message.name) {
         case 'SAVE_LOG_ENTRY':
-          if (ModuleLogEntryValidator.guard(requestData)) {
-            await this.ormService.db.insert(moduleLogEntriesTable).values([
+          if (AppLogEntryValidator.guard(requestData)) {
+            await this.ormService.db.insert(appLogEntriesTable).values([
               {
                 ...requestData,
                 createdAt: now,
                 updatedAt: now,
-                moduleId: moduleName,
+                appId: appName,
                 id: uuidV4(),
               },
             ])
@@ -267,7 +261,7 @@ export class AppService {
               await this.ormService.db.query.eventReceiptsTable.findFirst({
                 where: and(
                   eq(eventReceiptsTable.id, requestData),
-                  eq(eventReceiptsTable.appIdentifier, moduleName),
+                  eq(eventReceiptsTable.appIdentifier, appName),
                 ),
               })
             if (
@@ -297,7 +291,7 @@ export class AppService {
             const eventReceipt =
               await this.ormService.db.query.eventReceiptsTable.findFirst({
                 where: and(
-                  eq(eventReceiptsTable.appIdentifier, moduleName),
+                  eq(eventReceiptsTable.appIdentifier, appName),
                   inArray(eventReceiptsTable.eventKey, requestData.eventKeys),
                   isNull(eventReceiptsTable.startedAt),
                 ),
@@ -344,7 +338,7 @@ export class AppService {
               await this.ormService.db.query.eventReceiptsTable.findFirst({
                 where: and(
                   eq(eventReceiptsTable.id, requestData.eventReceiptId),
-                  eq(eventReceiptsTable.appIdentifier, moduleName),
+                  eq(eventReceiptsTable.appIdentifier, appName),
                 ),
               })
             if (
@@ -368,7 +362,7 @@ export class AppService {
                 .where(
                   and(
                     eq(eventReceiptsTable.id, eventReceipt.id),
-                    eq(eventReceiptsTable.appIdentifier, moduleName),
+                    eq(eventReceiptsTable.appIdentifier, appName),
                   ),
                 ),
             }
@@ -430,7 +424,7 @@ export class AppService {
             }
 
             const metadataLocation =
-              await this.ormService.db.query.storageLocationsTable.findFirst({
+              await this.ormService.db.query.locationsTable.findFirst({
                 where: eq(locationsTable.id, folder.metadataLocationId),
               })
 
@@ -477,8 +471,8 @@ export class AppService {
     //   }
 
     // const metadataLocation =
-    //   await this.ormService.db.query.storageLocationsTable.findFirst({
-    //     where: eq(storageLocationsTable.id, folder.metadataLocationId),
+    //   await this.ormService.db.query.locationsTable.findFirst({
+    //     where: eq(locationsTable.id, folder.metadataLocationId),
     //   })
 
     // if (!metadataLocation) {
@@ -586,7 +580,7 @@ export class AppService {
       }
 
       const contentLocation =
-        await this.ormService.db.query.storageLocationsTable.findFirst({
+        await this.ormService.db.query.locationsTable.findFirst({
           where: eq(locationsTable.id, folder.metadataLocationId),
         })
 
@@ -626,13 +620,13 @@ export class AppService {
     }))
   }
 
-  public async updateModulesFromDisk(modulesDirectory: string) {
-    console.log('Refreshing modules from disk...')
+  public async updateAppsFromDisk(modulesDirectory: string) {
+    console.log('Refreshing apps from disk...')
 
     // load the modules from disk
     const modulesFromDisk = this.loadAppsFromDisk(modulesDirectory)
     console.log(
-      'Loaded modules from disk:',
+      'Loaded apps from disk:',
       JSON.stringify(modulesFromDisk, null, 2),
     )
 
@@ -649,7 +643,7 @@ export class AppService {
             moduleUi,
             filename,
           )
-          const REDIS_KEY = `MODULE_UI:${module}:${moduleUi}:${filename}`
+          const REDIS_KEY = `APP_UI:${module}:${moduleUi}:${filename}`
           await this.redisService.client.SET(
             REDIS_KEY,
             fs.readFileSync(fullFilePath),
@@ -660,7 +654,7 @@ export class AppService {
 
     // push module config tree into redis
     await this.redisService.client.SET(
-      FROM_DISK_MODULE_TREE_REDIS_KEY,
+      FROM_DISK_APP_TREE_REDIS_KEY,
       JSON.stringify(modulesFromDisk),
     )
   }
@@ -668,7 +662,7 @@ export class AppService {
   public loadAppsFromDisk(modulesDirectory: string) {
     const configs: {
       [key: string]: {
-        config: ModuleConfig
+        config: AppConfig
         ui: {
           [key: string]: {
             path: string

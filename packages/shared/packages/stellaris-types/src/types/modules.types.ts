@@ -1,21 +1,21 @@
-export interface ModuleAction {
+export interface AppAction {
   key: string
   description: string
 }
 
-export interface ModuleMenuItem {
+export interface AppMenuItem {
   label: string
   iconPath?: string
   uiName: string
 }
 
-export interface ModuleConfig {
+export interface AppConfig {
   publicKey: string
   description: string
   subscribedEvents: string[]
   emitEvents: string[]
-  actions: { folder: ModuleAction[]; object: ModuleAction[] }
-  menuItems: ModuleMenuItem[]
+  actions: { folder: AppAction[]; object: AppAction[] }
+  menuItems: AppMenuItem[]
 }
 
 export interface ConnectedAppInstancesMap {
@@ -31,5 +31,5 @@ export interface ConnectedAppInstance {
 
 export interface AppData {
   identifier: string
-  config: ModuleConfig
+  config: AppConfig
 }

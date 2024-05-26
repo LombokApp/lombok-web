@@ -1,6 +1,6 @@
 import * as r from 'runtypes'
 
-export const ModuleSocketAPIRequest = r.Record({
+export const AppSocketAPIRequest = r.Record({
   name: r
     .Literal('SAVE_LOG_ENTRY')
     .Or(r.Literal('GET_CONTENT_SIGNED_URLS'))
