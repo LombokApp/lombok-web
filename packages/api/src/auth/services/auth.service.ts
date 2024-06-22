@@ -130,7 +130,7 @@ export class AuthService {
     tokenString: string,
   ): Promise<{ user: User; session: Session }> {
     const accessToken = AccessTokenJWT.parse(
-      this.jwtService.verifyJWT(tokenString),
+      this.jwtService.verifyUserJWT(tokenString),
     )
     const session =
       await this.sessionService.verifySessionWithAccessToken(accessToken)

@@ -25,6 +25,7 @@ const ALGORITHM = 'HS256'
 
 export const USER_JWT_SUB_PREFIX = 'USER'
 export const APP_USER_JWT_SUB_PREFIX = 'APP_USER'
+export const APP_JWT_SUB_PREFIX = 'APP'
 
 export const accessTokenType: r.Runtype<AccessTokenJWT> = r.Record({
   aud: r.String,
@@ -131,12 +132,12 @@ export class JWTService {
       expiresIn: AuthDurationSeconds.AccessToken,
     })
 
-    AccessTokenJWT.parse(this.verifyJWT(token))
+    AccessTokenJWT.parse(this.verifyUserJWT(token))
 
     return token
   }
 
-  verifyJWT(token: string) {
+  verifyUserJWT(token: string) {
     try {
       return jwt.verify(token, this._authConfig.authJwtSecret, {
         algorithms: [ALGORITHM],
@@ -153,11 +154,17 @@ export class JWTService {
     }
   }
 
-  verifyAppUserJWT(appIdentifier: string, token: string) {
+  verifyAppUserJWT({
+    appIdentifier,
+    token,
+  }: {
+    appIdentifier: string
+    token: string
+  }) {
     try {
       return jwt.verify(token, this._authConfig.authJwtSecret, {
         algorithms: ['RS512'],
-        subject: `APP_USER:${appIdentifier}`,
+        subject: `${APP_USER_JWT_SUB_PREFIX}:${appIdentifier}`,
       }) as JwtPayload
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
@@ -170,11 +177,19 @@ export class JWTService {
     }
   }
 
-  verifyAppJWT(appIdentifier: string, publicKey: string, token: string) {
+  verifyAppJWT({
+    appIdentifier,
+    publicKey,
+    token,
+  }: {
+    appIdentifier: string
+    publicKey: string
+    token: string
+  }) {
     try {
       return jwt.verify(token, publicKey, {
         algorithms: ['RS512'],
-        subject: `APP:${appIdentifier}`,
+        subject: `${APP_JWT_SUB_PREFIX}:${appIdentifier}`,
       }) as JwtPayload
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
@@ -192,7 +207,7 @@ export class JWTService {
       const decodedJWT = jwt.decode(token, {
         complete: true,
       })
-      if (!decodedJWT?.payload || typeof decodedJWT.payload == 'string') {
+      if (!decodedJWT?.payload) {
         throw new AuthTokenInvalidError(token)
       }
       return decodedJWT

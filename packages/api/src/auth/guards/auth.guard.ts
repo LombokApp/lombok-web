@@ -30,6 +30,8 @@ export class AuthGuard implements CanActivate {
       const config = this.resolveConfig(context)
       const token = authHeader.slice(BEARER_PREFIX.length)
       const decodedJWT = this.jwtService.decodeJWT(token)
+      console.log('decodedJWT:', decodedJWT)
+
       if (!decodedJWT.payload || typeof decodedJWT.payload == 'string') {
         throw new AuthTokenInvalidError(token)
       }
@@ -39,18 +41,17 @@ export class AuthGuard implements CanActivate {
         config.allowedActors.includes(AllowedActor.USER)
       ) {
         // user
-        this.jwtService.verifyJWT(token)
+        this.jwtService.verifyUserJWT(token)
         return true
       } else if (
         decodedJWT.payload.sub?.startsWith(APP_USER_JWT_SUB_PREFIX) &&
         config.allowedActors.includes(AllowedActor.APP_USER)
       ) {
         // app user
-        this.jwtService.verifyAppUserJWT('', token)
-        return true
+        // this.jwtService.verifyAppUserJWT({ token, appIdentifier: '' })
+        return false // TODO: Change to true when app user JWT token verification works
       }
 
-      console.log('decodedJWT:', decodedJWT)
       return true
     }
     throw new UnauthorizedException()

@@ -93,11 +93,11 @@ export class SocketService implements OnModuleInit, OnModuleDestroy {
 
           try {
             // verifies the token using the publicKey we have on file for this app
-            const _verifiedJwt = this.jwtService.verifyAppJWT(
+            const _verifiedJwt = this.jwtService.verifyAppJWT({
               appIdentifier,
-              app.publicKey,
-              auth.token,
-            )
+              publicKey: app.publicKey,
+              token: auth.token,
+            })
             // console.log('verifiedJwt:', _verifiedJwt)
           } catch (e: any) {
             console.log('SOCKET JWT VERIFY ERROR:', e)
@@ -151,7 +151,7 @@ export class SocketService implements OnModuleInit, OnModuleDestroy {
         }
         try {
           const verifiedToken = AccessTokenJWT.parse(
-            this.jwtService.verifyJWT(token),
+            this.jwtService.verifyUserJWT(token),
           )
           const scpParts = verifiedToken.scp[0]?.split(':') ?? []
           if (scpParts[0] !== 'socket_connect') {

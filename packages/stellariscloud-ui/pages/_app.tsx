@@ -89,8 +89,6 @@ const UnauthenticatedContent = ({ Component, pageProps }: AppProps) => {
       >
         <div className={clsx('relative h-full w-full flex')}>
           <div className="relative w-full">
-            {/* TODO: Fix this type issue on "AppProps['Component']" */}
-            {/* @ts-expect-error - some type issue with AppProps['Component']  */}
             <Component {...pageProps} />
           </div>
         </div>
@@ -272,8 +270,6 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
         )}
 
         <main className={clsx('overflow-hidden flex-1', BODY_GRADIENT)}>
-          {/* TODO: Fix this type issue on "AppProps['Component']" */}
-          {/* @ts-expect-error - some type issue with AppProps['Component']  */}
           <Component {...pageProps} />
         </main>
       </div>
