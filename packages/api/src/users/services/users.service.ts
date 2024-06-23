@@ -5,12 +5,11 @@ import { parseSort } from 'src/core/utils/sort.util'
 import { OrmService } from 'src/orm/orm.service'
 import { v4 as uuidV4 } from 'uuid'
 
+import type { CreateUserDTO } from '../dto/create-user.dto'
+import type { UpdateUserDTO } from '../dto/update-user.dto'
 import type { NewUser, User } from '../entities/user.entity'
 import { usersTable } from '../entities/user.entity'
 import { UserNotFoundException } from '../exceptions/user-not-found.exception'
-import type { CreateUserDTO } from '../dto/create-user.dto'
-import type { UpdateUserDTO } from '../dto/update-user.dto'
-import { UserAuthService } from './user-auth.service'
 
 export enum UserSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -29,10 +28,7 @@ export enum UserSort {
 
 @Injectable()
 export class UserService {
-  constructor(
-    private readonly ormService: OrmService,
-    private readonly userAuthService: UserAuthService,
-  ) {}
+  constructor(private readonly ormService: OrmService) {}
 
   async updateViewer(actor: User, { name }: { name: string }) {
     const updatedUser = (

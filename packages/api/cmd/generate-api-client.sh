@@ -1,7 +1,9 @@
 #!/usr/bin/env sh
 
 # Ensure the generated spec is up to date
+echo "doing generate"
 bun run metadata:generate
+echo "done generate"
 result=$?
 
 # Check the result

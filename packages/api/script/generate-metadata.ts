@@ -49,14 +49,17 @@ async function main() {
       methodKey,
   })
 
-  console.log('document:', JSON.stringify(document, null, 2))
+  // console.log('document:', JSON.stringify(document, null, 2))
 
   fs.writeFileSync(
     path.join(__dirname, '..', 'src', './openapi.json'),
     JSON.stringify(document, null, 2),
   )
 
-  console.log('Generated OpenAPI spec:', JSON.stringify(document, null, 2))
+  // console.log('Generated OpenAPI spec:', JSON.stringify(document, null, 2))
+  await app.close()
+  console.log('Done app close')
 }
 
 void main()
+console.log('Done generate metadata main')

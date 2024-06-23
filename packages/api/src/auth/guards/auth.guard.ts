@@ -1,7 +1,8 @@
 import type { CanActivate, ExecutionContext } from '@nestjs/common'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import type { Request } from 'express'
+import type { SCRequest } from 'src/users/controllers/viewer.controller'
+import { UserService } from 'src/users/services/users.service'
 
 import {
   APP_USER_JWT_SUB_PREFIX,
@@ -20,11 +21,13 @@ interface AuthGuardConfigType {
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
+    // @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
     private readonly jwtService: JWTService,
     private readonly reflector: Reflector,
   ) {}
-  canActivate(context: ExecutionContext): boolean | Promise<boolean> {
-    const request: Request = context.switchToHttp().getRequest()
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request: SCRequest = context.switchToHttp().getRequest()
     const authHeader = request.header('Authorization')
     if (authHeader?.startsWith(BEARER_PREFIX)) {
       const config = this.resolveConfig(context)
@@ -42,6 +45,10 @@ export class AuthGuard implements CanActivate {
       ) {
         // user
         this.jwtService.verifyUserJWT(token)
+        request.user = await this.userService.getById({
+          id: decodedJWT.payload.sub.split(':')[1],
+        })
+        // TODO: check user and handle errors
         return true
       } else if (
         decodedJWT.payload.sub?.startsWith(APP_USER_JWT_SUB_PREFIX) &&

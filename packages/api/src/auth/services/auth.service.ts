@@ -1,7 +1,11 @@
-import { ConflictException, Injectable } from '@nestjs/common'
+import {
+  ConflictException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common'
 import { addMs, earliest } from '@stellariscloud/utils'
 import { eq, or } from 'drizzle-orm'
-import { AppService } from 'src/app/services/app.service'
 import { AccessTokenJWT, JWTService } from 'src/auth/services/jwt.service'
 import { OrmService } from 'src/orm/orm.service'
 import type { NewUser, User } from 'src/users/entities/user.entity'
@@ -29,12 +33,15 @@ export const sessionExpiresAt = (createdAt: Date) =>
 
 @Injectable()
 export class AuthService {
+  sessionService: SessionService
+
   constructor(
     private readonly jwtService: JWTService,
-    private readonly appService: AppService,
     private readonly ormService: OrmService,
-    private readonly sessionService: SessionService,
-  ) {}
+    @Inject(forwardRef(() => SessionService)) _sessionService,
+  ) {
+    this.sessionService = _sessionService
+  }
 
   async signup(data: SignupCredentialsDTO) {
     const user = await this.createSignup(data)

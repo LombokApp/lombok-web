@@ -63,24 +63,53 @@ export const schema = {
         ]
       }
     },
-    "/events/{eventId}": {
+    "/viewer": {
       "get": {
-        "operationId": "getAppInfo",
+        "operationId": "getViewer",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Get an event by id.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EventDTO"
+                  "$ref": "#/components/schemas/ViewerGetResponse"
                 }
               }
             }
           }
         },
         "tags": [
-          "Event"
+          "Viewer"
+        ]
+      },
+      "put": {
+        "operationId": "updateViewer",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateViewerInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ViewerGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Viewer"
         ]
       }
     },
@@ -140,53 +169,24 @@ export const schema = {
         ]
       }
     },
-    "/viewer": {
+    "/events/{eventId}": {
       "get": {
-        "operationId": "getViewer",
+        "operationId": "getAppInfo",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "",
+            "description": "Get an event by id.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ViewerGetResponse"
+                  "$ref": "#/components/schemas/EventDTO"
                 }
               }
             }
           }
         },
         "tags": [
-          "Viewer"
-        ]
-      },
-      "put": {
-        "operationId": "updateViewer",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateViewerInputDTO"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ViewerGetResponse"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Viewer"
+          "Event"
         ]
       }
     }
@@ -327,21 +327,6 @@ export const schema = {
           "user"
         ]
       },
-      "EventDTO": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "eventKey": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "eventKey"
-        ]
-      },
       "ViewerGetResponse": {
         "type": "object",
         "properties": {
@@ -407,6 +392,21 @@ export const schema = {
         },
         "required": [
           "name"
+        ]
+      },
+      "EventDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "eventKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "eventKey"
         ]
       }
     }

@@ -1,7 +1,7 @@
-import { Global, Module } from '@nestjs/common'
+import { forwardRef, Global, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { AppModule } from 'src/app/app.module'
 import { coreConfig } from 'src/core/config'
+import { UsersModule } from 'src/users/users.module'
 
 import { authConfig } from './config'
 import { AuthController } from './controllers/auth.controller'
@@ -14,7 +14,7 @@ import { SessionService } from './services/session.service'
   imports: [
     ConfigModule.forFeature(authConfig),
     ConfigModule.forFeature(coreConfig),
-    AppModule,
+    forwardRef(() => UsersModule),
   ],
   controllers: [AuthController],
   providers: [AuthService, JWTService, SessionService],

@@ -154,19 +154,12 @@ describe('Auth', () => {
       .auth(accessToken as string, { type: 'bearer' })
       .send()
 
+    // console.log({ body: viewerResponse.body })
     expect(viewerResponse.statusCode).toEqual(200)
-    expect(viewerResponse.body).toBe({
-      user: {
-        createdAt: '2024-05-26T16:25:28.358Z',
-        email: 'steven@poop.com',
-        emailVerified: true,
-        isAdmin: true,
-        name: '',
-        permissions: [],
-        updatedAt: '2024-05-26T16:25:28.358Z',
-        username: 'wfsdfs',
-      },
-    })
+    expect(viewerResponse.body.user.username).toEqual('mekpans')
+    expect(viewerResponse.body.user.isAdmin).toEqual(false)
+    expect(viewerResponse.body.user.permissions).toEqual([])
+    expect(viewerResponse.body.user.name).toBeNull()
   })
 
   it(`should fail in fetching viewer without token`, async () => {

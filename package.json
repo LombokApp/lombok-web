@@ -17,8 +17,9 @@
     "dev:docker:api:build": "docker compose --env-file \"./packages/api/.env\" up api --build",
     "dev:docker:api": "docker compose --env-file \"./packages/api/.env\" up api",
     "dev:docker:services": "docker compose --env-file \"./packages/api/.env\" up db redis",
-    "dev:docker:down": "docker compose down",
-    "dev:docker:kill": "docker compose kill",
+    "dev:docker:down": "docker compose --env-file \"./packages/api/.env\" down",
+    "dev:docker:api:kill": "docker compose --env-file \"./packages/api/.env\" kill api",
+    "dev:docker:kill": "docker compose --env-file \"./packages/api/.env\" kill",
     "dev:check-all": "sh ./cmd/dev-check-all.sh",
     "api:dev": "bun --cwd packages/api dev"
   },

@@ -1,5 +1,12 @@
 import { ZodValidationPipe } from '@anatine/zod-nestjs'
-import { Body, Controller, Post, UsePipes } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  forwardRef,
+  Inject,
+  Post,
+  UsePipes,
+} from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 
 import { LoginCredentialsDTO } from '../dto/login-credentials.dto'
@@ -12,7 +19,10 @@ import { AuthService } from '../services/auth.service'
 @ApiTags('Auth')
 @UsePipes(ZodValidationPipe)
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
+  ) {}
 
   /**
    * Authenticate the user and return access and refresh tokens.

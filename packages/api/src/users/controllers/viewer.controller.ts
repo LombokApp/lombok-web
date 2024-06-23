@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Put, Req, UseGuards } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
+import type { Request } from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import {
   AllowedActor,
@@ -12,33 +13,22 @@ import { UpdateViewerInputDTO } from '../dto/update-viewer-input.dto'
 import type { UserDTO } from '../dto/user.dto'
 import { UserService } from '../services/users.service'
 
+export type SCRequest = Request & {
+  user: User
+}
+
 @Controller('/viewer')
 @ApiTags('Viewer')
 @UseGuards(AuthGuard)
 export class ViewerController {
   constructor(private readonly userService: UserService) {}
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   @Get()
-  async getViewer(): Promise<ViewerGetResponse> {
-    // if (!req.user) {
-    //   throw new UnauthorizedError()
-    // }
-
-    // const user = this.userService.getById({ id: '' })
+  async getViewer(@Req() req: SCRequest): Promise<ViewerGetResponse> {
+    const user = await this.userService.getById({ id: req.user.id })
     return {
-      user: {
-        emailVerified: true,
-        isAdmin: true,
-        permissions: [],
-        username: 'wfsdfs',
-        email: 'steven@poop.com',
-        name: '',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
+      user,
     }
-    // return {} as UserDTO
   }
 
   @Put()

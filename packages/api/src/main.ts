@@ -8,19 +8,19 @@ export async function buildApp() {
   if (appReference.app) {
     return appReference.app
   }
-  const app = await NestFactory.create(CoreModule)
   const creationPromise = NestFactory.create(CoreModule)
+  // set the app init promise reference
   setAppInitializing(creationPromise)
 
+  // await the promise and set the app reference itself
+  const app = await creationPromise
+  setApp(app)
+
+  // set other app configs
   app.useGlobalFilters(new HttpExceptionFilter())
   app.enableShutdownHooks()
 
-  await Promise.all([
-    creationPromise.then((a) => setApp(a)),
-    await app.listen(3001),
-  ])
-
-  return app
+  return app.listen(3001)
 }
 
 void buildApp()

@@ -2,6 +2,7 @@ import type { OnModuleInit } from '@nestjs/common'
 import { forwardRef, Inject, Module } from '@nestjs/common'
 import * as nestjsConfig from '@nestjs/config'
 import { AppModule } from 'src/app/app.module'
+import { AuthModule } from 'src/auth/auth.module'
 import { coreConfig } from 'src/core/config/core.config'
 import { QueueName } from 'src/queue/queue.constants'
 import { QueueService } from 'src/queue/queue.service'
@@ -13,6 +14,7 @@ import { EventService } from './services/event.service'
 @Module({
   imports: [
     forwardRef(() => AppModule),
+    AuthModule,
     nestjsConfig.ConfigModule.forFeature(coreConfig),
   ],
   controllers: [EventController],
