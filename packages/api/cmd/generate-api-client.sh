@@ -1,9 +1,13 @@
 #!/usr/bin/env sh
 
 # Ensure the generated spec is up to date
-echo "doing generate"
 bun run metadata:generate
-echo "done generate"
+if [[ $? -eq 0 ]]; then
+  echo "Metadata generation SUCCESS"
+else
+  echo "Metadata generation FAILURE"
+  exit 1
+fi
 result=$?
 
 # Check the result

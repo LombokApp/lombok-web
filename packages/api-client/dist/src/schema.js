@@ -115,8 +115,17 @@ export const schema = {
         },
         "/folders/{folderId}": {
             "get": {
-                "operationId": "getAppInfo",
-                "parameters": [],
+                "operationId": "getFolder",
+                "parameters": [
+                    {
+                        "name": "folderId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Get a folder by id."

@@ -107,8 +107,15 @@ export declare const schema: {
         };
         readonly "/folders/{folderId}": {
             readonly get: {
-                readonly operationId: "getAppInfo";
-                readonly parameters: readonly [];
+                readonly operationId: "getFolder";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
                 readonly responses: {
                     readonly "200": {
                         readonly description: "Get a folder by id.";

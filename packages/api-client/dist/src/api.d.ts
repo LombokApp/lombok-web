@@ -425,10 +425,11 @@ export declare class EventApi extends BaseAPI {
 export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
+     * @param {string} folderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getAppInfo: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    getFolder: (folderId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * FoldersApi - functional programming interface
@@ -437,10 +438,11 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
 export declare const FoldersApiFp: (configuration?: Configuration) => {
     /**
      *
+     * @param {string} folderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getAppInfo(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    getFolder(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
 };
 /**
  * FoldersApi - factory interface
@@ -449,11 +451,25 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
 export declare const FoldersApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
     /**
      *
+     * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getAppInfo(options?: AxiosRequestConfig): AxiosPromise<void>;
+    getFolder(requestParameters: FoldersApiGetFolderRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
 };
+/**
+ * Request parameters for getFolder operation in FoldersApi.
+ * @export
+ * @interface FoldersApiGetFolderRequest
+ */
+export interface FoldersApiGetFolderRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof FoldersApiGetFolder
+     */
+    readonly folderId: string;
+}
 /**
  * FoldersApi - object-oriented interface
  * @export
@@ -463,11 +479,12 @@ export declare const FoldersApiFactory: (configuration?: Configuration, basePath
 export declare class FoldersApi extends BaseAPI {
     /**
      *
+     * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    getAppInfo(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+    getFolder(requestParameters: FoldersApiGetFolderRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
 }
 /**
  * ServerApi - axios parameter creator

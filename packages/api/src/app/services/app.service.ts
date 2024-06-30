@@ -1,6 +1,8 @@
 import {
+  forwardRef,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
@@ -116,12 +118,15 @@ const FailHandleEventValidator = r.Record({
 
 @Injectable()
 export class AppService {
+  folderService: FolderService
   constructor(
     private readonly ormService: OrmService,
     private readonly redisService: RedisService,
-    private readonly folderService: FolderService,
+    @Inject(forwardRef(() => FolderService)) _folderService,
     private readonly s3Service: S3Service,
-  ) {}
+  ) {
+    this.folderService = _folderService
+  }
 
   async listAppsAsAdmin(user: User) {
     if (!user.isAdmin) {

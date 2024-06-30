@@ -12,7 +12,7 @@ export class FoldersController {
    * Get a folder by id.
    */
   @Get('/:folderId')
-  getAppInfo(@Param() folderId: string) {
+  getFolder(@Param('folderId') folderId: string) {
     return this.folderService.getFolderAsUser({ folderId, userId: '' })
   }
 }

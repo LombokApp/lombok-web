@@ -18,6 +18,7 @@ async function main() {
         introspectComments: true,
         pathToSource: __dirname,
         classValidatorShim: false,
+        debug: true,
       }),
     ],
     outputDir: __dirname,
@@ -36,7 +37,6 @@ async function main() {
   await SwaggerModule.loadPluginMetadata(
     metadata as unknown as () => Promise<Record<string, any>>,
   )
-
   const options = new DocumentBuilder()
     .setTitle('@stellariscloud/api')
     .setDescription('The Stellaris Cloud core API')
@@ -49,17 +49,15 @@ async function main() {
       methodKey,
   })
 
-  // console.log('document:', JSON.stringify(document, null, 2))
-
   fs.writeFileSync(
     path.join(__dirname, '..', 'src', './openapi.json'),
     JSON.stringify(document, null, 2),
   )
 
-  // console.log('Generated OpenAPI spec:', JSON.stringify(document, null, 2))
-  await app.close()
-  console.log('Done app close')
+  console.log('Generated OpenAPI spec:', JSON.stringify(document, null, 2))
+
+  // for some reason the metadata generation (when run) stops this script from exiting automatically
+  process.exit(0)
 }
 
 void main()
-console.log('Done generate metadata main')

@@ -568,11 +568,15 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
     return {
         /**
          * 
+         * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAppInfo: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/folders/{folderId}`;
+        getFolder: async (folderId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('getFolder', 'folderId', folderId)
+            const localVarPath = `/folders/{folderId}`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -607,11 +611,12 @@ export const FoldersApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getAppInfo(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getAppInfo(options);
+        async getFolder(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getFolder(folderId, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -626,14 +631,29 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
     return {
         /**
          * 
+         * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAppInfo(options?: AxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.getAppInfo(options).then((request) => request(axios, basePath));
+        getFolder(requestParameters: FoldersApiGetFolderRequest, options?: AxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.getFolder(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
     };
 };
+
+/**
+ * Request parameters for getFolder operation in FoldersApi.
+ * @export
+ * @interface FoldersApiGetFolderRequest
+ */
+export interface FoldersApiGetFolderRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiGetFolder
+     */
+    readonly folderId: string
+}
 
 /**
  * FoldersApi - object-oriented interface
@@ -644,12 +664,13 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
 export class FoldersApi extends BaseAPI {
     /**
      * 
+     * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    public getAppInfo(options?: AxiosRequestConfig) {
-        return FoldersApiFp(this.configuration).getAppInfo(options).then((request) => request(this.axios, this.basePath));
+    public getFolder(requestParameters: FoldersApiGetFolderRequest, options?: AxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).getFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
