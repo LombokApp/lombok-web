@@ -1,4 +1,4 @@
-import { buildTestModule } from 'src/core/utils/test.util'
+import { buildTestModule, registerTestUser } from 'src/core/utils/test.util'
 import request from 'supertest'
 
 const TEST_DB_NAME = 'users'
@@ -15,60 +15,36 @@ describe('Users', () => {
   })
 
   it(`should get viewer`, async () => {
-    await request(testModule?.app.getHttpServer())
-      .post('/auth/signup')
-      .send({
-        username: 'mekpans',
-        password: '123',
-      })
-      .expect(201)
-
     const {
-      body: {
-        session: { accessToken },
-      },
-    } = await request(testModule?.app.getHttpServer())
-      .post('/auth/login')
-      .send({
-        login: 'mekpans',
-        password: '123',
-      })
+      session: { accessToken },
+    } = await registerTestUser(testModule, {
+      username: 'testuser',
+      password: '123',
+    })
 
     const viewerResponse = await request(testModule?.app.getHttpServer())
       .get('/viewer')
-      .auth(accessToken as string, { type: 'bearer' })
+      .auth(accessToken, { type: 'bearer' })
       .send()
 
     expect(viewerResponse.statusCode).toEqual(200)
-    expect(viewerResponse.body.user.username).toEqual('mekpans')
+    expect(viewerResponse.body.user.username).toEqual('testuser')
     expect(viewerResponse.body.user.isAdmin).toEqual(false)
     expect(viewerResponse.body.user.permissions).toEqual([])
     expect(viewerResponse.body.user.name).toBeNull()
   })
 
   it(`should do viewer update`, async () => {
-    await request(testModule?.app.getHttpServer())
-      .post('/auth/signup')
-      .send({
-        username: 'mekpans',
-        password: '123',
-      })
-      .expect(201)
-
     const {
-      body: {
-        session: { accessToken },
-      },
-    } = await request(testModule?.app.getHttpServer())
-      .post('/auth/login')
-      .send({
-        login: 'mekpans',
-        password: '123',
-      })
+      session: { accessToken },
+    } = await registerTestUser(testModule, {
+      username: 'testuser',
+      password: '123',
+    })
 
     const viewerResponse = await request(testModule?.app.getHttpServer())
       .put('/viewer')
-      .auth(accessToken as string, { type: 'bearer' })
+      .auth(accessToken, { type: 'bearer' })
       .send({
         name: '__NewName__',
       })

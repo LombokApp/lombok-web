@@ -1,7 +1,9 @@
 import { Test } from '@nestjs/testing'
+import type { LoginResponse } from 'src/auth/dto/responses/login-response.dto'
 import { RedisService } from 'src/cache/redis.service'
 import { CoreTestModule } from 'src/core/core-test.module'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
+import request from 'supertest'
 
 import { ormConfig } from '../../orm/config'
 import { setApp, setAppInitializing } from '../app-helper'
@@ -46,4 +48,23 @@ export async function buildTestModule(dbName: string) {
     },
     resetDb: () => ormService.resetTestDb(),
   }
+}
+
+type TestModule = Awaited<ReturnType<typeof buildTestModule>> | undefined
+
+export async function registerTestUser(
+  testModule: TestModule,
+  input: {
+    username: string
+    email?: string
+    password: string
+  },
+): Promise<LoginResponse> {
+  const server = testModule?.app.getHttpServer()
+  const req = request(server)
+  await req.post('/auth/signup').send(input).expect(201)
+  const result = await req
+    .post('/auth/login')
+    .send({ login: input.email ?? input.username, password: input.password })
+  return result.body
 }
