@@ -1,7 +1,7 @@
 import type { CanActivate, ExecutionContext } from '@nestjs/common'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import type { SCRequest } from 'src/users/controllers/viewer.controller'
+import type { Request } from 'express'
 import { UserService } from 'src/users/services/users.service'
 
 import {
@@ -27,7 +27,7 @@ export class AuthGuard implements CanActivate {
     private readonly reflector: Reflector,
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request: SCRequest = context.switchToHttp().getRequest()
+    const request: Request = context.switchToHttp().getRequest()
     const authHeader = request.header('Authorization')
     if (authHeader?.startsWith(BEARER_PREFIX)) {
       const config = this.resolveConfig(context)
