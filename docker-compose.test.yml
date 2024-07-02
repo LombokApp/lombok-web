@@ -25,7 +25,7 @@ services:
     environment:
       WAIT_HOSTS: db:${DB_PORT:-0}
   dbtest:
-    image: postgres:13.2-alpine
+    image: postgres
     environment:
       - POSTGRES_USER=stellariscloud_test
       - POSTGRES_PASSWORD=XXXXXXXXXXXXXXXXXXXXXXXX

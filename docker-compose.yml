@@ -82,7 +82,7 @@ services:
   #     exit 0;
   #     "
   db:
-    image: postgres:13.2-alpine
+    image: postgres
     ports:
       - 5432:${DB_PORT:-0}
     env_file: packages/api/.env
