@@ -63,6 +63,48 @@ export const schema = {
                 ]
             }
         },
+        "/auth/logout": {
+            "post": {
+                "operationId": "logout",
+                "parameters": [],
+                "responses": {
+                    "201": {
+                        "description": "Logout. Kill the current session.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Auth"
+                ]
+            }
+        },
+        "/auth/refresh-token": {
+            "post": {
+                "operationId": "refreshToken",
+                "parameters": [],
+                "responses": {
+                    "201": {
+                        "description": "Logout. Kill the current session.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TokenRefreshResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Auth"
+                ]
+            }
+        },
         "/viewer": {
             "get": {
                 "operationId": "getViewer",
@@ -128,7 +170,45 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Get a folder by id."
+                        "description": "Get a folder by id.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FolderGetResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Folders"
+                ]
+            }
+        },
+        "/folders": {
+            "post": {
+                "operationId": "createFolder",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FolderCreateInputDTO"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Create a folder.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FolderCreateResponse"
+                                }
+                            }
+                        }
                     }
                 },
                 "tags": [
@@ -277,63 +357,83 @@ export const schema = {
                     "password"
                 ]
             },
-            "UserDTO": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "email": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
-                    },
-                    "emailVerified": {
-                        "type": "boolean"
-                    },
-                    "isAdmin": {
-                        "type": "boolean"
-                    },
-                    "username": {
-                        "type": "string"
-                    },
-                    "permissions": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    },
-                    "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updatedAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    }
-                },
-                "required": [
-                    "emailVerified",
-                    "isAdmin",
-                    "username",
-                    "permissions",
-                    "createdAt",
-                    "updatedAt"
-                ]
-            },
             "SignupResponse": {
                 "type": "object",
                 "properties": {
                     "user": {
-                        "$ref": "#/components/schemas/UserDTO"
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "email": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "emailVerified": {
+                                "type": "boolean"
+                            },
+                            "isAdmin": {
+                                "type": "boolean"
+                            },
+                            "username": {
+                                "type": "string"
+                            },
+                            "permissions": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "updatedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        },
+                        "required": [
+                            "emailVerified",
+                            "isAdmin",
+                            "username",
+                            "permissions",
+                            "createdAt",
+                            "updatedAt"
+                        ]
                     }
                 },
                 "required": [
                     "user"
+                ]
+            },
+            "TokenRefreshResponse": {
+                "type": "object",
+                "properties": {
+                    "session": {
+                        "type": "object",
+                        "properties": {
+                            "accessToken": {
+                                "type": "string"
+                            },
+                            "refreshToken": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "accessToken",
+                            "refreshToken"
+                        ]
+                    }
+                },
+                "required": [
+                    "session"
                 ]
             },
             "ViewerGetResponse": {
@@ -401,6 +501,302 @@ export const schema = {
                 },
                 "required": [
                     "name"
+                ]
+            },
+            "FolderGetResponse": {
+                "type": "object",
+                "properties": {
+                    "folder": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "ownerId": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "metadataLocation": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "userId": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "endpoint": {
+                                        "type": "string"
+                                    },
+                                    "region": {
+                                        "type": "string"
+                                    },
+                                    "bucket": {
+                                        "type": "string"
+                                    },
+                                    "prefix": {
+                                        "type": "string"
+                                    },
+                                    "accessKeyId": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "id",
+                                    "name",
+                                    "endpoint",
+                                    "region",
+                                    "bucket",
+                                    "accessKeyId"
+                                ]
+                            },
+                            "contentLocation": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "userId": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "endpoint": {
+                                        "type": "string"
+                                    },
+                                    "region": {
+                                        "type": "string"
+                                    },
+                                    "bucket": {
+                                        "type": "string"
+                                    },
+                                    "prefix": {
+                                        "type": "string"
+                                    },
+                                    "accessKeyId": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "id",
+                                    "name",
+                                    "endpoint",
+                                    "region",
+                                    "bucket",
+                                    "accessKeyId"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "ownerId",
+                            "name",
+                            "metadataLocation",
+                            "contentLocation"
+                        ]
+                    },
+                    "permissions": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "folder",
+                    "permissions"
+                ]
+            },
+            "FolderCreateInputDTO": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "metadataLocation": {
+                        "type": "object",
+                        "properties": {
+                            "serverLocationId": {
+                                "type": "string"
+                            },
+                            "userLocationId": {
+                                "type": "string"
+                            },
+                            "userLocationBucketOverride": {
+                                "type": "string"
+                            },
+                            "userLocationPrefixOverride": {
+                                "type": "string"
+                            },
+                            "accessKeyId": {
+                                "type": "string"
+                            },
+                            "secretAccessKey": {
+                                "type": "string"
+                            },
+                            "endpoint": {
+                                "type": "string"
+                            },
+                            "bucket": {
+                                "type": "string"
+                            },
+                            "region": {
+                                "type": "string"
+                            },
+                            "prefix": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "contentLocation": {
+                        "type": "object",
+                        "properties": {
+                            "serverLocationId": {
+                                "type": "string"
+                            },
+                            "userLocationId": {
+                                "type": "string"
+                            },
+                            "userLocationBucketOverride": {
+                                "type": "string"
+                            },
+                            "userLocationPrefixOverride": {
+                                "type": "string"
+                            },
+                            "accessKeyId": {
+                                "type": "string"
+                            },
+                            "secretAccessKey": {
+                                "type": "string"
+                            },
+                            "endpoint": {
+                                "type": "string"
+                            },
+                            "bucket": {
+                                "type": "string"
+                            },
+                            "region": {
+                                "type": "string"
+                            },
+                            "prefix": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "name",
+                    "metadataLocation",
+                    "contentLocation"
+                ]
+            },
+            "FolderCreateResponse": {
+                "type": "object",
+                "properties": {
+                    "folder": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "ownerId": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "metadataLocation": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "userId": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "endpoint": {
+                                        "type": "string"
+                                    },
+                                    "region": {
+                                        "type": "string"
+                                    },
+                                    "bucket": {
+                                        "type": "string"
+                                    },
+                                    "prefix": {
+                                        "type": "string"
+                                    },
+                                    "accessKeyId": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "id",
+                                    "name",
+                                    "endpoint",
+                                    "region",
+                                    "bucket",
+                                    "accessKeyId"
+                                ]
+                            },
+                            "contentLocation": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "userId": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "endpoint": {
+                                        "type": "string"
+                                    },
+                                    "region": {
+                                        "type": "string"
+                                    },
+                                    "bucket": {
+                                        "type": "string"
+                                    },
+                                    "prefix": {
+                                        "type": "string"
+                                    },
+                                    "accessKeyId": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "id",
+                                    "name",
+                                    "endpoint",
+                                    "region",
+                                    "bucket",
+                                    "accessKeyId"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "ownerId",
+                            "name",
+                            "metadataLocation",
+                            "contentLocation"
+                        ]
+                    }
+                },
+                "required": [
+                    "folder"
                 ]
             },
             "EventDTO": {

@@ -45,6 +45,222 @@ export interface EventDTO {
 /**
  * 
  * @export
+ * @interface FolderCreateInputDTO
+ */
+export interface FolderCreateInputDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderCreateInputDTO
+     */
+    'name': string;
+    /**
+     * 
+     * @type {FolderCreateInputDTOMetadataLocation}
+     * @memberof FolderCreateInputDTO
+     */
+    'metadataLocation': FolderCreateInputDTOMetadataLocation;
+    /**
+     * 
+     * @type {FolderCreateInputDTOMetadataLocation}
+     * @memberof FolderCreateInputDTO
+     */
+    'contentLocation': FolderCreateInputDTOMetadataLocation;
+}
+/**
+ * 
+ * @export
+ * @interface FolderCreateInputDTOMetadataLocation
+ */
+export interface FolderCreateInputDTOMetadataLocation {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderCreateInputDTOMetadataLocation
+     */
+    'serverLocationId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderCreateInputDTOMetadataLocation
+     */
+    'userLocationId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderCreateInputDTOMetadataLocation
+     */
+    'userLocationBucketOverride'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderCreateInputDTOMetadataLocation
+     */
+    'userLocationPrefixOverride'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderCreateInputDTOMetadataLocation
+     */
+    'accessKeyId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderCreateInputDTOMetadataLocation
+     */
+    'secretAccessKey'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderCreateInputDTOMetadataLocation
+     */
+    'endpoint'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderCreateInputDTOMetadataLocation
+     */
+    'bucket'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderCreateInputDTOMetadataLocation
+     */
+    'region'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderCreateInputDTOMetadataLocation
+     */
+    'prefix'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface FolderCreateResponse
+ */
+export interface FolderCreateResponse {
+    /**
+     * 
+     * @type {FolderGetResponseFolder}
+     * @memberof FolderCreateResponse
+     */
+    'folder': FolderGetResponseFolder;
+}
+/**
+ * 
+ * @export
+ * @interface FolderGetResponse
+ */
+export interface FolderGetResponse {
+    /**
+     * 
+     * @type {FolderGetResponseFolder}
+     * @memberof FolderGetResponse
+     */
+    'folder': FolderGetResponseFolder;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof FolderGetResponse
+     */
+    'permissions': Array<string>;
+}
+/**
+ * 
+ * @export
+ * @interface FolderGetResponseFolder
+ */
+export interface FolderGetResponseFolder {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderGetResponseFolder
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderGetResponseFolder
+     */
+    'ownerId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderGetResponseFolder
+     */
+    'name': string;
+    /**
+     * 
+     * @type {FolderGetResponseFolderMetadataLocation}
+     * @memberof FolderGetResponseFolder
+     */
+    'metadataLocation': FolderGetResponseFolderMetadataLocation;
+    /**
+     * 
+     * @type {FolderGetResponseFolderMetadataLocation}
+     * @memberof FolderGetResponseFolder
+     */
+    'contentLocation': FolderGetResponseFolderMetadataLocation;
+}
+/**
+ * 
+ * @export
+ * @interface FolderGetResponseFolderMetadataLocation
+ */
+export interface FolderGetResponseFolderMetadataLocation {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderGetResponseFolderMetadataLocation
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderGetResponseFolderMetadataLocation
+     */
+    'userId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderGetResponseFolderMetadataLocation
+     */
+    'name': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderGetResponseFolderMetadataLocation
+     */
+    'endpoint': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderGetResponseFolderMetadataLocation
+     */
+    'region': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderGetResponseFolderMetadataLocation
+     */
+    'bucket': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderGetResponseFolderMetadataLocation
+     */
+    'prefix'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderGetResponseFolderMetadataLocation
+     */
+    'accessKeyId': string;
+}
+/**
+ * 
+ * @export
  * @interface LoginCredentialsDTO
  */
 export interface LoginCredentialsDTO {
@@ -126,10 +342,78 @@ export interface SignupCredentialsDTO {
 export interface SignupResponse {
     /**
      * 
-     * @type {UserDTO}
+     * @type {SignupResponseUser}
      * @memberof SignupResponse
      */
-    'user': UserDTO;
+    'user': SignupResponseUser;
+}
+/**
+ * 
+ * @export
+ * @interface SignupResponseUser
+ */
+export interface SignupResponseUser {
+    /**
+     * 
+     * @type {any}
+     * @memberof SignupResponseUser
+     */
+    'name'?: any;
+    /**
+     * 
+     * @type {any}
+     * @memberof SignupResponseUser
+     */
+    'email'?: any;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof SignupResponseUser
+     */
+    'emailVerified': boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof SignupResponseUser
+     */
+    'isAdmin': boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof SignupResponseUser
+     */
+    'username': string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof SignupResponseUser
+     */
+    'permissions': Array<string>;
+    /**
+     * 
+     * @type {string}
+     * @memberof SignupResponseUser
+     */
+    'createdAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof SignupResponseUser
+     */
+    'updatedAt': string;
+}
+/**
+ * 
+ * @export
+ * @interface TokenRefreshResponse
+ */
+export interface TokenRefreshResponse {
+    /**
+     * 
+     * @type {LoginResponseSession}
+     * @memberof TokenRefreshResponse
+     */
+    'session': LoginResponseSession;
 }
 /**
  * 
@@ -147,125 +431,15 @@ export interface UpdateViewerInputDTO {
 /**
  * 
  * @export
- * @interface UserDTO
- */
-export interface UserDTO {
-    /**
-     * 
-     * @type {any}
-     * @memberof UserDTO
-     */
-    'name'?: any;
-    /**
-     * 
-     * @type {any}
-     * @memberof UserDTO
-     */
-    'email'?: any;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof UserDTO
-     */
-    'emailVerified': boolean;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof UserDTO
-     */
-    'isAdmin': boolean;
-    /**
-     * 
-     * @type {string}
-     * @memberof UserDTO
-     */
-    'username': string;
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof UserDTO
-     */
-    'permissions': Array<string>;
-    /**
-     * 
-     * @type {string}
-     * @memberof UserDTO
-     */
-    'createdAt': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UserDTO
-     */
-    'updatedAt': string;
-}
-/**
- * 
- * @export
  * @interface ViewerGetResponse
  */
 export interface ViewerGetResponse {
     /**
      * 
-     * @type {ViewerGetResponseUser}
+     * @type {SignupResponseUser}
      * @memberof ViewerGetResponse
      */
-    'user': ViewerGetResponseUser;
-}
-/**
- * 
- * @export
- * @interface ViewerGetResponseUser
- */
-export interface ViewerGetResponseUser {
-    /**
-     * 
-     * @type {any}
-     * @memberof ViewerGetResponseUser
-     */
-    'name'?: any;
-    /**
-     * 
-     * @type {any}
-     * @memberof ViewerGetResponseUser
-     */
-    'email'?: any;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof ViewerGetResponseUser
-     */
-    'emailVerified': boolean;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof ViewerGetResponseUser
-     */
-    'isAdmin': boolean;
-    /**
-     * 
-     * @type {string}
-     * @memberof ViewerGetResponseUser
-     */
-    'username': string;
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof ViewerGetResponseUser
-     */
-    'permissions': Array<string>;
-    /**
-     * 
-     * @type {string}
-     * @memberof ViewerGetResponseUser
-     */
-    'createdAt': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ViewerGetResponseUser
-     */
-    'updatedAt': string;
+    'user': SignupResponseUser;
 }
 
 /**
@@ -303,6 +477,64 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(loginCredentialsDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        logout: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/logout`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        refreshToken: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/refresh-token`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -366,6 +598,24 @@ export const AuthApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async logout(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.logout(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async refreshToken(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TokenRefreshResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.refreshToken(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
          * @param {SignupCredentialsDTO} signupCredentialsDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -392,6 +642,22 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          */
         login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig): AxiosPromise<LoginResponse> {
             return localVarFp.login(requestParameters.loginCredentialsDTO, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        logout(options?: AxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.logout(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        refreshToken(options?: AxiosRequestConfig): AxiosPromise<TokenRefreshResponse> {
+            return localVarFp.refreshToken(options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -449,6 +715,26 @@ export class AuthApi extends BaseAPI {
      */
     public login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig) {
         return AuthApiFp(this.configuration).login(requestParameters.loginCredentialsDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApi
+     */
+    public logout(options?: AxiosRequestConfig) {
+        return AuthApiFp(this.configuration).logout(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApi
+     */
+    public refreshToken(options?: AxiosRequestConfig) {
+        return AuthApiFp(this.configuration).refreshToken(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -568,6 +854,41 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
     return {
         /**
          * 
+         * @param {FolderCreateInputDTO} folderCreateInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createFolder: async (folderCreateInputDTO: FolderCreateInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'folderCreateInputDTO' is not null or undefined
+            assertParamExists('createFolder', 'folderCreateInputDTO', folderCreateInputDTO)
+            const localVarPath = `/folders`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(folderCreateInputDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -611,11 +932,21 @@ export const FoldersApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @param {FolderCreateInputDTO} folderCreateInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createFolder(folderCreateInputDTO: FolderCreateInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderCreateResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createFolder(folderCreateInputDTO, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
          * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getFolder(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getFolder(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getFolder(folderId, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -631,15 +962,38 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
     return {
         /**
          * 
+         * @param {FoldersApiCreateFolderRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createFolder(requestParameters: FoldersApiCreateFolderRequest, options?: AxiosRequestConfig): AxiosPromise<FolderCreateResponse> {
+            return localVarFp.createFolder(requestParameters.folderCreateInputDTO, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getFolder(requestParameters: FoldersApiGetFolderRequest, options?: AxiosRequestConfig): AxiosPromise<void> {
+        getFolder(requestParameters: FoldersApiGetFolderRequest, options?: AxiosRequestConfig): AxiosPromise<FolderGetResponse> {
             return localVarFp.getFolder(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
     };
 };
+
+/**
+ * Request parameters for createFolder operation in FoldersApi.
+ * @export
+ * @interface FoldersApiCreateFolderRequest
+ */
+export interface FoldersApiCreateFolderRequest {
+    /**
+     * 
+     * @type {FolderCreateInputDTO}
+     * @memberof FoldersApiCreateFolder
+     */
+    readonly folderCreateInputDTO: FolderCreateInputDTO
+}
 
 /**
  * Request parameters for getFolder operation in FoldersApi.
@@ -662,6 +1016,17 @@ export interface FoldersApiGetFolderRequest {
  * @extends {BaseAPI}
  */
 export class FoldersApi extends BaseAPI {
+    /**
+     * 
+     * @param {FoldersApiCreateFolderRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    public createFolder(requestParameters: FoldersApiCreateFolderRequest, options?: AxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).createFolder(requestParameters.folderCreateInputDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.

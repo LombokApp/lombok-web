@@ -60,17 +60,17 @@ export class Authenticator {
       const authApi = this.newAuthApi()
       const loginResult = (
         await authApi.login({
-          loginParams: {
+          loginCredentialsDTO: {
             login: loginParams.login,
             password: loginParams.password,
           },
         })
       ).data
-      this.tokens.accessToken = loginResult.accessToken
-      this.tokens.refreshToken = loginResult.refreshToken
+      this.tokens.accessToken = loginResult.session.accessToken
+      this.tokens.refreshToken = loginResult.session.refreshToken
       this.saveTokens({
-        accessToken: loginResult.accessToken,
-        refreshToken: loginResult.refreshToken,
+        accessToken: loginResult.session.accessToken,
+        refreshToken: loginResult.session.refreshToken,
       })
       this.state = { isAuthenticated: true, isLoaded: true }
     } catch (error: unknown) {
@@ -89,13 +89,13 @@ export class Authenticator {
 
   public async signup(signupParams: {
     username: string
-    email: string
+    email?: string
     password: string
   }) {
     try {
       const authApi = this.newAuthApi()
       await authApi.signup({
-        signupParams: {
+        signupCredentialsDTO: {
           username: signupParams.username,
           email: signupParams.email,
           password: signupParams.password,
@@ -223,7 +223,9 @@ export class Authenticator {
     })
 
     try {
-      const { accessToken, refreshToken } = (await authApi.refreshToken()).data
+      const {
+        session: { accessToken, refreshToken },
+      } = (await authApi.refreshToken()).data
 
       this.tokens.accessToken = accessToken
       this.tokens.refreshToken = refreshToken

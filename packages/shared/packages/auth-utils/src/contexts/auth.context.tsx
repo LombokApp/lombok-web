@@ -1,7 +1,7 @@
 import type {
-  LoginParams,
-  SignupParams,
-  UserData,
+  LoginCredentialsDTO,
+  SignupCredentialsDTO,
+  UserDTO,
 } from '@stellariscloud/api-client'
 import React from 'react'
 
@@ -14,10 +14,10 @@ export interface IAuthContext {
   authState: AuthenticatorStateType
   isLoggingIn: boolean
   isAuthenticated: boolean
-  viewer?: UserData
+  viewer?: UserDTO
   isLoggingOut: boolean
-  login: (loginParams: LoginParams) => Promise<boolean>
-  signup: (signupParams: SignupParams) => Promise<boolean>
+  login: (loginParams: LoginCredentialsDTO) => Promise<boolean>
+  signup: (signupParams: SignupCredentialsDTO) => Promise<boolean>
   logout: () => Promise<void>
   getAccessToken: () => Promise<string | undefined>
 }
@@ -40,7 +40,7 @@ export const AuthContextProvider = ({
   })
   const [viewerRefreshKey, _setViewerRefreshKey] = React.useState('___')
   const [viewer, setViewer] = React.useState<{
-    [key: string]: UserData | undefined
+    [key: string]: UserDTO | undefined
   }>()
   const [error, setError] = React.useState<AuthError>()
   const { isAuthenticated } = authState
@@ -67,7 +67,7 @@ export const AuthContextProvider = ({
     }
   }, [])
 
-  const login = async (loginParams: LoginParams) => {
+  const login = async (loginParams: LoginCredentialsDTO) => {
     setError(undefined)
     setIsLoggingIn(true)
 
@@ -87,7 +87,7 @@ export const AuthContextProvider = ({
     }
   }
 
-  const signup = async (signupParams: SignupParams) => {
+  const signup = async (signupParams: SignupCredentialsDTO) => {
     setError(undefined)
 
     try {

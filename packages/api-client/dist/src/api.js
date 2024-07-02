@@ -54,6 +54,54 @@ export const AuthApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        logout: async (options = {}) => {
+            const localVarPath = `/auth/logout`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        refreshToken: async (options = {}) => {
+            const localVarPath = `/auth/refresh-token`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
          * @param {SignupCredentialsDTO} signupCredentialsDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -102,6 +150,24 @@ export const AuthApiFp = function (configuration) {
         },
         /**
          *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async logout(options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.logout(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async refreshToken(options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.refreshToken(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
          * @param {SignupCredentialsDTO} signupCredentialsDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -130,6 +196,22 @@ export const AuthApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        logout(options) {
+            return localVarFp.logout(options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        refreshToken(options) {
+            return localVarFp.refreshToken(options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
          * @param {AuthApiSignupRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -155,6 +237,24 @@ export class AuthApi extends BaseAPI {
      */
     login(requestParameters, options) {
         return AuthApiFp(this.configuration).login(requestParameters.loginCredentialsDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApi
+     */
+    logout(options) {
+        return AuthApiFp(this.configuration).logout(options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApi
+     */
+    refreshToken(options) {
+        return AuthApiFp(this.configuration).refreshToken(options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
@@ -259,6 +359,35 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
     return {
         /**
          *
+         * @param {FolderCreateInputDTO} folderCreateInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createFolder: async (folderCreateInputDTO, options = {}) => {
+            // verify required parameter 'folderCreateInputDTO' is not null or undefined
+            assertParamExists('createFolder', 'folderCreateInputDTO', folderCreateInputDTO);
+            const localVarPath = `/folders`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = serializeDataIfNeeded(folderCreateInputDTO, localVarRequestOptions, configuration);
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
          * @param {string} folderId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -296,6 +425,16 @@ export const FoldersApiFp = function (configuration) {
     return {
         /**
          *
+         * @param {FolderCreateInputDTO} folderCreateInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createFolder(folderCreateInputDTO, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createFolder(folderCreateInputDTO, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
          * @param {string} folderId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -315,6 +454,15 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
     return {
         /**
          *
+         * @param {FoldersApiCreateFolderRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createFolder(requestParameters, options) {
+            return localVarFp.createFolder(requestParameters.folderCreateInputDTO, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
          * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -331,6 +479,16 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
  * @extends {BaseAPI}
  */
 export class FoldersApi extends BaseAPI {
+    /**
+     *
+     * @param {FoldersApiCreateFolderRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    createFolder(requestParameters, options) {
+        return FoldersApiFp(this.configuration).createFolder(requestParameters.folderCreateInputDTO, options).then((request) => request(this.axios, this.basePath));
+    }
     /**
      *
      * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.

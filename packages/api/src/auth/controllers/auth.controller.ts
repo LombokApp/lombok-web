@@ -12,6 +12,7 @@ import { ApiTags } from '@nestjs/swagger'
 import { LoginCredentialsDTO } from '../dto/login-credentials.dto'
 import type { LoginResponse } from '../dto/responses/login-response.dto'
 import type { SignupResponse } from '../dto/responses/signup-response.dto'
+import type { TokenRefreshResponse } from '../dto/responses/token-refresh-response.dto'
 import { SignupCredentialsDTO } from '../dto/signup-credentials.dto'
 import { AuthService } from '../services/auth.service'
 
@@ -42,5 +43,25 @@ export class AuthController {
   async signup(@Body() input: SignupCredentialsDTO): Promise<SignupResponse> {
     const user = await this.authService.signup(input)
     return { user }
+  }
+
+  /**
+   * Logout. Kill the current session.
+   */
+  @Post('/logout')
+  logout(): Promise<boolean> {
+    // const session = await this.authService.logout(input)
+    return Promise.resolve(true)
+  }
+
+  /**
+   * Logout. Kill the current session.
+   */
+  @Post('/refresh-token')
+  refreshToken(): Promise<TokenRefreshResponse> {
+    // const session = await this.authService.logout(input)
+    return Promise.resolve({
+      session: { accessToken: 'sdfw3r4', refreshToken: 'asiduh' },
+    })
   }
 }

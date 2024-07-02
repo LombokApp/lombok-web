@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Put, Req, UseGuards } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
-import { Request } from 'express'
+import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import {
   AllowedActor,
@@ -19,7 +19,7 @@ export class ViewerController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  async getViewer(@Req() req: Request): Promise<ViewerGetResponse> {
+  async getViewer(@Req() req: express.Request): Promise<ViewerGetResponse> {
     const user = await this.userService.getById({ id: req.user?.id ?? '' })
     return {
       user,
@@ -29,7 +29,7 @@ export class ViewerController {
   @Put()
   @AuthGuardConfig({ allowedActors: [AllowedActor.USER] })
   async updateViewer(
-    @Req() req: Request,
+    @Req() req: express.Request,
     @Body() updateViewerInput: UpdateViewerInputDTO,
   ): Promise<ViewerGetResponse> {
     const _updatedViewer = await this.userService.updateViewer(

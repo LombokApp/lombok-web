@@ -30,7 +30,7 @@ export enum UserSort {
 export class UserService {
   constructor(private readonly ormService: OrmService) {}
 
-  async updateViewer(actor: User, { name }: { name: string }) {
+  async updateViewer(actor: User, { name }: { name: string }): Promise<User> {
     const updatedUser = (
       await this.ormService.db
         .update(usersTable)
