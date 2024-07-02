@@ -154,7 +154,6 @@ describe('Auth', () => {
       .auth(accessToken as string, { type: 'bearer' })
       .send()
 
-    // console.log({ body: viewerResponse.body })
     expect(viewerResponse.statusCode).toEqual(200)
     expect(viewerResponse.body.user.username).toEqual('mekpans')
     expect(viewerResponse.body.user.isAdmin).toEqual(false)

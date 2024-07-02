@@ -33,7 +33,6 @@ export class AuthGuard implements CanActivate {
       const config = this.resolveConfig(context)
       const token = authHeader.slice(BEARER_PREFIX.length)
       const decodedJWT = this.jwtService.decodeJWT(token)
-      console.log('decodedJWT:', decodedJWT)
 
       if (!decodedJWT.payload || typeof decodedJWT.payload == 'string') {
         throw new AuthTokenInvalidError(token)
