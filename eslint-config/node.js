@@ -19,7 +19,8 @@ module.exports = {
       files: ['*.ts', '*.tsx'],
       rules: {
         'node/no-unsupported-features/es-syntax': 'off',
+        'node/no-unsupported-features/node-builtins': 'off',
       },
     },
   ],
-};
+}

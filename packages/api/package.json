@@ -22,7 +22,8 @@
     "db:reset:dev": "bun --bun db:reset:docker && bun --bun db:seed:docker",
     "dev:docker:api": "docker compose --env-file \"./.env\" up api",
     "dev:docker:services": "docker compose --env-file \"./.env\" up db redis",
-    "dev:docker:e2e:db": "docker compose -f ../../docker-compose.test.yml --env-file \"./.env.test\" up dbtest",
+    "dev:docker:e2e:services": "docker compose -f ../../docker-compose.test.yml --env-file \"./.env.test\" up dbtest miniotest minioclienttest",
+    "dev:docker:e2e:down": "docker compose -f ../../docker-compose.test.yml --env-file \"./.env.test\" down",
     "dev:docker:e2e:watch": "docker compose -f ../../docker-compose.test.yml --env-file \"./.env.test\" up apitestwatch",
     "dev:docker:e2e:run": "docker compose -f ../../docker-compose.test.yml --env-file \"./.env.test\" up apitest",
     "metadata:generate": "bun --bun script/generate-metadata.ts",
@@ -56,6 +57,7 @@
     "rxjs": "7.8.1",
     "socket.io": "4.7.5",
     "supertest": "6.3.4",
+    "utility-types": "3.11.0",
     "uuid": "9.0.1",
     "zod": "3.22.5"
   },

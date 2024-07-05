@@ -80,15 +80,15 @@ export const configureS3Client = ({
 @Injectable()
 export class S3Service {
   async s3ListBucketObjects({
-    continuationToken,
     s3Client,
     bucketName,
     prefix,
+    continuationToken,
   }: {
-    prefix?: string
-    continuationToken?: string
     s3Client: S3Client
     bucketName: string
+    prefix?: string
+    continuationToken?: string
   }) {
     const bucketObjectsResponse = await s3Client
       .send(
@@ -106,7 +106,6 @@ export class S3Service {
         console.log('bucket list error', e)
         throw e
       })
-
     return {
       result:
         bucketObjectsResponse.Contents?.map((r) =>
@@ -153,6 +152,53 @@ export class S3Service {
       throw new Error(`Object not found by key: ${objectKey}.`)
     }
     return obj
+  }
+
+  async s3GetBucketObject({
+    accessKeyId,
+    secretAccessKey,
+    region = 'auto',
+    bucket,
+    endpoint,
+    objectKey,
+  }: {
+    accessKeyId: string
+    secretAccessKey: string
+    region?: string
+    endpoint: string
+    bucket: string
+    objectKey: string
+  }) {
+    console.log('START createS3PresignedUrls')
+    console.log({
+      accessKeyId,
+      secretAccessKey,
+      region,
+      endpoint,
+      bucket,
+      objectKey,
+      method: SignedURLsRequestMethod.GET,
+      expirySeconds: 3600,
+    })
+    const url = this.createS3PresignedUrls([
+      {
+        accessKeyId,
+        secretAccessKey,
+        region,
+        endpoint,
+        bucket,
+        objectKey,
+        method: SignedURLsRequestMethod.GET,
+        expirySeconds: 3600,
+      },
+    ])[0]
+    console.log('createS3PresignedUrls:', { url })
+
+    const getObjectResponse = await axios.get(url).catch((e) => {
+      console.log('Error getting object:', e)
+      throw e
+    })
+    return getObjectResponse
   }
 
   async s3ListBuckets({ s3Client }: { s3Client: S3Client }) {

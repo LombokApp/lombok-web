@@ -1,17 +1,23 @@
-import { buildTestModule, registerTestUser } from 'src/core/utils/test.util'
+import {
+  buildTestModule,
+  registerTestUser,
+  testS3Location,
+} from 'src/core/utils/test.util'
 import request from 'supertest'
 
-const TEST_DB_NAME = 'folders'
+const TEST_MODULE_KEY = 'folders'
 
 describe('Folders', () => {
-  let testModule: Awaited<ReturnType<typeof buildTestModule>> | undefined
+  let testModule: Awaited<ReturnType<typeof buildTestModule>>
 
   beforeAll(async () => {
-    testModule = await buildTestModule(TEST_DB_NAME)
+    testModule = await buildTestModule({
+      testModuleKey: TEST_MODULE_KEY,
+    })
   })
 
   afterEach(async () => {
-    await testModule?.resetDb()
+    await testModule.resetDb()
   })
 
   it(`should get a folder by id`, async () => {
@@ -22,7 +28,7 @@ describe('Folders', () => {
       password: '123',
     })
 
-    const folderCreateResponse = await request(testModule?.app.getHttpServer())
+    const folderCreateResponse = await request(testModule.app.getHttpServer())
       .post(`/folders`)
       .auth(accessToken, { type: 'bearer' })
       .send({
@@ -47,7 +53,7 @@ describe('Folders', () => {
 
     expect(folderCreateResponse.statusCode).toEqual(201)
 
-    const folderGetResponse = await request(testModule?.app.getHttpServer())
+    const folderGetResponse = await request(testModule.app.getHttpServer())
       .get(`/folders/${folderCreateResponse.body.folder.id}`)
       .auth(accessToken, { type: 'bearer' })
       .send()
@@ -66,7 +72,7 @@ describe('Folders', () => {
       password: '123',
     })
 
-    const folderCreateResponse = await request(testModule?.app.getHttpServer())
+    const folderCreateResponse = await request(testModule.app.getHttpServer())
       .post(`/folders`)
       .auth(accessToken, { type: 'bearer' })
       .send({
@@ -91,7 +97,7 @@ describe('Folders', () => {
 
     expect(folderCreateResponse.statusCode).toEqual(201)
 
-    const folderGetResponse = await request(testModule?.app.getHttpServer())
+    const folderGetResponse = await request(testModule.app.getHttpServer())
       .get(`/folders/${folderCreateResponse.body.folder.id}`)
       // .auth(accessToken as string, { type: 'bearer' }) // this is intentionally omitted
       .send()
@@ -114,7 +120,7 @@ describe('Folders', () => {
       password: '123',
     })
 
-    const folderCreateResponse = await request(testModule?.app.getHttpServer())
+    const folderCreateResponse = await request(testModule.app.getHttpServer())
       .post(`/folders`)
       .auth(accessToken, { type: 'bearer' })
       .send({
@@ -139,7 +145,7 @@ describe('Folders', () => {
 
     expect(folderCreateResponse.statusCode).toEqual(201)
 
-    const folderGetResponse = await request(testModule?.app.getHttpServer())
+    const folderGetResponse = await request(testModule.app.getHttpServer())
       .get(`/folders/${folderCreateResponse.body.folder.id}`)
       .auth(secondUserAccessToken, { type: 'bearer' })
       .send()
@@ -147,7 +153,45 @@ describe('Folders', () => {
     expect(folderGetResponse.statusCode).toEqual(404)
   })
 
+  it(`it should scan the storage location represented by a folder`, async () => {
+    const {
+      session: { accessToken },
+    } = await registerTestUser(testModule, {
+      username: 'testuser',
+      password: '123',
+    })
+
+    const MOCK_OBJECTS: { key: string; content: string }[] = [
+      { content: 'object 1 content', key: 'key1' },
+      { content: 'object 2 content', key: 'key2' },
+    ]
+
+    const bucketName = await testModule.initMinioTestBucket(MOCK_OBJECTS)
+    const metadataBucketName = await testModule.initMinioTestBucket()
+
+    const folderCreateResponse = await request(testModule.app.getHttpServer())
+      .post(`/folders`)
+      .auth(accessToken, { type: 'bearer' })
+      .send({
+        name: 'My Folder',
+        contentLocation: testS3Location({ bucketName }),
+        metadataLocation: testS3Location({ bucketName: metadataBucketName }),
+      })
+
+    expect(folderCreateResponse.statusCode).toEqual(201)
+
+    const folderGetResponse = await request(testModule.app.getHttpServer())
+      .get(`/folders/${folderCreateResponse.body.folder.id}`)
+      .auth(accessToken, { type: 'bearer' })
+      .send()
+
+    expect(folderGetResponse.statusCode).toEqual(200)
+    expect(folderGetResponse.body.folder.id).toEqual(
+      folderCreateResponse.body.folder.id,
+    )
+  })
+
   afterAll(async () => {
-    await testModule?.shutdown()
+    await testModule.shutdown()
   })
 })

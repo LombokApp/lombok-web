@@ -1,13 +1,13 @@
 import { buildTestModule } from 'src/core/utils/test.util'
 import request from 'supertest'
 
-const TEST_DB_NAME = 'auth'
+const TEST_MODULE_KEY = 'auth'
 
 describe('Auth', () => {
   let testModule: Awaited<ReturnType<typeof buildTestModule>> | undefined
 
   beforeAll(async () => {
-    testModule = await buildTestModule(TEST_DB_NAME)
+    testModule = await buildTestModule({ testModuleKey: TEST_MODULE_KEY })
   })
 
   afterEach(async () => {

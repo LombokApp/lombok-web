@@ -32,7 +32,6 @@ export class QueueService {
       })),
     )
     for (const { name, queue } of injectedQueues) {
-      console.log('Registering queue', name, queue.constructor.name)
       this.queues[name] = queue
     }
   }

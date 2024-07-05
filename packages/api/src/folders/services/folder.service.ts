@@ -33,6 +33,7 @@ import type { UserLocationInputDTO } from 'src/locations/transfer-objects/user-l
 import { OrmService } from 'src/orm/orm.service'
 import { QueueName } from 'src/queue/queue.constants'
 import { configureS3Client, S3Service } from 'src/s3/s3.service'
+import { createS3PresignedUrls } from 'src/s3/s3.utils'
 import { ServerLocationType } from 'src/server/constants/server.constants'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { SocketService } from 'src/socket/socket.service'
@@ -596,7 +597,7 @@ export class FolderService implements OnModuleInit {
       userId,
     })
 
-    return this.s3Service.createS3PresignedUrls(
+    return createS3PresignedUrls(
       urls.map((urlRequest) => {
         // objectIdentifier looks like one of these, depending on if it's a regular object content request or an object metadata request
         // `metadata:${objectKey}:${metadataObject.hash}`

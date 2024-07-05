@@ -24,6 +24,7 @@ import { FolderService } from 'src/folders/services/folder.service'
 import { locationsTable } from 'src/locations/entities/locations.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { S3Service } from 'src/s3/s3.service'
+import { createS3PresignedUrls } from 'src/s3/s3.utils'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -413,54 +414,52 @@ export class AppService {
     const folders: { [folderId: string]: FolderWithoutLocations | undefined } =
       {}
 
-    const urls: MetadataUploadUrlsResponse = this.s3Service
-      .createS3PresignedUrls(
-        await Promise.all(
-          payload.requests.map(async (request) => {
-            const folder =
-              folders[request.folderId] ??
-              (await this.ormService.db.query.foldersTable.findFirst({
-                where: eq(folderObjectsTable.id, request.folderId),
-              }))
-            folders[request.folderId] = folder
+    const urls: MetadataUploadUrlsResponse = createS3PresignedUrls(
+      await Promise.all(
+        payload.requests.map(async (request) => {
+          const folder =
+            folders[request.folderId] ??
+            (await this.ormService.db.query.foldersTable.findFirst({
+              where: eq(folderObjectsTable.id, request.folderId),
+            }))
+          folders[request.folderId] = folder
 
-            if (!folder) {
-              throw new FolderNotFoundException()
-            }
+          if (!folder) {
+            throw new FolderNotFoundException()
+          }
 
-            const metadataLocation =
-              await this.ormService.db.query.locationsTable.findFirst({
-                where: eq(locationsTable.id, folder.metadataLocationId),
-              })
+          const metadataLocation =
+            await this.ormService.db.query.locationsTable.findFirst({
+              where: eq(locationsTable.id, folder.metadataLocationId),
+            })
 
-            if (!metadataLocation) {
-              throw new NotFoundException(
-                undefined,
-                `Storage location not found by id "${folder.metadataLocationId}"`,
-              )
-            }
-            return {
-              method: request.method,
-              objectKey: `${
-                metadataLocation.prefix ? metadataLocation.prefix : ''
-              }${folder.id}/${request.objectKey}/${request.metadataHash}`,
-              accessKeyId: metadataLocation.accessKeyId,
-              secretAccessKey: metadataLocation.secretAccessKey,
-              bucket: metadataLocation.bucket,
-              endpoint: metadataLocation.endpoint,
-              expirySeconds: 86400, // TODO: control this somewhere
-              region: metadataLocation.region,
-            }
-          }),
-        ),
-      )
-      .map((_url, i) => {
-        return {
-          folderId: payload.requests[i].folderId,
-          objectKey: payload.requests[i].objectKey,
-          url: _url,
-        }
-      })
+          if (!metadataLocation) {
+            throw new NotFoundException(
+              undefined,
+              `Storage location not found by id "${folder.metadataLocationId}"`,
+            )
+          }
+          return {
+            method: request.method,
+            objectKey: `${
+              metadataLocation.prefix ? metadataLocation.prefix : ''
+            }${folder.id}/${request.objectKey}/${request.metadataHash}`,
+            accessKeyId: metadataLocation.accessKeyId,
+            secretAccessKey: metadataLocation.secretAccessKey,
+            bucket: metadataLocation.bucket,
+            endpoint: metadataLocation.endpoint,
+            expirySeconds: 86400, // TODO: control this somewhere
+            region: metadataLocation.region,
+          }
+        }),
+      ),
+    ).map((_url, i) => {
+      return {
+        folderId: payload.requests[i].folderId,
+        objectKey: payload.requests[i].objectKey,
+        url: _url,
+      }
+    })
 
     // get presigned upload URLs for "metadata" files
     // for (const request of payload.requests) {

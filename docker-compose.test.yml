@@ -21,6 +21,7 @@ services:
       target: test
     volumes:
       - ./:/usr/src/app
+      - ./.docker-test/minio-test-data/:/minio-test-data
     env_file: packages/api/.env.test
     environment:
       WAIT_HOSTS: db:${DB_PORT:-0}
@@ -32,3 +33,36 @@ services:
       - POSTGRES_DB=stellariscloud_test
     ports:
       - 5435:5432
+  miniotest:
+    image: minio/minio
+    command: server /data --address "miniotest:9000" --console-address ":9001"
+    volumes:
+      - ./.docker-test/minio-test-data/:/data
+    ports:
+      - 9001:9001
+      - 9000:9000
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 1s
+      timeout: 1s
+      retries: 5
+    environment:
+      - MINIO_DOMAIN=miniotest:9000
+      # - MINIO_BROWSER=off
+  minioclienttest:
+    image: minio/mc
+    depends_on:
+      miniotest:
+        condition: service_healthy
+    restart: on-failure
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://miniotest:9000 minioadmin minioadmin;
+
+      /usr/bin/mc admin user add myminio ${TEST_S3_ACCESS_KEY_ID} ${TEST_S3_SECRET_ACCESS_KEY};
+      /usr/bin/mc admin policy attach myminio readwrite --user ${TEST_S3_ACCESS_KEY_ID};
+
+      # /usr/bin/mc admin trace -v -a myminio
+
+      exit 0;
+      "
