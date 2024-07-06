@@ -145,7 +145,7 @@ export class FolderService implements OnModuleInit {
     private readonly ormService: OrmService,
     private readonly serverConfigurationService: ServerConfigurationService,
     @InjectQueue(QueueName.RescanFolder)
-    private readonly indexFolderQueue: Queue<
+    private readonly rescanFolderQueue: Queue<
       { folderId: string; userId: string },
       void,
       QueueName.RescanFolder
@@ -671,7 +671,7 @@ export class FolderService implements OnModuleInit {
   }
 
   queueRescanFolder(folderId: string, userId: string) {
-    return this.indexFolderQueue.add(
+    return this.rescanFolderQueue.add(
       QueueName.RescanFolder,
       { folderId, userId },
       { jobId: uuidV4() },

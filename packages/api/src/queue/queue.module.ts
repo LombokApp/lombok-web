@@ -7,6 +7,16 @@ import { QueueName } from 'src/queue/queue.constants'
 import { InMemoryQueue } from './InMemoryQueue'
 import { QueueService } from './queue.service'
 
+const _inMemoryQueues: { [key: string]: InMemoryQueue | undefined } = {}
+
+const getOrCreateQueue = (queueName: string, queueService: QueueService) => {
+  if (!_inMemoryQueues[queueName]) {
+    _inMemoryQueues[queueName] = new InMemoryQueue(queueName, queueService)
+  }
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  return _inMemoryQueues[queueName]!
+}
+
 const registerQueues = (): {
   [key: string]: DynamicModule | undefined
 } =>
@@ -23,9 +33,8 @@ const registerQueues = (): {
             providers: [
               {
                 provide: getQueueToken(queueName),
-                useFactory: (queueService: QueueService) => {
-                  return new InMemoryQueue(queueName, queueService)
-                },
+                useFactory: (queueService: QueueService) =>
+                  getOrCreateQueue(queueName, queueService),
                 inject: [QueueService],
               },
             ],

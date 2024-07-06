@@ -661,27 +661,27 @@ export class AppService {
   public async updateAppsFromDisk(appsDirectory: string) {
     console.log('Refreshing apps from disk...')
 
-    // load the modules from disk
+    // load the apps from disk
     const appsFromDisk = this.loadAppsFromDisk(appsDirectory)
     console.log('Loaded apps from disk:', JSON.stringify(appsFromDisk, null, 2))
 
-    // push all module UI file content into redis
+    // push all app UI file content into redis
     for (const appIdentifier of Object.keys(appsFromDisk)) {
       if (appIdentifier in appsFromDisk) {
-        for (const moduleUi of Object.keys(
+        for (const appUi of Object.keys(
           appsFromDisk[appIdentifier]?.ui ?? {},
         )) {
           for (const filename of Object.keys(
-            appsFromDisk[appIdentifier]?.ui[moduleUi]?.files ?? {},
+            appsFromDisk[appIdentifier]?.ui[appUi]?.files ?? {},
           )) {
             const fullFilePath = path.join(
               appsDirectory,
               appIdentifier,
               'ui',
-              moduleUi,
+              appUi,
               filename,
             )
-            const REDIS_KEY = `APP_UI:${appIdentifier}:${moduleUi}:${filename}`
+            const REDIS_KEY = `APP_UI:${appIdentifier}:${appUi}:${filename}`
             if (this._redisConfig.enabled) {
               await this.redisService.client.SET(
                 REDIS_KEY,
@@ -703,8 +703,8 @@ export class AppService {
   private async setAppsInMemory(
     apps: ReturnType<typeof this.loadAppsFromDisk>,
   ) {
+    // save app configs in memory
     if (this._redisConfig.enabled) {
-      // push module config tree into redis
       await this.redisService.client.SET(
         FROM_DISK_APP_TREE_REDIS_KEY,
         JSON.stringify(apps),
@@ -714,40 +714,48 @@ export class AppService {
     }
   }
 
-  private getAppsInMemory() {
-    //
+  public async getAppsInMemory() {
+    // get latest configs from memory
+    if (this._redisConfig.enabled) {
+      return JSON.parse(
+        (await this.redisService.client.GET(FROM_DISK_APP_TREE_REDIS_KEY)) ??
+          '{}',
+      )
+    } else {
+      return this._appsCache.apps
+    }
   }
 
-  public loadAppsFromDisk(modulesDirectory: string) {
+  public loadAppsFromDisk(appsDirectory: string) {
     const configs: InstalledAppDefinition = {}
 
-    for (const moduleName of fs.readdirSync(modulesDirectory)) {
-      const parentPath = path.join(modulesDirectory, moduleName)
-      const configPath = path.join(modulesDirectory, moduleName, 'config.json')
-      const uiDirPath = path.join(modulesDirectory, moduleName, 'ui')
+    for (const appName of fs.readdirSync(appsDirectory)) {
+      const parentPath = path.join(appsDirectory, appName)
+      const configPath = path.join(appsDirectory, appName, 'config.json')
+      const uiDirPath = path.join(appsDirectory, appName, 'ui')
       if (!fs.lstatSync(parentPath).isDirectory()) {
         continue
       }
 
       if (fs.existsSync(configPath)) {
         const configJson = fs.readFileSync(configPath, 'utf-8')
-        configs[moduleName] = { ui: {}, config: JSON.parse(configJson) }
-        // load all the frontend assets provided by the module
+        configs[appName] = { ui: {}, config: JSON.parse(configJson) }
+        // load all the frontend assets provided by the app
         if (fs.existsSync(uiDirPath) && fs.lstatSync(uiDirPath).isDirectory()) {
           for (const uiName of fs.readdirSync(uiDirPath)) {
             const uiPayloadRoot = path.join(uiDirPath, uiName)
             if (fs.lstatSync(uiPayloadRoot).isDirectory()) {
               const uiPath = path.join(uiDirPath, uiName)
-              const moduleUiPath = path.join(uiDirPath, uiName)
-              const conf = configs[moduleName]
+              const appUiPath = path.join(uiDirPath, uiName)
+              const conf = configs[appName]
               if (conf) {
                 conf.ui[uiName] = {
                   name: uiName,
                   path: uiPath,
-                  files: readDirRecursive(moduleUiPath).reduce(
+                  files: readDirRecursive(appUiPath).reduce(
                     (acc, entryPath) => ({
                       ...acc,
-                      [entryPath.slice(moduleUiPath.length)]: {
+                      [entryPath.slice(appUiPath.length)]: {
                         hash: '',
                         size: 1,
                       },

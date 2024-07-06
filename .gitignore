@@ -35,4 +35,4 @@ env.dev
 .docker
 
 .rollup.cache
-.docker-test
+.test-data

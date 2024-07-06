@@ -1,16 +1,19 @@
-import { forwardRef, Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
+import type { OnModuleInit } from '@nestjs/common'
+import { forwardRef, Inject, Module } from '@nestjs/common'
+import { ConfigModule, ConfigType } from '@nestjs/config'
 import { redisConfig } from 'src/cache/redis.config'
 import { EventModule } from 'src/event/event.module'
 import { FoldersModule } from 'src/folders/folders.module'
 import { S3Module } from 'src/s3/s3.module'
 import { S3Service } from 'src/s3/s3.service'
 
+import { appConfig } from './config'
 import { AppService } from './services/app.service'
 
 @Module({
   imports: [
     ConfigModule.forFeature(redisConfig),
+    ConfigModule.forFeature(appConfig),
     EventModule,
     S3Module,
     forwardRef(() => FoldersModule),
@@ -18,5 +21,13 @@ import { AppService } from './services/app.service'
   providers: [AppService, S3Service],
   exports: [AppService],
 })
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
-export class AppModule {}
+export class AppModule implements OnModuleInit {
+  constructor(
+    private readonly appService: AppService,
+    @Inject(appConfig.KEY)
+    private readonly _appConfig: ConfigType<typeof appConfig>,
+  ) {}
+  async onModuleInit() {
+    await this.appService.updateAppsFromDisk(this._appConfig.appsLocalPath)
+  }
+}

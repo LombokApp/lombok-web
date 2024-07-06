@@ -1,8 +1,11 @@
+import { getQueueToken } from '@nestjs/bullmq'
 import {
   buildTestModule,
   registerTestUser,
   testS3Location,
 } from 'src/core/utils/test.util'
+import type { InMemoryQueue } from 'src/queue/InMemoryQueue'
+import { QueueName } from 'src/queue/queue.constants'
 import request from 'supertest'
 
 const TEST_MODULE_KEY = 'folders'
@@ -198,6 +201,13 @@ describe('Folders', () => {
       .send()
 
     await new Promise((resolve) => setTimeout(resolve, 1000))
+
+    const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
+      getQueueToken(QueueName.RescanFolder),
+    )
+
+    // console.log('queue:', queue)
+    console.log('queue:', { stats: queue?.stats, queueId: queue?.queueId })
 
     const listObjectsResponse = await request(testModule?.app.getHttpServer())
       .get(`/folders/${folderCreateResponse.body.folder.id}/objects`)
