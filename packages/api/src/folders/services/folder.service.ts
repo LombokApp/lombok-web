@@ -2,6 +2,8 @@ import { InjectQueue } from '@nestjs/bullmq'
 import type { OnModuleInit } from '@nestjs/common'
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
@@ -25,7 +27,7 @@ import { and, eq, like, sql } from 'drizzle-orm'
 import mime from 'mime'
 import * as r from 'runtypes'
 import { parseSort } from 'src/core/utils/sort.util'
-import type { EventService } from 'src/event/services/event.service'
+import { EventService } from 'src/event/services/event.service'
 import type { Location } from 'src/locations/entities/locations.entity'
 import { locationsTable } from 'src/locations/entities/locations.entity'
 import { LocationNotFoundException } from 'src/locations/exceptions/location-not-found.exceptions'
@@ -98,7 +100,7 @@ export enum FolderSort {
 }
 
 export enum FolderPermissionName {
-  FOLDER_REFRESH = 'folder_refresh',
+  FOLDER_RESCAN = 'folder_rescan',
   FOLDER_FORGET = 'folder_forget',
   OBJECT_EDIT = 'object_edit',
   OBJECT_MANAGE = 'object_manage',
@@ -138,15 +140,19 @@ export class FolderService implements OnModuleInit {
     private readonly moduleRef: ModuleRef,
     private readonly socketService: SocketService,
     private readonly s3Service: S3Service,
+    @Inject(forwardRef(() => EventService))
+    _eventService,
     private readonly ormService: OrmService,
     private readonly serverConfigurationService: ServerConfigurationService,
-    @InjectQueue(QueueName.IndexFolder)
+    @InjectQueue(QueueName.RescanFolder)
     private readonly indexFolderQueue: Queue<
       { folderId: string; userId: string },
       void,
-      QueueName.IndexFolder
+      QueueName.RescanFolder
     >,
-  ) {}
+  ) {
+    this.eventService = _eventService
+  }
 
   onModuleInit() {
     // this.socketService = this.moduleRef.get(SocketService)
@@ -664,15 +670,16 @@ export class FolderService implements OnModuleInit {
     )
   }
 
-  queueRefreshFolder(folderId: string, userId: string) {
+  queueRescanFolder(folderId: string, userId: string) {
     return this.indexFolderQueue.add(
-      QueueName.IndexFolder,
+      QueueName.RescanFolder,
       { folderId, userId },
       { jobId: uuidV4() },
     )
   }
 
-  async refreshFolder(folderId: string, userId: string) {
+  async rescanFolder(folderId: string, userId: string) {
+    // console.log('rescanFolder:', { folderId, userId })
     const { folder, permissions } = await this.getFolderAsUser({
       folderId,
       userId,
@@ -685,7 +692,7 @@ export class FolderService implements OnModuleInit {
       endpoint: contentStorageLocation.endpoint,
       region: contentStorageLocation.region,
     })
-    if (!permissions.includes(FolderPermissionName.FOLDER_REFRESH)) {
+    if (!permissions.includes(FolderPermissionName.FOLDER_RESCAN)) {
       throw new FolderPermissionUnauthorizedException()
     }
 

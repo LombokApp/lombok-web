@@ -17,6 +17,13 @@ import globalAxios from 'axios';
 import { DUMMY_BASE_URL, assertParamExists, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from './common';
 // @ts-ignore
 import { BASE_PATH, BaseAPI } from './base';
+export const FolderObjectsListResponseResultInnerMediaTypeEnum = {
+    Image: 'IMAGE',
+    Video: 'VIDEO',
+    Audio: 'AUDIO',
+    Document: 'DOCUMENT',
+    Unknown: 'UNKNOWN'
+};
 /**
  * AuthApi - axios parameter creator
  * @export
@@ -414,6 +421,80 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
                 options: localVarRequestOptions,
             };
         },
+        /**
+         *
+         * @param {string} folderId
+         * @param {string} search
+         * @param {number} offset
+         * @param {number} limit
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listFolderObjects: async (folderId, search, offset, limit, options = {}) => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('listFolderObjects', 'folderId', folderId);
+            // verify required parameter 'search' is not null or undefined
+            assertParamExists('listFolderObjects', 'search', search);
+            // verify required parameter 'offset' is not null or undefined
+            assertParamExists('listFolderObjects', 'offset', offset);
+            // verify required parameter 'limit' is not null or undefined
+            assertParamExists('listFolderObjects', 'limit', limit);
+            const localVarPath = `/folders/{folderId}/objects`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} folderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        rescanFolder: async (folderId, options = {}) => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('rescanFolder', 'folderId', folderId);
+            const localVarPath = `/folders/{folderId}/rescan`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     };
 };
 /**
@@ -443,6 +524,29 @@ export const FoldersApiFp = function (configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getFolder(folderId, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
+        /**
+         *
+         * @param {string} folderId
+         * @param {string} search
+         * @param {number} offset
+         * @param {number} limit
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listFolderObjects(folderId, search, offset, limit, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderObjects(folderId, search, offset, limit, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} folderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async rescanFolder(folderId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.rescanFolder(folderId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
     };
 };
 /**
@@ -469,6 +573,24 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
          */
         getFolder(requestParameters, options) {
             return localVarFp.getFolder(requestParameters.folderId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listFolderObjects(requestParameters, options) {
+            return localVarFp.listFolderObjects(requestParameters.folderId, requestParameters.search, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {FoldersApiRescanFolderRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        rescanFolder(requestParameters, options) {
+            return localVarFp.rescanFolder(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -498,6 +620,26 @@ export class FoldersApi extends BaseAPI {
      */
     getFolder(requestParameters, options) {
         return FoldersApiFp(this.configuration).getFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    listFolderObjects(requestParameters, options) {
+        return FoldersApiFp(this.configuration).listFolderObjects(requestParameters.folderId, requestParameters.search, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {FoldersApiRescanFolderRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    rescanFolder(requestParameters, options) {
+        return FoldersApiFp(this.configuration).rescanFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 /**

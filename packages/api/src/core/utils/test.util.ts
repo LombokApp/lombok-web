@@ -163,7 +163,7 @@ export async function registerTestUser(
 
 export function testS3Location({
   bucketName,
-  prefix,
+  prefix = '',
 }: {
   bucketName: string
   prefix?: string

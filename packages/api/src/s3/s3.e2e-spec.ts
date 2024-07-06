@@ -8,7 +8,7 @@ import { S3Service } from './s3.service'
 const TEST_MODULE_KEY = 's3'
 
 describe('S3', () => {
-  let testModule: Awaited<ReturnType<typeof buildTestModule>>
+  let testModule: Awaited<ReturnType<typeof buildTestModule>> | undefined
   let s3Service: S3Service
   let s3Client: S3Client
 
@@ -21,15 +21,16 @@ describe('S3', () => {
   })
 
   afterEach(async () => {
-    await testModule.resetDb()
+    await testModule?.resetDb()
   })
 
   it(`it should be able to read from a bucket`, async () => {
     const OBJECT_KEY = 's3test.txt'
     const TEST_CONTENT = 'this is the s3 test'
-    const bucketName = await testModule.initMinioTestBucket([
-      { key: OBJECT_KEY, content: TEST_CONTENT },
-    ])
+    const bucketName =
+      (await testModule?.initMinioTestBucket([
+        { key: OBJECT_KEY, content: TEST_CONTENT },
+      ])) ?? ''
 
     const objectsResult = await s3Service.s3ListBucketObjects({
       s3Client,
@@ -37,15 +38,16 @@ describe('S3', () => {
     })
     expect(objectsResult.result.length).toBeGreaterThan(0)
 
-    const downloadUrls = testModule.createS3PresignedUrls(
-      objectsResult.result.map(({ key }) => {
-        return {
-          bucket: bucketName,
-          method: SignedURLsRequestMethod.GET,
-          objectKey: key,
-        }
-      }),
-    )
+    const downloadUrls =
+      testModule?.createS3PresignedUrls(
+        objectsResult.result.map(({ key }) => {
+          return {
+            bucket: bucketName,
+            method: SignedURLsRequestMethod.GET,
+            objectKey: key,
+          }
+        }),
+      ) ?? []
 
     const files = await Promise.all(
       downloadUrls
@@ -53,10 +55,11 @@ describe('S3', () => {
         .map((response) => response.then((r) => r.data)),
     )
 
+    expect(files.length).toEqual(1)
     expect(files[0]).toEqual(TEST_CONTENT)
   })
 
   afterAll(async () => {
-    await testModule.shutdown()
+    await testModule?.shutdown()
   })
 })

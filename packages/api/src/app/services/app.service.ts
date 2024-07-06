@@ -6,6 +6,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
+import nestJsConfig from '@nestjs/config'
 import type { AppConfig, ConnectedAppInstance } from '@stellariscloud/types'
 import { MediaType, SignedURLsRequestMethod } from '@stellariscloud/types'
 import { EnumType } from '@stellariscloud/utils'
@@ -13,6 +14,7 @@ import { and, eq, inArray, isNull } from 'drizzle-orm'
 import fs from 'fs'
 import path from 'path'
 import * as r from 'runtypes'
+import { redisConfig } from 'src/cache/redis.config'
 import { RedisService } from 'src/cache/redis.service'
 import { readDirRecursive } from 'src/core/utils/fs.util'
 import { eventReceiptsTable } from 'src/event/entities/event-receipt.entity'
@@ -117,10 +119,35 @@ const FailHandleEventValidator = r.Record({
   error: r.String,
 })
 
+interface InstalledAppDefinition {
+  [key: string]:
+    | {
+        config: AppConfig
+        ui: {
+          [key: string]: {
+            path: string
+            name: string
+            files: { [key: string]: { size: number; hash: string } }
+          }
+        }
+      }
+    | undefined
+}
+
 @Injectable()
 export class AppService {
   folderService: FolderService
+  _appsCache: {
+    apps: InstalledAppDefinition
+    appAssetCache: { [key: string]: Buffer }
+  } = {
+    apps: {},
+    appAssetCache: {},
+  }
+
   constructor(
+    @Inject(redisConfig.KEY)
+    private readonly _redisConfig: nestJsConfig.ConfigType<typeof redisConfig>,
     private readonly ormService: OrmService,
     private readonly redisService: RedisService,
     @Inject(forwardRef(() => FolderService)) _folderService,
@@ -151,32 +178,39 @@ export class AppService {
       const app = appsFromDisk[appName]
       return {
         identifier: appName,
-        config: app.config,
+        config: app?.config,
       }
     })
   }
 
-  async getAppAsAdmin(user: User, moduleName: string) {
+  async getAppAsAdmin(user: User, appIdentifier: string) {
     if (!user.isAdmin) {
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND)
     }
 
-    return this.getApp(moduleName)
+    return this.getApp(appIdentifier)
   }
 
-  async getApp(appName: string): Promise<AppConfig | undefined> {
-    const modulesFromDiskRaw = await this.redisService.client.GET(
-      FROM_DISK_APP_TREE_REDIS_KEY,
-    )
-    const modulesFromDisk: ReturnType<typeof this.loadAppsFromDisk> =
-      modulesFromDiskRaw ? JSON.parse(modulesFromDiskRaw) : {}
+  async getApp(appIdentifier: string): Promise<AppConfig | undefined> {
+    const appsFromDiskRaw = this._redisConfig.enabled
+      ? await this.redisService.client.GET(FROM_DISK_APP_TREE_REDIS_KEY)
+      : this._appsCache.apps[appIdentifier]
 
-    return appName in modulesFromDisk
-      ? modulesFromDisk[appName].config
+    const appsFromDisk: InstalledAppDefinition =
+      typeof appsFromDiskRaw === 'string'
+        ? JSON.parse(appsFromDiskRaw)
+        : appsFromDiskRaw ?? {}
+
+    return appIdentifier in appsFromDisk
+      ? appsFromDisk[appIdentifier]?.config
       : undefined
   }
 
-  async handleAppRequest(handlerId: string, appName: string, message: any) {
+  async handleAppRequest(
+    handlerId: string,
+    appIdentifier: string,
+    message: any,
+  ) {
     const now = new Date()
     if (AppSocketAPIRequest.guard(message)) {
       const requestData = message.data
@@ -188,7 +222,7 @@ export class AppService {
                 ...requestData,
                 createdAt: now,
                 updatedAt: now,
-                appId: appName,
+                appId: appIdentifier,
                 id: uuidV4(),
               },
             ])
@@ -267,7 +301,7 @@ export class AppService {
               await this.ormService.db.query.eventReceiptsTable.findFirst({
                 where: and(
                   eq(eventReceiptsTable.id, requestData),
-                  eq(eventReceiptsTable.appIdentifier, appName),
+                  eq(eventReceiptsTable.appIdentifier, appIdentifier),
                 ),
               })
             if (
@@ -297,7 +331,7 @@ export class AppService {
             const eventReceipt =
               await this.ormService.db.query.eventReceiptsTable.findFirst({
                 where: and(
-                  eq(eventReceiptsTable.appIdentifier, appName),
+                  eq(eventReceiptsTable.appIdentifier, appIdentifier),
                   inArray(eventReceiptsTable.eventKey, requestData.eventKeys),
                   isNull(eventReceiptsTable.startedAt),
                 ),
@@ -344,7 +378,7 @@ export class AppService {
               await this.ormService.db.query.eventReceiptsTable.findFirst({
                 where: and(
                   eq(eventReceiptsTable.id, requestData.eventReceiptId),
-                  eq(eventReceiptsTable.appIdentifier, appName),
+                  eq(eventReceiptsTable.appIdentifier, appIdentifier),
                 ),
               })
             if (
@@ -368,7 +402,7 @@ export class AppService {
                 .where(
                   and(
                     eq(eventReceiptsTable.id, eventReceipt.id),
-                    eq(eventReceiptsTable.appIdentifier, appName),
+                    eq(eventReceiptsTable.appIdentifier, appIdentifier),
                   ),
                 ),
             }
@@ -624,58 +658,68 @@ export class AppService {
     }))
   }
 
-  public async updateAppsFromDisk(modulesDirectory: string) {
+  public async updateAppsFromDisk(appsDirectory: string) {
     console.log('Refreshing apps from disk...')
 
     // load the modules from disk
-    const modulesFromDisk = this.loadAppsFromDisk(modulesDirectory)
-    console.log(
-      'Loaded apps from disk:',
-      JSON.stringify(modulesFromDisk, null, 2),
-    )
+    const appsFromDisk = this.loadAppsFromDisk(appsDirectory)
+    console.log('Loaded apps from disk:', JSON.stringify(appsFromDisk, null, 2))
 
     // push all module UI file content into redis
-    for (const module of Object.keys(modulesFromDisk)) {
-      for (const moduleUi of Object.keys(modulesFromDisk[module].ui)) {
-        for (const filename of Object.keys(
-          modulesFromDisk[module].ui[moduleUi].files,
+    for (const appIdentifier of Object.keys(appsFromDisk)) {
+      if (appIdentifier in appsFromDisk) {
+        for (const moduleUi of Object.keys(
+          appsFromDisk[appIdentifier]?.ui ?? {},
         )) {
-          const fullFilePath = path.join(
-            modulesDirectory,
-            module,
-            'ui',
-            moduleUi,
-            filename,
-          )
-          const REDIS_KEY = `APP_UI:${module}:${moduleUi}:${filename}`
-          await this.redisService.client.SET(
-            REDIS_KEY,
-            fs.readFileSync(fullFilePath),
-          )
+          for (const filename of Object.keys(
+            appsFromDisk[appIdentifier]?.ui[moduleUi]?.files ?? {},
+          )) {
+            const fullFilePath = path.join(
+              appsDirectory,
+              appIdentifier,
+              'ui',
+              moduleUi,
+              filename,
+            )
+            const REDIS_KEY = `APP_UI:${appIdentifier}:${moduleUi}:${filename}`
+            if (this._redisConfig.enabled) {
+              await this.redisService.client.SET(
+                REDIS_KEY,
+                fs.readFileSync(fullFilePath),
+              )
+            } else {
+              this._appsCache.appAssetCache[REDIS_KEY] =
+                fs.readFileSync(fullFilePath)
+            }
+          }
         }
       }
     }
 
-    // push module config tree into redis
-    await this.redisService.client.SET(
-      FROM_DISK_APP_TREE_REDIS_KEY,
-      JSON.stringify(modulesFromDisk),
-    )
+    // save parsed apps in memory
+    await this.setAppsInMemory(appsFromDisk)
+  }
+
+  private async setAppsInMemory(
+    apps: ReturnType<typeof this.loadAppsFromDisk>,
+  ) {
+    if (this._redisConfig.enabled) {
+      // push module config tree into redis
+      await this.redisService.client.SET(
+        FROM_DISK_APP_TREE_REDIS_KEY,
+        JSON.stringify(apps),
+      )
+    } else {
+      this._appsCache.apps = apps
+    }
+  }
+
+  private getAppsInMemory() {
+    //
   }
 
   public loadAppsFromDisk(modulesDirectory: string) {
-    const configs: {
-      [key: string]: {
-        config: AppConfig
-        ui: {
-          [key: string]: {
-            path: string
-            name: string
-            files: { [key: string]: { size: number; hash: string } }
-          }
-        }
-      }
-    } = {}
+    const configs: InstalledAppDefinition = {}
 
     for (const moduleName of fs.readdirSync(modulesDirectory)) {
       const parentPath = path.join(modulesDirectory, moduleName)
@@ -695,19 +739,22 @@ export class AppService {
             if (fs.lstatSync(uiPayloadRoot).isDirectory()) {
               const uiPath = path.join(uiDirPath, uiName)
               const moduleUiPath = path.join(uiDirPath, uiName)
-              configs[moduleName].ui[uiName] = {
-                name: uiName,
-                path: uiPath,
-                files: readDirRecursive(moduleUiPath).reduce(
-                  (acc, entryPath) => ({
-                    ...acc,
-                    [entryPath.slice(moduleUiPath.length)]: {
-                      hash: '',
-                      size: 1,
-                    },
-                  }),
-                  {},
-                ),
+              const conf = configs[moduleName]
+              if (conf) {
+                conf.ui[uiName] = {
+                  name: uiName,
+                  path: uiPath,
+                  files: readDirRecursive(moduleUiPath).reduce(
+                    (acc, entryPath) => ({
+                      ...acc,
+                      [entryPath.slice(moduleUiPath.length)]: {
+                        hash: '',
+                        size: 1,
+                      },
+                    }),
+                    {},
+                  ),
+                }
               }
             }
           }

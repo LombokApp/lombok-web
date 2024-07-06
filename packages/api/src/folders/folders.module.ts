@@ -1,6 +1,8 @@
 import { forwardRef, Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
 import { AppModule } from 'src/app/app.module'
 import { AppService } from 'src/app/services/app.service'
+import { redisConfig } from 'src/cache/redis.config'
 import { EventModule } from 'src/event/event.module'
 import { EventService } from 'src/event/services/event.service'
 import { QueueModule } from 'src/queue/queue.module'
@@ -11,7 +13,7 @@ import { SocketModule } from 'src/socket/socket.module'
 import { SocketService } from 'src/socket/socket.service'
 
 import { FoldersController } from './controllers/folders.controller'
-import { IndexFolderProcessor } from './processors/index-folder.processor'
+import { RescanFolderProcessor } from './processors/rescan-folder.processor'
 import { FolderService } from './services/folder.service'
 
 @Module({
@@ -19,8 +21,9 @@ import { FolderService } from './services/folder.service'
   imports: [
     S3Module,
     ServerModule,
-    EventModule,
     QueueModule,
+    ConfigModule.forFeature(redisConfig),
+    forwardRef(() => EventModule),
     forwardRef(() => SocketModule),
     forwardRef(() => AppModule),
   ],
@@ -30,7 +33,7 @@ import { FolderService } from './services/folder.service'
     SocketService,
     AppService,
     ServerConfigurationService,
-    IndexFolderProcessor,
+    RescanFolderProcessor,
   ],
   exports: [FolderService],
 })

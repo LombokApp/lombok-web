@@ -198,6 +198,72 @@ export declare const schema: {
                 readonly tags: readonly ["Folders"];
             };
         };
+        readonly "/folders/{folderId}/rescan": {
+            readonly post: {
+                readonly operationId: "rescanFolder";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Scan the underlying S3 location and update our local representation of it.";
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+            };
+        };
+        readonly "/folders/{folderId}/objects": {
+            readonly get: {
+                readonly operationId: "listFolderObjects";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "search";
+                    readonly required: true;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "offset";
+                    readonly required: true;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly name: "limit";
+                    readonly required: true;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "number";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "List folder objects.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/FolderObjectsListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+            };
+        };
         readonly "/server/settings": {
             readonly get: {
                 readonly operationId: "getServerSettings";
@@ -677,6 +743,58 @@ export declare const schema: {
                     };
                 };
                 readonly required: readonly ["folder"];
+            };
+            readonly FolderObjectsListResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly meta: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly totalCount: {
+                                readonly type: "number";
+                            };
+                        };
+                        readonly required: readonly ["totalCount"];
+                    };
+                    readonly result: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "object";
+                            readonly properties: {
+                                readonly id: {
+                                    readonly type: "string";
+                                };
+                                readonly objectKey: {
+                                    readonly type: "string";
+                                };
+                                readonly folderId: {
+                                    readonly type: "string";
+                                };
+                                readonly hash: {
+                                    readonly type: readonly ["string", "null"];
+                                };
+                                readonly lastModified: {
+                                    readonly type: "number";
+                                };
+                                readonly eTag: {
+                                    readonly type: "string";
+                                };
+                                readonly sizeBytes: {
+                                    readonly type: "number";
+                                };
+                                readonly mimeType: {
+                                    readonly type: "string";
+                                };
+                                readonly mediaType: {
+                                    readonly type: "string";
+                                    readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
+                                };
+                            };
+                            readonly required: readonly ["id", "objectKey", "folderId", "lastModified", "eTag", "sizeBytes", "mimeType", "mediaType"];
+                        };
+                    };
+                };
+                readonly required: readonly ["meta", "result"];
             };
             readonly EventDTO: {
                 readonly type: "object";

@@ -1,5 +1,5 @@
 export enum QueueName {
-  IndexFolder = 'IndexFolder',
+  RescanFolder = 'RescanFolder',
   NotifyAppOfPendingEvents = 'NotifyAppOfPendingEvents',
   NotifyAllAppsOfPendingEvents = 'NotifyAllAppsOfPendingEvents',
 }

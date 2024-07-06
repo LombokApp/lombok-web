@@ -47,7 +47,7 @@ export class EventService {
         .listApps()
         .then((apps) =>
           apps
-            .filter((m) => m.config.subscribedEvents.includes(eventKey))
+            .filter((m) => m.config?.subscribedEvents.includes(eventKey))
             .map((m) => ({
               appIdentifier: m.identifier,
               eventKey: event.eventKey,

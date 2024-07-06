@@ -8,6 +8,8 @@ import { JWTService } from 'src/auth/services/jwt.service'
 import { redisConfig } from 'src/cache/redis.config'
 import { RedisService } from 'src/cache/redis.service'
 import { coreConfig } from 'src/core/config'
+import { EventModule } from 'src/event/event.module'
+import { EventService } from 'src/event/services/event.service'
 import { FoldersModule } from 'src/folders/folders.module'
 import { FolderService } from 'src/folders/services/folder.service'
 import { S3Module } from 'src/s3/s3.module'
@@ -25,6 +27,7 @@ import { SocketService } from './socket.service'
     forwardRef(() => AuthModule),
     ServerModule,
     S3Module,
+    EventModule,
     ConfigModule.forFeature(redisConfig),
     ConfigModule.forFeature(authConfig),
     ConfigModule.forFeature(coreConfig),
@@ -33,6 +36,7 @@ import { SocketService } from './socket.service'
     JWTService,
     SocketService,
     FolderService,
+    EventService,
     AppService,
     RedisService,
     ServerConfigurationService,

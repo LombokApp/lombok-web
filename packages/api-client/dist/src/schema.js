@@ -216,6 +216,83 @@ export const schema = {
                 ]
             }
         },
+        "/folders/{folderId}/rescan": {
+            "post": {
+                "operationId": "rescanFolder",
+                "parameters": [
+                    {
+                        "name": "folderId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Scan the underlying S3 location and update our local representation of it."
+                    }
+                },
+                "tags": [
+                    "Folders"
+                ]
+            }
+        },
+        "/folders/{folderId}/objects": {
+            "get": {
+                "operationId": "listFolderObjects",
+                "parameters": [
+                    {
+                        "name": "folderId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "type": "number"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List folder objects.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FolderObjectsListResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Folders"
+                ]
+            }
+        },
         "/server/settings": {
             "get": {
                 "operationId": "getServerSettings",
@@ -797,6 +874,81 @@ export const schema = {
                 },
                 "required": [
                     "folder"
+                ]
+            },
+            "FolderObjectsListResponse": {
+                "type": "object",
+                "properties": {
+                    "meta": {
+                        "type": "object",
+                        "properties": {
+                            "totalCount": {
+                                "type": "number"
+                            }
+                        },
+                        "required": [
+                            "totalCount"
+                        ]
+                    },
+                    "result": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "objectKey": {
+                                    "type": "string"
+                                },
+                                "folderId": {
+                                    "type": "string"
+                                },
+                                "hash": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                },
+                                "lastModified": {
+                                    "type": "number"
+                                },
+                                "eTag": {
+                                    "type": "string"
+                                },
+                                "sizeBytes": {
+                                    "type": "number"
+                                },
+                                "mimeType": {
+                                    "type": "string"
+                                },
+                                "mediaType": {
+                                    "type": "string",
+                                    "enum": [
+                                        "IMAGE",
+                                        "VIDEO",
+                                        "AUDIO",
+                                        "DOCUMENT",
+                                        "UNKNOWN"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "id",
+                                "objectKey",
+                                "folderId",
+                                "lastModified",
+                                "eTag",
+                                "sizeBytes",
+                                "mimeType",
+                                "mediaType"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "meta",
+                    "result"
                 ]
             },
             "EventDTO": {

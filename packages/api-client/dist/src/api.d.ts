@@ -251,6 +251,107 @@ export interface FolderGetResponseFolderMetadataLocation {
 /**
  *
  * @export
+ * @interface FolderObjectsListResponse
+ */
+export interface FolderObjectsListResponse {
+    /**
+     *
+     * @type {FolderObjectsListResponseMeta}
+     * @memberof FolderObjectsListResponse
+     */
+    'meta': FolderObjectsListResponseMeta;
+    /**
+     *
+     * @type {Array<FolderObjectsListResponseResultInner>}
+     * @memberof FolderObjectsListResponse
+     */
+    'result': Array<FolderObjectsListResponseResultInner>;
+}
+/**
+ *
+ * @export
+ * @interface FolderObjectsListResponseMeta
+ */
+export interface FolderObjectsListResponseMeta {
+    /**
+     *
+     * @type {number}
+     * @memberof FolderObjectsListResponseMeta
+     */
+    'totalCount': number;
+}
+/**
+ *
+ * @export
+ * @interface FolderObjectsListResponseResultInner
+ */
+export interface FolderObjectsListResponseResultInner {
+    /**
+     *
+     * @type {string}
+     * @memberof FolderObjectsListResponseResultInner
+     */
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof FolderObjectsListResponseResultInner
+     */
+    'objectKey': string;
+    /**
+     *
+     * @type {string}
+     * @memberof FolderObjectsListResponseResultInner
+     */
+    'folderId': string;
+    /**
+     *
+     * @type {any}
+     * @memberof FolderObjectsListResponseResultInner
+     */
+    'hash'?: any;
+    /**
+     *
+     * @type {number}
+     * @memberof FolderObjectsListResponseResultInner
+     */
+    'lastModified': number;
+    /**
+     *
+     * @type {string}
+     * @memberof FolderObjectsListResponseResultInner
+     */
+    'eTag': string;
+    /**
+     *
+     * @type {number}
+     * @memberof FolderObjectsListResponseResultInner
+     */
+    'sizeBytes': number;
+    /**
+     *
+     * @type {string}
+     * @memberof FolderObjectsListResponseResultInner
+     */
+    'mimeType': string;
+    /**
+     *
+     * @type {string}
+     * @memberof FolderObjectsListResponseResultInner
+     */
+    'mediaType': FolderObjectsListResponseResultInnerMediaTypeEnum;
+}
+export declare const FolderObjectsListResponseResultInnerMediaTypeEnum: {
+    readonly Image: "IMAGE";
+    readonly Video: "VIDEO";
+    readonly Audio: "AUDIO";
+    readonly Document: "DOCUMENT";
+    readonly Unknown: "UNKNOWN";
+};
+export type FolderObjectsListResponseResultInnerMediaTypeEnum = typeof FolderObjectsListResponseResultInnerMediaTypeEnum[keyof typeof FolderObjectsListResponseResultInnerMediaTypeEnum];
+/**
+ *
+ * @export
  * @interface LoginCredentialsDTO
  */
 export interface LoginCredentialsDTO {
@@ -661,6 +762,23 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
      * @throws {RequiredError}
      */
     getFolder: (folderId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} folderId
+     * @param {string} search
+     * @param {number} offset
+     * @param {number} limit
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listFolderObjects: (folderId: string, search: string, offset: number, limit: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} folderId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    rescanFolder: (folderId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * FoldersApi - functional programming interface
@@ -681,6 +799,23 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
      * @throws {RequiredError}
      */
     getFolder(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderGetResponse>>;
+    /**
+     *
+     * @param {string} folderId
+     * @param {string} search
+     * @param {number} offset
+     * @param {number} limit
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listFolderObjects(folderId: string, search: string, offset: number, limit: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectsListResponse>>;
+    /**
+     *
+     * @param {string} folderId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    rescanFolder(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
 };
 /**
  * FoldersApi - factory interface
@@ -701,6 +836,20 @@ export declare const FoldersApiFactory: (configuration?: Configuration, basePath
      * @throws {RequiredError}
      */
     getFolder(requestParameters: FoldersApiGetFolderRequest, options?: AxiosRequestConfig): AxiosPromise<FolderGetResponse>;
+    /**
+     *
+     * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: AxiosRequestConfig): AxiosPromise<FolderObjectsListResponse>;
+    /**
+     *
+     * @param {FoldersApiRescanFolderRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    rescanFolder(requestParameters: FoldersApiRescanFolderRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
 };
 /**
  * Request parameters for createFolder operation in FoldersApi.
@@ -729,6 +878,50 @@ export interface FoldersApiGetFolderRequest {
     readonly folderId: string;
 }
 /**
+ * Request parameters for listFolderObjects operation in FoldersApi.
+ * @export
+ * @interface FoldersApiListFolderObjectsRequest
+ */
+export interface FoldersApiListFolderObjectsRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof FoldersApiListFolderObjects
+     */
+    readonly folderId: string;
+    /**
+     *
+     * @type {string}
+     * @memberof FoldersApiListFolderObjects
+     */
+    readonly search: string;
+    /**
+     *
+     * @type {number}
+     * @memberof FoldersApiListFolderObjects
+     */
+    readonly offset: number;
+    /**
+     *
+     * @type {number}
+     * @memberof FoldersApiListFolderObjects
+     */
+    readonly limit: number;
+}
+/**
+ * Request parameters for rescanFolder operation in FoldersApi.
+ * @export
+ * @interface FoldersApiRescanFolderRequest
+ */
+export interface FoldersApiRescanFolderRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof FoldersApiRescanFolder
+     */
+    readonly folderId: string;
+}
+/**
  * FoldersApi - object-oriented interface
  * @export
  * @class FoldersApi
@@ -751,6 +944,22 @@ export declare class FoldersApi extends BaseAPI {
      * @memberof FoldersApi
      */
     getFolder(requestParameters: FoldersApiGetFolderRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderGetResponse, any>>;
+    /**
+     *
+     * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderObjectsListResponse, any>>;
+    /**
+     *
+     * @param {FoldersApiRescanFolderRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    rescanFolder(requestParameters: FoldersApiRescanFolderRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
 }
 /**
  * ServerApi - axios parameter creator
