@@ -89,8 +89,6 @@ export class FoldersController {
     } else {
       throw new FolderPermissionUnauthorizedException()
     }
-
-    await this.folderService.queueRescanFolder(folderId, req.user.id)
   }
 
   /**

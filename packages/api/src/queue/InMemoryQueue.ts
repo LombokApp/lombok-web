@@ -11,6 +11,7 @@ export class InMemoryQueue implements IQueue {
     startedJobs: 0,
     failedJobs: 0,
     successfulJobs: 0,
+    completedJobs: 0,
   }
   constructor(
     private readonly queueName: string,
@@ -30,7 +31,7 @@ export class InMemoryQueue implements IQueue {
       await this._process(data, options)
       this.stats.successfulJobs += 1
     } catch (e: any) {
-      console.log('Error in InMemoryQueue._process:', e?.name || e?.message)
+      console.log('Error in InMemoryQueue._process:', e)
       this.stats.failedJobs += 1
     } finally {
       // console.log('Finished job:', {
@@ -39,6 +40,7 @@ export class InMemoryQueue implements IQueue {
       //   stats: this.stats,
       //   queueId: this.queueId,
       // })
+      this.stats.completedJobs += 1
     }
   }
 

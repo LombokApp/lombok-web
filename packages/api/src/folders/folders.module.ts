@@ -1,6 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { AppModule } from 'src/app/app.module'
+import { appConfig } from 'src/app/config'
 import { AppService } from 'src/app/services/app.service'
 import { redisConfig } from 'src/cache/redis.config'
 import { EventModule } from 'src/event/event.module'
@@ -23,6 +24,7 @@ import { FolderService } from './services/folder.service'
     ServerModule,
     QueueModule,
     ConfigModule.forFeature(redisConfig),
+    ConfigModule.forFeature(appConfig),
     forwardRef(() => EventModule),
     forwardRef(() => SocketModule),
     forwardRef(() => AppModule),

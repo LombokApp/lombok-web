@@ -703,8 +703,8 @@ export class FolderService implements OnModuleInit {
     // TODO: implement folder object refreshing from bucket
 
     // consume the objects in the bucket, 1000 at a time, turning them into FolderObject entities
-    let contentCount = 0
-    let metadataCount = 0
+    let _contentCount = 0
+    let _metadataCount = 0
     let continuationToken: string | undefined = ''
     while (typeof continuationToken === 'string') {
       // list objects in the bucket, with the given prefix
@@ -732,26 +732,26 @@ export class FolderService implements OnModuleInit {
             }.stellaris_folder_metadata`,
           )
         ) {
-          metadataCount++
+          _metadataCount++
         } else if (obj.size > 0) {
-          contentCount++
+          _contentCount++
           // this is a user file
           // console.log('Trying to update key metadata [%s]:', objectKey, obj)
           await this.updateFolderObjectInDB(folder.id, objectKey, obj)
         }
       }
-      console.log(
-        'Finished batch: %s',
-        JSON.stringify(
-          {
-            length: response.result.length,
-            contentCount,
-            metadataCount,
-          },
-          null,
-          2,
-        ),
-      )
+      // console.log(
+      //   'Finished batch: %s',
+      //   JSON.stringify(
+      //     {
+      //       length: response.result.length,
+      //       contentCount,
+      //       metadataCount,
+      //     },
+      //     null,
+      //     2,
+      //   ),
+      // )
       continuationToken = response.continuationToken
     }
   }

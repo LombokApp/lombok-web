@@ -32,6 +32,14 @@ export class EventService {
 
     // check this app can emit this event
     const actorApp = await this.appService.getApp(appIdentifier)
+
+    // console.log('emitEvent:', {
+    //   eventKey,
+    //   appIdentifier,
+    //   data,
+    //   authorized: actorApp?.emitEvents.includes(eventKey),
+    // })
+
     if (!actorApp?.emitEvents.includes(eventKey)) {
       throw new HttpException('ForbiddenEmitEvent', HttpStatus.FORBIDDEN)
     }
@@ -44,12 +52,14 @@ export class EventService {
         ])
         .returning()
       const eventReceipts: NewEventReceipt[] = await this.appService
-        .listApps()
+        .getApps()
         .then((apps) =>
-          apps
-            .filter((m) => m.config?.subscribedEvents.includes(eventKey))
-            .map((m) => ({
-              appIdentifier: m.identifier,
+          Object.keys(apps)
+            .filter((_appIdentifier) =>
+              apps[_appIdentifier]?.config.subscribedEvents.includes(eventKey),
+            )
+            .map((_appIdentifier) => ({
+              appIdentifier: _appIdentifier,
               eventKey: event.eventKey,
               id: uuidV4(),
               createdAt: now,

@@ -30,6 +30,7 @@ import { createS3PresignedUrls } from 'src/s3/s3.utils'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
+import { appConfig } from '../config'
 import { AppSocketAPIRequest } from '../constants/app-api-messages'
 import { appLogEntriesTable } from '../entities/app-log-entry.entity'
 
@@ -119,7 +120,7 @@ const FailHandleEventValidator = r.Record({
   error: r.String,
 })
 
-interface InstalledAppDefinition {
+interface InstalledAppDefinitions {
   [key: string]:
     | {
         config: AppConfig
@@ -138,49 +139,24 @@ interface InstalledAppDefinition {
 export class AppService {
   folderService: FolderService
   _appsCache: {
-    apps: InstalledAppDefinition
+    apps: InstalledAppDefinitions | undefined
     appAssetCache: { [key: string]: Buffer }
   } = {
-    apps: {},
+    apps: undefined,
     appAssetCache: {},
   }
 
   constructor(
     @Inject(redisConfig.KEY)
     private readonly _redisConfig: nestJsConfig.ConfigType<typeof redisConfig>,
+    @Inject(appConfig.KEY)
+    private readonly _appConfig: nestJsConfig.ConfigType<typeof appConfig>,
     private readonly ormService: OrmService,
     private readonly redisService: RedisService,
     @Inject(forwardRef(() => FolderService)) _folderService,
     private readonly s3Service: S3Service,
   ) {
     this.folderService = _folderService
-  }
-
-  async listAppsAsAdmin(user: User) {
-    if (!user.isAdmin) {
-      throw new HttpException('Not Found', HttpStatus.NOT_FOUND)
-    }
-    const connectedAppInstances = await this.getAppConnections()
-    return {
-      connected: connectedAppInstances,
-      installed: await this.listApps(),
-    }
-  }
-
-  async listApps() {
-    const appsFromDiskRaw = await this.redisService.client.GET(
-      FROM_DISK_APP_TREE_REDIS_KEY,
-    )
-    const appsFromDisk: ReturnType<typeof this.loadAppsFromDisk> =
-      appsFromDiskRaw ? JSON.parse(appsFromDiskRaw) : {}
-
-    return Object.keys(appsFromDisk).map((appName) => {
-      const app = appsFromDisk[appName]
-      return {
-        identifier: appName,
-        config: app?.config,
-      }
-    })
   }
 
   async getAppAsAdmin(user: User, appIdentifier: string) {
@@ -192,17 +168,9 @@ export class AppService {
   }
 
   async getApp(appIdentifier: string): Promise<AppConfig | undefined> {
-    const appsFromDiskRaw = this._redisConfig.enabled
-      ? await this.redisService.client.GET(FROM_DISK_APP_TREE_REDIS_KEY)
-      : this._appsCache.apps[appIdentifier]
-
-    const appsFromDisk: InstalledAppDefinition =
-      typeof appsFromDiskRaw === 'string'
-        ? JSON.parse(appsFromDiskRaw)
-        : appsFromDiskRaw ?? {}
-
-    return appIdentifier in appsFromDisk
-      ? appsFromDisk[appIdentifier]?.config
+    const installedApps = await this.getApps()
+    return appIdentifier in installedApps
+      ? installedApps[appIdentifier]?.config
       : undefined
   }
 
@@ -659,11 +627,9 @@ export class AppService {
   }
 
   public async updateAppsFromDisk(appsDirectory: string) {
-    console.log('Refreshing apps from disk...')
-
     // load the apps from disk
     const appsFromDisk = this.loadAppsFromDisk(appsDirectory)
-    console.log('Loaded apps from disk:', JSON.stringify(appsFromDisk, null, 2))
+    // console.log('Loaded apps from disk:', JSON.stringify(appsFromDisk, null, 2))
 
     // push all app UI file content into redis
     for (const appIdentifier of Object.keys(appsFromDisk)) {
@@ -698,6 +664,7 @@ export class AppService {
 
     // save parsed apps in memory
     await this.setAppsInMemory(appsFromDisk)
+    return appsFromDisk
   }
 
   private async setAppsInMemory(
@@ -714,20 +681,31 @@ export class AppService {
     }
   }
 
-  public async getAppsInMemory() {
+  public async getApps() {
+    // get latest configs from memory
+    const inMemoryApps = await this.getAppsInMemory()
+
+    if (typeof inMemoryApps !== 'object') {
+      // load from disk and update in memory reference
+      return this.updateAppsFromDisk(this._appConfig.appsLocalPath)
+    }
+    return inMemoryApps
+  }
+
+  public async getAppsInMemory(): Promise<InstalledAppDefinitions | undefined> {
     // get latest configs from memory
     if (this._redisConfig.enabled) {
-      return JSON.parse(
-        (await this.redisService.client.GET(FROM_DISK_APP_TREE_REDIS_KEY)) ??
-          '{}',
+      const redisContentRaw = await this.redisService.client.GET(
+        FROM_DISK_APP_TREE_REDIS_KEY,
       )
+      return redisContentRaw ? JSON.parse(redisContentRaw) : undefined
     } else {
       return this._appsCache.apps
     }
   }
 
   public loadAppsFromDisk(appsDirectory: string) {
-    const configs: InstalledAppDefinition = {}
+    const configs: InstalledAppDefinitions = {}
 
     for (const appName of fs.readdirSync(appsDirectory)) {
       const parentPath = path.join(appsDirectory, appName)

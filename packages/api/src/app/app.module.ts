@@ -1,6 +1,6 @@
 import type { OnModuleInit } from '@nestjs/common'
 import { forwardRef, Inject, Module } from '@nestjs/common'
-import { ConfigModule, ConfigType } from '@nestjs/config'
+import nestJSConfig, { ConfigModule } from '@nestjs/config'
 import { redisConfig } from 'src/cache/redis.config'
 import { EventModule } from 'src/event/event.module'
 import { FoldersModule } from 'src/folders/folders.module'
@@ -25,7 +25,7 @@ export class AppModule implements OnModuleInit {
   constructor(
     private readonly appService: AppService,
     @Inject(appConfig.KEY)
-    private readonly _appConfig: ConfigType<typeof appConfig>,
+    private readonly _appConfig: nestJSConfig.ConfigType<typeof appConfig>,
   ) {}
   async onModuleInit() {
     await this.appService.updateAppsFromDisk(this._appConfig.appsLocalPath)

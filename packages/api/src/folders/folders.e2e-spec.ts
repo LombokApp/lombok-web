@@ -3,6 +3,7 @@ import {
   buildTestModule,
   registerTestUser,
   testS3Location,
+  waitForTrue,
 } from 'src/core/utils/test.util'
 import type { InMemoryQueue } from 'src/queue/InMemoryQueue'
 import { QueueName } from 'src/queue/queue.constants'
@@ -195,20 +196,21 @@ describe('Folders', () => {
       folderCreateResponse.body.folder.id,
     )
 
+    const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
+      getQueueToken(QueueName.RescanFolder),
+    )
+    const jobsCompletedBefore = queue?.stats.completedJobs ?? 0
+
     const _folderRescanResponse = await request(testModule?.app.getHttpServer())
       .post(`/folders/${folderCreateResponse.body.folder.id}/rescan`)
       .auth(accessToken, { type: 'bearer' })
       .send()
 
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
-      getQueueToken(QueueName.RescanFolder),
+    // wait to see that a job was run (we know it's our job)
+    await waitForTrue(
+      () => (queue?.stats.completedJobs ?? 0) > jobsCompletedBefore,
+      { retryPeriod: 100, maxRetries: 1 },
     )
-
-    // console.log('queue:', queue)
-    console.log('queue:', { stats: queue?.stats, queueId: queue?.queueId })
-
     const listObjectsResponse = await request(testModule?.app.getHttpServer())
       .get(`/folders/${folderCreateResponse.body.folder.id}/objects`)
       .auth(accessToken, { type: 'bearer' })
