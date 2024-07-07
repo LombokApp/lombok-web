@@ -168,8 +168,63 @@ export declare const schema: {
                 };
                 readonly tags: readonly ["Folders"];
             };
+            readonly delete: {
+                readonly operationId: "deleteFolder";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Delete a folder by id.";
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+            };
         };
         readonly "/folders": {
+            readonly get: {
+                readonly operationId: "listFolders";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "offset";
+                    readonly required: true;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly name: "limit";
+                    readonly required: true;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "number";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "List folders.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/FolderListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+            };
             readonly post: {
                 readonly operationId: "createFolder";
                 readonly parameters: readonly [];
@@ -255,7 +310,7 @@ export declare const schema: {
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
-                                    readonly $ref: "#/components/schemas/FolderObjectsListResponse";
+                                    readonly $ref: "#/components/schemas/FolderObjectListResponse";
                                 };
                             };
                         };
@@ -584,6 +639,111 @@ export declare const schema: {
                 };
                 readonly required: readonly ["folder", "permissions"];
             };
+            readonly FolderListResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly meta: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly totalCount: {
+                                readonly type: "number";
+                            };
+                        };
+                        readonly required: readonly ["totalCount"];
+                    };
+                    readonly result: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "object";
+                            readonly properties: {
+                                readonly permissions: {
+                                    readonly type: "array";
+                                    readonly items: {
+                                        readonly type: "string";
+                                    };
+                                };
+                                readonly folder: {
+                                    readonly type: "object";
+                                    readonly properties: {
+                                        readonly id: {
+                                            readonly type: "string";
+                                        };
+                                        readonly ownerId: {
+                                            readonly type: "string";
+                                        };
+                                        readonly name: {
+                                            readonly type: "string";
+                                        };
+                                        readonly metadataLocation: {
+                                            readonly type: "object";
+                                            readonly properties: {
+                                                readonly id: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly userId: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly name: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly endpoint: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly region: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly bucket: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly prefix: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly accessKeyId: {
+                                                    readonly type: "string";
+                                                };
+                                            };
+                                            readonly required: readonly ["id", "name", "endpoint", "region", "bucket", "accessKeyId"];
+                                        };
+                                        readonly contentLocation: {
+                                            readonly type: "object";
+                                            readonly properties: {
+                                                readonly id: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly userId: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly name: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly endpoint: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly region: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly bucket: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly prefix: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly accessKeyId: {
+                                                    readonly type: "string";
+                                                };
+                                            };
+                                            readonly required: readonly ["id", "name", "endpoint", "region", "bucket", "accessKeyId"];
+                                        };
+                                    };
+                                    readonly required: readonly ["id", "ownerId", "name", "metadataLocation", "contentLocation"];
+                                };
+                            };
+                            readonly required: readonly ["permissions", "folder"];
+                        };
+                    };
+                };
+                readonly required: readonly ["meta", "result"];
+            };
             readonly FolderCreateInputDTO: {
                 readonly type: "object";
                 readonly properties: {
@@ -744,7 +904,7 @@ export declare const schema: {
                 };
                 readonly required: readonly ["folder"];
             };
-            readonly FolderObjectsListResponse: {
+            readonly FolderObjectListResponse: {
                 readonly type: "object";
                 readonly properties: {
                     readonly meta: {

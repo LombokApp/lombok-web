@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -16,7 +17,8 @@ import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { FolderCreateInputDTO } from '../dto/folder-create-input.dto'
 import type { FolderCreateResponse } from '../dto/responses/folder-create-response.dto'
 import type { FolderGetResponse } from '../dto/responses/folder-get-response.dto'
-import type { FolderObjectsListResponse } from '../dto/responses/folder-objects-list-response.dto'
+import type { FolderListResponse } from '../dto/responses/folder-list-response.dto'
+import type { FolderObjectListResponse } from '../dto/responses/folder-object-list-response.dto'
 import { transformFolderToDTO } from '../dto/transforms/folder.transforms'
 import { transformFolderObjectToDTO } from '../dto/transforms/folder-object.transforms'
 import { FolderPermissionUnauthorizedException } from '../exceptions/folder-permission-unauthorized.exception'
@@ -47,6 +49,30 @@ export class FoldersController {
   }
 
   /**
+   * List folders.
+   */
+  @Get()
+  async listFolders(
+    @Req() req: express.Request,
+    @Param('folderId') folderId: string,
+    @Query('offset') offset?: number,
+    @Query('limit') limit?: number,
+  ): Promise<FolderListResponse> {
+    const result = await this.folderService.listFoldersAsUser({
+      userId: req.user?.id ?? '',
+      limit,
+      offset,
+    })
+    return {
+      result: result.result.map(({ folder, permissions }) => ({
+        permissions,
+        folder: transformFolderToDTO(folder),
+      })),
+      meta: result.meta,
+    }
+  }
+
+  /**
    * Create a folder.
    */
   @Post()
@@ -65,6 +91,20 @@ export class FoldersController {
     return {
       folder: transformFolderToDTO(folder),
     }
+  }
+
+  /**
+   * Delete a folder by id.
+   */
+  @Delete('/:folderId')
+  async deleteFolder(
+    @Req() req: express.Request,
+    @Param('folderId') folderId: string,
+  ): Promise<void> {
+    await this.folderService.deleteFolderAsUser({
+      folderId,
+      userId: req.user?.id ?? '',
+    })
   }
 
   /**
@@ -101,7 +141,7 @@ export class FoldersController {
     @Query('search') search?: string,
     @Query('offset') offset?: number,
     @Query('limit') limit?: number,
-  ): Promise<FolderObjectsListResponse> {
+  ): Promise<FolderObjectListResponse> {
     if (!req.user) {
       throw new UnauthorizedException()
     }

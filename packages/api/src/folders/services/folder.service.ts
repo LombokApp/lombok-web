@@ -393,7 +393,7 @@ export class FolderService implements OnModuleInit {
     }
   }
 
-  async deleteFolder({
+  async deleteFolderAsUser({
     userId,
     folderId,
   }: {

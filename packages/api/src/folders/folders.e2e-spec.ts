@@ -37,22 +37,8 @@ describe('Folders', () => {
       .auth(accessToken, { type: 'bearer' })
       .send({
         name: 'My Folder',
-        contentLocation: {
-          accessKeyId: 'sdfsdf',
-          secretAccessKey: 'sdfsdf',
-          endpoint: 'sdfsdf',
-          bucket: 'sdfsdf',
-          region: 'sdfsdf',
-          prefix: 'sdfsdf',
-        },
-        metadataLocation: {
-          accessKeyId: 'sdfsdf',
-          secretAccessKey: 'sdfsdf',
-          endpoint: 'sdfsdf',
-          bucket: 'sdfsdf',
-          region: 'sdfsdf',
-          prefix: 'sdfsdf',
-        },
+        contentLocation: testS3Location({ bucketName: '__dummy__' }),
+        metadataLocation: testS3Location({ bucketName: '__dummy__' }),
       })
 
     expect(folderCreateResponse.statusCode).toEqual(201)
@@ -68,6 +54,83 @@ describe('Folders', () => {
     )
   })
 
+  it(`should list a user's folders`, async () => {
+    const {
+      session: { accessToken },
+    } = await registerTestUser(testModule, {
+      username: 'testuser',
+      password: '123',
+    })
+
+    const folderCreateResponse = await request(testModule?.app.getHttpServer())
+      .post(`/folders`)
+      .auth(accessToken, { type: 'bearer' })
+      .send({
+        name: 'My Folder',
+        contentLocation: testS3Location({ bucketName: '__dummy__' }),
+        metadataLocation: testS3Location({ bucketName: '__dummy__' }),
+      })
+
+    expect(folderCreateResponse.statusCode).toEqual(201)
+
+    const folderListResponse = await request(testModule?.app.getHttpServer())
+      .get('/folders')
+      .auth(accessToken, { type: 'bearer' })
+      .send()
+
+    expect(folderListResponse.statusCode).toEqual(200)
+    expect(folderListResponse.body.meta.totalCount).toEqual(1)
+    expect(folderListResponse.body.result.length).toEqual(1)
+  })
+
+  it(`should delete a folder by id`, async () => {
+    const {
+      session: { accessToken },
+    } = await registerTestUser(testModule, {
+      username: 'testuser',
+      password: '123',
+    })
+
+    const folderCreateResponse = await request(testModule?.app.getHttpServer())
+      .post(`/folders`)
+      .auth(accessToken, { type: 'bearer' })
+      .send({
+        name: 'My Folder',
+        contentLocation: testS3Location({ bucketName: '__dummy__' }),
+        metadataLocation: testS3Location({ bucketName: '__other_dummy__' }),
+      })
+
+    expect(folderCreateResponse.statusCode).toEqual(201)
+
+    const folderGetResponse = await request(testModule?.app.getHttpServer())
+      .get(`/folders/${folderCreateResponse.body.folder.id}`)
+      .auth(accessToken, { type: 'bearer' })
+      .send()
+
+    expect(folderGetResponse.statusCode).toEqual(200)
+    expect(folderGetResponse.body.folder.id).toEqual(
+      folderCreateResponse.body.folder.id,
+    )
+
+    const deleteFolderGetResponse = await request(
+      testModule?.app.getHttpServer(),
+    )
+      .delete(`/folders/${folderCreateResponse.body.folder.id}`)
+      .auth(accessToken, { type: 'bearer' })
+      .send()
+
+    expect(deleteFolderGetResponse.statusCode).toEqual(200)
+
+    const secondFolderGetResponse = await request(
+      testModule?.app.getHttpServer(),
+    )
+      .get(`/folders/${folderCreateResponse.body.folder.id}`)
+      .auth(accessToken, { type: 'bearer' })
+      .send()
+
+    expect(secondFolderGetResponse.statusCode).toEqual(404)
+  })
+
   it(`should return 401 from get folder by id without token`, async () => {
     const {
       session: { accessToken },
@@ -81,22 +144,8 @@ describe('Folders', () => {
       .auth(accessToken, { type: 'bearer' })
       .send({
         name: 'My Folder',
-        contentLocation: {
-          accessKeyId: 'sdfsdf',
-          secretAccessKey: 'sdfsdf',
-          endpoint: 'sdfsdf',
-          bucket: 'sdfsdf',
-          region: 'sdfsdf',
-          prefix: 'sdfsdf',
-        },
-        metadataLocation: {
-          accessKeyId: 'sdfsdf',
-          secretAccessKey: 'sdfsdf',
-          endpoint: 'sdfsdf',
-          bucket: 'sdfsdf',
-          region: 'sdfsdf',
-          prefix: 'sdfsdf',
-        },
+        contentLocation: testS3Location({ bucketName: '__dummy__' }),
+        metadataLocation: testS3Location({ bucketName: '__dummy__' }),
       })
 
     expect(folderCreateResponse.statusCode).toEqual(201)
@@ -129,22 +178,8 @@ describe('Folders', () => {
       .auth(accessToken, { type: 'bearer' })
       .send({
         name: 'My Folder',
-        contentLocation: {
-          accessKeyId: 'sdfsdf',
-          secretAccessKey: 'sdfsdf',
-          endpoint: 'sdfsdf',
-          bucket: 'sdfsdf',
-          region: 'sdfsdf',
-          prefix: 'sdfsdf',
-        },
-        metadataLocation: {
-          accessKeyId: 'sdfsdf',
-          secretAccessKey: 'sdfsdf',
-          endpoint: 'sdfsdf',
-          bucket: 'sdfsdf',
-          region: 'sdfsdf',
-          prefix: 'sdfsdf',
-        },
+        contentLocation: testS3Location({ bucketName: '__dummy__' }),
+        metadataLocation: testS3Location({ bucketName: '__dummy__' }),
       })
 
     expect(folderCreateResponse.statusCode).toEqual(201)

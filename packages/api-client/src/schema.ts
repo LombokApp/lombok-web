@@ -183,9 +183,74 @@ export const schema = {
         "tags": [
           "Folders"
         ]
+      },
+      "delete": {
+        "operationId": "deleteFolder",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Delete a folder by id."
+          }
+        },
+        "tags": [
+          "Folders"
+        ]
       }
     },
     "/folders": {
+      "get": {
+        "operationId": "listFolders",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List folders.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderListResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Folders"
+        ]
+      },
       "post": {
         "operationId": "createFolder",
         "parameters": [],
@@ -282,7 +347,7 @@ export const schema = {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FolderObjectsListResponse"
+                  "$ref": "#/components/schemas/FolderObjectListResponse"
                 }
               }
             }
@@ -690,6 +755,139 @@ export const schema = {
           "permissions"
         ]
       },
+      "FolderListResponse": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalCount"
+            ]
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "permissions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "folder": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "ownerId": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "metadataLocation": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "userId": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "endpoint": {
+                          "type": "string"
+                        },
+                        "region": {
+                          "type": "string"
+                        },
+                        "bucket": {
+                          "type": "string"
+                        },
+                        "prefix": {
+                          "type": "string"
+                        },
+                        "accessKeyId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "endpoint",
+                        "region",
+                        "bucket",
+                        "accessKeyId"
+                      ]
+                    },
+                    "contentLocation": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "userId": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "endpoint": {
+                          "type": "string"
+                        },
+                        "region": {
+                          "type": "string"
+                        },
+                        "bucket": {
+                          "type": "string"
+                        },
+                        "prefix": {
+                          "type": "string"
+                        },
+                        "accessKeyId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "endpoint",
+                        "region",
+                        "bucket",
+                        "accessKeyId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "ownerId",
+                    "name",
+                    "metadataLocation",
+                    "contentLocation"
+                  ]
+                }
+              },
+              "required": [
+                "permissions",
+                "folder"
+              ]
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "result"
+        ]
+      },
       "FolderCreateInputDTO": {
         "type": "object",
         "properties": {
@@ -876,7 +1074,7 @@ export const schema = {
           "folder"
         ]
       },
-      "FolderObjectsListResponse": {
+      "FolderObjectListResponse": {
         "type": "object",
         "properties": {
           "meta": {
