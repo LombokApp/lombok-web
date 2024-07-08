@@ -206,6 +206,36 @@
         ]
       }
     },
+    "/folders/{folderId}/metadata": {
+      "get": {
+        "operationId": "getFolderMetadata",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get the metadata for a folder by id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderGetMetadataResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Folders"
+        ]
+      }
+    },
     "/folders": {
       "get": {
         "operationId": "listFolders",
@@ -348,6 +378,149 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FolderObjectListResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Folders"
+        ]
+      }
+    },
+    "/folders/{folderId}/objects/{objectKey}": {
+      "get": {
+        "operationId": "getFolderObject",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "objectKey",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get a folder object by folderId and objectKey.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderObjectGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Folders"
+        ]
+      },
+      "delete": {
+        "operationId": "deleteFolderObject",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "objectKey",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Delete a folder object by folderId and objectKey."
+          }
+        },
+        "tags": [
+          "Folders"
+        ]
+      },
+      "post": {
+        "operationId": "refreshFolderObjectS3Metadata",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "objectKey",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Scan the object again in the underlying storage, and update its state in our db",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderObjectGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Folders"
+        ]
+      }
+    },
+    "/folders/{folderId}/presigned-urls": {
+      "post": {
+        "operationId": "createPresignedUrls",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FolderCreateSignedUrlInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Create presigned urls for objects in a folder.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderCreateSignedUrlsResponse"
                 }
               }
             }
@@ -755,6 +928,21 @@
           "permissions"
         ]
       },
+      "FolderGetMetadataResponse": {
+        "type": "object",
+        "properties": {
+          "totalCount": {
+            "type": "number"
+          },
+          "totalSizeBytes": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "totalCount",
+          "totalSizeBytes"
+        ]
+      },
       "FolderListResponse": {
         "type": "object",
         "properties": {
@@ -1148,6 +1336,95 @@
           "meta",
           "result"
         ]
+      },
+      "FolderObjectGetResponse": {
+        "type": "object",
+        "properties": {
+          "folderObject": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "objectKey": {
+                "type": "string"
+              },
+              "folderId": {
+                "type": "string"
+              },
+              "hash": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "lastModified": {
+                "type": "number"
+              },
+              "eTag": {
+                "type": "string"
+              },
+              "sizeBytes": {
+                "type": "number"
+              },
+              "mimeType": {
+                "type": "string"
+              },
+              "mediaType": {
+                "type": "string",
+                "enum": [
+                  "IMAGE",
+                  "VIDEO",
+                  "AUDIO",
+                  "DOCUMENT",
+                  "UNKNOWN"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "objectKey",
+              "folderId",
+              "lastModified",
+              "eTag",
+              "sizeBytes",
+              "mimeType",
+              "mediaType"
+            ]
+          }
+        },
+        "required": [
+          "folderObject"
+        ]
+      },
+      "FolderCreateSignedUrlInputDTO": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "objectIdentifier": {
+              "type": "string"
+            },
+            "method": {
+              "type": "string",
+              "enum": [
+                "DELETE",
+                "PUT",
+                "GET"
+              ]
+            }
+          },
+          "required": [
+            "objectIdentifier",
+            "method"
+          ]
+        }
+      },
+      "FolderCreateSignedUrlsResponse": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
       },
       "EventDTO": {
         "type": "object",

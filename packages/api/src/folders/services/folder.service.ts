@@ -593,11 +593,15 @@ export class FolderService implements OnModuleInit {
     }
   }
 
-  async createPresignedUrlsAsUser(
-    userId: string,
-    folderId: string,
-    urls: SignedURLsRequest[],
-  ): Promise<string[]> {
+  async createPresignedUrlsAsUser({
+    userId,
+    folderId,
+    urls,
+  }: {
+    userId: string
+    folderId: string
+    urls: SignedURLsRequest[]
+  }): Promise<string[]> {
     const { folder, permissions } = await this.getFolderAsUser({
       folderId,
       userId,
@@ -756,12 +760,17 @@ export class FolderService implements OnModuleInit {
     }
   }
 
-  async refreshFolderObjectS3MetadataAsUser(
-    userId: string,
-    folderId: string,
-    objectKey: string,
-    eTag?: string,
-  ): Promise<FolderObjectDTO> {
+  async refreshFolderObjectS3MetadataAsUser({
+    userId,
+    folderId,
+    objectKey,
+    eTag,
+  }: {
+    userId: string
+    folderId: string
+    objectKey: string
+    eTag?: string
+  }): Promise<FolderObjectDTO> {
     const { folder } = await this.getFolderAsUser({ folderId, userId })
 
     const contentStorageLocation =

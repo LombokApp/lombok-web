@@ -15,9 +15,13 @@ import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
 import { FolderCreateInputDTO } from '../dto/folder-create-input.dto'
+import { FolderCreateSignedUrlInputDTO } from '../dto/folder-create-signed-url-input.dto'
 import type { FolderCreateResponse } from '../dto/responses/folder-create-response.dto'
+import type { FolderCreateSignedUrlsResponse } from '../dto/responses/folder-create-signed-urls-response.dto'
+import type { FolderGetMetadataResponse } from '../dto/responses/folder-get-metadata-response.dto'
 import type { FolderGetResponse } from '../dto/responses/folder-get-response.dto'
 import type { FolderListResponse } from '../dto/responses/folder-list-response.dto'
+import type { FolderObjectGetResponse } from '../dto/responses/folder-object-get-response.dto'
 import type { FolderObjectListResponse } from '../dto/responses/folder-object-list-response.dto'
 import { transformFolderToDTO } from '../dto/transforms/folder.transforms'
 import { transformFolderObjectToDTO } from '../dto/transforms/folder-object.transforms'
@@ -46,6 +50,21 @@ export class FoldersController {
       folder: transformFolderToDTO(result.folder),
       permissions: result.permissions,
     }
+  }
+
+  /**
+   * Get the metadata for a folder by id.
+   */
+  @Get('/:folderId/metadata')
+  async getFolderMetadata(
+    @Req() req: express.Request,
+    @Param('folderId') folderId: string,
+  ): Promise<FolderGetMetadataResponse> {
+    const result = await this.folderService.getFolderMetadata({
+      folderId,
+      userId: req.user?.id ?? '',
+    })
+    return result
   }
 
   /**
@@ -157,6 +176,86 @@ export class FoldersController {
     return {
       meta,
       result: result.map((o) => transformFolderObjectToDTO(o)),
+    }
+  }
+
+  /**
+   * Get a folder object by folderId and objectKey.
+   */
+  @Get('/:folderId/objects/:objectKey')
+  async getFolderObject(
+    @Req() req: express.Request,
+    @Param('folderId') folderId: string,
+    @Param('objectKey') objectKey: string,
+  ): Promise<FolderObjectGetResponse> {
+    const result = await this.folderService.getFolderObjectAsUser({
+      folderId,
+      objectKey,
+      userId: req.user?.id ?? '',
+    })
+    return {
+      folderObject: transformFolderObjectToDTO(result),
+    }
+  }
+
+  /**
+   * Delete a folder object by folderId and objectKey.
+   */
+  @Delete('/:folderId/objects/:objectKey')
+  async deleteFolderObject(
+    @Req() req: express.Request,
+    @Param('folderId') folderId: string,
+    @Param('objectKey') objectKey: string,
+  ): Promise<void> {
+    await this.folderService.deleteFolderObjectAsUser({
+      folderId,
+      objectKey,
+      userId: req.user?.id ?? '',
+    })
+  }
+
+  /**
+   * Create presigned urls for objects in a folder.
+   */
+  @Post('/:folderId/presigned-urls')
+  async createPresignedUrls(
+    @Req() req: express.Request,
+    @Param('folderId') folderId: string,
+    @Body() body: FolderCreateSignedUrlInputDTO,
+  ): Promise<FolderCreateSignedUrlsResponse> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const urls = await this.folderService.createPresignedUrlsAsUser({
+      userId: req.user.id,
+      folderId,
+      urls: body,
+    })
+
+    return urls
+  }
+
+  /**
+   * Scan the object again in the underlying storage, and update its state in our db.
+   */
+  @Post('/:folderId/objects/:objectKey')
+  async refreshFolderObjectS3Metadata(
+    @Req() req: express.Request,
+    @Param('folderId') folderId: string,
+    @Param('objectKey') objectKey: string,
+  ): Promise<FolderObjectGetResponse> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const folderObject =
+      await this.folderService.refreshFolderObjectS3MetadataAsUser({
+        userId: req.user.id,
+        folderId,
+        objectKey,
+      })
+
+    return {
+      folderObject,
     }
   }
 }

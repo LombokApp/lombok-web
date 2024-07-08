@@ -186,6 +186,32 @@ export declare const schema: {
                 readonly tags: readonly ["Folders"];
             };
         };
+        readonly "/folders/{folderId}/metadata": {
+            readonly get: {
+                readonly operationId: "getFolderMetadata";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Get the metadata for a folder by id.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/FolderGetMetadataResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+            };
+        };
         readonly "/folders": {
             readonly get: {
                 readonly operationId: "listFolders";
@@ -311,6 +337,130 @@ export declare const schema: {
                             readonly "application/json": {
                                 readonly schema: {
                                     readonly $ref: "#/components/schemas/FolderObjectListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+            };
+        };
+        readonly "/folders/{folderId}/objects/{objectKey}": {
+            readonly get: {
+                readonly operationId: "getFolderObject";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "objectKey";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Get a folder object by folderId and objectKey.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/FolderObjectGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+            };
+            readonly delete: {
+                readonly operationId: "deleteFolderObject";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "objectKey";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Delete a folder object by folderId and objectKey.";
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+            };
+            readonly post: {
+                readonly operationId: "refreshFolderObjectS3Metadata";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "objectKey";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Scan the object again in the underlying storage, and update its state in our db";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/FolderObjectGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+            };
+        };
+        readonly "/folders/{folderId}/presigned-urls": {
+            readonly post: {
+                readonly operationId: "createPresignedUrls";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/FolderCreateSignedUrlInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Create presigned urls for objects in a folder.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/FolderCreateSignedUrlsResponse";
                                 };
                             };
                         };
@@ -639,6 +789,18 @@ export declare const schema: {
                 };
                 readonly required: readonly ["folder", "permissions"];
             };
+            readonly FolderGetMetadataResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly totalCount: {
+                        readonly type: "number";
+                    };
+                    readonly totalSizeBytes: {
+                        readonly type: "number";
+                    };
+                };
+                readonly required: readonly ["totalCount", "totalSizeBytes"];
+            };
             readonly FolderListResponse: {
                 readonly type: "object";
                 readonly properties: {
@@ -955,6 +1117,68 @@ export declare const schema: {
                     };
                 };
                 readonly required: readonly ["meta", "result"];
+            };
+            readonly FolderObjectGetResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly folderObject: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
+                            readonly objectKey: {
+                                readonly type: "string";
+                            };
+                            readonly folderId: {
+                                readonly type: "string";
+                            };
+                            readonly hash: {
+                                readonly type: readonly ["string", "null"];
+                            };
+                            readonly lastModified: {
+                                readonly type: "number";
+                            };
+                            readonly eTag: {
+                                readonly type: "string";
+                            };
+                            readonly sizeBytes: {
+                                readonly type: "number";
+                            };
+                            readonly mimeType: {
+                                readonly type: "string";
+                            };
+                            readonly mediaType: {
+                                readonly type: "string";
+                                readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
+                            };
+                        };
+                        readonly required: readonly ["id", "objectKey", "folderId", "lastModified", "eTag", "sizeBytes", "mimeType", "mediaType"];
+                    };
+                };
+                readonly required: readonly ["folderObject"];
+            };
+            readonly FolderCreateSignedUrlInputDTO: {
+                readonly type: "array";
+                readonly items: {
+                    readonly type: "object";
+                    readonly properties: {
+                        readonly objectIdentifier: {
+                            readonly type: "string";
+                        };
+                        readonly method: {
+                            readonly type: "string";
+                            readonly enum: readonly ["DELETE", "PUT", "GET"];
+                        };
+                    };
+                    readonly required: readonly ["objectIdentifier", "method"];
+                };
+            };
+            readonly FolderCreateSignedUrlsResponse: {
+                readonly type: "array";
+                readonly items: {
+                    readonly type: "string";
+                };
             };
             readonly EventDTO: {
                 readonly type: "object";

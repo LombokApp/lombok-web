@@ -150,6 +150,53 @@ export interface FolderCreateResponse {
 /**
  * 
  * @export
+ * @interface FolderCreateSignedUrlInputDTOInner
+ */
+export interface FolderCreateSignedUrlInputDTOInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderCreateSignedUrlInputDTOInner
+     */
+    'objectIdentifier': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderCreateSignedUrlInputDTOInner
+     */
+    'method': FolderCreateSignedUrlInputDTOInnerMethodEnum;
+}
+
+export const FolderCreateSignedUrlInputDTOInnerMethodEnum = {
+    Delete: 'DELETE',
+    Put: 'PUT',
+    Get: 'GET'
+} as const;
+
+export type FolderCreateSignedUrlInputDTOInnerMethodEnum = typeof FolderCreateSignedUrlInputDTOInnerMethodEnum[keyof typeof FolderCreateSignedUrlInputDTOInnerMethodEnum];
+
+/**
+ * 
+ * @export
+ * @interface FolderGetMetadataResponse
+ */
+export interface FolderGetMetadataResponse {
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderGetMetadataResponse
+     */
+    'totalCount': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderGetMetadataResponse
+     */
+    'totalSizeBytes': number;
+}
+/**
+ * 
+ * @export
  * @interface FolderGetResponse
  */
 export interface FolderGetResponse {
@@ -308,6 +355,19 @@ export interface FolderListResponseResultInner {
      * @memberof FolderListResponseResultInner
      */
     'folder': FolderGetResponseFolder;
+}
+/**
+ * 
+ * @export
+ * @interface FolderObjectGetResponse
+ */
+export interface FolderObjectGetResponse {
+    /**
+     * 
+     * @type {FolderObjectListResponseResultInner}
+     * @memberof FolderObjectGetResponse
+     */
+    'folderObject': FolderObjectListResponseResultInner;
 }
 /**
  * 
@@ -1032,6 +1092,45 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         /**
          * 
          * @param {string} folderId 
+         * @param {Array<FolderCreateSignedUrlInputDTOInner>} folderCreateSignedUrlInputDTOInner 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createPresignedUrls: async (folderId: string, folderCreateSignedUrlInputDTOInner: Array<FolderCreateSignedUrlInputDTOInner>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('createPresignedUrls', 'folderId', folderId)
+            // verify required parameter 'folderCreateSignedUrlInputDTOInner' is not null or undefined
+            assertParamExists('createPresignedUrls', 'folderCreateSignedUrlInputDTOInner', folderCreateSignedUrlInputDTOInner)
+            const localVarPath = `/folders/{folderId}/presigned-urls`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(folderCreateSignedUrlInputDTOInner, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1065,6 +1164,43 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         /**
          * 
          * @param {string} folderId 
+         * @param {string} objectKey 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteFolderObject: async (folderId: string, objectKey: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('deleteFolderObject', 'folderId', folderId)
+            // verify required parameter 'objectKey' is not null or undefined
+            assertParamExists('deleteFolderObject', 'objectKey', objectKey)
+            const localVarPath = `/folders/{folderId}/objects/{objectKey}`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
+                .replace(`{${"objectKey"}}`, encodeURIComponent(String(objectKey)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1073,6 +1209,76 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
             assertParamExists('getFolder', 'folderId', folderId)
             const localVarPath = `/folders/{folderId}`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} folderId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFolderMetadata: async (folderId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('getFolderMetadata', 'folderId', folderId)
+            const localVarPath = `/folders/{folderId}/metadata`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} folderId 
+         * @param {string} objectKey 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFolderObject: async (folderId: string, objectKey: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('getFolderObject', 'folderId', folderId)
+            // verify required parameter 'objectKey' is not null or undefined
+            assertParamExists('getFolderObject', 'objectKey', objectKey)
+            const localVarPath = `/folders/{folderId}/objects/{objectKey}`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
+                .replace(`{${"objectKey"}}`, encodeURIComponent(String(objectKey)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1199,6 +1405,43 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         /**
          * 
          * @param {string} folderId 
+         * @param {string} objectKey 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        refreshFolderObjectS3Metadata: async (folderId: string, objectKey: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('refreshFolderObjectS3Metadata', 'folderId', folderId)
+            // verify required parameter 'objectKey' is not null or undefined
+            assertParamExists('refreshFolderObjectS3Metadata', 'objectKey', objectKey)
+            const localVarPath = `/folders/{folderId}/objects/{objectKey}`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
+                .replace(`{${"objectKey"}}`, encodeURIComponent(String(objectKey)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1252,6 +1495,17 @@ export const FoldersApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @param {string} folderId 
+         * @param {Array<FolderCreateSignedUrlInputDTOInner>} folderCreateSignedUrlInputDTOInner 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createPresignedUrls(folderId: string, folderCreateSignedUrlInputDTOInner: Array<FolderCreateSignedUrlInputDTOInner>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<string>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createPresignedUrls(folderId, folderCreateSignedUrlInputDTOInner, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1262,11 +1516,43 @@ export const FoldersApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @param {string} folderId 
+         * @param {string} objectKey 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteFolderObject(folderId: string, objectKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteFolderObject(folderId, objectKey, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async getFolder(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getFolder(folderId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {string} folderId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getFolderMetadata(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderGetMetadataResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getFolderMetadata(folderId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {string} folderId 
+         * @param {string} objectKey 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getFolderObject(folderId: string, objectKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getFolderObject(folderId, objectKey, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -1292,6 +1578,17 @@ export const FoldersApiFp = function(configuration?: Configuration) {
          */
         async listFolders(folderId: string, offset: number, limit: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderListResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listFolders(folderId, offset, limit, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {string} folderId 
+         * @param {string} objectKey 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async refreshFolderObjectS3Metadata(folderId: string, objectKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.refreshFolderObjectS3Metadata(folderId, objectKey, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -1325,6 +1622,15 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
         },
         /**
          * 
+         * @param {FoldersApiCreatePresignedUrlsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createPresignedUrls(requestParameters: FoldersApiCreatePresignedUrlsRequest, options?: AxiosRequestConfig): AxiosPromise<Array<string>> {
+            return localVarFp.createPresignedUrls(requestParameters.folderId, requestParameters.folderCreateSignedUrlInputDTOInner, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {FoldersApiDeleteFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1334,12 +1640,39 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
         },
         /**
          * 
+         * @param {FoldersApiDeleteFolderObjectRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteFolderObject(requestParameters: FoldersApiDeleteFolderObjectRequest, options?: AxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.deleteFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         getFolder(requestParameters: FoldersApiGetFolderRequest, options?: AxiosRequestConfig): AxiosPromise<FolderGetResponse> {
             return localVarFp.getFolder(requestParameters.folderId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {FoldersApiGetFolderMetadataRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFolderMetadata(requestParameters: FoldersApiGetFolderMetadataRequest, options?: AxiosRequestConfig): AxiosPromise<FolderGetMetadataResponse> {
+            return localVarFp.getFolderMetadata(requestParameters.folderId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {FoldersApiGetFolderObjectRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: AxiosRequestConfig): AxiosPromise<FolderObjectGetResponse> {
+            return localVarFp.getFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1358,6 +1691,15 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
          */
         listFolders(requestParameters: FoldersApiListFoldersRequest, options?: AxiosRequestConfig): AxiosPromise<FolderListResponse> {
             return localVarFp.listFolders(requestParameters.folderId, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {FoldersApiRefreshFolderObjectS3MetadataRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        refreshFolderObjectS3Metadata(requestParameters: FoldersApiRefreshFolderObjectS3MetadataRequest, options?: AxiosRequestConfig): AxiosPromise<FolderObjectGetResponse> {
+            return localVarFp.refreshFolderObjectS3Metadata(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1386,6 +1728,27 @@ export interface FoldersApiCreateFolderRequest {
 }
 
 /**
+ * Request parameters for createPresignedUrls operation in FoldersApi.
+ * @export
+ * @interface FoldersApiCreatePresignedUrlsRequest
+ */
+export interface FoldersApiCreatePresignedUrlsRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiCreatePresignedUrls
+     */
+    readonly folderId: string
+
+    /**
+     * 
+     * @type {Array<FolderCreateSignedUrlInputDTOInner>}
+     * @memberof FoldersApiCreatePresignedUrls
+     */
+    readonly folderCreateSignedUrlInputDTOInner: Array<FolderCreateSignedUrlInputDTOInner>
+}
+
+/**
  * Request parameters for deleteFolder operation in FoldersApi.
  * @export
  * @interface FoldersApiDeleteFolderRequest
@@ -1400,6 +1763,27 @@ export interface FoldersApiDeleteFolderRequest {
 }
 
 /**
+ * Request parameters for deleteFolderObject operation in FoldersApi.
+ * @export
+ * @interface FoldersApiDeleteFolderObjectRequest
+ */
+export interface FoldersApiDeleteFolderObjectRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiDeleteFolderObject
+     */
+    readonly folderId: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiDeleteFolderObject
+     */
+    readonly objectKey: string
+}
+
+/**
  * Request parameters for getFolder operation in FoldersApi.
  * @export
  * @interface FoldersApiGetFolderRequest
@@ -1411,6 +1795,41 @@ export interface FoldersApiGetFolderRequest {
      * @memberof FoldersApiGetFolder
      */
     readonly folderId: string
+}
+
+/**
+ * Request parameters for getFolderMetadata operation in FoldersApi.
+ * @export
+ * @interface FoldersApiGetFolderMetadataRequest
+ */
+export interface FoldersApiGetFolderMetadataRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiGetFolderMetadata
+     */
+    readonly folderId: string
+}
+
+/**
+ * Request parameters for getFolderObject operation in FoldersApi.
+ * @export
+ * @interface FoldersApiGetFolderObjectRequest
+ */
+export interface FoldersApiGetFolderObjectRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiGetFolderObject
+     */
+    readonly folderId: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiGetFolderObject
+     */
+    readonly objectKey: string
 }
 
 /**
@@ -1477,6 +1896,27 @@ export interface FoldersApiListFoldersRequest {
 }
 
 /**
+ * Request parameters for refreshFolderObjectS3Metadata operation in FoldersApi.
+ * @export
+ * @interface FoldersApiRefreshFolderObjectS3MetadataRequest
+ */
+export interface FoldersApiRefreshFolderObjectS3MetadataRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiRefreshFolderObjectS3Metadata
+     */
+    readonly folderId: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiRefreshFolderObjectS3Metadata
+     */
+    readonly objectKey: string
+}
+
+/**
  * Request parameters for rescanFolder operation in FoldersApi.
  * @export
  * @interface FoldersApiRescanFolderRequest
@@ -1510,6 +1950,17 @@ export class FoldersApi extends BaseAPI {
 
     /**
      * 
+     * @param {FoldersApiCreatePresignedUrlsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    public createPresignedUrls(requestParameters: FoldersApiCreatePresignedUrlsRequest, options?: AxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).createPresignedUrls(requestParameters.folderId, requestParameters.folderCreateSignedUrlInputDTOInner, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
      * @param {FoldersApiDeleteFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1521,6 +1972,17 @@ export class FoldersApi extends BaseAPI {
 
     /**
      * 
+     * @param {FoldersApiDeleteFolderObjectRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    public deleteFolderObject(requestParameters: FoldersApiDeleteFolderObjectRequest, options?: AxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).deleteFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
      * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1528,6 +1990,28 @@ export class FoldersApi extends BaseAPI {
      */
     public getFolder(requestParameters: FoldersApiGetFolderRequest, options?: AxiosRequestConfig) {
         return FoldersApiFp(this.configuration).getFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {FoldersApiGetFolderMetadataRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    public getFolderMetadata(requestParameters: FoldersApiGetFolderMetadataRequest, options?: AxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).getFolderMetadata(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {FoldersApiGetFolderObjectRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    public getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: AxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).getFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1550,6 +2034,17 @@ export class FoldersApi extends BaseAPI {
      */
     public listFolders(requestParameters: FoldersApiListFoldersRequest, options?: AxiosRequestConfig) {
         return FoldersApiFp(this.configuration).listFolders(requestParameters.folderId, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {FoldersApiRefreshFolderObjectS3MetadataRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    public refreshFolderObjectS3Metadata(requestParameters: FoldersApiRefreshFolderObjectS3MetadataRequest, options?: AxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).refreshFolderObjectS3Metadata(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

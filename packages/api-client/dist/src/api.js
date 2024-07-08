@@ -17,6 +17,11 @@ import globalAxios from 'axios';
 import { DUMMY_BASE_URL, assertParamExists, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from './common';
 // @ts-ignore
 import { BASE_PATH, BaseAPI } from './base';
+export const FolderCreateSignedUrlInputDTOInnerMethodEnum = {
+    Delete: 'DELETE',
+    Put: 'PUT',
+    Get: 'GET'
+};
 export const FolderObjectListResponseResultInnerMediaTypeEnum = {
     Image: 'IMAGE',
     Video: 'VIDEO',
@@ -396,6 +401,39 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         /**
          *
          * @param {string} folderId
+         * @param {Array<FolderCreateSignedUrlInputDTOInner>} folderCreateSignedUrlInputDTOInner
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createPresignedUrls: async (folderId, folderCreateSignedUrlInputDTOInner, options = {}) => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('createPresignedUrls', 'folderId', folderId);
+            // verify required parameter 'folderCreateSignedUrlInputDTOInner' is not null or undefined
+            assertParamExists('createPresignedUrls', 'folderCreateSignedUrlInputDTOInner', folderCreateSignedUrlInputDTOInner);
+            const localVarPath = `/folders/{folderId}/presigned-urls`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = serializeDataIfNeeded(folderCreateSignedUrlInputDTOInner, localVarRequestOptions, configuration);
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} folderId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -424,6 +462,38 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         /**
          *
          * @param {string} folderId
+         * @param {string} objectKey
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteFolderObject: async (folderId, objectKey, options = {}) => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('deleteFolderObject', 'folderId', folderId);
+            // verify required parameter 'objectKey' is not null or undefined
+            assertParamExists('deleteFolderObject', 'objectKey', objectKey);
+            const localVarPath = `/folders/{folderId}/objects/{objectKey}`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
+                .replace(`{${"objectKey"}}`, encodeURIComponent(String(objectKey)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} folderId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -432,6 +502,66 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
             assertParamExists('getFolder', 'folderId', folderId);
             const localVarPath = `/folders/{folderId}`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} folderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFolderMetadata: async (folderId, options = {}) => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('getFolderMetadata', 'folderId', folderId);
+            const localVarPath = `/folders/{folderId}/metadata`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} folderId
+         * @param {string} objectKey
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFolderObject: async (folderId, objectKey, options = {}) => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('getFolderObject', 'folderId', folderId);
+            // verify required parameter 'objectKey' is not null or undefined
+            assertParamExists('getFolderObject', 'objectKey', objectKey);
+            const localVarPath = `/folders/{folderId}/objects/{objectKey}`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
+                .replace(`{${"objectKey"}}`, encodeURIComponent(String(objectKey)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -538,6 +668,38 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         /**
          *
          * @param {string} folderId
+         * @param {string} objectKey
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        refreshFolderObjectS3Metadata: async (folderId, objectKey, options = {}) => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('refreshFolderObjectS3Metadata', 'folderId', folderId);
+            // verify required parameter 'objectKey' is not null or undefined
+            assertParamExists('refreshFolderObjectS3Metadata', 'objectKey', objectKey);
+            const localVarPath = `/folders/{folderId}/objects/{objectKey}`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
+                .replace(`{${"objectKey"}}`, encodeURIComponent(String(objectKey)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} folderId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -585,6 +747,17 @@ export const FoldersApiFp = function (configuration) {
         /**
          *
          * @param {string} folderId
+         * @param {Array<FolderCreateSignedUrlInputDTOInner>} folderCreateSignedUrlInputDTOInner
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createPresignedUrls(folderId, folderCreateSignedUrlInputDTOInner, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createPresignedUrls(folderId, folderCreateSignedUrlInputDTOInner, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} folderId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -595,11 +768,43 @@ export const FoldersApiFp = function (configuration) {
         /**
          *
          * @param {string} folderId
+         * @param {string} objectKey
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteFolderObject(folderId, objectKey, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteFolderObject(folderId, objectKey, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} folderId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async getFolder(folderId, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getFolder(folderId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} folderId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getFolderMetadata(folderId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getFolderMetadata(folderId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} folderId
+         * @param {string} objectKey
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getFolderObject(folderId, objectKey, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getFolderObject(folderId, objectKey, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -625,6 +830,17 @@ export const FoldersApiFp = function (configuration) {
          */
         async listFolders(folderId, offset, limit, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listFolders(folderId, offset, limit, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} folderId
+         * @param {string} objectKey
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async refreshFolderObjectS3Metadata(folderId, objectKey, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.refreshFolderObjectS3Metadata(folderId, objectKey, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -657,6 +873,15 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @param {FoldersApiCreatePresignedUrlsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createPresignedUrls(requestParameters, options) {
+            return localVarFp.createPresignedUrls(requestParameters.folderId, requestParameters.folderCreateSignedUrlInputDTOInner, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
          * @param {FoldersApiDeleteFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -666,12 +891,39 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @param {FoldersApiDeleteFolderObjectRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteFolderObject(requestParameters, options) {
+            return localVarFp.deleteFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
          * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         getFolder(requestParameters, options) {
             return localVarFp.getFolder(requestParameters.folderId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {FoldersApiGetFolderMetadataRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFolderMetadata(requestParameters, options) {
+            return localVarFp.getFolderMetadata(requestParameters.folderId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {FoldersApiGetFolderObjectRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFolderObject(requestParameters, options) {
+            return localVarFp.getFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(axios, basePath));
         },
         /**
          *
@@ -690,6 +942,15 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
          */
         listFolders(requestParameters, options) {
             return localVarFp.listFolders(requestParameters.folderId, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {FoldersApiRefreshFolderObjectS3MetadataRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        refreshFolderObjectS3Metadata(requestParameters, options) {
+            return localVarFp.refreshFolderObjectS3Metadata(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(axios, basePath));
         },
         /**
          *
@@ -721,6 +982,16 @@ export class FoldersApi extends BaseAPI {
     }
     /**
      *
+     * @param {FoldersApiCreatePresignedUrlsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    createPresignedUrls(requestParameters, options) {
+        return FoldersApiFp(this.configuration).createPresignedUrls(requestParameters.folderId, requestParameters.folderCreateSignedUrlInputDTOInner, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
      * @param {FoldersApiDeleteFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -731,6 +1002,16 @@ export class FoldersApi extends BaseAPI {
     }
     /**
      *
+     * @param {FoldersApiDeleteFolderObjectRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    deleteFolderObject(requestParameters, options) {
+        return FoldersApiFp(this.configuration).deleteFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
      * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -738,6 +1019,26 @@ export class FoldersApi extends BaseAPI {
      */
     getFolder(requestParameters, options) {
         return FoldersApiFp(this.configuration).getFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {FoldersApiGetFolderMetadataRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    getFolderMetadata(requestParameters, options) {
+        return FoldersApiFp(this.configuration).getFolderMetadata(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {FoldersApiGetFolderObjectRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    getFolderObject(requestParameters, options) {
+        return FoldersApiFp(this.configuration).getFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
@@ -758,6 +1059,16 @@ export class FoldersApi extends BaseAPI {
      */
     listFolders(requestParameters, options) {
         return FoldersApiFp(this.configuration).listFolders(requestParameters.folderId, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {FoldersApiRefreshFolderObjectS3MetadataRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    refreshFolderObjectS3Metadata(requestParameters, options) {
+        return FoldersApiFp(this.configuration).refreshFolderObjectS3Metadata(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
