@@ -6,6 +6,7 @@ import {
   AuthGuardConfig,
 } from 'src/auth/guards/auth.guard-config'
 
+import { EventDTO } from '../dto/event.dto'
 import { EventService } from '../services/event.service'
 
 @Controller('/events')
@@ -19,7 +20,7 @@ export class EventController {
    */
   @Get('/:eventId')
   @AuthGuardConfig({ allowedActors: [AllowedActor.USER] })
-  getAppInfo(@Param() eventId: string) {
+  getAppInfo(@Param() eventId: string): Promise<EventDTO> {
     return this.eventService.getEvent(eventId)
   }
 }

@@ -7,10 +7,9 @@
     "clean": "(rm -rf ./*.tsbuildinfo ||  true) && rm -rf ./dist"
   },
   "devDependencies": {
-    "axios": "1.6.7",
-    "typescript": "5.3.3"
+    "axios": "1.7.2"
   },
   "peerDependencies": {
-    "axios": "1.6.7"
+    "axios": "1.7.2"
   }
 }

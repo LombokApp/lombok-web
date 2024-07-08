@@ -1,30 +1,34 @@
 import { getQueueToken } from '@nestjs/bullmq'
-import {
-  buildTestModule,
-  registerTestUser,
-  testS3Location,
-  waitForTrue,
-} from 'src/core/utils/test.util'
 import type { InMemoryQueue } from 'src/queue/InMemoryQueue'
 import { QueueName } from 'src/queue/queue.constants'
-import request from 'supertest'
+import type { TestApiClient, TestModule } from 'src/test/test.types'
+import {
+  buildTestModule,
+  createTestFolder,
+  registerTestUser,
+  rescanTestFolder,
+  waitForTrue,
+} from 'src/test/test.util'
+import { buildSupertestApiClient } from 'src/test/test-api-client'
 
 const TEST_MODULE_KEY = 'folder_objects'
 
 describe('Folder Objects', () => {
-  let testModule: Awaited<ReturnType<typeof buildTestModule>> | undefined
+  let testModule: TestModule | undefined
+  let apiClient: TestApiClient
 
   beforeAll(async () => {
     testModule = await buildTestModule({
       testModuleKey: TEST_MODULE_KEY,
     })
+    apiClient = buildSupertestApiClient(testModule)
   })
 
   afterEach(async () => {
     await testModule?.resetDb()
   })
 
-  it(`should get a folder object by folderId and key`, async () => {
+  it(`should get a folder object by folderId and objectKey`, async () => {
     const {
       session: { accessToken },
     } = await registerTestUser(testModule, {
@@ -32,56 +36,48 @@ describe('Folder Objects', () => {
       password: '123',
     })
 
-    const MOCK_OBJECTS: { key: string; content: string }[] = [
-      { content: 'object 1 content', key: 'key1' },
-      { content: 'object 2 content', key: 'key2' },
-      { content: 'object 3 content', key: 'key3' },
-      { content: 'object 4 content', key: 'key4' },
-      { content: 'object 5 content', key: 'key5' },
+    const MOCK_OBJECTS: { objectKey: string; content: string }[] = [
+      { content: 'object 1 content', objectKey: 'key1' },
+      { content: 'object 2 content', objectKey: 'key2' },
+      { content: 'object 3 content', objectKey: 'key3' },
+      { content: 'object 4 content', objectKey: 'key4' },
+      { content: 'object 5 content', objectKey: 'key5' },
     ]
 
-    const bucketName =
-      (await testModule?.initMinioTestBucket(MOCK_OBJECTS)) ?? ''
-    const metadataBucketName = (await testModule?.initMinioTestBucket()) ?? ''
+    const testFolder = await createTestFolder({
+      folderName: 'My Folder',
+      testModule,
+      accessToken,
+      mockFiles: MOCK_OBJECTS,
+      apiClient,
+    })
 
-    const folderCreateResponse = await request(testModule?.app.getHttpServer())
-      .post(`/folders`)
-      .auth(accessToken, { type: 'bearer' })
-      .send({
-        name: 'My Folder',
-        contentLocation: testS3Location({ bucketName }),
-        metadataLocation: testS3Location({ bucketName: metadataBucketName }),
-      })
-    // console.log('folderCreateResponse.body:', folderCreateResponse.body)
-
-    expect(folderCreateResponse.statusCode).toEqual(201)
+    expect(testFolder.folder.id).toBeTruthy()
     const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
       getQueueToken(QueueName.RescanFolder),
     )
 
     const jobsCompletedBefore = queue?.stats.completedJobs ?? 0
 
-    await request(testModule?.app.getHttpServer())
-      .post(`/folders/${folderCreateResponse.body.folder.id}/rescan`)
-      .auth(accessToken, { type: 'bearer' })
-      .send()
+    await rescanTestFolder({
+      accessToken,
+      apiClient,
+      folderId: testFolder.folder.id,
+    })
 
     await waitForTrue(
       () => (queue?.stats.completedJobs ?? 0) > jobsCompletedBefore,
-      { retryPeriod: 100, maxRetries: 1 },
+      { retryPeriod: 100, maxRetries: 10 },
     )
 
-    const folderObjectGetResponse = await request(
-      testModule?.app.getHttpServer(),
-    )
-      .get(`/folders/${folderCreateResponse.body.folder.id}/objects/key3`)
-      .auth(accessToken, { type: 'bearer' })
-      .send()
+    const folderObjectGetResponse = await apiClient
+      .foldersApi({ accessToken })
+      .getFolderObject({ folderId: testFolder.folder.id, objectKey: 'key3' })
 
     // console.log('folderObjectGetResponse.body:', folderObjectGetResponse.body)
-    expect(folderObjectGetResponse.statusCode).toEqual(200)
-    expect(folderObjectGetResponse.body.folderObject.objectKey).toEqual('key3')
-    expect(folderObjectGetResponse.body.folderObject.sizeBytes).toEqual(16)
+    expect(folderObjectGetResponse.status).toEqual(200)
+    expect(folderObjectGetResponse.data.folderObject.objectKey).toEqual('key3')
+    expect(folderObjectGetResponse.data.folderObject.sizeBytes).toEqual(16)
   })
 
   it(`it should list objects in a folder`, async () => {
@@ -92,61 +88,112 @@ describe('Folder Objects', () => {
       password: '123',
     })
 
-    const MOCK_OBJECTS: { key: string; content: string }[] = [
-      { content: 'object 1 content', key: 'key1' },
-      { content: 'object 2 content', key: 'key2' },
-      { content: 'object 3 content', key: 'key3' },
-      { content: 'object 4 content', key: 'key4' },
-      { content: 'object 5 content', key: 'key5' },
+    const MOCK_OBJECTS: { objectKey: string; content: string }[] = [
+      { content: 'object 1 content', objectKey: 'key1' },
+      { content: 'object 2 content', objectKey: 'key2' },
+      { content: 'object 3 content', objectKey: 'key3' },
+      { content: 'object 4 content', objectKey: 'key4' },
+      { content: 'object 5 content', objectKey: 'key5' },
     ]
 
-    const bucketName =
-      (await testModule?.initMinioTestBucket(MOCK_OBJECTS)) ?? ''
-    const metadataBucketName = (await testModule?.initMinioTestBucket()) ?? ''
-    const folderCreateBody = {
-      name: 'My Folder',
-      contentLocation: testS3Location({ bucketName }),
-      metadataLocation: testS3Location({ bucketName: metadataBucketName }),
-    }
+    const testFolder = await createTestFolder({
+      folderName: 'My Folder',
+      testModule,
+      accessToken,
+      mockFiles: MOCK_OBJECTS,
+      apiClient,
+    })
 
-    const folderCreateResponse = await request(testModule?.app.getHttpServer())
-      .post(`/folders`)
-      .auth(accessToken, { type: 'bearer' })
-      .send(folderCreateBody)
+    expect(testFolder.folder.id).toBeTruthy()
 
-    expect(folderCreateResponse.statusCode).toEqual(201)
+    const folderGetResponse = await apiClient
+      .foldersApi({ accessToken })
+      .getFolder({ folderId: testFolder.folder.id })
 
-    const folderGetResponse = await request(testModule?.app.getHttpServer())
-      .get(`/folders/${folderCreateResponse.body.folder.id}`)
-      .auth(accessToken, { type: 'bearer' })
-      .send()
-
-    expect(folderGetResponse.statusCode).toEqual(200)
-    expect(folderGetResponse.body.folder.id).toEqual(
-      folderCreateResponse.body.folder.id,
-    )
+    expect(folderGetResponse.status).toEqual(200)
+    expect(folderGetResponse.data.folder.id).toEqual(testFolder.folder.id)
 
     const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
       getQueueToken(QueueName.RescanFolder),
     )
     const jobsCompletedBefore = queue?.stats.completedJobs ?? 0
 
-    await request(testModule?.app.getHttpServer())
-      .post(`/folders/${folderCreateResponse.body.folder.id}/rescan`)
-      .auth(accessToken, { type: 'bearer' })
-      .send()
+    await rescanTestFolder({
+      accessToken,
+      apiClient,
+      folderId: testFolder.folder.id,
+    })
 
     await waitForTrue(
       () => (queue?.stats.completedJobs ?? 0) > jobsCompletedBefore,
-      { retryPeriod: 100, maxRetries: 1 },
+      { retryPeriod: 100, maxRetries: 10 },
     )
 
-    const listObjectsResponse = await request(testModule?.app.getHttpServer())
-      .get(`/folders/${folderCreateResponse.body.folder.id}/objects`)
-      .auth(accessToken, { type: 'bearer' })
-      .send()
+    const listObjectsResponse = await apiClient
+      .foldersApi({ accessToken })
+      .listFolderObjects({ folderId: testFolder.folder.id })
 
-    expect(listObjectsResponse.body.result.length).toBe(5)
+    expect(listObjectsResponse.data.result.length).toBe(5)
+  })
+
+  it(`it should delete an object from a folder`, async () => {
+    const {
+      session: { accessToken },
+    } = await registerTestUser(testModule, {
+      username: 'testuser',
+      password: '123',
+    })
+
+    const MOCK_OBJECTS: { objectKey: string; content: string }[] = [
+      { content: 'object 1 content', objectKey: 'key1' },
+    ]
+
+    const testFolder = await createTestFolder({
+      folderName: 'My Folder',
+      testModule,
+      accessToken,
+      mockFiles: MOCK_OBJECTS,
+      apiClient,
+    })
+
+    expect(testFolder.folder.id).toBeTruthy()
+
+    const folderGetResponse = await apiClient
+      .foldersApi({ accessToken })
+      .getFolder({ folderId: testFolder.folder.id })
+
+    expect(folderGetResponse.status).toEqual(200)
+    expect(folderGetResponse.data.folder.id).toEqual(testFolder.folder.id)
+
+    const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
+      getQueueToken(QueueName.RescanFolder),
+    )
+    const jobsCompletedBefore = queue?.stats.completedJobs ?? 0
+
+    await rescanTestFolder({
+      accessToken,
+      apiClient,
+      folderId: testFolder.folder.id,
+    })
+
+    await waitForTrue(
+      () => (queue?.stats.completedJobs ?? 0) > jobsCompletedBefore,
+      { retryPeriod: 100, maxRetries: 10 },
+    )
+
+    const deleteObjectResponse = await apiClient
+      .foldersApi({ accessToken })
+      .deleteFolderObject({ folderId: testFolder.folder.id, objectKey: 'key1' })
+
+    expect(deleteObjectResponse.status).toBe(200)
+
+    const listObjectsResponse = await apiClient
+      .foldersApi({ accessToken })
+      .listFolderObjects({ folderId: testFolder.folder.id })
+
+    expect(listObjectsResponse.status).toBe(200)
+    expect(listObjectsResponse.data.meta.totalCount).toBe(0)
+    expect(listObjectsResponse.data.result.length).toBe(0)
   })
 
   afterAll(async () => {

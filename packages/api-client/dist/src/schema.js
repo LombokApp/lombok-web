@@ -241,16 +241,8 @@ export const schema = {
                 "operationId": "listFolders",
                 "parameters": [
                     {
-                        "name": "folderId",
-                        "required": true,
-                        "in": "path",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
                         "name": "offset",
-                        "required": true,
+                        "required": false,
                         "in": "query",
                         "schema": {
                             "type": "number"
@@ -258,7 +250,7 @@ export const schema = {
                     },
                     {
                         "name": "limit",
-                        "required": true,
+                        "required": false,
                         "in": "query",
                         "schema": {
                             "type": "number"
@@ -347,16 +339,8 @@ export const schema = {
                         }
                     },
                     {
-                        "name": "search",
-                        "required": true,
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    {
                         "name": "offset",
-                        "required": true,
+                        "required": false,
                         "in": "query",
                         "schema": {
                             "type": "number"
@@ -364,16 +348,24 @@ export const schema = {
                     },
                     {
                         "name": "limit",
-                        "required": true,
+                        "required": false,
                         "in": "query",
                         "schema": {
                             "type": "number"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "List folder objects.",
+                        "description": "List folder objects by folderId.",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -476,7 +468,7 @@ export const schema = {
                 ],
                 "responses": {
                     "201": {
-                        "description": "Scan the object again in the underlying storage, and update its state in our db",
+                        "description": "Scan the object again in the underlying storage, and update its state in our db.",
                         "content": {
                             "application/json": {
                                 "schema": {

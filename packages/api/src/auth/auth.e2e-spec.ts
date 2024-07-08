@@ -1,4 +1,4 @@
-import { buildTestModule } from 'src/core/utils/test.util'
+import { buildTestModule } from 'src/test/test.util'
 import request from 'supertest'
 
 const TEST_MODULE_KEY = 'auth'

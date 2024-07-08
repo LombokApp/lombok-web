@@ -110,7 +110,8 @@ export class EventService {
     }
   }
 
-  getEvent(eventId: string): EventDTO {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async getEvent(eventId: string): Promise<EventDTO> {
     return {
       id: eventId,
       eventKey: '__dummy_event_key__',

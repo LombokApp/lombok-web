@@ -16,6 +16,8 @@ import { AuthGuard } from 'src/auth/guards/auth.guard'
 
 import { FolderCreateInputDTO } from '../dto/folder-create-input.dto'
 import { FolderCreateSignedUrlInputDTO } from '../dto/folder-create-signed-url-input.dto'
+import { FolderObjectsListQueryParamsDTO } from '../dto/folder-objects-list-query-params.dto'
+import { FoldersListQueryParamsDTO } from '../dto/folders-list-query-params.dto'
 import type { FolderCreateResponse } from '../dto/responses/folder-create-response.dto'
 import type { FolderCreateSignedUrlsResponse } from '../dto/responses/folder-create-signed-urls-response.dto'
 import type { FolderGetMetadataResponse } from '../dto/responses/folder-get-metadata-response.dto'
@@ -73,14 +75,11 @@ export class FoldersController {
   @Get()
   async listFolders(
     @Req() req: express.Request,
-    @Param('folderId') folderId: string,
-    @Query('offset') offset?: number,
-    @Query('limit') limit?: number,
+    @Query() queryParams: FoldersListQueryParamsDTO,
   ): Promise<FolderListResponse> {
     const result = await this.folderService.listFoldersAsUser({
       userId: req.user?.id ?? '',
-      limit,
-      offset,
+      ...queryParams,
     })
     return {
       result: result.result.map(({ folder, permissions }) => ({
@@ -151,15 +150,13 @@ export class FoldersController {
   }
 
   /**
-   * List folder objects.
+   * List folder objects by folderId.
    */
   @Get('/:folderId/objects')
   async listFolderObjects(
     @Req() req: express.Request,
     @Param('folderId') folderId: string,
-    @Query('search') search?: string,
-    @Query('offset') offset?: number,
-    @Query('limit') limit?: number,
+    @Query() queryParams: FolderObjectsListQueryParamsDTO,
   ): Promise<FolderObjectListResponse> {
     if (!req.user) {
       throw new UnauthorizedException()
@@ -168,9 +165,7 @@ export class FoldersController {
       req.user,
       {
         folderId,
-        search,
-        offset,
-        limit,
+        ...queryParams,
       },
     )
     return {

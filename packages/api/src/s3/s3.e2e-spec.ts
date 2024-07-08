@@ -1,7 +1,7 @@
 import type { S3Client } from '@aws-sdk/client-s3'
 import { SignedURLsRequestMethod } from '@stellariscloud/types'
 import axios from 'axios'
-import { buildTestModule } from 'src/core/utils/test.util'
+import { buildTestModule } from 'src/test/test.util'
 
 import { S3Service } from './s3.service'
 
@@ -29,7 +29,7 @@ describe('S3', () => {
     const TEST_CONTENT = 'this is the s3 test'
     const bucketName =
       (await testModule?.initMinioTestBucket([
-        { key: OBJECT_KEY, content: TEST_CONTENT },
+        { objectKey: OBJECT_KEY, content: TEST_CONTENT },
       ])) ?? ''
 
     const objectsResult = await s3Service.s3ListBucketObjects({

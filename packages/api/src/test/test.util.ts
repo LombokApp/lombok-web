@@ -5,14 +5,16 @@ import fs from 'fs'
 import path from 'path'
 import type { LoginResponse } from 'src/auth/dto/responses/login-response.dto'
 import { RedisService } from 'src/cache/redis.service'
-import { CoreTestModule } from 'src/core/core-test.module'
+import type { FolderDTO } from 'src/folders/dto/folder.dto'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { configureS3Client } from 'src/s3/s3.service'
 import { createS3PresignedUrls } from 'src/s3/s3.utils'
+import { CoreTestModule } from 'src/test/core-test.module'
 import request from 'supertest'
 
-import { ormConfig } from '../../orm/config'
-import { setApp, setAppInitializing } from '../app-helper'
+import { setApp, setAppInitializing } from '../core/app-helper'
+import { ormConfig } from '../orm/config'
+import type { TestApiClient } from './test.types'
 
 const MINIO_LOCAL_PATH = '/minio-test-data'
 const MINIO_ACCESS_KEY_ID = 'testaccesskeyid'
@@ -85,7 +87,7 @@ export async function buildTestModule({
         region: MINIO_REGION,
       }),
     initMinioTestBucket: async (
-      createFiles: { key: string; content: Buffer | string }[] = [],
+      createFiles: { objectKey: string; content: Buffer | string }[] = [],
     ) => {
       const bucketName = `test-bucket-${(Math.random() + 1).toString(36).substring(7)}`
       const bucketPath = path.join(MINIO_LOCAL_PATH, bucketName)
@@ -98,7 +100,7 @@ export async function buildTestModule({
       fs.mkdirSync(bucketPath)
 
       const uploadUrls = createS3PresignedUrls(
-        createFiles.map(({ key }) => {
+        createFiles.map(({ objectKey }) => {
           return {
             accessKeyId: MINIO_ACCESS_KEY_ID,
             secretAccessKey: MINIO_SECRET_ACCESS_KEY,
@@ -107,7 +109,7 @@ export async function buildTestModule({
             bucket: bucketName,
             expirySeconds: 3000,
             method: SignedURLsRequestMethod.PUT,
-            objectKey: key,
+            objectKey,
           }
         }),
       )
@@ -153,6 +155,7 @@ export async function registerTestUser(
   },
 ): Promise<LoginResponse> {
   const server = testModule?.app.getHttpServer()
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   const req = request(server)
   await req.post('/auth/signup').send(input).expect(201)
   const result = await req
@@ -176,6 +179,51 @@ export function testS3Location({
     region: MINIO_REGION,
     prefix,
   }
+}
+
+export async function createTestFolder({
+  accessToken,
+  folderName,
+  testModule,
+  mockFiles,
+  apiClient,
+}: {
+  testModule: TestModule
+  folderName: string
+  accessToken: string
+  mockFiles: { objectKey: string; content: string }[]
+  apiClient: TestApiClient
+}): Promise<{
+  folder: FolderDTO
+}> {
+  const bucketName = (await testModule?.initMinioTestBucket(mockFiles)) ?? ''
+  const metadataBucketName = (await testModule?.initMinioTestBucket()) ?? ''
+
+  const folderCreateResponse = await apiClient
+    .foldersApi({ accessToken })
+    .createFolder({
+      folderCreateInputDTO: {
+        name: folderName,
+        contentLocation: testS3Location({ bucketName }),
+        metadataLocation: testS3Location({ bucketName: metadataBucketName }),
+      },
+    })
+
+  return {
+    folder: folderCreateResponse.data.folder,
+  }
+}
+
+export async function rescanTestFolder({
+  accessToken,
+  folderId,
+  apiClient,
+}: {
+  folderId: string
+  accessToken: string
+  apiClient: TestApiClient
+}): Promise<void> {
+  await apiClient.foldersApi({ accessToken }).rescanFolder({ folderId })
 }
 
 export async function waitForTrue(

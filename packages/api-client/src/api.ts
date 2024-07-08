@@ -1304,21 +1304,15 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         /**
          * 
          * @param {string} folderId 
-         * @param {string} search 
-         * @param {number} offset 
-         * @param {number} limit 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {string} [search] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listFolderObjects: async (folderId: string, search: string, offset: number, limit: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listFolderObjects: async (folderId: string, offset?: number, limit?: number, search?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('listFolderObjects', 'folderId', folderId)
-            // verify required parameter 'search' is not null or undefined
-            assertParamExists('listFolderObjects', 'search', search)
-            // verify required parameter 'offset' is not null or undefined
-            assertParamExists('listFolderObjects', 'offset', offset)
-            // verify required parameter 'limit' is not null or undefined
-            assertParamExists('listFolderObjects', 'limit', limit)
             const localVarPath = `/folders/{folderId}/objects`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -1332,16 +1326,16 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
-            if (search !== undefined) {
-                localVarQueryParameter['search'] = search;
-            }
-
             if (offset !== undefined) {
                 localVarQueryParameter['offset'] = offset;
             }
 
             if (limit !== undefined) {
                 localVarQueryParameter['limit'] = limit;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
             }
 
 
@@ -1357,21 +1351,13 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
-         * @param {string} folderId 
-         * @param {number} offset 
-         * @param {number} limit 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listFolders: async (folderId: string, offset: number, limit: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'folderId' is not null or undefined
-            assertParamExists('listFolders', 'folderId', folderId)
-            // verify required parameter 'offset' is not null or undefined
-            assertParamExists('listFolders', 'offset', offset)
-            // verify required parameter 'limit' is not null or undefined
-            assertParamExists('listFolders', 'limit', limit)
-            const localVarPath = `/folders`
-                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+        listFolders: async (offset?: number, limit?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/folders`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1558,26 +1544,25 @@ export const FoldersApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @param {string} folderId 
-         * @param {string} search 
-         * @param {number} offset 
-         * @param {number} limit 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {string} [search] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listFolderObjects(folderId: string, search: string, offset: number, limit: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderObjects(folderId, search, offset, limit, options);
+        async listFolderObjects(folderId: string, offset?: number, limit?: number, search?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderObjects(folderId, offset, limit, search, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
          * 
-         * @param {string} folderId 
-         * @param {number} offset 
-         * @param {number} limit 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listFolders(folderId: string, offset: number, limit: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolders(folderId, offset, limit, options);
+        async listFolders(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolders(offset, limit, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -1681,7 +1666,7 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
          * @throws {RequiredError}
          */
         listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: AxiosRequestConfig): AxiosPromise<FolderObjectListResponse> {
-            return localVarFp.listFolderObjects(requestParameters.folderId, requestParameters.search, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+            return localVarFp.listFolderObjects(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1689,8 +1674,8 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listFolders(requestParameters: FoldersApiListFoldersRequest, options?: AxiosRequestConfig): AxiosPromise<FolderListResponse> {
-            return localVarFp.listFolders(requestParameters.folderId, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        listFolders(requestParameters: FoldersApiListFoldersRequest = {}, options?: AxiosRequestConfig): AxiosPromise<FolderListResponse> {
+            return localVarFp.listFolders(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -1847,24 +1832,24 @@ export interface FoldersApiListFolderObjectsRequest {
 
     /**
      * 
+     * @type {number}
+     * @memberof FoldersApiListFolderObjects
+     */
+    readonly offset?: number
+
+    /**
+     * 
+     * @type {number}
+     * @memberof FoldersApiListFolderObjects
+     */
+    readonly limit?: number
+
+    /**
+     * 
      * @type {string}
      * @memberof FoldersApiListFolderObjects
      */
-    readonly search: string
-
-    /**
-     * 
-     * @type {number}
-     * @memberof FoldersApiListFolderObjects
-     */
-    readonly offset: number
-
-    /**
-     * 
-     * @type {number}
-     * @memberof FoldersApiListFolderObjects
-     */
-    readonly limit: number
+    readonly search?: string
 }
 
 /**
@@ -1875,24 +1860,17 @@ export interface FoldersApiListFolderObjectsRequest {
 export interface FoldersApiListFoldersRequest {
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof FoldersApiListFolders
      */
-    readonly folderId: string
+    readonly offset?: number
 
     /**
      * 
      * @type {number}
      * @memberof FoldersApiListFolders
      */
-    readonly offset: number
-
-    /**
-     * 
-     * @type {number}
-     * @memberof FoldersApiListFolders
-     */
-    readonly limit: number
+    readonly limit?: number
 }
 
 /**
@@ -2022,7 +2000,7 @@ export class FoldersApi extends BaseAPI {
      * @memberof FoldersApi
      */
     public listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: AxiosRequestConfig) {
-        return FoldersApiFp(this.configuration).listFolderObjects(requestParameters.folderId, requestParameters.search, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+        return FoldersApiFp(this.configuration).listFolderObjects(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2032,8 +2010,8 @@ export class FoldersApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    public listFolders(requestParameters: FoldersApiListFoldersRequest, options?: AxiosRequestConfig) {
-        return FoldersApiFp(this.configuration).listFolders(requestParameters.folderId, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    public listFolders(requestParameters: FoldersApiListFoldersRequest = {}, options?: AxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).listFolders(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

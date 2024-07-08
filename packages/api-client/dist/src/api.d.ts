@@ -898,22 +898,21 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
     /**
      *
      * @param {string} folderId
-     * @param {string} search
-     * @param {number} offset
-     * @param {number} limit
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {string} [search]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolderObjects: (folderId: string, search: string, offset: number, limit: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listFolderObjects: (folderId: string, offset?: number, limit?: number, search?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
-     * @param {string} folderId
-     * @param {number} offset
-     * @param {number} limit
+     * @param {number} [offset]
+     * @param {number} [limit]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolders: (folderId: string, offset: number, limit: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listFolders: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {string} folderId
@@ -990,22 +989,21 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
     /**
      *
      * @param {string} folderId
-     * @param {string} search
-     * @param {number} offset
-     * @param {number} limit
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {string} [search]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolderObjects(folderId: string, search: string, offset: number, limit: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectListResponse>>;
+    listFolderObjects(folderId: string, offset?: number, limit?: number, search?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectListResponse>>;
     /**
      *
-     * @param {string} folderId
-     * @param {number} offset
-     * @param {number} limit
+     * @param {number} [offset]
+     * @param {number} [limit]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolders(folderId: string, offset: number, limit: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderListResponse>>;
+    listFolders(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderListResponse>>;
     /**
      *
      * @param {string} folderId
@@ -1089,7 +1087,7 @@ export declare const FoldersApiFactory: (configuration?: Configuration, basePath
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolders(requestParameters: FoldersApiListFoldersRequest, options?: AxiosRequestConfig): AxiosPromise<FolderListResponse>;
+    listFolders(requestParameters?: FoldersApiListFoldersRequest, options?: AxiosRequestConfig): AxiosPromise<FolderListResponse>;
     /**
      *
      * @param {FoldersApiRefreshFolderObjectS3MetadataRequest} requestParameters Request parameters.
@@ -1228,22 +1226,22 @@ export interface FoldersApiListFolderObjectsRequest {
     readonly folderId: string;
     /**
      *
+     * @type {number}
+     * @memberof FoldersApiListFolderObjects
+     */
+    readonly offset?: number;
+    /**
+     *
+     * @type {number}
+     * @memberof FoldersApiListFolderObjects
+     */
+    readonly limit?: number;
+    /**
+     *
      * @type {string}
      * @memberof FoldersApiListFolderObjects
      */
-    readonly search: string;
-    /**
-     *
-     * @type {number}
-     * @memberof FoldersApiListFolderObjects
-     */
-    readonly offset: number;
-    /**
-     *
-     * @type {number}
-     * @memberof FoldersApiListFolderObjects
-     */
-    readonly limit: number;
+    readonly search?: string;
 }
 /**
  * Request parameters for listFolders operation in FoldersApi.
@@ -1253,22 +1251,16 @@ export interface FoldersApiListFolderObjectsRequest {
 export interface FoldersApiListFoldersRequest {
     /**
      *
-     * @type {string}
+     * @type {number}
      * @memberof FoldersApiListFolders
      */
-    readonly folderId: string;
+    readonly offset?: number;
     /**
      *
      * @type {number}
      * @memberof FoldersApiListFolders
      */
-    readonly offset: number;
-    /**
-     *
-     * @type {number}
-     * @memberof FoldersApiListFolders
-     */
-    readonly limit: number;
+    readonly limit?: number;
 }
 /**
  * Request parameters for refreshFolderObjectS3Metadata operation in FoldersApi.
@@ -1380,7 +1372,7 @@ export declare class FoldersApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    listFolders(requestParameters: FoldersApiListFoldersRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderListResponse, any>>;
+    listFolders(requestParameters?: FoldersApiListFoldersRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderListResponse, any>>;
     /**
      *
      * @param {FoldersApiRefreshFolderObjectS3MetadataRequest} requestParameters Request parameters.

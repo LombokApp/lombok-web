@@ -18,12 +18,11 @@ async function main() {
         introspectComments: true,
         pathToSource: __dirname,
         classValidatorShim: false,
-        debug: true,
       }),
     ],
     outputDir: __dirname,
     printDiagnostics: true,
-    tsconfigPath: 'tsconfig.json',
+    tsconfigPath: 'tsconfig-generate-metadata.json',
     filename: '../src/nestjs-metadata.ts',
   })
 

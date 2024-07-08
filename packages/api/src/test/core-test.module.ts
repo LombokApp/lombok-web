@@ -8,13 +8,13 @@ import { SocketModule } from 'src/socket/socket.module'
 
 import { AppModule } from '../app/app.module'
 import { AuthModule } from '../auth/auth.module'
+import { ZodSerializerInterceptor } from '../core/serializer/serializer.util'
 import { EventModule } from '../event/event.module'
 import { FoldersModule } from '../folders/folders.module'
 import { LocationsModule } from '../locations/locations.module'
 import { OrmModule } from '../orm/orm.module'
 import { ServerModule } from '../server/server.module'
 import { UsersModule } from '../users/users.module'
-import { ZodSerializerInterceptor } from './serializer/serializer.util'
 
 @Module({
   imports: [

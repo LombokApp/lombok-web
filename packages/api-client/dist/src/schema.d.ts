@@ -216,22 +216,15 @@ export declare const schema: {
             readonly get: {
                 readonly operationId: "listFolders";
                 readonly parameters: readonly [{
-                    readonly name: "folderId";
-                    readonly required: true;
-                    readonly in: "path";
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }, {
                     readonly name: "offset";
-                    readonly required: true;
+                    readonly required: false;
                     readonly in: "query";
                     readonly schema: {
                         readonly type: "number";
                     };
                 }, {
                     readonly name: "limit";
-                    readonly required: true;
+                    readonly required: false;
                     readonly in: "query";
                     readonly schema: {
                         readonly type: "number";
@@ -309,30 +302,30 @@ export declare const schema: {
                         readonly type: "string";
                     };
                 }, {
-                    readonly name: "search";
-                    readonly required: true;
-                    readonly in: "query";
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }, {
                     readonly name: "offset";
-                    readonly required: true;
+                    readonly required: false;
                     readonly in: "query";
                     readonly schema: {
                         readonly type: "number";
                     };
                 }, {
                     readonly name: "limit";
-                    readonly required: true;
+                    readonly required: false;
                     readonly in: "query";
                     readonly schema: {
                         readonly type: "number";
                     };
+                }, {
+                    readonly name: "search";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "List folder objects.";
+                        readonly description: "List folder objects by folderId.";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -420,7 +413,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "Scan the object again in the underlying storage, and update its state in our db";
+                        readonly description: "Scan the object again in the underlying storage, and update its state in our db.";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
