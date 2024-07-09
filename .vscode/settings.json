@@ -1,7 +1,6 @@
 {
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
-  "eslint.nodePath": ".yarn/sdks",
   "eslint.workingDirectories": [
     {
       "mode": "auto"
