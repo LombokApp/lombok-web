@@ -1,4 +1,5 @@
-import { Controller, Get, Param, Put } from '@nestjs/common'
+import { ZodValidationPipe } from '@anatine/zod-nestjs'
+import { Controller, Get, Param, Put, UsePipes } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import type { User } from 'src/users/entities/user.entity'
 
@@ -6,6 +7,7 @@ import { ServerConfigurationService } from '../services/server-configuration.ser
 
 @Controller('/server')
 @ApiTags('Server')
+@UsePipes(ZodValidationPipe)
 export class ServerController {
   constructor(
     private readonly serverConfigurationService: ServerConfigurationService,

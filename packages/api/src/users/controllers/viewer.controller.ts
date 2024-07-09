@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Put, Req, UseGuards } from '@nestjs/common'
+import { ZodValidationPipe } from '@anatine/zod-nestjs'
+import {
+  Body,
+  Controller,
+  Get,
+  Put,
+  Req,
+  UseGuards,
+  UsePipes,
+} from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
@@ -15,6 +24,7 @@ import { UserService } from '../services/users.service'
 @Controller('/viewer')
 @ApiTags('Viewer')
 @UseGuards(AuthGuard)
+@UsePipes(ZodValidationPipe)
 export class ViewerController {
   constructor(private readonly userService: UserService) {}
 

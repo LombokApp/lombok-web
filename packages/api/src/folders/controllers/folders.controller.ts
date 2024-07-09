@@ -1,3 +1,4 @@
+import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import {
   Body,
   Controller,
@@ -9,6 +10,7 @@ import {
   Req,
   UnauthorizedException,
   UseGuards,
+  UsePipes,
 } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import express from 'express'
@@ -33,6 +35,7 @@ import { FolderPermissionName, FolderService } from '../services/folder.service'
 @Controller('/folders')
 @ApiTags('Folders')
 @UseGuards(AuthGuard)
+@UsePipes(ZodValidationPipe)
 export class FoldersController {
   constructor(private readonly folderService: FolderService) {}
 

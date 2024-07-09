@@ -1,4 +1,5 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common'
+import { ZodValidationPipe } from '@anatine/zod-nestjs'
+import { Controller, Get, Param, UseGuards, UsePipes } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import {
@@ -12,6 +13,7 @@ import { EventService } from '../services/event.service'
 @Controller('/events')
 @ApiTags('Event')
 @UseGuards(AuthGuard)
+@UsePipes(ZodValidationPipe)
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
