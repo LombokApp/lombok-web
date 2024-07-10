@@ -11,9 +11,9 @@ import {
   CONFIGURATION_KEYS,
   ServerLocationTypeRunType,
 } from '../constants/server.constants'
-import type { PublicServerSettings } from '../dto/settings.dto'
-import type { NewServerConfiguration } from '../entities/server-configuration.entity'
-import { serverConfigurationsTable } from '../entities/server-configuration.entity'
+import { SettingsDTO } from '../dto/settings.dto'
+import type { NewServerSetting } from '../entities/server-configuration.entity'
+import { serverSettingsTable } from '../entities/server-configuration.entity'
 import { ServerConfigurationInvalidException } from '../exceptions/server-configuration-invalid.exception'
 import { ServerConfigurationNotFoundException } from '../exceptions/server-configuration-not-found.exception'
 
@@ -21,16 +21,17 @@ import { ServerConfigurationNotFoundException } from '../exceptions/server-confi
 export class ServerConfigurationService {
   constructor(private readonly ormService: OrmService) {}
 
-  async getServerSettingsAsUser(_actor: User): Promise<PublicServerSettings> {
+  async getServerSettingsAsUser(_actor: User): Promise<SettingsDTO> {
     // TODO: check user permissions for access to read entire server settings object
 
-    const results =
-      await this.ormService.db.query.serverConfigurationsTable.findMany({
+    const results = await this.ormService.db.query.serverSettingsTable.findMany(
+      {
         where: inArray(
-          serverConfigurationsTable.key,
+          serverSettingsTable.key,
           Object.keys(CONFIGURATION_KEYS),
         ),
-      })
+      },
+    )
 
     return results.reduce(
       (acc, configResult) => ({
@@ -38,7 +39,7 @@ export class ServerConfigurationService {
         [configResult.key]: configResult.value,
       }),
       {},
-    ) as PublicServerSettings
+    ) as SettingsDTO
   }
 
   async getServerConfigurationAsUser(userId: string, configurationKey: string) {
@@ -48,8 +49,8 @@ export class ServerConfigurationService {
       throw new ServerConfigurationNotFoundException()
     }
 
-    return this.ormService.db.query.serverConfigurationsTable.findFirst({
-      where: eq(serverConfigurationsTable.key, configurationKey),
+    return this.ormService.db.query.serverSettingsTable.findFirst({
+      where: eq(serverSettingsTable.key, configurationKey),
     })
   }
 
@@ -66,21 +67,21 @@ export class ServerConfigurationService {
 
     // TODO: validate value
     const existingRecord =
-      await this.ormService.db.query.serverConfigurationsTable.findFirst({
-        where: eq(serverConfigurationsTable.key, settingKey),
+      await this.ormService.db.query.serverSettingsTable.findFirst({
+        where: eq(serverSettingsTable.key, settingKey),
       })
 
     if (existingRecord) {
       return this.ormService.db
-        .update(serverConfigurationsTable)
+        .update(serverSettingsTable)
         .set({
           value: settingValue,
         })
-        .where(eq(serverConfigurationsTable.key, settingKey))
-        .returning()
+        .where(eq(serverSettingsTable.key, settingKey))
+        .returning()[0]
     } else {
       const now = new Date()
-      const values: NewServerConfiguration = {
+      const values: NewServerSetting = {
         key: settingKey,
         value: settingValue,
         createdAt: now,
@@ -88,7 +89,7 @@ export class ServerConfigurationService {
       }
       return (
         await this.ormService.db
-          .insert(serverConfigurationsTable)
+          .insert(serverSettingsTable)
           .values(values)
           .returning()
       )[0]
@@ -98,8 +99,8 @@ export class ServerConfigurationService {
   async resetServerSettingAsUser(actor: User, settingsKey: string) {
     // TODO: ACL
     await this.ormService.db
-      .delete(serverConfigurationsTable)
-      .where(eq(serverConfigurationsTable.key, settingsKey))
+      .delete(serverSettingsTable)
+      .where(eq(serverSettingsTable.key, settingsKey))
   }
 
   async addServerLocationServerConfigurationAsUser(
@@ -118,22 +119,22 @@ export class ServerConfigurationService {
     const key = `${type}_LOCATIONS`
 
     const existingRecord =
-      await this.ormService.db.query.serverConfigurationsTable.findFirst({
-        where: eq(serverConfigurationsTable.key, key),
+      await this.ormService.db.query.serverSettingsTable.findFirst({
+        where: eq(serverSettingsTable.key, key),
       })
 
     if (existingRecord) {
       existingRecord.value = existingRecord.value.push(locationWithId)
     } else {
       const now = new Date()
-      const newServerConfiguration: NewServerConfiguration = {
+      const newServerConfiguration: NewServerSetting = {
         key,
         value: [locationWithId],
         createdAt: now,
         updatedAt: now,
       }
       await this.ormService.db
-        .insert(serverConfigurationsTable)
+        .insert(serverSettingsTable)
         .values(newServerConfiguration)
     }
 
@@ -151,10 +152,11 @@ export class ServerConfigurationService {
       throw new ServerConfigurationInvalidException()
     }
 
-    const record =
-      await this.ormService.db.query.serverConfigurationsTable.findFirst({
-        where: eq(serverConfigurationsTable.key, `${type}_LOCATIONS`),
-      })
+    const record = await this.ormService.db.query.serverSettingsTable.findFirst(
+      {
+        where: eq(serverSettingsTable.key, `${type}_LOCATIONS`),
+      },
+    )
 
     if (!record) {
       throw new ServerConfigurationNotFoundException()
@@ -184,8 +186,8 @@ export class ServerConfigurationService {
     }
 
     const record =
-      (await this.ormService.db.query.serverConfigurationsTable.findFirst({
-        where: eq(serverConfigurationsTable.key, `${type}_LOCATIONS`),
+      (await this.ormService.db.query.serverSettingsTable.findFirst({
+        where: eq(serverSettingsTable.key, `${type}_LOCATIONS`),
       })) ?? { value: [] }
 
     return (record.value as (ServerLocationInputDTO & { id: string })[]).find(
@@ -204,13 +206,14 @@ export class ServerConfigurationService {
       throw new ServerConfigurationInvalidException()
     }
 
-    const record =
-      await this.ormService.db.query.serverConfigurationsTable.findFirst({
+    const record = await this.ormService.db.query.serverSettingsTable.findFirst(
+      {
         where: eq(
-          serverConfigurationsTable.key,
+          serverSettingsTable.key,
           `${locationTypeValidation.value}_LOCATIONS`,
         ),
-      })
+      },
+    )
 
     if (!record) {
       return []

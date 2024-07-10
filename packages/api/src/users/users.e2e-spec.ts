@@ -1,5 +1,4 @@
-import { buildTestModule, registerTestUser } from 'src/test/test.util'
-import request from 'supertest'
+import { buildTestModule, createTestUser } from 'src/test/test.util'
 
 const TEST_MODULE_KEY = 'users'
 
@@ -17,50 +16,51 @@ describe('Users', () => {
   it(`should get viewer`, async () => {
     const {
       session: { accessToken },
-    } = await registerTestUser(testModule, {
+    } = await createTestUser(testModule, {
       username: 'testuser',
       password: '123',
     })
 
-    const viewerResponse = await request(testModule?.app.getHttpServer())
-      .get('/viewer')
-      .auth(accessToken, { type: 'bearer' })
-      .send()
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const viewerResponse = await testModule!.apiClient
+      .viewerApi({ accessToken })
+      .getViewer()
 
-    expect(viewerResponse.statusCode).toEqual(200)
-    expect(viewerResponse.body.user.username).toEqual('testuser')
-    expect(viewerResponse.body.user.isAdmin).toEqual(false)
-    expect(viewerResponse.body.user.permissions).toEqual([])
-    expect(viewerResponse.body.user.name).toBeNull()
+    expect(viewerResponse.status).toEqual(200)
+    expect(viewerResponse.data.user.username).toEqual('testuser')
+    expect(viewerResponse.data.user.isAdmin).toEqual(false)
+    expect(viewerResponse.data.user.permissions).toEqual([])
+    expect(viewerResponse.data.user.name).toBeNull()
   })
 
   it(`should do viewer update`, async () => {
     const {
       session: { accessToken },
-    } = await registerTestUser(testModule, {
+    } = await createTestUser(testModule, {
       username: 'testuser',
       password: '123',
     })
 
-    const viewerResponse = await request(testModule?.app.getHttpServer())
-      .put('/viewer')
-      .auth(accessToken, { type: 'bearer' })
-      .send({
-        name: '__NewName__',
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const viewerUpdateResponse = await testModule!.apiClient
+      .viewerApi({ accessToken })
+      .updateViewer({
+        updateViewerInputDTO: { name: '__NewName__' },
       })
 
-    expect(viewerResponse.statusCode).toEqual(200)
-    expect(viewerResponse.body.user.name).toEqual('__NewName__')
+    expect(viewerUpdateResponse.status).toEqual(200)
+    expect(viewerUpdateResponse.data.user.name).toEqual('__NewName__')
   })
 
   it(`should fail viewer update without token`, async () => {
-    const viewerResponse = await request(testModule?.app.getHttpServer())
-      .put('/viewer')
-      .send({
-        name: '__NewName__',
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const viewerUpdateResponse = await testModule!.apiClient
+      .viewerApi()
+      .updateViewer({
+        updateViewerInputDTO: { name: '__NewName__' },
       })
 
-    expect(viewerResponse.statusCode).toEqual(401)
+    expect(viewerUpdateResponse.status).toEqual(401)
   })
 
   afterAll(async () => {

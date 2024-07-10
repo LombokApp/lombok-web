@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { eq, sql } from 'drizzle-orm'
 import { authHelper } from 'src/auth/utils/auth-helper'
 import { parseSort } from 'src/core/utils/sort.util'
@@ -99,7 +99,7 @@ export class UserService {
   }
 
   listUsersAsAdmin(
-    actorId: string,
+    actor: User,
     {
       limit = 10,
       offset = 0,
@@ -112,19 +112,25 @@ export class UserService {
       isAdmin?: boolean
     },
   ) {
-    // TODO: ACL
+    if (!actor.isAdmin) {
+      throw new UnauthorizedException()
+    }
     return this.listUsers({ limit, offset, sort, isAdmin })
   }
 
-  getUserByIdAsAdmin(actorId: string, userId: string) {
-    // TODO: ACL
+  getUserByIdAsAdmin(actor: User, userId: string) {
+    if (!actor.isAdmin) {
+      throw new UnauthorizedException()
+    }
     return this.getById({ id: userId })
   }
 
   async createUserAsAdmin(actor: User, userPayload: CreateUserDTO) {
-    // TODO: ACL
-    // TODO: input validation
+    if (!actor.isAdmin) {
+      throw new UnauthorizedException()
+    }
 
+    // TODO: input validation
     const now = new Date()
 
     const passwordSalt = authHelper.createPasswordSalt()
@@ -218,7 +224,9 @@ export class UserService {
   }
 
   async deleteUserAsAdmin(actor: User, userId: string) {
-    // TODO: ACL
+    if (!actor.isAdmin) {
+      throw new UnauthorizedException()
+    }
     await this.ormService.db.delete(usersTable).where(eq(usersTable.id, userId))
   }
 }

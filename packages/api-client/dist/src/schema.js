@@ -155,6 +155,78 @@ export const schema = {
                 ]
             }
         },
+        "/server/users": {
+            "get": {
+                "operationId": "listUsers",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "List the server users.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserListResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Users"
+                ]
+            }
+        },
+        "/server/users/{userId}": {
+            "get": {
+                "operationId": "getUser",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delete a server user by id.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserGetResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Users"
+                ]
+            },
+            "delete": {
+                "operationId": "deleteUser",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Users"
+                ]
+            }
+        },
         "/folders/{folderId}": {
             "get": {
                 "operationId": "getFolder",
@@ -533,7 +605,7 @@ export const schema = {
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/SettingsGetResponse"
                                 }
                             }
                         }
@@ -547,14 +619,33 @@ export const schema = {
         "/server/settings/{settingKey}": {
             "put": {
                 "operationId": "setServerSetting",
-                "parameters": [],
+                "parameters": [
+                    {
+                        "name": "settingKey",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SetSettingInputDTO"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Set a setting in the server settings objects.",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/SettingSetResponse"
                                 }
                             }
                         }
@@ -808,6 +899,133 @@ export const schema = {
                 },
                 "required": [
                     "name"
+                ]
+            },
+            "UserListResponse": {
+                "type": "object",
+                "properties": {
+                    "meta": {
+                        "type": "object",
+                        "properties": {
+                            "totalCount": {
+                                "type": "number"
+                            }
+                        },
+                        "required": [
+                            "totalCount"
+                        ]
+                    },
+                    "result": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                },
+                                "email": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                },
+                                "emailVerified": {
+                                    "type": "boolean"
+                                },
+                                "isAdmin": {
+                                    "type": "boolean"
+                                },
+                                "username": {
+                                    "type": "string"
+                                },
+                                "permissions": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                },
+                                "createdAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                }
+                            },
+                            "required": [
+                                "emailVerified",
+                                "isAdmin",
+                                "username",
+                                "permissions",
+                                "createdAt",
+                                "updatedAt"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "meta",
+                    "result"
+                ]
+            },
+            "UserGetResponse": {
+                "type": "object",
+                "properties": {
+                    "user": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "email": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "emailVerified": {
+                                "type": "boolean"
+                            },
+                            "isAdmin": {
+                                "type": "boolean"
+                            },
+                            "username": {
+                                "type": "string"
+                            },
+                            "permissions": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "updatedAt": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        },
+                        "required": [
+                            "emailVerified",
+                            "isAdmin",
+                            "username",
+                            "permissions",
+                            "createdAt",
+                            "updatedAt"
+                        ]
+                    }
+                },
+                "required": [
+                    "user"
                 ]
             },
             "FolderGetResponse": {
@@ -1417,6 +1635,43 @@ export const schema = {
                 "items": {
                     "type": "string"
                 }
+            },
+            "SettingsGetResponse": {
+                "type": "object",
+                "properties": {
+                    "settings": {
+                        "type": "object",
+                        "properties": {
+                            "SIGNUP_ENABLED": {
+                                "type": "boolean"
+                            },
+                            "SERVER_HOSTNAME": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "settings"
+                ]
+            },
+            "SetSettingInputDTO": {
+                "type": "object",
+                "properties": {
+                    "value": {}
+                }
+            },
+            "SettingSetResponse": {
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "value": {}
+                },
+                "required": [
+                    "key"
+                ]
             },
             "EventDTO": {
                 "type": "object",

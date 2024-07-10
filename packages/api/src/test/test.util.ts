@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing'
 import { SignedURLsRequestMethod } from '@stellariscloud/types'
 import axios from 'axios'
+import { eq } from 'drizzle-orm'
 import fs from 'fs'
 import path from 'path'
 import type { LoginResponse } from 'src/auth/dto/responses/login-response.dto'
@@ -10,11 +11,12 @@ import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { configureS3Client } from 'src/s3/s3.service'
 import { createS3PresignedUrls } from 'src/s3/s3.utils'
 import { CoreTestModule } from 'src/test/core-test.module'
-import request from 'supertest'
+import { usersTable } from 'src/users/entities/user.entity'
 
 import { setApp, setAppInitializing } from '../core/app-helper'
 import { ormConfig } from '../orm/config'
-import type { TestApiClient } from './test.types'
+import type { TestApiClient, TestModule } from './test.types'
+import { buildSupertestApiClient } from './test-api-client'
 
 const MINIO_LOCAL_PATH = '/minio-test-data'
 const MINIO_ACCESS_KEY_ID = 'testaccesskeyid'
@@ -63,6 +65,7 @@ export async function buildTestModule({
 
   return {
     app,
+    apiClient: buildSupertestApiClient(app),
     shutdown: async () => {
       // remove created minio buckets
       for (const p of bucketPathsToRemove) {
@@ -71,6 +74,9 @@ export async function buildTestModule({
 
       // shutdown the app
       await app.close()
+    },
+    getOrmService: () => {
+      return ormService
     },
     resetDb: () => ormService.resetTestDb(),
     testS3ClientConfig: () => ({
@@ -144,24 +150,40 @@ export async function buildTestModule({
   }
 }
 
-type TestModule = Awaited<ReturnType<typeof buildTestModule>> | undefined
-
-export async function registerTestUser(
-  testModule: TestModule,
-  input: {
+export async function createTestUser(
+  testModule: TestModule | undefined,
+  {
+    username,
+    email,
+    password,
+    admin = false,
+  }: {
     username: string
     email?: string
     password: string
+    admin?: boolean
   },
 ): Promise<LoginResponse> {
-  const server = testModule?.app.getHttpServer()
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  const req = request(server)
-  await req.post('/auth/signup').send(input).expect(201)
-  const result = await req
-    .post('/auth/login')
-    .send({ login: input.email ?? input.username, password: input.password })
-  return result.body
+  const signupResponse = await testModule?.apiClient
+    .authApi()
+    .signup({ signupCredentialsDTO: { username, password, email } })
+  if (admin) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    await testModule!
+      .getOrmService()
+      .db.update(usersTable)
+      .set({
+        isAdmin: true,
+      })
+      .where(eq(usersTable.username, signupResponse?.data.user.username ?? ''))
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const result = await testModule!.apiClient
+    .authApi()
+    .login({ loginCredentialsDTO: { login: username, password } })
+
+  return result.data
 }
 
 export function testS3Location({
@@ -188,7 +210,7 @@ export async function createTestFolder({
   mockFiles,
   apiClient,
 }: {
-  testModule: TestModule
+  testModule: TestModule | undefined
   folderName: string
   accessToken: string
   mockFiles: { objectKey: string; content: string }[]
@@ -196,8 +218,10 @@ export async function createTestFolder({
 }): Promise<{
   folder: FolderDTO
 }> {
-  const bucketName = (await testModule?.initMinioTestBucket(mockFiles)) ?? ''
-  const metadataBucketName = (await testModule?.initMinioTestBucket()) ?? ''
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const bucketName = await testModule!.initMinioTestBucket(mockFiles)
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const metadataBucketName = await testModule!.initMinioTestBucket()
 
   const folderCreateResponse = await apiClient
     .foldersApi({ accessToken })

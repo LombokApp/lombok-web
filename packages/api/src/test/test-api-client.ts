@@ -1,21 +1,22 @@
+import type { INestApplication } from '@nestjs/common'
 import {
   AuthApi,
   Configuration,
   FoldersApi,
+  ServerApi,
+  UsersApi,
   ViewerApi,
 } from '@stellariscloud/api-client'
 import type { AxiosInstance, AxiosRequestConfig } from 'axios'
 import request from 'supertest'
 
-import type { TestModule } from './test.types'
-
 export * from '@stellariscloud/api-client'
 
-interface CustomConfigParams {
+export interface SupertestApiClientConfigParams {
   accessToken?: string
 }
 
-export function buildSupertestApiClient(testModule: TestModule) {
+export function buildSupertestApiClient(app: INestApplication) {
   function buildMockAxios(accessToken?: string) {
     const requestFunc = async <D extends string | object | undefined>(
       config: AxiosRequestConfig<D>,
@@ -26,7 +27,7 @@ export function buildSupertestApiClient(testModule: TestModule) {
         method.toLowerCase() as any
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      const response = await request(testModule.app.getHttpServer())
+      const response = await request(app.getHttpServer())
         [fn](url ?? '')
         .set(
           accessToken ? 'Authorization' : '__DUMMY__',
@@ -51,21 +52,39 @@ export function buildSupertestApiClient(testModule: TestModule) {
   }
 
   return {
-    foldersApi: (configParams: CustomConfigParams = {}) =>
+    foldersApi: (
+      configParams: {
+        accessToken?: string
+      } = {},
+    ) =>
       new FoldersApi(
         new Configuration(configParams),
         '',
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         buildMockAxios(configParams.accessToken) as any,
       ),
-    viewerApi: (configParams: CustomConfigParams = {}) =>
+    serverApi: (configParams: SupertestApiClientConfigParams = {}) =>
+      new ServerApi(
+        new Configuration(configParams),
+        '',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        buildMockAxios(configParams.accessToken) as any,
+      ),
+    usersApi: (configParams: SupertestApiClientConfigParams = {}) =>
+      new UsersApi(
+        new Configuration(configParams),
+        '',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        buildMockAxios(configParams.accessToken) as any,
+      ),
+    viewerApi: (configParams: SupertestApiClientConfigParams = {}) =>
       new ViewerApi(
         new Configuration(configParams),
         '',
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         buildMockAxios(configParams.accessToken) as any,
       ),
-    authApi: (configParams: CustomConfigParams = {}) =>
+    authApi: (configParams: SupertestApiClientConfigParams = {}) =>
       new AuthApi(
         new Configuration(configParams),
         '',

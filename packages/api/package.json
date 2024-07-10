@@ -9,7 +9,7 @@
     "test:e2e:watch": "jest --config ./test/jest-e2e.js --watchAll",
     "test:e2e": "jest --config ./test/jest-e2e.js",
     "reset:sdk": "(rm -rf ./node_modules/@stellariscloud/modules-worker-sdk || true)",
-    "db:migrate:new": "bunx drizzle-kit generate:pg --config ./src/orm/drizzle.config.ts",
+    "db:migrate:new": "bunx drizzle-kit generate --config ./src/orm/drizzle.config.ts",
     "db:migrate:up": "bun --bun ./script/db-migrate-up.ts",
     "db:migrate:check": "./cmd/db-migrate-check.sh",
     "db:migrate:drop": "./cmd/db-migrate-drop.sh",

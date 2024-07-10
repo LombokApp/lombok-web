@@ -1,9 +1,9 @@
-export interface PublicServerSettings {
-  SIGNUP_ENABLED: boolean
-  SERVER_HOSTNAME: string
-}
+import { createZodDto } from '@anatine/zod-nestjs'
+import { z } from 'zod'
 
-export interface ServerSettings {
-  SIGNUP_ENABLED: boolean
-  SERVER_HOSTNAME: string
-}
+export const settingsSchema = z.object({
+  SIGNUP_ENABLED: z.boolean().optional(),
+  SERVER_HOSTNAME: z.string().optional(),
+})
+
+export class SettingsDTO extends createZodDto(settingsSchema) {}

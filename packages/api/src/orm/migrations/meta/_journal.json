@@ -1,12 +1,12 @@
 {
-  "version": "5",
-  "dialect": "pg",
+  "version": "7",
+  "dialect": "postgresql",
   "entries": [
     {
       "idx": 0,
-      "version": "5",
-      "when": 1709471327659,
-      "tag": "0000_true_tigra",
+      "version": "7",
+      "when": 1720609139844,
+      "tag": "0000_parched_sharon_ventura",
       "breakpoints": true
     }
   ]

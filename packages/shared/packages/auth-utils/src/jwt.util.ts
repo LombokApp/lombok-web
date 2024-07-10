@@ -1,4 +1,4 @@
-import jwtDecode, { InvalidTokenError } from 'jwt-decode'
+import * as jwtDecode from 'jwt-decode'
 
 export const verifyToken = (
   token: string | undefined,
@@ -11,9 +11,9 @@ export const verifyToken = (
   let payload: unknown
 
   try {
-    payload = jwtDecode(token)
+    payload = jwtDecode.jwtDecode(token)
   } catch (error) {
-    if (!(error instanceof InvalidTokenError)) {
+    if (!(error instanceof jwtDecode.InvalidTokenError)) {
       throw error
     }
     payload = {}

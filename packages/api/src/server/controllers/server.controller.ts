@@ -1,37 +1,77 @@
 import { ZodValidationPipe } from '@anatine/zod-nestjs'
-import { Controller, Get, Param, Put, UsePipes } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Put,
+  Req,
+  UnauthorizedException,
+  UseGuards,
+  UsePipes,
+} from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
-import type { User } from 'src/users/entities/user.entity'
+import express from 'express'
+import { AuthGuard } from 'src/auth/guards/auth.guard'
+import { UserService } from 'src/users/services/users.service'
 
+import { SettingSetResponse } from '../dto/responses/setting-set-response.dto'
+import { SettingsGetResponse } from '../dto/responses/settings-get-response.dto'
+import { SetSettingInputDTO } from '../dto/set-setting-input.dto'
 import { ServerConfigurationService } from '../services/server-configuration.service'
 
 @Controller('/server')
 @ApiTags('Server')
 @UsePipes(ZodValidationPipe)
+@UseGuards(AuthGuard)
 export class ServerController {
   constructor(
     private readonly serverConfigurationService: ServerConfigurationService,
+    private readonly userService: UserService,
   ) {}
+
   /**
    * Get the server settings object.
    */
   @Get('/settings')
-  getServerSettings() {
-    return this.serverConfigurationService.getServerSettingsAsUser(
-      {} as unknown as User,
-    )
+  async getServerSettings(
+    @Req() req: express.Request,
+  ): Promise<SettingsGetResponse> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    try {
+      return {
+        settings: await this.serverConfigurationService.getServerSettingsAsUser(
+          req.user,
+        ),
+      }
+    } catch (e) {
+      console.log('getServerSettings ERROR:', e)
+      throw e
+    }
   }
 
   /**
    * Set a setting in the server settings objects.
    */
   @Put('/settings/:settingKey')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  setServerSetting(@Param() settingKey: string, settingValue: any) {
-    return this.serverConfigurationService.setServerSettingAsUser(
-      {} as unknown as User,
-      '',
-      '',
+  async setServerSetting(
+    @Req() req: express.Request,
+    @Param('settingKey') settingKey: string,
+    @Body() settingValue: SetSettingInputDTO,
+  ): Promise<SettingSetResponse> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    await this.serverConfigurationService.setServerSettingAsUser(
+      req.user,
+      settingKey,
+      settingValue.value,
     )
+    return {
+      key: settingKey,
+      value: settingValue.value,
+    }
   }
 }

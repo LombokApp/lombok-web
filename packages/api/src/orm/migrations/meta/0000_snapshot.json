@@ -1,11 +1,11 @@
 {
-  "id": "df9eb62a-fec6-4e43-8505-aee42f4d5bf0",
+  "id": "29fc91ba-7dd2-47cf-9881-94102ea2d906",
   "prevId": "00000000-0000-0000-0000-000000000000",
-  "version": "5",
-  "dialect": "pg",
+  "version": "7",
+  "dialect": "postgresql",
   "tables": {
-    "module_log_entries": {
-      "name": "module_log_entries",
+    "public.app_log_entries": {
+      "name": "app_log_entries",
       "schema": "",
       "columns": {
         "id": {
@@ -20,8 +20,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "moduleId": {
-          "name": "moduleId",
+        "appId": {
+          "name": "appId",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -63,7 +63,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "session": {
+    "public.session": {
       "name": "session",
       "schema": "",
       "columns": {
@@ -109,7 +109,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "event_receipts": {
+    "public.event_receipts": {
       "name": "event_receipts",
       "schema": "",
       "columns": {
@@ -199,7 +199,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "events": {
+    "public.events": {
       "name": "events",
       "schema": "",
       "columns": {
@@ -239,7 +239,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "folder_objects": {
+    "public.folder_objects": {
       "name": "folder_objects",
       "schema": "",
       "columns": {
@@ -327,7 +327,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "folders": {
+    "public.folders": {
       "name": "folders",
       "schema": "",
       "columns": {
@@ -419,7 +419,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "locations": {
+    "public.locations": {
       "name": "locations",
       "schema": "",
       "columns": {
@@ -432,6 +432,7 @@
         "providerType": {
           "name": "providerType",
           "type": "providerType",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
@@ -515,8 +516,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "server_configurations": {
-      "name": "server_configurations",
+    "public.server_settings": {
+      "name": "server_settings",
       "schema": "",
       "columns": {
         "key": {
@@ -549,7 +550,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "users": {
+    "public.users": {
       "name": "users",
       "schema": "",
       "columns": {
@@ -645,12 +646,13 @@
     }
   },
   "enums": {
-    "providerType": {
+    "public.providerType": {
       "name": "providerType",
-      "values": {
-        "SERVER": "SERVER",
-        "USER": "USER"
-      }
+      "schema": "public",
+      "values": [
+        "SERVER",
+        "USER"
+      ]
     }
   },
   "schemas": {},

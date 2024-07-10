@@ -5,12 +5,11 @@ import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
   createTestFolder,
-  registerTestUser,
+  createTestUser,
   rescanTestFolder,
   testS3Location,
   waitForTrue,
 } from 'src/test/test.util'
-import { buildSupertestApiClient } from 'src/test/test-api-client'
 
 const TEST_MODULE_KEY = 'folders'
 
@@ -22,7 +21,7 @@ describe('Folders', () => {
     testModule = await buildTestModule({
       testModuleKey: TEST_MODULE_KEY,
     })
-    apiClient = buildSupertestApiClient(testModule)
+    apiClient = testModule.apiClient
   })
 
   afterEach(async () => {
@@ -32,7 +31,7 @@ describe('Folders', () => {
   it(`should create a folder`, async () => {
     const {
       session: { accessToken },
-    } = await registerTestUser(testModule, {
+    } = await createTestUser(testModule, {
       username: 'testuser',
       password: '123',
     })
@@ -65,7 +64,7 @@ describe('Folders', () => {
   it(`should get a folder by id`, async () => {
     const {
       session: { accessToken },
-    } = await registerTestUser(testModule, {
+    } = await createTestUser(testModule, {
       username: 'testuser',
       password: '123',
     })
@@ -91,7 +90,7 @@ describe('Folders', () => {
   it(`should list a user's folders`, async () => {
     const {
       session: { accessToken },
-    } = await registerTestUser(testModule, {
+    } = await createTestUser(testModule, {
       username: 'testuser',
       password: '123',
     })
@@ -118,7 +117,7 @@ describe('Folders', () => {
   it(`should delete a folder by id`, async () => {
     const {
       session: { accessToken },
-    } = await registerTestUser(testModule, {
+    } = await createTestUser(testModule, {
       username: 'testuser',
       password: '123',
     })
@@ -156,7 +155,7 @@ describe('Folders', () => {
   it(`should return 401 from get folder by id without token`, async () => {
     const {
       session: { accessToken },
-    } = await registerTestUser(testModule, {
+    } = await createTestUser(testModule, {
       username: 'testuser',
       password: '123',
     })
@@ -183,14 +182,14 @@ describe('Folders', () => {
   it(`should return 404 from get folder by id with valid token of non-owner user`, async () => {
     const {
       session: { accessToken },
-    } = await registerTestUser(testModule, {
+    } = await createTestUser(testModule, {
       username: 'testuser',
       password: '123',
     })
 
     const {
       session: { accessToken: secondUserAccessToken },
-    } = await registerTestUser(testModule, {
+    } = await createTestUser(testModule, {
       username: 'testuser2',
       password: '123',
     })
@@ -217,7 +216,7 @@ describe('Folders', () => {
   it(`it should scan the storage location represented by a folder`, async () => {
     const {
       session: { accessToken },
-    } = await registerTestUser(testModule, {
+    } = await createTestUser(testModule, {
       username: 'testuser',
       password: '123',
     })
@@ -229,7 +228,8 @@ describe('Folders', () => {
 
     const testFolder = await createTestFolder({
       folderName: 'My Folder',
-      testModule,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      testModule: testModule!,
       accessToken,
       mockFiles: MOCK_OBJECTS,
       apiClient,

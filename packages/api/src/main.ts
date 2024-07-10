@@ -19,6 +19,7 @@ export async function buildApp() {
   // set other app configs
   app.useGlobalFilters(new HttpExceptionFilter())
   app.enableShutdownHooks()
+  app.enableCors()
   app.setGlobalPrefix('/api/v1')
 
   return app.listen(3001)

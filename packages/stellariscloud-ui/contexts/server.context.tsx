@@ -17,7 +17,7 @@ export interface IServerContext {
   refreshSettings: () => Promise<void>
   menuItems: AppMenuItemAndHref[]
   settings?: ServerSettings
-  modules?: ListModules200Response
+  apps?: ListModules200Response
   subscribeToMessages: (handler: SocketMessageHandler) => void
   unsubscribeFromMessages: (handler: SocketMessageHandler) => void
   socketConnected: boolean

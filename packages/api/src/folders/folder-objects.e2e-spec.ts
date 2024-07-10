@@ -5,11 +5,10 @@ import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
   createTestFolder,
-  registerTestUser,
+  createTestUser,
   rescanTestFolder,
   waitForTrue,
 } from 'src/test/test.util'
-import { buildSupertestApiClient } from 'src/test/test-api-client'
 
 const TEST_MODULE_KEY = 'folder_objects'
 
@@ -21,7 +20,7 @@ describe('Folder Objects', () => {
     testModule = await buildTestModule({
       testModuleKey: TEST_MODULE_KEY,
     })
-    apiClient = buildSupertestApiClient(testModule)
+    apiClient = testModule.apiClient
   })
 
   afterEach(async () => {
@@ -31,7 +30,7 @@ describe('Folder Objects', () => {
   it(`should get a folder object by folderId and objectKey`, async () => {
     const {
       session: { accessToken },
-    } = await registerTestUser(testModule, {
+    } = await createTestUser(testModule, {
       username: 'testuser',
       password: '123',
     })
@@ -83,7 +82,7 @@ describe('Folder Objects', () => {
   it(`it should list objects in a folder`, async () => {
     const {
       session: { accessToken },
-    } = await registerTestUser(testModule, {
+    } = await createTestUser(testModule, {
       username: 'testuser',
       password: '123',
     })
@@ -139,7 +138,7 @@ describe('Folder Objects', () => {
   it(`it should delete an object from a folder`, async () => {
     const {
       session: { accessToken },
-    } = await registerTestUser(testModule, {
+    } = await createTestUser(testModule, {
       username: 'testuser',
       password: '123',
     })

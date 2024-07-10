@@ -300,29 +300,16 @@ export interface FolderGetResponseFolderMetadataLocation {
 export interface FolderListResponse {
     /**
      *
-     * @type {FolderListResponseMeta}
+     * @type {UserListResponseMeta}
      * @memberof FolderListResponse
      */
-    'meta': FolderListResponseMeta;
+    'meta': UserListResponseMeta;
     /**
      *
      * @type {Array<FolderListResponseResultInner>}
      * @memberof FolderListResponse
      */
     'result': Array<FolderListResponseResultInner>;
-}
-/**
- *
- * @export
- * @interface FolderListResponseMeta
- */
-export interface FolderListResponseMeta {
-    /**
-     *
-     * @type {number}
-     * @memberof FolderListResponseMeta
-     */
-    'totalCount': number;
 }
 /**
  *
@@ -364,10 +351,10 @@ export interface FolderObjectGetResponse {
 export interface FolderObjectListResponse {
     /**
      *
-     * @type {FolderListResponseMeta}
+     * @type {UserListResponseMeta}
      * @memberof FolderObjectListResponse
      */
-    'meta': FolderListResponseMeta;
+    'meta': UserListResponseMeta;
     /**
      *
      * @type {Array<FolderObjectListResponseResultInner>}
@@ -498,6 +485,70 @@ export interface LoginResponseSession {
 /**
  *
  * @export
+ * @interface SetSettingInputDTO
+ */
+export interface SetSettingInputDTO {
+    /**
+     *
+     * @type {any}
+     * @memberof SetSettingInputDTO
+     */
+    'value'?: any;
+}
+/**
+ *
+ * @export
+ * @interface SettingSetResponse
+ */
+export interface SettingSetResponse {
+    /**
+     *
+     * @type {string}
+     * @memberof SettingSetResponse
+     */
+    'key': string;
+    /**
+     *
+     * @type {any}
+     * @memberof SettingSetResponse
+     */
+    'value'?: any;
+}
+/**
+ *
+ * @export
+ * @interface SettingsGetResponse
+ */
+export interface SettingsGetResponse {
+    /**
+     *
+     * @type {SettingsGetResponseSettings}
+     * @memberof SettingsGetResponse
+     */
+    'settings': SettingsGetResponseSettings;
+}
+/**
+ *
+ * @export
+ * @interface SettingsGetResponseSettings
+ */
+export interface SettingsGetResponseSettings {
+    /**
+     *
+     * @type {boolean}
+     * @memberof SettingsGetResponseSettings
+     */
+    'SIGNUP_ENABLED'?: boolean;
+    /**
+     *
+     * @type {string}
+     * @memberof SettingsGetResponseSettings
+     */
+    'SERVER_HOSTNAME'?: string;
+}
+/**
+ *
+ * @export
  * @interface SignupCredentialsDTO
  */
 export interface SignupCredentialsDTO {
@@ -613,6 +664,51 @@ export interface UpdateViewerInputDTO {
      * @memberof UpdateViewerInputDTO
      */
     'name': string;
+}
+/**
+ *
+ * @export
+ * @interface UserGetResponse
+ */
+export interface UserGetResponse {
+    /**
+     *
+     * @type {SignupResponseUser}
+     * @memberof UserGetResponse
+     */
+    'user': SignupResponseUser;
+}
+/**
+ *
+ * @export
+ * @interface UserListResponse
+ */
+export interface UserListResponse {
+    /**
+     *
+     * @type {UserListResponseMeta}
+     * @memberof UserListResponse
+     */
+    'meta': UserListResponseMeta;
+    /**
+     *
+     * @type {Array<SignupResponseUser>}
+     * @memberof UserListResponse
+     */
+    'result': Array<SignupResponseUser>;
+}
+/**
+ *
+ * @export
+ * @interface UserListResponseMeta
+ */
+export interface UserListResponseMeta {
+    /**
+     *
+     * @type {number}
+     * @memberof UserListResponseMeta
+     */
+    'totalCount': number;
 }
 /**
  *
@@ -1403,10 +1499,12 @@ export declare const ServerApiAxiosParamCreator: (configuration?: Configuration)
     getServerSettings: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @param {string} settingKey
+     * @param {SetSettingInputDTO} setSettingInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    setServerSetting: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    setServerSetting: (settingKey: string, setSettingInputDTO: SetSettingInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * ServerApi - functional programming interface
@@ -1418,13 +1516,15 @@ export declare const ServerApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getServerSettings(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>>;
+    getServerSettings(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingsGetResponse>>;
     /**
      *
+     * @param {string} settingKey
+     * @param {SetSettingInputDTO} setSettingInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    setServerSetting(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>>;
+    setServerSetting(settingKey: string, setSettingInputDTO: SetSettingInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingSetResponse>>;
 };
 /**
  * ServerApi - factory interface
@@ -1436,14 +1536,34 @@ export declare const ServerApiFactory: (configuration?: Configuration, basePath?
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getServerSettings(options?: AxiosRequestConfig): AxiosPromise<object>;
+    getServerSettings(options?: AxiosRequestConfig): AxiosPromise<SettingsGetResponse>;
     /**
      *
+     * @param {ServerApiSetServerSettingRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    setServerSetting(options?: AxiosRequestConfig): AxiosPromise<object>;
+    setServerSetting(requestParameters: ServerApiSetServerSettingRequest, options?: AxiosRequestConfig): AxiosPromise<SettingSetResponse>;
 };
+/**
+ * Request parameters for setServerSetting operation in ServerApi.
+ * @export
+ * @interface ServerApiSetServerSettingRequest
+ */
+export interface ServerApiSetServerSettingRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerApiSetServerSetting
+     */
+    readonly settingKey: string;
+    /**
+     *
+     * @type {SetSettingInputDTO}
+     * @memberof ServerApiSetServerSetting
+     */
+    readonly setSettingInputDTO: SetSettingInputDTO;
+}
 /**
  * ServerApi - object-oriented interface
  * @export
@@ -1457,14 +1577,150 @@ export declare class ServerApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof ServerApi
      */
-    getServerSettings(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+    getServerSettings(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SettingsGetResponse, any>>;
     /**
      *
+     * @param {ServerApiSetServerSettingRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerApi
      */
-    setServerSetting(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+    setServerSetting(requestParameters: ServerApiSetServerSettingRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SettingSetResponse, any>>;
+}
+/**
+ * UsersApi - axios parameter creator
+ * @export
+ */
+export declare const UsersApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {string} userId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteUser: (userId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} userId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getUser: (userId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listUsers: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * UsersApi - functional programming interface
+ * @export
+ */
+export declare const UsersApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {string} userId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteUser(userId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    /**
+     *
+     * @param {string} userId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getUser(userId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>>;
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listUsers(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserListResponse>>;
+};
+/**
+ * UsersApi - factory interface
+ * @export
+ */
+export declare const UsersApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {UsersApiDeleteUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteUser(requestParameters: UsersApiDeleteUserRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
+    /**
+     *
+     * @param {UsersApiGetUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getUser(requestParameters: UsersApiGetUserRequest, options?: AxiosRequestConfig): AxiosPromise<UserGetResponse>;
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listUsers(options?: AxiosRequestConfig): AxiosPromise<UserListResponse>;
+};
+/**
+ * Request parameters for deleteUser operation in UsersApi.
+ * @export
+ * @interface UsersApiDeleteUserRequest
+ */
+export interface UsersApiDeleteUserRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof UsersApiDeleteUser
+     */
+    readonly userId: string;
+}
+/**
+ * Request parameters for getUser operation in UsersApi.
+ * @export
+ * @interface UsersApiGetUserRequest
+ */
+export interface UsersApiGetUserRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof UsersApiGetUser
+     */
+    readonly userId: string;
+}
+/**
+ * UsersApi - object-oriented interface
+ * @export
+ * @class UsersApi
+ * @extends {BaseAPI}
+ */
+export declare class UsersApi extends BaseAPI {
+    /**
+     *
+     * @param {UsersApiDeleteUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApi
+     */
+    deleteUser(requestParameters: UsersApiDeleteUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+    /**
+     *
+     * @param {UsersApiGetUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApi
+     */
+    getUser(requestParameters: UsersApiGetUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<UserGetResponse, any>>;
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApi
+     */
+    listUsers(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<UserListResponse, any>>;
 }
 /**
  * ViewerApi - axios parameter creator

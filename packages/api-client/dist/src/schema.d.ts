@@ -143,6 +143,68 @@ export declare const schema: {
                 readonly tags: readonly ["Viewer"];
             };
         };
+        readonly "/server/users": {
+            readonly get: {
+                readonly operationId: "listUsers";
+                readonly parameters: readonly [];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "List the server users.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/UserListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Users"];
+            };
+        };
+        readonly "/server/users/{userId}": {
+            readonly get: {
+                readonly operationId: "getUser";
+                readonly parameters: readonly [{
+                    readonly name: "userId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Delete a server user by id.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/UserGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Users"];
+            };
+            readonly delete: {
+                readonly operationId: "deleteUser";
+                readonly parameters: readonly [{
+                    readonly name: "userId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "";
+                    };
+                };
+                readonly tags: readonly ["Users"];
+            };
+        };
         readonly "/folders/{folderId}": {
             readonly get: {
                 readonly operationId: "getFolder";
@@ -472,7 +534,7 @@ export declare const schema: {
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
-                                    readonly type: "object";
+                                    readonly $ref: "#/components/schemas/SettingsGetResponse";
                                 };
                             };
                         };
@@ -484,14 +546,31 @@ export declare const schema: {
         readonly "/server/settings/{settingKey}": {
             readonly put: {
                 readonly operationId: "setServerSetting";
-                readonly parameters: readonly [];
+                readonly parameters: readonly [{
+                    readonly name: "settingKey";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/SetSettingInputDTO";
+                            };
+                        };
+                    };
+                };
                 readonly responses: {
                     readonly "200": {
                         readonly description: "Set a setting in the server settings objects.";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
-                                    readonly type: "object";
+                                    readonly $ref: "#/components/schemas/SettingSetResponse";
                                 };
                             };
                         };
@@ -694,6 +773,100 @@ export declare const schema: {
                     };
                 };
                 readonly required: readonly ["name"];
+            };
+            readonly UserListResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly meta: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly totalCount: {
+                                readonly type: "number";
+                            };
+                        };
+                        readonly required: readonly ["totalCount"];
+                    };
+                    readonly result: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "object";
+                            readonly properties: {
+                                readonly name: {
+                                    readonly type: readonly ["string", "null"];
+                                };
+                                readonly email: {
+                                    readonly type: readonly ["string", "null"];
+                                };
+                                readonly emailVerified: {
+                                    readonly type: "boolean";
+                                };
+                                readonly isAdmin: {
+                                    readonly type: "boolean";
+                                };
+                                readonly username: {
+                                    readonly type: "string";
+                                };
+                                readonly permissions: {
+                                    readonly type: "array";
+                                    readonly items: {
+                                        readonly type: "string";
+                                    };
+                                };
+                                readonly createdAt: {
+                                    readonly type: "string";
+                                    readonly format: "date-time";
+                                };
+                                readonly updatedAt: {
+                                    readonly type: "string";
+                                    readonly format: "date-time";
+                                };
+                            };
+                            readonly required: readonly ["emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
+                        };
+                    };
+                };
+                readonly required: readonly ["meta", "result"];
+            };
+            readonly UserGetResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly user: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly name: {
+                                readonly type: readonly ["string", "null"];
+                            };
+                            readonly email: {
+                                readonly type: readonly ["string", "null"];
+                            };
+                            readonly emailVerified: {
+                                readonly type: "boolean";
+                            };
+                            readonly isAdmin: {
+                                readonly type: "boolean";
+                            };
+                            readonly username: {
+                                readonly type: "string";
+                            };
+                            readonly permissions: {
+                                readonly type: "array";
+                                readonly items: {
+                                    readonly type: "string";
+                                };
+                            };
+                            readonly createdAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                            readonly updatedAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                        };
+                        readonly required: readonly ["emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
+                    };
+                };
+                readonly required: readonly ["user"];
             };
             readonly FolderGetResponse: {
                 readonly type: "object";
@@ -1172,6 +1345,39 @@ export declare const schema: {
                 readonly items: {
                     readonly type: "string";
                 };
+            };
+            readonly SettingsGetResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly settings: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly SIGNUP_ENABLED: {
+                                readonly type: "boolean";
+                            };
+                            readonly SERVER_HOSTNAME: {
+                                readonly type: "string";
+                            };
+                        };
+                    };
+                };
+                readonly required: readonly ["settings"];
+            };
+            readonly SetSettingInputDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly value: {};
+                };
+            };
+            readonly SettingSetResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly key: {
+                        readonly type: "string";
+                    };
+                    readonly value: {};
+                };
+                readonly required: readonly ["key"];
             };
             readonly EventDTO: {
                 readonly type: "object";
