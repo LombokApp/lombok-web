@@ -13,7 +13,6 @@ import {
 import { ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
-import { UserService } from 'src/users/services/users.service'
 
 import { SettingSetResponse } from '../dto/responses/setting-set-response.dto'
 import { SettingsGetResponse } from '../dto/responses/settings-get-response.dto'
@@ -27,7 +26,6 @@ import { ServerConfigurationService } from '../services/server-configuration.ser
 export class ServerController {
   constructor(
     private readonly serverConfigurationService: ServerConfigurationService,
-    private readonly userService: UserService,
   ) {}
 
   /**
@@ -61,7 +59,7 @@ export class ServerController {
     @Param('settingKey') settingKey: string,
     @Body() settingValue: SetSettingInputDTO,
   ): Promise<SettingSetResponse> {
-    if (!req.user) {
+    if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
     await this.serverConfigurationService.setServerSettingAsUser(

@@ -1,10 +1,11 @@
+import type { TestModule } from 'src/test/test.types'
 import { buildTestModule } from 'src/test/test.util'
 import request from 'supertest'
 
 const TEST_MODULE_KEY = 'auth'
 
 describe('Auth', () => {
-  let testModule: Awaited<ReturnType<typeof buildTestModule>> | undefined
+  let testModule: TestModule | undefined
 
   beforeAll(async () => {
     testModule = await buildTestModule({ testModuleKey: TEST_MODULE_KEY })
@@ -15,6 +16,7 @@ describe('Auth', () => {
   })
 
   it(`POST /auth/signup`, async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const _response = await request(testModule?.app.getHttpServer())
       .post('/auth/signup')
       .send({
@@ -26,6 +28,7 @@ describe('Auth', () => {
   })
 
   it(`POST /auth/signup (without email)`, async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const _response = await request(testModule?.app.getHttpServer())
       .post('/auth/signup')
       .send({
@@ -36,6 +39,7 @@ describe('Auth', () => {
   })
 
   it(`POST /auth/signup (with conflict)`, async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const _response = await request(testModule?.app.getHttpServer())
       .post('/auth/signup')
       .send({
@@ -46,6 +50,7 @@ describe('Auth', () => {
       .expect(201)
 
     // dup email
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await request(testModule?.app.getHttpServer())
       .post('/auth/signup')
       .send({
@@ -56,6 +61,7 @@ describe('Auth', () => {
       .expect(409)
 
     // dup username
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await request(testModule?.app.getHttpServer())
       .post('/auth/signup')
       .send({
@@ -66,6 +72,7 @@ describe('Auth', () => {
       .expect(409)
 
     // unique should still work
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await request(testModule?.app.getHttpServer())
       .post('/auth/signup')
       .send({
@@ -96,6 +103,7 @@ describe('Auth', () => {
       },
     ]
     for (const input of inputs) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await request(testModule?.app.getHttpServer())
         .post('/auth/signup')
         .send(input)
@@ -108,6 +116,7 @@ describe('Auth', () => {
   })
 
   it(`POST /auth/login`, async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await request(testModule?.app.getHttpServer())
       .post('/auth/signup')
       .send({
@@ -116,6 +125,7 @@ describe('Auth', () => {
       })
       .expect(201)
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const response = await request(testModule?.app.getHttpServer())
       .post('/auth/login')
       .send({
@@ -130,6 +140,7 @@ describe('Auth', () => {
   })
 
   it(`should succeed in fetching viewer with token`, async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await request(testModule?.app.getHttpServer())
       .post('/auth/signup')
       .send({
@@ -142,6 +153,7 @@ describe('Auth', () => {
       body: {
         session: { accessToken },
       },
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     } = await request(testModule?.app.getHttpServer())
       .post('/auth/login')
       .send({
@@ -149,6 +161,7 @@ describe('Auth', () => {
         password: '123',
       })
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const viewerResponse = await request(testModule?.app.getHttpServer())
       .get('/viewer')
       .auth(accessToken as string, { type: 'bearer' })
@@ -162,6 +175,7 @@ describe('Auth', () => {
   })
 
   it(`should fail in fetching viewer without token`, async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const response = await request(testModule?.app.getHttpServer())
       .get('/viewer')
       .send()

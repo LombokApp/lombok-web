@@ -18,9 +18,7 @@ describe('Folders', () => {
   let apiClient: TestApiClient
 
   beforeAll(async () => {
-    testModule = await buildTestModule({
-      testModuleKey: TEST_MODULE_KEY,
-    })
+    testModule = await buildTestModule({ testModuleKey: TEST_MODULE_KEY })
     apiClient = testModule.apiClient
   })
 

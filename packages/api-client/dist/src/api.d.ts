@@ -16,6 +16,198 @@ import { BaseAPI } from './base';
 /**
  *
  * @export
+ * @interface AppListResponse
+ */
+export interface AppListResponse {
+    /**
+     *
+     * @type {UserListResponseMeta}
+     * @memberof AppListResponse
+     */
+    'meta': UserListResponseMeta;
+    /**
+     *
+     * @type {Array<AppListResponseResultInner>}
+     * @memberof AppListResponse
+     */
+    'result': Array<AppListResponseResultInner>;
+}
+/**
+ *
+ * @export
+ * @interface AppListResponseResultInner
+ */
+export interface AppListResponseResultInner {
+    /**
+     *
+     * @type {AppListResponseResultInnerConfig}
+     * @memberof AppListResponseResultInner
+     */
+    'config': AppListResponseResultInnerConfig;
+    /**
+     *
+     * @type {Array<{ [key: string]: AppListResponseResultInnerUiInnerValue | undefined; }>}
+     * @memberof AppListResponseResultInner
+     */
+    'ui': Array<{
+        [key: string]: AppListResponseResultInnerUiInnerValue | undefined;
+    }>;
+}
+/**
+ *
+ * @export
+ * @interface AppListResponseResultInnerConfig
+ */
+export interface AppListResponseResultInnerConfig {
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseResultInnerConfig
+     */
+    'publicKey': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseResultInnerConfig
+     */
+    'description': string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof AppListResponseResultInnerConfig
+     */
+    'subscribedEvents': Array<string>;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof AppListResponseResultInnerConfig
+     */
+    'emitEvents': Array<string>;
+    /**
+     *
+     * @type {AppListResponseResultInnerConfigActions}
+     * @memberof AppListResponseResultInnerConfig
+     */
+    'actions': AppListResponseResultInnerConfigActions;
+    /**
+     *
+     * @type {Array<AppListResponseResultInnerConfigMenuItemsInner>}
+     * @memberof AppListResponseResultInnerConfig
+     */
+    'menuItems': Array<AppListResponseResultInnerConfigMenuItemsInner>;
+}
+/**
+ *
+ * @export
+ * @interface AppListResponseResultInnerConfigActions
+ */
+export interface AppListResponseResultInnerConfigActions {
+    /**
+     *
+     * @type {Array<AppListResponseResultInnerConfigActionsFolderInner>}
+     * @memberof AppListResponseResultInnerConfigActions
+     */
+    'folder': Array<AppListResponseResultInnerConfigActionsFolderInner>;
+    /**
+     *
+     * @type {Array<AppListResponseResultInnerConfigActionsFolderInner>}
+     * @memberof AppListResponseResultInnerConfigActions
+     */
+    'object': Array<AppListResponseResultInnerConfigActionsFolderInner>;
+}
+/**
+ *
+ * @export
+ * @interface AppListResponseResultInnerConfigActionsFolderInner
+ */
+export interface AppListResponseResultInnerConfigActionsFolderInner {
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseResultInnerConfigActionsFolderInner
+     */
+    'key': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseResultInnerConfigActionsFolderInner
+     */
+    'description': string;
+}
+/**
+ *
+ * @export
+ * @interface AppListResponseResultInnerConfigMenuItemsInner
+ */
+export interface AppListResponseResultInnerConfigMenuItemsInner {
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseResultInnerConfigMenuItemsInner
+     */
+    'label': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseResultInnerConfigMenuItemsInner
+     */
+    'iconPath'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseResultInnerConfigMenuItemsInner
+     */
+    'uiName': string;
+}
+/**
+ *
+ * @export
+ * @interface AppListResponseResultInnerUiInnerValue
+ */
+export interface AppListResponseResultInnerUiInnerValue {
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseResultInnerUiInnerValue
+     */
+    'path': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseResultInnerUiInnerValue
+     */
+    'name': string;
+    /**
+     *
+     * @type {Array<{ [key: string]: AppListResponseResultInnerUiInnerValueFilesInnerValue | undefined; }>}
+     * @memberof AppListResponseResultInnerUiInnerValue
+     */
+    'files': Array<{
+        [key: string]: AppListResponseResultInnerUiInnerValueFilesInnerValue | undefined;
+    }>;
+}
+/**
+ *
+ * @export
+ * @interface AppListResponseResultInnerUiInnerValueFilesInnerValue
+ */
+export interface AppListResponseResultInnerUiInnerValueFilesInnerValue {
+    /**
+     *
+     * @type {number}
+     * @memberof AppListResponseResultInnerUiInnerValueFilesInnerValue
+     */
+    'size': number;
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseResultInnerUiInnerValueFilesInnerValue
+     */
+    'hash': string;
+}
+/**
+ *
+ * @export
  * @interface EventDTO
  */
 export interface EventDTO {
@@ -826,6 +1018,57 @@ export interface ViewerGetResponse {
      * @memberof ViewerGetResponse
      */
     'user': SignupResponseUser;
+}
+/**
+ * AppsApi - axios parameter creator
+ * @export
+ */
+export declare const AppsApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listApps: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * AppsApi - functional programming interface
+ * @export
+ */
+export declare const AppsApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listApps(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppListResponse>>;
+};
+/**
+ * AppsApi - factory interface
+ * @export
+ */
+export declare const AppsApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listApps(options?: AxiosRequestConfig): AxiosPromise<AppListResponse>;
+};
+/**
+ * AppsApi - object-oriented interface
+ * @export
+ * @class AppsApi
+ * @extends {BaseAPI}
+ */
+export declare class AppsApi extends BaseAPI {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AppsApi
+     */
+    listApps(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AppListResponse, any>>;
 }
 /**
  * AuthApi - axios parameter creator

@@ -790,6 +790,27 @@ export const schema = {
           "Event"
         ]
       }
+    },
+    "/server/apps": {
+      "get": {
+        "operationId": "listApps",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppListResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Apps"
+        ]
+      }
     }
   },
   "info": {
@@ -1891,6 +1912,178 @@ export const schema = {
         "required": [
           "id",
           "eventKey"
+        ]
+      },
+      "AppListResponse": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalCount"
+            ]
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "config": {
+                  "type": "object",
+                  "properties": {
+                    "publicKey": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "subscribedEvents": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "emitEvents": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "actions": {
+                      "type": "object",
+                      "properties": {
+                        "folder": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "key": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "key",
+                              "description"
+                            ]
+                          }
+                        },
+                        "object": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "key": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "key",
+                              "description"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "folder",
+                        "object"
+                      ]
+                    },
+                    "menuItems": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string"
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          },
+                          "uiName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "label",
+                          "uiName"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "publicKey",
+                    "description",
+                    "subscribedEvents",
+                    "emitEvents",
+                    "actions",
+                    "menuItems"
+                  ]
+                },
+                "ui": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "path": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "files": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "object",
+                              "properties": {
+                                "size": {
+                                  "type": "number"
+                                },
+                                "hash": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "size",
+                                "hash"
+                              ]
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "path",
+                        "name",
+                        "files"
+                      ]
+                    }
+                  }
+                }
+              },
+              "required": [
+                "config",
+                "ui"
+              ]
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "result"
         ]
       }
     }

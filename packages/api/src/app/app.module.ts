@@ -8,6 +8,7 @@ import { S3Module } from 'src/s3/s3.module'
 import { S3Service } from 'src/s3/s3.service'
 
 import { appConfig } from './config'
+import { AppsController } from './controllers/apps.controller'
 import { AppService } from './services/app.service'
 
 @Module({
@@ -18,6 +19,7 @@ import { AppService } from './services/app.service'
     S3Module,
     forwardRef(() => FoldersModule),
   ],
+  controllers: [AppsController],
   providers: [AppService, S3Service],
   exports: [AppService],
 })

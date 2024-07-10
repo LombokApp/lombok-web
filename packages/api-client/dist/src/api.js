@@ -30,6 +30,90 @@ export const FolderObjectListResponseResultInnerMediaTypeEnum = {
     Unknown: 'UNKNOWN'
 };
 /**
+ * AppsApi - axios parameter creator
+ * @export
+ */
+export const AppsApiAxiosParamCreator = function (configuration) {
+    return {
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listApps: async (options = {}) => {
+            const localVarPath = `/server/apps`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    };
+};
+/**
+ * AppsApi - functional programming interface
+ * @export
+ */
+export const AppsApiFp = function (configuration) {
+    const localVarAxiosParamCreator = AppsApiAxiosParamCreator(configuration);
+    return {
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listApps(options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listApps(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    };
+};
+/**
+ * AppsApi - factory interface
+ * @export
+ */
+export const AppsApiFactory = function (configuration, basePath, axios) {
+    const localVarFp = AppsApiFp(configuration);
+    return {
+        /**
+         *
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listApps(options) {
+            return localVarFp.listApps(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+/**
+ * AppsApi - object-oriented interface
+ * @export
+ * @class AppsApi
+ * @extends {BaseAPI}
+ */
+export class AppsApi extends BaseAPI {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AppsApi
+     */
+    listApps(options) {
+        return AppsApiFp(this.configuration).listApps(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+/**
  * AuthApi - axios parameter creator
  * @export
  */

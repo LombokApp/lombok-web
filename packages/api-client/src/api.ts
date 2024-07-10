@@ -26,6 +26,194 @@ import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError } from './base';
 /**
  * 
  * @export
+ * @interface AppListResponse
+ */
+export interface AppListResponse {
+    /**
+     * 
+     * @type {UserListResponseMeta}
+     * @memberof AppListResponse
+     */
+    'meta': UserListResponseMeta;
+    /**
+     * 
+     * @type {Array<AppListResponseResultInner>}
+     * @memberof AppListResponse
+     */
+    'result': Array<AppListResponseResultInner>;
+}
+/**
+ * 
+ * @export
+ * @interface AppListResponseResultInner
+ */
+export interface AppListResponseResultInner {
+    /**
+     * 
+     * @type {AppListResponseResultInnerConfig}
+     * @memberof AppListResponseResultInner
+     */
+    'config': AppListResponseResultInnerConfig;
+    /**
+     * 
+     * @type {Array<{ [key: string]: AppListResponseResultInnerUiInnerValue | undefined; }>}
+     * @memberof AppListResponseResultInner
+     */
+    'ui': Array<{ [key: string]: AppListResponseResultInnerUiInnerValue | undefined; }>;
+}
+/**
+ * 
+ * @export
+ * @interface AppListResponseResultInnerConfig
+ */
+export interface AppListResponseResultInnerConfig {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppListResponseResultInnerConfig
+     */
+    'publicKey': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppListResponseResultInnerConfig
+     */
+    'description': string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof AppListResponseResultInnerConfig
+     */
+    'subscribedEvents': Array<string>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof AppListResponseResultInnerConfig
+     */
+    'emitEvents': Array<string>;
+    /**
+     * 
+     * @type {AppListResponseResultInnerConfigActions}
+     * @memberof AppListResponseResultInnerConfig
+     */
+    'actions': AppListResponseResultInnerConfigActions;
+    /**
+     * 
+     * @type {Array<AppListResponseResultInnerConfigMenuItemsInner>}
+     * @memberof AppListResponseResultInnerConfig
+     */
+    'menuItems': Array<AppListResponseResultInnerConfigMenuItemsInner>;
+}
+/**
+ * 
+ * @export
+ * @interface AppListResponseResultInnerConfigActions
+ */
+export interface AppListResponseResultInnerConfigActions {
+    /**
+     * 
+     * @type {Array<AppListResponseResultInnerConfigActionsFolderInner>}
+     * @memberof AppListResponseResultInnerConfigActions
+     */
+    'folder': Array<AppListResponseResultInnerConfigActionsFolderInner>;
+    /**
+     * 
+     * @type {Array<AppListResponseResultInnerConfigActionsFolderInner>}
+     * @memberof AppListResponseResultInnerConfigActions
+     */
+    'object': Array<AppListResponseResultInnerConfigActionsFolderInner>;
+}
+/**
+ * 
+ * @export
+ * @interface AppListResponseResultInnerConfigActionsFolderInner
+ */
+export interface AppListResponseResultInnerConfigActionsFolderInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppListResponseResultInnerConfigActionsFolderInner
+     */
+    'key': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppListResponseResultInnerConfigActionsFolderInner
+     */
+    'description': string;
+}
+/**
+ * 
+ * @export
+ * @interface AppListResponseResultInnerConfigMenuItemsInner
+ */
+export interface AppListResponseResultInnerConfigMenuItemsInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppListResponseResultInnerConfigMenuItemsInner
+     */
+    'label': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppListResponseResultInnerConfigMenuItemsInner
+     */
+    'iconPath'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppListResponseResultInnerConfigMenuItemsInner
+     */
+    'uiName': string;
+}
+/**
+ * 
+ * @export
+ * @interface AppListResponseResultInnerUiInnerValue
+ */
+export interface AppListResponseResultInnerUiInnerValue {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppListResponseResultInnerUiInnerValue
+     */
+    'path': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppListResponseResultInnerUiInnerValue
+     */
+    'name': string;
+    /**
+     * 
+     * @type {Array<{ [key: string]: AppListResponseResultInnerUiInnerValueFilesInnerValue | undefined; }>}
+     * @memberof AppListResponseResultInnerUiInnerValue
+     */
+    'files': Array<{ [key: string]: AppListResponseResultInnerUiInnerValueFilesInnerValue | undefined; }>;
+}
+/**
+ * 
+ * @export
+ * @interface AppListResponseResultInnerUiInnerValueFilesInnerValue
+ */
+export interface AppListResponseResultInnerUiInnerValueFilesInnerValue {
+    /**
+     * 
+     * @type {number}
+     * @memberof AppListResponseResultInnerUiInnerValueFilesInnerValue
+     */
+    'size': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppListResponseResultInnerUiInnerValueFilesInnerValue
+     */
+    'hash': string;
+}
+/**
+ * 
+ * @export
  * @interface EventDTO
  */
 export interface EventDTO {
@@ -843,6 +1031,101 @@ export interface ViewerGetResponse {
      */
     'user': SignupResponseUser;
 }
+
+/**
+ * AppsApi - axios parameter creator
+ * @export
+ */
+export const AppsApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listApps: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/server/apps`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * AppsApi - functional programming interface
+ * @export
+ */
+export const AppsApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = AppsApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listApps(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listApps(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * AppsApi - factory interface
+ * @export
+ */
+export const AppsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = AppsApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listApps(options?: AxiosRequestConfig): AxiosPromise<AppListResponse> {
+            return localVarFp.listApps(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * AppsApi - object-oriented interface
+ * @export
+ * @class AppsApi
+ * @extends {BaseAPI}
+ */
+export class AppsApi extends BaseAPI {
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AppsApi
+     */
+    public listApps(options?: AxiosRequestConfig) {
+        return AppsApiFp(this.configuration).listApps(options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
 
 /**
  * AuthApi - axios parameter creator
