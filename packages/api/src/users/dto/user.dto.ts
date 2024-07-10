@@ -2,6 +2,7 @@ import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
 export const userSchema = z.object({
+  id: z.string(),
   name: z.string().nullish(),
   email: z.string().nullish(),
   emailVerified: z.boolean(),

@@ -5,8 +5,9 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
-  Put,
+  Query,
   Req,
   UnauthorizedException,
   UseGuards,
@@ -19,6 +20,11 @@ import { UserGetResponse } from 'src/server/dto/responses/user-get-response.dto'
 import { UserListResponse } from 'src/server/dto/responses/user-list-response.dto'
 import { UserService } from 'src/users/services/users.service'
 
+import { transformUserToDTO } from '../dto/transforms/user.transforms'
+import { UserCreateInputDTO } from '../dto/user-create-input.dto'
+import { UserUpdateInputDTO } from '../dto/user-update-input.dto'
+import { UsersListQueryParamsDTO } from '../dto/users-list-query-params.dto'
+
 @Controller('/server/users')
 @ApiTags('Users')
 @UsePipes(ZodValidationPipe)
@@ -26,53 +32,61 @@ import { UserService } from 'src/users/services/users.service'
 export class UsersController {
   constructor(private readonly userService: UserService) {}
 
-  // /**
-  //  * Create a user.
-  //  */
-  // @Post()
-  // async createUser(
-  //   @Req() req: express.Request,
-  //   @Body() body: UserCreateInputDTO,
-  // ): Promise<UserResponse> {
-  //   if (!req.user) {
-  //     throw new UnauthorizedException()
-  //   }
-  //   const user = await this.userService.createUserAsAdmin(req.user, body)
+  /**
+   * Create a user.
+   */
+  @Post()
+  async createUser(
+    @Req() req: express.Request,
+    @Body() body: UserCreateInputDTO,
+  ): Promise<UserGetResponse> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const user = await this.userService.createUserAsAdmin(req.user, body)
 
-  //   return {
-  //     user: transformUserToDTO(user),
-  //   }
-  // }
+    return {
+      user: transformUserToDTO(user),
+    }
+  }
 
-  // /**
-  //  * Update a user.
-  //  */
-  // @Put()
-  // async updateUser(
-  //   @Req() req: express.Request,
-  //   @Body() body: UserUpdateInputDTO,
-  // ): Promise<UserResponse> {
-  //   if (!req.user) {
-  //     throw new UnauthorizedException()
-  //   }
-  //   const user = await this.userService.updateUserAsAdmin(req.user, body)
+  /**
+   * Update a user.
+   */
+  @Patch('/:userId')
+  async updateUser(
+    @Req() req: express.Request,
+    @Body() body: UserUpdateInputDTO,
+    @Param('userId') userId: string,
+  ): Promise<UserGetResponse> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
 
-  //   return {
-  //     user: transformUserToDTO(user),
-  //   }
-  // }
+    const user = await this.userService.updateUserAsAdmin(req.user, {
+      userId,
+      updatePayload: body,
+    })
+
+    return {
+      user: transformUserToDTO(user),
+    }
+  }
 
   /**
    * List the users.
    */
   @Get()
-  async listUsers(@Req() req: express.Request): Promise<UserListResponse> {
+  async listUsers(
+    @Req() req: express.Request,
+    @Query() queryParams: UsersListQueryParamsDTO,
+  ): Promise<UserListResponse> {
     if (!req.user) {
       throw new UnauthorizedException()
     }
     const { results, totalCount } = await this.userService.listUsersAsAdmin(
       req.user,
-      {},
+      { ...queryParams },
     )
     return {
       result: results,

@@ -156,12 +156,88 @@ export const schema = {
       }
     },
     "/server/users": {
+      "post": {
+        "operationId": "createUser",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreateInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Create a user.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      },
       "get": {
         "operationId": "listUsers",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "isAdmin",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "createdAt-asc",
+                "createdAt-desc",
+                "email-asc",
+                "email-desc",
+                "name-asc",
+                "name-desc",
+                "role-asc",
+                "role-desc",
+                "status-asc",
+                "status-desc",
+                "updatedAt-asc",
+                "updatedAt-desc"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "List the server users.",
+            "description": "List the users.",
             "content": {
               "application/json": {
                 "schema": {
@@ -177,6 +253,44 @@ export const schema = {
       }
     },
     "/server/users/{userId}": {
+      "patch": {
+        "operationId": "updateUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Update a user.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      },
       "get": {
         "operationId": "getUser",
         "parameters": [
@@ -191,7 +305,7 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "Delete a server user by id.",
+            "description": "Get a user by id.",
             "content": {
               "application/json": {
                 "schema": {
@@ -219,7 +333,7 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Delete a server user by id."
           }
         },
         "tags": [
@@ -761,6 +875,9 @@ export const schema = {
           "user": {
             "type": "object",
             "properties": {
+              "id": {
+                "type": "string"
+              },
               "name": {
                 "type": [
                   "string",
@@ -798,6 +915,7 @@ export const schema = {
               }
             },
             "required": [
+              "id",
               "emailVerified",
               "isAdmin",
               "username",
@@ -840,6 +958,9 @@ export const schema = {
           "user": {
             "type": "object",
             "properties": {
+              "id": {
+                "type": "string"
+              },
               "name": {
                 "type": [
                   "string",
@@ -877,6 +998,7 @@ export const schema = {
               }
             },
             "required": [
+              "id",
               "emailVerified",
               "isAdmin",
               "username",
@@ -901,6 +1023,141 @@ export const schema = {
           "name"
         ]
       },
+      "UserCreateInputDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          },
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "isAdmin",
+          "username",
+          "password"
+        ]
+      },
+      "UserGetResponse": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "email": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "emailVerified": {
+                "type": "boolean"
+              },
+              "isAdmin": {
+                "type": "boolean"
+              },
+              "username": {
+                "type": "string"
+              },
+              "permissions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "emailVerified",
+              "isAdmin",
+              "username",
+              "permissions",
+              "createdAt",
+              "updatedAt"
+            ]
+          }
+        },
+        "required": [
+          "user"
+        ]
+      },
+      "UserUpdateInputDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          },
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "UserListResponse": {
         "type": "object",
         "properties": {
@@ -920,6 +1177,9 @@ export const schema = {
             "items": {
               "type": "object",
               "properties": {
+                "id": {
+                  "type": "string"
+                },
                 "name": {
                   "type": [
                     "string",
@@ -957,6 +1217,7 @@ export const schema = {
                 }
               },
               "required": [
+                "id",
                 "emailVerified",
                 "isAdmin",
                 "username",
@@ -970,62 +1231,6 @@ export const schema = {
         "required": [
           "meta",
           "result"
-        ]
-      },
-      "UserGetResponse": {
-        "type": "object",
-        "properties": {
-          "user": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "email": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "emailVerified": {
-                "type": "boolean"
-              },
-              "isAdmin": {
-                "type": "boolean"
-              },
-              "username": {
-                "type": "string"
-              },
-              "permissions": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "createdAt": {
-                "type": "string",
-                "format": "date-time"
-              },
-              "updatedAt": {
-                "type": "string",
-                "format": "date-time"
-              }
-            },
-            "required": [
-              "emailVerified",
-              "isAdmin",
-              "username",
-              "permissions",
-              "createdAt",
-              "updatedAt"
-            ]
-          }
-        },
-        "required": [
-          "user"
         ]
       },
       "FolderGetResponse": {

@@ -154,12 +154,14 @@ export async function createTestUser(
   testModule: TestModule | undefined,
   {
     username,
+    name,
     email,
     password,
     admin = false,
   }: {
     username: string
     email?: string
+    name?: string
     password: string
     admin?: boolean
   },
@@ -174,6 +176,7 @@ export async function createTestUser(
       .db.update(usersTable)
       .set({
         isAdmin: true,
+        name,
       })
       .where(eq(usersTable.username, signupResponse?.data.user.username ?? ''))
   }

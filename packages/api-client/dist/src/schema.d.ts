@@ -144,12 +144,68 @@ export declare const schema: {
             };
         };
         readonly "/server/users": {
+            readonly post: {
+                readonly operationId: "createUser";
+                readonly parameters: readonly [];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/UserCreateInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Create a user.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/UserGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Users"];
+            };
             readonly get: {
                 readonly operationId: "listUsers";
-                readonly parameters: readonly [];
+                readonly parameters: readonly [{
+                    readonly name: "offset";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly name: "limit";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly name: "isAdmin";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "boolean";
+                    };
+                }, {
+                    readonly name: "sort";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly enum: readonly ["createdAt-asc", "createdAt-desc", "email-asc", "email-desc", "name-asc", "name-desc", "role-asc", "role-desc", "status-asc", "status-desc", "updatedAt-asc", "updatedAt-desc"];
+                        readonly type: "string";
+                    };
+                }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "List the server users.";
+                        readonly description: "List the users.";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -163,6 +219,40 @@ export declare const schema: {
             };
         };
         readonly "/server/users/{userId}": {
+            readonly patch: {
+                readonly operationId: "updateUser";
+                readonly parameters: readonly [{
+                    readonly name: "userId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/UserUpdateInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Update a user.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/UserGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Users"];
+            };
             readonly get: {
                 readonly operationId: "getUser";
                 readonly parameters: readonly [{
@@ -175,7 +265,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Delete a server user by id.";
+                        readonly description: "Get a user by id.";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -199,7 +289,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "";
+                        readonly description: "Delete a server user by id.";
                     };
                 };
                 readonly tags: readonly ["Users"];
@@ -671,6 +761,9 @@ export declare const schema: {
                     readonly user: {
                         readonly type: "object";
                         readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
                             readonly name: {
                                 readonly type: readonly ["string", "null"];
                             };
@@ -701,7 +794,7 @@ export declare const schema: {
                                 readonly format: "date-time";
                             };
                         };
-                        readonly required: readonly ["emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
+                        readonly required: readonly ["id", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
                     };
                 };
                 readonly required: readonly ["user"];
@@ -730,6 +823,9 @@ export declare const schema: {
                     readonly user: {
                         readonly type: "object";
                         readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
                             readonly name: {
                                 readonly type: readonly ["string", "null"];
                             };
@@ -760,7 +856,7 @@ export declare const schema: {
                                 readonly format: "date-time";
                             };
                         };
-                        readonly required: readonly ["emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
+                        readonly required: readonly ["id", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
                     };
                 };
                 readonly required: readonly ["user"];
@@ -773,6 +869,109 @@ export declare const schema: {
                     };
                 };
                 readonly required: readonly ["name"];
+            };
+            readonly UserCreateInputDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly name: {
+                        readonly type: readonly ["string", "null"];
+                    };
+                    readonly email: {
+                        readonly type: readonly ["string", "null"];
+                    };
+                    readonly emailVerified: {
+                        readonly type: "boolean";
+                    };
+                    readonly isAdmin: {
+                        readonly type: "boolean";
+                    };
+                    readonly username: {
+                        readonly type: "string";
+                    };
+                    readonly password: {
+                        readonly type: "string";
+                    };
+                    readonly permissions: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "string";
+                        };
+                    };
+                };
+                readonly required: readonly ["isAdmin", "username", "password"];
+            };
+            readonly UserGetResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly user: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
+                            readonly name: {
+                                readonly type: readonly ["string", "null"];
+                            };
+                            readonly email: {
+                                readonly type: readonly ["string", "null"];
+                            };
+                            readonly emailVerified: {
+                                readonly type: "boolean";
+                            };
+                            readonly isAdmin: {
+                                readonly type: "boolean";
+                            };
+                            readonly username: {
+                                readonly type: "string";
+                            };
+                            readonly permissions: {
+                                readonly type: "array";
+                                readonly items: {
+                                    readonly type: "string";
+                                };
+                            };
+                            readonly createdAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                            readonly updatedAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                        };
+                        readonly required: readonly ["id", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
+                    };
+                };
+                readonly required: readonly ["user"];
+            };
+            readonly UserUpdateInputDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly name: {
+                        readonly type: readonly ["string", "null"];
+                    };
+                    readonly email: {
+                        readonly type: readonly ["string", "null"];
+                    };
+                    readonly emailVerified: {
+                        readonly type: "boolean";
+                    };
+                    readonly isAdmin: {
+                        readonly type: "boolean";
+                    };
+                    readonly username: {
+                        readonly type: "string";
+                    };
+                    readonly password: {
+                        readonly type: "string";
+                    };
+                    readonly permissions: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "string";
+                        };
+                    };
+                };
             };
             readonly UserListResponse: {
                 readonly type: "object";
@@ -791,6 +990,9 @@ export declare const schema: {
                         readonly items: {
                             readonly type: "object";
                             readonly properties: {
+                                readonly id: {
+                                    readonly type: "string";
+                                };
                                 readonly name: {
                                     readonly type: readonly ["string", "null"];
                                 };
@@ -821,52 +1023,11 @@ export declare const schema: {
                                     readonly format: "date-time";
                                 };
                             };
-                            readonly required: readonly ["emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
+                            readonly required: readonly ["id", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
                         };
                     };
                 };
                 readonly required: readonly ["meta", "result"];
-            };
-            readonly UserGetResponse: {
-                readonly type: "object";
-                readonly properties: {
-                    readonly user: {
-                        readonly type: "object";
-                        readonly properties: {
-                            readonly name: {
-                                readonly type: readonly ["string", "null"];
-                            };
-                            readonly email: {
-                                readonly type: readonly ["string", "null"];
-                            };
-                            readonly emailVerified: {
-                                readonly type: "boolean";
-                            };
-                            readonly isAdmin: {
-                                readonly type: "boolean";
-                            };
-                            readonly username: {
-                                readonly type: "string";
-                            };
-                            readonly permissions: {
-                                readonly type: "array";
-                                readonly items: {
-                                    readonly type: "string";
-                                };
-                            };
-                            readonly createdAt: {
-                                readonly type: "string";
-                                readonly format: "date-time";
-                            };
-                            readonly updatedAt: {
-                                readonly type: "string";
-                                readonly format: "date-time";
-                            };
-                        };
-                        readonly required: readonly ["emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
-                    };
-                };
-                readonly required: readonly ["user"];
             };
             readonly FolderGetResponse: {
                 readonly type: "object";

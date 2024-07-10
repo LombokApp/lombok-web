@@ -608,6 +608,12 @@ export interface SignupResponse {
 export interface SignupResponseUser {
     /**
      * 
+     * @type {string}
+     * @memberof SignupResponseUser
+     */
+    'id': string;
+    /**
+     * 
      * @type {any}
      * @memberof SignupResponseUser
      */
@@ -684,6 +690,55 @@ export interface UpdateViewerInputDTO {
 /**
  * 
  * @export
+ * @interface UserCreateInputDTO
+ */
+export interface UserCreateInputDTO {
+    /**
+     * 
+     * @type {any}
+     * @memberof UserCreateInputDTO
+     */
+    'name'?: any;
+    /**
+     * 
+     * @type {any}
+     * @memberof UserCreateInputDTO
+     */
+    'email'?: any;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UserCreateInputDTO
+     */
+    'emailVerified'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UserCreateInputDTO
+     */
+    'isAdmin': boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserCreateInputDTO
+     */
+    'username': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserCreateInputDTO
+     */
+    'password': string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof UserCreateInputDTO
+     */
+    'permissions'?: Array<string>;
+}
+/**
+ * 
+ * @export
  * @interface UserGetResponse
  */
 export interface UserGetResponse {
@@ -725,6 +780,55 @@ export interface UserListResponseMeta {
      * @memberof UserListResponseMeta
      */
     'totalCount': number;
+}
+/**
+ * 
+ * @export
+ * @interface UserUpdateInputDTO
+ */
+export interface UserUpdateInputDTO {
+    /**
+     * 
+     * @type {any}
+     * @memberof UserUpdateInputDTO
+     */
+    'name'?: any;
+    /**
+     * 
+     * @type {any}
+     * @memberof UserUpdateInputDTO
+     */
+    'email'?: any;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UserUpdateInputDTO
+     */
+    'emailVerified'?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UserUpdateInputDTO
+     */
+    'isAdmin'?: boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserUpdateInputDTO
+     */
+    'username'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserUpdateInputDTO
+     */
+    'password'?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof UserUpdateInputDTO
+     */
+    'permissions'?: Array<string>;
 }
 /**
  * 
@@ -2329,6 +2433,41 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
     return {
         /**
          * 
+         * @param {UserCreateInputDTO} userCreateInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createUser: async (userCreateInputDTO: UserCreateInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userCreateInputDTO' is not null or undefined
+            assertParamExists('createUser', 'userCreateInputDTO', userCreateInputDTO)
+            const localVarPath = `/server/users`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(userCreateInputDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {string} userId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2395,10 +2534,14 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
         },
         /**
          * 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {boolean} [isAdmin] 
+         * @param {ListUsersSortEnum} [sort] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listUsers: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listUsers: async (offset?: number, limit?: number, isAdmin?: boolean, sort?: ListUsersSortEnum, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/server/users`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2411,11 +2554,66 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+            if (isAdmin !== undefined) {
+                localVarQueryParameter['isAdmin'] = isAdmin;
+            }
+
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
+            }
+
 
     
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} userId 
+         * @param {UserUpdateInputDTO} userUpdateInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateUser: async (userId: string, userUpdateInputDTO: UserUpdateInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('updateUser', 'userId', userId)
+            // verify required parameter 'userUpdateInputDTO' is not null or undefined
+            assertParamExists('updateUser', 'userUpdateInputDTO', userUpdateInputDTO)
+            const localVarPath = `/server/users/{userId}`
+                .replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(userUpdateInputDTO, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2432,6 +2630,16 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
 export const UsersApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = UsersApiAxiosParamCreator(configuration)
     return {
+        /**
+         * 
+         * @param {UserCreateInputDTO} userCreateInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createUser(userCreateInputDTO: UserCreateInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createUser(userCreateInputDTO, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
         /**
          * 
          * @param {string} userId 
@@ -2454,11 +2662,26 @@ export const UsersApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {boolean} [isAdmin] 
+         * @param {ListUsersSortEnum} [sort] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listUsers(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listUsers(options);
+        async listUsers(offset?: number, limit?: number, isAdmin?: boolean, sort?: ListUsersSortEnum, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listUsers(offset, limit, isAdmin, sort, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {string} userId 
+         * @param {UserUpdateInputDTO} userUpdateInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateUser(userId: string, userUpdateInputDTO: UserUpdateInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateUser(userId, userUpdateInputDTO, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -2471,6 +2694,15 @@ export const UsersApiFp = function(configuration?: Configuration) {
 export const UsersApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = UsersApiFp(configuration)
     return {
+        /**
+         * 
+         * @param {UsersApiCreateUserRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createUser(requestParameters: UsersApiCreateUserRequest, options?: AxiosRequestConfig): AxiosPromise<UserGetResponse> {
+            return localVarFp.createUser(requestParameters.userCreateInputDTO, options).then((request) => request(axios, basePath));
+        },
         /**
          * 
          * @param {UsersApiDeleteUserRequest} requestParameters Request parameters.
@@ -2491,14 +2723,38 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
         },
         /**
          * 
+         * @param {UsersApiListUsersRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listUsers(options?: AxiosRequestConfig): AxiosPromise<UserListResponse> {
-            return localVarFp.listUsers(options).then((request) => request(axios, basePath));
+        listUsers(requestParameters: UsersApiListUsersRequest = {}, options?: AxiosRequestConfig): AxiosPromise<UserListResponse> {
+            return localVarFp.listUsers(requestParameters.offset, requestParameters.limit, requestParameters.isAdmin, requestParameters.sort, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {UsersApiUpdateUserRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateUser(requestParameters: UsersApiUpdateUserRequest, options?: AxiosRequestConfig): AxiosPromise<UserGetResponse> {
+            return localVarFp.updateUser(requestParameters.userId, requestParameters.userUpdateInputDTO, options).then((request) => request(axios, basePath));
         },
     };
 };
+
+/**
+ * Request parameters for createUser operation in UsersApi.
+ * @export
+ * @interface UsersApiCreateUserRequest
+ */
+export interface UsersApiCreateUserRequest {
+    /**
+     * 
+     * @type {UserCreateInputDTO}
+     * @memberof UsersApiCreateUser
+     */
+    readonly userCreateInputDTO: UserCreateInputDTO
+}
 
 /**
  * Request parameters for deleteUser operation in UsersApi.
@@ -2529,12 +2785,79 @@ export interface UsersApiGetUserRequest {
 }
 
 /**
+ * Request parameters for listUsers operation in UsersApi.
+ * @export
+ * @interface UsersApiListUsersRequest
+ */
+export interface UsersApiListUsersRequest {
+    /**
+     * 
+     * @type {number}
+     * @memberof UsersApiListUsers
+     */
+    readonly offset?: number
+
+    /**
+     * 
+     * @type {number}
+     * @memberof UsersApiListUsers
+     */
+    readonly limit?: number
+
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UsersApiListUsers
+     */
+    readonly isAdmin?: boolean
+
+    /**
+     * 
+     * @type {'createdAt-asc' | 'createdAt-desc' | 'email-asc' | 'email-desc' | 'name-asc' | 'name-desc' | 'role-asc' | 'role-desc' | 'status-asc' | 'status-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @memberof UsersApiListUsers
+     */
+    readonly sort?: ListUsersSortEnum
+}
+
+/**
+ * Request parameters for updateUser operation in UsersApi.
+ * @export
+ * @interface UsersApiUpdateUserRequest
+ */
+export interface UsersApiUpdateUserRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof UsersApiUpdateUser
+     */
+    readonly userId: string
+
+    /**
+     * 
+     * @type {UserUpdateInputDTO}
+     * @memberof UsersApiUpdateUser
+     */
+    readonly userUpdateInputDTO: UserUpdateInputDTO
+}
+
+/**
  * UsersApi - object-oriented interface
  * @export
  * @class UsersApi
  * @extends {BaseAPI}
  */
 export class UsersApi extends BaseAPI {
+    /**
+     * 
+     * @param {UsersApiCreateUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApi
+     */
+    public createUser(requestParameters: UsersApiCreateUserRequest, options?: AxiosRequestConfig) {
+        return UsersApiFp(this.configuration).createUser(requestParameters.userCreateInputDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @param {UsersApiDeleteUserRequest} requestParameters Request parameters.
@@ -2559,15 +2882,45 @@ export class UsersApi extends BaseAPI {
 
     /**
      * 
+     * @param {UsersApiListUsersRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UsersApi
      */
-    public listUsers(options?: AxiosRequestConfig) {
-        return UsersApiFp(this.configuration).listUsers(options).then((request) => request(this.axios, this.basePath));
+    public listUsers(requestParameters: UsersApiListUsersRequest = {}, options?: AxiosRequestConfig) {
+        return UsersApiFp(this.configuration).listUsers(requestParameters.offset, requestParameters.limit, requestParameters.isAdmin, requestParameters.sort, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {UsersApiUpdateUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApi
+     */
+    public updateUser(requestParameters: UsersApiUpdateUserRequest, options?: AxiosRequestConfig) {
+        return UsersApiFp(this.configuration).updateUser(requestParameters.userId, requestParameters.userUpdateInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
+/**
+ * @export
+ */
+export const ListUsersSortEnum = {
+    CreatedAtAsc: 'createdAt-asc',
+    CreatedAtDesc: 'createdAt-desc',
+    EmailAsc: 'email-asc',
+    EmailDesc: 'email-desc',
+    NameAsc: 'name-asc',
+    NameDesc: 'name-desc',
+    RoleAsc: 'role-asc',
+    RoleDesc: 'role-desc',
+    StatusAsc: 'status-asc',
+    StatusDesc: 'status-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
+} as const;
+export type ListUsersSortEnum = typeof ListUsersSortEnum[keyof typeof ListUsersSortEnum];
 
 
 /**

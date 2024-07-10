@@ -5,8 +5,8 @@ import { parseSort } from 'src/core/utils/sort.util'
 import { OrmService } from 'src/orm/orm.service'
 import { v4 as uuidV4 } from 'uuid'
 
-import type { CreateUserDTO } from '../dto/create-user.dto'
-import type { UpdateUserDTO } from '../dto/update-user.dto'
+import { UserCreateInputDTO } from '../dto/user-create-input.dto'
+import { UserUpdateInputDTO } from '../dto/user-update-input.dto'
 import type { NewUser, User } from '../entities/user.entity'
 import { usersTable } from '../entities/user.entity'
 import { UserNotFoundException } from '../exceptions/user-not-found.exception'
@@ -125,7 +125,7 @@ export class UserService {
     return this.getById({ id: userId })
   }
 
-  async createUserAsAdmin(actor: User, userPayload: CreateUserDTO) {
+  async createUserAsAdmin(actor: User, userPayload: UserCreateInputDTO) {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
@@ -160,13 +160,23 @@ export class UserService {
 
   async updateUserAsAdmin(
     actor: User,
-    userPayload: UpdateUserDTO & { id: string },
+    {
+      userId,
+      updatePayload,
+    }: {
+      userId: string
+      updatePayload: UserUpdateInputDTO
+    },
   ) {
-    // TODO: ACL
-    // TODO: input validation
+    const now = new Date()
 
+    if (!actor.isAdmin) {
+      throw new UnauthorizedException()
+    }
+
+    // TODO: input validation
     const existingUser = await this.ormService.db.query.usersTable.findFirst({
-      where: eq(usersTable.id, userPayload.id),
+      where: eq(usersTable.id, userId),
     })
 
     if (!existingUser) {
@@ -174,42 +184,50 @@ export class UserService {
     }
 
     const updates: {
+      name?: string | null
       isAdmin?: boolean
-      name?: string
+      email?: string | null
+      username?: string
       emailVerified?: boolean
+      permissions?: string[]
       passwordHash?: string
       passwordSalt?: string
-      permissions?: string[]
-    } = {}
+      updatedAt: Date
+    } = { updatedAt: now }
 
-    if (userPayload.isAdmin && !existingUser.isAdmin) {
-      updates.isAdmin = true
-    } else if (!userPayload.isAdmin && existingUser.isAdmin) {
-      updates.isAdmin = false
+    if ('name' in updatePayload) {
+      updates.name = updatePayload.name
     }
 
-    if (userPayload.name) {
-      updates.name = userPayload.name
+    if (typeof updatePayload['isAdmin'] === 'boolean') {
+      updates.isAdmin = !!updatePayload.isAdmin
     }
 
-    if (
-      (userPayload.emailVerified === false ||
-        userPayload.emailVerified === true) &&
-      userPayload.emailVerified !== existingUser.emailVerified
-    ) {
-      updates.emailVerified = userPayload.emailVerified
+    if ('email' in updatePayload) {
+      // TOOD: validate email uniqueness before trying to save, or just catch the error and return a nice response
+      updates.email = updatePayload.email
     }
 
-    if (userPayload.password) {
+    if ('username' in updatePayload) {
+      // TOOD: validate username uniqueness before trying to save, or just catch the error and return a nice response
+      updates.username = updatePayload.username
+    }
+
+    if ('emailVerified' in updatePayload) {
+      updates.emailVerified = updatePayload.emailVerified
+    }
+
+    if ('permissions' in updatePayload) {
+      // TODO: validate incoming permission keys
+      updates.permissions = updatePayload.permissions
+    }
+
+    if ('password' in updatePayload && updatePayload.password?.length) {
       const passwordSalt = authHelper.createPasswordSalt()
       updates.passwordHash = authHelper
-        .createPasswordHash(userPayload.password, passwordSalt)
+        .createPasswordHash(updatePayload.password, passwordSalt)
         .toString('hex')
       updates.passwordSalt = passwordSalt
-    }
-    if (userPayload.permissions) {
-      // TODO: validate incoming permission keys
-      updates.permissions = userPayload.permissions
     }
 
     const updatedUser = (

@@ -1221,6 +1221,35 @@ export const UsersApiAxiosParamCreator = function (configuration) {
     return {
         /**
          *
+         * @param {UserCreateInputDTO} userCreateInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createUser: async (userCreateInputDTO, options = {}) => {
+            // verify required parameter 'userCreateInputDTO' is not null or undefined
+            assertParamExists('createUser', 'userCreateInputDTO', userCreateInputDTO);
+            const localVarPath = `/server/users`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = serializeDataIfNeeded(userCreateInputDTO, localVarRequestOptions, configuration);
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
          * @param {string} userId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1277,10 +1306,14 @@ export const UsersApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @param {number} [offset]
+         * @param {number} [limit]
+         * @param {boolean} [isAdmin]
+         * @param {ListUsersSortEnum} [sort]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listUsers: async (options = {}) => {
+        listUsers: async (offset, limit, isAdmin, sort, options = {}) => {
             const localVarPath = `/server/users`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1291,9 +1324,54 @@ export const UsersApiAxiosParamCreator = function (configuration) {
             const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
             const localVarHeaderParameter = {};
             const localVarQueryParameter = {};
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+            if (isAdmin !== undefined) {
+                localVarQueryParameter['isAdmin'] = isAdmin;
+            }
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
+            }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} userId
+         * @param {UserUpdateInputDTO} userUpdateInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateUser: async (userId, userUpdateInputDTO, options = {}) => {
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('updateUser', 'userId', userId);
+            // verify required parameter 'userUpdateInputDTO' is not null or undefined
+            assertParamExists('updateUser', 'userUpdateInputDTO', userUpdateInputDTO);
+            const localVarPath = `/server/users/{userId}`
+                .replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = serializeDataIfNeeded(userUpdateInputDTO, localVarRequestOptions, configuration);
             return {
                 url: toPathString(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -1308,6 +1386,16 @@ export const UsersApiAxiosParamCreator = function (configuration) {
 export const UsersApiFp = function (configuration) {
     const localVarAxiosParamCreator = UsersApiAxiosParamCreator(configuration);
     return {
+        /**
+         *
+         * @param {UserCreateInputDTO} userCreateInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createUser(userCreateInputDTO, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createUser(userCreateInputDTO, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
         /**
          *
          * @param {string} userId
@@ -1330,11 +1418,26 @@ export const UsersApiFp = function (configuration) {
         },
         /**
          *
+         * @param {number} [offset]
+         * @param {number} [limit]
+         * @param {boolean} [isAdmin]
+         * @param {ListUsersSortEnum} [sort]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listUsers(options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listUsers(options);
+        async listUsers(offset, limit, isAdmin, sort, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listUsers(offset, limit, isAdmin, sort, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} userId
+         * @param {UserUpdateInputDTO} userUpdateInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateUser(userId, userUpdateInputDTO, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateUser(userId, userUpdateInputDTO, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     };
@@ -1346,6 +1449,15 @@ export const UsersApiFp = function (configuration) {
 export const UsersApiFactory = function (configuration, basePath, axios) {
     const localVarFp = UsersApiFp(configuration);
     return {
+        /**
+         *
+         * @param {UsersApiCreateUserRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createUser(requestParameters, options) {
+            return localVarFp.createUser(requestParameters.userCreateInputDTO, options).then((request) => request(axios, basePath));
+        },
         /**
          *
          * @param {UsersApiDeleteUserRequest} requestParameters Request parameters.
@@ -1366,11 +1478,21 @@ export const UsersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @param {UsersApiListUsersRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listUsers(options) {
-            return localVarFp.listUsers(options).then((request) => request(axios, basePath));
+        listUsers(requestParameters = {}, options) {
+            return localVarFp.listUsers(requestParameters.offset, requestParameters.limit, requestParameters.isAdmin, requestParameters.sort, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {UsersApiUpdateUserRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateUser(requestParameters, options) {
+            return localVarFp.updateUser(requestParameters.userId, requestParameters.userUpdateInputDTO, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -1381,6 +1503,16 @@ export const UsersApiFactory = function (configuration, basePath, axios) {
  * @extends {BaseAPI}
  */
 export class UsersApi extends BaseAPI {
+    /**
+     *
+     * @param {UsersApiCreateUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApi
+     */
+    createUser(requestParameters, options) {
+        return UsersApiFp(this.configuration).createUser(requestParameters.userCreateInputDTO, options).then((request) => request(this.axios, this.basePath));
+    }
     /**
      *
      * @param {UsersApiDeleteUserRequest} requestParameters Request parameters.
@@ -1403,14 +1535,42 @@ export class UsersApi extends BaseAPI {
     }
     /**
      *
+     * @param {UsersApiListUsersRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UsersApi
      */
-    listUsers(options) {
-        return UsersApiFp(this.configuration).listUsers(options).then((request) => request(this.axios, this.basePath));
+    listUsers(requestParameters = {}, options) {
+        return UsersApiFp(this.configuration).listUsers(requestParameters.offset, requestParameters.limit, requestParameters.isAdmin, requestParameters.sort, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {UsersApiUpdateUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApi
+     */
+    updateUser(requestParameters, options) {
+        return UsersApiFp(this.configuration).updateUser(requestParameters.userId, requestParameters.userUpdateInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
+/**
+ * @export
+ */
+export const ListUsersSortEnum = {
+    CreatedAtAsc: 'createdAt-asc',
+    CreatedAtDesc: 'createdAt-desc',
+    EmailAsc: 'email-asc',
+    EmailDesc: 'email-desc',
+    NameAsc: 'name-asc',
+    NameDesc: 'name-desc',
+    RoleAsc: 'role-asc',
+    RoleDesc: 'role-desc',
+    StatusAsc: 'status-asc',
+    StatusDesc: 'status-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
+};
 /**
  * ViewerApi - axios parameter creator
  * @export

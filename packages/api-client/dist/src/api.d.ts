@@ -592,6 +592,12 @@ export interface SignupResponse {
 export interface SignupResponseUser {
     /**
      *
+     * @type {string}
+     * @memberof SignupResponseUser
+     */
+    'id': string;
+    /**
+     *
      * @type {any}
      * @memberof SignupResponseUser
      */
@@ -668,6 +674,55 @@ export interface UpdateViewerInputDTO {
 /**
  *
  * @export
+ * @interface UserCreateInputDTO
+ */
+export interface UserCreateInputDTO {
+    /**
+     *
+     * @type {any}
+     * @memberof UserCreateInputDTO
+     */
+    'name'?: any;
+    /**
+     *
+     * @type {any}
+     * @memberof UserCreateInputDTO
+     */
+    'email'?: any;
+    /**
+     *
+     * @type {boolean}
+     * @memberof UserCreateInputDTO
+     */
+    'emailVerified'?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof UserCreateInputDTO
+     */
+    'isAdmin': boolean;
+    /**
+     *
+     * @type {string}
+     * @memberof UserCreateInputDTO
+     */
+    'username': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserCreateInputDTO
+     */
+    'password': string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof UserCreateInputDTO
+     */
+    'permissions'?: Array<string>;
+}
+/**
+ *
+ * @export
  * @interface UserGetResponse
  */
 export interface UserGetResponse {
@@ -709,6 +764,55 @@ export interface UserListResponseMeta {
      * @memberof UserListResponseMeta
      */
     'totalCount': number;
+}
+/**
+ *
+ * @export
+ * @interface UserUpdateInputDTO
+ */
+export interface UserUpdateInputDTO {
+    /**
+     *
+     * @type {any}
+     * @memberof UserUpdateInputDTO
+     */
+    'name'?: any;
+    /**
+     *
+     * @type {any}
+     * @memberof UserUpdateInputDTO
+     */
+    'email'?: any;
+    /**
+     *
+     * @type {boolean}
+     * @memberof UserUpdateInputDTO
+     */
+    'emailVerified'?: boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof UserUpdateInputDTO
+     */
+    'isAdmin'?: boolean;
+    /**
+     *
+     * @type {string}
+     * @memberof UserUpdateInputDTO
+     */
+    'username'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserUpdateInputDTO
+     */
+    'password'?: string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof UserUpdateInputDTO
+     */
+    'permissions'?: Array<string>;
 }
 /**
  *
@@ -1594,6 +1698,13 @@ export declare class ServerApi extends BaseAPI {
 export declare const UsersApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
+     * @param {UserCreateInputDTO} userCreateInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createUser: (userCreateInputDTO: UserCreateInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
      * @param {string} userId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1608,16 +1719,35 @@ export declare const UsersApiAxiosParamCreator: (configuration?: Configuration) 
     getUser: (userId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {boolean} [isAdmin]
+     * @param {ListUsersSortEnum} [sort]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listUsers: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listUsers: (offset?: number, limit?: number, isAdmin?: boolean, sort?: ListUsersSortEnum, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} userId
+     * @param {UserUpdateInputDTO} userUpdateInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateUser: (userId: string, userUpdateInputDTO: UserUpdateInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * UsersApi - functional programming interface
  * @export
  */
 export declare const UsersApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {UserCreateInputDTO} userCreateInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createUser(userCreateInputDTO: UserCreateInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>>;
     /**
      *
      * @param {string} userId
@@ -1634,16 +1764,35 @@ export declare const UsersApiFp: (configuration?: Configuration) => {
     getUser(userId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>>;
     /**
      *
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {boolean} [isAdmin]
+     * @param {ListUsersSortEnum} [sort]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listUsers(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserListResponse>>;
+    listUsers(offset?: number, limit?: number, isAdmin?: boolean, sort?: ListUsersSortEnum, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserListResponse>>;
+    /**
+     *
+     * @param {string} userId
+     * @param {UserUpdateInputDTO} userUpdateInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateUser(userId: string, userUpdateInputDTO: UserUpdateInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>>;
 };
 /**
  * UsersApi - factory interface
  * @export
  */
 export declare const UsersApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {UsersApiCreateUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createUser(requestParameters: UsersApiCreateUserRequest, options?: AxiosRequestConfig): AxiosPromise<UserGetResponse>;
     /**
      *
      * @param {UsersApiDeleteUserRequest} requestParameters Request parameters.
@@ -1660,11 +1809,32 @@ export declare const UsersApiFactory: (configuration?: Configuration, basePath?:
     getUser(requestParameters: UsersApiGetUserRequest, options?: AxiosRequestConfig): AxiosPromise<UserGetResponse>;
     /**
      *
+     * @param {UsersApiListUsersRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listUsers(options?: AxiosRequestConfig): AxiosPromise<UserListResponse>;
+    listUsers(requestParameters?: UsersApiListUsersRequest, options?: AxiosRequestConfig): AxiosPromise<UserListResponse>;
+    /**
+     *
+     * @param {UsersApiUpdateUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateUser(requestParameters: UsersApiUpdateUserRequest, options?: AxiosRequestConfig): AxiosPromise<UserGetResponse>;
 };
+/**
+ * Request parameters for createUser operation in UsersApi.
+ * @export
+ * @interface UsersApiCreateUserRequest
+ */
+export interface UsersApiCreateUserRequest {
+    /**
+     *
+     * @type {UserCreateInputDTO}
+     * @memberof UsersApiCreateUser
+     */
+    readonly userCreateInputDTO: UserCreateInputDTO;
+}
 /**
  * Request parameters for deleteUser operation in UsersApi.
  * @export
@@ -1692,12 +1862,70 @@ export interface UsersApiGetUserRequest {
     readonly userId: string;
 }
 /**
+ * Request parameters for listUsers operation in UsersApi.
+ * @export
+ * @interface UsersApiListUsersRequest
+ */
+export interface UsersApiListUsersRequest {
+    /**
+     *
+     * @type {number}
+     * @memberof UsersApiListUsers
+     */
+    readonly offset?: number;
+    /**
+     *
+     * @type {number}
+     * @memberof UsersApiListUsers
+     */
+    readonly limit?: number;
+    /**
+     *
+     * @type {boolean}
+     * @memberof UsersApiListUsers
+     */
+    readonly isAdmin?: boolean;
+    /**
+     *
+     * @type {'createdAt-asc' | 'createdAt-desc' | 'email-asc' | 'email-desc' | 'name-asc' | 'name-desc' | 'role-asc' | 'role-desc' | 'status-asc' | 'status-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @memberof UsersApiListUsers
+     */
+    readonly sort?: ListUsersSortEnum;
+}
+/**
+ * Request parameters for updateUser operation in UsersApi.
+ * @export
+ * @interface UsersApiUpdateUserRequest
+ */
+export interface UsersApiUpdateUserRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof UsersApiUpdateUser
+     */
+    readonly userId: string;
+    /**
+     *
+     * @type {UserUpdateInputDTO}
+     * @memberof UsersApiUpdateUser
+     */
+    readonly userUpdateInputDTO: UserUpdateInputDTO;
+}
+/**
  * UsersApi - object-oriented interface
  * @export
  * @class UsersApi
  * @extends {BaseAPI}
  */
 export declare class UsersApi extends BaseAPI {
+    /**
+     *
+     * @param {UsersApiCreateUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApi
+     */
+    createUser(requestParameters: UsersApiCreateUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<UserGetResponse, any>>;
     /**
      *
      * @param {UsersApiDeleteUserRequest} requestParameters Request parameters.
@@ -1716,12 +1944,39 @@ export declare class UsersApi extends BaseAPI {
     getUser(requestParameters: UsersApiGetUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<UserGetResponse, any>>;
     /**
      *
+     * @param {UsersApiListUsersRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UsersApi
      */
-    listUsers(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<UserListResponse, any>>;
+    listUsers(requestParameters?: UsersApiListUsersRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<UserListResponse, any>>;
+    /**
+     *
+     * @param {UsersApiUpdateUserRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApi
+     */
+    updateUser(requestParameters: UsersApiUpdateUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<UserGetResponse, any>>;
 }
+/**
+ * @export
+ */
+export declare const ListUsersSortEnum: {
+    readonly CreatedAtAsc: "createdAt-asc";
+    readonly CreatedAtDesc: "createdAt-desc";
+    readonly EmailAsc: "email-asc";
+    readonly EmailDesc: "email-desc";
+    readonly NameAsc: "name-asc";
+    readonly NameDesc: "name-desc";
+    readonly RoleAsc: "role-asc";
+    readonly RoleDesc: "role-desc";
+    readonly StatusAsc: "status-asc";
+    readonly StatusDesc: "status-desc";
+    readonly UpdatedAtAsc: "updatedAt-asc";
+    readonly UpdatedAtDesc: "updatedAt-desc";
+};
+export type ListUsersSortEnum = typeof ListUsersSortEnum[keyof typeof ListUsersSortEnum];
 /**
  * ViewerApi - axios parameter creator
  * @export
