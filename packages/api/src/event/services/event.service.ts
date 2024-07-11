@@ -115,6 +115,9 @@ export class EventService {
     return {
       id: eventId,
       eventKey: '__dummy_event_key__',
+      data: { folderId: '__dummy__', objectKey: '__dummy__' },
+      createdAt: new Date(),
+      updatedAt: new Date(),
     }
   }
 }

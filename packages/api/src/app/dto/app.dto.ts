@@ -30,6 +30,7 @@ export const appConfigSchema = z.object({
 })
 
 export const appSchema = z.object({
+  identifier: z.string(),
   config: appConfigSchema,
   ui: z.record(
     z.string(),

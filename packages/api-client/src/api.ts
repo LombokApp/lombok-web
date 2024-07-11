@@ -50,16 +50,22 @@ export interface AppListResponse {
 export interface AppListResponseResultInner {
     /**
      * 
+     * @type {string}
+     * @memberof AppListResponseResultInner
+     */
+    'identifier': string;
+    /**
+     * 
      * @type {AppListResponseResultInnerConfig}
      * @memberof AppListResponseResultInner
      */
     'config': AppListResponseResultInnerConfig;
     /**
      * 
-     * @type {Array<{ [key: string]: AppListResponseResultInnerUiInnerValue | undefined; }>}
+     * @type {{ [key: string]: AppListResponseResultInnerUiValue | undefined; }}
      * @memberof AppListResponseResultInner
      */
-    'ui': Array<{ [key: string]: AppListResponseResultInnerUiInnerValue | undefined; }>;
+    'ui': { [key: string]: AppListResponseResultInnerUiValue | undefined; };
 }
 /**
  * 
@@ -170,65 +176,115 @@ export interface AppListResponseResultInnerConfigMenuItemsInner {
 /**
  * 
  * @export
- * @interface AppListResponseResultInnerUiInnerValue
+ * @interface AppListResponseResultInnerUiValue
  */
-export interface AppListResponseResultInnerUiInnerValue {
+export interface AppListResponseResultInnerUiValue {
     /**
      * 
      * @type {string}
-     * @memberof AppListResponseResultInnerUiInnerValue
+     * @memberof AppListResponseResultInnerUiValue
      */
     'path': string;
     /**
      * 
      * @type {string}
-     * @memberof AppListResponseResultInnerUiInnerValue
+     * @memberof AppListResponseResultInnerUiValue
      */
     'name': string;
     /**
      * 
-     * @type {Array<{ [key: string]: AppListResponseResultInnerUiInnerValueFilesInnerValue | undefined; }>}
-     * @memberof AppListResponseResultInnerUiInnerValue
+     * @type {Array<{ [key: string]: AppListResponseResultInnerUiValueFilesInnerValue | undefined; }>}
+     * @memberof AppListResponseResultInnerUiValue
      */
-    'files': Array<{ [key: string]: AppListResponseResultInnerUiInnerValueFilesInnerValue | undefined; }>;
+    'files': Array<{ [key: string]: AppListResponseResultInnerUiValueFilesInnerValue | undefined; }>;
 }
 /**
  * 
  * @export
- * @interface AppListResponseResultInnerUiInnerValueFilesInnerValue
+ * @interface AppListResponseResultInnerUiValueFilesInnerValue
  */
-export interface AppListResponseResultInnerUiInnerValueFilesInnerValue {
+export interface AppListResponseResultInnerUiValueFilesInnerValue {
     /**
      * 
      * @type {number}
-     * @memberof AppListResponseResultInnerUiInnerValueFilesInnerValue
+     * @memberof AppListResponseResultInnerUiValueFilesInnerValue
      */
     'size': number;
     /**
      * 
      * @type {string}
-     * @memberof AppListResponseResultInnerUiInnerValueFilesInnerValue
+     * @memberof AppListResponseResultInnerUiValueFilesInnerValue
      */
     'hash': string;
 }
 /**
  * 
  * @export
- * @interface EventDTO
+ * @interface EventGetResponse
  */
-export interface EventDTO {
+export interface EventGetResponse {
+    /**
+     * 
+     * @type {EventGetResponseEvent}
+     * @memberof EventGetResponse
+     */
+    'event': EventGetResponseEvent;
+}
+/**
+ * 
+ * @export
+ * @interface EventGetResponseEvent
+ */
+export interface EventGetResponseEvent {
     /**
      * 
      * @type {string}
-     * @memberof EventDTO
+     * @memberof EventGetResponseEvent
      */
     'id': string;
     /**
      * 
      * @type {string}
-     * @memberof EventDTO
+     * @memberof EventGetResponseEvent
      */
     'eventKey': string;
+    /**
+     * 
+     * @type {EventGetResponseEventData}
+     * @memberof EventGetResponseEvent
+     */
+    'data': EventGetResponseEventData;
+    /**
+     * 
+     * @type {string}
+     * @memberof EventGetResponseEvent
+     */
+    'createdAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EventGetResponseEvent
+     */
+    'updatedAt': string;
+}
+/**
+ * 
+ * @export
+ * @interface EventGetResponseEventData
+ */
+export interface EventGetResponseEventData {
+    /**
+     * 
+     * @type {string}
+     * @memberof EventGetResponseEventData
+     */
+    'folderId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EventGetResponseEventData
+     */
+    'objectKey'?: string;
 }
 /**
  * 
@@ -1437,17 +1493,17 @@ export class AuthApi extends BaseAPI {
 
 
 /**
- * EventApi - axios parameter creator
+ * EventsApi - axios parameter creator
  * @export
  */
-export const EventApiAxiosParamCreator = function (configuration?: Configuration) {
+export const EventsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
          * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAppInfo: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getEvent: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/events/{eventId}`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1475,57 +1531,57 @@ export const EventApiAxiosParamCreator = function (configuration?: Configuration
 };
 
 /**
- * EventApi - functional programming interface
+ * EventsApi - functional programming interface
  * @export
  */
-export const EventApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = EventApiAxiosParamCreator(configuration)
+export const EventsApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = EventsApiAxiosParamCreator(configuration)
     return {
         /**
          * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getAppInfo(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventDTO>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getAppInfo(options);
+        async getEvent(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getEvent(options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
 };
 
 /**
- * EventApi - factory interface
+ * EventsApi - factory interface
  * @export
  */
-export const EventApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = EventApiFp(configuration)
+export const EventsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = EventsApiFp(configuration)
     return {
         /**
          * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAppInfo(options?: AxiosRequestConfig): AxiosPromise<EventDTO> {
-            return localVarFp.getAppInfo(options).then((request) => request(axios, basePath));
+        getEvent(options?: AxiosRequestConfig): AxiosPromise<EventGetResponse> {
+            return localVarFp.getEvent(options).then((request) => request(axios, basePath));
         },
     };
 };
 
 /**
- * EventApi - object-oriented interface
+ * EventsApi - object-oriented interface
  * @export
- * @class EventApi
+ * @class EventsApi
  * @extends {BaseAPI}
  */
-export class EventApi extends BaseAPI {
+export class EventsApi extends BaseAPI {
     /**
      * 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof EventApi
+     * @memberof EventsApi
      */
-    public getAppInfo(options?: AxiosRequestConfig) {
-        return EventApiFp(this.configuration).getAppInfo(options).then((request) => request(this.axios, this.basePath));
+    public getEvent(options?: AxiosRequestConfig) {
+        return EventsApiFp(this.configuration).getEvent(options).then((request) => request(this.axios, this.basePath));
     }
 }
 

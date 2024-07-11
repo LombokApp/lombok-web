@@ -671,7 +671,7 @@ export declare const schema: {
         };
         readonly "/events/{eventId}": {
             readonly get: {
-                readonly operationId: "getAppInfo";
+                readonly operationId: "getEvent";
                 readonly parameters: readonly [];
                 readonly responses: {
                     readonly "200": {
@@ -679,13 +679,13 @@ export declare const schema: {
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
-                                    readonly $ref: "#/components/schemas/EventDTO";
+                                    readonly $ref: "#/components/schemas/EventGetResponse";
                                 };
                             };
                         };
                     };
                 };
-                readonly tags: readonly ["Event"];
+                readonly tags: readonly ["Events"];
             };
         };
         readonly "/server/apps": {
@@ -1559,17 +1559,43 @@ export declare const schema: {
                 };
                 readonly required: readonly ["key"];
             };
-            readonly EventDTO: {
+            readonly EventGetResponse: {
                 readonly type: "object";
                 readonly properties: {
-                    readonly id: {
-                        readonly type: "string";
-                    };
-                    readonly eventKey: {
-                        readonly type: "string";
+                    readonly event: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
+                            readonly eventKey: {
+                                readonly type: "string";
+                            };
+                            readonly data: {
+                                readonly type: "object";
+                                readonly properties: {
+                                    readonly folderId: {
+                                        readonly type: "string";
+                                    };
+                                    readonly objectKey: {
+                                        readonly type: "string";
+                                    };
+                                };
+                                readonly required: readonly ["folderId"];
+                            };
+                            readonly createdAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                            readonly updatedAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                        };
+                        readonly required: readonly ["id", "eventKey", "data", "createdAt", "updatedAt"];
                     };
                 };
-                readonly required: readonly ["id", "eventKey"];
+                readonly required: readonly ["event"];
             };
             readonly AppListResponse: {
                 readonly type: "object";
@@ -1588,6 +1614,9 @@ export declare const schema: {
                         readonly items: {
                             readonly type: "object";
                             readonly properties: {
+                                readonly identifier: {
+                                    readonly type: "string";
+                                };
                                 readonly config: {
                                     readonly type: "object";
                                     readonly properties: {
@@ -1667,43 +1696,40 @@ export declare const schema: {
                                     readonly required: readonly ["publicKey", "description", "subscribedEvents", "emitEvents", "actions", "menuItems"];
                                 };
                                 readonly ui: {
-                                    readonly type: "array";
-                                    readonly items: {
+                                    readonly type: "object";
+                                    readonly additionalProperties: {
                                         readonly type: "object";
-                                        readonly additionalProperties: {
-                                            readonly type: "object";
-                                            readonly properties: {
-                                                readonly path: {
-                                                    readonly type: "string";
-                                                };
-                                                readonly name: {
-                                                    readonly type: "string";
-                                                };
-                                                readonly files: {
-                                                    readonly type: "array";
-                                                    readonly items: {
+                                        readonly properties: {
+                                            readonly path: {
+                                                readonly type: "string";
+                                            };
+                                            readonly name: {
+                                                readonly type: "string";
+                                            };
+                                            readonly files: {
+                                                readonly type: "array";
+                                                readonly items: {
+                                                    readonly type: "object";
+                                                    readonly additionalProperties: {
                                                         readonly type: "object";
-                                                        readonly additionalProperties: {
-                                                            readonly type: "object";
-                                                            readonly properties: {
-                                                                readonly size: {
-                                                                    readonly type: "number";
-                                                                };
-                                                                readonly hash: {
-                                                                    readonly type: "string";
-                                                                };
+                                                        readonly properties: {
+                                                            readonly size: {
+                                                                readonly type: "number";
                                                             };
-                                                            readonly required: readonly ["size", "hash"];
+                                                            readonly hash: {
+                                                                readonly type: "string";
+                                                            };
                                                         };
+                                                        readonly required: readonly ["size", "hash"];
                                                     };
                                                 };
                                             };
-                                            readonly required: readonly ["path", "name", "files"];
                                         };
+                                        readonly required: readonly ["path", "name", "files"];
                                     };
                                 };
                             };
-                            readonly required: readonly ["config", "ui"];
+                            readonly required: readonly ["identifier", "config", "ui"];
                         };
                     };
                 };

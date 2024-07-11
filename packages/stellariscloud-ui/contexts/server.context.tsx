@@ -1,23 +1,24 @@
-import type {
-  ListModules200Response,
-  ServerSettings,
-} from '@stellariscloud/api-client'
 import type { AppMenuItem, AppPushMessage } from '@stellariscloud/types'
 import { ServerPushMessage } from '@stellariscloud/types'
 import React from 'react'
 import type { Socket } from 'socket.io-client'
 
 import { useServerWebsocket } from '../hooks/use-server-websocket'
-import { serverApi } from '../services/api'
+import { serverApi, appsApi } from '../services/api'
 import { useLocalFileCacheContext } from './local-file-cache.context'
 import type { LogLevel } from './logging.context'
+import {
+  AppListResponse,
+  SettingsGetResponse,
+  SettingsGetResponseSettings,
+} from '@stellariscloud/api-client'
 
 export interface IServerContext {
   refreshModules: () => Promise<void>
   refreshSettings: () => Promise<void>
   menuItems: AppMenuItemAndHref[]
-  settings?: ServerSettings
-  apps?: ListModules200Response
+  settings?: SettingsGetResponseSettings
+  apps?: AppListResponse
   subscribeToMessages: (handler: SocketMessageHandler) => void
   unsubscribeFromMessages: (handler: SocketMessageHandler) => void
   socketConnected: boolean
@@ -52,24 +53,25 @@ export const ServerContextProvider = ({
 }) => {
   const _localFileCacheContext = useLocalFileCacheContext()
   //   const loggingContext = useLoggingContext()
-  const [serverSettings, setServerSettings] = React.useState<ServerSettings>()
+  const [serverSettings, setServerSettings] =
+    React.useState<SettingsGetResponseSettings>()
   const [menuItems, setMenuItems] = React.useState<AppMenuItemAndHref[]>()
-  const [appModules, setServerApps] = React.useState<ListModules200Response>()
+  const [appModules, setServerApps] = React.useState<AppListResponse>()
 
   const fetchServerSettings = React.useCallback(
     () =>
       serverApi
-        .getSettings()
+        .getServerSettings()
         .then((response) => setServerSettings(response.data.settings)),
     [],
   )
 
   const fetchServerModules = React.useCallback(
     async () =>
-      serverApi.listApps().then((response) => {
+      appsApi.listApps().then((response) => {
         setServerApps(response.data)
         setMenuItems(
-          response.data.installed.reduce<AppMenuItemAndHref[]>((acc, next) => {
+          response.data.result.reduce<AppMenuItemAndHref[]>((acc, next) => {
             return acc.concat(
               next.config.menuItems.map((item) => ({
                 iconPath: item.iconPath,

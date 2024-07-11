@@ -772,7 +772,7 @@ export const schema = {
     },
     "/events/{eventId}": {
       "get": {
-        "operationId": "getAppInfo",
+        "operationId": "getEvent",
         "parameters": [],
         "responses": {
           "200": {
@@ -780,14 +780,14 @@ export const schema = {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EventDTO"
+                  "$ref": "#/components/schemas/EventGetResponse"
                 }
               }
             }
           }
         },
         "tags": [
-          "Event"
+          "Events"
         ]
       }
     },
@@ -1899,19 +1899,52 @@ export const schema = {
           "key"
         ]
       },
-      "EventDTO": {
+      "EventGetResponse": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string"
-          },
-          "eventKey": {
-            "type": "string"
+          "event": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "eventKey": {
+                "type": "string"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "folderId": {
+                    "type": "string"
+                  },
+                  "objectKey": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "folderId"
+                ]
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "eventKey",
+              "data",
+              "createdAt",
+              "updatedAt"
+            ]
           }
         },
         "required": [
-          "id",
-          "eventKey"
+          "event"
         ]
       },
       "AppListResponse": {
@@ -1933,6 +1966,9 @@ export const schema = {
             "items": {
               "type": "object",
               "properties": {
+                "identifier": {
+                  "type": "string"
+                },
                 "config": {
                   "type": "object",
                   "properties": {
@@ -2031,50 +2067,48 @@ export const schema = {
                   ]
                 },
                 "ui": {
-                  "type": "array",
-                  "items": {
+                  "type": "object",
+                  "additionalProperties": {
                     "type": "object",
-                    "additionalProperties": {
-                      "type": "object",
-                      "properties": {
-                        "path": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "type": "string"
-                        },
-                        "files": {
-                          "type": "array",
-                          "items": {
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "files": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": {
                             "type": "object",
-                            "additionalProperties": {
-                              "type": "object",
-                              "properties": {
-                                "size": {
-                                  "type": "number"
-                                },
-                                "hash": {
-                                  "type": "string"
-                                }
+                            "properties": {
+                              "size": {
+                                "type": "number"
                               },
-                              "required": [
-                                "size",
-                                "hash"
-                              ]
-                            }
+                              "hash": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "size",
+                              "hash"
+                            ]
                           }
                         }
-                      },
-                      "required": [
-                        "path",
-                        "name",
-                        "files"
-                      ]
-                    }
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "name",
+                      "files"
+                    ]
                   }
                 }
               },
               "required": [
+                "identifier",
                 "config",
                 "ui"
               ]

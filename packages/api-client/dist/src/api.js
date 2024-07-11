@@ -364,17 +364,17 @@ export class AuthApi extends BaseAPI {
     }
 }
 /**
- * EventApi - axios parameter creator
+ * EventsApi - axios parameter creator
  * @export
  */
-export const EventApiAxiosParamCreator = function (configuration) {
+export const EventsApiAxiosParamCreator = function (configuration) {
     return {
         /**
          *
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAppInfo: async (options = {}) => {
+        getEvent: async (options = {}) => {
             const localVarPath = `/events/{eventId}`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -396,55 +396,55 @@ export const EventApiAxiosParamCreator = function (configuration) {
     };
 };
 /**
- * EventApi - functional programming interface
+ * EventsApi - functional programming interface
  * @export
  */
-export const EventApiFp = function (configuration) {
-    const localVarAxiosParamCreator = EventApiAxiosParamCreator(configuration);
+export const EventsApiFp = function (configuration) {
+    const localVarAxiosParamCreator = EventsApiAxiosParamCreator(configuration);
     return {
         /**
          *
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getAppInfo(options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getAppInfo(options);
+        async getEvent(options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getEvent(options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     };
 };
 /**
- * EventApi - factory interface
+ * EventsApi - factory interface
  * @export
  */
-export const EventApiFactory = function (configuration, basePath, axios) {
-    const localVarFp = EventApiFp(configuration);
+export const EventsApiFactory = function (configuration, basePath, axios) {
+    const localVarFp = EventsApiFp(configuration);
     return {
         /**
          *
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAppInfo(options) {
-            return localVarFp.getAppInfo(options).then((request) => request(axios, basePath));
+        getEvent(options) {
+            return localVarFp.getEvent(options).then((request) => request(axios, basePath));
         },
     };
 };
 /**
- * EventApi - object-oriented interface
+ * EventsApi - object-oriented interface
  * @export
- * @class EventApi
+ * @class EventsApi
  * @extends {BaseAPI}
  */
-export class EventApi extends BaseAPI {
+export class EventsApi extends BaseAPI {
     /**
      *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof EventApi
+     * @memberof EventsApi
      */
-    getAppInfo(options) {
-        return EventApiFp(this.configuration).getAppInfo(options).then((request) => request(this.axios, this.basePath));
+    getEvent(options) {
+        return EventsApiFp(this.configuration).getEvent(options).then((request) => request(this.axios, this.basePath));
     }
 }
 /**

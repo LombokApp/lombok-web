@@ -12,6 +12,7 @@ import express from 'express'
 import { AppService } from 'src/app/services/app.service'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
+import { AppDTO } from '../dto/app.dto'
 import { AppListResponse } from '../dto/responses/app-list-response.dto'
 
 @Controller('/server/apps')
@@ -27,9 +28,9 @@ export class AppsController {
       throw new UnauthorizedException()
     }
     const apps = await this.appService.getApps()
-    const result = Object.keys(apps).reduce(
+    const result = Object.keys(apps).reduce<AppDTO[]>(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      (acc, next) => acc.concat(apps[next] as any),
+      (acc, next) => acc.concat({ ...apps[next], identifier: next } as any),
       [],
     )
     return {

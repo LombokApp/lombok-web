@@ -1,5 +1,6 @@
 import type * as apiClient from '@stellariscloud/api-client'
 import {
+  AppsApi,
   AuthApi,
   FoldersApi,
   ServerApi,
@@ -67,6 +68,7 @@ export const authApi = bindApiConfig(defaultConfig, AuthApi)()
 export const viewerApi = bindApiConfig(defaultConfig, ViewerApi)()
 export const foldersApi = bindApiConfig(defaultConfig, FoldersApi)()
 export const serverApi = bindApiConfig(defaultConfig, ServerApi)()
+export const appsApi = bindApiConfig(defaultConfig, AppsApi)()
 
 export const authApiHooks = createQueryHooks(authApi)
 export const foldersApiHooks = createQueryHooks(foldersApi)
