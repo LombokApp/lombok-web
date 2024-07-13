@@ -1933,7 +1933,7 @@ export declare const ServerApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    resetServerSetting(settingKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    resetServerSetting(settingKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingSetResponse>>;
     /**
      *
      * @param {string} settingKey
@@ -1960,7 +1960,7 @@ export declare const ServerApiFactory: (configuration?: Configuration, basePath?
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    resetServerSetting(requestParameters: ServerApiResetServerSettingRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
+    resetServerSetting(requestParameters: ServerApiResetServerSettingRequest, options?: AxiosRequestConfig): AxiosPromise<SettingSetResponse>;
     /**
      *
      * @param {ServerApiSetServerSettingRequest} requestParameters Request parameters.
@@ -2022,7 +2022,7 @@ export declare class ServerApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof ServerApi
      */
-    resetServerSetting(requestParameters: ServerApiResetServerSettingRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+    resetServerSetting(requestParameters: ServerApiResetServerSettingRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SettingSetResponse, any>>;
     /**
      *
      * @param {ServerApiSetServerSettingRequest} requestParameters Request parameters.

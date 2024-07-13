@@ -2,14 +2,12 @@ import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
 export const folderObjectsListQueryParamsSchema = z.object({
-  offset: z.preprocess(
-    (a) => parseInt(z.string().parse(a), 10),
-    z.number().positive(),
-  ),
-  limit: z.preprocess(
-    (a) => parseInt(z.string().parse(a), 10),
-    z.number().positive(),
-  ),
+  offset: z
+    .preprocess((a) => parseInt(a as string, 10), z.number().positive())
+    .optional(),
+  limit: z
+    .preprocess((a) => parseInt(a as string, 10), z.number().positive())
+    .optional(),
   search: z.string().optional(),
 })
 

@@ -4,14 +4,12 @@ import { z } from 'zod'
 import { UserSort } from '../services/users.service'
 
 export const usersListQueryParamsSchema = z.object({
-  offset: z.preprocess(
-    (a) => parseInt(z.string().parse(a), 10),
-    z.number().positive(),
-  ),
-  limit: z.preprocess(
-    (a) => parseInt(z.string().parse(a), 10),
-    z.number().positive(),
-  ),
+  offset: z
+    .preprocess((a) => parseInt(a as string, 10), z.number().positive())
+    .optional(),
+  limit: z
+    .preprocess((a) => parseInt(a as string, 10), z.number().positive())
+    .optional(),
   isAdmin: z.preprocess((a) => a === 'true', z.boolean().optional()),
   sort: z.nativeEnum(UserSort).optional(),
 })

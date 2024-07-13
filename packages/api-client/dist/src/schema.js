@@ -218,6 +218,8 @@ export const schema = {
                         "required": false,
                         "in": "query",
                         "schema": {
+                            "minimum": 0,
+                            "exclusiveMinimum": true,
                             "type": "number"
                         }
                     },
@@ -226,6 +228,8 @@ export const schema = {
                         "required": false,
                         "in": "query",
                         "schema": {
+                            "minimum": 0,
+                            "exclusiveMinimum": true,
                             "type": "number"
                         }
                     },
@@ -604,6 +608,8 @@ export const schema = {
                         "required": false,
                         "in": "query",
                         "schema": {
+                            "minimum": 0,
+                            "exclusiveMinimum": true,
                             "type": "number"
                         }
                     },
@@ -612,6 +618,8 @@ export const schema = {
                         "required": false,
                         "in": "query",
                         "schema": {
+                            "minimum": 0,
+                            "exclusiveMinimum": true,
                             "type": "number"
                         }
                     },
@@ -893,7 +901,14 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "Reset a setting in the server settings objects.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SettingSetResponse"
+                                }
+                            }
+                        }
                     }
                 },
                 "tags": [

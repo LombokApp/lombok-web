@@ -2782,7 +2782,7 @@ export const ServerApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async resetServerSetting(settingKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async resetServerSetting(settingKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingSetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.resetServerSetting(settingKey, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -2821,7 +2821,7 @@ export const ServerApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        resetServerSetting(requestParameters: ServerApiResetServerSettingRequest, options?: AxiosRequestConfig): AxiosPromise<void> {
+        resetServerSetting(requestParameters: ServerApiResetServerSettingRequest, options?: AxiosRequestConfig): AxiosPromise<SettingSetResponse> {
             return localVarFp.resetServerSetting(requestParameters.settingKey, options).then((request) => request(axios, basePath));
         },
         /**

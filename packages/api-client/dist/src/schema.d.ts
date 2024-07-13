@@ -193,6 +193,8 @@ export declare const schema: {
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
+                        readonly minimum: 0;
+                        readonly exclusiveMinimum: true;
                         readonly type: "number";
                     };
                 }, {
@@ -200,6 +202,8 @@ export declare const schema: {
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
+                        readonly minimum: 0;
+                        readonly exclusiveMinimum: true;
                         readonly type: "number";
                     };
                 }, {
@@ -503,6 +507,8 @@ export declare const schema: {
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
+                        readonly minimum: 0;
+                        readonly exclusiveMinimum: true;
                         readonly type: "number";
                     };
                 }, {
@@ -510,6 +516,8 @@ export declare const schema: {
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
+                        readonly minimum: 0;
+                        readonly exclusiveMinimum: true;
                         readonly type: "number";
                     };
                 }, {
@@ -746,7 +754,14 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "";
+                        readonly description: "Reset a setting in the server settings objects.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/SettingSetResponse";
+                                };
+                            };
+                        };
                     };
                 };
                 readonly tags: readonly ["Server"];
