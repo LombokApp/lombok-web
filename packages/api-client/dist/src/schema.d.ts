@@ -76,6 +76,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Auth"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
         };
         readonly "/auth/refresh-token": {
@@ -95,6 +98,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Auth"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
         };
         readonly "/viewer": {
@@ -114,6 +120,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Viewer"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
             readonly put: {
                 readonly operationId: "updateViewer";
@@ -141,6 +150,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Viewer"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
         };
         readonly "/server/users": {
@@ -170,6 +182,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Users"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
             readonly get: {
                 readonly operationId: "listUsers";
@@ -216,6 +231,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Users"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
         };
         readonly "/server/users/{userId}": {
@@ -252,6 +270,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Users"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
             readonly get: {
                 readonly operationId: "getUser";
@@ -276,6 +297,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Users"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
             readonly delete: {
                 readonly operationId: "deleteUser";
@@ -293,6 +317,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Users"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
         };
         readonly "/folders/{folderId}": {
@@ -319,6 +346,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
             readonly delete: {
                 readonly operationId: "deleteFolder";
@@ -336,6 +366,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
         };
         readonly "/folders/{folderId}/metadata": {
@@ -362,6 +395,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
         };
         readonly "/folders": {
@@ -395,6 +431,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
             readonly post: {
                 readonly operationId: "createFolder";
@@ -422,6 +461,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
         };
         readonly "/folders/{folderId}/rescan": {
@@ -441,6 +483,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
         };
         readonly "/folders/{folderId}/objects": {
@@ -488,6 +533,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
         };
         readonly "/folders/{folderId}/objects/{objectKey}": {
@@ -521,6 +569,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
             readonly delete: {
                 readonly operationId: "deleteFolderObject";
@@ -545,6 +596,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
             readonly post: {
                 readonly operationId: "refreshFolderObjectS3Metadata";
@@ -576,6 +630,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
         };
         readonly "/folders/{folderId}/presigned-urls": {
@@ -612,6 +669,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
         };
         readonly "/server/settings": {
@@ -631,6 +691,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Server"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
         };
         readonly "/server/settings/{settingKey}": {
@@ -667,6 +730,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Server"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
         };
         readonly "/events/{eventId}": {
@@ -686,6 +752,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Events"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
         };
         readonly "/server/apps": {
@@ -705,6 +774,9 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Apps"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
             };
         };
     };

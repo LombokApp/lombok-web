@@ -10,7 +10,7 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
@@ -21,6 +21,7 @@ import { ServerConfigurationService } from '../services/server-configuration.ser
 
 @Controller('/server')
 @ApiTags('Server')
+@ApiBearerAuth()
 @UsePipes(ZodValidationPipe)
 @UseGuards(AuthGuard)
 export class ServerController {

@@ -8,7 +8,7 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import {
@@ -24,6 +24,7 @@ import { UserService } from '../services/users.service'
 @Controller('/viewer')
 @ApiTags('Viewer')
 @UseGuards(AuthGuard)
+@ApiBearerAuth()
 @UsePipes(ZodValidationPipe)
 export class ViewerController {
   constructor(private readonly userService: UserService) {}

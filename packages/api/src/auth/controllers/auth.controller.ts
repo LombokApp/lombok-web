@@ -7,7 +7,7 @@ import {
   Post,
   UsePipes,
 } from '@nestjs/common'
-import { ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 
 import { LoginCredentialsDTO } from '../dto/login-credentials.dto'
 import type { LoginResponse } from '../dto/responses/login-response.dto'
@@ -49,6 +49,7 @@ export class AuthController {
    * Logout. Kill the current session.
    */
   @Post('/logout')
+  @ApiBearerAuth()
   logout(): Promise<boolean> {
     // const session = await this.authService.logout(input)
     return Promise.resolve(true)
@@ -58,6 +59,7 @@ export class AuthController {
    * Logout. Kill the current session.
    */
   @Post('/refresh-token')
+  @ApiBearerAuth()
   refreshToken(): Promise<TokenRefreshResponse> {
     // const session = await this.authService.logout(input)
     return Promise.resolve({

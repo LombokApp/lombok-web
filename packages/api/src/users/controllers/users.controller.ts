@@ -13,7 +13,7 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { UserGetResponse } from 'src/server/dto/responses/user-get-response.dto'
@@ -28,6 +28,7 @@ import { UsersListQueryParamsDTO } from '../dto/users-list-query-params.dto'
 @Controller('/server/users')
 @ApiTags('Users')
 @UsePipes(ZodValidationPipe)
+@ApiBearerAuth()
 @UseGuards(AuthGuard)
 export class UsersController {
   constructor(private readonly userService: UserService) {}

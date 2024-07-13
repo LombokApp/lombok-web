@@ -12,7 +12,7 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
@@ -36,6 +36,7 @@ import { FolderPermissionName, FolderService } from '../services/folder.service'
 @ApiTags('Folders')
 @UseGuards(AuthGuard)
 @UsePipes(ZodValidationPipe)
+@ApiBearerAuth()
 export class FoldersController {
   constructor(private readonly folderService: FolderService) {}
 

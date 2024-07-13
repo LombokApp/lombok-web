@@ -7,7 +7,7 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AppService } from 'src/app/services/app.service'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
@@ -19,6 +19,7 @@ import { AppListResponse } from '../dto/responses/app-list-response.dto'
 @ApiTags('Apps')
 @UsePipes(ZodValidationPipe)
 @UseGuards(AuthGuard)
+@ApiBearerAuth()
 export class AppsController {
   constructor(private readonly appService: AppService) {}
 

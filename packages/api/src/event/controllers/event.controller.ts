@@ -1,6 +1,6 @@
 import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import { Controller, Get, Param, UseGuards, UsePipes } from '@nestjs/common'
-import { ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
 import { EventGetResponse } from '../dto/responses/event-get-response.dto'
@@ -10,6 +10,7 @@ import { transformEventToDTO } from '../transforms/event.transforms'
 @Controller('/events')
 @ApiTags('Events')
 @UseGuards(AuthGuard)
+@ApiBearerAuth()
 @UsePipes(ZodValidationPipe)
 export class EventController {
   constructor(private readonly eventService: EventService) {}

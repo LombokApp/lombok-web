@@ -81,6 +81,11 @@ export const schema = {
         },
         "tags": [
           "Auth"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     },
@@ -102,6 +107,11 @@ export const schema = {
         },
         "tags": [
           "Auth"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     },
@@ -123,6 +133,11 @@ export const schema = {
         },
         "tags": [
           "Viewer"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       },
       "put": {
@@ -152,6 +167,11 @@ export const schema = {
         },
         "tags": [
           "Viewer"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     },
@@ -183,6 +203,11 @@ export const schema = {
         },
         "tags": [
           "Users"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       },
       "get": {
@@ -249,6 +274,11 @@ export const schema = {
         },
         "tags": [
           "Users"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     },
@@ -289,6 +319,11 @@ export const schema = {
         },
         "tags": [
           "Users"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       },
       "get": {
@@ -317,6 +352,11 @@ export const schema = {
         },
         "tags": [
           "Users"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       },
       "delete": {
@@ -338,6 +378,11 @@ export const schema = {
         },
         "tags": [
           "Users"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     },
@@ -368,6 +413,11 @@ export const schema = {
         },
         "tags": [
           "Folders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       },
       "delete": {
@@ -389,6 +439,11 @@ export const schema = {
         },
         "tags": [
           "Folders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     },
@@ -419,6 +474,11 @@ export const schema = {
         },
         "tags": [
           "Folders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     },
@@ -457,6 +517,11 @@ export const schema = {
         },
         "tags": [
           "Folders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       },
       "post": {
@@ -486,6 +551,11 @@ export const schema = {
         },
         "tags": [
           "Folders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     },
@@ -509,6 +579,11 @@ export const schema = {
         },
         "tags": [
           "Folders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     },
@@ -563,6 +638,11 @@ export const schema = {
         },
         "tags": [
           "Folders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     },
@@ -601,6 +681,11 @@ export const schema = {
         },
         "tags": [
           "Folders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       },
       "delete": {
@@ -630,6 +715,11 @@ export const schema = {
         },
         "tags": [
           "Folders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       },
       "post": {
@@ -666,6 +756,11 @@ export const schema = {
         },
         "tags": [
           "Folders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     },
@@ -706,6 +801,11 @@ export const schema = {
         },
         "tags": [
           "Folders"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     },
@@ -727,6 +827,11 @@ export const schema = {
         },
         "tags": [
           "Server"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     },
@@ -767,6 +872,11 @@ export const schema = {
         },
         "tags": [
           "Server"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     },
@@ -788,6 +898,11 @@ export const schema = {
         },
         "tags": [
           "Events"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     },
@@ -809,6 +924,11 @@ export const schema = {
         },
         "tags": [
           "Apps"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
         ]
       }
     }
