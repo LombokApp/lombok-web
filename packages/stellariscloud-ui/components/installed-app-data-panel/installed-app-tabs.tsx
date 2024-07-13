@@ -11,7 +11,7 @@ import { Button } from '../../design-system/button/button'
 
 export type ModulesTab = 'config' | 'logs' | 'events' | 'workers'
 
-export function ModulesTabs({
+export function InstalledAppTabs({
   activeTab,
   onChange,
 }: {

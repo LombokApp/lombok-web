@@ -1058,7 +1058,7 @@ export const FolderDetailScreen = () => {
   const startOrContinueFolderRefresh = React.useCallback(
     (_t?: string) => {
       if (folderContext.folderMetadata) {
-        void foldersApi.refreshFolder({ folderId: folderContext.folderId })
+        void foldersApi.rescanFolder({ folderId: folderContext.folderId })
       }
     },
     [folderContext.folderId, folderContext.folderMetadata],

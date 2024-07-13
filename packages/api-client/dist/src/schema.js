@@ -878,6 +878,32 @@ export const schema = {
                         "bearer": []
                     }
                 ]
+            },
+            "delete": {
+                "operationId": "resetServerSetting",
+                "parameters": [
+                    {
+                        "name": "settingKey",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "tags": [
+                    "Server"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
             }
         },
         "/events/{eventId}": {
@@ -2010,13 +2036,13 @@ export const schema = {
             "SettingSetResponse": {
                 "type": "object",
                 "properties": {
-                    "key": {
+                    "settingKey": {
                         "type": "string"
                     },
-                    "value": {}
+                    "settingValue": {}
                 },
                 "required": [
-                    "key"
+                    "settingKey"
                 ]
             },
             "EventGetResponse": {
@@ -2198,24 +2224,21 @@ export const schema = {
                                                 "type": "string"
                                             },
                                             "files": {
-                                                "type": "array",
-                                                "items": {
+                                                "type": "object",
+                                                "additionalProperties": {
                                                     "type": "object",
-                                                    "additionalProperties": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "size": {
-                                                                "type": "number"
-                                                            },
-                                                            "hash": {
-                                                                "type": "string"
-                                                            }
+                                                    "properties": {
+                                                        "size": {
+                                                            "type": "number"
                                                         },
-                                                        "required": [
-                                                            "size",
-                                                            "hash"
-                                                        ]
-                                                    }
+                                                        "hash": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "size",
+                                                        "hash"
+                                                    ]
                                                 }
                                             }
                                         },

@@ -734,6 +734,26 @@ export declare const schema: {
                     readonly bearer: readonly [];
                 }];
             };
+            readonly delete: {
+                readonly operationId: "resetServerSetting";
+                readonly parameters: readonly [{
+                    readonly name: "settingKey";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "";
+                    };
+                };
+                readonly tags: readonly ["Server"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
         };
         readonly "/events/{eventId}": {
             readonly get: {
@@ -1624,12 +1644,12 @@ export declare const schema: {
             readonly SettingSetResponse: {
                 readonly type: "object";
                 readonly properties: {
-                    readonly key: {
+                    readonly settingKey: {
                         readonly type: "string";
                     };
-                    readonly value: {};
+                    readonly settingValue: {};
                 };
-                readonly required: readonly ["key"];
+                readonly required: readonly ["settingKey"];
             };
             readonly EventGetResponse: {
                 readonly type: "object";
@@ -1779,21 +1799,18 @@ export declare const schema: {
                                                 readonly type: "string";
                                             };
                                             readonly files: {
-                                                readonly type: "array";
-                                                readonly items: {
+                                                readonly type: "object";
+                                                readonly additionalProperties: {
                                                     readonly type: "object";
-                                                    readonly additionalProperties: {
-                                                        readonly type: "object";
-                                                        readonly properties: {
-                                                            readonly size: {
-                                                                readonly type: "number";
-                                                            };
-                                                            readonly hash: {
-                                                                readonly type: "string";
-                                                            };
+                                                    readonly properties: {
+                                                        readonly size: {
+                                                            readonly type: "number";
                                                         };
-                                                        readonly required: readonly ["size", "hash"];
+                                                        readonly hash: {
+                                                            readonly type: "string";
+                                                        };
                                                     };
+                                                    readonly required: readonly ["size", "hash"];
                                                 };
                                             };
                                         };

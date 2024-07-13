@@ -19,7 +19,7 @@ export interface AppConfig {
 }
 
 export interface ConnectedAppInstancesMap {
-  [name: string]: ConnectedAppInstance[]
+  [appIdentifier: string]: ConnectedAppInstance[]
 }
 
 export interface ConnectedAppInstance {

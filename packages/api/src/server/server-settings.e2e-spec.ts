@@ -48,13 +48,48 @@ describe('Server - Settings', () => {
         setSettingInputDTO: { value: true },
       })
     expect(settings.status).toEqual(200)
-    expect(settings.data.key).toEqual('SIGNUP_ENABLED')
+    expect(settings.data.settingKey).toEqual('SIGNUP_ENABLED')
 
     const newSettings = await apiClient
       .serverApi({ accessToken })
       .getServerSettings()
 
     expect(newSettings.data).toEqual({ settings: { SIGNUP_ENABLED: true } })
+  })
+
+  it(`should reset a server setting`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule, {
+      username: 'mekpans',
+      password: '123',
+      admin: true,
+    })
+
+    const settings = await apiClient
+      .serverApi({ accessToken })
+      .setServerSetting({
+        settingKey: 'SIGNUP_ENABLED',
+        setSettingInputDTO: { value: true },
+      })
+    expect(settings.status).toEqual(200)
+    expect(settings.data.settingKey).toEqual('SIGNUP_ENABLED')
+
+    const newSettings = await apiClient
+      .serverApi({ accessToken })
+      .getServerSettings()
+
+    expect(newSettings.data).toEqual({ settings: { SIGNUP_ENABLED: true } })
+
+    await apiClient.serverApi({ accessToken }).resetServerSetting({
+      settingKey: 'SIGNUP_ENABLED',
+    })
+
+    const settingsAfterKeyReset = await apiClient
+      .serverApi({ accessToken })
+      .getServerSettings()
+
+    expect(settingsAfterKeyReset.data).toEqual({ settings: {} })
   })
 
   it(`should fail to set the server setting if not admin`, async () => {

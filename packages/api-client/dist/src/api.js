@@ -1231,6 +1231,37 @@ export const ServerApiAxiosParamCreator = function (configuration) {
         /**
          *
          * @param {string} settingKey
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        resetServerSetting: async (settingKey, options = {}) => {
+            // verify required parameter 'settingKey' is not null or undefined
+            assertParamExists('resetServerSetting', 'settingKey', settingKey);
+            const localVarPath = `/server/settings/{settingKey}`
+                .replace(`{${"settingKey"}}`, encodeURIComponent(String(settingKey)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} settingKey
          * @param {SetSettingInputDTO} setSettingInputDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1285,6 +1316,16 @@ export const ServerApiFp = function (configuration) {
         /**
          *
          * @param {string} settingKey
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async resetServerSetting(settingKey, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.resetServerSetting(settingKey, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} settingKey
          * @param {SetSettingInputDTO} setSettingInputDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1312,6 +1353,15 @@ export const ServerApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @param {ServerApiResetServerSettingRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        resetServerSetting(requestParameters, options) {
+            return localVarFp.resetServerSetting(requestParameters.settingKey, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
          * @param {ServerApiSetServerSettingRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1336,6 +1386,16 @@ export class ServerApi extends BaseAPI {
      */
     getServerSettings(options) {
         return ServerApiFp(this.configuration).getServerSettings(options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {ServerApiResetServerSettingRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    resetServerSetting(requestParameters, options) {
+        return ServerApiFp(this.configuration).resetServerSetting(requestParameters.settingKey, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *

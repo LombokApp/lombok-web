@@ -185,29 +185,29 @@ export interface AppListResponseResultInnerUiValue {
     'name': string;
     /**
      *
-     * @type {Array<{ [key: string]: AppListResponseResultInnerUiValueFilesInnerValue | undefined; }>}
+     * @type {{ [key: string]: AppListResponseResultInnerUiValueFilesValue | undefined; }}
      * @memberof AppListResponseResultInnerUiValue
      */
-    'files': Array<{
-        [key: string]: AppListResponseResultInnerUiValueFilesInnerValue | undefined;
-    }>;
+    'files': {
+        [key: string]: AppListResponseResultInnerUiValueFilesValue | undefined;
+    };
 }
 /**
  *
  * @export
- * @interface AppListResponseResultInnerUiValueFilesInnerValue
+ * @interface AppListResponseResultInnerUiValueFilesValue
  */
-export interface AppListResponseResultInnerUiValueFilesInnerValue {
+export interface AppListResponseResultInnerUiValueFilesValue {
     /**
      *
      * @type {number}
-     * @memberof AppListResponseResultInnerUiValueFilesInnerValue
+     * @memberof AppListResponseResultInnerUiValueFilesValue
      */
     'size': number;
     /**
      *
      * @type {string}
-     * @memberof AppListResponseResultInnerUiValueFilesInnerValue
+     * @memberof AppListResponseResultInnerUiValueFilesValue
      */
     'hash': string;
 }
@@ -754,13 +754,13 @@ export interface SettingSetResponse {
      * @type {string}
      * @memberof SettingSetResponse
      */
-    'key': string;
+    'settingKey': string;
     /**
      *
      * @type {any}
      * @memberof SettingSetResponse
      */
-    'value'?: any;
+    'settingValue'?: any;
 }
 /**
  *
@@ -1903,6 +1903,13 @@ export declare const ServerApiAxiosParamCreator: (configuration?: Configuration)
     /**
      *
      * @param {string} settingKey
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    resetServerSetting: (settingKey: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} settingKey
      * @param {SetSettingInputDTO} setSettingInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1920,6 +1927,13 @@ export declare const ServerApiFp: (configuration?: Configuration) => {
      * @throws {RequiredError}
      */
     getServerSettings(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingsGetResponse>>;
+    /**
+     *
+     * @param {string} settingKey
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    resetServerSetting(settingKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
     /**
      *
      * @param {string} settingKey
@@ -1942,12 +1956,32 @@ export declare const ServerApiFactory: (configuration?: Configuration, basePath?
     getServerSettings(options?: AxiosRequestConfig): AxiosPromise<SettingsGetResponse>;
     /**
      *
+     * @param {ServerApiResetServerSettingRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    resetServerSetting(requestParameters: ServerApiResetServerSettingRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
+    /**
+     *
      * @param {ServerApiSetServerSettingRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     setServerSetting(requestParameters: ServerApiSetServerSettingRequest, options?: AxiosRequestConfig): AxiosPromise<SettingSetResponse>;
 };
+/**
+ * Request parameters for resetServerSetting operation in ServerApi.
+ * @export
+ * @interface ServerApiResetServerSettingRequest
+ */
+export interface ServerApiResetServerSettingRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerApiResetServerSetting
+     */
+    readonly settingKey: string;
+}
 /**
  * Request parameters for setServerSetting operation in ServerApi.
  * @export
@@ -1981,6 +2015,14 @@ export declare class ServerApi extends BaseAPI {
      * @memberof ServerApi
      */
     getServerSettings(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SettingsGetResponse, any>>;
+    /**
+     *
+     * @param {ServerApiResetServerSettingRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerApi
+     */
+    resetServerSetting(requestParameters: ServerApiResetServerSettingRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
     /**
      *
      * @param {ServerApiSetServerSettingRequest} requestParameters Request parameters.

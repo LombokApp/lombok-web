@@ -37,14 +37,12 @@ export const appSchema = z.object({
     z.object({
       path: z.string(),
       name: z.string(),
-      files: z.array(
-        z.record(
-          z.string(),
-          z.object({
-            size: z.number(),
-            hash: z.string(),
-          }),
-        ),
+      files: z.record(
+        z.string(),
+        z.object({
+          size: z.number(),
+          hash: z.string(),
+        }),
       ),
     }),
   ),

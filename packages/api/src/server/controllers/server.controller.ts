@@ -2,6 +2,7 @@ import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Put,
@@ -69,8 +70,29 @@ export class ServerController {
       settingValue.value,
     )
     return {
-      key: settingKey,
-      value: settingValue.value,
+      settingKey,
+      settingValue: settingValue.value,
     }
+  }
+
+  /**
+   * Reset a setting in the server settings objects.
+   */
+  @Delete('/settings/:settingKey')
+  async resetServerSetting(
+    @Req() req: express.Request,
+    @Param('settingKey') settingKey: string,
+  ): Promise<SettingSetResponse> {
+    if (!req.user?.isAdmin) {
+      throw new UnauthorizedException()
+    }
+    await this.serverConfigurationService.resetServerSettingAsUser(
+      req.user,
+      settingKey,
+    )
+    const newSettings =
+      await this.serverConfigurationService.getServerSettingsAsUser(req.user)
+
+    return { settingKey, settingValue: newSettings[settingKey] }
   }
 }

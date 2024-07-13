@@ -5,7 +5,7 @@ import React from 'react'
 
 import { PageHeading } from '../../design-system/page-heading/page-heading'
 import { ServerUsers } from './list-server-users/list-server-users.view'
-import { ServerModulesScreen } from './server-modules-screen/server-modules-screen.view'
+import { ServerAppsScreen } from './server-apps-screen/server-apps-screen.view'
 import { ServerOverview } from './server-overview/server-overview'
 import { ServerSettingsScreen } from './server-settings-screen/server-settings-screen'
 import { ServerStorageConfig } from './server-storage-config/server-storage-config.view'
@@ -45,7 +45,7 @@ export function ServerScreen() {
             )}
             {activeTab === 'users' && <ServerUsers />}
             {activeTab === 'storage' && <ServerStorageConfig />}
-            {activeTab === 'modules' && <ServerModulesScreen />}
+            {activeTab === 'modules' && <ServerAppsScreen />}
             {activeTab === 'settings' && <ServerSettingsScreen />}
           </div>
         </div>

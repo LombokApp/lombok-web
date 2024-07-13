@@ -5,6 +5,7 @@ import type { Request, Response } from 'express'
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
+    console.log('API EXCEPTION:', JSON.stringify(exception, null, 2))
     // Get the response object from the arguments host
     const ctx = host.switchToHttp()
     const response = ctx.getResponse<Response>()

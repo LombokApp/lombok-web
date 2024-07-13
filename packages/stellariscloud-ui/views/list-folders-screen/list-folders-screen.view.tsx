@@ -1,5 +1,6 @@
 import { PlusIcon } from '@heroicons/react/20/solid'
 import type {
+  FolderGetResponse,
   // FolderAndPermission,
   FoldersApiCreateFolderRequest,
   // ServerLocationData,
@@ -21,7 +22,7 @@ import { foldersApi, foldersApiHooks, serverApi } from '../../services/api'
 
 export const ListFoldersScreen = () => {
   const router = useRouter()
-  // const [folders, setFolders] = React.useState<FolderAndPermission[]>()
+  const [folders, setFolders] = React.useState<FolderGetResponse[]>()
   const [folderFormKey, setFolderFormKey] = React.useState<string>()
   const [forgetFolderConfirmationOpen, setForgetFolderConfirmationOpen] =
     React.useState<string | false>(false)
@@ -71,8 +72,9 @@ export const ListFoldersScreen = () => {
 
   const listFolders = foldersApiHooks.useListFolders({}, { retry: 0 })
   const refreshFolders = React.useCallback(() => {
-    void listFolders.refetch()
-    // .then((response) => setFolders(response.data?.result))
+    void listFolders
+      .refetch()
+      .then((response) => setFolders(response.data?.result))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listFolders.refetch])
 
@@ -89,17 +91,18 @@ export const ListFoldersScreen = () => {
     refreshFolders()
   }, [refreshFolders])
 
-  const handleCreateFolder = (
-    folder: FoldersApiCreateFolderRequest['folderCreateInputDTO'],
-  ) => {
-    void foldersApi.createFolder({ folderCreateInputDTO: folder })
-    // .then((response) => {
-    //   setFolders(
-    //     folders?.concat([{ folder: response.data.folder, permissions: [] }]),
-    //   )
-    //   void router.push({ pathname: router.pathname })
-    // })
-  }
+  // const handleCreateFolder = (
+  //   folder: FoldersApiCreateFolderRequest['folderCreateInputDTO'],
+  // ) => {
+  //   void foldersApi
+  //     .createFolder({ folderCreateInputDTO: folder })
+  //     .then((response) => {
+  //       setFolders(
+  //         folders?.concat([{ folder: response.data.folder, permissions: [] }]),
+  //       )
+  //       void router.push({ pathname: router.pathname })
+  //     })
+  // }
 
   return (
     <>
@@ -152,7 +155,7 @@ export const ListFoldersScreen = () => {
               folderFormKey && 'opacity-0',
             )}
           >
-            {/* {folders?.map((folderAndPermission, i) => (
+            {folders?.map((folderAndPermission, i) => (
               <li key={folderAndPermission.folder.id} className="col-span-1">
                 <Link
                   href={`/folders/${folderAndPermission.folder.id}`}
@@ -167,7 +170,7 @@ export const ListFoldersScreen = () => {
                   />
                 </Link>
               </li>
-            ))} */}
+            ))}
             {/* {folders !== undefined && (
               <li className="">
                 <CreateFolderStartPanel onCreate={handleStartCreate} />
