@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 export interface IndexingJobContext {
   error?: string
   continuationToken?: string
@@ -263,3 +265,14 @@ export interface PresignedURLResult {
   url: string
   method: 'PUT' | 'DELETE' | 'GET'
 }
+
+export const FolderPermissionZodEnum = z.enum([
+  'FOLDER_RESCAN',
+  'FOLDER_FORGET',
+  'OBJECT_EDIT',
+  'OBJECT_MANAGE',
+])
+
+export type FolderPermissionName = z.infer<typeof FolderPermissionZodEnum>
+
+export const FolderPermissionEnum = FolderPermissionZodEnum.Enum

@@ -12,12 +12,17 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
+import { FolderPermissionEnum } from '@stellariscloud/types'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
+import { FolderDTO } from '../dto/folder.dto'
 import { FolderCreateInputDTO } from '../dto/folder-create-input.dto'
 import { FolderCreateSignedUrlInputDTO } from '../dto/folder-create-signed-url-input.dto'
+import { FolderObjectDTO } from '../dto/folder-object.dto'
+import { FolderObjectContentAttributesDTO } from '../dto/folder-object-content-attributes.dto'
+import { FolderObjectContentMetadataDTO } from '../dto/folder-object-content-metadata.dto'
 import { FolderObjectsListQueryParamsDTO } from '../dto/folder-objects-list-query-params.dto'
 import { FoldersListQueryParamsDTO } from '../dto/folders-list-query-params.dto'
 import type { FolderCreateResponse } from '../dto/responses/folder-create-response.dto'
@@ -30,13 +35,19 @@ import type { FolderObjectListResponse } from '../dto/responses/folder-object-li
 import { transformFolderToDTO } from '../dto/transforms/folder.transforms'
 import { transformFolderObjectToDTO } from '../dto/transforms/folder-object.transforms'
 import { FolderPermissionUnauthorizedException } from '../exceptions/folder-permission-unauthorized.exception'
-import { FolderPermissionName, FolderService } from '../services/folder.service'
+import { FolderService } from '../services/folder.service'
 
 @Controller('/folders')
 @ApiTags('Folders')
 @UseGuards(AuthGuard)
 @UsePipes(ZodValidationPipe)
 @ApiBearerAuth()
+@ApiExtraModels(
+  FolderDTO,
+  FolderObjectDTO,
+  FolderObjectContentMetadataDTO,
+  FolderObjectContentAttributesDTO,
+)
 export class FoldersController {
   constructor(private readonly folderService: FolderService) {}
 
@@ -146,7 +157,7 @@ export class FoldersController {
       userId: req.user.id,
     })
 
-    if (result.permissions.includes(FolderPermissionName.FOLDER_RESCAN)) {
+    if (result.permissions.includes(FolderPermissionEnum.FOLDER_RESCAN)) {
       await this.folderService.queueRescanFolder(result.folder.id, req.user.id)
     } else {
       throw new FolderPermissionUnauthorizedException()

@@ -22,6 +22,39 @@ export const FolderCreateSignedUrlInputDTOInnerMethodEnum = {
     Put: 'PUT',
     Get: 'GET'
 };
+export const FolderGetResponsePermissionsEnum = {
+    FolderRescan: 'FOLDER_RESCAN',
+    FolderForget: 'FOLDER_FORGET',
+    ObjectEdit: 'OBJECT_EDIT',
+    ObjectManage: 'OBJECT_MANAGE'
+};
+export const FolderListResponseResultInnerPermissionsEnum = {
+    FolderRescan: 'FOLDER_RESCAN',
+    FolderForget: 'FOLDER_FORGET',
+    ObjectEdit: 'OBJECT_EDIT',
+    ObjectManage: 'OBJECT_MANAGE'
+};
+export const FolderObjectContentAttributesDTOMediaTypeEnum = {
+    Image: 'IMAGE',
+    Video: 'VIDEO',
+    Audio: 'AUDIO',
+    Document: 'DOCUMENT',
+    Unknown: 'UNKNOWN'
+};
+export const FolderObjectDTOMediaTypeEnum = {
+    Image: 'IMAGE',
+    Video: 'VIDEO',
+    Audio: 'AUDIO',
+    Document: 'DOCUMENT',
+    Unknown: 'UNKNOWN'
+};
+export const FolderObjectDTOContentAttributesValueMediaTypeEnum = {
+    Image: 'IMAGE',
+    Video: 'VIDEO',
+    Audio: 'AUDIO',
+    Document: 'DOCUMENT',
+    Unknown: 'UNKNOWN'
+};
 export const FolderObjectListResponseResultInnerMediaTypeEnum = {
     Image: 'IMAGE',
     Video: 'VIDEO',

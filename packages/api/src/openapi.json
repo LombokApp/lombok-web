@@ -1415,6 +1415,289 @@
           "result"
         ]
       },
+      "FolderDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "ownerId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "metadataLocation": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "userId": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "endpoint": {
+                "type": "string"
+              },
+              "region": {
+                "type": "string"
+              },
+              "bucket": {
+                "type": "string"
+              },
+              "prefix": {
+                "type": "string"
+              },
+              "accessKeyId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "endpoint",
+              "region",
+              "bucket",
+              "accessKeyId"
+            ]
+          },
+          "contentLocation": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "userId": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "endpoint": {
+                "type": "string"
+              },
+              "region": {
+                "type": "string"
+              },
+              "bucket": {
+                "type": "string"
+              },
+              "prefix": {
+                "type": "string"
+              },
+              "accessKeyId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "endpoint",
+              "region",
+              "bucket",
+              "accessKeyId"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "ownerId",
+          "name",
+          "metadataLocation",
+          "contentLocation"
+        ]
+      },
+      "FolderObjectDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "objectKey": {
+            "type": "string"
+          },
+          "folderId": {
+            "type": "string"
+          },
+          "hash": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastModified": {
+            "type": "number"
+          },
+          "eTag": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "number"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "mediaType": {
+            "type": "string",
+            "enum": [
+              "IMAGE",
+              "VIDEO",
+              "AUDIO",
+              "DOCUMENT",
+              "UNKNOWN"
+            ]
+          },
+          "contentAttributes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "mediaType": {
+                  "type": "string",
+                  "enum": [
+                    "IMAGE",
+                    "VIDEO",
+                    "AUDIO",
+                    "DOCUMENT",
+                    "UNKNOWN"
+                  ]
+                },
+                "mimeType": {
+                  "type": "string"
+                },
+                "height": {
+                  "type": "number"
+                },
+                "width": {
+                  "type": "number"
+                },
+                "orientation": {
+                  "type": "number"
+                },
+                "lengthMs": {
+                  "type": "number"
+                },
+                "bitrate": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "mediaType",
+                "mimeType",
+                "height",
+                "width",
+                "orientation",
+                "lengthMs",
+                "bitrate"
+              ]
+            }
+          },
+          "contentMetadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "mimeType": {
+                    "type": "string"
+                  },
+                  "size": {
+                    "type": "number"
+                  },
+                  "hash": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "mimeType",
+                  "size",
+                  "hash"
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "id",
+          "objectKey",
+          "folderId",
+          "lastModified",
+          "eTag",
+          "sizeBytes",
+          "mimeType",
+          "mediaType",
+          "contentAttributes",
+          "contentMetadata"
+        ]
+      },
+      "FolderObjectContentMetadataDTO": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "object",
+          "properties": {
+            "mimeType": {
+              "type": "string"
+            },
+            "size": {
+              "type": "number"
+            },
+            "hash": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "mimeType",
+            "size",
+            "hash"
+          ]
+        }
+      },
+      "FolderObjectContentAttributesDTO": {
+        "type": "object",
+        "properties": {
+          "mediaType": {
+            "type": "string",
+            "enum": [
+              "IMAGE",
+              "VIDEO",
+              "AUDIO",
+              "DOCUMENT",
+              "UNKNOWN"
+            ]
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "height": {
+            "type": "number"
+          },
+          "width": {
+            "type": "number"
+          },
+          "orientation": {
+            "type": "number"
+          },
+          "lengthMs": {
+            "type": "number"
+          },
+          "bitrate": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "mediaType",
+          "mimeType",
+          "height",
+          "width",
+          "orientation",
+          "lengthMs",
+          "bitrate"
+        ]
+      },
       "FolderGetResponse": {
         "type": "object",
         "properties": {
@@ -1516,7 +1799,13 @@
           "permissions": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "FOLDER_RESCAN",
+                "FOLDER_FORGET",
+                "OBJECT_EDIT",
+                "OBJECT_MANAGE"
+              ]
             }
           }
         },
@@ -1562,7 +1851,13 @@
                 "permissions": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                      "FOLDER_RESCAN",
+                      "FOLDER_FORGET",
+                      "OBJECT_EDIT",
+                      "OBJECT_MANAGE"
+                    ]
                   }
                 },
                 "folder": {
@@ -1914,6 +2209,76 @@
                     "DOCUMENT",
                     "UNKNOWN"
                   ]
+                },
+                "contentAttributes": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "mediaType": {
+                        "type": "string",
+                        "enum": [
+                          "IMAGE",
+                          "VIDEO",
+                          "AUDIO",
+                          "DOCUMENT",
+                          "UNKNOWN"
+                        ]
+                      },
+                      "mimeType": {
+                        "type": "string"
+                      },
+                      "height": {
+                        "type": "number"
+                      },
+                      "width": {
+                        "type": "number"
+                      },
+                      "orientation": {
+                        "type": "number"
+                      },
+                      "lengthMs": {
+                        "type": "number"
+                      },
+                      "bitrate": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "mediaType",
+                      "mimeType",
+                      "height",
+                      "width",
+                      "orientation",
+                      "lengthMs",
+                      "bitrate"
+                    ]
+                  }
+                },
+                "contentMetadata": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "mimeType": {
+                          "type": "string"
+                        },
+                        "size": {
+                          "type": "number"
+                        },
+                        "hash": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "mimeType",
+                        "size",
+                        "hash"
+                      ]
+                    }
+                  }
                 }
               },
               "required": [
@@ -1924,7 +2289,9 @@
                 "eTag",
                 "sizeBytes",
                 "mimeType",
-                "mediaType"
+                "mediaType",
+                "contentAttributes",
+                "contentMetadata"
               ]
             }
           }
@@ -1976,6 +2343,76 @@
                   "DOCUMENT",
                   "UNKNOWN"
                 ]
+              },
+              "contentAttributes": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "mediaType": {
+                      "type": "string",
+                      "enum": [
+                        "IMAGE",
+                        "VIDEO",
+                        "AUDIO",
+                        "DOCUMENT",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "mimeType": {
+                      "type": "string"
+                    },
+                    "height": {
+                      "type": "number"
+                    },
+                    "width": {
+                      "type": "number"
+                    },
+                    "orientation": {
+                      "type": "number"
+                    },
+                    "lengthMs": {
+                      "type": "number"
+                    },
+                    "bitrate": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "mediaType",
+                    "mimeType",
+                    "height",
+                    "width",
+                    "orientation",
+                    "lengthMs",
+                    "bitrate"
+                  ]
+                }
+              },
+              "contentMetadata": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                      "mimeType": {
+                        "type": "string"
+                      },
+                      "size": {
+                        "type": "number"
+                      },
+                      "hash": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "mimeType",
+                      "size",
+                      "hash"
+                    ]
+                  }
+                }
               }
             },
             "required": [
@@ -1986,7 +2423,9 @@
               "eTag",
               "sizeBytes",
               "mimeType",
-              "mediaType"
+              "mediaType",
+              "contentAttributes",
+              "contentMetadata"
             ]
           }
         },

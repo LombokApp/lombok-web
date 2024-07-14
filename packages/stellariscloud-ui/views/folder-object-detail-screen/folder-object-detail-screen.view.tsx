@@ -10,12 +10,12 @@ import {
   QuestionMarkCircleIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline'
-import type { FolderObjectData } from '@stellariscloud/api-client'
+import type { FolderObjectDTO } from '@stellariscloud/api-client'
 import {
-  FolderOperationName,
-  FolderPermissionName,
-} from '@stellariscloud/api-client'
-import { FolderPushMessage, MediaType } from '@stellariscloud/types'
+  FolderPermissionEnum,
+  FolderPushMessage,
+  MediaType,
+} from '@stellariscloud/types'
 import { formatBytes, toMetadataObjectIdentifier } from '@stellariscloud/utils'
 import { useRouter } from 'next/router'
 import React from 'react'
@@ -47,7 +47,7 @@ export const FolderObjectDetailScreen = ({
 }) => {
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
   const [showDeleteModal, setShowDeleteModal] = React.useState(false)
-  const [folderObject, setFolderObject] = React.useState<FolderObjectData>()
+  const [folderObject, setFolderObject] = React.useState<FolderObjectDTO>()
   const logging = useLoggingContext()
   const [displaySize, setDisplaySize] = React.useState('compressed')
   const [displayObjectKey, setDisplayObjectKey] = React.useState<string>()
@@ -66,10 +66,10 @@ export const FolderObjectDetailScreen = ({
       displaySize === 'original' || folderObject?.mediaType === MediaType.Audio
         ? `content:${objectKey}`
         : displaySize === 'compressed' &&
-          folderObject?.hash &&
-          currentVersionMetadata['compressedVersion']?.hash
-        ? `metadata:${objectKey}:${currentVersionMetadata['compressedVersion'].hash}`
-        : undefined,
+            folderObject?.hash &&
+            currentVersionMetadata['compressedVersion']?.hash
+          ? `metadata:${objectKey}:${currentVersionMetadata['compressedVersion'].hash}`
+          : undefined,
     )
   }, [
     displaySize,
@@ -144,7 +144,7 @@ export const FolderObjectDetailScreen = ({
         ].includes(name) &&
         payload.objectKey === objectKey
       ) {
-        setFolderObject(payload as FolderObjectData)
+        setFolderObject(payload as FolderObjectDTO)
       }
     },
     [objectKey],
@@ -259,7 +259,7 @@ export const FolderObjectDetailScreen = ({
               >
                 <div className="pt-2 flex gap-2">
                   {folderContext.folderPermissions?.includes(
-                    FolderPermissionName.ObjectEdit,
+                    FolderPermissionEnum.OBJECT_EDIT,
                   ) && (
                     <Button
                       size="sm"

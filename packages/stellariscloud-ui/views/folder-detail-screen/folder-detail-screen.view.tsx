@@ -5,11 +5,8 @@ import {
   FolderIcon,
   MapPinIcon,
 } from '@heroicons/react/24/outline'
-import type { FolderObjectData } from '@stellariscloud/api-client'
-import {
-  FolderOperationName,
-  FolderPermissionName,
-} from '@stellariscloud/api-client'
+import { FolderObjectDTO } from '@stellariscloud/api-client'
+import { FolderPermissionEnum } from '@stellariscloud/types'
 import { FolderPushMessage, MediaType } from '@stellariscloud/types'
 import type {
   AudioMediaMimeTypes,
@@ -152,7 +149,7 @@ const renderFolderObjectPreview = (
     file?: { dataURL: string; type: string }
   },
   position: number,
-  folderObject: FolderObjectData,
+  folderObject: FolderObjectDTO,
   forcePreviewRerender: boolean = false,
 ) => {
   const contentWrapperDiv = document.getElementById(
@@ -273,16 +270,16 @@ const renderFolderObjectPreview = (
     reindexButton.onclick = (e) => {
       e.stopPropagation()
       e.preventDefault()
-      void foldersApi.enqueueFolderOperation({
-        folderId: folderObject.folderId,
-        folderOperationRequestPayload: {
-          operationName: FolderOperationName.IndexFolderObject,
-          operationData: {
-            folderId: folderObject.folderId,
-            objectKey: folderObject.objectKey,
-          },
-        },
-      })
+      // void foldersApi.enqueueFolderOperation({
+      //   folderId: folderObject.folderId,
+      //   folderOperationRequestPayload: {
+      //     operationName: FolderOperationName.IndexFolderObject,
+      //     operationData: {
+      //       folderId: folderObject.folderId,
+      //       objectKey: folderObject.objectKey,
+      //     },
+      //   },
+      // })
     }
     reindexButton.innerHTML = `<svg
       xmlns="http://www.w3.org/2000/svg"
@@ -344,9 +341,7 @@ const renderTile = (
   position: number,
   tileSize: number,
   renderAsFirstChild: boolean,
-  getFolderObjectForPosition: (
-    position: number,
-  ) => FolderObjectData | undefined,
+  getFolderObjectForPosition: (position: number) => FolderObjectDTO | undefined,
   getData: (
     folderId: string,
     objectKey: string,
@@ -423,9 +418,7 @@ const renderTileSequence = (
   start: number,
   end: number,
   renderAsFirstChild: boolean,
-  getFolderObjectForPosition: (
-    position: number,
-  ) => FolderObjectData | undefined,
+  getFolderObjectForPosition: (position: number) => FolderObjectDTO | undefined,
   getData: (
     folderId: string,
     objectKey: string,
@@ -492,9 +485,7 @@ const updateRenderedTiles = (
   tileSize: number,
   renderIndexStart: number,
   renderIndexEnd: number,
-  getFolderObjectForPosition: (
-    position: number,
-  ) => FolderObjectData | undefined,
+  getFolderObjectForPosition: (position: number) => FolderObjectDTO | undefined,
   getData: (
     folderId: string,
     objectKey: string,
@@ -620,7 +611,7 @@ export const FolderDetailScreen = () => {
   const windowDimensions = useWindowDimensions()
   const folderObjects = React.useRef<{
     results: {
-      [key: string]: FolderObjectData | undefined
+      [key: string]: FolderObjectDTO | undefined
     }
     positions: {
       [objectKey: string]: number
@@ -941,7 +932,7 @@ export const FolderDetailScreen = () => {
         }
         setObjectsViewContext(undefined)
       } else if (FolderPushMessage.OBJECT_UPDATED === name) {
-        const folderObject = payload as FolderObjectData
+        const folderObject = payload as FolderObjectDTO
         if (folderObject.objectKey in folderObjects.current.positions) {
           const position =
             folderObjects.current.positions[folderObject.objectKey]
@@ -961,7 +952,8 @@ export const FolderDetailScreen = () => {
   const folderContext = useFolderContext(messageHandler)
 
   const handleIndexAll = () => {
-    void foldersApi.indexAllContent({ folderId: folderContext.folderId })
+    // TODO: replace
+    // void foldersApi.indexAllContent({ folderId: folderContext.folderId })
   }
 
   React.useEffect(() => {
@@ -1267,7 +1259,7 @@ export const FolderDetailScreen = () => {
               >
                 <div className="pt-2 flex gap-2">
                   {folderContext.folderPermissions?.includes(
-                    FolderPermissionName.ObjectEdit,
+                    FolderPermissionEnum.OBJECT_EDIT,
                   ) && (
                     <Button size="sm" onClick={handleUploadStart}>
                       <Icon size="sm" icon={ArrowUpOnSquareIcon} />
@@ -1275,7 +1267,7 @@ export const FolderDetailScreen = () => {
                     </Button>
                   )}
                   {folderContext.folderPermissions?.includes(
-                    FolderPermissionName.FolderRefresh,
+                    FolderPermissionEnum.FOLDER_RESCAN,
                   ) && (
                     <Button size="sm" onClick={handleRefreshFolder}>
                       <Icon size="sm" icon={ArrowPathIcon} />
@@ -1283,20 +1275,20 @@ export const FolderDetailScreen = () => {
                     </Button>
                   )}
                   {folderContext.folderPermissions?.includes(
-                    FolderPermissionName.FolderForget,
+                    FolderPermissionEnum.FOLDER_FORGET,
                   ) && (
                     <Button size="sm" onClick={handleForgetFolder}>
                       <Icon size="sm" icon={TrashIcon} />
                     </Button>
                   )}
-                  {folderContext.folderPermissions?.includes(
-                    FolderPermissionName.FolderManageShares,
+                  {/* {folderContext.folderPermissions?.includes(
+                    FolderPermissionsEnum.FolderManageShares,
                   ) && (
                     <Button primary size="sm" onClick={handleShareClick}>
                       <Icon size="sm" className="text-white" icon={UsersIcon} />
                       Share
                     </Button>
-                  )}
+                  )} */}
                 </div>
               </PageHeading>
             </div>

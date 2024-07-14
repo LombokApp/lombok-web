@@ -422,6 +422,98 @@ export type FolderCreateSignedUrlInputDTOInnerMethodEnum = typeof FolderCreateSi
 /**
  * 
  * @export
+ * @interface FolderDTO
+ */
+export interface FolderDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderDTO
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderDTO
+     */
+    'ownerId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderDTO
+     */
+    'name': string;
+    /**
+     * 
+     * @type {FolderDTOMetadataLocation}
+     * @memberof FolderDTO
+     */
+    'metadataLocation': FolderDTOMetadataLocation;
+    /**
+     * 
+     * @type {FolderDTOMetadataLocation}
+     * @memberof FolderDTO
+     */
+    'contentLocation': FolderDTOMetadataLocation;
+}
+/**
+ * 
+ * @export
+ * @interface FolderDTOMetadataLocation
+ */
+export interface FolderDTOMetadataLocation {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderDTOMetadataLocation
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderDTOMetadataLocation
+     */
+    'userId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderDTOMetadataLocation
+     */
+    'name': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderDTOMetadataLocation
+     */
+    'endpoint': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderDTOMetadataLocation
+     */
+    'region': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderDTOMetadataLocation
+     */
+    'bucket': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderDTOMetadataLocation
+     */
+    'prefix'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderDTOMetadataLocation
+     */
+    'accessKeyId': string;
+}
+/**
+ * 
+ * @export
  * @interface FolderGetMetadataResponse
  */
 export interface FolderGetMetadataResponse {
@@ -455,8 +547,18 @@ export interface FolderGetResponse {
      * @type {Array<string>}
      * @memberof FolderGetResponse
      */
-    'permissions': Array<string>;
+    'permissions': Array<FolderGetResponsePermissionsEnum>;
 }
+
+export const FolderGetResponsePermissionsEnum = {
+    FolderRescan: 'FOLDER_RESCAN',
+    FolderForget: 'FOLDER_FORGET',
+    ObjectEdit: 'OBJECT_EDIT',
+    ObjectManage: 'OBJECT_MANAGE'
+} as const;
+
+export type FolderGetResponsePermissionsEnum = typeof FolderGetResponsePermissionsEnum[keyof typeof FolderGetResponsePermissionsEnum];
+
 /**
  * 
  * @export
@@ -483,71 +585,16 @@ export interface FolderGetResponseFolder {
     'name': string;
     /**
      * 
-     * @type {FolderGetResponseFolderMetadataLocation}
+     * @type {FolderDTOMetadataLocation}
      * @memberof FolderGetResponseFolder
      */
-    'metadataLocation': FolderGetResponseFolderMetadataLocation;
+    'metadataLocation': FolderDTOMetadataLocation;
     /**
      * 
-     * @type {FolderGetResponseFolderMetadataLocation}
+     * @type {FolderDTOMetadataLocation}
      * @memberof FolderGetResponseFolder
      */
-    'contentLocation': FolderGetResponseFolderMetadataLocation;
-}
-/**
- * 
- * @export
- * @interface FolderGetResponseFolderMetadataLocation
- */
-export interface FolderGetResponseFolderMetadataLocation {
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderGetResponseFolderMetadataLocation
-     */
-    'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderGetResponseFolderMetadataLocation
-     */
-    'userId'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderGetResponseFolderMetadataLocation
-     */
-    'name': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderGetResponseFolderMetadataLocation
-     */
-    'endpoint': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderGetResponseFolderMetadataLocation
-     */
-    'region': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderGetResponseFolderMetadataLocation
-     */
-    'bucket': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderGetResponseFolderMetadataLocation
-     */
-    'prefix'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderGetResponseFolderMetadataLocation
-     */
-    'accessKeyId': string;
+    'contentLocation': FolderDTOMetadataLocation;
 }
 /**
  * 
@@ -579,13 +626,252 @@ export interface FolderListResponseResultInner {
      * @type {Array<string>}
      * @memberof FolderListResponseResultInner
      */
-    'permissions': Array<string>;
+    'permissions': Array<FolderListResponseResultInnerPermissionsEnum>;
     /**
      * 
      * @type {FolderGetResponseFolder}
      * @memberof FolderListResponseResultInner
      */
     'folder': FolderGetResponseFolder;
+}
+
+export const FolderListResponseResultInnerPermissionsEnum = {
+    FolderRescan: 'FOLDER_RESCAN',
+    FolderForget: 'FOLDER_FORGET',
+    ObjectEdit: 'OBJECT_EDIT',
+    ObjectManage: 'OBJECT_MANAGE'
+} as const;
+
+export type FolderListResponseResultInnerPermissionsEnum = typeof FolderListResponseResultInnerPermissionsEnum[keyof typeof FolderListResponseResultInnerPermissionsEnum];
+
+/**
+ * 
+ * @export
+ * @interface FolderObjectContentAttributesDTO
+ */
+export interface FolderObjectContentAttributesDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectContentAttributesDTO
+     */
+    'mediaType': FolderObjectContentAttributesDTOMediaTypeEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectContentAttributesDTO
+     */
+    'mimeType': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderObjectContentAttributesDTO
+     */
+    'height': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderObjectContentAttributesDTO
+     */
+    'width': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderObjectContentAttributesDTO
+     */
+    'orientation': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderObjectContentAttributesDTO
+     */
+    'lengthMs': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderObjectContentAttributesDTO
+     */
+    'bitrate': number;
+}
+
+export const FolderObjectContentAttributesDTOMediaTypeEnum = {
+    Image: 'IMAGE',
+    Video: 'VIDEO',
+    Audio: 'AUDIO',
+    Document: 'DOCUMENT',
+    Unknown: 'UNKNOWN'
+} as const;
+
+export type FolderObjectContentAttributesDTOMediaTypeEnum = typeof FolderObjectContentAttributesDTOMediaTypeEnum[keyof typeof FolderObjectContentAttributesDTOMediaTypeEnum];
+
+/**
+ * 
+ * @export
+ * @interface FolderObjectDTO
+ */
+export interface FolderObjectDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectDTO
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectDTO
+     */
+    'objectKey': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectDTO
+     */
+    'folderId': string;
+    /**
+     * 
+     * @type {any}
+     * @memberof FolderObjectDTO
+     */
+    'hash'?: any;
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderObjectDTO
+     */
+    'lastModified': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectDTO
+     */
+    'eTag': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderObjectDTO
+     */
+    'sizeBytes': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectDTO
+     */
+    'mimeType': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectDTO
+     */
+    'mediaType': FolderObjectDTOMediaTypeEnum;
+    /**
+     * 
+     * @type {{ [key: string]: FolderObjectDTOContentAttributesValue | undefined; }}
+     * @memberof FolderObjectDTO
+     */
+    'contentAttributes': { [key: string]: FolderObjectDTOContentAttributesValue | undefined; };
+    /**
+     * 
+     * @type {{ [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue | undefined; } | undefined; }}
+     * @memberof FolderObjectDTO
+     */
+    'contentMetadata': { [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue | undefined; } | undefined; };
+}
+
+export const FolderObjectDTOMediaTypeEnum = {
+    Image: 'IMAGE',
+    Video: 'VIDEO',
+    Audio: 'AUDIO',
+    Document: 'DOCUMENT',
+    Unknown: 'UNKNOWN'
+} as const;
+
+export type FolderObjectDTOMediaTypeEnum = typeof FolderObjectDTOMediaTypeEnum[keyof typeof FolderObjectDTOMediaTypeEnum];
+
+/**
+ * 
+ * @export
+ * @interface FolderObjectDTOContentAttributesValue
+ */
+export interface FolderObjectDTOContentAttributesValue {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectDTOContentAttributesValue
+     */
+    'mediaType': FolderObjectDTOContentAttributesValueMediaTypeEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectDTOContentAttributesValue
+     */
+    'mimeType': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderObjectDTOContentAttributesValue
+     */
+    'height': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderObjectDTOContentAttributesValue
+     */
+    'width': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderObjectDTOContentAttributesValue
+     */
+    'orientation': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderObjectDTOContentAttributesValue
+     */
+    'lengthMs': number;
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderObjectDTOContentAttributesValue
+     */
+    'bitrate': number;
+}
+
+export const FolderObjectDTOContentAttributesValueMediaTypeEnum = {
+    Image: 'IMAGE',
+    Video: 'VIDEO',
+    Audio: 'AUDIO',
+    Document: 'DOCUMENT',
+    Unknown: 'UNKNOWN'
+} as const;
+
+export type FolderObjectDTOContentAttributesValueMediaTypeEnum = typeof FolderObjectDTOContentAttributesValueMediaTypeEnum[keyof typeof FolderObjectDTOContentAttributesValueMediaTypeEnum];
+
+/**
+ * 
+ * @export
+ * @interface FolderObjectDTOContentMetadataValueValue
+ */
+export interface FolderObjectDTOContentMetadataValueValue {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectDTOContentMetadataValueValue
+     */
+    'mimeType': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderObjectDTOContentMetadataValueValue
+     */
+    'size': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectDTOContentMetadataValueValue
+     */
+    'hash': string;
 }
 /**
  * 
@@ -679,6 +965,18 @@ export interface FolderObjectListResponseResultInner {
      * @memberof FolderObjectListResponseResultInner
      */
     'mediaType': FolderObjectListResponseResultInnerMediaTypeEnum;
+    /**
+     * 
+     * @type {{ [key: string]: FolderObjectDTOContentAttributesValue | undefined; }}
+     * @memberof FolderObjectListResponseResultInner
+     */
+    'contentAttributes': { [key: string]: FolderObjectDTOContentAttributesValue | undefined; };
+    /**
+     * 
+     * @type {{ [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue | undefined; } | undefined; }}
+     * @memberof FolderObjectListResponseResultInner
+     */
+    'contentMetadata': { [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue | undefined; } | undefined; };
 }
 
 export const FolderObjectListResponseResultInnerMediaTypeEnum = {

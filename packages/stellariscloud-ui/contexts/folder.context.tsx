@@ -1,4 +1,4 @@
-import type { FolderAndPermission } from '@stellariscloud/api-client'
+import type { FolderGetResponse } from '@stellariscloud/api-client'
 import type { FolderMetadata } from '@stellariscloud/types'
 import { FolderPushMessage } from '@stellariscloud/types'
 import React from 'react'
@@ -11,8 +11,8 @@ import type { LogLevel } from './logging.context'
 
 export interface IFolderContext {
   folderId: string
-  folder?: FolderAndPermission['folder']
-  folderPermissions?: FolderAndPermission['permissions']
+  folder?: FolderGetResponse['folder']
+  folderPermissions?: FolderGetResponse['permissions']
   refreshFolder: () => Promise<void>
   refreshFolderMetadata: () => Promise<void>
   folderMetadata?: FolderMetadata
@@ -52,7 +52,7 @@ export const FolderContextProvider = ({
   //   const loggingContext = useLoggingContext()
 
   const [folderAndPermission, setFolderAndPermission] =
-    React.useState<FolderAndPermission>()
+    React.useState<FolderGetResponse>()
   const [folderMetadata, setFolderMetadata] = React.useState<FolderMetadata>()
   const notifications = React.useRef<Notification[]>([])
   const [newNotificationFlag, setNewNotificationFlag] = React.useState<string>()

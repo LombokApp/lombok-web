@@ -11,9 +11,12 @@ import { ModuleRef } from '@nestjs/core'
 import type {
   ContentAttributesType,
   ContentMetadataType,
+  FolderPermissionName,
   S3ObjectInternal,
 } from '@stellariscloud/types'
 import {
+  FolderPermissionEnum,
+  FolderPermissionZodEnum,
   FolderPushMessage,
   MediaType,
   SignedURLsRequestMethod,
@@ -99,14 +102,7 @@ export enum FolderSort {
   UpdatedAtDesc = 'updatedAt-desc',
 }
 
-export enum FolderPermissionName {
-  FOLDER_RESCAN = 'folder_rescan',
-  FOLDER_FORGET = 'folder_forget',
-  OBJECT_EDIT = 'object_edit',
-  OBJECT_MANAGE = 'object_manage',
-}
-
-const OWNER_PERMISSIONS = Object.values(FolderPermissionName)
+const OWNER_PERMISSIONS = Object.values(FolderPermissionZodEnum)
 
 export interface FolderObjectUpdate {
   lastModified?: number
@@ -405,7 +401,7 @@ export class FolderService implements OnModuleInit {
       userId,
     })
 
-    if (!permissions.includes(FolderPermissionName.FOLDER_FORGET)) {
+    if (!permissions.includes(FolderPermissionEnum.FOLDER_FORGET)) {
       throw new FolderPermissionUnauthorizedException()
     }
 
@@ -430,7 +426,7 @@ export class FolderService implements OnModuleInit {
       userId,
     })
 
-    if (!permissions.includes(FolderPermissionName.OBJECT_EDIT)) {
+    if (!permissions.includes(FolderPermissionEnum.OBJECT_EDIT)) {
       throw new FolderPermissionUnauthorizedException()
     }
 
@@ -643,7 +639,7 @@ export class FolderService implements OnModuleInit {
             SignedURLsRequestMethod.DELETE,
             SignedURLsRequestMethod.PUT,
           ].includes(urlRequest.method) &&
-          !permissions.includes(FolderPermissionName.OBJECT_EDIT)
+          !permissions.includes(FolderPermissionEnum.OBJECT_EDIT)
         ) {
           throw new FolderPermissionUnauthorizedException()
         }
@@ -696,7 +692,7 @@ export class FolderService implements OnModuleInit {
       endpoint: contentStorageLocation.endpoint,
       region: contentStorageLocation.region,
     })
-    if (!permissions.includes(FolderPermissionName.FOLDER_RESCAN)) {
+    if (!permissions.includes(FolderPermissionEnum.FOLDER_RESCAN)) {
       throw new FolderPermissionUnauthorizedException()
     }
 

@@ -1155,6 +1155,213 @@ export declare const schema: {
                 };
                 readonly required: readonly ["meta", "result"];
             };
+            readonly FolderDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly id: {
+                        readonly type: "string";
+                    };
+                    readonly ownerId: {
+                        readonly type: "string";
+                    };
+                    readonly name: {
+                        readonly type: "string";
+                    };
+                    readonly metadataLocation: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
+                            readonly userId: {
+                                readonly type: "string";
+                            };
+                            readonly name: {
+                                readonly type: "string";
+                            };
+                            readonly endpoint: {
+                                readonly type: "string";
+                            };
+                            readonly region: {
+                                readonly type: "string";
+                            };
+                            readonly bucket: {
+                                readonly type: "string";
+                            };
+                            readonly prefix: {
+                                readonly type: "string";
+                            };
+                            readonly accessKeyId: {
+                                readonly type: "string";
+                            };
+                        };
+                        readonly required: readonly ["id", "name", "endpoint", "region", "bucket", "accessKeyId"];
+                    };
+                    readonly contentLocation: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
+                            readonly userId: {
+                                readonly type: "string";
+                            };
+                            readonly name: {
+                                readonly type: "string";
+                            };
+                            readonly endpoint: {
+                                readonly type: "string";
+                            };
+                            readonly region: {
+                                readonly type: "string";
+                            };
+                            readonly bucket: {
+                                readonly type: "string";
+                            };
+                            readonly prefix: {
+                                readonly type: "string";
+                            };
+                            readonly accessKeyId: {
+                                readonly type: "string";
+                            };
+                        };
+                        readonly required: readonly ["id", "name", "endpoint", "region", "bucket", "accessKeyId"];
+                    };
+                };
+                readonly required: readonly ["id", "ownerId", "name", "metadataLocation", "contentLocation"];
+            };
+            readonly FolderObjectDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly id: {
+                        readonly type: "string";
+                    };
+                    readonly objectKey: {
+                        readonly type: "string";
+                    };
+                    readonly folderId: {
+                        readonly type: "string";
+                    };
+                    readonly hash: {
+                        readonly type: readonly ["string", "null"];
+                    };
+                    readonly lastModified: {
+                        readonly type: "number";
+                    };
+                    readonly eTag: {
+                        readonly type: "string";
+                    };
+                    readonly sizeBytes: {
+                        readonly type: "number";
+                    };
+                    readonly mimeType: {
+                        readonly type: "string";
+                    };
+                    readonly mediaType: {
+                        readonly type: "string";
+                        readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
+                    };
+                    readonly contentAttributes: {
+                        readonly type: "object";
+                        readonly additionalProperties: {
+                            readonly type: "object";
+                            readonly properties: {
+                                readonly mediaType: {
+                                    readonly type: "string";
+                                    readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
+                                };
+                                readonly mimeType: {
+                                    readonly type: "string";
+                                };
+                                readonly height: {
+                                    readonly type: "number";
+                                };
+                                readonly width: {
+                                    readonly type: "number";
+                                };
+                                readonly orientation: {
+                                    readonly type: "number";
+                                };
+                                readonly lengthMs: {
+                                    readonly type: "number";
+                                };
+                                readonly bitrate: {
+                                    readonly type: "number";
+                                };
+                            };
+                            readonly required: readonly ["mediaType", "mimeType", "height", "width", "orientation", "lengthMs", "bitrate"];
+                        };
+                    };
+                    readonly contentMetadata: {
+                        readonly type: "object";
+                        readonly additionalProperties: {
+                            readonly type: "object";
+                            readonly additionalProperties: {
+                                readonly type: "object";
+                                readonly properties: {
+                                    readonly mimeType: {
+                                        readonly type: "string";
+                                    };
+                                    readonly size: {
+                                        readonly type: "number";
+                                    };
+                                    readonly hash: {
+                                        readonly type: "string";
+                                    };
+                                };
+                                readonly required: readonly ["mimeType", "size", "hash"];
+                            };
+                        };
+                    };
+                };
+                readonly required: readonly ["id", "objectKey", "folderId", "lastModified", "eTag", "sizeBytes", "mimeType", "mediaType", "contentAttributes", "contentMetadata"];
+            };
+            readonly FolderObjectContentMetadataDTO: {
+                readonly type: "object";
+                readonly additionalProperties: {
+                    readonly type: "object";
+                    readonly properties: {
+                        readonly mimeType: {
+                            readonly type: "string";
+                        };
+                        readonly size: {
+                            readonly type: "number";
+                        };
+                        readonly hash: {
+                            readonly type: "string";
+                        };
+                    };
+                    readonly required: readonly ["mimeType", "size", "hash"];
+                };
+            };
+            readonly FolderObjectContentAttributesDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly mediaType: {
+                        readonly type: "string";
+                        readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
+                    };
+                    readonly mimeType: {
+                        readonly type: "string";
+                    };
+                    readonly height: {
+                        readonly type: "number";
+                    };
+                    readonly width: {
+                        readonly type: "number";
+                    };
+                    readonly orientation: {
+                        readonly type: "number";
+                    };
+                    readonly lengthMs: {
+                        readonly type: "number";
+                    };
+                    readonly bitrate: {
+                        readonly type: "number";
+                    };
+                };
+                readonly required: readonly ["mediaType", "mimeType", "height", "width", "orientation", "lengthMs", "bitrate"];
+            };
             readonly FolderGetResponse: {
                 readonly type: "object";
                 readonly properties: {
@@ -1237,6 +1444,7 @@ export declare const schema: {
                         readonly type: "array";
                         readonly items: {
                             readonly type: "string";
+                            readonly enum: readonly ["FOLDER_RESCAN", "FOLDER_FORGET", "OBJECT_EDIT", "OBJECT_MANAGE"];
                         };
                     };
                 };
@@ -1275,6 +1483,7 @@ export declare const schema: {
                                     readonly type: "array";
                                     readonly items: {
                                         readonly type: "string";
+                                        readonly enum: readonly ["FOLDER_RESCAN", "FOLDER_FORGET", "OBJECT_EDIT", "OBJECT_MANAGE"];
                                     };
                                 };
                                 readonly folder: {
@@ -1564,8 +1773,60 @@ export declare const schema: {
                                     readonly type: "string";
                                     readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
                                 };
+                                readonly contentAttributes: {
+                                    readonly type: "object";
+                                    readonly additionalProperties: {
+                                        readonly type: "object";
+                                        readonly properties: {
+                                            readonly mediaType: {
+                                                readonly type: "string";
+                                                readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
+                                            };
+                                            readonly mimeType: {
+                                                readonly type: "string";
+                                            };
+                                            readonly height: {
+                                                readonly type: "number";
+                                            };
+                                            readonly width: {
+                                                readonly type: "number";
+                                            };
+                                            readonly orientation: {
+                                                readonly type: "number";
+                                            };
+                                            readonly lengthMs: {
+                                                readonly type: "number";
+                                            };
+                                            readonly bitrate: {
+                                                readonly type: "number";
+                                            };
+                                        };
+                                        readonly required: readonly ["mediaType", "mimeType", "height", "width", "orientation", "lengthMs", "bitrate"];
+                                    };
+                                };
+                                readonly contentMetadata: {
+                                    readonly type: "object";
+                                    readonly additionalProperties: {
+                                        readonly type: "object";
+                                        readonly additionalProperties: {
+                                            readonly type: "object";
+                                            readonly properties: {
+                                                readonly mimeType: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly size: {
+                                                    readonly type: "number";
+                                                };
+                                                readonly hash: {
+                                                    readonly type: "string";
+                                                };
+                                            };
+                                            readonly required: readonly ["mimeType", "size", "hash"];
+                                        };
+                                    };
+                                };
                             };
-                            readonly required: readonly ["id", "objectKey", "folderId", "lastModified", "eTag", "sizeBytes", "mimeType", "mediaType"];
+                            readonly required: readonly ["id", "objectKey", "folderId", "lastModified", "eTag", "sizeBytes", "mimeType", "mediaType", "contentAttributes", "contentMetadata"];
                         };
                     };
                 };
@@ -1605,8 +1866,60 @@ export declare const schema: {
                                 readonly type: "string";
                                 readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
                             };
+                            readonly contentAttributes: {
+                                readonly type: "object";
+                                readonly additionalProperties: {
+                                    readonly type: "object";
+                                    readonly properties: {
+                                        readonly mediaType: {
+                                            readonly type: "string";
+                                            readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
+                                        };
+                                        readonly mimeType: {
+                                            readonly type: "string";
+                                        };
+                                        readonly height: {
+                                            readonly type: "number";
+                                        };
+                                        readonly width: {
+                                            readonly type: "number";
+                                        };
+                                        readonly orientation: {
+                                            readonly type: "number";
+                                        };
+                                        readonly lengthMs: {
+                                            readonly type: "number";
+                                        };
+                                        readonly bitrate: {
+                                            readonly type: "number";
+                                        };
+                                    };
+                                    readonly required: readonly ["mediaType", "mimeType", "height", "width", "orientation", "lengthMs", "bitrate"];
+                                };
+                            };
+                            readonly contentMetadata: {
+                                readonly type: "object";
+                                readonly additionalProperties: {
+                                    readonly type: "object";
+                                    readonly additionalProperties: {
+                                        readonly type: "object";
+                                        readonly properties: {
+                                            readonly mimeType: {
+                                                readonly type: "string";
+                                            };
+                                            readonly size: {
+                                                readonly type: "number";
+                                            };
+                                            readonly hash: {
+                                                readonly type: "string";
+                                            };
+                                        };
+                                        readonly required: readonly ["mimeType", "size", "hash"];
+                                    };
+                                };
+                            };
                         };
-                        readonly required: readonly ["id", "objectKey", "folderId", "lastModified", "eTag", "sizeBytes", "mimeType", "mediaType"];
+                        readonly required: readonly ["id", "objectKey", "folderId", "lastModified", "eTag", "sizeBytes", "mimeType", "mediaType", "contentAttributes", "contentMetadata"];
                     };
                 };
                 readonly required: readonly ["folderObject"];
