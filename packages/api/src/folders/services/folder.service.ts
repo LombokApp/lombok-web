@@ -15,7 +15,6 @@ import type {
 } from '@stellariscloud/types'
 import {
   FolderPermissionEnum,
-  FolderPermissionZodEnum,
   FolderPushMessage,
   MediaType,
   SignedURLsRequestMethod,
@@ -101,7 +100,12 @@ export enum FolderSort {
   UpdatedAtDesc = 'updatedAt-desc',
 }
 
-const OWNER_PERMISSIONS = Object.values(FolderPermissionZodEnum)
+const OWNER_PERMISSIONS = [
+  FolderPermissionEnum.FOLDER_FORGET,
+  FolderPermissionEnum.FOLDER_RESCAN,
+  FolderPermissionEnum.OBJECT_EDIT,
+  FolderPermissionEnum.OBJECT_MANAGE,
+]
 
 export interface FolderObjectUpdate {
   lastModified?: number
