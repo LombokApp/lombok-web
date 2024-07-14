@@ -1,6 +1,6 @@
 import React from 'react'
 
-export function ModulesUI({
+export function AppUI({
   moduleName,
   host,
   uiName,

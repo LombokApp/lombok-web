@@ -7,7 +7,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
-import { ModuleRef } from '@nestjs/core'
 import type {
   ContentAttributesType,
   ContentMetadataType,
@@ -133,7 +132,6 @@ const ServerLocationPayloadRunType = r.Record({
 export class FolderService implements OnModuleInit {
   eventService: EventService
   constructor(
-    private readonly moduleRef: ModuleRef,
     private readonly socketService: SocketService,
     private readonly s3Service: S3Service,
     @Inject(forwardRef(() => EventService))

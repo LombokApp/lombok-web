@@ -218,8 +218,6 @@ export const schema = {
             "required": false,
             "in": "query",
             "schema": {
-              "minimum": 0,
-              "exclusiveMinimum": true,
               "type": "number"
             }
           },
@@ -503,6 +501,8 @@ export const schema = {
             "required": false,
             "in": "query",
             "schema": {
+              "minimum": 0,
+              "exclusiveMinimum": true,
               "type": "number"
             }
           }
@@ -608,8 +608,6 @@ export const schema = {
             "required": false,
             "in": "query",
             "schema": {
-              "minimum": 0,
-              "exclusiveMinimum": true,
               "type": "number"
             }
           },

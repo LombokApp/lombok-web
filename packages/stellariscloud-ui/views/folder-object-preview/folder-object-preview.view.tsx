@@ -1,4 +1,4 @@
-import type { FolderObjectData } from '@stellariscloud/api-client'
+import type { FolderObjectDTO } from '@stellariscloud/api-client'
 import { MediaType } from '@stellariscloud/types'
 import {
   mediaTypeFromExtension,
@@ -23,12 +23,12 @@ export const FolderObjectPreview = ({
 }: {
   folderId: string
   objectKey: string
-  objectMetadata?: FolderObjectData
+  objectMetadata?: FolderObjectDTO
   previewObjectKey: string | undefined
   displayMode?: string
 }) => {
   const [folderObject, setFolderObject] = React.useState<
-    FolderObjectData | undefined
+    FolderObjectDTO | undefined
   >(objectMetadata)
   const fileName = objectKey.split('/').at(-1)
   const [file, setFile] = React.useState<
@@ -46,7 +46,7 @@ export const FolderObjectPreview = ({
       void foldersApi
         .getFolderObject({ folderId, objectKey })
         .then((response) => {
-          setFolderObject(response.data)
+          setFolderObject(response.data.folderObject)
         })
     }
   }, [folderId, objectKey, folderObject])

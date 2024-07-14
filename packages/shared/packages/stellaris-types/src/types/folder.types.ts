@@ -272,7 +272,5 @@ export const FolderPermissionZodEnum = z.enum([
   'OBJECT_EDIT',
   'OBJECT_MANAGE',
 ])
-
 export type FolderPermissionName = z.infer<typeof FolderPermissionZodEnum>
-
 export const FolderPermissionEnum = FolderPermissionZodEnum.Enum

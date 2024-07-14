@@ -193,8 +193,6 @@ export declare const schema: {
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
-                        readonly minimum: 0;
-                        readonly exclusiveMinimum: true;
                         readonly type: "number";
                     };
                 }, {
@@ -419,6 +417,8 @@ export declare const schema: {
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
+                        readonly minimum: 0;
+                        readonly exclusiveMinimum: true;
                         readonly type: "number";
                     };
                 }];
@@ -507,8 +507,6 @@ export declare const schema: {
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
-                        readonly minimum: 0;
-                        readonly exclusiveMinimum: true;
                         readonly type: "number";
                     };
                 }, {

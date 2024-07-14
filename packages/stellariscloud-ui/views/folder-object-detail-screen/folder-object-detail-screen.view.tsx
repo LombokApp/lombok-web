@@ -93,46 +93,46 @@ export const FolderObjectDetailScreen = ({
   const fetchKeyMetadata = React.useCallback(() => {
     void foldersApi
       .getFolderObject({ folderId, objectKey })
-      .then((response) => setFolderObject(response.data))
+      .then((response) => setFolderObject(response.data.folderObject))
   }, [folderId, objectKey])
 
   const handleIndexFolderObject = () => {
-    void foldersApi.enqueueFolderOperation({
-      folderId,
-      folderOperationRequestPayload: {
-        operationName: FolderOperationName.IndexFolderObject,
-        operationData: {
-          folderId,
-          objectKey,
-        },
-      },
-    })
+    // void foldersApi.enqueueFolderOperation({
+    //   folderId,
+    //   folderOperationRequestPayload: {
+    //     operationName: FolderOperationName.IndexFolderObject,
+    //     operationData: {
+    //       folderId,
+    //       objectKey,
+    //     },
+    //   },
+    // })
   }
 
   const _handleTranscribe = () => {
-    void foldersApi.enqueueFolderOperation({
-      folderId,
-      folderOperationRequestPayload: {
-        operationName: FolderOperationName.TranscribeAudio,
-        operationData: {
-          folderId,
-          objectKey,
-        },
-      },
-    })
+    // void foldersApi.enqueueFolderOperation({
+    //   folderId,
+    //   folderOperationRequestPayload: {
+    //     operationName: FolderOperationName.TranscribeAudio,
+    //     operationData: {
+    //       folderId,
+    //       objectKey,
+    //     },
+    //   },
+    // })
   }
 
   const _handleDetectObjects = () => {
-    void foldersApi.enqueueFolderOperation({
-      folderId,
-      folderOperationRequestPayload: {
-        operationName: FolderOperationName.DetectObjects,
-        operationData: {
-          folderId,
-          objectKey,
-        },
-      },
-    })
+    // void foldersApi.enqueueFolderOperation({
+    //   folderId,
+    //   folderOperationRequestPayload: {
+    //     operationName: FolderOperationName.DetectObjects,
+    //     operationData: {
+    //       folderId,
+    //       objectKey,
+    //     },
+    //   },
+    // })
   }
 
   const messageHandler = React.useCallback(

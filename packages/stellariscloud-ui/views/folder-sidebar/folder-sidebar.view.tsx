@@ -7,7 +7,7 @@ import {
   MagnifyingGlassIcon,
   WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline'
-import type { FolderAndPermission } from '@stellariscloud/api-client'
+import type { FolderGetResponse } from '@stellariscloud/api-client'
 import type { FolderMetadata } from '@stellariscloud/types'
 import { formatBytes } from '@stellariscloud/utils'
 import clsx from 'clsx'
@@ -34,7 +34,7 @@ export const FolderSidebar = ({
   onIndexAll: () => void
   activeTab?: FolderSidebarTab
   onTabChange: (tab: FolderSidebarTab) => void
-  folderAndPermission?: FolderAndPermission
+  folderAndPermission?: FolderGetResponse
   folderMetadata?: FolderMetadata
 }) => {
   const { folder } = folderAndPermission ?? {}

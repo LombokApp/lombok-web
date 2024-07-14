@@ -16,12 +16,6 @@ import {
   TvIcon,
   VideoCameraIcon,
 } from '@heroicons/react/24/outline'
-import type {
-  FolderAndPermission,
-  FolderData,
-  FolderObjectData,
-} from '@stellariscloud/api-client'
-import { FolderOperationName } from '@stellariscloud/api-client'
 import { MediaType } from '@stellariscloud/types'
 import {
   extensionFromMimeType,
@@ -38,6 +32,9 @@ import { Button } from '../../design-system/button/button'
 import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
 import { foldersApi } from '../../services/api'
+import { FolderDTO } from '@stellariscloud/api-client'
+import { FolderObjectDTO } from '@stellariscloud/api-client'
+import { FolderGetResponse } from '@stellariscloud/api-client'
 
 const MAIN_TEXT_COLOR = 'text-gray-500 dark:text-gray-400'
 const MAIN_ICON_COLOR = 'text-gray-500'
@@ -47,10 +44,10 @@ export const FolderObjectSidebar = ({
   folderObject,
   objectKey,
 }: {
-  folder: FolderData
-  folderObject: FolderObjectData
+  folder: FolderDTO
+  folderObject: FolderObjectDTO
   objectKey: string
-  folderAndPermission?: FolderAndPermission
+  folderAndPermission?: FolderGetResponse
 }) => {
   const { downloadToFile, getData } = useLocalFileCacheContext()
   const [tab, setTab] = React.useState('overview')
@@ -96,44 +93,44 @@ export const FolderObjectSidebar = ({
     objectKey,
   ])
 
-  const handleIndexFolderObject = () => {
-    void foldersApi.enqueueFolderOperation({
-      folderId,
-      folderOperationRequestPayload: {
-        operationName: FolderOperationName.IndexFolderObject,
-        operationData: {
-          folderId,
-          objectKey,
-        },
-      },
-    })
-  }
+  // const handleIndexFolderObject = () => {
+  //   void foldersApi.enqueueFolderOperation({
+  //     folderId,
+  //     folderOperationRequestPayload: {
+  //       operationName: FolderOperationName.IndexFolderObject,
+  //       operationData: {
+  //         folderId,
+  //         objectKey,
+  //       },
+  //     },
+  //   })
+  // }
 
-  const handleTranscribe = () => {
-    void foldersApi.enqueueFolderOperation({
-      folderId,
-      folderOperationRequestPayload: {
-        operationName: FolderOperationName.TranscribeAudio,
-        operationData: {
-          folderId,
-          objectKey,
-        },
-      },
-    })
-  }
+  // const handleTranscribe = () => {
+  //   void foldersApi.enqueueFolderOperation({
+  //     folderId,
+  //     folderOperationRequestPayload: {
+  //       operationName: FolderOperationName.TranscribeAudio,
+  //       operationData: {
+  //         folderId,
+  //         objectKey,
+  //       },
+  //     },
+  //   })
+  // }
 
-  const handleDetectObjects = () => {
-    void foldersApi.enqueueFolderOperation({
-      folderId,
-      folderOperationRequestPayload: {
-        operationName: FolderOperationName.DetectObjects,
-        operationData: {
-          folderId,
-          objectKey,
-        },
-      },
-    })
-  }
+  // const handleDetectObjects = () => {
+  //   void foldersApi.enqueueFolderOperation({
+  //     folderId,
+  //     folderOperationRequestPayload: {
+  //       operationName: FolderOperationName.DetectObjects,
+  //       operationData: {
+  //         folderId,
+  //         objectKey,
+  //       },
+  //     },
+  //   })
+  // }
   const attributes = folderObject.hash
     ? folderObject.contentAttributes[folderObject.hash] ??
       ({} as { [key: string]: string })
@@ -146,36 +143,36 @@ export const FolderObjectSidebar = ({
     icon: IconProps['icon']
     onExecute: () => void
   }[] = [
-    {
-      id: 'index',
-      label: 'Index content',
-      description:
-        'Resolve basic attributes of the object and generate preview media',
-      icon: ArrowPathIcon,
-      onExecute: handleIndexFolderObject,
-    },
-    ...(folderObject.mediaType === MediaType.Image
-      ? [
-          {
-            id: 'detect_objects',
-            label: 'Detect objects',
-            description: 'Use AI to detect objects in the image',
-            icon: ArrowPathIcon,
-            onExecute: handleDetectObjects,
-          },
-        ]
-      : []),
-    ...(folderObject.mediaType === MediaType.Audio
-      ? [
-          {
-            id: 'transcribe',
-            label: 'Transcribe audio',
-            description: 'Use AI to transcribe the audio track',
-            icon: ArrowPathIcon,
-            onExecute: handleTranscribe,
-          },
-        ]
-      : []),
+    // {
+    //   id: 'index',
+    //   label: 'Index content',
+    //   description:
+    //     'Resolve basic attributes of the object and generate preview media',
+    //   icon: ArrowPathIcon,
+    //   onExecute: handleIndexFolderObject,
+    // },
+    // ...(folderObject.mediaType === MediaType.Image
+    //   ? [
+    //       {
+    //         id: 'detect_objects',
+    //         label: 'Detect objects',
+    //         description: 'Use AI to detect objects in the image',
+    //         icon: ArrowPathIcon,
+    //         onExecute: handleDetectObjects,
+    //       },
+    //     ]
+    //   : []),
+    // ...(folderObject.mediaType === MediaType.Audio
+    //   ? [
+    //       {
+    //         id: 'transcribe',
+    //         label: 'Transcribe audio',
+    //         description: 'Use AI to transcribe the audio track',
+    //         icon: ArrowPathIcon,
+    //         onExecute: handleTranscribe,
+    //       },
+    //     ]
+    //   : []),
   ]
 
   return (
@@ -306,12 +303,12 @@ export const FolderObjectSidebar = ({
                       folderObject.mediaType === MediaType.Audio
                         ? MusicalNoteIcon
                         : folderObject.mediaType === MediaType.Image
-                        ? PhotoIcon
-                        : folderObject.mediaType === MediaType.Video
-                        ? VideoCameraIcon
-                        : folderObject.mediaType === MediaType.Document
-                        ? DocumentTextIcon
-                        : QuestionMarkCircleIcon
+                          ? PhotoIcon
+                          : folderObject.mediaType === MediaType.Video
+                            ? VideoCameraIcon
+                            : folderObject.mediaType === MediaType.Document
+                              ? DocumentTextIcon
+                              : QuestionMarkCircleIcon
                     }
                     size="md"
                     className={MAIN_ICON_COLOR}
@@ -359,8 +356,8 @@ export const FolderObjectSidebar = ({
                                     mediaType === MediaType.Image
                                       ? PhotoIcon
                                       : mediaType === MediaType.Audio
-                                      ? MusicalNoteIcon
-                                      : DocumentTextIcon
+                                        ? MusicalNoteIcon
+                                        : DocumentTextIcon
                                   }
                                   size="md"
                                   className={clsx('text-gray-400')}
