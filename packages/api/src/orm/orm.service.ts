@@ -17,7 +17,7 @@ import {
   foldersTable,
 } from '../folders/entities/folder.entity'
 import { folderObjectsTable } from '../folders/entities/folder-object.entity'
-import { locationsTable } from '../locations/entities/locations.entity'
+import { locationsTable } from '../locations/entities/location.entity'
 import { serverSettingsTable } from '../server/entities/server-configuration.entity'
 import { usersTable } from '../users/entities/user.entity'
 import { ormConfig } from './config'

@@ -1,4 +1,4 @@
-import type { Location } from 'src/locations/entities/locations.entity'
+import type { Location } from 'src/locations/entities/location.entity'
 
 import type { LocationDTO } from '../location.dto'
 

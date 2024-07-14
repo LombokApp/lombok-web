@@ -1099,6 +1099,12 @@ export interface SettingsGetResponseSettings {
     'SIGNUP_ENABLED'?: boolean;
     /**
      * 
+     * @type {Array<string>}
+     * @memberof SettingsGetResponseSettings
+     */
+    'SIGNUP_PERMISSIONS'?: Array<string>;
+    /**
+     * 
      * @type {string}
      * @memberof SettingsGetResponseSettings
      */

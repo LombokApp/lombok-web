@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
 import { S3Service } from 'src/s3/s3.service'
 
-import { locationsTable } from '../entities/locations.entity'
+import { locationsTable } from '../entities/location.entity'
 
 @Injectable()
 export class LocationsService {

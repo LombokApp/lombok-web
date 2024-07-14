@@ -1991,6 +1991,12 @@ export declare const schema: {
                             readonly SIGNUP_ENABLED: {
                                 readonly type: "boolean";
                             };
+                            readonly SIGNUP_PERMISSIONS: {
+                                readonly type: "array";
+                                readonly items: {
+                                    readonly type: "string";
+                                };
+                            };
                             readonly SERVER_HOSTNAME: {
                                 readonly type: "string";
                             };

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { eq, inArray } from 'drizzle-orm'
 import type { ServerLocationDTO } from 'src/locations/transfer-objects/server-location.dto'
 import type { ServerLocationInputDTO } from 'src/locations/transfer-objects/server-location-input.dto'
@@ -21,9 +21,10 @@ import { ServerConfigurationNotFoundException } from '../exceptions/server-confi
 export class ServerConfigurationService {
   constructor(private readonly ormService: OrmService) {}
 
-  async getServerSettingsAsUser(_actor: User): Promise<SettingsDTO> {
-    // TODO: check user permissions for access to read entire server settings object
-
+  async getServerSettingsAsUser(actor: User): Promise<SettingsDTO> {
+    if (!actor.isAdmin) {
+      throw new UnauthorizedException()
+    }
     const results = await this.ormService.db.query.serverSettingsTable.findMany(
       {
         where: inArray(
@@ -32,7 +33,6 @@ export class ServerConfigurationService {
         ),
       },
     )
-
     return results.reduce(
       (acc, configResult) => ({
         ...acc,
@@ -42,9 +42,10 @@ export class ServerConfigurationService {
     ) as SettingsDTO
   }
 
-  async getServerConfigurationAsUser(userId: string, configurationKey: string) {
-    // TODO: check user permissions for access to server configuration values
-
+  async getServerConfigurationAsUser(actor: User, configurationKey: string) {
+    if (!actor.isAdmin) {
+      throw new UnauthorizedException()
+    }
     if (!(configurationKey in CONFIGURATION_KEYS)) {
       throw new ServerConfigurationNotFoundException()
     }
@@ -55,11 +56,13 @@ export class ServerConfigurationService {
   }
 
   async setServerSettingAsUser(
-    user: User,
+    actor: User,
     settingKey: string,
     settingValue: any,
   ) {
-    // TODO: check user permissions for access to server configuration values
+    if (!actor.isAdmin) {
+      throw new UnauthorizedException()
+    }
 
     if (!(settingKey in CONFIGURATION_KEYS)) {
       throw new ServerConfigurationNotFoundException()
@@ -72,13 +75,15 @@ export class ServerConfigurationService {
       })
 
     if (existingRecord) {
-      return this.ormService.db
-        .update(serverSettingsTable)
-        .set({
-          value: settingValue,
-        })
-        .where(eq(serverSettingsTable.key, settingKey))
-        .returning()[0]
+      return (
+        await this.ormService.db
+          .update(serverSettingsTable)
+          .set({
+            value: settingValue,
+          })
+          .where(eq(serverSettingsTable.key, settingKey))
+          .returning()
+      )[0]
     } else {
       const now = new Date()
       const values: NewServerSetting = {
@@ -97,7 +102,9 @@ export class ServerConfigurationService {
   }
 
   async resetServerSettingAsUser(actor: User, settingsKey: string) {
-    // TODO: ACL
+    if (!actor.isAdmin) {
+      throw new UnauthorizedException()
+    }
     await this.ormService.db
       .delete(serverSettingsTable)
       .where(eq(serverSettingsTable.key, settingsKey))
