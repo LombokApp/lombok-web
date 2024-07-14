@@ -1,11 +1,12 @@
-import { FoldersApi, SignedURLsRequestMethod } from '@stellariscloud/api-client'
-import { bindApiConfig } from '@stellariscloud/api-utils'
+import { FoldersApi } from '@stellariscloud/api-client'
+import { bindApiConfig } from '@stellariscloud/utils'
 import { objectIdentifierToObjectKey } from '@stellariscloud/utils'
 import axios from 'axios'
 
 import { LogLevel } from './contexts/logging.context'
 import { indexedDb } from './services/indexed-db'
 import { addFileToLocalFileStorage } from './services/local-cache/local-cache.service'
+import { SignedURLsRequestMethod } from '@stellariscloud/types'
 
 const downloading: { [key: string]: { progressPercent: number } | undefined } =
   {}
@@ -78,8 +79,8 @@ const maybeSendBatch = (folderId: string) => {
     void foldersApi
       .createPresignedUrls({
         folderId,
-        signedURLsRequest: toFetch.map((k) => ({
-          method: SignedURLsRequestMethod.Get,
+        folderCreateSignedUrlInputDTOInner: toFetch.map((k) => ({
+          method: SignedURLsRequestMethod.GET,
           objectIdentifier: k,
         })),
       })
@@ -227,10 +228,10 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
     void foldersApi
       .createPresignedUrls({
         folderId,
-        signedURLsRequest: [
+        folderCreateSignedUrlInputDTOInner: [
           {
             objectIdentifier,
-            method: SignedURLsRequestMethod.Put,
+            method: SignedURLsRequestMethod.PUT,
           },
         ],
       })
@@ -259,9 +260,6 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
         await foldersApi.refreshFolderObjectS3Metadata({
           folderId,
           objectKey: objectIdentifierToObjectKey(objectIdentifier).objectKey,
-          refreshFolderObjectS3MetadataRequest: {
-            eTag: uploadResponse.headers['etag'],
-          },
         })
 
         log({

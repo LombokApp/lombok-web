@@ -34,33 +34,6 @@ export const parseApiErrors = (error: unknown) => {
   return []
 }
 
-export const parseValidationErrors = (error: unknown) => {
-  const errors: any = {}
-
-  for (const { code, meta, pointer } of parseApiErrors(error)) {
-    if (code?.startsWith('validation.') && pointer?.startsWith('/body/')) {
-      const parts = pointer.split('/').slice(2)
-
-      if (typeof meta?.missingProperty === 'string') {
-        parts.push(meta.missingProperty)
-      }
-
-      let current = errors
-
-      for (let i = 0; i < parts.length - 1; i++) {
-        if (current[parts[i]] === undefined) {
-          current[parts[i]] = !isNaN(parseInt(parts[i + 1], 10)) ? [] : {}
-        }
-        current = current[parts[i]]
-      }
-
-      current[parts[parts.length - 1]] = code.replace(/^validation\./, '')
-    }
-  }
-
-  return errors
-}
-
 export const bindApiConfig =
   <T>(
     defaults: ConfigurationParameters,

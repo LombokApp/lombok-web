@@ -1203,6 +1203,58 @@ export const schema = {
                     "name"
                 ]
             },
+            "UserDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "email": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "emailVerified": {
+                        "type": "boolean"
+                    },
+                    "isAdmin": {
+                        "type": "boolean"
+                    },
+                    "username": {
+                        "type": "string"
+                    },
+                    "permissions": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "emailVerified",
+                    "isAdmin",
+                    "username",
+                    "permissions",
+                    "createdAt",
+                    "updatedAt"
+                ]
+            },
             "UserCreateInputDTO": {
                 "type": "object",
                 "properties": {
@@ -1238,7 +1290,6 @@ export const schema = {
                     }
                 },
                 "required": [
-                    "isAdmin",
                     "username",
                     "password"
                 ]

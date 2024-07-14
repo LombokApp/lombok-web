@@ -1,5 +1,5 @@
-import type { FolderAndPermission } from '@stellariscloud/api-client'
-import { FolderPermissionName } from '@stellariscloud/api-client'
+import type { FolderGetResponse } from '@stellariscloud/api-client'
+import { FolderPermissionEnum } from '@stellariscloud/types'
 import type { FolderMetadata } from '@stellariscloud/types'
 import { formatBytes } from '@stellariscloud/utils'
 import React from 'react'
@@ -14,7 +14,7 @@ export const FolderDetailSidePanel = ({
   onForgetFolder,
   websocketConnected,
 }: {
-  folderAndPermissions?: FolderAndPermission
+  folderAndPermissions?: FolderGetResponse
   folderIndex?: FolderMetadata
   onRefreshFolder?: () => void
   generatingThumbnails: boolean
@@ -61,7 +61,7 @@ export const FolderDetailSidePanel = ({
         <div className="opacity-50">Actions</div>
         <div className="flex flex-col gap-2 pt-2">
           {folderAndPermissions?.permissions.includes(
-            FolderPermissionName.FolderRefresh,
+            FolderPermissionEnum.FOLDER_RESCAN,
           ) && (
             <Button size="md" onClick={onRefreshFolder}>
               {!folderIndex?.indexingJobContext
@@ -70,14 +70,14 @@ export const FolderDetailSidePanel = ({
             </Button>
           )}
           {folderAndPermissions?.permissions.includes(
-            FolderPermissionName.FolderForget,
+            FolderPermissionEnum.FOLDER_FORGET,
           ) && (
             <Button size="md" onClick={onForgetFolder}>
               Forget folder
             </Button>
           )}
           {folderAndPermissions?.permissions.includes(
-            FolderPermissionName.FolderManageShares,
+            FolderPermissionEnum.OBJECT_MANAGE,
           ) && (
             <Button size="md" onClick={onShareClick}>
               Share folder

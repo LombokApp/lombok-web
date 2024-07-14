@@ -1,4 +1,8 @@
-import type { UpdateUserData, UserData } from '@stellariscloud/api-client'
+import type {
+  UserCreateInputDTO,
+  UserDTO,
+  UserUpdateInputDTO,
+} from '@stellariscloud/api-client'
 import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import React from 'react'
@@ -7,7 +11,7 @@ import type { UserInput } from '../../../components/server-user-form/server-user
 import { ServerUserForm } from '../../../components/server-user-form/server-user-form'
 import { Button } from '../../../design-system/button/button'
 import { PageHeading } from '../../../design-system/page-heading/page-heading'
-import { serverApi } from '../../../services/api'
+import { serverApi, usersApi } from '../../../services/api'
 import { ServerTabs } from '../server-tabs'
 
 interface CreateUserInput {
@@ -22,7 +26,7 @@ export function ServerUserDetailScreen({
   user,
 }: {
   userId?: string
-  user?: UserData
+  user?: UserDTO
 }) {
   const isNew = !userId
   const router = useRouter()
@@ -38,18 +42,18 @@ export function ServerUserDetailScreen({
 
   const handleSubmitClick = React.useCallback(() => {
     if (isNew) {
-      void serverApi
+      void usersApi
         .createUser({
-          createUserData: userObject as CreateUserInput,
+          userCreateInputDTO: userObject as UserCreateInputDTO,
         })
         .then(({ data }) => {
           void router.push(`/server/users/${data.user.id}`)
         })
     } else {
-      void serverApi
+      void usersApi
         .updateUser({
           userId,
-          updateUserData: userObject as UpdateUserData,
+          userUpdateInputDTO: userObject as UserUpdateInputDTO,
         })
         .then(({ data }) => {
           void router.push(`/server/users/${data.user.id}`)

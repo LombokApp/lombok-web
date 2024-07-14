@@ -15,10 +15,10 @@ export function Banner({
           type === 'info'
             ? 'bg-gray-300 text-gray-800 dark:bg-purple-500 dark:text-white'
             : type === 'warn'
-            ? 'bg-amber-300 text-gray-800'
-            : type === 'error'
-            ? 'bg-red-500 text-white'
-            : 'border border-gray-500 text-gray-500',
+              ? 'bg-amber-300 text-gray-800'
+              : type === 'error'
+                ? 'bg-red-500 text-white'
+                : 'border border-gray-500 text-gray-500',
         )}
       >
         <p className="text-sm leading-6">{body}</p>

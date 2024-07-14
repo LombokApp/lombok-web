@@ -994,6 +994,44 @@ export declare const schema: {
                 };
                 readonly required: readonly ["name"];
             };
+            readonly UserDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly id: {
+                        readonly type: "string";
+                    };
+                    readonly name: {
+                        readonly type: readonly ["string", "null"];
+                    };
+                    readonly email: {
+                        readonly type: readonly ["string", "null"];
+                    };
+                    readonly emailVerified: {
+                        readonly type: "boolean";
+                    };
+                    readonly isAdmin: {
+                        readonly type: "boolean";
+                    };
+                    readonly username: {
+                        readonly type: "string";
+                    };
+                    readonly permissions: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "string";
+                        };
+                    };
+                    readonly createdAt: {
+                        readonly type: "string";
+                        readonly format: "date-time";
+                    };
+                    readonly updatedAt: {
+                        readonly type: "string";
+                        readonly format: "date-time";
+                    };
+                };
+                readonly required: readonly ["id", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
+            };
             readonly UserCreateInputDTO: {
                 readonly type: "object";
                 readonly properties: {
@@ -1022,7 +1060,7 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly required: readonly ["isAdmin", "username", "password"];
+                readonly required: readonly ["username", "password"];
             };
             readonly UserGetResponse: {
                 readonly type: "object";

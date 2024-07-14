@@ -4,10 +4,11 @@ import {
   AuthApi,
   FoldersApi,
   ServerApi,
+  UsersApi,
   ViewerApi,
 } from '@stellariscloud/api-client'
-import type { ApiQueryHooks } from '@stellariscloud/api-utils'
-import { bindApiConfig } from '@stellariscloud/api-utils'
+import type { ApiQueryHooks } from '@stellariscloud/utils'
+import { bindApiConfig } from '@stellariscloud/utils'
 import { Authenticator } from '@stellariscloud/auth-utils'
 import { capitalize } from '@stellariscloud/utils'
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
@@ -68,6 +69,7 @@ export const authApi = bindApiConfig(defaultConfig, AuthApi)()
 export const viewerApi = bindApiConfig(defaultConfig, ViewerApi)()
 export const foldersApi = bindApiConfig(defaultConfig, FoldersApi)()
 export const serverApi = bindApiConfig(defaultConfig, ServerApi)()
+export const usersApi = bindApiConfig(defaultConfig, UsersApi)()
 export const appsApi = bindApiConfig(defaultConfig, AppsApi)()
 
 export const authApiHooks = createQueryHooks(authApi)

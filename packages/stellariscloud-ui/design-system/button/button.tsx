@@ -49,12 +49,12 @@ export function Button({
         size === 'xl'
           ? 'h-[2.75rem]'
           : size === 'lg'
-          ? 'h-[2.5rem]'
-          : size === 'md'
-          ? 'h-[2.25rem]'
-          : size === 'sm'
-          ? 'h-[2rem]'
-          : '',
+            ? 'h-[2.5rem]'
+            : size === 'md'
+              ? 'h-[2.25rem]'
+              : size === 'sm'
+                ? 'h-[2rem]'
+                : '',
       )}
     >
       <div
@@ -73,12 +73,12 @@ export function Button({
           size === 'xl'
             ? 'px-3.5 py-2.5'
             : size === 'lg'
-            ? 'px-3 py-2'
-            : size === 'md'
-            ? 'px-2.5 py-1.5'
-            : size === 'sm'
-            ? 'px-2 py-1'
-            : 'px-2 py-0',
+              ? 'px-3 py-2'
+              : size === 'md'
+                ? 'px-2.5 py-1.5'
+                : size === 'sm'
+                  ? 'px-2 py-1'
+                  : 'px-2 py-0',
           'focus-visible:outline focus-visible:outline-2',
           'focus-visible:outline-offset-2',
           'border',

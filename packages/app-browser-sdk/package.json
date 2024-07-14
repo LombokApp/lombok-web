@@ -21,7 +21,7 @@
     "@rollup/plugin-node-resolve": "15.2.3",
     "@rollup/plugin-typescript": "11.1.6",
     "@stellariscloud/api-client": "workspace:*",
-    "@stellariscloud/api-utils": "workspace:*",
+    "@stellariscloud/utils": "workspace:*",
     "@stellariscloud/types": "workspace:*",
     "@types/jest": "29.5.12",
     "@typescript-eslint/eslint-plugin": "7.15.0",

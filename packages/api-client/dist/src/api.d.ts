@@ -1243,7 +1243,7 @@ export interface UserCreateInputDTO {
      * @type {boolean}
      * @memberof UserCreateInputDTO
      */
-    'isAdmin': boolean;
+    'isAdmin'?: boolean;
     /**
      *
      * @type {string}
@@ -1262,6 +1262,67 @@ export interface UserCreateInputDTO {
      * @memberof UserCreateInputDTO
      */
     'permissions'?: Array<string>;
+}
+/**
+ *
+ * @export
+ * @interface UserDTO
+ */
+export interface UserDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof UserDTO
+     */
+    'id': string;
+    /**
+     *
+     * @type {any}
+     * @memberof UserDTO
+     */
+    'name'?: any;
+    /**
+     *
+     * @type {any}
+     * @memberof UserDTO
+     */
+    'email'?: any;
+    /**
+     *
+     * @type {boolean}
+     * @memberof UserDTO
+     */
+    'emailVerified': boolean;
+    /**
+     *
+     * @type {boolean}
+     * @memberof UserDTO
+     */
+    'isAdmin': boolean;
+    /**
+     *
+     * @type {string}
+     * @memberof UserDTO
+     */
+    'username': string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof UserDTO
+     */
+    'permissions': Array<string>;
+    /**
+     *
+     * @type {string}
+     * @memberof UserDTO
+     */
+    'createdAt': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserDTO
+     */
+    'updatedAt': string;
 }
 /**
  *

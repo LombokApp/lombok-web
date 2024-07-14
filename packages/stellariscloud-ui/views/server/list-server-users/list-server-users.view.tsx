@@ -1,5 +1,5 @@
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline'
-import type { UserData } from '@stellariscloud/api-client'
+import type { UserDTO } from '@stellariscloud/api-client'
 import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import React from 'react'
@@ -8,14 +8,14 @@ import { Avatar } from '../../../design-system/avatar'
 import { Button } from '../../../design-system/button/button'
 import { ButtonGroup } from '../../../design-system/button-group/button-group'
 import { Table } from '../../../design-system/table/table'
-import { serverApi } from '../../../services/api'
+import { usersApi } from '../../../services/api'
 
 export function ServerUsers() {
   const router = useRouter()
   const [users, setUsers] =
-    React.useState<(UserData & { permissions: { label: string }[] })[]>()
+    React.useState<(UserDTO & { permissions: { label: string }[] })[]>()
   React.useEffect(() => {
-    void serverApi
+    void usersApi
       .listUsers()
       .then((response) =>
         setUsers(response.data.result.map((r) => ({ ...r, permissions: [] }))),

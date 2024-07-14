@@ -1,5 +1,5 @@
 import { FoldersApi } from '@stellariscloud/api-client'
-import { bindApiConfig } from '@stellariscloud/api-utils'
+import { bindApiConfig } from '@stellariscloud/utils'
 
 export type StellarisCloudAPI = {
   folders: FoldersApi

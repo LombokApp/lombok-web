@@ -1,4 +1,4 @@
-import type { UserData } from '@stellariscloud/api-client'
+import type { UserDTO } from '@stellariscloud/api-client'
 import type { NullablePartial } from '@stellariscloud/utils'
 import clsx from 'clsx'
 import React from 'react'
@@ -10,7 +10,7 @@ import { PageHeading } from '../../../design-system/page-heading/page-heading'
 import { viewerApi } from '../../../services/api'
 
 export function UserProfileScreen() {
-  const [user, setUser] = React.useState<UserData>()
+  const [user, setUser] = React.useState<UserDTO>()
   const [userFormState, setUserFormState] =
     React.useState<NullablePartial<ProfileUserFormValues>>()
 
@@ -29,7 +29,7 @@ export function UserProfileScreen() {
 
   const handleSubmitClick = React.useCallback(() => {
     void viewerApi.updateViewer({
-      viewerUpdatePayload: {
+      updateViewerInputDTO: {
         name: userFormState?.name ?? '',
       },
     })

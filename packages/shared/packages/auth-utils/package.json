@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@stellariscloud/api-client": "workspace:*",
-    "@stellariscloud/api-utils": "workspace:*",
+    "@stellariscloud/utils": "workspace:*",
     "axios": "1.7.2",
     "js-cookie": "3.0.5",
     "jwt-decode": "4.0.0",

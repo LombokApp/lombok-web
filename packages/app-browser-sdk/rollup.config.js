@@ -11,8 +11,8 @@ const workspaceAliases = {
   '@stellariscloud/api-client': fileURLToPath(
     new URL('../api-client/dist', import.meta.url),
   ),
-  '@stellariscloud/api-utils': fileURLToPath(
-    new URL('../shared/packages/api-utils/dist', import.meta.url),
+  '@stellariscloud/utils': fileURLToPath(
+    new URL('../shared/packages/utils/dist', import.meta.url),
   ),
 }
 

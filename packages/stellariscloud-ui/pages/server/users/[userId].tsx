@@ -1,20 +1,20 @@
-import type { UserData } from '@stellariscloud/api-client'
+import type { UserDTO } from '@stellariscloud/api-client'
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import { serverApi } from '../../../services/api'
+import { usersApi } from '../../../services/api'
 import { ServerUserDetailScreen } from '../../../views/server/server-user-detail-screen/server-user-detail-screen'
 
 const ServerUserPage: NextPage = () => {
   const router = useRouter()
   const isNew = router.query.userId === 'new'
-  const [user, setUser] = React.useState<UserData>()
+  const [user, setUser] = React.useState<UserDTO>()
   React.useEffect(() => {
     if (!isNew && typeof router.query.userId === 'string' && !user) {
-      void serverApi
+      void usersApi
         .getUser({ userId: router.query.userId })
-        .then((u) => setUser(u.data.result))
+        .then((u) => setUser(u.data.user))
     }
   }, [user, isNew, router.query.userId])
 
