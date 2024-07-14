@@ -2,7 +2,7 @@ import type { AppConfig } from '@stellariscloud/types'
 
 export const CORE_MODULE_CONFIG: AppConfig = {
   publicKey: '',
-  description: `A module implementing core functionality. This is a separate node process and can be run alongside the core app or deployed on another host.`,
+  description: `An app implementing core functionality. This is a separate node process and can be run alongside the core app or deployed on another host.`,
   actions: {
     folder: [
       {

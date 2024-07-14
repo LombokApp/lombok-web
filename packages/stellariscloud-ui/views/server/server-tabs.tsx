@@ -25,10 +25,10 @@ export function ServerTabs({ activeTab }: { activeTab: string }) {
       href: '/server/storage',
     },
     {
-      name: 'modules',
-      label: 'Modules',
+      name: 'apps',
+      label: 'Apps',
       icon: BoltIcon,
-      href: '/server/modules',
+      href: '/server/apps',
     },
     {
       name: 'settings',

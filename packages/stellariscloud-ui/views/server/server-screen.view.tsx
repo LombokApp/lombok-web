@@ -22,7 +22,7 @@ export function ServerScreen() {
   }, [router.query.tab])
 
   const SERVER_INFO = {
-    hostname: 'stellaris.wasteofpaper.com',
+    hostname: 'stellaris.example.com',
   }
 
   return (
@@ -45,7 +45,7 @@ export function ServerScreen() {
             )}
             {activeTab === 'users' && <ServerUsers />}
             {activeTab === 'storage' && <ServerStorageConfig />}
-            {activeTab === 'modules' && <ServerAppsScreen />}
+            {activeTab === 'apps' && <ServerAppsScreen />}
             {activeTab === 'settings' && <ServerSettingsScreen />}
           </div>
         </div>

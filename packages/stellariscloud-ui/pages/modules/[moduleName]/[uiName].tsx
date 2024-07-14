@@ -4,7 +4,7 @@ import React from 'react'
 
 import { AppUI } from '../../../views/app-ui/app-ui.view'
 
-const ModulesIndexPage: NextPage = () => {
+const AppsIndexPage: NextPage = () => {
   const router = useRouter()
   const [location, setLocation] = React.useState<Location>()
   React.useEffect(() => {
@@ -15,7 +15,7 @@ const ModulesIndexPage: NextPage = () => {
       {location && (
         <AppUI
           scheme={location.protocol}
-          moduleName={router.query.moduleName as string}
+          appIdentifier={router.query.moduleName as string}
           host={process.env.NEXT_PUBLIC_API_HOST}
           uiName={router.query.uiName as string}
         />
@@ -26,4 +26,4 @@ const ModulesIndexPage: NextPage = () => {
   )
 }
 
-export default ModulesIndexPage
+export default AppsIndexPage

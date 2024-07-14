@@ -14,7 +14,7 @@ import {
 } from '@stellariscloud/api-client'
 
 export interface IServerContext {
-  refreshModules: () => Promise<void>
+  refreshApps: () => Promise<void>
   refreshSettings: () => Promise<void>
   menuItems: AppMenuItemAndHref[]
   settings?: SettingsGetResponseSettings
@@ -56,7 +56,7 @@ export const ServerContextProvider = ({
   const [serverSettings, setServerSettings] =
     React.useState<SettingsGetResponseSettings>()
   const [menuItems, setMenuItems] = React.useState<AppMenuItemAndHref[]>()
-  const [appModules, setServerApps] = React.useState<AppListResponse>()
+  const [serverApps, setServerApps] = React.useState<AppListResponse>()
 
   const fetchServerSettings = React.useCallback(
     () =>
@@ -66,7 +66,7 @@ export const ServerContextProvider = ({
     [],
   )
 
-  const fetchServerModules = React.useCallback(
+  const fetchServerApps = React.useCallback(
     async () =>
       appsApi.listApps().then((response) => {
         setServerApps(response.data)
@@ -89,22 +89,22 @@ export const ServerContextProvider = ({
 
   const messageHandler = React.useCallback(
     (message: { name: AppPushMessage; payload: { [key: string]: any } }) => {
-      if (ServerPushMessage.MODULES_UPDATED === message.name) {
-        void fetchServerModules()
+      if (ServerPushMessage.APPS_UPDATED === message.name) {
+        void fetchServerApps()
       } else if (ServerPushMessage.SETTINGS_UPDATED === message.name) {
         void fetchServerSettings()
       }
     },
-    [fetchServerModules, fetchServerSettings],
+    [fetchServerApps, fetchServerSettings],
   )
 
   const { socket, connected: socketConnected } =
     useServerWebsocket(messageHandler)
 
   React.useEffect(() => {
-    void fetchServerModules()
+    void fetchServerApps()
     void fetchServerSettings()
-  }, [fetchServerModules, fetchServerSettings])
+  }, [fetchServerApps, fetchServerSettings])
 
   const subscribeToMessages = (handler: SocketMessageHandler) => {
     socket?.onAny(handler)
@@ -117,12 +117,12 @@ export const ServerContextProvider = ({
   return (
     <ServerContext.Provider
       value={{
-        refreshModules: fetchServerModules,
+        refreshApps: fetchServerApps,
         refreshSettings: fetchServerSettings,
         socketConnected,
         menuItems: menuItems ?? [],
         settings: serverSettings,
-        apps: appModules,
+        apps: serverApps,
         subscribeToMessages,
         unsubscribeFromMessages,
         socket,

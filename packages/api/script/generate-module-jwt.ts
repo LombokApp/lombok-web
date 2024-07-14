@@ -11,7 +11,7 @@ const payload: JwtPayload = {
   aud: 'stellariscloud.localhost',
   jti: uuidV4(),
   scp: [],
-  sub: `MODULE:${moduleName}`,
+  sub: `APP:${moduleName}`,
 }
 
 const token = jwt.sign(payload, privateKey, {

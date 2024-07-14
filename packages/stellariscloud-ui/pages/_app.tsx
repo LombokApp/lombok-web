@@ -208,7 +208,7 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
                             width={40}
                             height={40}
                             alt={item.label}
-                            src={`${scheme}://${item.uiName}.${item.appIdentifier}.modules.${process.env.NEXT_PUBLIC_API_HOST}${item.iconPath}`}
+                            src={`${scheme}://${item.uiName}.${item.appIdentifier}.apps.${process.env.NEXT_PUBLIC_API_HOST}${item.iconPath}`}
                             aria-hidden="true"
                           />
                         ) : (

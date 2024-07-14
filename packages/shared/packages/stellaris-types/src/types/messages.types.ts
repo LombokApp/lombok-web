@@ -8,13 +8,13 @@ export enum FolderPushMessage {
 }
 
 export enum ServerPushMessage {
-  MODULES_UPDATED = 'MODULES_UPDATED',
+  APPS_UPDATED = 'APPS_UPDATED',
   SETTINGS_UPDATED = 'SETTINGS_UPDATED',
 }
 
 export type AppPushMessage = ServerPushMessage | FolderPushMessage
 
-export interface ModuleLogEntry {
+export interface AppLogEntry {
   level: 'error' | 'warning' | 'info' | 'debug'
   name: string
   message: string

@@ -9,7 +9,7 @@ import React from 'react'
 
 import { Button } from '../../design-system/button/button'
 
-export type ModulesTab = 'config' | 'logs' | 'events' | 'workers'
+export type AppsTab = 'config' | 'logs' | 'events' | 'workers'
 
 export function InstalledAppTabs({
   activeTab,

@@ -1,7 +1,7 @@
 import type { ConnectedAppInstance, AppData } from '@stellariscloud/types'
 import React from 'react'
 
-import type { ModulesTab } from './installed-app-tabs'
+import type { AppsTab } from './installed-app-tabs'
 import { InstalledAppTabs } from './installed-app-tabs'
 
 export function InstalledAppDataPanel({
@@ -13,7 +13,7 @@ export function InstalledAppDataPanel({
     [name: string]: ConnectedAppInstance | undefined
   }
 }) {
-  const [activeTab, setActiveTab] = React.useState<ModulesTab>('config')
+  const [activeTab, setActiveTab] = React.useState<AppsTab>('config')
   const _connectedAppInstances = Object.keys(connectedAppInstances).map(
     (workerName) => ({
       id: connectedAppInstances[workerName]?.id ?? '',
@@ -27,7 +27,7 @@ export function InstalledAppDataPanel({
       <div className="pb-4">
         <InstalledAppTabs
           activeTab={activeTab}
-          onChange={(t) => setActiveTab(t as ModulesTab)}
+          onChange={(t) => setActiveTab(t as AppsTab)}
         />
       </div>
       {activeTab === 'config' && (

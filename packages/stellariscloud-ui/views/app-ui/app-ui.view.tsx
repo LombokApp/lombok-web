@@ -1,12 +1,12 @@
 import React from 'react'
 
 export function AppUI({
-  moduleName,
+  appIdentifier,
   host,
   uiName,
   scheme,
 }: {
-  moduleName: string
+  appIdentifier: string
   uiName: string
   host: string
   scheme: string
@@ -15,10 +15,10 @@ export function AppUI({
 
   React.useEffect(() => {
     // Set the iframe's new HTML
-    if (iframeRef.current?.contentWindow && moduleName && uiName) {
-      iframeRef.current.src = `${scheme}//${uiName}.${moduleName}.modules.${host}`
+    if (iframeRef.current?.contentWindow && appIdentifier && uiName) {
+      iframeRef.current.src = `${scheme}//${uiName}.${appIdentifier}.apps.${host}`
     }
-  }, [iframeRef.current?.contentWindow, moduleName, host, uiName, scheme])
+  }, [iframeRef.current?.contentWindow, appIdentifier, host, uiName, scheme])
 
   return (
     <div className="h-full w-full flex flex-col justify-stretch">
@@ -26,7 +26,7 @@ export function AppUI({
         <iframe
           ref={iframeRef}
           className="w-full h-full"
-          title={`module:${moduleName}`}
+          title={`app:${appIdentifier}`}
         />
       </div>
     </div>

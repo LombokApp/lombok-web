@@ -8,7 +8,7 @@
     "test:cov": "yarn test --coverage",
     "test:e2e:watch": "jest --config ./test/jest-e2e.js --watchAll",
     "test:e2e": "jest --config ./test/jest-e2e.js",
-    "reset:sdk": "(rm -rf ./node_modules/@stellariscloud/modules-worker-sdk || true)",
+    "reset:sdk": "(rm -rf ./node_modules/@stellariscloud/app-worker-sdk || true)",
     "db:migrate:new": "bunx drizzle-kit generate --config ./src/orm/drizzle.config.ts",
     "db:migrate:up": "bun --bun ./script/db-migrate-up.ts",
     "db:migrate:check": "./cmd/db-migrate-check.sh",

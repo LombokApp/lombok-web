@@ -7,9 +7,9 @@ import path from 'path'
 
 import type {
   CoreServerMessageInterface,
-  ModuleEvent,
-} from '../utils/connect-module-worker.util'
-import { ModuleAPIError } from '../utils/connect-module-worker.util'
+  AppEvent,
+} from '../utils/connect-app-worker.util'
+import { AppAPIError } from '../utils/connect-app-worker.util'
 import type { FFMpegOutput } from '../utils/ffmpeg.util'
 import { resizeWithFFmpeg } from '../utils/ffmpeg.util'
 import {
@@ -19,20 +19,20 @@ import {
 } from '../utils/file.util'
 
 export const objectAddedEventHandler = async (
-  event: ModuleEvent,
+  event: AppEvent,
   server: CoreServerMessageInterface,
 ) => {
   console.log('Starting work for event:', event)
   if (!event.id) {
-    throw new ModuleAPIError('INVALID_EVENT', 'Missing event id.')
+    throw new AppAPIError('INVALID_EVENT', 'Missing event id.')
   }
 
   if (!event.data.objectKey) {
-    throw new ModuleAPIError('INVALID_EVENT', 'Missing objectKey.')
+    throw new AppAPIError('INVALID_EVENT', 'Missing objectKey.')
   }
 
   if (!event.data.folderId) {
-    throw new ModuleAPIError('INVALID_EVENT', 'Missing folderId.')
+    throw new AppAPIError('INVALID_EVENT', 'Missing folderId.')
   }
 
   const response = await server.getContentSignedUrls(
@@ -47,7 +47,7 @@ export const objectAddedEventHandler = async (
   )
 
   if (response.error) {
-    throw new ModuleAPIError(response.error.code, response.error.message)
+    throw new AppAPIError(response.error.code, response.error.message)
   }
 
   const tempDir = fs.mkdtempSync(
@@ -66,7 +66,7 @@ export const objectAddedEventHandler = async (
   )
 
   if (!mimeType) {
-    throw new ModuleAPIError(
+    throw new AppAPIError(
       'UNRECOGNIZED_MIME_TYPE',
       `Cannot resolve mimeType for objectKey ${event.data.objectKey}`,
     )
@@ -115,7 +115,7 @@ export const objectAddedEventHandler = async (
       )
       .then(({ result, error }) => {
         if (error) {
-          throw new ModuleAPIError(error.code, error.message)
+          throw new AppAPIError(error.code, error.message)
         }
         return result.urls.reduce<typeof metadataHashes>(
           (acc, next, i) => {
@@ -190,7 +190,7 @@ export const objectAddedEventHandler = async (
   )
 
   if (updateContentAttributesResponse.error) {
-    throw new ModuleAPIError('UPDATE_CONTENT_ATTRIBUTES_FAILED')
+    throw new AppAPIError('UPDATE_CONTENT_ATTRIBUTES_FAILED')
   }
 
   const metadataUpdateResponse = await server.updateContentMetadata(
@@ -206,7 +206,7 @@ export const objectAddedEventHandler = async (
   )
 
   if (metadataUpdateResponse.error) {
-    throw new ModuleAPIError('UPDATE_CONTENT_METADATA_FAILED')
+    throw new AppAPIError('UPDATE_CONTENT_METADATA_FAILED')
   }
 
   // remove the temporary directory

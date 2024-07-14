@@ -1,31 +1,29 @@
 import type {
   ContentAttributesType,
   ContentMetadataType,
-  ModuleLogEntry,
+  AppLogEntry,
 } from '@stellariscloud/types'
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
 
 const SOCKET_RESPONSE_TIMEOUT = 2000
 
-export const buildModuleClient = (
-  socket: Socket,
-): CoreServerMessageInterface => {
+export const buildAppClient = (socket: Socket): CoreServerMessageInterface => {
   return {
     saveLogEntry(entry) {
-      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('MODULE_API', {
+      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
         name: 'SAVE_LOG_ENTRY',
         data: entry,
       })
     },
     getContentSignedUrls(requests, eventId) {
-      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('MODULE_API', {
+      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
         name: 'GET_CONTENT_SIGNED_URLS',
         data: { eventId, requests },
       })
     },
     getMetadataSignedUrls(requests, eventId) {
-      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('MODULE_API', {
+      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
         name: 'GET_METADATA_SIGNED_URLS',
         data: {
           eventId,
@@ -34,7 +32,7 @@ export const buildModuleClient = (
       })
     },
     updateContentAttributes(updates, eventId) {
-      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('MODULE_API', {
+      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
         name: 'UPDATE_CONTENT_ATTRIBUTES',
         data: {
           eventId,
@@ -43,7 +41,7 @@ export const buildModuleClient = (
       })
     },
     updateContentMetadata(updates, eventId) {
-      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('MODULE_API', {
+      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
         name: 'UPDATE_CONTENT_METADATA',
         data: {
           eventId,
@@ -52,19 +50,19 @@ export const buildModuleClient = (
       })
     },
     completeHandleEvent(eventId) {
-      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('MODULE_API', {
+      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
         name: 'COMPLETE_HANDLE_EVENT',
         data: eventId,
       })
     },
     attemptStartHandleEvent(eventKeys: string[]) {
-      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('MODULE_API', {
+      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
         name: 'ATTEMPT_START_HANDLE_EVENT',
         data: { eventKeys },
       })
     },
     failHandleEvent(eventId) {
-      return socket.emitWithAck('MODULE_API', {
+      return socket.emitWithAck('APP_API', {
         name: 'FAIL_HANDLE_EVENT',
         data: eventId,
       })
@@ -72,20 +70,20 @@ export const buildModuleClient = (
   }
 }
 
-interface ModuleAPIResponse<T> {
+interface AppAPIResponse<T> {
   result: T
   error?: { code: string; message: string }
 }
 export interface CoreServerMessageInterface {
-  saveLogEntry: (entry: ModuleLogEntry) => Promise<boolean>
+  saveLogEntry: (entry: AppLogEntry) => Promise<boolean>
   attemptStartHandleEvent: (
     eventKeys: string[],
-  ) => Promise<ModuleAPIResponse<ModuleEvent>>
+  ) => Promise<AppAPIResponse<AppEvent>>
   failHandleEvent: (
     eventId: string,
     error: { code: string; message: string },
   ) => Promise<void>
-  completeHandleEvent: (eventId: string) => Promise<ModuleAPIResponse<void>>
+  completeHandleEvent: (eventId: string) => Promise<AppAPIResponse<void>>
   getMetadataSignedUrls: (
     objects: {
       folderId: string
@@ -96,7 +94,7 @@ export interface CoreServerMessageInterface {
     }[],
     eventId?: string,
   ) => Promise<
-    ModuleAPIResponse<{
+    AppAPIResponse<{
       urls: { url: string; folderId: string; objectKey: string }[]
     }>
   >
@@ -108,7 +106,7 @@ export interface CoreServerMessageInterface {
     }[],
     eventId?: string,
   ) => Promise<
-    ModuleAPIResponse<{
+    AppAPIResponse<{
       urls: { url: string; folderId: string; objectKey: string }[]
     }>
   >
@@ -120,7 +118,7 @@ export interface CoreServerMessageInterface {
       attributes: ContentAttributesType
     }[],
     eventId?: string,
-  ) => Promise<ModuleAPIResponse<void>>
+  ) => Promise<AppAPIResponse<void>>
   updateContentMetadata: (
     updates: {
       folderId: string
@@ -129,16 +127,16 @@ export interface CoreServerMessageInterface {
       metadata: ContentMetadataType
     }[],
     eventId?: string,
-  ) => Promise<ModuleAPIResponse<void>>
+  ) => Promise<AppAPIResponse<void>>
 }
 
-export interface ModuleEvent {
+export interface AppEvent {
   id: string
   eventKey: string
   data: any
 }
 
-export class ModuleAPIError extends Error {
+export class AppAPIError extends Error {
   errorCode: string
   constructor(errorCode: string, errorMessage: string = '') {
     super()
@@ -149,28 +147,28 @@ export class ModuleAPIError extends Error {
 
 export const connectAndPerformWork = (
   socketBaseUrl: string,
-  moduleWorkerId: string,
-  moduleToken: string,
+  appWorkerId: string,
+  appToken: string,
   eventHandlers: {
     [eventName: string]: (
-      event: ModuleEvent,
+      event: AppEvent,
       serverClient: CoreServerMessageInterface,
     ) => Promise<void>
   },
-  _log: (entry: Partial<ModuleLogEntry>) => void,
+  _log: (entry: Partial<AppLogEntry>) => void,
 ) => {
   const eventSubscriptionKeys = Object.keys(eventHandlers)
   const socket = io(`${socketBaseUrl}`, {
     auth: {
-      moduleWorkerId,
-      token: moduleToken,
+      appWorkerId,
+      token: appToken,
       eventSubscriptionKeys,
     },
     reconnection: false,
   })
   let concurrentTasks = 0
 
-  const serverClient = buildModuleClient(socket)
+  const serverClient = buildAppClient(socket)
 
   const shutdown = () => {
     socket.disconnect()
@@ -183,10 +181,10 @@ export const connectAndPerformWork = (
     socket.on('disconnect', (reason) => {
       console.log('Worker disconnected. Reason:', reason)
       _log({
-        message: 'Core module worker websocket disconnected.',
-        name: 'CoreModuleWorkerDisconnect',
+        message: 'Core app worker websocket disconnected.',
+        name: 'CoreAppWorkerDisconnect',
         data: {
-          moduleWorkerId,
+          appWorkerId,
         },
       })
       resolve()
@@ -211,9 +209,9 @@ export const connectAndPerformWork = (
               .catch((e) => {
                 return serverClient.failHandleEvent(event.id, {
                   code:
-                    e instanceof ModuleAPIError
+                    e instanceof AppAPIError
                       ? e.errorCode
-                      : 'MODULE_WORKER_EXECUTION_ERROR',
+                      : 'APP_WORKER_EXECUTION_ERROR',
                   message: `${e.name}: ${e.message}`,
                 })
               })
@@ -225,13 +223,13 @@ export const connectAndPerformWork = (
     })
 
     socket.on('error', (error) => {
-      console.log('Socket error:', error, moduleWorkerId)
+      console.log('Socket error:', error, appWorkerId)
       _log({
-        message: 'Core module worker websocket disconnected.',
-        name: 'CoreModuleWorkerSocketError',
+        message: 'Core app worker websocket disconnected.',
+        name: 'CoreAppWorkerSocketError',
         level: 'error',
         data: {
-          moduleWorkerId,
+          appWorkerId,
           name: error.name,
           stacktrace: error.stacktrace,
           message: error.message,

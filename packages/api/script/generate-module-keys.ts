@@ -3,7 +3,7 @@ import type { JwtPayload } from 'jsonwebtoken'
 import jwt from 'jsonwebtoken'
 import { v4 as uuidV4 } from 'uuid'
 
-const moduleName = process.argv[2]
+const appIdentifier = process.argv[2]
 
 void new Promise<{ publicKey: string; privateKey: string }>((resolve) =>
   crypto.generateKeyPair(
@@ -35,14 +35,14 @@ void new Promise<{ publicKey: string; privateKey: string }>((resolve) =>
     aud: 'stellariscloud.localhost',
     jti: uuidV4(),
     scp: [],
-    sub: `MODULE:${moduleName}`,
+    sub: `APP:${appIdentifier}`,
   }
 
   const token = jwt.sign(payload, keys.privateKey, {
     algorithm: ALGORITHM,
     expiresIn: 60 * 60 * 24 * 31,
   })
-  console.log('module token "%s"', token)
+  console.log('app token "%s"', token)
 
   jwt.verify(token, keys.publicKey)
 

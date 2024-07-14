@@ -5,9 +5,12 @@ export type StellarisCloudAPI = {
   folders: FoldersApi
 }
 
-export class ModulesBrowserSdk {
+export class AppBrowserSdk {
   public apiClient: StellarisCloudAPI
-  constructor(private sessionToken: string, private _document: Document) {
+  constructor(
+    private sessionToken: string,
+    private _document: Document,
+  ) {
     const basePath = '' // TODO: decode this from token
     const defaultConfig = {
       basePath,
