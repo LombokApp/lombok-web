@@ -3,11 +3,10 @@ import {
   GlobeAltIcon,
   KeyIcon,
   PencilSquareIcon,
-  PlusSmallIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline'
-import type { ServerLocationData } from '@stellariscloud/api-client'
-import { ServerLocationType } from '@stellariscloud/api-client'
+// import type { ServerLocationData } from '@stellariscloud/api-client'
+// import { ServerLocationType } from '@stellariscloud/api-client'
 import clsx from 'clsx'
 import React from 'react'
 
@@ -24,8 +23,8 @@ export function StorageBackendTable({
   locations,
   onEdit,
 }: {
-  locations: ServerLocationData[]
-  onEdit: (l: ServerLocationData) => void
+  locations: any[]
+  onEdit: (l: any) => void
 }) {
   return (
     <Table
@@ -120,57 +119,57 @@ export function StorageBackendTable({
 }
 
 export function ServerStorageConfig() {
-  const [s3Locations, setServerS3Locations] = React.useState<{
-    [ServerLocationType.Backup]: ServerLocationData[]
-    [ServerLocationType.Metadata]: ServerLocationData[]
-    [ServerLocationType.Content]: ServerLocationData[]
-  }>({
-    [ServerLocationType.Backup]: [],
-    [ServerLocationType.Metadata]: [],
-    [ServerLocationType.Content]: [],
-  })
+  // const [s3Locations, setServerS3Locations] = React.useState<{
+  //   [ServerLocationType.Backup]: ServerLocationData[]
+  //   [ServerLocationType.Metadata]: ServerLocationData[]
+  //   [ServerLocationType.Content]: ServerLocationData[]
+  // }>({
+  //   [ServerLocationType.Backup]: [],
+  //   [ServerLocationType.Metadata]: [],
+  //   [ServerLocationType.Content]: [],
+  // })
 
-  const [editingLocation, setEditingLocation] = React.useState<
-    Partial<{
-      location: ServerLocationData
-      mutationType: 'CREATE' | 'UPDATE'
-      locationType: ServerLocationType
-    }>
-  >()
+  // const [editingLocation, setEditingLocation] = React.useState<
+  //   Partial<{
+  //     location: ServerLocationData
+  //     mutationType: 'CREATE' | 'UPDATE'
+  //     locationType: ServerLocationType
+  //   }>
+  // >()
 
-  const handleAddServerLocation = React.useCallback(
-    (type: ServerLocationType, input: LocationFormValues) => {
-      return serverApi
-        .addServerLocation({
-          locationType: type,
-          serverLocationInputData: {
-            ...input,
-          },
-        })
-        .then((resp) => {
-          setServerS3Locations((locations) => ({
-            ...locations,
-            [type]: locations[type].concat([resp.data]),
-          }))
-        })
-    },
-    [],
-  )
+  // const handleAddServerLocation = React.useCallback(
+  //   (type: ServerLocationType, input: LocationFormValues) => {
+  //     return serverApi
+  //       .addServerLocation({
+  //         locationType: type,
+  //         serverLocationInputData: {
+  //           ...input,
+  //         },
+  //       })
+  //       .then((resp) => {
+  //         setServerS3Locations((locations) => ({
+  //           ...locations,
+  //           [type]: locations[type].concat([resp.data]),
+  //         }))
+  //       })
+  //   },
+  //   [],
+  // )
 
-  React.useEffect(() => {
-    for (const k of [
-      ServerLocationType.Backup,
-      ServerLocationType.Metadata,
-      ServerLocationType.Content,
-    ]) {
-      void serverApi.listServerLocations({ locationType: k }).then((resp) => {
-        setServerS3Locations((locations) => ({
-          ...locations,
-          [k]: resp.data,
-        }))
-      })
-    }
-  }, [])
+  // React.useEffect(() => {
+  //   for (const k of [
+  //     ServerLocationType.Backup,
+  //     ServerLocationType.Metadata,
+  //     ServerLocationType.Content,
+  //   ]) {
+  //     void serverApi.listServerLocations({ locationType: k }).then((resp) => {
+  //       setServerS3Locations((locations) => ({
+  //         ...locations,
+  //         [k]: resp.data,
+  //       }))
+  //     })
+  //   }
+  // }, [])
 
   return (
     <div className="">
@@ -197,7 +196,7 @@ export function ServerStorageConfig() {
               </span>
             </code>
           </dt>
-          <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+          {/* <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
             {editingLocation?.locationType === ServerLocationType.Content ? (
               <LocationForm
                 value={editingLocation.location}
@@ -254,7 +253,7 @@ export function ServerStorageConfig() {
                 }
               />
             )}
-          </dd>
+          </dd> */}
         </div>
         <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
           <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">
@@ -266,7 +265,7 @@ export function ServerStorageConfig() {
               location here.
             </div>
           </dt>
-          <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+          {/* <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
             {editingLocation?.locationType === ServerLocationType.Backup ? (
               <LocationForm
                 value={editingLocation.location}
@@ -324,7 +323,7 @@ export function ServerStorageConfig() {
                 }}
               />
             )}
-          </dd>
+          </dd> */}
         </div>
       </dl>
     </div>
