@@ -40,15 +40,10 @@ export class ServerController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    try {
-      return {
-        settings: await this.serverConfigurationService.getServerSettingsAsUser(
-          req.user,
-        ),
-      }
-    } catch (e) {
-      console.log('getServerSettings ERROR:', e)
-      throw e
+    return {
+      settings: await this.serverConfigurationService.getServerSettingsAsUser(
+        req.user,
+      ),
     }
   }
 
