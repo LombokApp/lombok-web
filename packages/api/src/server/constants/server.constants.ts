@@ -13,10 +13,6 @@ export const USER_CONTENT_LOCATIONS_KEY: ServerConfigKey = {
   key: 'USER_CONTENT_LOCATIONS',
   private: true,
 }
-export const USER_BACKUP_LOCATIONS_KEY: ServerConfigKey = {
-  key: 'USER_BACKUP_LOCATIONS',
-  private: true,
-}
 
 export const SIGNUP_ENABLED_KEY: ServerConfigKey = {
   key: 'SIGNUP_ENABLED',
@@ -36,11 +32,9 @@ export const SIGNUP_PERMISSIONS_KEY: ServerConfigKey = {
 export enum ServerLocationType {
   USER_METADATA = 'USER_METADATA',
   USER_CONTENT = 'USER_CONTENT',
-  USER_BACKUP = 'USER_BACKUP',
 }
 
 export const ServerLocationTypeRunType = r.Union(
-  r.Literal(ServerLocationType.USER_BACKUP),
   r.Literal(ServerLocationType.USER_CONTENT),
   r.Literal(ServerLocationType.USER_METADATA),
 )
@@ -48,7 +42,6 @@ export const ServerLocationTypeRunType = r.Union(
 export const CONFIGURATION_KEYS = [
   USER_METADATA_LOCATIONS_KEY,
   USER_CONTENT_LOCATIONS_KEY,
-  USER_BACKUP_LOCATIONS_KEY,
   SIGNUP_ENABLED_KEY,
   SIGNUP_PERMISSIONS_KEY,
   SERVER_HOSTNAME,

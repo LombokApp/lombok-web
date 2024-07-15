@@ -42,11 +42,7 @@ export class SessionService {
     const refreshToken = hashedTokenHelper.encode(session.id, secret)
 
     return {
-      session: {
-        id: session.id,
-        expiresAt: session.expiresAt,
-        user,
-      },
+      session,
       accessToken,
       refreshToken,
     }

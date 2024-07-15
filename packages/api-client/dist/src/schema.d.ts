@@ -84,7 +84,14 @@ export declare const schema: {
         readonly "/auth/refresh-token": {
             readonly post: {
                 readonly operationId: "refreshToken";
-                readonly parameters: readonly [];
+                readonly parameters: readonly [{
+                    readonly name: "refeshToken";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
                 readonly responses: {
                     readonly "201": {
                         readonly description: "Logout. Kill the current session.";
@@ -98,9 +105,6 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Auth"];
-                readonly security: readonly [{
-                    readonly bearer: readonly [];
-                }];
             };
         };
         readonly "/viewer": {

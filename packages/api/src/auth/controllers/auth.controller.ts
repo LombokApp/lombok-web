@@ -4,6 +4,7 @@ import {
   Controller,
   forwardRef,
   Inject,
+  Param,
   Post,
   UsePipes,
 } from '@nestjs/common'
@@ -56,14 +57,19 @@ export class AuthController {
   }
 
   /**
-   * Logout. Kill the current session.
+   * Refresh a session with a refresh token.
    */
   @Post('/refresh-token')
-  @ApiBearerAuth()
-  refreshToken(): Promise<TokenRefreshResponse> {
-    // const session = await this.authService.logout(input)
-    return Promise.resolve({
-      session: { accessToken: 'sdfw3r4', refreshToken: 'asiduh' },
-    })
+  async refreshToken(
+    @Param('refeshToken') token: string,
+  ): Promise<TokenRefreshResponse> {
+    const { accessToken, refreshToken } =
+      await this.authService.verifySessionWithRefreshToken(token)
+    return {
+      session: {
+        accessToken,
+        refreshToken,
+      },
+    }
   }
 }

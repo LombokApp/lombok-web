@@ -213,11 +213,15 @@ export const AuthApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @param {string} refeshToken
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        refreshToken: async (options = {}) => {
-            const localVarPath = `/auth/refresh-token`;
+        refreshToken: async (refeshToken, options = {}) => {
+            // verify required parameter 'refeshToken' is not null or undefined
+            assertParamExists('refreshToken', 'refeshToken', refeshToken);
+            const localVarPath = `/auth/refresh-token`
+                .replace(`{${"refeshToken"}}`, encodeURIComponent(String(refeshToken)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -227,9 +231,6 @@ export const AuthApiAxiosParamCreator = function (configuration) {
             const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
             const localVarHeaderParameter = {};
             const localVarQueryParameter = {};
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration);
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
@@ -297,11 +298,12 @@ export const AuthApiFp = function (configuration) {
         },
         /**
          *
+         * @param {string} refeshToken
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async refreshToken(options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.refreshToken(options);
+        async refreshToken(refeshToken, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.refreshToken(refeshToken, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -342,11 +344,12 @@ export const AuthApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @param {AuthApiRefreshTokenRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        refreshToken(options) {
-            return localVarFp.refreshToken(options).then((request) => request(axios, basePath));
+        refreshToken(requestParameters, options) {
+            return localVarFp.refreshToken(requestParameters.refeshToken, options).then((request) => request(axios, basePath));
         },
         /**
          *
@@ -387,12 +390,13 @@ export class AuthApi extends BaseAPI {
     }
     /**
      *
+     * @param {AuthApiRefreshTokenRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthApi
      */
-    refreshToken(options) {
-        return AuthApiFp(this.configuration).refreshToken(options).then((request) => request(this.axios, this.basePath));
+    refreshToken(requestParameters, options) {
+        return AuthApiFp(this.configuration).refreshToken(requestParameters.refeshToken, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *

@@ -92,7 +92,16 @@
     "/auth/refresh-token": {
       "post": {
         "operationId": "refreshToken",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "refeshToken",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "201": {
             "description": "Logout. Kill the current session.",
@@ -107,11 +116,6 @@
         },
         "tags": [
           "Auth"
-        ],
-        "security": [
-          {
-            "bearer": []
-          }
         ]
       }
     },
