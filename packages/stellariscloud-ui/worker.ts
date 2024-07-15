@@ -1,5 +1,5 @@
 import { FoldersApi } from '@stellariscloud/api-client'
-import { bindApiConfig } from '@stellariscloud/utils'
+import { bindApiConfig } from '@stellariscloud/auth-utils'
 import { objectIdentifierToObjectKey } from '@stellariscloud/utils'
 import axios from 'axios'
 

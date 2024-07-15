@@ -1,5 +1,5 @@
 import { FoldersApi } from '@stellariscloud/api-client'
-import { bindApiConfig } from '@stellariscloud/utils'
+import { bindApiConfig } from '@stellariscloud/auth-utils'
 
 export type StellarisCloudAPI = {
   folders: FoldersApi
@@ -9,7 +9,7 @@ export class AppBrowserSdk {
   public apiClient: StellarisCloudAPI
   constructor(
     private sessionToken: string,
-    private _document: Document,
+    // private _document: Document,
   ) {
     const basePath = '' // TODO: decode this from token
     const defaultConfig = {

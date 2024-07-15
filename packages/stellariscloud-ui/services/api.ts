@@ -7,8 +7,8 @@ import {
   UsersApi,
   ViewerApi,
 } from '@stellariscloud/api-client'
-import type { ApiQueryHooks } from '@stellariscloud/utils'
-import { bindApiConfig } from '@stellariscloud/utils'
+import type { ApiQueryHooks } from '@stellariscloud/auth-utils'
+import { bindApiConfig } from '@stellariscloud/auth-utils'
 import { Authenticator } from '@stellariscloud/auth-utils'
 import { capitalize } from '@stellariscloud/utils'
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
