@@ -15,7 +15,7 @@ import { ButtonGroup } from '../../../design-system/button-group/button-group'
 import { EmptyState } from '../../../design-system/empty-state/empty-state'
 import { Icon } from '../../../design-system/icon'
 import { Table } from '../../../design-system/table/table'
-import { serverApi } from '../../../services/api'
+import { apiClient } from '../../../services/api'
 import type { LocationFormValues } from './location-form'
 import { LocationForm } from './location-form'
 

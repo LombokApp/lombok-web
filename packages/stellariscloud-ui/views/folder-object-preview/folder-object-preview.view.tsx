@@ -11,7 +11,7 @@ import { AudioPlayer } from '../../components/audio-player/audio-player'
 import { VideoPlayer } from '../../components/video-player/video-player'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { Icon } from '../../design-system/icon'
-import { foldersApi } from '../../services/api'
+import { apiClient } from '../../services/api'
 import { iconForMediaType } from '../../utils/icons'
 
 export const FolderObjectPreview = ({
@@ -43,7 +43,7 @@ export const FolderObjectPreview = ({
 
   React.useEffect(() => {
     if (folderId && objectKey && !folderObject) {
-      void foldersApi
+      void apiClient.foldersApi
         .getFolderObject({ folderId, objectKey })
         .then((response) => {
           setFolderObject(response.data.folderObject)

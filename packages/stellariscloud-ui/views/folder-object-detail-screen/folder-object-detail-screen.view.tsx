@@ -28,7 +28,7 @@ import { Button } from '../../design-system/button/button'
 import { ButtonGroup } from '../../design-system/button-group/button-group'
 import { Icon } from '../../design-system/icon'
 import { PageHeading } from '../../design-system/page-heading/page-heading'
-import { foldersApi } from '../../services/api'
+import { apiClient } from '../../services/api'
 import { FolderObjectPreview } from '../folder-object-preview/folder-object-preview.view'
 import { FolderObjectSidebar } from '../folder-object-sidebar/folder-object-sidebar.view'
 
@@ -91,7 +91,7 @@ export const FolderObjectDetailScreen = ({
   const { getData } = useLocalFileCacheContext()
 
   const fetchKeyMetadata = React.useCallback(() => {
-    void foldersApi
+    void apiClient.foldersApi
       .getFolderObject({ folderId, objectKey })
       .then((response) => setFolderObject(response.data.folderObject))
   }, [folderId, objectKey])
@@ -164,16 +164,18 @@ export const FolderObjectDetailScreen = ({
     if (!showDeleteModal) {
       setShowDeleteModal(true)
     } else {
-      void foldersApi.deleteFolderObject({ folderId, objectKey }).then(() => {
-        logging.appendLogLine({
-          level: LogLevel.INFO,
-          message: `Deleted object ${objectKey}`,
-          folderId,
-          remote: false,
-          objectKey,
+      void apiClient.foldersApi
+        .deleteFolderObject({ folderId, objectKey })
+        .then(() => {
+          logging.appendLogLine({
+            level: LogLevel.INFO,
+            message: `Deleted object ${objectKey}`,
+            folderId,
+            remote: false,
+            objectKey,
+          })
+          handleFolderLinkClick()
         })
-        handleFolderLinkClick()
-      })
     }
   }
 

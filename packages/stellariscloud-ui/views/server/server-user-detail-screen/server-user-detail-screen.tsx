@@ -11,7 +11,7 @@ import type { UserInput } from '../../../components/server-user-form/server-user
 import { ServerUserForm } from '../../../components/server-user-form/server-user-form'
 import { Button } from '../../../design-system/button/button'
 import { PageHeading } from '../../../design-system/page-heading/page-heading'
-import { serverApi, usersApi } from '../../../services/api'
+import { apiClient } from '../../../services/api'
 import { ServerTabs } from '../server-tabs'
 
 interface CreateUserInput {
@@ -42,7 +42,7 @@ export function ServerUserDetailScreen({
 
   const handleSubmitClick = React.useCallback(() => {
     if (isNew) {
-      void usersApi
+      void apiClient.usersApi
         .createUser({
           userCreateInputDTO: userObject as UserCreateInputDTO,
         })
@@ -50,7 +50,7 @@ export function ServerUserDetailScreen({
           void router.push(`/server/users/${data.user.id}`)
         })
     } else {
-      void usersApi
+      void apiClient.usersApi
         .updateUser({
           userId,
           userUpdateInputDTO: userObject as UserUpdateInputDTO,

@@ -3,7 +3,7 @@ import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import { usersApi } from '../../../services/api'
+import { apiClient } from '../../../services/api'
 import { ServerUserDetailScreen } from '../../../views/server/server-user-detail-screen/server-user-detail-screen'
 
 const ServerUserPage: NextPage = () => {
@@ -12,7 +12,7 @@ const ServerUserPage: NextPage = () => {
   const [user, setUser] = React.useState<UserDTO>()
   React.useEffect(() => {
     if (!isNew && typeof router.query.userId === 'string' && !user) {
-      void usersApi
+      void apiClient.usersApi
         .getUser({ userId: router.query.userId })
         .then((u) => setUser(u.data.user))
     }

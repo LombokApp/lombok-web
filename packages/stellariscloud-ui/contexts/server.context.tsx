@@ -4,7 +4,7 @@ import React from 'react'
 import type { Socket } from 'socket.io-client'
 
 import { useServerWebsocket } from '../hooks/use-server-websocket'
-import { serverApi, appsApi } from '../services/api'
+import { apiClient } from '../services/api'
 import { useLocalFileCacheContext } from './local-file-cache.context'
 import type { LogLevel } from './logging.context'
 import {
@@ -60,7 +60,7 @@ export const ServerContextProvider = ({
 
   const fetchServerSettings = React.useCallback(
     () =>
-      serverApi
+      apiClient.serverApi
         .getServerSettings()
         .then((response) => setServerSettings(response.data.settings)),
     [],
@@ -68,7 +68,7 @@ export const ServerContextProvider = ({
 
   const fetchServerApps = React.useCallback(
     async () =>
-      appsApi.listApps().then((response) => {
+      apiClient.appsApi.listApps().then((response) => {
         setServerApps(response.data)
         setMenuItems(
           response.data.result.reduce<AppMenuItemAndHref[]>((acc, next) => {

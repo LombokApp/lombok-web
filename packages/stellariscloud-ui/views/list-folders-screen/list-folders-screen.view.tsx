@@ -18,7 +18,7 @@ import { FolderCard } from '../../components/folder-card/folder-card'
 import { Button } from '../../design-system/button/button'
 import { Icon } from '../../design-system/icon/icon'
 import { PageHeading } from '../../design-system/page-heading/page-heading'
-import { foldersApi, foldersApiHooks, serverApi } from '../../services/api'
+import { apiClient, foldersApiHooks } from '../../services/api'
 
 export const ListFoldersScreen = () => {
   const router = useRouter()
@@ -41,7 +41,7 @@ export const ListFoldersScreen = () => {
         setForgetFolderConfirmationOpen(folderId)
       } else {
         setForgetFolderConfirmationOpen(false)
-        void foldersApi.deleteFolder({ folderId })
+        void apiClient.foldersApi.deleteFolder({ folderId })
         // .then(() =>
         //   setFolders(folders?.filter((b) => b.folder.id !== folderId)),
         // )

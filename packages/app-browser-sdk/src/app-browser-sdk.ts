@@ -1,27 +1,51 @@
-import { FoldersApi } from '@stellariscloud/api-client'
-import { bindApiConfig } from '@stellariscloud/auth-utils'
+import {
+  AppsApi,
+  AuthApi,
+  FoldersApi,
+  ServerApi,
+  UsersApi,
+  ViewerApi,
+} from '@stellariscloud/api-client'
+import { Authenticator, bindApiConfig } from '@stellariscloud/auth-utils'
 
 export type StellarisCloudAPI = {
-  folders: FoldersApi
+  foldersApi: FoldersApi
+  authApi: AuthApi
+  viewerApi: ViewerApi
+  serverApi: ServerApi
+  usersApi: UsersApi
+  appsApi: AppsApi
 }
 
 export class AppBrowserSdk {
   public apiClient: StellarisCloudAPI
-  constructor(
-    private sessionToken: string,
+  public authenticator: Authenticator
+  constructor({
+    basePath,
+  }: {
+    basePath: string
+    // sessionToken: string,
     // private _document: Document,
-  ) {
-    const basePath = '' // TODO: decode this from token
+  }) {
+    this.authenticator = new Authenticator({
+      basePath,
+    })
+
     const defaultConfig = {
       basePath,
-      accessToken: async () => sessionToken ?? '', // TODO: this needs to be a reference to the latest (possibly refreshed) token
+      accessToken: async () =>
+        (await this.authenticator.getAccessToken()) ?? '',
     }
 
     // validate session token
-    // hook up iframe parent message listeners (if iframed)
-    console.log({ sessionToken })
+    // console.log({ sessionToken })
     this.apiClient = {
-      folders: bindApiConfig(defaultConfig, FoldersApi)(),
+      authApi: bindApiConfig(defaultConfig, AuthApi)(),
+      foldersApi: bindApiConfig(defaultConfig, FoldersApi)(),
+      viewerApi: bindApiConfig(defaultConfig, ViewerApi)(),
+      serverApi: bindApiConfig(defaultConfig, ServerApi)(),
+      usersApi: bindApiConfig(defaultConfig, UsersApi)(),
+      appsApi: bindApiConfig(defaultConfig, AppsApi)(),
     }
   }
 }

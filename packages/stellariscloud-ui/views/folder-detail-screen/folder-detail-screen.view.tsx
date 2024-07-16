@@ -36,7 +36,7 @@ import { Button } from '../../design-system/button/button'
 import { Icon } from '../../design-system/icon'
 import { PageHeading } from '../../design-system/page-heading/page-heading'
 import { useWindowDimensions } from '../../hooks/use-window-dimensions'
-import { foldersApi } from '../../services/api'
+import { apiClient } from '../../services/api'
 import { FolderObjectDetailScreen } from '../folder-object-detail-screen/folder-object-detail-screen.view'
 import type { FolderSidebarTab } from '../folder-sidebar/folder-sidebar.view'
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
@@ -865,7 +865,7 @@ export const FolderDetailScreen = () => {
 
       folderObjects.current.folderRequests[requestKey] = { time: Date.now() }
 
-      await foldersApi
+      await apiClient.foldersApi
         .listFolderObjects({
           folderId: router.query.folderId as string,
           offset: Math.max(offset + haveFirstN, 0),
@@ -1050,7 +1050,9 @@ export const FolderDetailScreen = () => {
   const startOrContinueFolderRefresh = React.useCallback(
     (_t?: string) => {
       if (folderContext.folderMetadata) {
-        void foldersApi.rescanFolder({ folderId: folderContext.folderId })
+        void apiClient.foldersApi.rescanFolder({
+          folderId: folderContext.folderId,
+        })
       }
     },
     [folderContext.folderId, folderContext.folderMetadata],
@@ -1061,7 +1063,7 @@ export const FolderDetailScreen = () => {
       setForgetFolderConfirmationOpen(true)
     } else {
       setForgetFolderConfirmationOpen(false)
-      void foldersApi
+      void apiClient.foldersApi
         .deleteFolder({ folderId: folderContext.folderId })
         .then(() => router.push('/folders'))
     }

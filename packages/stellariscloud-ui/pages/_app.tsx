@@ -30,7 +30,7 @@ import {
 import { ThemeContextProvider } from '../contexts/theme.context'
 import { Avatar } from '../design-system/avatar'
 import { Icon } from '../design-system/icon'
-import { authenticator } from '../services/api'
+import { sdkInstance } from '../services/api'
 
 const queryClient = new QueryClient()
 
@@ -281,20 +281,20 @@ const Layout = (appProps: AppProps) => {
   const [loaded, setLoaded] = React.useState(false)
 
   const listener = React.useCallback(() => {
-    setLoaded(authenticator.state.isLoaded)
+    setLoaded(sdkInstance.authenticator.state.isLoaded)
   }, [])
 
   React.useEffect(() => {
-    authenticator.addEventListener('onStateChanged', listener)
+    sdkInstance.authenticator.addEventListener('onStateChanged', listener)
     return () => {
-      authenticator.removeEventListener('onStateChanged', listener)
+      sdkInstance.authenticator.removeEventListener('onStateChanged', listener)
     }
   }, [listener])
 
   return (
     <LoggingContextProvider>
       <QueryClientProvider client={queryClient}>
-        <AuthContextProvider authenticator={authenticator}>
+        <AuthContextProvider authenticator={sdkInstance.authenticator}>
           <ThemeContextProvider>
             <Head>
               <meta
@@ -304,7 +304,7 @@ const Layout = (appProps: AppProps) => {
               <link rel="icon" href="/favicon.ico" />
             </Head>
             <div className="w-full h-full" id="takeover-root">
-              {loaded && authenticator.state.isAuthenticated ? (
+              {loaded && sdkInstance.authenticator.state.isAuthenticated ? (
                 <LocalFileCacheContextProvider>
                   <ServerContextProvider>
                     <AuthenticatedContent {...appProps} />

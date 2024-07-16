@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import React from 'react'
 
 import { ServerSettingsForm } from '../../../components/server-settings-form/server-settings-form'
-import { serverApi } from '../../../services/api'
+import { apiClient } from '../../../services/api'
 import { SettingsGetResponse } from '@stellariscloud/api-client'
 
 export function ServerSettingsScreen() {
@@ -15,7 +15,7 @@ export function ServerSettingsScreen() {
   const [dataResetKey, setDataResetKey] = React.useState('___')
 
   React.useEffect(() => {
-    void serverApi.getServerSettings().then(({ data }) => {
+    void apiClient.serverApi.getServerSettings().then(({ data }) => {
       setOriginalSettings(data.settings)
       setSettings(
         JSON.parse(
@@ -52,13 +52,13 @@ export function ServerSettingsScreen() {
     for (const changedSetting of changedSettings) {
       if (settings && changedSetting in settings) {
         if (typeof settings[changedSetting] === 'undefined') {
-          void serverApi
+          void apiClient.serverApi
             .resetServerSetting({
               settingKey: changedSetting,
             })
             .then(reloadSettings)
         }
-        void serverApi
+        void apiClient.serverApi
           .setServerSetting({
             settingKey: changedSetting,
             setSettingInputDTO: {

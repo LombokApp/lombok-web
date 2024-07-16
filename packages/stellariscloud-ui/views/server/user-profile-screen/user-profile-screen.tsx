@@ -7,7 +7,7 @@ import type { ProfileUserFormValues } from '../../../components/profile-user-for
 import { ProfileUserForm } from '../../../components/profile-user-form/profile-user-form'
 import { Button } from '../../../design-system/button/button'
 import { PageHeading } from '../../../design-system/page-heading/page-heading'
-import { viewerApi } from '../../../services/api'
+import { apiClient } from '../../../services/api'
 
 export function UserProfileScreen() {
   const [user, setUser] = React.useState<UserDTO>()
@@ -15,7 +15,7 @@ export function UserProfileScreen() {
     React.useState<NullablePartial<ProfileUserFormValues>>()
 
   React.useEffect(() => {
-    void viewerApi.getViewer().then((u) => {
+    void apiClient.viewerApi.getViewer().then((u) => {
       setUser(u.data.user)
       setUserFormState({
         password: '',
@@ -28,7 +28,7 @@ export function UserProfileScreen() {
   }, [])
 
   const handleSubmitClick = React.useCallback(() => {
-    void viewerApi.updateViewer({
+    void apiClient.viewerApi.updateViewer({
       updateViewerInputDTO: {
         name: userFormState?.name ?? '',
       },

@@ -4,7 +4,7 @@ import React from 'react'
 
 import { InstalledAppDataPanel } from '../../../components/installed-app-data-panel/installed-app-data-panel'
 import { EmptyState } from '../../../design-system/empty-state/empty-state'
-import { appsApi } from '../../../services/api'
+import { apiClient } from '../../../services/api'
 
 export function ServerAppsScreen() {
   const [coreAppResetKey, _setCoreAppResetKey] = React.useState('__')
@@ -13,7 +13,7 @@ export function ServerAppsScreen() {
     React.useState<ConnectedAppInstancesMap>()
 
   React.useEffect(() => {
-    void appsApi.listApps().then((apps) => {
+    void apiClient.appsApi.listApps().then((apps) => {
       setInstalledApps(apps.data.result)
       // setConnectedAppInstances(apps.data.connected)
     })

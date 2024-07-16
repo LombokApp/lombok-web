@@ -8,14 +8,14 @@ import { Avatar } from '../../../design-system/avatar'
 import { Button } from '../../../design-system/button/button'
 import { ButtonGroup } from '../../../design-system/button-group/button-group'
 import { Table } from '../../../design-system/table/table'
-import { usersApi } from '../../../services/api'
+import { apiClient } from '../../../services/api'
 
 export function ServerUsers() {
   const router = useRouter()
   const [users, setUsers] =
     React.useState<(UserDTO & { permissions: { label: string }[] })[]>()
   React.useEffect(() => {
-    void usersApi
+    void apiClient.usersApi
       .listUsers()
       .then((response) =>
         setUsers(response.data.result.map((r) => ({ ...r, permissions: [] }))),

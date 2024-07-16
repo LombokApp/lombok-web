@@ -5,7 +5,7 @@ import React from 'react'
 import type { Socket } from 'socket.io-client'
 
 import { useFolderWebsocket } from '../hooks/use-folder-websocket'
-import { foldersApi } from '../services/api'
+import { apiClient } from '../services/api'
 import { useLocalFileCacheContext } from './local-file-cache.context'
 import type { LogLevel } from './logging.context'
 
@@ -59,7 +59,7 @@ export const FolderContextProvider = ({
 
   const fetchFolder = React.useCallback(
     () =>
-      foldersApi
+      apiClient.foldersApi
         .getFolder({ folderId })
         .then((response) => setFolderAndPermission(response.data)),
     [folderId],
@@ -67,7 +67,7 @@ export const FolderContextProvider = ({
 
   const fetchFolderMetadata = React.useCallback(
     async () =>
-      foldersApi
+      apiClient.foldersApi
         .getFolderMetadata({ folderId })
         .then((response) => setFolderMetadata(response.data)),
     [folderId],

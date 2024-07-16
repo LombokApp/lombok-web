@@ -15,7 +15,7 @@ const AppsIndexPage: NextPage = () => {
       {location && (
         <AppUI
           scheme={location.protocol}
-          appIdentifier={router.query.moduleName as string}
+          appIdentifier={router.query.appIdentifier as string}
           host={process.env.NEXT_PUBLIC_API_HOST}
           uiName={router.query.uiName as string}
         />

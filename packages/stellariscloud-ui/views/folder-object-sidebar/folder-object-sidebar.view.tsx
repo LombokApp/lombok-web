@@ -31,7 +31,7 @@ import { useLocalFileCacheContext } from '../../contexts/local-file-cache.contex
 import { Button } from '../../design-system/button/button'
 import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
-import { foldersApi } from '../../services/api'
+import { apiClient } from '../../services/api'
 import { FolderDTO } from '@stellariscloud/api-client'
 import { FolderObjectDTO } from '@stellariscloud/api-client'
 import { FolderGetResponse } from '@stellariscloud/api-client'
