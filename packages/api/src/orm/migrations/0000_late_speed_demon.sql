@@ -72,7 +72,14 @@ CREATE TABLE IF NOT EXISTS "folders" (
 	"updatedAt" timestamp NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "locations" (
+CREATE TABLE IF NOT EXISTS "server_settings" (
+	"key" text PRIMARY KEY NOT NULL,
+	"value" jsonb,
+	"createdAt" timestamp NOT NULL,
+	"updatedAt" timestamp NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "storageLocations" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"providerType" "providerType" NOT NULL,
 	"label" text NOT NULL,
@@ -83,13 +90,6 @@ CREATE TABLE IF NOT EXISTS "locations" (
 	"bucket" text NOT NULL,
 	"prefix" text NOT NULL,
 	"userId" uuid NOT NULL,
-	"createdAt" timestamp NOT NULL,
-	"updatedAt" timestamp NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "server_settings" (
-	"key" text PRIMARY KEY NOT NULL,
-	"value" jsonb,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL
 );
@@ -117,13 +117,13 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "folders" ADD CONSTRAINT "folders_contentLocationId_locations_id_fk" FOREIGN KEY ("contentLocationId") REFERENCES "public"."locations"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "folders" ADD CONSTRAINT "folders_contentLocationId_storageLocations_id_fk" FOREIGN KEY ("contentLocationId") REFERENCES "public"."storageLocations"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "folders" ADD CONSTRAINT "folders_metadataLocationId_locations_id_fk" FOREIGN KEY ("metadataLocationId") REFERENCES "public"."locations"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "folders" ADD CONSTRAINT "folders_metadataLocationId_storageLocations_id_fk" FOREIGN KEY ("metadataLocationId") REFERENCES "public"."storageLocations"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -135,7 +135,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "locations" ADD CONSTRAINT "locations_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "storageLocations" ADD CONSTRAINT "storageLocations_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

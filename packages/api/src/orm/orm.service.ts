@@ -17,15 +17,15 @@ import {
   foldersTable,
 } from '../folders/entities/folder.entity'
 import { folderObjectsTable } from '../folders/entities/folder-object.entity'
-import { locationsTable } from '../locations/entities/location.entity'
 import { serverSettingsTable } from '../server/entities/server-configuration.entity'
+import { storageLocationsTable } from '../storage/entities/storage-location.entity'
 import { usersTable } from '../users/entities/user.entity'
 import { ormConfig } from './config'
 
 export const dbSchema = {
   usersTable,
   sessionsTable,
-  locationsTable,
+  storageLocationsTable,
   serverSettingsTable,
   foldersTable,
   foldersRelations,

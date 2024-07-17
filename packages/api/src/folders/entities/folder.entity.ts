@@ -1,7 +1,7 @@
 import { relations } from 'drizzle-orm'
 import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
-import type { Location } from 'src/locations/entities/location.entity'
-import { locationsTable } from 'src/locations/entities/location.entity'
+import type { StorageLocation } from 'src/storage/entities/storage-location.entity'
+import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { usersTable } from 'src/users/entities/user.entity'
 
 export const foldersTable = pgTable('folders', {
@@ -9,10 +9,10 @@ export const foldersTable = pgTable('folders', {
   name: text('name').notNull(),
   contentLocationId: uuid('contentLocationId')
     .notNull()
-    .references(() => locationsTable.id),
+    .references(() => storageLocationsTable.id),
   metadataLocationId: uuid('metadataLocationId')
     .notNull()
-    .references(() => locationsTable.id),
+    .references(() => storageLocationsTable.id),
   ownerId: uuid('ownerId')
     .notNull()
     .references(() => usersTable.id),
@@ -21,13 +21,13 @@ export const foldersTable = pgTable('folders', {
 })
 
 export const foldersRelations = relations(foldersTable, ({ one }) => ({
-  contentLocation: one(locationsTable, {
+  contentLocation: one(storageLocationsTable, {
     fields: [foldersTable.contentLocationId],
-    references: [locationsTable.id],
+    references: [storageLocationsTable.id],
   }),
-  metadataLocation: one(locationsTable, {
+  metadataLocation: one(storageLocationsTable, {
     fields: [foldersTable.metadataLocationId],
-    references: [locationsTable.id],
+    references: [storageLocationsTable.id],
   }),
   owner: one(usersTable, {
     fields: [foldersTable.ownerId],
@@ -37,7 +37,7 @@ export const foldersRelations = relations(foldersTable, ({ one }) => ({
 
 export type FolderWithoutLocations = typeof foldersTable.$inferSelect
 export type Folder = typeof foldersTable.$inferSelect & {
-  contentLocation: Location
-  metadataLocation: Location
+  contentLocation: StorageLocation
+  metadataLocation: StorageLocation
 }
 export type NewFolder = typeof foldersTable.$inferInsert

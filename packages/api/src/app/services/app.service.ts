@@ -23,10 +23,10 @@ import { foldersTable } from 'src/folders/entities/folder.entity'
 import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
 import { FolderNotFoundException } from 'src/folders/exceptions/folder-not-found.exception'
 import { FolderService } from 'src/folders/services/folder.service'
-import { locationsTable } from 'src/locations/entities/location.entity'
+import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { OrmService } from 'src/orm/orm.service'
-import { S3Service } from 'src/s3/s3.service'
-import { createS3PresignedUrls } from 'src/s3/s3.utils'
+import { S3Service } from 'src/storage/s3.service'
+import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -431,8 +431,8 @@ export class AppService {
           }
 
           const metadataLocation =
-            await this.ormService.db.query.locationsTable.findFirst({
-              where: eq(locationsTable.id, folder.metadataLocationId),
+            await this.ormService.db.query.storageLocationsTable.findFirst({
+              where: eq(storageLocationsTable.id, folder.metadataLocationId),
             })
 
           if (!metadataLocation) {
@@ -586,8 +586,8 @@ export class AppService {
       }
 
       const contentLocation =
-        await this.ormService.db.query.locationsTable.findFirst({
-          where: eq(locationsTable.id, folder.metadataLocationId),
+        await this.ormService.db.query.storageLocationsTable.findFirst({
+          where: eq(storageLocationsTable.id, folder.metadataLocationId),
         })
 
       if (!contentLocation) {

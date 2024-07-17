@@ -13,7 +13,7 @@ import { EventModule } from 'src/event/event.module'
 import { EventService } from 'src/event/services/event.service'
 import { FoldersModule } from 'src/folders/folders.module'
 import { FolderService } from 'src/folders/services/folder.service'
-import { S3Module } from 'src/s3/s3.module'
+import { S3Module } from 'src/storage/storage.module'
 import { ServerModule } from 'src/server/server.module'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 

@@ -1,8 +1,10 @@
-import type { Location } from 'src/locations/entities/location.entity'
+import type { StorageLocation } from 'src/storage/entities/storage-location.entity'
 
-import type { LocationDTO } from '../location.dto'
+import type { StorageLocationDTO } from '../storage-location.dto'
 
-export function transformLocationToDTO(location: Location): LocationDTO {
+export function transformStorageLocationToDTO(
+  location: StorageLocation,
+): StorageLocationDTO {
   return {
     id: location.id,
     label: location.label,

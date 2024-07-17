@@ -29,17 +29,17 @@ import mime from 'mime'
 import * as r from 'runtypes'
 import { parseSort } from 'src/core/utils/sort.util'
 import { EventService } from 'src/event/services/event.service'
-import type { UserLocationInputDTO } from 'src/locations/dto/user-location-input.dto'
-import type { Location } from 'src/locations/entities/location.entity'
-import { locationsTable } from 'src/locations/entities/location.entity'
-import { LocationNotFoundException } from 'src/locations/exceptions/location-not-found.exceptions'
 import { OrmService } from 'src/orm/orm.service'
 import { QueueName } from 'src/queue/queue.constants'
-import { configureS3Client, S3Service } from 'src/s3/s3.service'
-import { createS3PresignedUrls } from 'src/s3/s3.utils'
 import { StorageProvisionType } from 'src/server/constants/server.constants'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { SocketService } from 'src/socket/socket.service'
+import type { UserLocationInputDTO } from 'src/storage/dto/user-location-input.dto'
+import type { StorageLocation } from 'src/storage/entities/storage-location.entity'
+import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
+import { StorageLocationNotFoundException } from 'src/storage/exceptions/storage-location-not-found.exceptions'
+import { configureS3Client, S3Service } from 'src/storage/s3.service'
+import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -182,7 +182,7 @@ export class FolderService implements OnModuleInit {
     const buildLocation = async (
       serverLocationType: StorageProvisionType,
       locationInput: UserLocationInputDTO,
-    ): Promise<Location> => {
+    ): Promise<StorageLocation> => {
       const withNewUserLocationConnection =
         NewUserLocationPayloadRunType.validate(locationInput)
       const withExistingUserLocation =
@@ -190,13 +190,13 @@ export class FolderService implements OnModuleInit {
       const withExistingServerLocation =
         ServerLocationPayloadRunType.validate(locationInput)
 
-      let location: Location | undefined = undefined
+      let location: StorageLocation | undefined = undefined
 
       if (withNewUserLocationConnection.success) {
         // user has input all new location info
         location = (
           await this.ormService.db
-            .insert(locationsTable)
+            .insert(storageLocationsTable)
             .values({
               ...withNewUserLocationConnection.value,
               id: uuidV4(),
@@ -211,12 +211,12 @@ export class FolderService implements OnModuleInit {
       } else if (withExistingUserLocation.success) {
         // user has provided another location ID they apparently own, and a bucket + prefix override
         const existingLocation =
-          await this.ormService.db.query.locationsTable.findFirst({
+          await this.ormService.db.query.storageLocationsTable.findFirst({
             where: and(
-              eq(locationsTable.providerType, 'USER'),
-              eq(locationsTable.userId, userId),
+              eq(storageLocationsTable.providerType, 'USER'),
+              eq(storageLocationsTable.userId, userId),
               eq(
-                locationsTable.id,
+                storageLocationsTable.id,
                 withExistingUserLocation.value.userLocationId,
               ),
             ),
@@ -224,7 +224,7 @@ export class FolderService implements OnModuleInit {
         if (existingLocation) {
           location = (
             await this.ormService.db
-              .insert(locationsTable)
+              .insert(storageLocationsTable)
               .values({
                 id: uuidV4(),
                 label: existingLocation.label,
@@ -244,7 +244,7 @@ export class FolderService implements OnModuleInit {
               .returning()
           )[0]
         } else {
-          throw new LocationNotFoundException()
+          throw new StorageLocationNotFoundException()
         }
       } else if (withExistingServerLocation.success) {
         // user has provided a server location reference
@@ -255,12 +255,12 @@ export class FolderService implements OnModuleInit {
           )
 
         if (!existingServerLocation) {
-          throw new LocationNotFoundException()
+          throw new StorageLocationNotFoundException()
         }
 
         location = (
           await this.ormService.db
-            .insert(locationsTable)
+            .insert(storageLocationsTable)
             .values({
               id: uuidV4(),
               label: `SERVER:${existingServerLocation.id}`,
@@ -305,7 +305,7 @@ export class FolderService implements OnModuleInit {
         )
       : (
           await this.ormService.db
-            .insert(locationsTable)
+            .insert(storageLocationsTable)
             .values({
               ...contentLocation,
               id: uuidV4(),
@@ -772,8 +772,8 @@ export class FolderService implements OnModuleInit {
     const { folder } = await this.getFolderAsUser({ folderId, userId })
 
     const contentStorageLocation =
-      await this.ormService.db.query.locationsTable.findFirst({
-        where: eq(locationsTable.id, folder.contentLocationId),
+      await this.ormService.db.query.storageLocationsTable.findFirst({
+        where: eq(storageLocationsTable.id, folder.contentLocationId),
       })
 
     if (!contentStorageLocation) {

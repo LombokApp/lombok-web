@@ -1,5 +1,5 @@
 {
-  "id": "9f9f216d-2247-4b6d-a7d9-a82f7f5bc4ca",
+  "id": "41fdaa03-b6f1-4874-8e6b-ad6943a371d8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -376,10 +376,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "folders_contentLocationId_locations_id_fk": {
-          "name": "folders_contentLocationId_locations_id_fk",
+        "folders_contentLocationId_storageLocations_id_fk": {
+          "name": "folders_contentLocationId_storageLocations_id_fk",
           "tableFrom": "folders",
-          "tableTo": "locations",
+          "tableTo": "storageLocations",
           "columnsFrom": [
             "contentLocationId"
           ],
@@ -389,10 +389,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "folders_metadataLocationId_locations_id_fk": {
-          "name": "folders_metadataLocationId_locations_id_fk",
+        "folders_metadataLocationId_storageLocations_id_fk": {
+          "name": "folders_metadataLocationId_storageLocations_id_fk",
           "tableFrom": "folders",
-          "tableTo": "locations",
+          "tableTo": "storageLocations",
           "columnsFrom": [
             "metadataLocationId"
           ],
@@ -419,8 +419,42 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "public.locations": {
-      "name": "locations",
+    "public.server_settings": {
+      "name": "server_settings",
+      "schema": "",
+      "columns": {
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "value": {
+          "name": "value",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.storageLocations": {
+      "name": "storageLocations",
       "schema": "",
       "columns": {
         "id": {
@@ -499,9 +533,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "locations_userId_users_id_fk": {
-          "name": "locations_userId_users_id_fk",
-          "tableFrom": "locations",
+        "storageLocations_userId_users_id_fk": {
+          "name": "storageLocations_userId_users_id_fk",
+          "tableFrom": "storageLocations",
           "tableTo": "users",
           "columnsFrom": [
             "userId"
@@ -513,40 +547,6 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "public.server_settings": {
-      "name": "server_settings",
-      "schema": "",
-      "columns": {
-        "key": {
-          "name": "key",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "value": {
-          "name": "value",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },

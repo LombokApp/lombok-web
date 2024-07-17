@@ -1,26 +1,13 @@
 import { Injectable } from '@nestjs/common'
-import { eq } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
-import { S3Service } from 'src/s3/s3.service'
-
-import { locationsTable } from '../entities/location.entity'
+import { S3Service } from 'src/storage/s3.service'
 
 @Injectable()
-export class LocationsService {
+export class StorageLocationsService {
   constructor(
     private readonly ormService: OrmService,
     private readonly s3Service: S3Service,
   ) {}
-
-  async listServerLocationsAsUser(_userId: string) {
-    // TODO: check ACL
-    // TODO: add type filter
-    const results = await this.ormService.db.query.locationsTable.findMany({
-      where: eq(locationsTable.providerType, 'SERVER'),
-    })
-
-    return results
-  }
 
   async testS3Connection({
     // userId,

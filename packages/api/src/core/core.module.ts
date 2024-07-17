@@ -6,14 +6,13 @@ import { APP_INTERCEPTOR } from '@nestjs/core'
 import { CacheModule } from 'src/cache/cache.module'
 import { redisConfig } from 'src/cache/redis.config'
 import { QueueModule } from 'src/queue/queue.module'
-import { S3Module } from 'src/s3/s3.module'
 import { SocketModule } from 'src/socket/socket.module'
+import { S3Module } from 'src/storage/storage.module'
 
 import { AppModule } from '../app/app.module'
 import { AuthModule } from '../auth/auth.module'
 import { EventModule } from '../event/event.module'
 import { FoldersModule } from '../folders/folders.module'
-import { LocationsModule } from '../locations/locations.module'
 import { OrmModule } from '../orm/orm.module'
 import { ServerModule } from '../server/server.module'
 import { UsersModule } from '../users/users.module'
@@ -28,7 +27,6 @@ import { ZodSerializerInterceptor } from './serializer/serializer.util'
     EventModule,
     AppModule,
     UsersModule,
-    LocationsModule,
     ServerModule,
     CacheModule,
     SocketModule,

@@ -1,8 +1,8 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import { foldersTable } from 'src/folders/entities/folder.entity'
-import type { NewLocation } from 'src/locations/entities/location.entity'
-import { locationsTable } from 'src/locations/entities/location.entity'
+import type { NewStorageLocation } from 'src/storage/entities/storage-location.entity'
+import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import type { NewUser } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
@@ -48,7 +48,7 @@ async function main(): Promise<void> {
 
   const data: NewUser[] = [admin, user]
 
-  function buildDevSeedLocation(userId: string): NewLocation {
+  function buildDevSeedLocation(userId: string): NewStorageLocation {
     return {
       id: uuidV4(),
       accessKeyId: '2ZpHPnybEUM0GtzD',
@@ -81,7 +81,7 @@ async function main(): Promise<void> {
   ]
 
   await db.insert(usersTable).values(data)
-  await db.insert(locationsTable).values(locations)
+  await db.insert(storageLocationsTable).values(locations)
   await db.insert(foldersTable).values({
     id: USER_1_FOLDER_ID,
     name: 'User1Folder',
