@@ -1,5 +1,5 @@
 import type { Folder } from 'src/folders/entities/folder.entity'
-import { transformLocationToDTO } from 'src/locations/transfer-objects/transforms/location.transforms'
+import { transformLocationToDTO } from 'src/locations/dto/transforms/location.transforms'
 
 import type { FolderDTO } from '../folder.dto'
 

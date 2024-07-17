@@ -29,15 +29,15 @@ import mime from 'mime'
 import * as r from 'runtypes'
 import { parseSort } from 'src/core/utils/sort.util'
 import { EventService } from 'src/event/services/event.service'
+import type { UserLocationInputDTO } from 'src/locations/dto/user-location-input.dto'
 import type { Location } from 'src/locations/entities/location.entity'
 import { locationsTable } from 'src/locations/entities/location.entity'
 import { LocationNotFoundException } from 'src/locations/exceptions/location-not-found.exceptions'
-import type { UserLocationInputDTO } from 'src/locations/transfer-objects/user-location-input.dto'
 import { OrmService } from 'src/orm/orm.service'
 import { QueueName } from 'src/queue/queue.constants'
 import { configureS3Client, S3Service } from 'src/s3/s3.service'
 import { createS3PresignedUrls } from 'src/s3/s3.utils'
-import { ServerLocationType } from 'src/server/constants/server.constants'
+import { StorageProvisionType } from 'src/server/constants/server.constants'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { SocketService } from 'src/socket/socket.service'
 import type { User } from 'src/users/entities/user.entity'
@@ -180,7 +180,7 @@ export class FolderService implements OnModuleInit {
 
     const now = new Date()
     const buildLocation = async (
-      serverLocationType: ServerLocationType,
+      serverLocationType: StorageProvisionType,
       locationInput: UserLocationInputDTO,
     ): Promise<Location> => {
       const withNewUserLocationConnection =
@@ -200,7 +200,7 @@ export class FolderService implements OnModuleInit {
             .values({
               ...withNewUserLocationConnection.value,
               id: uuidV4(),
-              name: `${withNewUserLocationConnection.value.endpoint} - ${withNewUserLocationConnection.value.accessKeyId}`,
+              label: `${withNewUserLocationConnection.value.endpoint} - ${withNewUserLocationConnection.value.accessKeyId}`,
               providerType: 'USER',
               userId,
               createdAt: now,
@@ -227,7 +227,7 @@ export class FolderService implements OnModuleInit {
               .insert(locationsTable)
               .values({
                 id: uuidV4(),
-                name: existingLocation.name,
+                label: existingLocation.label,
                 providerType: 'USER',
                 userId,
                 endpoint: existingLocation.endpoint,
@@ -249,7 +249,7 @@ export class FolderService implements OnModuleInit {
       } else if (withExistingServerLocation.success) {
         // user has provided a server location reference
         const existingServerLocation =
-          await this.serverConfigurationService.getConfiguredServerLocationById(
+          await this.serverConfigurationService.getStorageProvisionById(
             serverLocationType,
             withExistingServerLocation.value.serverLocationId,
           )
@@ -263,7 +263,7 @@ export class FolderService implements OnModuleInit {
             .insert(locationsTable)
             .values({
               id: uuidV4(),
-              name: existingServerLocation.name,
+              label: `SERVER:${existingServerLocation.id}`,
               providerType: 'SERVER',
               userId,
               endpoint: existingServerLocation.endpoint,
@@ -294,13 +294,13 @@ export class FolderService implements OnModuleInit {
     }
 
     const contentLocation = await buildLocation(
-      ServerLocationType.USER_CONTENT,
+      StorageProvisionType.CONTENT,
       body.contentLocation,
     )
 
     const metadataLocation = body.metadataLocation
       ? await buildLocation(
-          ServerLocationType.USER_METADATA,
+          StorageProvisionType.METADATA,
           body.metadataLocation,
         )
       : (

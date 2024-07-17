@@ -5,7 +5,7 @@ import type { LocationDTO } from '../location.dto'
 export function transformLocationToDTO(location: Location): LocationDTO {
   return {
     id: location.id,
-    name: location.name,
+    label: location.label,
     endpoint: location.endpoint,
     bucket: location.bucket,
     prefix: location.prefix,

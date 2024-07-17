@@ -9,6 +9,8 @@ services:
       target: test
     volumes:
       - ./:/usr/src/app
+      - ./.test-data/apps-test:/apps-test
+      - ./.test-data/minio:/minio-test-data
     env_file: packages/api/.env.test
     environment:
       WAIT_HOSTS: db:${DB_PORT:-0}

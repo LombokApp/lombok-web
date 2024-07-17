@@ -6,7 +6,7 @@ export const providerTypeEnum = pgEnum('providerType', ['SERVER', 'USER'])
 export const locationsTable = pgTable('locations', {
   id: uuid('id').primaryKey(),
   providerType: providerTypeEnum('providerType').notNull(),
-  name: text('name').notNull(),
+  label: text('label').notNull(),
   endpoint: text('endpoint').notNull(),
   region: text('region').notNull(),
   accessKeyId: text('accessKeyId').notNull(),

@@ -470,7 +470,7 @@ export interface FolderDTOMetadataLocation {
      * @type {string}
      * @memberof FolderDTOMetadataLocation
      */
-    'name': string;
+    'label': string;
     /**
      *
      * @type {string}
@@ -1194,6 +1194,153 @@ export interface SignupResponseUser {
      */
     'updatedAt': string;
 }
+/**
+ *
+ * @export
+ * @interface StorageProvisionInputDTO
+ */
+export interface StorageProvisionInputDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionInputDTO
+     */
+    'label': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionInputDTO
+     */
+    'description': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionInputDTO
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionInputDTO
+     */
+    'bucket': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionInputDTO
+     */
+    'region': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionInputDTO
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionInputDTO
+     */
+    'secretAccessKey': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionInputDTO
+     */
+    'prefix'?: string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof StorageProvisionInputDTO
+     */
+    'provisionTypes': Array<StorageProvisionInputDTOProvisionTypesEnum>;
+}
+export declare const StorageProvisionInputDTOProvisionTypesEnum: {
+    readonly Metadata: "METADATA";
+    readonly Content: "CONTENT";
+    readonly Backup: "BACKUP";
+};
+export type StorageProvisionInputDTOProvisionTypesEnum = typeof StorageProvisionInputDTOProvisionTypesEnum[keyof typeof StorageProvisionInputDTOProvisionTypesEnum];
+/**
+ *
+ * @export
+ * @interface StorageProvisionListResponse
+ */
+export interface StorageProvisionListResponse {
+    /**
+     *
+     * @type {Array<StorageProvisionListResponseResultInner>}
+     * @memberof StorageProvisionListResponse
+     */
+    'result': Array<StorageProvisionListResponseResultInner>;
+}
+/**
+ *
+ * @export
+ * @interface StorageProvisionListResponseResultInner
+ */
+export interface StorageProvisionListResponseResultInner {
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionListResponseResultInner
+     */
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionListResponseResultInner
+     */
+    'label': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionListResponseResultInner
+     */
+    'description': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionListResponseResultInner
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionListResponseResultInner
+     */
+    'bucket': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionListResponseResultInner
+     */
+    'region': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionListResponseResultInner
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionListResponseResultInner
+     */
+    'prefix'?: string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof StorageProvisionListResponseResultInner
+     */
+    'provisionTypes': Array<StorageProvisionListResponseResultInnerProvisionTypesEnum>;
+}
+export declare const StorageProvisionListResponseResultInnerProvisionTypesEnum: {
+    readonly Metadata: "METADATA";
+    readonly Content: "CONTENT";
+    readonly Backup: "BACKUP";
+};
+export type StorageProvisionListResponseResultInnerProvisionTypesEnum = typeof StorageProvisionListResponseResultInnerProvisionTypesEnum[keyof typeof StorageProvisionListResponseResultInnerProvisionTypesEnum];
 /**
  *
  * @export
@@ -2411,6 +2558,217 @@ export declare class ServerApi extends BaseAPI {
      */
     setServerSetting(requestParameters: ServerApiSetServerSettingRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SettingSetResponse, any>>;
 }
+/**
+ * StorageProvisionsApi - axios parameter creator
+ * @export
+ */
+export declare const StorageProvisionsApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {StorageProvisionInputDTO} storageProvisionInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createServerProvision: (storageProvisionInputDTO: StorageProvisionInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} storageProvisionId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteStorageProvision: (storageProvisionId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listStorageProvisions: (provisionType?: ListStorageProvisionsProvisionTypeEnum, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} storageProvisionId
+     * @param {StorageProvisionInputDTO} storageProvisionInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateStorageProvision: (storageProvisionId: string, storageProvisionInputDTO: StorageProvisionInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * StorageProvisionsApi - functional programming interface
+ * @export
+ */
+export declare const StorageProvisionsApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {StorageProvisionInputDTO} storageProvisionInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createServerProvision(storageProvisionInputDTO: StorageProvisionInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionListResponse>>;
+    /**
+     *
+     * @param {string} storageProvisionId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteStorageProvision(storageProvisionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionListResponse>>;
+    /**
+     *
+     * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listStorageProvisions(provisionType?: ListStorageProvisionsProvisionTypeEnum, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionListResponse>>;
+    /**
+     *
+     * @param {string} storageProvisionId
+     * @param {StorageProvisionInputDTO} storageProvisionInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateStorageProvision(storageProvisionId: string, storageProvisionInputDTO: StorageProvisionInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionListResponse>>;
+};
+/**
+ * StorageProvisionsApi - factory interface
+ * @export
+ */
+export declare const StorageProvisionsApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {StorageProvisionsApiCreateServerProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createServerProvision(requestParameters: StorageProvisionsApiCreateServerProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionListResponse>;
+    /**
+     *
+     * @param {StorageProvisionsApiDeleteStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteStorageProvision(requestParameters: StorageProvisionsApiDeleteStorageProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionListResponse>;
+    /**
+     *
+     * @param {StorageProvisionsApiListStorageProvisionsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listStorageProvisions(requestParameters?: StorageProvisionsApiListStorageProvisionsRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionListResponse>;
+    /**
+     *
+     * @param {StorageProvisionsApiUpdateStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateStorageProvision(requestParameters: StorageProvisionsApiUpdateStorageProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionListResponse>;
+};
+/**
+ * Request parameters for createServerProvision operation in StorageProvisionsApi.
+ * @export
+ * @interface StorageProvisionsApiCreateServerProvisionRequest
+ */
+export interface StorageProvisionsApiCreateServerProvisionRequest {
+    /**
+     *
+     * @type {StorageProvisionInputDTO}
+     * @memberof StorageProvisionsApiCreateServerProvision
+     */
+    readonly storageProvisionInputDTO: StorageProvisionInputDTO;
+}
+/**
+ * Request parameters for deleteStorageProvision operation in StorageProvisionsApi.
+ * @export
+ * @interface StorageProvisionsApiDeleteStorageProvisionRequest
+ */
+export interface StorageProvisionsApiDeleteStorageProvisionRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionsApiDeleteStorageProvision
+     */
+    readonly storageProvisionId: string;
+}
+/**
+ * Request parameters for listStorageProvisions operation in StorageProvisionsApi.
+ * @export
+ * @interface StorageProvisionsApiListStorageProvisionsRequest
+ */
+export interface StorageProvisionsApiListStorageProvisionsRequest {
+    /**
+     *
+     * @type {'METADATA' | 'CONTENT' | 'BACKUP'}
+     * @memberof StorageProvisionsApiListStorageProvisions
+     */
+    readonly provisionType?: ListStorageProvisionsProvisionTypeEnum;
+}
+/**
+ * Request parameters for updateStorageProvision operation in StorageProvisionsApi.
+ * @export
+ * @interface StorageProvisionsApiUpdateStorageProvisionRequest
+ */
+export interface StorageProvisionsApiUpdateStorageProvisionRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionsApiUpdateStorageProvision
+     */
+    readonly storageProvisionId: string;
+    /**
+     *
+     * @type {StorageProvisionInputDTO}
+     * @memberof StorageProvisionsApiUpdateStorageProvision
+     */
+    readonly storageProvisionInputDTO: StorageProvisionInputDTO;
+}
+/**
+ * StorageProvisionsApi - object-oriented interface
+ * @export
+ * @class StorageProvisionsApi
+ * @extends {BaseAPI}
+ */
+export declare class StorageProvisionsApi extends BaseAPI {
+    /**
+     *
+     * @param {StorageProvisionsApiCreateServerProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof StorageProvisionsApi
+     */
+    createServerProvision(requestParameters: StorageProvisionsApiCreateServerProvisionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<StorageProvisionListResponse, any>>;
+    /**
+     *
+     * @param {StorageProvisionsApiDeleteStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof StorageProvisionsApi
+     */
+    deleteStorageProvision(requestParameters: StorageProvisionsApiDeleteStorageProvisionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<StorageProvisionListResponse, any>>;
+    /**
+     *
+     * @param {StorageProvisionsApiListStorageProvisionsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof StorageProvisionsApi
+     */
+    listStorageProvisions(requestParameters?: StorageProvisionsApiListStorageProvisionsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<StorageProvisionListResponse, any>>;
+    /**
+     *
+     * @param {StorageProvisionsApiUpdateStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof StorageProvisionsApi
+     */
+    updateStorageProvision(requestParameters: StorageProvisionsApiUpdateStorageProvisionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<StorageProvisionListResponse, any>>;
+}
+/**
+ * @export
+ */
+export declare const ListStorageProvisionsProvisionTypeEnum: {
+    readonly Metadata: "METADATA";
+    readonly Content: "CONTENT";
+    readonly Backup: "BACKUP";
+};
+export type ListStorageProvisionsProvisionTypeEnum = typeof ListStorageProvisionsProvisionTypeEnum[keyof typeof ListStorageProvisionsProvisionTypeEnum];
 /**
  * UsersApi - axios parameter creator
  * @export

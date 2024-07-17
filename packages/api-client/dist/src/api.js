@@ -62,6 +62,16 @@ export const FolderObjectListResponseResultInnerMediaTypeEnum = {
     Document: 'DOCUMENT',
     Unknown: 'UNKNOWN'
 };
+export const StorageProvisionInputDTOProvisionTypesEnum = {
+    Metadata: 'METADATA',
+    Content: 'CONTENT',
+    Backup: 'BACKUP'
+};
+export const StorageProvisionListResponseResultInnerProvisionTypesEnum = {
+    Metadata: 'METADATA',
+    Content: 'CONTENT',
+    Backup: 'BACKUP'
+};
 /**
  * AppsApi - axios parameter creator
  * @export
@@ -1445,6 +1455,295 @@ export class ServerApi extends BaseAPI {
         return ServerApiFp(this.configuration).setServerSetting(requestParameters.settingKey, requestParameters.setSettingInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
+/**
+ * StorageProvisionsApi - axios parameter creator
+ * @export
+ */
+export const StorageProvisionsApiAxiosParamCreator = function (configuration) {
+    return {
+        /**
+         *
+         * @param {StorageProvisionInputDTO} storageProvisionInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createServerProvision: async (storageProvisionInputDTO, options = {}) => {
+            // verify required parameter 'storageProvisionInputDTO' is not null or undefined
+            assertParamExists('createServerProvision', 'storageProvisionInputDTO', storageProvisionInputDTO);
+            const localVarPath = `/server/storage-provisions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = serializeDataIfNeeded(storageProvisionInputDTO, localVarRequestOptions, configuration);
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} storageProvisionId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteStorageProvision: async (storageProvisionId, options = {}) => {
+            // verify required parameter 'storageProvisionId' is not null or undefined
+            assertParamExists('deleteStorageProvision', 'storageProvisionId', storageProvisionId);
+            const localVarPath = `/server/storage-provisions/{storageProvisionId}`
+                .replace(`{${"storageProvisionId"}}`, encodeURIComponent(String(storageProvisionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType]
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listStorageProvisions: async (provisionType, options = {}) => {
+            const localVarPath = `/server/storage-provisions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            if (provisionType !== undefined) {
+                localVarQueryParameter['provisionType'] = provisionType;
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} storageProvisionId
+         * @param {StorageProvisionInputDTO} storageProvisionInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateStorageProvision: async (storageProvisionId, storageProvisionInputDTO, options = {}) => {
+            // verify required parameter 'storageProvisionId' is not null or undefined
+            assertParamExists('updateStorageProvision', 'storageProvisionId', storageProvisionId);
+            // verify required parameter 'storageProvisionInputDTO' is not null or undefined
+            assertParamExists('updateStorageProvision', 'storageProvisionInputDTO', storageProvisionInputDTO);
+            const localVarPath = `/server/storage-provisions/{storageProvisionId}`
+                .replace(`{${"storageProvisionId"}}`, encodeURIComponent(String(storageProvisionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = serializeDataIfNeeded(storageProvisionInputDTO, localVarRequestOptions, configuration);
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    };
+};
+/**
+ * StorageProvisionsApi - functional programming interface
+ * @export
+ */
+export const StorageProvisionsApiFp = function (configuration) {
+    const localVarAxiosParamCreator = StorageProvisionsApiAxiosParamCreator(configuration);
+    return {
+        /**
+         *
+         * @param {StorageProvisionInputDTO} storageProvisionInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createServerProvision(storageProvisionInputDTO, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createServerProvision(storageProvisionInputDTO, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} storageProvisionId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteStorageProvision(storageProvisionId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteStorageProvision(storageProvisionId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType]
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listStorageProvisions(provisionType, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listStorageProvisions(provisionType, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} storageProvisionId
+         * @param {StorageProvisionInputDTO} storageProvisionInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateStorageProvision(storageProvisionId, storageProvisionInputDTO, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateStorageProvision(storageProvisionId, storageProvisionInputDTO, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    };
+};
+/**
+ * StorageProvisionsApi - factory interface
+ * @export
+ */
+export const StorageProvisionsApiFactory = function (configuration, basePath, axios) {
+    const localVarFp = StorageProvisionsApiFp(configuration);
+    return {
+        /**
+         *
+         * @param {StorageProvisionsApiCreateServerProvisionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createServerProvision(requestParameters, options) {
+            return localVarFp.createServerProvision(requestParameters.storageProvisionInputDTO, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {StorageProvisionsApiDeleteStorageProvisionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteStorageProvision(requestParameters, options) {
+            return localVarFp.deleteStorageProvision(requestParameters.storageProvisionId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {StorageProvisionsApiListStorageProvisionsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listStorageProvisions(requestParameters = {}, options) {
+            return localVarFp.listStorageProvisions(requestParameters.provisionType, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {StorageProvisionsApiUpdateStorageProvisionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateStorageProvision(requestParameters, options) {
+            return localVarFp.updateStorageProvision(requestParameters.storageProvisionId, requestParameters.storageProvisionInputDTO, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+/**
+ * StorageProvisionsApi - object-oriented interface
+ * @export
+ * @class StorageProvisionsApi
+ * @extends {BaseAPI}
+ */
+export class StorageProvisionsApi extends BaseAPI {
+    /**
+     *
+     * @param {StorageProvisionsApiCreateServerProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof StorageProvisionsApi
+     */
+    createServerProvision(requestParameters, options) {
+        return StorageProvisionsApiFp(this.configuration).createServerProvision(requestParameters.storageProvisionInputDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {StorageProvisionsApiDeleteStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof StorageProvisionsApi
+     */
+    deleteStorageProvision(requestParameters, options) {
+        return StorageProvisionsApiFp(this.configuration).deleteStorageProvision(requestParameters.storageProvisionId, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {StorageProvisionsApiListStorageProvisionsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof StorageProvisionsApi
+     */
+    listStorageProvisions(requestParameters = {}, options) {
+        return StorageProvisionsApiFp(this.configuration).listStorageProvisions(requestParameters.provisionType, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {StorageProvisionsApiUpdateStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof StorageProvisionsApi
+     */
+    updateStorageProvision(requestParameters, options) {
+        return StorageProvisionsApiFp(this.configuration).updateStorageProvision(requestParameters.storageProvisionId, requestParameters.storageProvisionInputDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+/**
+ * @export
+ */
+export const ListStorageProvisionsProvisionTypeEnum = {
+    Metadata: 'METADATA',
+    Content: 'CONTENT',
+    Backup: 'BACKUP'
+};
 /**
  * UsersApi - axios parameter creator
  * @export

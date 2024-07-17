@@ -5,6 +5,7 @@ import {
   Configuration,
   FoldersApi,
   ServerApi,
+  StorageProvisionsApi,
   UsersApi,
   ViewerApi,
 } from '@stellariscloud/api-client'
@@ -66,6 +67,13 @@ export function buildSupertestApiClient(app: INestApplication) {
       ),
     serverApi: (configParams: SupertestApiClientConfigParams = {}) =>
       new ServerApi(
+        new Configuration(configParams),
+        '',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        buildMockAxios(configParams.accessToken) as any,
+      ),
+    storageProvisionsApi: (configParams: SupertestApiClientConfigParams = {}) =>
+      new StorageProvisionsApi(
         new Configuration(configParams),
         '',
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument

@@ -55,7 +55,7 @@ async function main(): Promise<void> {
       secretAccessKey: 'HyLwLLCwEw9ni888fQvHENgMxelgNrAO',
       bucket: 'stellaris-dev',
       endpoint: 'https://m8.wasteofpaper.com',
-      name: 'https://m8.wasteofpaper.com utrecht-1 2ZpHPnybEUM0GtzD',
+      label: 'https://m8.wasteofpaper.com utrecht-1 2ZpHPnybEUM0GtzD',
       providerType: 'USER',
       region: 'utrecht-1',
       userId,

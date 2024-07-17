@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { locationSchema } from 'src/locations/transfer-objects/location.dto'
+import { locationSchema } from 'src/locations/dto/location.dto'
 import { z } from 'zod'
 
 export const folderSchema = z.object({

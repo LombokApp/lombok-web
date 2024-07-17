@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS "folders" (
 CREATE TABLE IF NOT EXISTS "locations" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"providerType" "providerType" NOT NULL,
-	"name" text NOT NULL,
+	"label" text NOT NULL,
 	"endpoint" text NOT NULL,
 	"region" text NOT NULL,
 	"accessKeyId" text NOT NULL,

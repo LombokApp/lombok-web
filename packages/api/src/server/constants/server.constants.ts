@@ -1,16 +1,10 @@
-import * as r from 'runtypes'
-
 export interface ServerConfigKey {
   private: boolean
   key: string
 }
 
-export const USER_METADATA_LOCATIONS_KEY: ServerConfigKey = {
-  key: 'USER_METADATA_LOCATIONS',
-  private: true,
-}
-export const USER_CONTENT_LOCATIONS_KEY: ServerConfigKey = {
-  key: 'USER_CONTENT_LOCATIONS',
+export const STORAGE_PROVISIONS_KEY: ServerConfigKey = {
+  key: 'STORAGE_PROVISIONS',
   private: true,
 }
 
@@ -29,19 +23,14 @@ export const SIGNUP_PERMISSIONS_KEY: ServerConfigKey = {
   private: true,
 }
 
-export enum ServerLocationType {
-  USER_METADATA = 'USER_METADATA',
-  USER_CONTENT = 'USER_CONTENT',
+export enum StorageProvisionType {
+  METADATA = 'METADATA',
+  CONTENT = 'CONTENT',
+  BACKUP = 'BACKUP',
 }
 
-export const ServerLocationTypeRunType = r.Union(
-  r.Literal(ServerLocationType.USER_CONTENT),
-  r.Literal(ServerLocationType.USER_METADATA),
-)
-
 export const CONFIGURATION_KEYS = [
-  USER_METADATA_LOCATIONS_KEY,
-  USER_CONTENT_LOCATIONS_KEY,
+  STORAGE_PROVISIONS_KEY,
   SIGNUP_ENABLED_KEY,
   SIGNUP_PERMISSIONS_KEY,
   SERVER_HOSTNAME,
