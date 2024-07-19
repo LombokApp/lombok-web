@@ -107,6 +107,7 @@ export function StorageProvisionTable({
         <div className="flex gap-2">
           {storageProvision.provisionTypes.map((provisionType) => (
             <span
+              key={provisionType}
               className={clsx(
                 'px-2 py-1',
                 'inline-flex rounded-md',
@@ -179,6 +180,22 @@ export function ServerStorageConfig() {
     [],
   )
 
+  const handleUpdateStorageProvision = React.useCallback(
+    (
+      storageProvision: StorageProvisionDTO,
+      input: StorageProvisionFormValues,
+    ) =>
+      apiClient.storageProvisionsApi
+        .updateStorageProvision({
+          storageProvisionId: storageProvision.id,
+          storageProvisionInputDTO: {
+            ...input,
+          },
+        })
+        .then((resp) => setStorageProvisions(resp.data.result)),
+    [],
+  )
+
   const handleDeleteStorageProvision = React.useCallback(
     (storageProvisionId: string) =>
       apiClient.storageProvisionsApi
@@ -190,6 +207,7 @@ export function ServerStorageConfig() {
         }),
     [],
   )
+
   React.useEffect(() => {
     void apiClient.storageProvisionsApi.listStorageProvisions().then((resp) => {
       setStorageProvisions(resp.data.result)
@@ -277,9 +295,18 @@ export function ServerStorageConfig() {
                     : 'Update storage provision'
                 }
                 onSubmit={(values) =>
-                  void handleAddStorageProvision(values).then(() =>
-                    setEditingStorageProvision(undefined),
-                  )
+                  (editingStorageProvision.mutationType === 'CREATE'
+                    ? handleAddStorageProvision(values)
+                    : handleUpdateStorageProvision(
+                        editingStorageProvision.storageProvision as StorageProvisionDTO,
+                        values,
+                      )
+                  ).then(() => setEditingStorageProvision(undefined))
+                }
+                submitText={
+                  editingStorageProvision.mutationType === 'CREATE'
+                    ? 'Create'
+                    : 'Save'
                 }
                 onCancel={() => setEditingStorageProvision(undefined)}
               />

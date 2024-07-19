@@ -31,7 +31,7 @@ export const StorageProvisionForm = ({
   onCancel: () => void
   value?: Partial<StorageProvisionInputDTO>
 }) => {
-  const [location, setLocation] = React.useState<{
+  const [storageProvision, setStorageProvision] = React.useState<{
     valid: boolean
     value: Partial<StorageProvisionFormValues>
   }>({ valid: false, value })
@@ -44,14 +44,16 @@ export const StorageProvisionForm = ({
       <StorageProvisionFormFields
         secretAccessKeyObfuscated={false}
         value={value}
-        onChange={(output) => setLocation(output)}
+        onChange={(output) => setStorageProvision(output)}
       />
       <div className="flex gap-2 justify-end">
         <Button onClick={onCancel}>Cancel</Button>
         <Button
           primary
-          onClick={() => onSubmit(location.value as StorageProvisionFormValues)}
-          disabled={!location.valid}
+          onClick={() =>
+            onSubmit(storageProvision.value as StorageProvisionFormValues)
+          }
+          disabled={!storageProvision.valid}
         >
           <span className="capitalize">{submitText}</span>
         </Button>

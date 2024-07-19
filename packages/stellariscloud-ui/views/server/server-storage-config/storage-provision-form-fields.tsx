@@ -6,7 +6,6 @@ import { useFormState } from '../../../utils/forms'
 import {
   StorageProvisionType,
   StorageProvisionTypeEnum,
-  StorageProvisionTypeZodEnum,
 } from '@stellariscloud/types'
 import { Toggle } from '../../../design-system/toggle/toggle'
 
@@ -54,7 +53,7 @@ export const StorageProvisionFormFields = ({
       accessKeyId: { validator: r.String },
       secretAccessKey: { validator: r.String.optional(), defaultValue: '' },
     },
-    {},
+    value,
     onChange,
   )
 
@@ -114,7 +113,7 @@ export const StorageProvisionFormFields = ({
           StorageProvisionTypeEnum.CONTENT,
           StorageProvisionTypeEnum.METADATA,
         ].map((key: StorageProvisionType) => (
-          <>
+          <div key={`toggle_${key}`}>
             <Toggle
               label={key}
               value={!!form.values.provisionTypes?.includes(key)}
@@ -127,7 +126,7 @@ export const StorageProvisionFormFields = ({
                 )
               }
             />
-          </>
+          </div>
         ))}
       </div>
     </>

@@ -56,7 +56,7 @@ export function InstalledAppTabs({
       </div>
       <div className="hidden sm:block">
         <div className="">
-          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+          <nav className="-mb-px flex space-x-2" aria-label="Tabs">
             {tabs.map((tab) => (
               <div key={tab.name} className="group">
                 <Button
