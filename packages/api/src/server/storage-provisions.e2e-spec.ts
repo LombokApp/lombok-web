@@ -1,7 +1,6 @@
+import { StorageProvisionTypeEnum } from '@stellariscloud/types'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
-
-import { StorageProvisionType } from './constants/server.constants'
 
 const TEST_MODULE_KEY = 'storage_provisions'
 
@@ -37,7 +36,7 @@ describe('Server - Storage Provisions', () => {
           description: 'dummydescription',
           endpoint: 'http://dummyendpoint',
           label: 'dummylabel',
-          provisionTypes: [StorageProvisionType.BACKUP],
+          provisionTypes: [StorageProvisionTypeEnum.BACKUP],
           region: 'auto',
           prefix: '',
         },
@@ -67,7 +66,7 @@ describe('Server - Storage Provisions', () => {
           description: 'dummydescription',
           endpoint: 'http://dummyendpoint',
           label: 'dummylabel',
-          provisionTypes: [StorageProvisionType.BACKUP],
+          provisionTypes: [StorageProvisionTypeEnum.BACKUP],
           region: 'auto',
           prefix: '',
         },
@@ -89,8 +88,8 @@ describe('Server - Storage Provisions', () => {
           endpoint: 'http://dummyendpoint__',
           label: '__dummylabel',
           provisionTypes: [
-            StorageProvisionType.CONTENT,
-            StorageProvisionType.BACKUP,
+            StorageProvisionTypeEnum.CONTENT,
+            StorageProvisionTypeEnum.BACKUP,
           ],
           region: '__auto',
           prefix: '__prefix',
@@ -134,7 +133,7 @@ describe('Server - Storage Provisions', () => {
           description: 'dummydescription',
           endpoint: 'http://dummyendpoint',
           label: 'dummylabel',
-          provisionTypes: [StorageProvisionType.BACKUP],
+          provisionTypes: [StorageProvisionTypeEnum.BACKUP],
           region: 'auto',
           prefix: '',
         },

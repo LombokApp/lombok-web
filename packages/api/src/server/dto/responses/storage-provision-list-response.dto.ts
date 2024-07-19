@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { StorageProvisionType } from 'src/server/constants/server.constants'
+import { StorageProvisionTypeZodEnum } from '@stellariscloud/types'
 import { z } from 'zod'
 
 export const storageProvisionSchema = z.object({
@@ -11,7 +11,7 @@ export const storageProvisionSchema = z.object({
   region: z.string(),
   accessKeyId: z.string(),
   prefix: z.string().optional(),
-  provisionTypes: z.array(z.nativeEnum(StorageProvisionType)),
+  provisionTypes: z.array(StorageProvisionTypeZodEnum),
 })
 
 export const storageProvisionListResponseSchema = z.object({

@@ -780,7 +780,7 @@ export declare const schema: {
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
-                        readonly enum: readonly ["METADATA", "CONTENT", "BACKUP"];
+                        readonly enum: readonly ["CONTENT", "METADATA", "BACKUP"];
                         readonly type: "string";
                     };
                 }];
@@ -2151,6 +2151,46 @@ export declare const schema: {
                 };
                 readonly required: readonly ["settingKey"];
             };
+            readonly StorageProvisionDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly id: {
+                        readonly type: "string";
+                    };
+                    readonly endpoint: {
+                        readonly type: "string";
+                    };
+                    readonly bucket: {
+                        readonly type: "string";
+                    };
+                    readonly region: {
+                        readonly type: "string";
+                    };
+                    readonly accessKeyId: {
+                        readonly type: "string";
+                    };
+                    readonly prefix: {
+                        readonly type: "string";
+                    };
+                    readonly provisionTypes: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "string";
+                            readonly enum: readonly ["CONTENT", "METADATA", "BACKUP"];
+                        };
+                        readonly minItems: 1;
+                    };
+                    readonly label: {
+                        readonly type: "string";
+                        readonly maxLength: 32;
+                    };
+                    readonly description: {
+                        readonly type: "string";
+                        readonly maxLength: 128;
+                    };
+                };
+                readonly required: readonly ["id", "endpoint", "bucket", "region", "accessKeyId", "provisionTypes", "label", "description"];
+            };
             readonly StorageProvisionListResponse: {
                 readonly type: "object";
                 readonly properties: {
@@ -2189,7 +2229,7 @@ export declare const schema: {
                                     readonly type: "array";
                                     readonly items: {
                                         readonly type: "string";
-                                        readonly enum: readonly ["METADATA", "CONTENT", "BACKUP"];
+                                        readonly enum: readonly ["CONTENT", "METADATA", "BACKUP"];
                                     };
                                 };
                             };
@@ -2232,8 +2272,9 @@ export declare const schema: {
                         readonly type: "array";
                         readonly items: {
                             readonly type: "string";
-                            readonly enum: readonly ["METADATA", "CONTENT", "BACKUP"];
+                            readonly enum: readonly ["CONTENT", "METADATA", "BACKUP"];
                         };
+                        readonly minItems: 1;
                     };
                 };
                 readonly required: readonly ["label", "description", "endpoint", "bucket", "region", "accessKeyId", "secretAccessKey", "provisionTypes"];

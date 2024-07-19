@@ -11,8 +11,8 @@ import { Button } from '../../design-system/button/button'
 import { ButtonDropdown } from '../../design-system/button-dropdown/button-dropdown'
 import { Input } from '../../design-system/input/input'
 import { useFormState } from '../../utils/forms'
-import type { LocationFormValues } from '../../views/server/server-storage-config/location-form-fields'
-import { LocationFormFields } from '../../views/server/server-storage-config/location-form-fields'
+import type { StorageProvisionFormValues } from '../../views/server/server-storage-config/storage-provision-form-fields'
+import { StorageProvisionFormFields } from '../../views/server/server-storage-config/storage-provision-form-fields'
 
 interface CreateFolderFormValues {
   name: string
@@ -112,9 +112,12 @@ export const CreateFolderForm = ({
         </h3>
         {newContentLocation ? (
           <>
-            <LocationFormFields
+            <StorageProvisionFormFields
               onChange={({ value }) =>
-                form.setValue('contentLocation', value as LocationFormValues)
+                form.setValue(
+                  'contentLocation',
+                  value as StorageProvisionFormValues,
+                )
               }
             />
             <Button onClick={() => setNewContentLocation(false)}>Cancel</Button>

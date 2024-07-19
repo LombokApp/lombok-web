@@ -3,6 +3,11 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
+import {
+  StorageProvisionType,
+  StorageProvisionTypeEnum,
+  StorageProvisionTypeZodEnum,
+} from '@stellariscloud/types'
 import { eq, inArray } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
 import type { User } from 'src/users/entities/user.entity'
@@ -12,7 +17,6 @@ import { z } from 'zod'
 import {
   CONFIGURATION_KEYS,
   STORAGE_PROVISIONS_KEY,
-  StorageProvisionType,
 } from '../constants/server.constants'
 import { SettingsDTO } from '../dto/settings.dto'
 import { StorageProvisionDTO } from '../dto/storage-provision.dto'
@@ -122,10 +126,11 @@ export class ServerConfigurationService {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
+    const now = new Date()
 
     for (const provisionType of storageProvision.provisionTypes) {
       if (
-        z.nativeEnum(StorageProvisionType).parse(provisionType) !==
+        z.nativeEnum(StorageProvisionTypeEnum).parse(provisionType) !==
         provisionType
       ) {
         throw new ServerConfigurationInvalidException()
@@ -140,9 +145,14 @@ export class ServerConfigurationService {
       })
 
     if (existingRecord) {
-      existingRecord.value = existingRecord.value.concat([locationWithId])
+      await this.ormService.db
+        .update(serverSettingsTable)
+        .set({
+          value: existingRecord.value.concat([locationWithId]),
+          updatedAt: now,
+        })
+        .where(eq(serverSettingsTable.key, STORAGE_PROVISIONS_KEY.key))
     } else {
-      const now = new Date()
       const newServerConfiguration: NewServerSetting = {
         key: STORAGE_PROVISIONS_KEY.key,
         value: [locationWithId],
@@ -169,7 +179,7 @@ export class ServerConfigurationService {
 
     for (const provisionType of serverProvision.provisionTypes) {
       if (
-        z.nativeEnum(StorageProvisionType).parse(provisionType) !==
+        z.nativeEnum(StorageProvisionTypeEnum).parse(provisionType) !==
         provisionType
       ) {
         throw new ServerConfigurationInvalidException()
@@ -248,7 +258,8 @@ export class ServerConfigurationService {
     // TODO: check user permissions for access to server configuration values
 
     if (
-      z.nativeEnum(StorageProvisionType).parse(provisionType) !== provisionType
+      z.nativeEnum(StorageProvisionTypeEnum).parse(provisionType) !==
+      provisionType
     ) {
       throw new ServerConfigurationInvalidException()
     }
@@ -269,7 +280,7 @@ export class ServerConfigurationService {
   ): Promise<(StorageProvisionDTO & StorageProvisionInputDTO)[]> {
     if (
       provisionType &&
-      z.nativeEnum(StorageProvisionType).parse(provisionType) !== provisionType
+      StorageProvisionTypeZodEnum.parse(provisionType) !== provisionType
     ) {
       throw new ServerConfigurationInvalidException()
     }

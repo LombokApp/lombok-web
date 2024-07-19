@@ -1197,6 +1197,73 @@ export interface SignupResponseUser {
 /**
  *
  * @export
+ * @interface StorageProvisionDTO
+ */
+export interface StorageProvisionDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionDTO
+     */
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionDTO
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionDTO
+     */
+    'bucket': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionDTO
+     */
+    'region': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionDTO
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionDTO
+     */
+    'prefix'?: string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof StorageProvisionDTO
+     */
+    'provisionTypes': Array<StorageProvisionDTOProvisionTypesEnum>;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionDTO
+     */
+    'label': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionDTO
+     */
+    'description': string;
+}
+export declare const StorageProvisionDTOProvisionTypesEnum: {
+    readonly Content: "CONTENT";
+    readonly Metadata: "METADATA";
+    readonly Backup: "BACKUP";
+};
+export type StorageProvisionDTOProvisionTypesEnum = typeof StorageProvisionDTOProvisionTypesEnum[keyof typeof StorageProvisionDTOProvisionTypesEnum];
+/**
+ *
+ * @export
  * @interface StorageProvisionInputDTO
  */
 export interface StorageProvisionInputDTO {
@@ -1256,8 +1323,8 @@ export interface StorageProvisionInputDTO {
     'provisionTypes': Array<StorageProvisionInputDTOProvisionTypesEnum>;
 }
 export declare const StorageProvisionInputDTOProvisionTypesEnum: {
-    readonly Metadata: "METADATA";
     readonly Content: "CONTENT";
+    readonly Metadata: "METADATA";
     readonly Backup: "BACKUP";
 };
 export type StorageProvisionInputDTOProvisionTypesEnum = typeof StorageProvisionInputDTOProvisionTypesEnum[keyof typeof StorageProvisionInputDTOProvisionTypesEnum];
@@ -1336,8 +1403,8 @@ export interface StorageProvisionListResponseResultInner {
     'provisionTypes': Array<StorageProvisionListResponseResultInnerProvisionTypesEnum>;
 }
 export declare const StorageProvisionListResponseResultInnerProvisionTypesEnum: {
-    readonly Metadata: "METADATA";
     readonly Content: "CONTENT";
+    readonly Metadata: "METADATA";
     readonly Backup: "BACKUP";
 };
 export type StorageProvisionListResponseResultInnerProvisionTypesEnum = typeof StorageProvisionListResponseResultInnerProvisionTypesEnum[keyof typeof StorageProvisionListResponseResultInnerProvisionTypesEnum];
@@ -2696,7 +2763,7 @@ export interface StorageProvisionsApiDeleteStorageProvisionRequest {
 export interface StorageProvisionsApiListStorageProvisionsRequest {
     /**
      *
-     * @type {'METADATA' | 'CONTENT' | 'BACKUP'}
+     * @type {'CONTENT' | 'METADATA' | 'BACKUP'}
      * @memberof StorageProvisionsApiListStorageProvisions
      */
     readonly provisionType?: ListStorageProvisionsProvisionTypeEnum;
@@ -2764,8 +2831,8 @@ export declare class StorageProvisionsApi extends BaseAPI {
  * @export
  */
 export declare const ListStorageProvisionsProvisionTypeEnum: {
-    readonly Metadata: "METADATA";
     readonly Content: "CONTENT";
+    readonly Metadata: "METADATA";
     readonly Backup: "BACKUP";
 };
 export type ListStorageProvisionsProvisionTypeEnum = typeof ListStorageProvisionsProvisionTypeEnum[keyof typeof ListStorageProvisionsProvisionTypeEnum];

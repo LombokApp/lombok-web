@@ -1,10 +1,11 @@
-import type { ServerLocationData } from '@stellariscloud/api-client'
+import type { StorageProvisionInputDTO } from '@stellariscloud/api-client'
 import React from 'react'
 
 import { Button } from '../../../design-system/button/button'
-import { LocationFormFields } from './location-form-fields'
+import { StorageProvisionFormFields } from './storage-provision-form-fields'
+import { StorageProvisionType } from '@stellariscloud/types'
 
-export interface LocationFormValues {
+export interface StorageProvisionFormValues {
   name: string
   prefix: string
   bucket: string
@@ -12,10 +13,13 @@ export interface LocationFormValues {
   endpoint: string
   accessKeyId: string
   secretAccessKey: string
+  description: string
+  label: string
+  provisionTypes: StorageProvisionType[]
 }
 
-export const LocationForm = ({
-  titleText = 'Create Location',
+export const StorageProvisionForm = ({
+  titleText = 'Create New Storage Provision',
   submitText = 'Create',
   onSubmit,
   onCancel,
@@ -23,13 +27,13 @@ export const LocationForm = ({
 }: {
   titleText?: string
   submitText?: string
-  onSubmit: (values: LocationFormValues) => void
+  onSubmit: (values: StorageProvisionFormValues) => void
   onCancel: () => void
-  value?: Partial<ServerLocationData>
+  value?: Partial<StorageProvisionInputDTO>
 }) => {
   const [location, setLocation] = React.useState<{
     valid: boolean
-    value: Partial<LocationFormValues>
+    value: Partial<StorageProvisionFormValues>
   }>({ valid: false, value })
 
   return (
@@ -37,7 +41,7 @@ export const LocationForm = ({
       <h2 className="font-bold text-3xl text-gray-800 dark:text-gray-200">
         {titleText}
       </h2>
-      <LocationFormFields
+      <StorageProvisionFormFields
         secretAccessKeyObfuscated={false}
         value={value}
         onChange={(output) => setLocation(output)}
@@ -46,7 +50,7 @@ export const LocationForm = ({
         <Button onClick={onCancel}>Cancel</Button>
         <Button
           primary
-          onClick={() => onSubmit(location.value as LocationFormValues)}
+          onClick={() => onSubmit(location.value as StorageProvisionFormValues)}
           disabled={!location.valid}
         >
           <span className="capitalize">{submitText}</span>

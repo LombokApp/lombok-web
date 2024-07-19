@@ -23,12 +23,6 @@ export const SIGNUP_PERMISSIONS_KEY: ServerConfigKey = {
   private: true,
 }
 
-export enum StorageProvisionType {
-  METADATA = 'METADATA',
-  CONTENT = 'CONTENT',
-  BACKUP = 'BACKUP',
-}
-
 export const CONFIGURATION_KEYS = [
   STORAGE_PROVISIONS_KEY,
   SIGNUP_ENABLED_KEY,

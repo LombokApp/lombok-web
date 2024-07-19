@@ -1,12 +1,15 @@
 import {
+  CircleStackIcon,
+  DocumentTextIcon,
+  FilmIcon,
   FolderIcon,
   GlobeAltIcon,
   KeyIcon,
   PencilSquareIcon,
+  PlusCircleIcon,
+  StarIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline'
-// import type { ServerLocationData } from '@stellariscloud/api-client'
-// import { ServerLocationType } from '@stellariscloud/api-client'
 import clsx from 'clsx'
 import React from 'react'
 
@@ -16,27 +19,31 @@ import { EmptyState } from '../../../design-system/empty-state/empty-state'
 import { Icon } from '../../../design-system/icon'
 import { Table } from '../../../design-system/table/table'
 import { apiClient } from '../../../services/api'
-import type { LocationFormValues } from './location-form'
-import { LocationForm } from './location-form'
+import type { StorageProvisionFormValues } from './storage-provision-form'
+import { StorageProvisionForm } from './storage-provision-form'
+import { StorageProvisionDTO } from '@stellariscloud/api-client'
 
-export function StorageBackendTable({
-  locations,
+export function StorageProvisionTable({
+  storageProvisions,
   onEdit,
+  onDelete,
 }: {
-  locations: any[]
-  onEdit: (l: any) => void
+  storageProvisions: StorageProvisionDTO[]
+  onEdit: (l: StorageProvisionDTO) => void
+  onDelete: (l: StorageProvisionDTO) => void
 }) {
   return (
     <Table
       headers={[
         'Server',
-        { label: 'Location', cellStyles: 'w-[99%]' },
+        { label: 'Storage Provisions', cellStyles: 'w-[99%]' },
+        'Provision Types',
         'Actions',
       ]}
-      rows={locations.map((location, i) => [
+      rows={storageProvisions.map((storageProvision, i) => [
         <div key={i} className="flex flex-col gap-1">
           <div className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-            {location.name}
+            {storageProvision.label}
           </div>
           <div className="flex gap-1">
             <span
@@ -53,9 +60,9 @@ export function StorageBackendTable({
                 <Icon
                   icon={KeyIcon}
                   className="dark:text-yellow-300 text-yellow-800"
-                  size="xs"
+                  size="sm"
                 />
-                <span>{location.accessKeyId}</span>
+                <span>{storageProvision.accessKeyId}</span>
               </div>
             </span>
             <span
@@ -72,9 +79,9 @@ export function StorageBackendTable({
                 <Icon
                   icon={GlobeAltIcon}
                   className="text-green-700 dark:text-green-400"
-                  size="xs"
+                  size="sm"
                 />
-                <span>{location.region}</span>
+                <span>{storageProvision.region}</span>
               </div>
             </span>
           </div>
@@ -83,19 +90,48 @@ export function StorageBackendTable({
           <div className="flex gap-2">
             <div>
               <span className="opacity-70 dark:opacity-50">Endpoint: </span>
-              <span className="font-semibold">{location.endpoint}</span>
+              <span className="font-semibold">{storageProvision.endpoint}</span>
             </div>
           </div>
           <div>
             <span className="opacity-70 dark:opacity-50">Bucket: </span>
-            <span className="font-semibold">{location.bucket}</span>
+            <span className="font-semibold">{storageProvision.bucket}</span>
           </div>
-          {location.prefix && (
+          {storageProvision.prefix && (
             <div>
               <span className="opacity-70 dark:opacity-50">Prefix: </span>
-              <span className="font-semibold">{location.prefix}</span>
+              <span className="font-semibold">{storageProvision.prefix}</span>
             </div>
           )}
+        </div>,
+        <div className="flex gap-2">
+          {storageProvision.provisionTypes.map((provisionType) => (
+            <span
+              className={clsx(
+                'px-2 py-1',
+                'inline-flex rounded-md',
+                'bg-blue-50 dark:bg-blue-50/20',
+                'font-normal text-xs',
+                'text-blue-800 dark:text-blue-300',
+                'ring-1 ring-inset ring-blue-600/20 dark:ring-blue-300/50',
+              )}
+            >
+              <div className="flex gap-2 items-center">
+                <Icon
+                  icon={
+                    provisionType === 'CONTENT'
+                      ? FilmIcon
+                      : provisionType === 'METADATA'
+                        ? DocumentTextIcon
+                        : CircleStackIcon
+                  }
+                  className="dark:text-blue-300 text-blue-800"
+                  size="sm"
+                />
+                <span>{provisionType}</span>
+              </div>
+            </span>
+          ))}
         </div>,
         <div key={i} className="flex gap-2">
           <ButtonGroup
@@ -103,12 +139,12 @@ export function StorageBackendTable({
               {
                 name: '',
                 icon: PencilSquareIcon,
-                onClick: () => onEdit(location),
+                onClick: () => onEdit(storageProvision),
               },
               {
                 name: '',
                 icon: TrashIcon,
-                onClick: () => onEdit(location),
+                onClick: () => onDelete(storageProvision),
               },
             ]}
           />
@@ -119,70 +155,61 @@ export function StorageBackendTable({
 }
 
 export function ServerStorageConfig() {
-  // const [s3Locations, setServerS3Locations] = React.useState<{
-  //   [ServerLocationType.Backup]: ServerLocationData[]
-  //   [ServerLocationType.Metadata]: ServerLocationData[]
-  //   [ServerLocationType.Content]: ServerLocationData[]
-  // }>({
-  //   [ServerLocationType.Backup]: [],
-  //   [ServerLocationType.Metadata]: [],
-  //   [ServerLocationType.Content]: [],
-  // })
+  const [storageProvisions, setStorageProvisions] =
+    React.useState<StorageProvisionDTO[]>()
 
-  // const [editingLocation, setEditingLocation] = React.useState<
-  //   Partial<{
-  //     location: ServerLocationData
-  //     mutationType: 'CREATE' | 'UPDATE'
-  //     locationType: ServerLocationType
-  //   }>
-  // >()
+  const [editingStorageProvision, setEditingStorageProvision] = React.useState<
+    Partial<{
+      storageProvision: StorageProvisionDTO
+      mutationType: 'CREATE' | 'UPDATE'
+    }>
+  >()
 
-  // const handleAddServerLocation = React.useCallback(
-  //   (type: ServerLocationType, input: LocationFormValues) => {
-  //     return serverApi
-  //       .addServerLocation({
-  //         locationType: type,
-  //         serverLocationInputData: {
-  //           ...input,
-  //         },
-  //       })
-  //       .then((resp) => {
-  //         setServerS3Locations((locations) => ({
-  //           ...locations,
-  //           [type]: locations[type].concat([resp.data]),
-  //         }))
-  //       })
-  //   },
-  //   [],
-  // )
+  const handleAddStorageProvision = React.useCallback(
+    (input: StorageProvisionFormValues) =>
+      apiClient.storageProvisionsApi
+        .createServerProvision({
+          storageProvisionInputDTO: {
+            ...input,
+          },
+        })
+        .then((resp) => {
+          setStorageProvisions(resp.data.result)
+        }),
+    [],
+  )
 
-  // React.useEffect(() => {
-  //   for (const k of [
-  //     ServerLocationType.Backup,
-  //     ServerLocationType.Metadata,
-  //     ServerLocationType.Content,
-  //   ]) {
-  //     void serverApi.listServerLocations({ locationType: k }).then((resp) => {
-  //       setServerS3Locations((locations) => ({
-  //         ...locations,
-  //         [k]: resp.data,
-  //       }))
-  //     })
-  //   }
-  // }, [])
+  const handleDeleteStorageProvision = React.useCallback(
+    (storageProvisionId: string) =>
+      apiClient.storageProvisionsApi
+        .deleteStorageProvision({
+          storageProvisionId,
+        })
+        .then((resp) => {
+          setStorageProvisions(resp.data.result)
+        }),
+    [],
+  )
+  React.useEffect(() => {
+    void apiClient.storageProvisionsApi.listStorageProvisions().then((resp) => {
+      setStorageProvisions(resp.data.result)
+    })
+  }, [])
 
   return (
     <div className="">
       <dl className="divide-y divide-gray-100 dark:divide-gray-700">
-        <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-          <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">
-            User Content Provisions
-            <div className="mt-1 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:col-span-2 sm:mt-0">
-              Users folders can optionally be provisioned with content storage
-              backends from these locations.
+        <div className="px-4 py-6 sm:grid sm:grid-cols-8 sm:gap-4 sm:px-0">
+          <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 sm:col-span-3">
+            <span className="text-xl">Storage Provisions</span>
+            <div className="mt-1 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:mt-0">
+              Designate S3 locations that can be used to store your users' data.
             </div>
-            <code className="mt-2 text-sm sm:text-base inline-flex text-left items-center space-x-4 bg-gray-800 text-white rounded-lg p-4 pl-6">
-              <span className="flex gap-4">
+            <div className="pt-2 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:mt-0">
+              For example:
+            </div>
+            <div className="text-xs">
+              <code className="mt-2 inline-flex text-left items-center space-x-4 bg-gray-800 text-white rounded-lg p-4 pl-6">
                 <span className="flex-1">
                   <span>https://</span>
                   <span>&lt;endpoint&gt;</span>
@@ -191,139 +218,112 @@ export function ServerStorageConfig() {
                   <span>/</span>
                   <span>&lt;prefix&gt;</span>
                   <span>/</span>
+                  <span className="text-yellow-500">&lt;userId&gt;</span>
+                  <span>/</span>
                   <span className="text-yellow-500">&lt;folderId&gt;</span>
+                  <span>/</span>
+                  <span className=" ">.content</span>
+                  <span>/</span>
                 </span>
-              </span>
-            </code>
-          </dt>
-          {/* <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-            {editingLocation?.locationType === ServerLocationType.Content ? (
-              <LocationForm
-                value={editingLocation.location}
-                titleText={
-                  editingLocation.mutationType === 'CREATE'
-                    ? 'Create location'
-                    : 'Update location'
-                }
-                onSubmit={(values) =>
-                  void handleAddServerLocation(
-                    ServerLocationType.Content,
-                    values,
-                  ).then(() => setEditingLocation({}))
-                }
-                onCancel={() => setEditingLocation({})}
-              />
-            ) : s3Locations.USER_CONTENT.length > 0 ? (
-              <div className="flex flex-col gap-4 items-start">
-                <StorageBackendTable
-                  locations={s3Locations.USER_CONTENT}
-                  onEdit={(location) =>
-                    setEditingLocation({
-                      location,
-                      locationType: ServerLocationType.Content,
-                      mutationType: 'UPDATE',
-                    })
-                  }
-                />
-                <Button
-                  primary
-                  icon={PlusSmallIcon}
-                  onClick={() =>
-                    setEditingLocation({
-                      location: undefined,
-                      mutationType: 'CREATE',
-                      locationType: ServerLocationType.Content,
-                    })
-                  }
-                >
-                  Add Content Location
-                </Button>
-              </div>
-            ) : (
-              <EmptyState
-                buttonText="Add user folder location"
-                icon={FolderIcon}
-                text="No user folder locations set"
-                onButtonPress={() =>
-                  setEditingLocation({
-                    location: undefined,
-                    mutationType: 'CREATE',
-                    locationType: ServerLocationType.Content,
-                  })
-                }
-              />
-            )}
-          </dd> */}
-        </div>
-        <div className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-          <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">
-            Backup Locations
-            <div className="mt-1 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:col-span-2 sm:mt-0">
-              Redundant backups for a user's folders are persisted to one or
-              more of these locations. If you want to offer your users
-              redundancy for their data, then you should use at least one
-              location here.
+              </code>
+              <code className="mt-2 inline-flex text-left items-center space-x-4 bg-gray-800 text-white rounded-lg p-4 pl-6">
+                <span className="flex-1">
+                  <span>https://</span>
+                  <span>&lt;endpoint&gt;</span>
+                  <span>/</span>
+                  <span>&lt;bucket&gt;</span>
+                  <span>/</span>
+                  <span>&lt;prefix&gt;</span>
+                  <span>/</span>
+                  <span className="text-yellow-500">&lt;userId&gt;</span>
+                  <span>/</span>
+                  <span className="text-yellow-500">&lt;folderId&gt;</span>
+                  <span>/</span>
+                  <span className=" ">.metadata</span>
+                  <span>/</span>
+                </span>
+              </code>
+              <code className="mt-2 inline-flex text-left items-center space-x-4 bg-gray-800 text-white rounded-lg p-4 pl-6">
+                <span className="flex-1">
+                  <span>https://</span>
+                  <span>&lt;endpoint&gt;</span>
+                  <span>/</span>
+                  <span>&lt;bucket&gt;</span>
+                  <span>/</span>
+                  <span>&lt;prefix&gt;</span>
+                  <span>/</span>
+                  <span className="text-yellow-500">&lt;userId&gt;</span>
+                  <span>/</span>
+                  <span className="text-yellow-500">&lt;folderId&gt;</span>
+                  <span>/</span>
+                  <span className=" ">.backup</span>
+                  <span>/</span>
+                </span>
+              </code>
+            </div>
+            <div className="pt-2 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:mt-0">
+              Without entries here your users can only create folders by
+              providing their own credentials to a working S3-compatible
+              service.
             </div>
           </dt>
-          {/* <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
-            {editingLocation?.locationType === ServerLocationType.Backup ? (
-              <LocationForm
-                value={editingLocation.location}
+          <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-5 sm:mt-0">
+            {editingStorageProvision ? (
+              <StorageProvisionForm
+                value={editingStorageProvision.storageProvision}
                 titleText={
-                  editingLocation.mutationType === 'CREATE'
-                    ? 'Create location'
-                    : 'Update location'
+                  editingStorageProvision.mutationType === 'CREATE'
+                    ? 'Create storage provision'
+                    : 'Update storage provision'
                 }
                 onSubmit={(values) =>
-                  void handleAddServerLocation(
-                    ServerLocationType.Backup,
-                    values,
-                  ).then(() => setEditingLocation({}))
+                  void handleAddStorageProvision(values).then(() =>
+                    setEditingStorageProvision(undefined),
+                  )
                 }
-                onCancel={() => setEditingLocation({})}
+                onCancel={() => setEditingStorageProvision(undefined)}
               />
-            ) : s3Locations.USER_BACKUP.length ? (
+            ) : (storageProvisions?.length ?? 0) > 0 ? (
               <div className="flex flex-col gap-4 items-start">
-                <StorageBackendTable
-                  locations={s3Locations.USER_BACKUP}
-                  onEdit={(location) =>
-                    setEditingLocation({
-                      location,
-                      locationType: ServerLocationType.Backup,
+                <StorageProvisionTable
+                  storageProvisions={storageProvisions ?? []}
+                  onEdit={(storageProvision) =>
+                    setEditingStorageProvision({
+                      storageProvision,
                       mutationType: 'UPDATE',
                     })
                   }
+                  onDelete={(storageProvision) =>
+                    handleDeleteStorageProvision(storageProvision.id)
+                  }
                 />
-
                 <Button
                   primary
-                  icon={PlusSmallIcon}
+                  icon={PlusCircleIcon}
                   onClick={() =>
-                    setEditingLocation(() => ({
-                      location: undefined,
+                    setEditingStorageProvision({
+                      storageProvision: undefined,
                       mutationType: 'CREATE',
-                      locationType: ServerLocationType.Backup,
-                    }))
+                    })
                   }
                 >
-                  Add Backup Location
+                  Add Storage Provision
                 </Button>
               </div>
             ) : (
               <EmptyState
-                buttonText="Add backup location"
+                buttonText="Add storage provision"
                 icon={FolderIcon}
-                text="No backup locations set"
-                onButtonPress={() => {
-                  setEditingLocation({
-                    location: undefined,
+                text="No storage provisions have been created"
+                onButtonPress={() =>
+                  setEditingStorageProvision({
+                    storageProvision: undefined,
                     mutationType: 'CREATE',
-                    locationType: ServerLocationType.Backup,
                   })
-                }}
+                }
               />
             )}
-          </dd> */}
+          </dd>
         </div>
       </dl>
     </div>

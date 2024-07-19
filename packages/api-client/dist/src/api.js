@@ -62,14 +62,19 @@ export const FolderObjectListResponseResultInnerMediaTypeEnum = {
     Document: 'DOCUMENT',
     Unknown: 'UNKNOWN'
 };
-export const StorageProvisionInputDTOProvisionTypesEnum = {
-    Metadata: 'METADATA',
+export const StorageProvisionDTOProvisionTypesEnum = {
     Content: 'CONTENT',
+    Metadata: 'METADATA',
+    Backup: 'BACKUP'
+};
+export const StorageProvisionInputDTOProvisionTypesEnum = {
+    Content: 'CONTENT',
+    Metadata: 'METADATA',
     Backup: 'BACKUP'
 };
 export const StorageProvisionListResponseResultInnerProvisionTypesEnum = {
-    Metadata: 'METADATA',
     Content: 'CONTENT',
+    Metadata: 'METADATA',
     Backup: 'BACKUP'
 };
 /**
@@ -1740,8 +1745,8 @@ export class StorageProvisionsApi extends BaseAPI {
  * @export
  */
 export const ListStorageProvisionsProvisionTypeEnum = {
-    Metadata: 'METADATA',
     Content: 'CONTENT',
+    Metadata: 'METADATA',
     Backup: 'BACKUP'
 };
 /**

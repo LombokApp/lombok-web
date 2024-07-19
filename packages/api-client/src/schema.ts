@@ -933,8 +933,8 @@ export const schema = {
             "in": "query",
             "schema": {
               "enum": [
-                "METADATA",
                 "CONTENT",
+                "METADATA",
                 "BACKUP"
               ],
               "type": "string"
@@ -2710,6 +2710,59 @@ export const schema = {
           "settingKey"
         ]
       },
+      "StorageProvisionDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "accessKeyId": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "provisionTypes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "CONTENT",
+                "METADATA",
+                "BACKUP"
+              ]
+            },
+            "minItems": 1
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "id",
+          "endpoint",
+          "bucket",
+          "region",
+          "accessKeyId",
+          "provisionTypes",
+          "label",
+          "description"
+        ]
+      },
       "StorageProvisionListResponse": {
         "type": "object",
         "properties": {
@@ -2749,8 +2802,8 @@ export const schema = {
                   "items": {
                     "type": "string",
                     "enum": [
-                      "METADATA",
                       "CONTENT",
+                      "METADATA",
                       "BACKUP"
                     ]
                   }
@@ -2807,11 +2860,12 @@ export const schema = {
             "items": {
               "type": "string",
               "enum": [
-                "METADATA",
                 "CONTENT",
+                "METADATA",
                 "BACKUP"
               ]
-            }
+            },
+            "minItems": 1
           }
         },
         "required": [

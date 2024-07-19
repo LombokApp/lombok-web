@@ -12,12 +12,14 @@ import type {
   ContentMetadataType,
   FolderPermissionName,
   S3ObjectInternal,
+  StorageProvisionType,
 } from '@stellariscloud/types'
 import {
   FolderPermissionEnum,
   FolderPushMessage,
   MediaType,
   SignedURLsRequestMethod,
+  StorageProvisionTypeEnum,
 } from '@stellariscloud/types'
 import {
   mediaTypeFromExtension,
@@ -31,7 +33,6 @@ import { parseSort } from 'src/core/utils/sort.util'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
 import { QueueName } from 'src/queue/queue.constants'
-import { StorageProvisionType } from 'src/server/constants/server.constants'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { SocketService } from 'src/socket/socket.service'
 import type { UserLocationInputDTO } from 'src/storage/dto/user-location-input.dto'
@@ -294,13 +295,13 @@ export class FolderService implements OnModuleInit {
     }
 
     const contentLocation = await buildLocation(
-      StorageProvisionType.CONTENT,
+      StorageProvisionTypeEnum.CONTENT,
       body.contentLocation,
     )
 
     const metadataLocation = body.metadataLocation
       ? await buildLocation(
-          StorageProvisionType.METADATA,
+          StorageProvisionTypeEnum.METADATA,
           body.metadataLocation,
         )
       : (

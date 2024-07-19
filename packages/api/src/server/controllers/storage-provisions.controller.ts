@@ -13,11 +13,12 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
 import { StorageProvisionListResponse } from '../dto/responses/storage-provision-list-response.dto'
+import { StorageProvisionDTO } from '../dto/storage-provision.dto'
 import { StorageProvisionInputDTO } from '../dto/storage-provision-input.dto'
 import { StorageProvisionsListQueryParamsDTO } from '../dto/storage-provisions-list-query-params.dto'
 import { transformStorageProvisionToDTO } from '../dto/transforms/storage-provisions.transforms'
@@ -28,6 +29,7 @@ import { ServerConfigurationService } from '../services/server-configuration.ser
 @ApiBearerAuth()
 @UsePipes(ZodValidationPipe)
 @UseGuards(AuthGuard)
+@ApiExtraModels(StorageProvisionDTO)
 export class StorageProvisionsController {
   constructor(
     private readonly serverConfigurationService: ServerConfigurationService,
