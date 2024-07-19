@@ -15,7 +15,7 @@ import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { AppDTO } from '../dto/app.dto'
 import { AppListResponse } from '../dto/responses/app-list-response.dto'
 
-@Controller('/server/apps')
+@Controller('/api/v1/server/apps')
 @ApiTags('Apps')
 @UsePipes(ZodValidationPipe)
 @UseGuards(AuthGuard)

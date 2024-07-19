@@ -7,7 +7,7 @@ import { EventGetResponse } from '../dto/responses/event-get-response.dto'
 import { EventService } from '../services/event.service'
 import { transformEventToDTO } from '../transforms/event.transforms'
 
-@Controller('/events')
+@Controller('/api/v1/events')
 @ApiTags('Events')
 @UseGuards(AuthGuard)
 @ApiBearerAuth()

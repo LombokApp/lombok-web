@@ -24,7 +24,7 @@ import { StorageProvisionsListQueryParamsDTO } from '../dto/storage-provisions-l
 import { transformStorageProvisionToDTO } from '../dto/transforms/storage-provisions.transforms'
 import { ServerConfigurationService } from '../services/server-configuration.service'
 
-@Controller('/server/storage-provisions')
+@Controller('/api/v1/server/storage-provisions')
 @ApiTags('StorageProvisions')
 @ApiBearerAuth()
 @UsePipes(ZodValidationPipe)

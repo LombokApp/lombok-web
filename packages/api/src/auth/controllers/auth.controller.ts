@@ -17,7 +17,7 @@ import type { TokenRefreshResponse } from '../dto/responses/token-refresh-respon
 import { SignupCredentialsDTO } from '../dto/signup-credentials.dto'
 import { AuthService } from '../services/auth.service'
 
-@Controller('/auth')
+@Controller('/api/v1/auth')
 @ApiTags('Auth')
 @UsePipes(ZodValidationPipe)
 export class AuthController {

@@ -20,7 +20,7 @@ import { SettingsGetResponse } from '../dto/responses/settings-get-response.dto'
 import { SetSettingInputDTO } from '../dto/set-setting-input.dto'
 import { ServerConfigurationService } from '../services/server-configuration.service'
 
-@Controller('/server')
+@Controller('/api/v1/server')
 @ApiTags('Server')
 @ApiBearerAuth()
 @UsePipes(ZodValidationPipe)

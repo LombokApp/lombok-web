@@ -21,7 +21,7 @@ import { UpdateViewerInputDTO } from '../dto/update-viewer-input.dto'
 import type { UserDTO } from '../dto/user.dto'
 import { UserService } from '../services/users.service'
 
-@Controller('/viewer')
+@Controller('/api/v1/viewer')
 @ApiTags('Viewer')
 @UseGuards(AuthGuard)
 @ApiBearerAuth()

@@ -37,7 +37,7 @@ import { transformFolderObjectToDTO } from '../dto/transforms/folder-object.tran
 import { FolderPermissionUnauthorizedException } from '../exceptions/folder-permission-unauthorized.exception'
 import { FolderService } from '../services/folder.service'
 
-@Controller('/folders')
+@Controller('/api/v1/folders')
 @ApiTags('Folders')
 @UseGuards(AuthGuard)
 @UsePipes(ZodValidationPipe)

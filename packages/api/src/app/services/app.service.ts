@@ -23,8 +23,8 @@ import { foldersTable } from 'src/folders/entities/folder.entity'
 import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
 import { FolderNotFoundException } from 'src/folders/exceptions/folder-not-found.exception'
 import { FolderService } from 'src/folders/services/folder.service'
-import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { OrmService } from 'src/orm/orm.service'
+import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import type { User } from 'src/users/entities/user.entity'
@@ -626,6 +626,31 @@ export class AppService {
     }))
   }
 
+  public async getContentForAppAsset(
+    appIdentifier: string,
+    appUi: string,
+    filename: string,
+  ) {
+    const CACHE_KEY = this.getCacheKeyForAppAsset(
+      appIdentifier,
+      appUi,
+      filename,
+    )
+    if (this._redisConfig.enabled) {
+      return this.redisService.client.GET(CACHE_KEY)
+    } else {
+      return this._appsCache.appAssetCache[CACHE_KEY]
+    }
+  }
+
+  public getCacheKeyForAppAsset(
+    appIdentifier: string,
+    appUi: string,
+    filename: string,
+  ) {
+    return `APP_UI:${appIdentifier}:${appUi}:${filename}`
+  }
+
   public async updateAppsFromDisk(appsDirectory: string) {
     // load the apps from disk
     const appsFromDisk = this.loadAppsFromDisk(appsDirectory)
@@ -647,14 +672,14 @@ export class AppService {
               appUi,
               filename,
             )
-            const REDIS_KEY = `APP_UI:${appIdentifier}:${appUi}:${filename}`
+            const CACHE_KEY = `APP_UI:${appIdentifier}:${appUi}:${filename}`
             if (this._redisConfig.enabled) {
               await this.redisService.client.SET(
-                REDIS_KEY,
+                CACHE_KEY,
                 fs.readFileSync(fullFilePath),
               )
             } else {
-              this._appsCache.appAssetCache[REDIS_KEY] =
+              this._appsCache.appAssetCache[CACHE_KEY] =
                 fs.readFileSync(fullFilePath)
             }
           }
