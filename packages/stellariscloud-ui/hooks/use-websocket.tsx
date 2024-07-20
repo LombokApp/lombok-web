@@ -1,18 +1,17 @@
 import { useAuthContext } from '@stellariscloud/auth-utils'
-import type {
-  FolderPushMessage,
-  ServerPushMessage,
-} from '@stellariscloud/types'
+import type { FolderPushMessage } from '@stellariscloud/types'
 import React from 'react'
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
 
 type MessageCallback = (msg: {
-  name: ServerPushMessage | FolderPushMessage
+  name: FolderPushMessage
   payload: { [key: string]: string }
 }) => void
 
-export const useServerWebsocket = (onMessage: MessageCallback) => {
+const SOCKET_BASE_URL = process.env.NEXT_PUBLIC_SOCKET_BASE_URL ?? ''
+
+export const useWebsocket = (namespace: string, onMessage: MessageCallback) => {
   const [socketState, setSocketState] = React.useState<{
     socket?: Socket
     connected: boolean
@@ -37,7 +36,7 @@ export const useServerWebsocket = (onMessage: MessageCallback) => {
   React.useEffect(() => {
     if (!socketState.socket?.active && authContext.viewer?.id) {
       void authContext.getAccessToken().then((token) => {
-        const s = io(process.env.NEXT_PUBLIC_SOCKET_BASE_URL ?? '', {
+        const s = io(`${SOCKET_BASE_URL}/${namespace}`, {
           auth: {
             userId: authContext.viewer?.id,
             token,
@@ -78,13 +77,15 @@ export const useServerWebsocket = (onMessage: MessageCallback) => {
             reconnectKey: socketState.reconnectKey,
           })
         })
+        setInterval(() => {
+          s.emit(`namespace:${namespace} ping`)
+        }, 1000)
       })
     }
   }, [
     socketState.socket?.active,
     socketState.reconnectKey,
     authContext.viewer?.id,
-    authContext,
   ])
 
   return {

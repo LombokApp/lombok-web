@@ -4,7 +4,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core'
 import { CacheModule } from 'src/cache/cache.module'
 import { QueueModule } from 'src/queue/queue.module'
 import { SocketModule } from 'src/socket/socket.module'
-import { S3Module } from 'src/storage/storage.module'
+import { StorageModule } from 'src/storage/storage.module'
 
 import { AppModule } from '../app/app.module'
 import { AuthModule } from '../auth/auth.module'
@@ -27,7 +27,7 @@ import { UsersModule } from '../users/users.module'
     ServerModule,
     SocketModule,
     CacheModule,
-    S3Module,
+    StorageModule,
     AuthModule,
   ],
   exports: [],

@@ -7,11 +7,11 @@ import { redisConfig } from 'src/cache/redis.config'
 import { EventModule } from 'src/event/event.module'
 import { EventService } from 'src/event/services/event.service'
 import { QueueModule } from 'src/queue/queue.module'
-import { S3Module } from 'src/storage/storage.module'
+import { StorageModule } from 'src/storage/storage.module'
 import { ServerModule } from 'src/server/server.module'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { SocketModule } from 'src/socket/socket.module'
-import { SocketService } from 'src/socket/socket.service'
+import { UserSocketService } from 'src/socket/user/user-socket.service'
 
 import { FoldersController } from './controllers/folders.controller'
 import { RescanFolderProcessor } from './processors/rescan-folder.processor'
@@ -20,7 +20,7 @@ import { FolderService } from './services/folder.service'
 @Module({
   controllers: [FoldersController],
   imports: [
-    S3Module,
+    StorageModule,
     ServerModule,
     QueueModule,
     ConfigModule.forFeature(redisConfig),
@@ -32,7 +32,7 @@ import { FolderService } from './services/folder.service'
   providers: [
     EventService,
     FolderService,
-    SocketService,
+    UserSocketService,
     AppService,
     ServerConfigurationService,
     RescanFolderProcessor,

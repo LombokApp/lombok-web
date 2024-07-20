@@ -13,12 +13,17 @@ import { EventModule } from 'src/event/event.module'
 import { EventService } from 'src/event/services/event.service'
 import { FoldersModule } from 'src/folders/folders.module'
 import { FolderService } from 'src/folders/services/folder.service'
-import { S3Module } from 'src/storage/storage.module'
 import { ServerModule } from 'src/server/server.module'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
+import { StorageModule } from 'src/storage/storage.module'
 
+import { AppSocketGateway } from './app/app-socket.gateway'
+import { AppSocketService } from './app/app-socket.service'
+import { FolderSocketGateway } from './folder/folder-socket.gateway'
+import { FolderSocketService } from './folder/folder-socket.service'
 import { NotifyPendingEventsProcessor } from './processors/notify-pending-events.processor'
-import { SocketService } from './socket.service'
+import { UserSocketGateway } from './user/user-socket.gateway'
+import { UserSocketService } from './user/user-socket.service'
 
 @Module({
   controllers: [],
@@ -27,7 +32,7 @@ import { SocketService } from './socket.service'
     forwardRef(() => AppModule),
     forwardRef(() => AuthModule),
     ServerModule,
-    S3Module,
+    StorageModule,
     EventModule,
     ConfigModule.forFeature(redisConfig),
     ConfigModule.forFeature(authConfig),
@@ -36,7 +41,12 @@ import { SocketService } from './socket.service'
   ],
   providers: [
     JWTService,
-    SocketService,
+    AppSocketService,
+    UserSocketGateway,
+    FolderSocketGateway,
+    AppSocketGateway,
+    UserSocketService,
+    FolderSocketService,
     FolderService,
     EventService,
     AppService,
@@ -44,7 +54,7 @@ import { SocketService } from './socket.service'
     ServerConfigurationService,
     NotifyPendingEventsProcessor,
   ],
-  exports: [SocketService, RedisService],
+  exports: [UserSocketService, FolderSocketService],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class SocketModule {}

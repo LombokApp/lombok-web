@@ -225,7 +225,7 @@ export class Authenticator {
     try {
       const {
         session: { accessToken, refreshToken },
-      } = (await authApi.refreshToken()).data
+      } = (await authApi.refreshToken({ refeshToken })).data
 
       this.tokens.accessToken = accessToken
       this.tokens.refreshToken = refreshToken

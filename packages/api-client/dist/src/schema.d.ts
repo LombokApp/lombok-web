@@ -1,7 +1,7 @@
 export declare const schema: {
     readonly openapi: "3.0.0";
     readonly paths: {
-        readonly "/auth/login": {
+        readonly "/api/v1/auth/login": {
             readonly post: {
                 readonly operationId: "login";
                 readonly parameters: readonly [];
@@ -30,7 +30,7 @@ export declare const schema: {
                 readonly tags: readonly ["Auth"];
             };
         };
-        readonly "/auth/signup": {
+        readonly "/api/v1/auth/signup": {
             readonly post: {
                 readonly operationId: "signup";
                 readonly parameters: readonly [];
@@ -59,7 +59,7 @@ export declare const schema: {
                 readonly tags: readonly ["Auth"];
             };
         };
-        readonly "/auth/logout": {
+        readonly "/api/v1/auth/logout": {
             readonly post: {
                 readonly operationId: "logout";
                 readonly parameters: readonly [];
@@ -81,7 +81,7 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/auth/refresh-token": {
+        readonly "/api/v1/auth/refresh-token": {
             readonly post: {
                 readonly operationId: "refreshToken";
                 readonly parameters: readonly [{
@@ -107,7 +107,7 @@ export declare const schema: {
                 readonly tags: readonly ["Auth"];
             };
         };
-        readonly "/viewer": {
+        readonly "/api/v1/viewer": {
             readonly get: {
                 readonly operationId: "getViewer";
                 readonly parameters: readonly [];
@@ -159,7 +159,7 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/server/users": {
+        readonly "/api/v1/server/users": {
             readonly post: {
                 readonly operationId: "createUser";
                 readonly parameters: readonly [];
@@ -242,7 +242,7 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/server/users/{userId}": {
+        readonly "/api/v1/server/users/{userId}": {
             readonly patch: {
                 readonly operationId: "updateUser";
                 readonly parameters: readonly [{
@@ -328,7 +328,7 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/folders/{folderId}": {
+        readonly "/api/v1/folders/{folderId}": {
             readonly get: {
                 readonly operationId: "getFolder";
                 readonly parameters: readonly [{
@@ -377,7 +377,7 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/folders/{folderId}/metadata": {
+        readonly "/api/v1/folders/{folderId}/metadata": {
             readonly get: {
                 readonly operationId: "getFolderMetadata";
                 readonly parameters: readonly [{
@@ -406,7 +406,7 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/folders": {
+        readonly "/api/v1/folders": {
             readonly get: {
                 readonly operationId: "listFolders";
                 readonly parameters: readonly [{
@@ -474,7 +474,7 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/folders/{folderId}/rescan": {
+        readonly "/api/v1/folders/{folderId}/rescan": {
             readonly post: {
                 readonly operationId: "rescanFolder";
                 readonly parameters: readonly [{
@@ -496,7 +496,7 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/folders/{folderId}/objects": {
+        readonly "/api/v1/folders/{folderId}/objects": {
             readonly get: {
                 readonly operationId: "listFolderObjects";
                 readonly parameters: readonly [{
@@ -548,7 +548,7 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/folders/{folderId}/objects/{objectKey}": {
+        readonly "/api/v1/folders/{folderId}/objects/{objectKey}": {
             readonly get: {
                 readonly operationId: "getFolderObject";
                 readonly parameters: readonly [{
@@ -645,7 +645,7 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/folders/{folderId}/presigned-urls": {
+        readonly "/api/v1/folders/{folderId}/presigned-urls": {
             readonly post: {
                 readonly operationId: "createPresignedUrls";
                 readonly parameters: readonly [{
@@ -684,7 +684,7 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/server/settings": {
+        readonly "/api/v1/server/settings": {
             readonly get: {
                 readonly operationId: "getServerSettings";
                 readonly parameters: readonly [];
@@ -706,7 +706,7 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/server/settings/{settingKey}": {
+        readonly "/api/v1/server/settings/{settingKey}": {
             readonly put: {
                 readonly operationId: "setServerSetting";
                 readonly parameters: readonly [{
@@ -772,7 +772,7 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/server/storage-provisions": {
+        readonly "/api/v1/server/storage-provisions": {
             readonly get: {
                 readonly operationId: "listStorageProvisions";
                 readonly parameters: readonly [{
@@ -832,7 +832,7 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/server/storage-provisions/{storageProvisionId}": {
+        readonly "/api/v1/server/storage-provisions/{storageProvisionId}": {
             readonly put: {
                 readonly operationId: "updateStorageProvision";
                 readonly parameters: readonly [{
@@ -898,7 +898,7 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/events/{eventId}": {
+        readonly "/api/v1/events/{eventId}": {
             readonly get: {
                 readonly operationId: "getEvent";
                 readonly parameters: readonly [];
@@ -920,7 +920,7 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/server/apps": {
+        readonly "/api/v1/server/apps": {
             readonly get: {
                 readonly operationId: "listApps";
                 readonly parameters: readonly [];

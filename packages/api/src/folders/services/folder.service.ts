@@ -34,7 +34,7 @@ import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
 import { QueueName } from 'src/queue/queue.constants'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
-import { SocketService } from 'src/socket/socket.service'
+import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import type { UserLocationInputDTO } from 'src/storage/dto/user-location-input.dto'
 import type { StorageLocation } from 'src/storage/entities/storage-location.entity'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
@@ -137,7 +137,7 @@ const ServerLocationPayloadRunType = r.Record({
 export class FolderService implements OnModuleInit {
   eventService: EventService
   constructor(
-    private readonly socketService: SocketService,
+    private readonly folderSocketService: FolderSocketService,
     private readonly s3Service: S3Service,
     @Inject(forwardRef(() => EventService))
     _eventService,
@@ -458,7 +458,7 @@ export class FolderService implements OnModuleInit {
       .delete(folderObjectsTable)
       .where(eq(folderObjectsTable.id, folderObject.id))
 
-    this.socketService.sendToFolderRoom(
+    this.folderSocketService.sendToFolderRoom(
       folderId,
       FolderPushMessage.OBJECT_REMOVED,
       { folderObject },
@@ -853,7 +853,7 @@ export class FolderService implements OnModuleInit {
       )[0]
     }
 
-    this.socketService.sendToFolderRoom(
+    this.folderSocketService.sendToFolderRoom(
       folderId,
       previousRecord
         ? FolderPushMessage.OBJECT_UPDATED
@@ -906,7 +906,7 @@ export class FolderService implements OnModuleInit {
           )
           .returning()
       )[0]
-      this.socketService.sendToFolderRoom(
+      this.folderSocketService.sendToFolderRoom(
         folderId,
         FolderPushMessage.OBJECTS_UPDATED,
         updatedObject,
@@ -946,7 +946,7 @@ export class FolderService implements OnModuleInit {
           .returning()
       )[0]
 
-      this.socketService.sendToFolderRoom(
+      this.folderSocketService.sendToFolderRoom(
         folderId,
         FolderPushMessage.OBJECT_UPDATED,
         updatedObject,

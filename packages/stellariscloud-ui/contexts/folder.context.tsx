@@ -4,10 +4,10 @@ import { FolderPushMessage } from '@stellariscloud/types'
 import React from 'react'
 import type { Socket } from 'socket.io-client'
 
-import { useFolderWebsocket } from '../hooks/use-folder-websocket'
 import { apiClient } from '../services/api'
 import { useLocalFileCacheContext } from './local-file-cache.context'
 import type { LogLevel } from './logging.context'
+import { useWebsocket } from '../hooks/use-websocket'
 
 export interface IFolderContext {
   folderId: string
@@ -119,8 +119,9 @@ export const FolderContextProvider = ({
     },
     [fetchFolder, fetchFolderMetadata],
   )
-  const { socket, connected: socketConnected } = useFolderWebsocket(
-    folderId,
+  const { socket, connected: socketConnected } = useWebsocket(
+    `folders/${folderId}`,
+    // `folders/111`,
     messageHandler,
   )
 

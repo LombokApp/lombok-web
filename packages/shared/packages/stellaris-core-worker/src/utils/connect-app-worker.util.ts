@@ -158,90 +158,90 @@ export const connectAndPerformWork = (
   _log: (entry: Partial<AppLogEntry>) => void,
 ) => {
   const eventSubscriptionKeys = Object.keys(eventHandlers)
-  const socket = io(`${socketBaseUrl}`, {
-    auth: {
-      appWorkerId,
-      token: appToken,
-      eventSubscriptionKeys,
-    },
-    reconnection: false,
-  })
-  let concurrentTasks = 0
+  // const socket = io(`${socketBaseUrl}`, {
+  //   auth: {
+  //     appWorkerId,
+  //     token: appToken,
+  //     eventSubscriptionKeys,
+  //   },
+  //   reconnection: false,
+  // })
+  // let concurrentTasks = 0
 
-  const serverClient = buildAppClient(socket)
+  // const serverClient = buildAppClient(socket)
 
-  const shutdown = () => {
-    socket.disconnect()
-  }
+  // const shutdown = () => {
+  //   socket.disconnect()
+  // }
 
-  const wait = new Promise<void>((resolve, reject) => {
-    socket.on('connect', () => {
-      console.log('Worker connected.')
-    })
-    socket.on('disconnect', (reason) => {
-      console.log('Worker disconnected. Reason:', reason)
-      _log({
-        message: 'Core app worker websocket disconnected.',
-        name: 'CoreAppWorkerDisconnect',
-        data: {
-          appWorkerId,
-        },
-      })
-      resolve()
-    })
-    socket.onAny((_data) => {
-      console.log('Got event in worker thread:', _data)
-    })
+  // const wait = new Promise<void>((resolve, reject) => {
+  //   socket.on('connect', () => {
+  //     console.log('Worker connected.')
+  //   })
+  //   socket.on('disconnect', (reason) => {
+  //     console.log('Worker disconnected. Reason:', reason)
+  //     _log({
+  //       message: 'Core app worker websocket disconnected.',
+  //       name: 'CoreAppWorkerDisconnect',
+  //       data: {
+  //         appWorkerId,
+  //       },
+  //     })
+  //     resolve()
+  //   })
+  //   socket.onAny((_data) => {
+  //     console.log('Got event in worker thread:', _data)
+  //   })
 
-    socket.on('PENDING_EVENTS_NOTIFICATION', async (_data) => {
-      if (concurrentTasks < 10) {
-        try {
-          concurrentTasks++
-          const attemptStartHandleResponse =
-            await serverClient.attemptStartHandleEvent(eventSubscriptionKeys)
-          const event = attemptStartHandleResponse.result
-          if (attemptStartHandleResponse.error) {
-            const errorMessage = `${attemptStartHandleResponse.error.code} - ${attemptStartHandleResponse.error.message}`
-            _log({ message: errorMessage, name: 'Error' })
-          } else {
-            await eventHandlers[event.eventKey](event, serverClient)
-              .then(() => serverClient.completeHandleEvent(event.id))
-              .catch((e) => {
-                return serverClient.failHandleEvent(event.id, {
-                  code:
-                    e instanceof AppAPIError
-                      ? e.errorCode
-                      : 'APP_WORKER_EXECUTION_ERROR',
-                  message: `${e.name}: ${e.message}`,
-                })
-              })
-          }
-        } finally {
-          concurrentTasks--
-        }
-      }
-    })
+  //   socket.on('PENDING_EVENTS_NOTIFICATION', async (_data) => {
+  //     if (concurrentTasks < 10) {
+  //       try {
+  //         concurrentTasks++
+  //         const attemptStartHandleResponse =
+  //           await serverClient.attemptStartHandleEvent(eventSubscriptionKeys)
+  //         const event = attemptStartHandleResponse.result
+  //         if (attemptStartHandleResponse.error) {
+  //           const errorMessage = `${attemptStartHandleResponse.error.code} - ${attemptStartHandleResponse.error.message}`
+  //           _log({ message: errorMessage, name: 'Error' })
+  //         } else {
+  //           await eventHandlers[event.eventKey](event, serverClient)
+  //             .then(() => serverClient.completeHandleEvent(event.id))
+  //             .catch((e) => {
+  //               return serverClient.failHandleEvent(event.id, {
+  //                 code:
+  //                   e instanceof AppAPIError
+  //                     ? e.errorCode
+  //                     : 'APP_WORKER_EXECUTION_ERROR',
+  //                 message: `${e.name}: ${e.message}`,
+  //               })
+  //             })
+  //         }
+  //       } finally {
+  //         concurrentTasks--
+  //       }
+  //     }
+  //   })
 
-    socket.on('error', (error) => {
-      console.log('Socket error:', error, appWorkerId)
-      _log({
-        message: 'Core app worker websocket disconnected.',
-        name: 'CoreAppWorkerSocketError',
-        level: 'error',
-        data: {
-          appWorkerId,
-          name: error.name,
-          stacktrace: error.stacktrace,
-          message: error.message,
-        },
-      })
-      socket.close()
-      reject(error)
-    })
-  })
+  //   socket.on('error', (error) => {
+  //     console.log('Socket error:', error, appWorkerId)
+  //     _log({
+  //       message: 'Core app worker websocket disconnected.',
+  //       name: 'CoreAppWorkerSocketError',
+  //       level: 'error',
+  //       data: {
+  //         appWorkerId,
+  //         name: error.name,
+  //         stacktrace: error.stacktrace,
+  //         message: error.message,
+  //       },
+  //     })
+  //     socket.close()
+  //     reject(error)
+  //   })
+  // })
 
   return {
-    shutdown,
-    wait,
+    // shutdown,
+    // wait,
   }
 }

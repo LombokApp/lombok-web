@@ -9,4 +9,4 @@ import { StorageLocationsService } from './storage-location.service'
   exports: [S3Service, StorageLocationsService],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
-export class S3Module {}
+export class StorageModule {}

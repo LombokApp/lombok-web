@@ -89,7 +89,7 @@ export const AppsApiAxiosParamCreator = function (configuration) {
          * @throws {RequiredError}
          */
         listApps: async (options = {}) => {
-            const localVarPath = `/server/apps`;
+            const localVarPath = `/api/v1/server/apps`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -179,7 +179,7 @@ export const AuthApiAxiosParamCreator = function (configuration) {
         login: async (loginCredentialsDTO, options = {}) => {
             // verify required parameter 'loginCredentialsDTO' is not null or undefined
             assertParamExists('login', 'loginCredentialsDTO', loginCredentialsDTO);
-            const localVarPath = `/auth/login`;
+            const localVarPath = `/api/v1/auth/login`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -205,7 +205,7 @@ export const AuthApiAxiosParamCreator = function (configuration) {
          * @throws {RequiredError}
          */
         logout: async (options = {}) => {
-            const localVarPath = `/auth/logout`;
+            const localVarPath = `/api/v1/auth/logout`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -235,7 +235,7 @@ export const AuthApiAxiosParamCreator = function (configuration) {
         refreshToken: async (refeshToken, options = {}) => {
             // verify required parameter 'refeshToken' is not null or undefined
             assertParamExists('refreshToken', 'refeshToken', refeshToken);
-            const localVarPath = `/auth/refresh-token`
+            const localVarPath = `/api/v1/auth/refresh-token`
                 .replace(`{${"refeshToken"}}`, encodeURIComponent(String(refeshToken)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -263,7 +263,7 @@ export const AuthApiAxiosParamCreator = function (configuration) {
         signup: async (signupCredentialsDTO, options = {}) => {
             // verify required parameter 'signupCredentialsDTO' is not null or undefined
             assertParamExists('signup', 'signupCredentialsDTO', signupCredentialsDTO);
-            const localVarPath = `/auth/signup`;
+            const localVarPath = `/api/v1/auth/signup`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -436,7 +436,7 @@ export const EventsApiAxiosParamCreator = function (configuration) {
          * @throws {RequiredError}
          */
         getEvent: async (options = {}) => {
-            const localVarPath = `/events/{eventId}`;
+            const localVarPath = `/api/v1/events/{eventId}`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -526,7 +526,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         createFolder: async (folderCreateInputDTO, options = {}) => {
             // verify required parameter 'folderCreateInputDTO' is not null or undefined
             assertParamExists('createFolder', 'folderCreateInputDTO', folderCreateInputDTO);
-            const localVarPath = `/folders`;
+            const localVarPath = `/api/v1/folders`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -561,7 +561,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
             assertParamExists('createPresignedUrls', 'folderId', folderId);
             // verify required parameter 'folderCreateSignedUrlInputDTOInner' is not null or undefined
             assertParamExists('createPresignedUrls', 'folderCreateSignedUrlInputDTOInner', folderCreateSignedUrlInputDTOInner);
-            const localVarPath = `/folders/{folderId}/presigned-urls`
+            const localVarPath = `/api/v1/folders/{folderId}/presigned-urls`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -594,7 +594,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         deleteFolder: async (folderId, options = {}) => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('deleteFolder', 'folderId', folderId);
-            const localVarPath = `/folders/{folderId}`
+            const localVarPath = `/api/v1/folders/{folderId}`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -628,7 +628,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
             assertParamExists('deleteFolderObject', 'folderId', folderId);
             // verify required parameter 'objectKey' is not null or undefined
             assertParamExists('deleteFolderObject', 'objectKey', objectKey);
-            const localVarPath = `/folders/{folderId}/objects/{objectKey}`
+            const localVarPath = `/api/v1/folders/{folderId}/objects/{objectKey}`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
                 .replace(`{${"objectKey"}}`, encodeURIComponent(String(objectKey)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -660,7 +660,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         getFolder: async (folderId, options = {}) => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('getFolder', 'folderId', folderId);
-            const localVarPath = `/folders/{folderId}`
+            const localVarPath = `/api/v1/folders/{folderId}`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -691,7 +691,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         getFolderMetadata: async (folderId, options = {}) => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('getFolderMetadata', 'folderId', folderId);
-            const localVarPath = `/folders/{folderId}/metadata`
+            const localVarPath = `/api/v1/folders/{folderId}/metadata`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -725,7 +725,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
             assertParamExists('getFolderObject', 'folderId', folderId);
             // verify required parameter 'objectKey' is not null or undefined
             assertParamExists('getFolderObject', 'objectKey', objectKey);
-            const localVarPath = `/folders/{folderId}/objects/{objectKey}`
+            const localVarPath = `/api/v1/folders/{folderId}/objects/{objectKey}`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
                 .replace(`{${"objectKey"}}`, encodeURIComponent(String(objectKey)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -760,7 +760,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         listFolderObjects: async (folderId, offset, limit, search, options = {}) => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('listFolderObjects', 'folderId', folderId);
-            const localVarPath = `/folders/{folderId}/objects`
+            const localVarPath = `/api/v1/folders/{folderId}/objects`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -799,7 +799,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
          * @throws {RequiredError}
          */
         listFolders: async (offset, limit, options = {}) => {
-            const localVarPath = `/folders`;
+            const localVarPath = `/api/v1/folders`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -838,7 +838,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
             assertParamExists('refreshFolderObjectS3Metadata', 'folderId', folderId);
             // verify required parameter 'objectKey' is not null or undefined
             assertParamExists('refreshFolderObjectS3Metadata', 'objectKey', objectKey);
-            const localVarPath = `/folders/{folderId}/objects/{objectKey}`
+            const localVarPath = `/api/v1/folders/{folderId}/objects/{objectKey}`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
                 .replace(`{${"objectKey"}}`, encodeURIComponent(String(objectKey)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -870,7 +870,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         rescanFolder: async (folderId, options = {}) => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('rescanFolder', 'folderId', folderId);
-            const localVarPath = `/folders/{folderId}/rescan`
+            const localVarPath = `/api/v1/folders/{folderId}/rescan`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1259,7 +1259,7 @@ export const ServerApiAxiosParamCreator = function (configuration) {
          * @throws {RequiredError}
          */
         getServerSettings: async (options = {}) => {
-            const localVarPath = `/server/settings`;
+            const localVarPath = `/api/v1/server/settings`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1289,7 +1289,7 @@ export const ServerApiAxiosParamCreator = function (configuration) {
         resetServerSetting: async (settingKey, options = {}) => {
             // verify required parameter 'settingKey' is not null or undefined
             assertParamExists('resetServerSetting', 'settingKey', settingKey);
-            const localVarPath = `/server/settings/{settingKey}`
+            const localVarPath = `/api/v1/server/settings/{settingKey}`
                 .replace(`{${"settingKey"}}`, encodeURIComponent(String(settingKey)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1323,7 +1323,7 @@ export const ServerApiAxiosParamCreator = function (configuration) {
             assertParamExists('setServerSetting', 'settingKey', settingKey);
             // verify required parameter 'setSettingInputDTO' is not null or undefined
             assertParamExists('setServerSetting', 'setSettingInputDTO', setSettingInputDTO);
-            const localVarPath = `/server/settings/{settingKey}`
+            const localVarPath = `/api/v1/server/settings/{settingKey}`
                 .replace(`{${"settingKey"}}`, encodeURIComponent(String(settingKey)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1475,7 +1475,7 @@ export const StorageProvisionsApiAxiosParamCreator = function (configuration) {
         createServerProvision: async (storageProvisionInputDTO, options = {}) => {
             // verify required parameter 'storageProvisionInputDTO' is not null or undefined
             assertParamExists('createServerProvision', 'storageProvisionInputDTO', storageProvisionInputDTO);
-            const localVarPath = `/server/storage-provisions`;
+            const localVarPath = `/api/v1/server/storage-provisions`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1507,7 +1507,7 @@ export const StorageProvisionsApiAxiosParamCreator = function (configuration) {
         deleteStorageProvision: async (storageProvisionId, options = {}) => {
             // verify required parameter 'storageProvisionId' is not null or undefined
             assertParamExists('deleteStorageProvision', 'storageProvisionId', storageProvisionId);
-            const localVarPath = `/server/storage-provisions/{storageProvisionId}`
+            const localVarPath = `/api/v1/server/storage-provisions/{storageProvisionId}`
                 .replace(`{${"storageProvisionId"}}`, encodeURIComponent(String(storageProvisionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1536,7 +1536,7 @@ export const StorageProvisionsApiAxiosParamCreator = function (configuration) {
          * @throws {RequiredError}
          */
         listStorageProvisions: async (provisionType, options = {}) => {
-            const localVarPath = `/server/storage-provisions`;
+            const localVarPath = `/api/v1/server/storage-provisions`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1572,7 +1572,7 @@ export const StorageProvisionsApiAxiosParamCreator = function (configuration) {
             assertParamExists('updateStorageProvision', 'storageProvisionId', storageProvisionId);
             // verify required parameter 'storageProvisionInputDTO' is not null or undefined
             assertParamExists('updateStorageProvision', 'storageProvisionInputDTO', storageProvisionInputDTO);
-            const localVarPath = `/server/storage-provisions/{storageProvisionId}`
+            const localVarPath = `/api/v1/server/storage-provisions/{storageProvisionId}`
                 .replace(`{${"storageProvisionId"}}`, encodeURIComponent(String(storageProvisionId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1764,7 +1764,7 @@ export const UsersApiAxiosParamCreator = function (configuration) {
         createUser: async (userCreateInputDTO, options = {}) => {
             // verify required parameter 'userCreateInputDTO' is not null or undefined
             assertParamExists('createUser', 'userCreateInputDTO', userCreateInputDTO);
-            const localVarPath = `/server/users`;
+            const localVarPath = `/api/v1/server/users`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1796,7 +1796,7 @@ export const UsersApiAxiosParamCreator = function (configuration) {
         deleteUser: async (userId, options = {}) => {
             // verify required parameter 'userId' is not null or undefined
             assertParamExists('deleteUser', 'userId', userId);
-            const localVarPath = `/server/users/{userId}`
+            const localVarPath = `/api/v1/server/users/{userId}`
                 .replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1827,7 +1827,7 @@ export const UsersApiAxiosParamCreator = function (configuration) {
         getUser: async (userId, options = {}) => {
             // verify required parameter 'userId' is not null or undefined
             assertParamExists('getUser', 'userId', userId);
-            const localVarPath = `/server/users/{userId}`
+            const localVarPath = `/api/v1/server/users/{userId}`
                 .replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1859,7 +1859,7 @@ export const UsersApiAxiosParamCreator = function (configuration) {
          * @throws {RequiredError}
          */
         listUsers: async (offset, limit, isAdmin, sort, options = {}) => {
-            const localVarPath = `/server/users`;
+            const localVarPath = `/api/v1/server/users`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -1904,7 +1904,7 @@ export const UsersApiAxiosParamCreator = function (configuration) {
             assertParamExists('updateUser', 'userId', userId);
             // verify required parameter 'userUpdateInputDTO' is not null or undefined
             assertParamExists('updateUser', 'userUpdateInputDTO', userUpdateInputDTO);
-            const localVarPath = `/server/users/{userId}`
+            const localVarPath = `/api/v1/server/users/{userId}`
                 .replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2134,7 +2134,7 @@ export const ViewerApiAxiosParamCreator = function (configuration) {
          * @throws {RequiredError}
          */
         getViewer: async (options = {}) => {
-            const localVarPath = `/viewer`;
+            const localVarPath = `/api/v1/viewer`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -2164,7 +2164,7 @@ export const ViewerApiAxiosParamCreator = function (configuration) {
         updateViewer: async (updateViewerInputDTO, options = {}) => {
             // verify required parameter 'updateViewerInputDTO' is not null or undefined
             assertParamExists('updateViewer', 'updateViewerInputDTO', updateViewerInputDTO);
-            const localVarPath = `/viewer`;
+            const localVarPath = `/api/v1/viewer`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;

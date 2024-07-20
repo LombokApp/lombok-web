@@ -7,6 +7,11 @@ export enum FolderPushMessage {
   OBJECT_UPDATED = 'OBJECT_UPDATED',
 }
 
+export enum UserPushMessage {
+  FOLDER_CREATED = 'FOLDER_CREATED',
+  FOLDER_DELETED = 'FOLDER_DELETED',
+}
+
 export enum ServerPushMessage {
   APPS_UPDATED = 'APPS_UPDATED',
   SETTINGS_UPDATED = 'SETTINGS_UPDATED',

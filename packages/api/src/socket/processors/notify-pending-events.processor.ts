@@ -3,11 +3,11 @@ import type { Job } from 'bullmq'
 import { BaseProcessor } from 'src/core/base-processor'
 import { QueueName } from 'src/queue/queue.constants'
 
-import { SocketService } from '../socket.service'
+import { AppSocketService } from '../app/app-socket.service'
 
 @Processor(QueueName.NotifyAppOfPendingEvents)
 export class NotifyPendingEventsProcessor extends BaseProcessor {
-  constructor(private readonly socketService: SocketService) {
+  constructor(private readonly appSocketService: AppSocketService) {
     super()
   }
 
@@ -16,7 +16,7 @@ export class NotifyPendingEventsProcessor extends BaseProcessor {
     job: Job<{ appId: string; eventKey: string; eventCount: number }>,
   ): Promise<void> {
     console.log('Runnning notifyAppWorkersOfPendingEvents:', job.data)
-    this.socketService.notifyAppWorkersOfPendingEvents(
+    this.appSocketService.notifyAppWorkersOfPendingEvents(
       job.data.appId,
       job.data.eventKey,
       job.data.eventCount,

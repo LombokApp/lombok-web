@@ -10,7 +10,7 @@ import { coreConfig } from 'src/core/config'
 import { EventModule } from 'src/event/event.module'
 import { FoldersModule } from 'src/folders/folders.module'
 import { S3Service } from 'src/storage/s3.service'
-import { S3Module } from 'src/storage/storage.module'
+import { StorageModule } from 'src/storage/storage.module'
 
 import { AppAssetsMiddleware } from './app-assets.middleware'
 import { appConfig } from './config'
@@ -23,7 +23,7 @@ import { AppService } from './services/app.service'
     ConfigModule.forFeature(appConfig),
     ConfigModule.forFeature(coreConfig),
     EventModule,
-    S3Module,
+    StorageModule,
     forwardRef(() => FoldersModule),
   ],
   controllers: [AppsController],

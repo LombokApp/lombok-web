@@ -3,7 +3,7 @@ import { ServerPushMessage } from '@stellariscloud/types'
 import React from 'react'
 import type { Socket } from 'socket.io-client'
 
-import { useServerWebsocket } from '../hooks/use-server-websocket'
+import { useWebsocket } from '../hooks/use-websocket'
 import { apiClient } from '../services/api'
 import { useLocalFileCacheContext } from './local-file-cache.context'
 import type { LogLevel } from './logging.context'
@@ -98,8 +98,10 @@ export const ServerContextProvider = ({
     [fetchServerApps, fetchServerSettings],
   )
 
-  const { socket, connected: socketConnected } =
-    useServerWebsocket(messageHandler)
+  const { socket, connected: socketConnected } = useWebsocket(
+    'user',
+    messageHandler,
+  )
 
   React.useEffect(() => {
     void fetchServerApps()

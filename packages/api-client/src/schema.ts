@@ -1,7 +1,7 @@
 export const schema = {
   "openapi": "3.0.0",
   "paths": {
-    "/auth/login": {
+    "/api/v1/auth/login": {
       "post": {
         "operationId": "login",
         "parameters": [],
@@ -32,7 +32,7 @@ export const schema = {
         ]
       }
     },
-    "/auth/signup": {
+    "/api/v1/auth/signup": {
       "post": {
         "operationId": "signup",
         "parameters": [],
@@ -63,7 +63,7 @@ export const schema = {
         ]
       }
     },
-    "/auth/logout": {
+    "/api/v1/auth/logout": {
       "post": {
         "operationId": "logout",
         "parameters": [],
@@ -89,7 +89,7 @@ export const schema = {
         ]
       }
     },
-    "/auth/refresh-token": {
+    "/api/v1/auth/refresh-token": {
       "post": {
         "operationId": "refreshToken",
         "parameters": [
@@ -119,7 +119,7 @@ export const schema = {
         ]
       }
     },
-    "/viewer": {
+    "/api/v1/viewer": {
       "get": {
         "operationId": "getViewer",
         "parameters": [],
@@ -179,7 +179,7 @@ export const schema = {
         ]
       }
     },
-    "/server/users": {
+    "/api/v1/server/users": {
       "post": {
         "operationId": "createUser",
         "parameters": [],
@@ -288,7 +288,7 @@ export const schema = {
         ]
       }
     },
-    "/server/users/{userId}": {
+    "/api/v1/server/users/{userId}": {
       "patch": {
         "operationId": "updateUser",
         "parameters": [
@@ -392,7 +392,7 @@ export const schema = {
         ]
       }
     },
-    "/folders/{folderId}": {
+    "/api/v1/folders/{folderId}": {
       "get": {
         "operationId": "getFolder",
         "parameters": [
@@ -453,7 +453,7 @@ export const schema = {
         ]
       }
     },
-    "/folders/{folderId}/metadata": {
+    "/api/v1/folders/{folderId}/metadata": {
       "get": {
         "operationId": "getFolderMetadata",
         "parameters": [
@@ -488,7 +488,7 @@ export const schema = {
         ]
       }
     },
-    "/folders": {
+    "/api/v1/folders": {
       "get": {
         "operationId": "listFolders",
         "parameters": [
@@ -567,7 +567,7 @@ export const schema = {
         ]
       }
     },
-    "/folders/{folderId}/rescan": {
+    "/api/v1/folders/{folderId}/rescan": {
       "post": {
         "operationId": "rescanFolder",
         "parameters": [
@@ -595,7 +595,7 @@ export const schema = {
         ]
       }
     },
-    "/folders/{folderId}/objects": {
+    "/api/v1/folders/{folderId}/objects": {
       "get": {
         "operationId": "listFolderObjects",
         "parameters": [
@@ -656,7 +656,7 @@ export const schema = {
         ]
       }
     },
-    "/folders/{folderId}/objects/{objectKey}": {
+    "/api/v1/folders/{folderId}/objects/{objectKey}": {
       "get": {
         "operationId": "getFolderObject",
         "parameters": [
@@ -774,7 +774,7 @@ export const schema = {
         ]
       }
     },
-    "/folders/{folderId}/presigned-urls": {
+    "/api/v1/folders/{folderId}/presigned-urls": {
       "post": {
         "operationId": "createPresignedUrls",
         "parameters": [
@@ -819,7 +819,7 @@ export const schema = {
         ]
       }
     },
-    "/server/settings": {
+    "/api/v1/server/settings": {
       "get": {
         "operationId": "getServerSettings",
         "parameters": [],
@@ -845,7 +845,7 @@ export const schema = {
         ]
       }
     },
-    "/server/settings/{settingKey}": {
+    "/api/v1/server/settings/{settingKey}": {
       "put": {
         "operationId": "setServerSetting",
         "parameters": [
@@ -923,7 +923,7 @@ export const schema = {
         ]
       }
     },
-    "/server/storage-provisions": {
+    "/api/v1/server/storage-provisions": {
       "get": {
         "operationId": "listStorageProvisions",
         "parameters": [
@@ -997,7 +997,7 @@ export const schema = {
         ]
       }
     },
-    "/server/storage-provisions/{storageProvisionId}": {
+    "/api/v1/server/storage-provisions/{storageProvisionId}": {
       "put": {
         "operationId": "updateStorageProvision",
         "parameters": [
@@ -1075,7 +1075,7 @@ export const schema = {
         ]
       }
     },
-    "/events/{eventId}": {
+    "/api/v1/events/{eventId}": {
       "get": {
         "operationId": "getEvent",
         "parameters": [],
@@ -1101,7 +1101,7 @@ export const schema = {
         ]
       }
     },
-    "/server/apps": {
+    "/api/v1/server/apps": {
       "get": {
         "operationId": "listApps",
         "parameters": [],
