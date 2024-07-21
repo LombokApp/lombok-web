@@ -58,7 +58,6 @@ export class AppSocketService implements OnModuleInit {
 
     // Handle other events and messages from the client
     const auth = socket.handshake.auth
-    console.log('app socket auth:', auth)
     if (AppAuthPayload.guard(auth)) {
       const jwt = this.jwtService.decodeJWT(auth.token)
       const sub = jwt.payload.sub as string | undefined

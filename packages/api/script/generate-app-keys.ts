@@ -5,6 +5,10 @@ import { v4 as uuidV4 } from 'uuid'
 
 const appIdentifier = process.argv[2]
 
+if (!appIdentifier) {
+  throw new Error('Missing appIdentifier arg.')
+}
+
 void new Promise<{ publicKey: string; privateKey: string }>((resolve) =>
   crypto.generateKeyPair(
     'rsa',

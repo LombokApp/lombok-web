@@ -15,8 +15,7 @@ import { AppSocketService } from './app-socket.service'
     methods: ['GET', 'POST'],
     credentials: true,
   },
-  namespace:
-    /^\/apps\/[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/, // TODO: change this to handle the appIdentifier
+  namespace: '/apps',
 })
 export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
   @WebSocketServer()

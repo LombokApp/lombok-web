@@ -15,6 +15,7 @@ import { StorageModule } from 'src/storage/storage.module'
 import { AppAssetsMiddleware } from './app-assets.middleware'
 import { appConfig } from './config'
 import { AppsController } from './controllers/apps.controller'
+import { CoreAppService } from './core-app.service'
 import { AppService } from './services/app.service'
 
 @Module({
@@ -27,17 +28,19 @@ import { AppService } from './services/app.service'
     forwardRef(() => FoldersModule),
   ],
   controllers: [AppsController],
-  providers: [AppService, S3Service],
+  providers: [AppService, CoreAppService, S3Service],
   exports: [AppService],
 })
 export class AppModule implements OnModuleInit, NestModule {
   constructor(
+    private readonly coreAppService: CoreAppService,
     private readonly appService: AppService,
     @Inject(appConfig.KEY)
     private readonly _appConfig: nestJSConfig.ConfigType<typeof appConfig>,
   ) {}
   async onModuleInit() {
     await this.appService.updateAppsFromDisk(this._appConfig.appsLocalPath)
+    this.coreAppService.startCoreModuleThread('embedded_worker_1')
   }
 
   configure(consumer: MiddlewareConsumer) {
