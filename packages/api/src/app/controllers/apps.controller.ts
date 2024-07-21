@@ -29,14 +29,18 @@ export class AppsController {
       throw new UnauthorizedException()
     }
     const apps = await this.appService.getApps()
+    const connectedInstances = await this.appService.getAppConnections()
     const result = Object.keys(apps).reduce<AppDTO[]>(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       (acc, next) => acc.concat({ ...apps[next], identifier: next } as any),
       [],
     )
     return {
-      result,
-      meta: { totalCount: result.length },
+      connected: connectedInstances,
+      installed: {
+        result,
+        meta: { totalCount: result.length },
+      },
     }
   }
 }

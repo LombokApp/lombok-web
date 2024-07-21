@@ -71,17 +71,20 @@ export const ServerContextProvider = ({
       apiClient.appsApi.listApps().then((response) => {
         setServerApps(response.data)
         setMenuItems(
-          response.data.result.reduce<AppMenuItemAndHref[]>((acc, next) => {
-            return acc.concat(
-              next.config.menuItems.map((item) => ({
-                iconPath: item.iconPath,
-                href: `/apps/${next.identifier}/${item.uiName}`,
-                label: item.label,
-                uiName: item.uiName,
-                appIdentifier: next.identifier,
-              })),
-            )
-          }, []),
+          response.data.installed.result.reduce<AppMenuItemAndHref[]>(
+            (acc, next) => {
+              return acc.concat(
+                next.config.menuItems.map((item) => ({
+                  iconPath: item.iconPath,
+                  href: `/apps/${next.identifier}/${item.uiName}`,
+                  label: item.label,
+                  uiName: item.uiName,
+                  appIdentifier: next.identifier,
+                })),
+              )
+            },
+            [],
+          ),
         )
       }),
     [],

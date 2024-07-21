@@ -2930,171 +2930,209 @@
       "AppListResponse": {
         "type": "object",
         "properties": {
-          "meta": {
+          "installed": {
             "type": "object",
             "properties": {
-              "totalCount": {
-                "type": "number"
-              }
-            },
-            "required": [
-              "totalCount"
-            ]
-          },
-          "result": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "identifier": {
-                  "type": "string"
+              "meta": {
+                "type": "object",
+                "properties": {
+                  "totalCount": {
+                    "type": "number"
+                  }
                 },
-                "config": {
+                "required": [
+                  "totalCount"
+                ]
+              },
+              "result": {
+                "type": "array",
+                "items": {
                   "type": "object",
                   "properties": {
-                    "publicKey": {
+                    "identifier": {
                       "type": "string"
                     },
-                    "description": {
-                      "type": "string"
-                    },
-                    "subscribedEvents": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "emitEvents": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "actions": {
+                    "config": {
                       "type": "object",
                       "properties": {
-                        "folder": {
+                        "publicKey": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "subscribedEvents": {
                           "type": "array",
                           "items": {
-                            "type": "object",
-                            "properties": {
-                              "key": {
-                                "type": "string"
-                              },
-                              "description": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "key",
-                              "description"
-                            ]
+                            "type": "string"
                           }
                         },
-                        "object": {
+                        "emitEvents": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "actions": {
+                          "type": "object",
+                          "properties": {
+                            "folder": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "description": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "key",
+                                  "description"
+                                ]
+                              }
+                            },
+                            "object": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "description": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "key",
+                                  "description"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "folder",
+                            "object"
+                          ]
+                        },
+                        "menuItems": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "key": {
+                              "label": {
                                 "type": "string"
                               },
-                              "description": {
+                              "iconPath": {
+                                "type": "string"
+                              },
+                              "uiName": {
                                 "type": "string"
                               }
                             },
                             "required": [
-                              "key",
-                              "description"
+                              "label",
+                              "uiName"
                             ]
                           }
                         }
                       },
                       "required": [
-                        "folder",
-                        "object"
+                        "publicKey",
+                        "description",
+                        "subscribedEvents",
+                        "emitEvents",
+                        "actions",
+                        "menuItems"
                       ]
                     },
-                    "menuItems": {
-                      "type": "array",
-                      "items": {
+                    "ui": {
+                      "type": "object",
+                      "additionalProperties": {
                         "type": "object",
                         "properties": {
-                          "label": {
+                          "path": {
                             "type": "string"
                           },
-                          "iconPath": {
+                          "name": {
                             "type": "string"
                           },
-                          "uiName": {
-                            "type": "string"
+                          "files": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "object",
+                              "properties": {
+                                "size": {
+                                  "type": "number"
+                                },
+                                "hash": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "size",
+                                "hash"
+                              ]
+                            }
                           }
                         },
                         "required": [
-                          "label",
-                          "uiName"
+                          "path",
+                          "name",
+                          "files"
                         ]
                       }
                     }
                   },
                   "required": [
-                    "publicKey",
-                    "description",
-                    "subscribedEvents",
-                    "emitEvents",
-                    "actions",
-                    "menuItems"
+                    "identifier",
+                    "config",
+                    "ui"
                   ]
-                },
-                "ui": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "path": {
-                        "type": "string"
-                      },
-                      "name": {
-                        "type": "string"
-                      },
-                      "files": {
-                        "type": "object",
-                        "additionalProperties": {
-                          "type": "object",
-                          "properties": {
-                            "size": {
-                              "type": "number"
-                            },
-                            "hash": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "size",
-                            "hash"
-                          ]
-                        }
-                      }
-                    },
-                    "required": [
-                      "path",
-                      "name",
-                      "files"
-                    ]
-                  }
                 }
-              },
-              "required": [
-                "identifier",
-                "config",
-                "ui"
-              ]
+              }
+            },
+            "required": [
+              "meta",
+              "result"
+            ]
+          },
+          "connected": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "appIdentifier": {
+                    "type": "string"
+                  },
+                  "socketClientId": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "ip": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "appIdentifier",
+                  "socketClientId",
+                  "name",
+                  "ip"
+                ]
+              }
             }
           }
         },
         "required": [
-          "meta",
-          "result"
+          "installed",
+          "connected"
         ]
       }
     }

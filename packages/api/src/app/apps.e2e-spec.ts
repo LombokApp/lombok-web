@@ -28,9 +28,9 @@ describe('Apps', () => {
     const listAppsResponse = await apiClient.appsApi({ accessToken }).listApps()
 
     expect(listAppsResponse.status).toEqual(200)
-    expect(listAppsResponse.data.result.length).toEqual(1)
-    expect(listAppsResponse.data.result.length).toEqual(
-      listAppsResponse.data.meta.totalCount,
+    expect(listAppsResponse.data.installed.result.length).toEqual(1)
+    expect(listAppsResponse.data.installed.result.length).toEqual(
+      listAppsResponse.data.installed.meta.totalCount,
     )
   })
 

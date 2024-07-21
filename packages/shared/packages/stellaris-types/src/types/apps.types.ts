@@ -19,12 +19,12 @@ export interface AppConfig {
 }
 
 export interface ConnectedAppInstancesMap {
-  [appIdentifier: string]: ConnectedAppInstance[]
+  [appIdentifier: string]: ConnectedAppInstance[] | undefined
 }
 
 export interface ConnectedAppInstance {
   appIdentifier: string
-  id: string
+  socketClientId: string
   name: string
   ip: string
 }

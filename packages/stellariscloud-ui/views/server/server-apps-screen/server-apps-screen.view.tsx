@@ -14,8 +14,8 @@ export function ServerAppsScreen() {
 
   React.useEffect(() => {
     void apiClient.appsApi.listApps().then((apps) => {
-      setInstalledApps(apps.data.result)
-      // setConnectedAppInstances(apps.data.connected)
+      setInstalledApps(apps.data.installed.result)
+      setConnectedAppInstances(apps.data.connected)
     })
   }, [coreAppResetKey])
 
@@ -40,7 +40,10 @@ export function ServerAppsScreen() {
                     appInfo={app}
                     connectedAppInstances={
                       connectedAppInstances?.[app.identifier]?.reduce(
-                        (acc, next) => ({ ...acc, [next.id]: next }),
+                        (acc, next) => ({
+                          ...acc,
+                          [next.socketClientId]: next,
+                        }),
                         {},
                       ) ?? {}
                     }

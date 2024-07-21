@@ -21,193 +21,245 @@ import { BaseAPI } from './base';
 export interface AppListResponse {
     /**
      *
-     * @type {UserListResponseMeta}
+     * @type {AppListResponseInstalled}
      * @memberof AppListResponse
      */
-    'meta': UserListResponseMeta;
+    'installed': AppListResponseInstalled;
     /**
      *
-     * @type {Array<AppListResponseResultInner>}
+     * @type {{ [key: string]: Array<AppListResponseConnectedValueInner> | undefined; }}
      * @memberof AppListResponse
      */
-    'result': Array<AppListResponseResultInner>;
-}
-/**
- *
- * @export
- * @interface AppListResponseResultInner
- */
-export interface AppListResponseResultInner {
-    /**
-     *
-     * @type {string}
-     * @memberof AppListResponseResultInner
-     */
-    'identifier': string;
-    /**
-     *
-     * @type {AppListResponseResultInnerConfig}
-     * @memberof AppListResponseResultInner
-     */
-    'config': AppListResponseResultInnerConfig;
-    /**
-     *
-     * @type {{ [key: string]: AppListResponseResultInnerUiValue | undefined; }}
-     * @memberof AppListResponseResultInner
-     */
-    'ui': {
-        [key: string]: AppListResponseResultInnerUiValue | undefined;
+    'connected': {
+        [key: string]: Array<AppListResponseConnectedValueInner> | undefined;
     };
 }
 /**
  *
  * @export
- * @interface AppListResponseResultInnerConfig
+ * @interface AppListResponseConnectedValueInner
  */
-export interface AppListResponseResultInnerConfig {
+export interface AppListResponseConnectedValueInner {
     /**
      *
      * @type {string}
-     * @memberof AppListResponseResultInnerConfig
+     * @memberof AppListResponseConnectedValueInner
+     */
+    'appIdentifier': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseConnectedValueInner
+     */
+    'socketClientId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseConnectedValueInner
+     */
+    'name': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseConnectedValueInner
+     */
+    'ip': string;
+}
+/**
+ *
+ * @export
+ * @interface AppListResponseInstalled
+ */
+export interface AppListResponseInstalled {
+    /**
+     *
+     * @type {UserListResponseMeta}
+     * @memberof AppListResponseInstalled
+     */
+    'meta': UserListResponseMeta;
+    /**
+     *
+     * @type {Array<AppListResponseInstalledResultInner>}
+     * @memberof AppListResponseInstalled
+     */
+    'result': Array<AppListResponseInstalledResultInner>;
+}
+/**
+ *
+ * @export
+ * @interface AppListResponseInstalledResultInner
+ */
+export interface AppListResponseInstalledResultInner {
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseInstalledResultInner
+     */
+    'identifier': string;
+    /**
+     *
+     * @type {AppListResponseInstalledResultInnerConfig}
+     * @memberof AppListResponseInstalledResultInner
+     */
+    'config': AppListResponseInstalledResultInnerConfig;
+    /**
+     *
+     * @type {{ [key: string]: AppListResponseInstalledResultInnerUiValue | undefined; }}
+     * @memberof AppListResponseInstalledResultInner
+     */
+    'ui': {
+        [key: string]: AppListResponseInstalledResultInnerUiValue | undefined;
+    };
+}
+/**
+ *
+ * @export
+ * @interface AppListResponseInstalledResultInnerConfig
+ */
+export interface AppListResponseInstalledResultInnerConfig {
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseInstalledResultInnerConfig
      */
     'publicKey': string;
     /**
      *
      * @type {string}
-     * @memberof AppListResponseResultInnerConfig
+     * @memberof AppListResponseInstalledResultInnerConfig
      */
     'description': string;
     /**
      *
      * @type {Array<string>}
-     * @memberof AppListResponseResultInnerConfig
+     * @memberof AppListResponseInstalledResultInnerConfig
      */
     'subscribedEvents': Array<string>;
     /**
      *
      * @type {Array<string>}
-     * @memberof AppListResponseResultInnerConfig
+     * @memberof AppListResponseInstalledResultInnerConfig
      */
     'emitEvents': Array<string>;
     /**
      *
-     * @type {AppListResponseResultInnerConfigActions}
-     * @memberof AppListResponseResultInnerConfig
+     * @type {AppListResponseInstalledResultInnerConfigActions}
+     * @memberof AppListResponseInstalledResultInnerConfig
      */
-    'actions': AppListResponseResultInnerConfigActions;
+    'actions': AppListResponseInstalledResultInnerConfigActions;
     /**
      *
-     * @type {Array<AppListResponseResultInnerConfigMenuItemsInner>}
-     * @memberof AppListResponseResultInnerConfig
+     * @type {Array<AppListResponseInstalledResultInnerConfigMenuItemsInner>}
+     * @memberof AppListResponseInstalledResultInnerConfig
      */
-    'menuItems': Array<AppListResponseResultInnerConfigMenuItemsInner>;
+    'menuItems': Array<AppListResponseInstalledResultInnerConfigMenuItemsInner>;
 }
 /**
  *
  * @export
- * @interface AppListResponseResultInnerConfigActions
+ * @interface AppListResponseInstalledResultInnerConfigActions
  */
-export interface AppListResponseResultInnerConfigActions {
+export interface AppListResponseInstalledResultInnerConfigActions {
     /**
      *
-     * @type {Array<AppListResponseResultInnerConfigActionsFolderInner>}
-     * @memberof AppListResponseResultInnerConfigActions
+     * @type {Array<AppListResponseInstalledResultInnerConfigActionsFolderInner>}
+     * @memberof AppListResponseInstalledResultInnerConfigActions
      */
-    'folder': Array<AppListResponseResultInnerConfigActionsFolderInner>;
+    'folder': Array<AppListResponseInstalledResultInnerConfigActionsFolderInner>;
     /**
      *
-     * @type {Array<AppListResponseResultInnerConfigActionsFolderInner>}
-     * @memberof AppListResponseResultInnerConfigActions
+     * @type {Array<AppListResponseInstalledResultInnerConfigActionsFolderInner>}
+     * @memberof AppListResponseInstalledResultInnerConfigActions
      */
-    'object': Array<AppListResponseResultInnerConfigActionsFolderInner>;
+    'object': Array<AppListResponseInstalledResultInnerConfigActionsFolderInner>;
 }
 /**
  *
  * @export
- * @interface AppListResponseResultInnerConfigActionsFolderInner
+ * @interface AppListResponseInstalledResultInnerConfigActionsFolderInner
  */
-export interface AppListResponseResultInnerConfigActionsFolderInner {
+export interface AppListResponseInstalledResultInnerConfigActionsFolderInner {
     /**
      *
      * @type {string}
-     * @memberof AppListResponseResultInnerConfigActionsFolderInner
+     * @memberof AppListResponseInstalledResultInnerConfigActionsFolderInner
      */
     'key': string;
     /**
      *
      * @type {string}
-     * @memberof AppListResponseResultInnerConfigActionsFolderInner
+     * @memberof AppListResponseInstalledResultInnerConfigActionsFolderInner
      */
     'description': string;
 }
 /**
  *
  * @export
- * @interface AppListResponseResultInnerConfigMenuItemsInner
+ * @interface AppListResponseInstalledResultInnerConfigMenuItemsInner
  */
-export interface AppListResponseResultInnerConfigMenuItemsInner {
+export interface AppListResponseInstalledResultInnerConfigMenuItemsInner {
     /**
      *
      * @type {string}
-     * @memberof AppListResponseResultInnerConfigMenuItemsInner
+     * @memberof AppListResponseInstalledResultInnerConfigMenuItemsInner
      */
     'label': string;
     /**
      *
      * @type {string}
-     * @memberof AppListResponseResultInnerConfigMenuItemsInner
+     * @memberof AppListResponseInstalledResultInnerConfigMenuItemsInner
      */
     'iconPath'?: string;
     /**
      *
      * @type {string}
-     * @memberof AppListResponseResultInnerConfigMenuItemsInner
+     * @memberof AppListResponseInstalledResultInnerConfigMenuItemsInner
      */
     'uiName': string;
 }
 /**
  *
  * @export
- * @interface AppListResponseResultInnerUiValue
+ * @interface AppListResponseInstalledResultInnerUiValue
  */
-export interface AppListResponseResultInnerUiValue {
+export interface AppListResponseInstalledResultInnerUiValue {
     /**
      *
      * @type {string}
-     * @memberof AppListResponseResultInnerUiValue
+     * @memberof AppListResponseInstalledResultInnerUiValue
      */
     'path': string;
     /**
      *
      * @type {string}
-     * @memberof AppListResponseResultInnerUiValue
+     * @memberof AppListResponseInstalledResultInnerUiValue
      */
     'name': string;
     /**
      *
-     * @type {{ [key: string]: AppListResponseResultInnerUiValueFilesValue | undefined; }}
-     * @memberof AppListResponseResultInnerUiValue
+     * @type {{ [key: string]: AppListResponseInstalledResultInnerUiValueFilesValue | undefined; }}
+     * @memberof AppListResponseInstalledResultInnerUiValue
      */
     'files': {
-        [key: string]: AppListResponseResultInnerUiValueFilesValue | undefined;
+        [key: string]: AppListResponseInstalledResultInnerUiValueFilesValue | undefined;
     };
 }
 /**
  *
  * @export
- * @interface AppListResponseResultInnerUiValueFilesValue
+ * @interface AppListResponseInstalledResultInnerUiValueFilesValue
  */
-export interface AppListResponseResultInnerUiValueFilesValue {
+export interface AppListResponseInstalledResultInnerUiValueFilesValue {
     /**
      *
      * @type {number}
-     * @memberof AppListResponseResultInnerUiValueFilesValue
+     * @memberof AppListResponseInstalledResultInnerUiValueFilesValue
      */
     'size': number;
     /**
      *
      * @type {string}
-     * @memberof AppListResponseResultInnerUiValueFilesValue
+     * @memberof AppListResponseInstalledResultInnerUiValueFilesValue
      */
     'hash': string;
 }
