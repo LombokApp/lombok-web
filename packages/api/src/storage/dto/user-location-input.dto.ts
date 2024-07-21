@@ -1,5 +1,5 @@
 export class UserLocationInputDTO {
-  serverLocationId?: string
+  storageProvisionId?: string
 
   userLocationId?: string
   userLocationBucketOverride?: string

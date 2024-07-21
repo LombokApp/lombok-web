@@ -1811,7 +1811,7 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly required: readonly ["name", "metadataLocation", "contentLocation"];
+                readonly required: readonly ["name", "contentLocation"];
             };
             readonly FolderCreateResponse: {
                 readonly type: "object";

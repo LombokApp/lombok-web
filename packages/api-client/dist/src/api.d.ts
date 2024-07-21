@@ -349,7 +349,7 @@ export interface FolderCreateInputDTO {
      * @type {FolderCreateInputDTOMetadataLocation}
      * @memberof FolderCreateInputDTO
      */
-    'metadataLocation': FolderCreateInputDTOMetadataLocation;
+    'metadataLocation'?: FolderCreateInputDTOMetadataLocation;
     /**
      *
      * @type {FolderCreateInputDTOMetadataLocation}

@@ -130,7 +130,7 @@ const ExistingUserLocationPayloadRunType = r.Record({
 })
 
 const ServerLocationPayloadRunType = r.Record({
-  serverLocationId: r.String,
+  storageProvisionId: r.String,
 })
 
 @Injectable()
@@ -166,7 +166,7 @@ export class FolderService implements OnModuleInit {
       // this is called with two location configurations (for content and metadata) which are each either:
       //  - A whole new location, meaning no existing location id, but all the other required properties
       //  - A location id of another of the user's locations, plus a bucket & prefix to replace the ones of that location
-      //  - A reference to a server location (in which case no overrides are allowed)
+      //  - A reference to a server storage provision (in which case no overrides are allowed)
       name: string
       contentLocation: UserLocationInputDTO
       metadataLocation?: UserLocationInputDTO
@@ -177,11 +177,10 @@ export class FolderService implements OnModuleInit {
     // it in the prefix of the folders data location
     // (in the case of a Server provided location for a user folder)
     const prospectiveFolderId = uuidV4()
-    const metadataPrefix = `.stellaris_folder_metadata_${prospectiveFolderId}`
 
     const now = new Date()
     const buildLocation = async (
-      serverLocationType: StorageProvisionType,
+      storageProvisionType: StorageProvisionType,
       locationInput: UserLocationInputDTO,
     ): Promise<StorageLocation> => {
       const withNewUserLocationConnection =
@@ -251,8 +250,7 @@ export class FolderService implements OnModuleInit {
         // user has provided a server location reference
         const existingServerLocation =
           await this.serverConfigurationService.getStorageProvisionById(
-            serverLocationType,
-            withExistingServerLocation.value.serverLocationId,
+            withExistingServerLocation.value.storageProvisionId,
           )
 
         if (!existingServerLocation) {
@@ -299,12 +297,17 @@ export class FolderService implements OnModuleInit {
       body.contentLocation,
     )
 
+    const defaultMetadataPrefix = `.stellaris_folder_metadata_${prospectiveFolderId}`
     const metadataLocation = body.metadataLocation
       ? await buildLocation(
           StorageProvisionTypeEnum.METADATA,
           body.metadataLocation,
         )
-      : (
+      : // if no metadata location is provided it defaults to a special
+        // prefixed location at the root of the content location
+        // e.g. .stellaris_folder_metadata_${prospectiveFolderId}
+
+        (
           await this.ormService.db
             .insert(storageLocationsTable)
             .values({
@@ -317,8 +320,8 @@ export class FolderService implements OnModuleInit {
                       contentLocation.prefix.endsWith('/')
                         ? ''
                         : '/'
-                    }${metadataPrefix}`
-                  : metadataPrefix
+                    }${defaultMetadataPrefix}`
+                  : defaultMetadataPrefix
               }`,
             })
             .returning()

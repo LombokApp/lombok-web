@@ -2,7 +2,7 @@ import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
 export const folderLocationInputSchema = z.object({
-  serverLocationId: z.string().optional(),
+  storageProvisionId: z.string().optional(),
   userLocationId: z.string().optional(),
   userLocationBucketOverride: z.string().optional(),
   userLocationPrefixOverride: z.string().optional(),

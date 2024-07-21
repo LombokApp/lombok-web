@@ -2252,7 +2252,6 @@ export const schema = {
         },
         "required": [
           "name",
-          "metadataLocation",
           "contentLocation"
         ]
       },

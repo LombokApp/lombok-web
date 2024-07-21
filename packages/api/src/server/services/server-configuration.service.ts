@@ -251,18 +251,8 @@ export class ServerConfigurationService {
     return existingRecord
   }
 
-  async getStorageProvisionById(
-    provisionType: StorageProvisionType,
-    storageProvisionId: string,
-  ) {
+  async getStorageProvisionById(storageProvisionId: string) {
     // TODO: check user permissions for access to server configuration values
-
-    if (
-      z.nativeEnum(StorageProvisionTypeEnum).parse(provisionType) !==
-      provisionType
-    ) {
-      throw new ServerConfigurationInvalidException()
-    }
 
     const record =
       (await this.ormService.db.query.serverSettingsTable.findFirst({

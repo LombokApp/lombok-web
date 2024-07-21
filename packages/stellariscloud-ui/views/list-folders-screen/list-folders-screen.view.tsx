@@ -3,6 +3,7 @@ import type {
   FolderGetResponse,
   // FolderAndPermission,
   FoldersApiCreateFolderRequest,
+  StorageProvisionDTO,
   // ServerLocationData,
 } from '@stellariscloud/api-client'
 // import { ServerLocationType } from '@stellariscloud/api-client'
@@ -26,49 +27,35 @@ export const ListFoldersScreen = () => {
   const [folderFormKey, setFolderFormKey] = React.useState<string>()
   const [forgetFolderConfirmationOpen, setForgetFolderConfirmationOpen] =
     React.useState<string | false>(false)
-  // const [serverLocations, setServerLocations] = React.useState<{
-  //   [ServerLocationType.Backup]: ServerLocationData[]
-  //   [ServerLocationType.Metadata]: ServerLocationData[]
-  //   [ServerLocationType.Content]: ServerLocationData[]
-  // }>({
-  //   [ServerLocationType.Backup]: [],
-  //   [ServerLocationType.Metadata]: [],
-  //   [ServerLocationType.Content]: [],
-  // })
+  const [storageProvisions, setStorageProvisions] = React.useState<
+    StorageProvisionDTO[]
+  >([])
   const handleForgetFolder = React.useCallback(
     (folderId: string) => {
       if (!forgetFolderConfirmationOpen) {
         setForgetFolderConfirmationOpen(folderId)
       } else {
         setForgetFolderConfirmationOpen(false)
-        void apiClient.foldersApi.deleteFolder({ folderId })
-        // .then(() =>
-        //   setFolders(folders?.filter((b) => b.folder.id !== folderId)),
-        // )
+        void apiClient.foldersApi
+          .deleteFolder({ folderId })
+          .then(() =>
+            setFolders(folders?.filter((b) => b.folder.id !== folderId)),
+          )
       }
     },
     [setForgetFolderConfirmationOpen, forgetFolderConfirmationOpen /*folders*/],
   )
 
-  // const handleStartCreate = () => {
-  //   for (const k of [
-  //     ServerLocationType.Backup,
-  //     ServerLocationType.Metadata,
-  //     ServerLocationType.Content,
-  //   ]) {
-  //     void serverApi.listServerLocations({ locationType: k }).then((resp) => {
-  //       setServerLocations((locations) => ({
-  //         ...locations,
-  //         [k]: resp.data,
-  //       }))
-  //     })
-  //   }
+  const handleStartCreate = () => {
+    void apiClient.storageProvisionsApi
+      .listStorageProvisions()
+      .then((resp) => setStorageProvisions(resp.data.result))
 
-  //   void router.push({
-  //     pathname: router.pathname,
-  //     query: { add: 'true' },
-  //   })
-  // }
+    void router.push({
+      pathname: router.pathname,
+      query: { add: 'true' },
+    })
+  }
 
   const listFolders = foldersApiHooks.useListFolders({}, { retry: 0 })
   const refreshFolders = React.useCallback(() => {
@@ -91,18 +78,18 @@ export const ListFoldersScreen = () => {
     refreshFolders()
   }, [refreshFolders])
 
-  // const handleCreateFolder = (
-  //   folder: FoldersApiCreateFolderRequest['folderCreateInputDTO'],
-  // ) => {
-  //   void foldersApi
-  //     .createFolder({ folderCreateInputDTO: folder })
-  //     .then((response) => {
-  //       setFolders(
-  //         folders?.concat([{ folder: response.data.folder, permissions: [] }]),
-  //       )
-  //       void router.push({ pathname: router.pathname })
-  //     })
-  // }
+  const handleCreateFolder = (
+    folder: FoldersApiCreateFolderRequest['folderCreateInputDTO'],
+  ) => {
+    void apiClient.foldersApi
+      .createFolder({ folderCreateInputDTO: folder })
+      .then((response) => {
+        setFolders(
+          folders?.concat([{ folder: response.data.folder, permissions: [] }]),
+        )
+        void router.push({ pathname: router.pathname })
+      })
+  }
 
   return (
     <>
@@ -123,10 +110,7 @@ export const ListFoldersScreen = () => {
           >
             <PageHeading title={'Your Folders'}>
               {!folderFormKey && (
-                <Button
-                  size="lg"
-                  primary={true} /*onClick={handleStartCreate}*/
-                >
+                <Button size="lg" primary={true} onClick={handleStartCreate}>
                   <Icon size="sm" icon={PlusIcon} className="text-white" />
                   New Folder
                 </Button>
@@ -139,14 +123,14 @@ export const ListFoldersScreen = () => {
               !folderFormKey ? 'h-0' : 'flex-1',
             )}
           >
-            {/* <div className="p-10 rounded-xl w-fit border border-gray-200 bg-white dark:border-0 dark:bg-white/5">
+            <div className="p-10 rounded-xl w-fit border border-gray-200 bg-white dark:border-0 dark:bg-white/5">
               <CreateFolderForm
                 onCancel={() => void router.push({ pathname: router.pathname })}
-                serverLocations={serverLocations}
+                storageProvisions={storageProvisions}
                 key={folderFormKey}
                 onSubmit={handleCreateFolder}
               />
-            </div> */}
+            </div>
           </div>
 
           <ul
@@ -171,13 +155,13 @@ export const ListFoldersScreen = () => {
                 </Link>
               </li>
             ))}
-            {/* {folders !== undefined && (
+            {folders !== undefined && (
               <li className="">
                 <CreateFolderStartPanel onCreate={handleStartCreate} />
               </li>
-            )} */}
+            )}
           </ul>
-          {/* {!folders && <div className="animate-pulse">Loading folders...</div>} */}
+          {!folders && <div className="animate-pulse">Loading folders...</div>}
         </div>
       </div>
     </>

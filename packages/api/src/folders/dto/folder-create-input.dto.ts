@@ -3,10 +3,12 @@ import { z } from 'zod'
 
 import { folderLocationInputSchema } from './folder-location-input.dto'
 
-export const folderCreateSchema = z.object({
+export const folderCreateInputSchema = z.object({
   name: z.string(),
-  metadataLocation: folderLocationInputSchema,
+  metadataLocation: folderLocationInputSchema.optional(),
   contentLocation: folderLocationInputSchema,
 })
 
-export class FolderCreateInputDTO extends createZodDto(folderCreateSchema) {}
+export class FolderCreateInputDTO extends createZodDto(
+  folderCreateInputSchema,
+) {}
