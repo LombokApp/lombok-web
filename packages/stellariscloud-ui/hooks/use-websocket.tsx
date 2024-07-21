@@ -77,9 +77,6 @@ export const useWebsocket = (namespace: string, onMessage: MessageCallback) => {
             reconnectKey: socketState.reconnectKey,
           })
         })
-        setInterval(() => {
-          s.emit(`namespace:${namespace} ping`)
-        }, 1000)
       })
     }
   }, [

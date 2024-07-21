@@ -1,14 +1,10 @@
 import type { OnModuleInit } from '@nestjs/common'
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common'
-import nestjsConfig from '@nestjs/config'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
-import { createAdapter } from '@socket.io/redis-adapter'
 import type { ConnectedAppInstance } from '@stellariscloud/types'
 import * as r from 'runtypes'
-import { Socket } from 'socket.io'
-import * as io from 'socket.io'
+import { Server, Socket } from 'socket.io'
 import { AppService } from 'src/app/services/app.service'
-import { redisConfig } from 'src/cache/redis.config'
 import { RedisService } from 'src/cache/redis.service'
 
 import { JWTService } from '../../auth/services/jwt.service'
@@ -22,32 +18,24 @@ const AppAuthPayload = r.Record({
 @Injectable()
 export class AppSocketService implements OnModuleInit {
   private readonly connectedClients: Map<string, Socket> = new Map()
+  private server: Server
+  setServer(server: Server) {
+    this.server = server
+  }
+
   private appService: AppService
-  private server?: io.Server
 
   constructor(
     private readonly moduleRef: ModuleRef,
     private readonly jwtService: JWTService,
     private readonly redisService: RedisService,
-    @Inject(redisConfig.KEY)
-    private readonly _redisConfig: nestjsConfig.ConfigType<typeof redisConfig>,
   ) {}
 
-  setServer(server: io.Server) {
-    this.server = server
-
-    if (this._redisConfig.enabled) {
-      this.server.adapter(
-        createAdapter(
-          this.redisService.client,
-          this.redisService.client.duplicate(),
-        ),
-      )
-    }
-  }
-
   async handleConnection(socket: Socket): Promise<void> {
-    console.log('AppSocketService handleConnection:', socket.nsp.name)
+    console.log(
+      'AppSocketService handleConnection from:',
+      socket.client.conn.remoteAddress,
+    )
 
     // console.log('SERVER SOCKET handleConnection:', socket)
     const clientId = socket.id
@@ -144,7 +132,7 @@ export class AppSocketService implements OnModuleInit {
   ) {
     const roomKey = `app:${appId}__event:${eventKey}`
     this.server
-      ?.to(roomKey)
+      .to(roomKey)
       .emit('PENDING_EVENTS_NOTIFICATION', { eventKey, count })
   }
 

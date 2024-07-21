@@ -1,10 +1,9 @@
 import {
   OnGatewayConnection,
-  OnGatewayInit,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets'
-import { Server, Socket } from 'socket.io'
+import { Namespace, Socket } from 'socket.io'
 
 import { UserSocketService } from './user-socket.service'
 
@@ -15,19 +14,17 @@ import { UserSocketService } from './user-socket.service'
     methods: ['GET', 'POST'],
     credentials: true,
   },
-  namespace: 'user',
+  namespace: '/user',
 })
-export class UserSocketGateway implements OnGatewayConnection, OnGatewayInit {
+export class UserSocketGateway implements OnGatewayConnection {
   @WebSocketServer()
-  private readonly server: Server
+  public readonly namespace: Namespace
 
-  constructor(private readonly userSocketService: UserSocketService) {}
+  constructor(private readonly userSocketService: UserSocketService) {
+    setTimeout(() => this.userSocketService.setServer(this.namespace.server))
+  }
 
   async handleConnection(socket: Socket): Promise<void> {
     await this.userSocketService.handleConnection(socket)
-  }
-
-  afterInit() {
-    this.userSocketService.setServer(this.server)
   }
 }

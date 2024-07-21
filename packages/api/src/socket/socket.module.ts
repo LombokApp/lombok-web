@@ -54,7 +54,14 @@ import { UserSocketService } from './user/user-socket.service'
     ServerConfigurationService,
     NotifyPendingEventsProcessor,
   ],
-  exports: [UserSocketService, FolderSocketService],
+  exports: [
+    UserSocketService,
+    FolderSocketService,
+    FolderSocketGateway,
+    UserSocketGateway,
+    AppSocketService,
+    AppSocketGateway,
+  ],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class SocketModule {}

@@ -176,7 +176,7 @@ export const connectAndPerformWork = (
 
   const wait = new Promise<void>((resolve, reject) => {
     socket.on('connect', () => {
-      console.log('Worker connected.')
+      console.log('App Worker "%s" connected.', appWorkerId)
     })
     socket.on('disconnect', (reason) => {
       console.log('Worker disconnected. Reason:', reason)

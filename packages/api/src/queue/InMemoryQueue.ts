@@ -18,6 +18,7 @@ export class InMemoryQueue implements IQueue {
     private readonly queueService: QueueService,
   ) {}
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async add(_: string, data: any, options: JobsOptions | undefined) {
     // console.log(
     //   'Job submitted to InMemoryQueue:',
@@ -27,21 +28,23 @@ export class InMemoryQueue implements IQueue {
     //   options,
     // )
     this.stats.startedJobs += 1
-    try {
-      await this._process(data, options)
-      this.stats.successfulJobs += 1
-    } catch (e: any) {
-      console.log('Error in InMemoryQueue._process:', e)
-      this.stats.failedJobs += 1
-    } finally {
-      // console.log('Finished job:', {
-      //   options,
-      //   data,
-      //   stats: this.stats,
-      //   queueId: this.queueId,
-      // })
-      this.stats.completedJobs += 1
-    }
+    void this._process(data, options)
+      .then(() => {
+        this.stats.successfulJobs += 1
+      })
+      .catch((e) => {
+        console.log('Error in InMemoryQueue._process:', e)
+        this.stats.failedJobs += 1
+      })
+      .finally(() => {
+        // console.log('Finished job:', {
+        //   options,
+        //   data,
+        //   stats: this.stats,
+        //   queueId: this.queueId,
+        // })
+        this.stats.completedJobs += 1
+      })
   }
 
   private async _process(data: any, options: JobsOptions | undefined) {

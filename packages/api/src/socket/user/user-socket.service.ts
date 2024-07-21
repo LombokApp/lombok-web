@@ -1,12 +1,8 @@
 import type { OnModuleInit } from '@nestjs/common'
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common'
-import nestjsConfig from '@nestjs/config'
-import { createAdapter } from '@socket.io/redis-adapter'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { UserPushMessage } from '@stellariscloud/types'
 import * as r from 'runtypes'
 import { Server, Socket } from 'socket.io'
-import { redisConfig } from 'src/cache/redis.config'
-import { RedisService } from 'src/cache/redis.service'
 
 import { AccessTokenJWT, JWTService } from '../../auth/services/jwt.service'
 
@@ -18,26 +14,13 @@ const UserAuthPayload = r.Record({
 @Injectable()
 export class UserSocketService implements OnModuleInit {
   private readonly connectedClients: Map<string, Socket> = new Map()
-  private server?: Server
 
-  constructor(
-    private readonly jwtService: JWTService,
-    private readonly redisService: RedisService,
-    @Inject(redisConfig.KEY)
-    private readonly _redisConfig: nestjsConfig.ConfigType<typeof redisConfig>,
-  ) {}
-
+  private server: Server
   setServer(server: Server) {
     this.server = server
-    if (this._redisConfig.enabled) {
-      this.server.adapter(
-        createAdapter(
-          this.redisService.client,
-          this.redisService.client.duplicate(),
-        ),
-      )
-    }
   }
+
+  constructor(private readonly jwtService: JWTService) {}
 
   async handleConnection(socket: Socket): Promise<void> {
     // console.log('UserSocketService handleConnection:', socket.nsp.name)
@@ -81,6 +64,6 @@ export class UserSocketService implements OnModuleInit {
   onModuleInit() {}
 
   sendToUserRoom(userId: string, name: UserPushMessage, msg: any) {
-    this.server?.to(`user:${userId}`).emit(name, msg)
+    this.server.to(`user:${userId}`).emit(name, msg)
   }
 }

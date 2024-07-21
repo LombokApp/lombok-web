@@ -1,13 +1,9 @@
 import type { OnModuleInit } from '@nestjs/common'
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common'
-import nestjsConfig from '@nestjs/config'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
-import { createAdapter } from '@socket.io/redis-adapter'
 import { FolderPushMessage } from '@stellariscloud/types'
 import * as r from 'runtypes'
 import { Server, Socket } from 'socket.io'
-import { redisConfig } from 'src/cache/redis.config'
-import { RedisService } from 'src/cache/redis.service'
 import { FolderService } from 'src/folders/services/folder.service'
 
 import { AccessTokenJWT, JWTService } from '../../auth/services/jwt.service'
@@ -20,28 +16,16 @@ const UserAuthPayload = r.Record({
 @Injectable()
 export class FolderSocketService implements OnModuleInit {
   private readonly connectedClients: Map<string, Socket> = new Map()
+  private server: Server
+  setServer(server: Server) {
+    this.server = server
+  }
   private folderService: FolderService
-  private server?: Server
 
   constructor(
     private readonly moduleRef: ModuleRef,
     private readonly jwtService: JWTService,
-    private readonly redisService: RedisService,
-    @Inject(redisConfig.KEY)
-    private readonly _redisConfig: nestjsConfig.ConfigType<typeof redisConfig>,
   ) {}
-
-  setServer(server: Server) {
-    this.server = server
-    if (this._redisConfig.enabled) {
-      this.server.adapter(
-        createAdapter(
-          this.redisService.client,
-          this.redisService.client.duplicate(),
-        ),
-      )
-    }
-  }
 
   async handleConnection(socket: Socket): Promise<void> {
     const folderId = socket.nsp.name.slice('/folders/'.length)
@@ -91,11 +75,31 @@ export class FolderSocketService implements OnModuleInit {
     }
   }
 
+  getRoomId(folderId: string) {
+    return `folder:${folderId}`
+  }
+
+  getNamespace(folderId: string) {
+    return `/folders/${folderId}`
+  }
+
   onModuleInit() {
     this.folderService = this.moduleRef.get(FolderService)
   }
 
   sendToFolderRoom(folderId: string, name: FolderPushMessage, msg: any) {
-    this.server?.to(`folder:${folderId}`).emit(name, msg)
+    // console
+    //   .log(
+    //     'this.server:',
+    //     typeof this.server,
+    //     this.server.constructor.name,
+    //   )
+    // this.server?.to(this.getRoomId(folderId)).emit(name, msg)
+    // console.log(
+    //   'folderSocketGateway:',
+    //   this.folderSocketGateway.namespace.server,
+    // )
+
+    this.server.to(this.getRoomId(folderId)).emit(name, msg)
   }
 }
