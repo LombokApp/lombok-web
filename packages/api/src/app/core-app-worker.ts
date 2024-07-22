@@ -47,6 +47,7 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
       workerData.appToken,
       {
         ['CORE:OBJECT_ADDED']: objectAddedEventHandler,
+        ['CORE:REQUEST_ANALYZE_OBJECT']: objectAddedEventHandler,
       },
       sendLogEntry,
     )

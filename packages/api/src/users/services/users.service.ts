@@ -44,7 +44,7 @@ export class UserService {
     return updatedUser
   }
 
-  async getByEmail({ email }: { email: string }) {
+  async getUserByEmail({ email }: { email: string }) {
     const user = await this.ormService.db.query.usersTable.findFirst({
       where: eq(usersTable.email, email),
     })
@@ -56,7 +56,7 @@ export class UserService {
     return user
   }
 
-  async getById({ id }: { id: string }) {
+  async getUserById({ id }: { id: string }) {
     const user = await this.ormService.db.query.usersTable.findFirst({
       where: eq(usersTable.id, id),
     })
@@ -122,7 +122,7 @@ export class UserService {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
-    return this.getById({ id: userId })
+    return this.getUserById({ id: userId })
   }
 
   async createUserAsAdmin(actor: User, userPayload: UserCreateInputDTO) {

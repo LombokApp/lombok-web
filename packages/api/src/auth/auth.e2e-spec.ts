@@ -15,10 +15,10 @@ describe('Auth', () => {
     await testModule?.resetDb()
   })
 
-  it(`POST /auth/signup`, async () => {
+  it(`POST /api/v1/auth/signup`, async () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const _response = await request(testModule?.app.getHttpServer())
-      .post('/auth/signup')
+      .post('/api/v1/auth/signup')
       .send({
         username: 'mekpans',
         email: 'steven@stellariscloud.com',
@@ -27,10 +27,10 @@ describe('Auth', () => {
       .expect(201)
   })
 
-  it(`POST /auth/signup (without email)`, async () => {
+  it(`POST /api/v1/auth/signup (without email)`, async () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const _response = await request(testModule?.app.getHttpServer())
-      .post('/auth/signup')
+      .post('/api/v1/auth/signup')
       .send({
         username: 'mekpans',
         password: '123',
@@ -38,10 +38,10 @@ describe('Auth', () => {
       .expect(201)
   })
 
-  it(`POST /auth/signup (with conflict)`, async () => {
+  it(`POST /api/v1/auth/signup (with conflict)`, async () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const _response = await request(testModule?.app.getHttpServer())
-      .post('/auth/signup')
+      .post('/api/v1/auth/signup')
       .send({
         username: 'mekpans',
         email: 'steven@stellariscloud.com',
@@ -52,7 +52,7 @@ describe('Auth', () => {
     // dup email
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await request(testModule?.app.getHttpServer())
-      .post('/auth/signup')
+      .post('/api/v1/auth/signup')
       .send({
         username: 'mekpans2',
         email: 'steven@stellariscloud.com',
@@ -63,7 +63,7 @@ describe('Auth', () => {
     // dup username
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await request(testModule?.app.getHttpServer())
-      .post('/auth/signup')
+      .post('/api/v1/auth/signup')
       .send({
         username: 'mekpans',
         email: 'steven2@stellariscloud.com',
@@ -74,7 +74,7 @@ describe('Auth', () => {
     // unique should still work
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await request(testModule?.app.getHttpServer())
-      .post('/auth/signup')
+      .post('/api/v1/auth/signup')
       .send({
         username: 'mekpans2',
         email: 'steven2@stellariscloud.com',
@@ -83,7 +83,7 @@ describe('Auth', () => {
       .expect(201)
   })
 
-  it(`POST /auth/signup (bad signup input)`, async () => {
+  it(`POST /api/v1/auth/signup (bad signup input)`, async () => {
     const inputs = [
       {
         INVALID_KEY: 'mekpans',
@@ -105,7 +105,7 @@ describe('Auth', () => {
     for (const input of inputs) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       await request(testModule?.app.getHttpServer())
-        .post('/auth/signup')
+        .post('/api/v1/auth/signup')
         .send(input)
         .expect(400)
         .catch((e) => {
@@ -115,10 +115,10 @@ describe('Auth', () => {
     }
   })
 
-  it(`POST /auth/login`, async () => {
+  it(`POST /api/v1/auth/login`, async () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await request(testModule?.app.getHttpServer())
-      .post('/auth/signup')
+      .post('/api/v1/auth/signup')
       .send({
         username: 'mekpans',
         password: '123',
@@ -127,7 +127,7 @@ describe('Auth', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const response = await request(testModule?.app.getHttpServer())
-      .post('/auth/login')
+      .post('/api/v1/auth/login')
       .send({
         login: 'mekpans',
         password: '123',
@@ -142,7 +142,7 @@ describe('Auth', () => {
   it(`should succeed in fetching viewer with token`, async () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     await request(testModule?.app.getHttpServer())
-      .post('/auth/signup')
+      .post('/api/v1/auth/signup')
       .send({
         username: 'mekpans',
         password: '123',
@@ -155,7 +155,7 @@ describe('Auth', () => {
       },
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     } = await request(testModule?.app.getHttpServer())
-      .post('/auth/login')
+      .post('/api/v1/auth/login')
       .send({
         login: 'mekpans',
         password: '123',
@@ -163,7 +163,7 @@ describe('Auth', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const viewerResponse = await request(testModule?.app.getHttpServer())
-      .get('/viewer')
+      .get('/api/v1/viewer')
       .auth(accessToken as string, { type: 'bearer' })
       .send()
 
@@ -177,7 +177,7 @@ describe('Auth', () => {
   it(`should fail in fetching viewer without token`, async () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const response = await request(testModule?.app.getHttpServer())
-      .get('/viewer')
+      .get('/api/v1/viewer')
       .send()
 
     // console.log(response)

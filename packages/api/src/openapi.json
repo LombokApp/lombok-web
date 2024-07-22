@@ -1641,6 +1641,13 @@
               "userId": {
                 "type": "string"
               },
+              "providerType": {
+                "type": "string",
+                "enum": [
+                  "SERVER",
+                  "USER"
+                ]
+              },
               "label": {
                 "type": "string"
               },
@@ -1662,6 +1669,7 @@
             },
             "required": [
               "id",
+              "providerType",
               "label",
               "endpoint",
               "region",
@@ -1678,6 +1686,13 @@
               "userId": {
                 "type": "string"
               },
+              "providerType": {
+                "type": "string",
+                "enum": [
+                  "SERVER",
+                  "USER"
+                ]
+              },
               "label": {
                 "type": "string"
               },
@@ -1699,6 +1714,7 @@
             },
             "required": [
               "id",
+              "providerType",
               "label",
               "endpoint",
               "region",
@@ -1927,6 +1943,13 @@
                   "userId": {
                     "type": "string"
                   },
+                  "providerType": {
+                    "type": "string",
+                    "enum": [
+                      "SERVER",
+                      "USER"
+                    ]
+                  },
                   "label": {
                     "type": "string"
                   },
@@ -1948,6 +1971,7 @@
                 },
                 "required": [
                   "id",
+                  "providerType",
                   "label",
                   "endpoint",
                   "region",
@@ -1964,6 +1988,13 @@
                   "userId": {
                     "type": "string"
                   },
+                  "providerType": {
+                    "type": "string",
+                    "enum": [
+                      "SERVER",
+                      "USER"
+                    ]
+                  },
                   "label": {
                     "type": "string"
                   },
@@ -1985,6 +2016,7 @@
                 },
                 "required": [
                   "id",
+                  "providerType",
                   "label",
                   "endpoint",
                   "region",
@@ -2086,6 +2118,13 @@
                         "userId": {
                           "type": "string"
                         },
+                        "providerType": {
+                          "type": "string",
+                          "enum": [
+                            "SERVER",
+                            "USER"
+                          ]
+                        },
                         "label": {
                           "type": "string"
                         },
@@ -2107,6 +2146,7 @@
                       },
                       "required": [
                         "id",
+                        "providerType",
                         "label",
                         "endpoint",
                         "region",
@@ -2123,6 +2163,13 @@
                         "userId": {
                           "type": "string"
                         },
+                        "providerType": {
+                          "type": "string",
+                          "enum": [
+                            "SERVER",
+                            "USER"
+                          ]
+                        },
                         "label": {
                           "type": "string"
                         },
@@ -2144,6 +2191,7 @@
                       },
                       "required": [
                         "id",
+                        "providerType",
                         "label",
                         "endpoint",
                         "region",
@@ -2182,7 +2230,7 @@
           "metadataLocation": {
             "type": "object",
             "properties": {
-              "serverLocationId": {
+              "storageProvisionId": {
                 "type": "string"
               },
               "userLocationId": {
@@ -2217,7 +2265,7 @@
           "contentLocation": {
             "type": "object",
             "properties": {
-              "serverLocationId": {
+              "storageProvisionId": {
                 "type": "string"
               },
               "userLocationId": {
@@ -2279,6 +2327,13 @@
                   "userId": {
                     "type": "string"
                   },
+                  "providerType": {
+                    "type": "string",
+                    "enum": [
+                      "SERVER",
+                      "USER"
+                    ]
+                  },
                   "label": {
                     "type": "string"
                   },
@@ -2300,6 +2355,7 @@
                 },
                 "required": [
                   "id",
+                  "providerType",
                   "label",
                   "endpoint",
                   "region",
@@ -2316,6 +2372,13 @@
                   "userId": {
                     "type": "string"
                   },
+                  "providerType": {
+                    "type": "string",
+                    "enum": [
+                      "SERVER",
+                      "USER"
+                    ]
+                  },
                   "label": {
                     "type": "string"
                   },
@@ -2337,6 +2400,7 @@
                 },
                 "required": [
                   "id",
+                  "providerType",
                   "label",
                   "endpoint",
                   "region",
@@ -2661,10 +2725,18 @@
         }
       },
       "FolderCreateSignedUrlsResponse": {
-        "type": "array",
-        "items": {
-          "type": "string"
-        }
+        "type": "object",
+        "properties": {
+          "urls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "urls"
+        ]
       },
       "SettingsGetResponse": {
         "type": "object",

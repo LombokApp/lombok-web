@@ -4,6 +4,7 @@ import { z } from 'zod'
 export const storageLocationSchema = z.object({
   id: z.string(),
   userId: z.string().optional(),
+  providerType: z.enum(['SERVER', 'USER']),
   label: z.string(),
   endpoint: z.string(),
   region: z.string(),

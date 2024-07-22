@@ -42,6 +42,7 @@ import { StorageLocationNotFoundException } from 'src/storage/exceptions/storage
 import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import type { User } from 'src/users/entities/user.entity'
+import { UserService } from 'src/users/services/users.service'
 import { v4 as uuidV4 } from 'uuid'
 
 import type { FolderObjectDTO } from '../dto/folder-object.dto'
@@ -149,6 +150,7 @@ export class FolderService implements OnModuleInit {
       void,
       QueueName.RescanFolder
     >,
+    private readonly userService: UserService,
   ) {
     this.eventService = _eventService
   }
@@ -274,12 +276,7 @@ export class FolderService implements OnModuleInit {
                 existingServerLocation.prefix
                   ? existingServerLocation.prefix
                   : ''
-              }${
-                !existingServerLocation.prefix ||
-                existingServerLocation.prefix.endsWith('/')
-                  ? ''
-                  : '/'
-              }`,
+              }${existingServerLocation.prefix?.endsWith('/') ? '' : '/'}${prospectiveFolderId}/${storageProvisionType === StorageProvisionTypeEnum.CONTENT ? '.content/' : storageProvisionType === StorageProvisionTypeEnum.METADATA ? '.metadata/' : '.backup/'}`,
               createdAt: now,
               updatedAt: now,
             })
@@ -297,7 +294,7 @@ export class FolderService implements OnModuleInit {
       body.contentLocation,
     )
 
-    const defaultMetadataPrefix = `.stellaris_folder_metadata_${prospectiveFolderId}`
+    const defaultMetadataPrefix = `.stellaris_folder_metadata_${prospectiveFolderId}/`
     const metadataLocation = body.metadataLocation
       ? await buildLocation(
           StorageProvisionTypeEnum.METADATA,
@@ -305,7 +302,7 @@ export class FolderService implements OnModuleInit {
         )
       : // if no metadata location is provided it defaults to a special
         // prefixed location at the root of the content location
-        // e.g. .stellaris_folder_metadata_${prospectiveFolderId}
+        // e.g. .stellaris_folder_metadata_${prospectiveFolderId}/
 
         (
           await this.ormService.db
@@ -313,27 +310,15 @@ export class FolderService implements OnModuleInit {
             .values({
               ...contentLocation,
               id: uuidV4(),
-              prefix: `${
-                contentLocation.prefix
-                  ? `${contentLocation.prefix}${
-                      !contentLocation.prefix ||
-                      contentLocation.prefix.endsWith('/')
-                        ? ''
-                        : '/'
-                    }${defaultMetadataPrefix}`
-                  : defaultMetadataPrefix
-              }`,
+              prefix: `${contentLocation.prefix}${
+                contentLocation.prefix.length > 0 &&
+                !contentLocation.prefix.endsWith('/')
+                  ? '/'
+                  : ''
+              }${defaultMetadataPrefix}`,
             })
             .returning()
         )[0]
-
-    // await this.ormService.db
-    //   .insert(locationsTable)
-    //   .values(contentLocation)
-
-    // await this.ormService.db
-    //   .insert(locationsTable)
-    //   .values(metadataLocation)
 
     const folder = (
       await this.ormService.db
@@ -395,17 +380,8 @@ export class FolderService implements OnModuleInit {
     }
   }
 
-  async deleteFolderAsUser({
-    userId,
-    folderId,
-  }: {
-    userId: string
-    folderId: string
-  }): Promise<boolean> {
-    const { permissions } = await this.getFolderAsUser({
-      folderId,
-      userId,
-    })
+  async deleteFolderAsUser(user: User, folderId: string): Promise<boolean> {
+    const { permissions } = await this.getFolderAsUser(user, folderId)
 
     if (!permissions.includes(FolderPermissionEnum.FOLDER_FORGET)) {
       throw new FolderPermissionUnauthorizedException()
@@ -418,19 +394,17 @@ export class FolderService implements OnModuleInit {
     return true
   }
 
-  async deleteFolderObjectAsUser({
-    userId,
-    folderId,
-    objectKey,
-  }: {
-    userId: string
-    folderId: string
-    objectKey: string
-  }): Promise<boolean> {
-    const { folder, permissions } = await this.getFolderAsUser({
+  async deleteFolderObjectAsUser(
+    user: User,
+    {
       folderId,
-      userId,
-    })
+      objectKey,
+    }: {
+      folderId: string
+      objectKey: string
+    },
+  ): Promise<boolean> {
+    const { folder, permissions } = await this.getFolderAsUser(user, folderId)
 
     if (!permissions.includes(FolderPermissionEnum.OBJECT_EDIT)) {
       throw new FolderPermissionUnauthorizedException()
@@ -470,14 +444,8 @@ export class FolderService implements OnModuleInit {
     return true
   }
 
-  async getFolderMetadata({
-    folderId,
-    userId,
-  }: {
-    folderId: string
-    userId: string
-  }) {
-    const _folder = await this.getFolderAsUser({ folderId, userId })
+  async getFolderMetadata(actor: User, folderId: string) {
+    const _folder = await this.getFolderAsUser(actor, folderId)
 
     const folderMetadata = await this.ormService.db
       .select({
@@ -495,16 +463,17 @@ export class FolderService implements OnModuleInit {
     }
   }
 
-  async getFolderObjectAsUser({
-    objectKey,
-    folderId,
-    userId,
-  }: {
-    objectKey: string
-    folderId: string
-    userId: string
-  }) {
-    const _folder = await this.getFolderAsUser({ folderId, userId })
+  async getFolderObjectAsUser(
+    actor: User,
+    {
+      objectKey,
+      folderId,
+    }: {
+      objectKey: string
+      folderId: string
+    },
+  ) {
+    const _folder = await this.getFolderAsUser(actor, folderId)
     const obj = await this.ormService.db.query.folderObjectsTable.findFirst({
       where: and(
         eq(folderObjectsTable.folderId, folderId),
@@ -517,13 +486,10 @@ export class FolderService implements OnModuleInit {
     return obj
   }
 
-  async getFolderAsUser({
-    folderId,
-    userId,
-  }: {
-    folderId: string
-    userId: string
-  }): Promise<{
+  async getFolderAsUser(
+    actor: User,
+    folderId: string,
+  ): Promise<{
     folder: Folder
     permissions: FolderPermissionName[]
   }> {
@@ -536,7 +502,7 @@ export class FolderService implements OnModuleInit {
       },
     })
 
-    const isOwner = folder?.ownerId === userId
+    const isOwner = folder?.ownerId === actor.id
     // const share = folder?.shares.getItems()?.find((s) => s.user?.id === userId)
 
     if (!folder || !isOwner) {
@@ -567,10 +533,7 @@ export class FolderService implements OnModuleInit {
       sort?: FolderObjectSort
     },
   ) {
-    const { folder } = await this.getFolderAsUser({
-      folderId,
-      userId: actor.id,
-    })
+    const { folder } = await this.getFolderAsUser(actor, folderId)
     const folderObjects =
       await this.ormService.db.query.folderObjectsTable.findMany({
         where: eq(folderObjectsTable.folderId, folder.id),
@@ -595,19 +558,17 @@ export class FolderService implements OnModuleInit {
     }
   }
 
-  async createPresignedUrlsAsUser({
-    userId,
-    folderId,
-    urls,
-  }: {
-    userId: string
-    folderId: string
-    urls: SignedURLsRequest[]
-  }): Promise<string[]> {
-    const { folder, permissions } = await this.getFolderAsUser({
+  async createPresignedUrlsAsUser(
+    actor: User,
+    {
       folderId,
-      userId,
-    })
+      urls,
+    }: {
+      folderId: string
+      urls: SignedURLsRequest[]
+    },
+  ): Promise<string[]> {
+    const { folder, permissions } = await this.getFolderAsUser(actor, folderId)
 
     return createS3PresignedUrls(
       urls.map((urlRequest) => {
@@ -621,23 +582,13 @@ export class FolderService implements OnModuleInit {
           throw new FolderObjectNotFoundException()
         }
 
-        const { isMetadataIdentifier, metadataObjectKey, objectKey } =
-          objectIdentifierToObjectKey(urlRequest.objectIdentifier)
-        const objectKeyToFetch = isMetadataIdentifier
-          ? `${
-              folder.metadataLocation.prefix
-                ? folder.metadataLocation.prefix
-                : ''
-            }${folderId}/${metadataObjectKey}`
-          : objectKey
+        const { isMetadataIdentifier, objectKey } = objectIdentifierToObjectKey(
+          urlRequest.objectIdentifier,
+        )
 
-        // validate that requested object is within the scope of this folder
-        if (
-          folder.contentLocation.prefix &&
-          !objectKey.startsWith(folder.contentLocation.prefix)
-        ) {
-          throw new FolderObjectNotFoundException()
-        }
+        const absoluteObjectKey = isMetadataIdentifier
+          ? `${folder.metadataLocation.prefix}${folder.metadataLocation.prefix.length > 0 && !folder.metadataLocation.prefix.endsWith('/') ? '/' : ''}${objectKey}`
+          : `${folder.contentLocation.prefix}${folder.contentLocation.prefix.length > 0 && !folder.contentLocation.prefix.endsWith('/') ? '/' : ''}${objectKey}`
 
         // deny access to write operations for anyone without edit perms
         if (
@@ -652,10 +603,7 @@ export class FolderService implements OnModuleInit {
 
         // deny all write operations for metadata
         if (
-          [
-            SignedURLsRequestMethod.DELETE,
-            SignedURLsRequestMethod.PUT,
-          ].includes(urlRequest.method) &&
+          urlRequest.method !== SignedURLsRequestMethod.GET &&
           isMetadataIdentifier
         ) {
           throw new FolderMetadataWriteUnauthorisedException()
@@ -669,7 +617,7 @@ export class FolderService implements OnModuleInit {
             ? folder.metadataLocation.region
             : folder.contentLocation.region,
           method: urlRequest.method,
-          objectKey: objectKeyToFetch,
+          objectKey: absoluteObjectKey,
           expirySeconds: 3600,
         }
       }),
@@ -686,10 +634,8 @@ export class FolderService implements OnModuleInit {
 
   async rescanFolder(folderId: string, userId: string) {
     // console.log('rescanFolder:', { folderId, userId })
-    const { folder, permissions } = await this.getFolderAsUser({
-      folderId,
-      userId,
-    })
+    const actor = await this.userService.getUserById({ id: userId })
+    const { folder, permissions } = await this.getFolderAsUser(actor, folderId)
     const contentStorageLocation = folder.contentLocation
 
     const s3Client = configureS3Client({
@@ -762,18 +708,19 @@ export class FolderService implements OnModuleInit {
     }
   }
 
-  async refreshFolderObjectS3MetadataAsUser({
-    userId,
-    folderId,
-    objectKey,
-    eTag,
-  }: {
-    userId: string
-    folderId: string
-    objectKey: string
-    eTag?: string
-  }): Promise<FolderObjectDTO> {
-    const { folder } = await this.getFolderAsUser({ folderId, userId })
+  async refreshFolderObjectS3MetadataAsUser(
+    actor: User,
+    {
+      folderId,
+      objectKey,
+      eTag,
+    }: {
+      folderId: string
+      objectKey: string
+      eTag?: string
+    },
+  ): Promise<FolderObjectDTO> {
+    const { folder } = await this.getFolderAsUser(actor, folderId)
 
     const contentStorageLocation =
       await this.ormService.db.query.storageLocationsTable.findFirst({

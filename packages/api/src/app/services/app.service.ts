@@ -778,38 +778,43 @@ export class AppService {
   async getAppConnections(): Promise<{
     [key: string]: ConnectedAppInstance[]
   }> {
-    let cursor = 0
-    let started = false
-    let keys: string[] = []
-    while (!started || cursor !== 0) {
-      started = true
-      const scanResult = await this.redisService.client.scan(cursor, {
-        MATCH: 'APP_WORKER:*',
-        TYPE: 'string',
-        COUNT: 10000,
-      })
-      keys = keys.concat(scanResult.keys)
-      cursor = scanResult.cursor
-    }
+    if (this._redisConfig.enabled) {
+      let cursor = 0
+      let started = false
+      let keys: string[] = []
+      while (!started || cursor !== 0) {
+        started = true
 
-    return keys.length
-      ? (await this.redisService.client.mGet(keys))
-          .filter((_r) => _r)
-          .reduce<{ [k: string]: ConnectedAppInstance[] }>((acc, _r) => {
-            const parsedRecord: ConnectedAppInstance | undefined = _r
-              ? JSON.parse(_r)
-              : undefined
-            if (!parsedRecord) {
-              return acc
-            }
-            return {
-              ...acc,
-              [parsedRecord.appIdentifier]: (parsedRecord.appIdentifier in acc
-                ? acc[parsedRecord.appIdentifier]
-                : []
-              ).concat([parsedRecord]),
-            }
-          }, {})
-      : {}
+        const scanResult = await this.redisService.client.scan(cursor, {
+          MATCH: 'APP_WORKER:*',
+          TYPE: 'string',
+          COUNT: 10000,
+        })
+        keys = keys.concat(scanResult.keys)
+        cursor = scanResult.cursor
+      }
+
+      return keys.length
+        ? (await this.redisService.client.mGet(keys))
+            .filter((_r) => _r)
+            .reduce<{ [k: string]: ConnectedAppInstance[] }>((acc, _r) => {
+              const parsedRecord: ConnectedAppInstance | undefined = _r
+                ? JSON.parse(_r)
+                : undefined
+              if (!parsedRecord) {
+                return acc
+              }
+              return {
+                ...acc,
+                [parsedRecord.appIdentifier]: (parsedRecord.appIdentifier in acc
+                  ? acc[parsedRecord.appIdentifier]
+                  : []
+                ).concat([parsedRecord]),
+              }
+            }, {})
+        : {}
+    } else {
+      return {}
+    }
   }
 }

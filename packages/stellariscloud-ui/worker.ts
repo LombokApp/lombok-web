@@ -85,7 +85,7 @@ const maybeSendBatch = (folderId: string) => {
         })),
       })
       .then((response) => {
-        response.data.forEach((result, i) => {
+        response.data.urls.forEach((result, i) => {
           const entry = recentlyRequested[`${folderId}:${toFetch[i]}`]
           if (entry?.callbacks?.resolve) {
             entry.callbacks.resolve(result)
@@ -236,7 +236,7 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
         ],
       })
       .then((response) => response.data)
-      .then(async ([uploadSlot]) => {
+      .then(async ({ urls: [uploadSlot] }) => {
         const uploadResponse = await axios.put(uploadSlot, uploadFile, {
           headers: {
             'Content-Type': uploadFile.type,

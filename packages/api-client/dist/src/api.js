@@ -22,6 +22,10 @@ export const FolderCreateSignedUrlInputDTOInnerMethodEnum = {
     Put: 'PUT',
     Get: 'GET'
 };
+export const FolderDTOMetadataLocationProviderTypeEnum = {
+    Server: 'SERVER',
+    User: 'USER'
+};
 export const FolderGetResponsePermissionsEnum = {
     FolderRescan: 'FOLDER_RESCAN',
     FolderForget: 'FOLDER_FORGET',

@@ -5,7 +5,7 @@
     "folder": [
       {
         "key": "CORE:SAVE_URL_TO_FOLDER_OBJECT",
-        "description": "Download content at a url to a folder.",
+        "description": "Download content at a URL to an object in the folder.",
         "params": {
           "url": "string",
           "mimeType": "string",
@@ -13,14 +13,15 @@
         }
       },
       {
-        "key": "CORE:GENERATE_MISSING_PREVIEW_VERSIONS",
-        "description": "Generate preview representations for all content in this folder"
+        "key": "CORE:TRIGGER_ANALYZE_ALL_NEW_OBJECTS",
+        "description": "Analyze all new (unanalyzed) content in the folder."
       }
     ],
     "object": [
       {
-        "key": "CORE:GENERATE_PREVIEW_VERSIONS",
-        "description": "Generate preview representations for this content"
+        "key": "CORE:TRIGGER_ANALYZE_OBJECT",
+        "description": "Analyze the content of the object, and save the result.",
+        "params": { "generatePreviews": "boolean" }
       }
     ]
   },
@@ -30,11 +31,15 @@
     "CORE:FOLDER_CREATED",
     "CORE:FOLDER_UPDATED",
     "CORE:FOLDER_REMOVED",
-    "CORE:OBJECT_SCANNED",
+    "CORE:OBJECT_ANALYZED",
     "CORE:OBJECT_ATTRIBUTES_UPDATED",
-    "CORE:OBJECT_METADATA_UPDATED"
+    "CORE:OBJECT_METADATA_UPDATED",
+    "CORE:TRIGGER_ANALYZE_OBJECT",
+    "CORE:TRIGGER_ANALYZE_ALL_NEW_OBJECTS"
   ],
   "subscribedEvents": [
+    "CORE:TRIGGER_ANALYZE_ALL_NEW_OBJECTS",
+    "CORE:TRIGGER_ANALYZE_OBJECT",
     "CORE:OBJECT_ADDED",
     "CORE:OBJECT_REMOVED",
     "CORE:FOLDER_CREATED",

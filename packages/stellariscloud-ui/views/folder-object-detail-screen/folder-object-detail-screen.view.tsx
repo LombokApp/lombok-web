@@ -97,36 +97,10 @@ export const FolderObjectDetailScreen = ({
   }, [folderId, objectKey])
 
   const handleIndexFolderObject = () => {
-    // void foldersApi.enqueueFolderOperation({
+    // void apiClient.foldersApi.rescanFolderObject({
     //   folderId,
     //   folderOperationRequestPayload: {
     //     operationName: FolderOperationName.IndexFolderObject,
-    //     operationData: {
-    //       folderId,
-    //       objectKey,
-    //     },
-    //   },
-    // })
-  }
-
-  const _handleTranscribe = () => {
-    // void foldersApi.enqueueFolderOperation({
-    //   folderId,
-    //   folderOperationRequestPayload: {
-    //     operationName: FolderOperationName.TranscribeAudio,
-    //     operationData: {
-    //       folderId,
-    //       objectKey,
-    //     },
-    //   },
-    // })
-  }
-
-  const _handleDetectObjects = () => {
-    // void foldersApi.enqueueFolderOperation({
-    //   folderId,
-    //   folderOperationRequestPayload: {
-    //     operationName: FolderOperationName.DetectObjects,
     //     operationData: {
     //       folderId,
     //       objectKey,

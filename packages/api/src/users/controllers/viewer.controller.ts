@@ -31,7 +31,7 @@ export class ViewerController {
 
   @Get()
   async getViewer(@Req() req: express.Request): Promise<ViewerGetResponse> {
-    const user = await this.userService.getById({ id: req.user?.id ?? '' })
+    const user = await this.userService.getUserById({ id: req.user?.id ?? '' })
     return {
       user,
     }

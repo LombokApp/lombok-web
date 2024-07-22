@@ -9,6 +9,6 @@ export function transformFolderToDTO(folder: Folder): FolderDTO {
     name: folder.name,
     ownerId: folder.ownerId,
     contentLocation: transformStorageLocationToDTO(folder.contentLocation),
-    metadataLocation: transformStorageLocationToDTO(folder.contentLocation),
+    metadataLocation: transformStorageLocationToDTO(folder.metadataLocation),
   }
 }

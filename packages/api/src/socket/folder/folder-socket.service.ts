@@ -5,6 +5,7 @@ import { FolderPushMessage } from '@stellariscloud/types'
 import * as r from 'runtypes'
 import { Server, Socket } from 'socket.io'
 import { FolderService } from 'src/folders/services/folder.service'
+import { UserService } from 'src/users/services/users.service'
 
 import { AccessTokenJWT, JWTService } from '../../auth/services/jwt.service'
 
@@ -25,6 +26,7 @@ export class FolderSocketService implements OnModuleInit {
   constructor(
     private readonly moduleRef: ModuleRef,
     private readonly jwtService: JWTService,
+    private readonly userService: UserService,
   ) {}
 
   async handleConnection(socket: Socket): Promise<void> {
@@ -53,11 +55,10 @@ export class FolderSocketService implements OnModuleInit {
 
         if (verifiedToken.sub.startsWith('USER')) {
           // folder event subscribe
+          const userId = verifiedToken.sub.split(':')[1]
+          const user = await this.userService.getUserById({ id: userId })
           await this.folderService
-            .getFolderAsUser({
-              folderId,
-              userId: verifiedToken.sub.split(':')[1],
-            })
+            .getFolderAsUser(user, folderId)
             .then(({ folder }) => socket.join(`folder:${folder.id}`))
         } else {
           throw new UnauthorizedException()

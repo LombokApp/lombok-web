@@ -44,7 +44,7 @@ export class AuthGuard implements CanActivate {
       ) {
         // user
         this.jwtService.verifyUserJWT(token)
-        request.user = await this.userService.getById({
+        request.user = await this.userService.getUserById({
           id: decodedJWT.payload.sub.split(':')[1],
         })
         // TODO: check user and handle errors

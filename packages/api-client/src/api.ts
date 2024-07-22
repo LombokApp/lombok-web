@@ -372,7 +372,7 @@ export interface FolderCreateInputDTOMetadataLocation {
      * @type {string}
      * @memberof FolderCreateInputDTOMetadataLocation
      */
-    'serverLocationId'?: string;
+    'storageProvisionId'?: string;
     /**
      * 
      * @type {string}
@@ -472,6 +472,19 @@ export type FolderCreateSignedUrlInputDTOInnerMethodEnum = typeof FolderCreateSi
 /**
  * 
  * @export
+ * @interface FolderCreateSignedUrlsResponse
+ */
+export interface FolderCreateSignedUrlsResponse {
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof FolderCreateSignedUrlsResponse
+     */
+    'urls': Array<string>;
+}
+/**
+ * 
+ * @export
  * @interface FolderDTO
  */
 export interface FolderDTO {
@@ -529,6 +542,12 @@ export interface FolderDTOMetadataLocation {
      * @type {string}
      * @memberof FolderDTOMetadataLocation
      */
+    'providerType': FolderDTOMetadataLocationProviderTypeEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderDTOMetadataLocation
+     */
     'label': string;
     /**
      * 
@@ -561,6 +580,14 @@ export interface FolderDTOMetadataLocation {
      */
     'accessKeyId': string;
 }
+
+export const FolderDTOMetadataLocationProviderTypeEnum = {
+    Server: 'SERVER',
+    User: 'USER'
+} as const;
+
+export type FolderDTOMetadataLocationProviderTypeEnum = typeof FolderDTOMetadataLocationProviderTypeEnum[keyof typeof FolderDTOMetadataLocationProviderTypeEnum];
+
 /**
  * 
  * @export
@@ -2739,7 +2766,7 @@ export const FoldersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createPresignedUrls(folderId: string, folderCreateSignedUrlInputDTOInner: Array<FolderCreateSignedUrlInputDTOInner>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<string>>> {
+        async createPresignedUrls(folderId: string, folderCreateSignedUrlInputDTOInner: Array<FolderCreateSignedUrlInputDTOInner>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderCreateSignedUrlsResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.createPresignedUrls(folderId, folderCreateSignedUrlInputDTOInner, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
@@ -2865,7 +2892,7 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createPresignedUrls(requestParameters: FoldersApiCreatePresignedUrlsRequest, options?: AxiosRequestConfig): AxiosPromise<Array<string>> {
+        createPresignedUrls(requestParameters: FoldersApiCreatePresignedUrlsRequest, options?: AxiosRequestConfig): AxiosPromise<FolderCreateSignedUrlsResponse> {
             return localVarFp.createPresignedUrls(requestParameters.folderId, requestParameters.folderCreateSignedUrlInputDTOInner, options).then((request) => request(axios, basePath));
         },
         /**

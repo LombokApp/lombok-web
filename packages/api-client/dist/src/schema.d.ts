@@ -1342,6 +1342,10 @@ export declare const schema: {
                             readonly userId: {
                                 readonly type: "string";
                             };
+                            readonly providerType: {
+                                readonly type: "string";
+                                readonly enum: readonly ["SERVER", "USER"];
+                            };
                             readonly label: {
                                 readonly type: "string";
                             };
@@ -1361,7 +1365,7 @@ export declare const schema: {
                                 readonly type: "string";
                             };
                         };
-                        readonly required: readonly ["id", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                        readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
                     };
                     readonly contentLocation: {
                         readonly type: "object";
@@ -1372,6 +1376,10 @@ export declare const schema: {
                             readonly userId: {
                                 readonly type: "string";
                             };
+                            readonly providerType: {
+                                readonly type: "string";
+                                readonly enum: readonly ["SERVER", "USER"];
+                            };
                             readonly label: {
                                 readonly type: "string";
                             };
@@ -1391,7 +1399,7 @@ export declare const schema: {
                                 readonly type: "string";
                             };
                         };
-                        readonly required: readonly ["id", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                        readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
                     };
                 };
                 readonly required: readonly ["id", "ownerId", "name", "metadataLocation", "contentLocation"];
@@ -1552,6 +1560,10 @@ export declare const schema: {
                                     readonly userId: {
                                         readonly type: "string";
                                     };
+                                    readonly providerType: {
+                                        readonly type: "string";
+                                        readonly enum: readonly ["SERVER", "USER"];
+                                    };
                                     readonly label: {
                                         readonly type: "string";
                                     };
@@ -1571,7 +1583,7 @@ export declare const schema: {
                                         readonly type: "string";
                                     };
                                 };
-                                readonly required: readonly ["id", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                                readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
                             };
                             readonly contentLocation: {
                                 readonly type: "object";
@@ -1582,6 +1594,10 @@ export declare const schema: {
                                     readonly userId: {
                                         readonly type: "string";
                                     };
+                                    readonly providerType: {
+                                        readonly type: "string";
+                                        readonly enum: readonly ["SERVER", "USER"];
+                                    };
                                     readonly label: {
                                         readonly type: "string";
                                     };
@@ -1601,7 +1617,7 @@ export declare const schema: {
                                         readonly type: "string";
                                     };
                                 };
-                                readonly required: readonly ["id", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                                readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
                             };
                         };
                         readonly required: readonly ["id", "ownerId", "name", "metadataLocation", "contentLocation"];
@@ -1673,6 +1689,10 @@ export declare const schema: {
                                                 readonly userId: {
                                                     readonly type: "string";
                                                 };
+                                                readonly providerType: {
+                                                    readonly type: "string";
+                                                    readonly enum: readonly ["SERVER", "USER"];
+                                                };
                                                 readonly label: {
                                                     readonly type: "string";
                                                 };
@@ -1692,7 +1712,7 @@ export declare const schema: {
                                                     readonly type: "string";
                                                 };
                                             };
-                                            readonly required: readonly ["id", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                                            readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
                                         };
                                         readonly contentLocation: {
                                             readonly type: "object";
@@ -1703,6 +1723,10 @@ export declare const schema: {
                                                 readonly userId: {
                                                     readonly type: "string";
                                                 };
+                                                readonly providerType: {
+                                                    readonly type: "string";
+                                                    readonly enum: readonly ["SERVER", "USER"];
+                                                };
                                                 readonly label: {
                                                     readonly type: "string";
                                                 };
@@ -1722,7 +1746,7 @@ export declare const schema: {
                                                     readonly type: "string";
                                                 };
                                             };
-                                            readonly required: readonly ["id", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                                            readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
                                         };
                                     };
                                     readonly required: readonly ["id", "ownerId", "name", "metadataLocation", "contentLocation"];
@@ -1743,7 +1767,7 @@ export declare const schema: {
                     readonly metadataLocation: {
                         readonly type: "object";
                         readonly properties: {
-                            readonly serverLocationId: {
+                            readonly storageProvisionId: {
                                 readonly type: "string";
                             };
                             readonly userLocationId: {
@@ -1778,7 +1802,7 @@ export declare const schema: {
                     readonly contentLocation: {
                         readonly type: "object";
                         readonly properties: {
-                            readonly serverLocationId: {
+                            readonly storageProvisionId: {
                                 readonly type: "string";
                             };
                             readonly userLocationId: {
@@ -1837,6 +1861,10 @@ export declare const schema: {
                                     readonly userId: {
                                         readonly type: "string";
                                     };
+                                    readonly providerType: {
+                                        readonly type: "string";
+                                        readonly enum: readonly ["SERVER", "USER"];
+                                    };
                                     readonly label: {
                                         readonly type: "string";
                                     };
@@ -1856,7 +1884,7 @@ export declare const schema: {
                                         readonly type: "string";
                                     };
                                 };
-                                readonly required: readonly ["id", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                                readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
                             };
                             readonly contentLocation: {
                                 readonly type: "object";
@@ -1867,6 +1895,10 @@ export declare const schema: {
                                     readonly userId: {
                                         readonly type: "string";
                                     };
+                                    readonly providerType: {
+                                        readonly type: "string";
+                                        readonly enum: readonly ["SERVER", "USER"];
+                                    };
                                     readonly label: {
                                         readonly type: "string";
                                     };
@@ -1886,7 +1918,7 @@ export declare const schema: {
                                         readonly type: "string";
                                     };
                                 };
-                                readonly required: readonly ["id", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                                readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
                             };
                         };
                         readonly required: readonly ["id", "ownerId", "name", "metadataLocation", "contentLocation"];
@@ -2107,10 +2139,16 @@ export declare const schema: {
                 };
             };
             readonly FolderCreateSignedUrlsResponse: {
-                readonly type: "array";
-                readonly items: {
-                    readonly type: "string";
+                readonly type: "object";
+                readonly properties: {
+                    readonly urls: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "string";
+                        };
+                    };
                 };
+                readonly required: readonly ["urls"];
             };
             readonly SettingsGetResponse: {
                 readonly type: "object";

@@ -59,10 +59,11 @@ export class FoldersController {
     @Req() req: express.Request,
     @Param('folderId') folderId: string,
   ): Promise<FolderGetResponse> {
-    const result = await this.folderService.getFolderAsUser({
-      folderId,
-      userId: req.user?.id ?? '',
-    })
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+
+    const result = await this.folderService.getFolderAsUser(req.user, folderId)
     return {
       folder: transformFolderToDTO(result.folder),
       permissions: result.permissions,
@@ -77,10 +78,13 @@ export class FoldersController {
     @Req() req: express.Request,
     @Param('folderId') folderId: string,
   ): Promise<FolderGetMetadataResponse> {
-    const result = await this.folderService.getFolderMetadata({
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const result = await this.folderService.getFolderMetadata(
+      req.user,
       folderId,
-      userId: req.user?.id ?? '',
-    })
+    )
     return result
   }
 
@@ -134,10 +138,10 @@ export class FoldersController {
     @Req() req: express.Request,
     @Param('folderId') folderId: string,
   ): Promise<void> {
-    await this.folderService.deleteFolderAsUser({
-      folderId,
-      userId: req.user?.id ?? '',
-    })
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    await this.folderService.deleteFolderAsUser(req.user, folderId)
   }
 
   /**
@@ -152,10 +156,7 @@ export class FoldersController {
       throw new UnauthorizedException()
     }
 
-    const result = await this.folderService.getFolderAsUser({
-      folderId,
-      userId: req.user.id,
-    })
+    const result = await this.folderService.getFolderAsUser(req.user, folderId)
 
     if (result.permissions.includes(FolderPermissionEnum.FOLDER_RESCAN)) {
       await this.folderService.queueRescanFolder(result.folder.id, req.user.id)
@@ -198,10 +199,12 @@ export class FoldersController {
     @Param('folderId') folderId: string,
     @Param('objectKey') objectKey: string,
   ): Promise<FolderObjectGetResponse> {
-    const result = await this.folderService.getFolderObjectAsUser({
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const result = await this.folderService.getFolderObjectAsUser(req.user, {
       folderId,
       objectKey,
-      userId: req.user?.id ?? '',
     })
     return {
       folderObject: transformFolderObjectToDTO(result),
@@ -217,10 +220,12 @@ export class FoldersController {
     @Param('folderId') folderId: string,
     @Param('objectKey') objectKey: string,
   ): Promise<void> {
-    await this.folderService.deleteFolderObjectAsUser({
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    await this.folderService.deleteFolderObjectAsUser(req.user, {
       folderId,
       objectKey,
-      userId: req.user?.id ?? '',
     })
   }
 
@@ -236,13 +241,11 @@ export class FoldersController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    const urls = await this.folderService.createPresignedUrlsAsUser({
-      userId: req.user.id,
+    const urls = await this.folderService.createPresignedUrlsAsUser(req.user, {
       folderId,
       urls: body,
     })
-
-    return urls
+    return { urls }
   }
 
   /**
@@ -258,8 +261,7 @@ export class FoldersController {
       throw new UnauthorizedException()
     }
     const folderObject =
-      await this.folderService.refreshFolderObjectS3MetadataAsUser({
-        userId: req.user.id,
+      await this.folderService.refreshFolderObjectS3MetadataAsUser(req.user, {
         folderId,
         objectKey,
       })

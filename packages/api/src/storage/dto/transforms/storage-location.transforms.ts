@@ -3,16 +3,17 @@ import type { StorageLocation } from 'src/storage/entities/storage-location.enti
 import type { StorageLocationDTO } from '../storage-location.dto'
 
 export function transformStorageLocationToDTO(
-  location: StorageLocation,
+  storageLocation: StorageLocation,
 ): StorageLocationDTO {
   return {
-    id: location.id,
-    label: location.label,
-    endpoint: location.endpoint,
-    bucket: location.bucket,
-    prefix: location.prefix,
-    region: location.region,
-    userId: location.userId,
-    accessKeyId: location.accessKeyId,
+    id: storageLocation.id,
+    label: storageLocation.label,
+    endpoint: storageLocation.endpoint,
+    providerType: storageLocation.providerType,
+    bucket: storageLocation.bucket,
+    prefix: storageLocation.prefix,
+    region: storageLocation.region,
+    userId: storageLocation.userId,
+    accessKeyId: storageLocation.accessKeyId,
   }
 }
