@@ -5,7 +5,6 @@ import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import * as path from 'path'
 import postgres from 'postgres'
 
-import { appLogEntriesTable } from '../app/entities/app-log-entry.entity'
 import { sessionsTable } from '../auth/entities/session.entity'
 import { eventsTable } from '../event/entities/event.entity'
 import {
@@ -17,6 +16,7 @@ import {
   foldersTable,
 } from '../folders/entities/folder.entity'
 import { folderObjectsTable } from '../folders/entities/folder-object.entity'
+import { logEntriesTable } from '../log-entries/entities/log-entry.entity'
 import { serverSettingsTable } from '../server/entities/server-configuration.entity'
 import { storageLocationsTable } from '../storage/entities/storage-location.entity'
 import { usersTable } from '../users/entities/user.entity'
@@ -30,7 +30,7 @@ export const dbSchema = {
   foldersTable,
   foldersRelations,
   folderObjectsTable,
-  appLogEntriesTable,
+  logEntriesTable,
   eventsTable,
   eventReceiptsTable,
   eventReceiptRelations,

@@ -30,9 +30,9 @@ import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
+import { logEntriesTable } from '../../log-entries/entities/log-entry.entity'
 import { appConfig } from '../config'
 import { AppSocketAPIRequest } from '../constants/app-api-messages'
-import { appLogEntriesTable } from '../entities/app-log-entry.entity'
 
 const FROM_DISK_APP_TREE_REDIS_KEY = '__STELLARIS_FROM_DISK_APP_TREE'
 
@@ -185,12 +185,11 @@ export class AppService {
       switch (message.name) {
         case 'SAVE_LOG_ENTRY':
           if (AppLogEntryValidator.guard(requestData)) {
-            await this.ormService.db.insert(appLogEntriesTable).values([
+            await this.ormService.db.insert(logEntriesTable).values([
               {
                 ...requestData,
                 createdAt: now,
-                updatedAt: now,
-                appId: appIdentifier,
+                appIdentifier,
                 id: uuidV4(),
               },
             ])

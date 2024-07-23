@@ -1125,6 +1125,55 @@ export type FolderObjectListResponseResultInnerMediaTypeEnum = typeof FolderObje
 /**
  * 
  * @export
+ * @interface LogEntryDTO
+ */
+export interface LogEntryDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof LogEntryDTO
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LogEntryDTO
+     */
+    'name': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LogEntryDTO
+     */
+    'appIdentifier': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LogEntryDTO
+     */
+    'message': string;
+    /**
+     * 
+     * @type {any}
+     * @memberof LogEntryDTO
+     */
+    'data'?: any;
+    /**
+     * 
+     * @type {string}
+     * @memberof LogEntryDTO
+     */
+    'level': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LogEntryDTO
+     */
+    'createdAt': string;
+}
+/**
+ * 
+ * @export
  * @interface LogEntryGetResponse
  */
 export interface LogEntryGetResponse {
@@ -1152,13 +1201,37 @@ export interface LogEntryGetResponseEvent {
      * @type {string}
      * @memberof LogEntryGetResponseEvent
      */
-    'createdAt': string;
+    'name': string;
     /**
      * 
      * @type {string}
      * @memberof LogEntryGetResponseEvent
      */
-    'updatedAt': string;
+    'appIdentifier': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LogEntryGetResponseEvent
+     */
+    'message': string;
+    /**
+     * 
+     * @type {any}
+     * @memberof LogEntryGetResponseEvent
+     */
+    'data'?: any;
+    /**
+     * 
+     * @type {string}
+     * @memberof LogEntryGetResponseEvent
+     */
+    'level': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LogEntryGetResponseEvent
+     */
+    'createdAt': string;
 }
 /**
  * 

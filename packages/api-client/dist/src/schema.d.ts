@@ -2700,6 +2700,32 @@ export declare const schema: {
                 };
                 readonly required: readonly ["installed", "connected"];
             };
+            readonly LogEntryDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly id: {
+                        readonly type: "string";
+                    };
+                    readonly name: {
+                        readonly type: "string";
+                    };
+                    readonly appIdentifier: {
+                        readonly type: "string";
+                    };
+                    readonly message: {
+                        readonly type: "string";
+                    };
+                    readonly data: {};
+                    readonly level: {
+                        readonly type: "string";
+                    };
+                    readonly createdAt: {
+                        readonly type: "string";
+                        readonly format: "date-time";
+                    };
+                };
+                readonly required: readonly ["id", "name", "appIdentifier", "message", "level", "createdAt"];
+            };
             readonly LogEntryGetResponse: {
                 readonly type: "object";
                 readonly properties: {
@@ -2709,16 +2735,25 @@ export declare const schema: {
                             readonly id: {
                                 readonly type: "string";
                             };
+                            readonly name: {
+                                readonly type: "string";
+                            };
+                            readonly appIdentifier: {
+                                readonly type: "string";
+                            };
+                            readonly message: {
+                                readonly type: "string";
+                            };
+                            readonly data: {};
+                            readonly level: {
+                                readonly type: "string";
+                            };
                             readonly createdAt: {
                                 readonly type: "string";
                                 readonly format: "date-time";
                             };
-                            readonly updatedAt: {
-                                readonly type: "string";
-                                readonly format: "date-time";
-                            };
                         };
-                        readonly required: readonly ["id", "createdAt", "updatedAt"];
+                        readonly required: readonly ["id", "name", "appIdentifier", "message", "level", "createdAt"];
                     };
                 };
                 readonly required: readonly ["event"];
@@ -2743,16 +2778,25 @@ export declare const schema: {
                                 readonly id: {
                                     readonly type: "string";
                                 };
+                                readonly name: {
+                                    readonly type: "string";
+                                };
+                                readonly appIdentifier: {
+                                    readonly type: "string";
+                                };
+                                readonly message: {
+                                    readonly type: "string";
+                                };
+                                readonly data: {};
+                                readonly level: {
+                                    readonly type: "string";
+                                };
                                 readonly createdAt: {
                                     readonly type: "string";
                                     readonly format: "date-time";
                                 };
-                                readonly updatedAt: {
-                                    readonly type: "string";
-                                    readonly format: "date-time";
-                                };
                             };
-                            readonly required: readonly ["id", "createdAt", "updatedAt"];
+                            readonly required: readonly ["id", "name", "appIdentifier", "message", "level", "createdAt"];
                         };
                     };
                 };

@@ -5,9 +5,9 @@ import {
 } from '@nestjs/common'
 import { eq, sql } from 'drizzle-orm'
 import {
-  appLogEntriesTable,
-  AppLogEntry,
-} from 'src/app/entities/app-log-entry.entity'
+  logEntriesTable,
+  LogEntry,
+} from 'src/log-entries/entities/log-entry.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { User } from 'src/users/entities/user.entity'
 
@@ -15,14 +15,10 @@ import { User } from 'src/users/entities/user.entity'
 export class LogEntryService {
   constructor(private readonly ormService: OrmService) {}
 
-  async getLogEntryAsAdmin(
-    actor: User,
-    logEntryId: string,
-  ): Promise<AppLogEntry> {
-    const logEntry =
-      await this.ormService.db.query.appLogEntriesTable.findFirst({
-        where: eq(appLogEntriesTable.id, logEntryId),
-      })
+  async getLogEntryAsAdmin(actor: User, logEntryId: string): Promise<LogEntry> {
+    const logEntry = await this.ormService.db.query.logEntriesTable.findFirst({
+      where: eq(logEntriesTable.id, logEntryId),
+    })
     if (!logEntry) {
       throw new NotFoundException()
     }
@@ -38,22 +34,22 @@ export class LogEntryService {
       offset?: number
       limit?: number
     },
-  ): Promise<{ meta: { totalCount: number }; result: AppLogEntry[] }> {
+  ): Promise<{ meta: { totalCount: number }; result: LogEntry[] }> {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
-    const logEntries: AppLogEntry[] =
-      await this.ormService.db.query.appLogEntriesTable.findMany({
+    const logEntries: LogEntry[] =
+      await this.ormService.db.query.logEntriesTable.findMany({
         offset: offset ?? 0,
         limit: limit ?? 25,
       })
-    const [appLogEntriesCount] = await this.ormService.db
+    const [logEntriesCount] = await this.ormService.db
       .select({ count: sql<string | null>`count(*)` })
-      .from(appLogEntriesTable)
+      .from(logEntriesTable)
 
     return {
       result: logEntries,
-      meta: { totalCount: parseInt(appLogEntriesCount.count ?? '0', 10) },
+      meta: { totalCount: parseInt(logEntriesCount.count ?? '0', 10) },
     }
   }
 }

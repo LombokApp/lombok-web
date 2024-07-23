@@ -1,11 +1,15 @@
-import type { AppLogEntry } from 'src/app/entities/app-log-entry.entity'
+import type { LogEntry } from 'src/log-entries/entities/log-entry.entity'
 
 import type { LogEntryDTO } from '../dto/log-entry.dto'
 
-export function transformLogEntryToDTO(logEntry: AppLogEntry): LogEntryDTO {
+export function transformLogEntryToDTO(logEntry: LogEntry): LogEntryDTO {
   return {
     id: logEntry.id,
+    name: logEntry.name,
+    message: logEntry.message,
+    appIdentifier: logEntry.appIdentifier,
+    level: logEntry.level,
+    data: logEntry.data,
     createdAt: logEntry.createdAt,
-    updatedAt: logEntry.updatedAt,
   }
 }

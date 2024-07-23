@@ -9,11 +9,12 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
 import { LogEntriesListQueryParamsDTO } from '../dto/log-entries-list-query-params.dto'
+import { LogEntryDTO } from '../dto/log-entry.dto'
 import { LogEntryGetResponse } from '../dto/responses/log-entry-get-response.dto'
 import { LogEntryListResponse } from '../dto/responses/log-entry-list-response.dto'
 import { LogEntryService } from '../log-entry.service'
@@ -24,6 +25,7 @@ import { transformLogEntryToDTO } from '../transforms/event.transforms'
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
 @UsePipes(ZodValidationPipe)
+@ApiExtraModels(LogEntryDTO)
 export class LogEntriesController {
   constructor(private readonly logEntryService: LogEntryService) {}
 

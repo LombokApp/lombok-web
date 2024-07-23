@@ -30,7 +30,7 @@ export function ServerUsersScreen() {
               <Table
                 headers={['Name', 'Admin', 'Permissions', 'Edit']}
                 rows={users.map((u, i) => [
-                  <div key={i} className="flex items-center gap-4">
+                  <div key={i} className="flex items-center gap-4 pl-4">
                     <Avatar
                       uniqueKey={u.id}
                       size="sm"

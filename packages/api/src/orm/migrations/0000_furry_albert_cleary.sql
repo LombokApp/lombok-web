@@ -4,17 +4,6 @@ EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "app_log_entries" (
-	"id" uuid PRIMARY KEY NOT NULL,
-	"name" text NOT NULL,
-	"appId" uuid NOT NULL,
-	"message" text NOT NULL,
-	"data" jsonb,
-	"level" text DEFAULT 'info' NOT NULL,
-	"createdAt" timestamp NOT NULL,
-	"updatedAt" timestamp NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "session" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"hash" text NOT NULL,
@@ -70,6 +59,16 @@ CREATE TABLE IF NOT EXISTS "folders" (
 	"ownerId" uuid NOT NULL,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "log_entries" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"name" text NOT NULL,
+	"appIdentifier" uuid NOT NULL,
+	"message" text NOT NULL,
+	"data" jsonb,
+	"level" text DEFAULT 'info' NOT NULL,
+	"createdAt" timestamp NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "server_settings" (

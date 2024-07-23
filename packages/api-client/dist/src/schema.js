@@ -3425,6 +3425,39 @@ export const schema = {
                     "connected"
                 ]
             },
+            "LogEntryDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "appIdentifier": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {},
+                    "level": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "appIdentifier",
+                    "message",
+                    "level",
+                    "createdAt"
+                ]
+            },
             "LogEntryGetResponse": {
                 "type": "object",
                 "properties": {
@@ -3434,19 +3467,31 @@ export const schema = {
                             "id": {
                                 "type": "string"
                             },
-                            "createdAt": {
-                                "type": "string",
-                                "format": "date-time"
+                            "name": {
+                                "type": "string"
                             },
-                            "updatedAt": {
+                            "appIdentifier": {
+                                "type": "string"
+                            },
+                            "message": {
+                                "type": "string"
+                            },
+                            "data": {},
+                            "level": {
+                                "type": "string"
+                            },
+                            "createdAt": {
                                 "type": "string",
                                 "format": "date-time"
                             }
                         },
                         "required": [
                             "id",
-                            "createdAt",
-                            "updatedAt"
+                            "name",
+                            "appIdentifier",
+                            "message",
+                            "level",
+                            "createdAt"
                         ]
                     }
                 },
@@ -3476,19 +3521,31 @@ export const schema = {
                                 "id": {
                                     "type": "string"
                                 },
-                                "createdAt": {
-                                    "type": "string",
-                                    "format": "date-time"
+                                "name": {
+                                    "type": "string"
                                 },
-                                "updatedAt": {
+                                "appIdentifier": {
+                                    "type": "string"
+                                },
+                                "message": {
+                                    "type": "string"
+                                },
+                                "data": {},
+                                "level": {
+                                    "type": "string"
+                                },
+                                "createdAt": {
                                     "type": "string",
                                     "format": "date-time"
                                 }
                             },
                             "required": [
                                 "id",
-                                "createdAt",
-                                "updatedAt"
+                                "name",
+                                "appIdentifier",
+                                "message",
+                                "level",
+                                "createdAt"
                             ]
                         }
                     }
