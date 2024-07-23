@@ -3,7 +3,7 @@ import { usersTable } from 'src/users/entities/user.entity'
 
 export const providerTypeEnum = pgEnum('providerType', ['SERVER', 'USER'])
 
-export const storageLocationsTable = pgTable('storageLocations', {
+export const storageLocationsTable = pgTable('storage_locations', {
   id: uuid('id').primaryKey(),
   providerType: providerTypeEnum('providerType').notNull(),
   label: text('label').notNull(),

@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS "server_settings" (
 	"updatedAt" timestamp NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "storageLocations" (
+CREATE TABLE IF NOT EXISTS "storage_locations" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"providerType" "providerType" NOT NULL,
 	"label" text NOT NULL,
@@ -117,13 +117,13 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "folders" ADD CONSTRAINT "folders_contentLocationId_storageLocations_id_fk" FOREIGN KEY ("contentLocationId") REFERENCES "public"."storageLocations"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "folders" ADD CONSTRAINT "folders_contentLocationId_storage_locations_id_fk" FOREIGN KEY ("contentLocationId") REFERENCES "public"."storage_locations"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "folders" ADD CONSTRAINT "folders_metadataLocationId_storageLocations_id_fk" FOREIGN KEY ("metadataLocationId") REFERENCES "public"."storageLocations"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "folders" ADD CONSTRAINT "folders_metadataLocationId_storage_locations_id_fk" FOREIGN KEY ("metadataLocationId") REFERENCES "public"."storage_locations"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
@@ -135,7 +135,7 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "storageLocations" ADD CONSTRAINT "storageLocations_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
+ ALTER TABLE "storage_locations" ADD CONSTRAINT "storage_locations_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

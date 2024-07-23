@@ -1,5 +1,5 @@
 {
-  "id": "41fdaa03-b6f1-4874-8e6b-ad6943a371d8",
+  "id": "08bee5e6-32f9-40ca-bf8e-a1aab345524b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -376,10 +376,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "folders_contentLocationId_storageLocations_id_fk": {
-          "name": "folders_contentLocationId_storageLocations_id_fk",
+        "folders_contentLocationId_storage_locations_id_fk": {
+          "name": "folders_contentLocationId_storage_locations_id_fk",
           "tableFrom": "folders",
-          "tableTo": "storageLocations",
+          "tableTo": "storage_locations",
           "columnsFrom": [
             "contentLocationId"
           ],
@@ -389,10 +389,10 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "folders_metadataLocationId_storageLocations_id_fk": {
-          "name": "folders_metadataLocationId_storageLocations_id_fk",
+        "folders_metadataLocationId_storage_locations_id_fk": {
+          "name": "folders_metadataLocationId_storage_locations_id_fk",
           "tableFrom": "folders",
-          "tableTo": "storageLocations",
+          "tableTo": "storage_locations",
           "columnsFrom": [
             "metadataLocationId"
           ],
@@ -453,8 +453,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "public.storageLocations": {
-      "name": "storageLocations",
+    "public.storage_locations": {
+      "name": "storage_locations",
       "schema": "",
       "columns": {
         "id": {
@@ -533,9 +533,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "storageLocations_userId_users_id_fk": {
-          "name": "storageLocations_userId_users_id_fk",
-          "tableFrom": "storageLocations",
+        "storage_locations_userId_users_id_fk": {
+          "name": "storage_locations_userId_users_id_fk",
+          "tableFrom": "storage_locations",
           "tableTo": "users",
           "columnsFrom": [
             "userId"
