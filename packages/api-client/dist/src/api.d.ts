@@ -266,6 +266,62 @@ export interface AppListResponseInstalledResultInnerUiValueFilesValue {
 /**
  *
  * @export
+ * @interface EventDTO
+ */
+export interface EventDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof EventDTO
+     */
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof EventDTO
+     */
+    'eventKey': string;
+    /**
+     *
+     * @type {EventDTOData}
+     * @memberof EventDTO
+     */
+    'data': EventDTOData;
+    /**
+     *
+     * @type {string}
+     * @memberof EventDTO
+     */
+    'createdAt': string;
+    /**
+     *
+     * @type {string}
+     * @memberof EventDTO
+     */
+    'updatedAt': string;
+}
+/**
+ *
+ * @export
+ * @interface EventDTOData
+ */
+export interface EventDTOData {
+    /**
+     *
+     * @type {string}
+     * @memberof EventDTOData
+     */
+    'folderId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof EventDTOData
+     */
+    'objectKey'?: string;
+}
+/**
+ *
+ * @export
  * @interface EventGetResponse
  */
 export interface EventGetResponse {
@@ -296,10 +352,10 @@ export interface EventGetResponseEvent {
     'eventKey': string;
     /**
      *
-     * @type {EventGetResponseEventData}
+     * @type {EventDTOData}
      * @memberof EventGetResponseEvent
      */
-    'data': EventGetResponseEventData;
+    'data': EventDTOData;
     /**
      *
      * @type {string}
@@ -316,21 +372,21 @@ export interface EventGetResponseEvent {
 /**
  *
  * @export
- * @interface EventGetResponseEventData
+ * @interface EventListResponse
  */
-export interface EventGetResponseEventData {
+export interface EventListResponse {
     /**
      *
-     * @type {string}
-     * @memberof EventGetResponseEventData
+     * @type {UserListResponseMeta}
+     * @memberof EventListResponse
      */
-    'folderId': string;
+    'meta': UserListResponseMeta;
     /**
      *
-     * @type {string}
-     * @memberof EventGetResponseEventData
+     * @type {Array<EventGetResponseEvent>}
+     * @memberof EventListResponse
      */
-    'objectKey'?: string;
+    'result': Array<EventGetResponseEvent>;
 }
 /**
  *
@@ -1050,6 +1106,63 @@ export declare const FolderObjectListResponseResultInnerMediaTypeEnum: {
     readonly Unknown: "UNKNOWN";
 };
 export type FolderObjectListResponseResultInnerMediaTypeEnum = typeof FolderObjectListResponseResultInnerMediaTypeEnum[keyof typeof FolderObjectListResponseResultInnerMediaTypeEnum];
+/**
+ *
+ * @export
+ * @interface LogEntryGetResponse
+ */
+export interface LogEntryGetResponse {
+    /**
+     *
+     * @type {LogEntryGetResponseEvent}
+     * @memberof LogEntryGetResponse
+     */
+    'event': LogEntryGetResponseEvent;
+}
+/**
+ *
+ * @export
+ * @interface LogEntryGetResponseEvent
+ */
+export interface LogEntryGetResponseEvent {
+    /**
+     *
+     * @type {string}
+     * @memberof LogEntryGetResponseEvent
+     */
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof LogEntryGetResponseEvent
+     */
+    'createdAt': string;
+    /**
+     *
+     * @type {string}
+     * @memberof LogEntryGetResponseEvent
+     */
+    'updatedAt': string;
+}
+/**
+ *
+ * @export
+ * @interface LogEntryListResponse
+ */
+export interface LogEntryListResponse {
+    /**
+     *
+     * @type {UserListResponseMeta}
+     * @memberof LogEntryListResponse
+     */
+    'meta': UserListResponseMeta;
+    /**
+     *
+     * @type {Array<LogEntryGetResponseEvent>}
+     * @memberof LogEntryListResponse
+     */
+    'result': Array<LogEntryGetResponseEvent>;
+}
 /**
  *
  * @export
@@ -1966,6 +2079,14 @@ export declare const EventsApiAxiosParamCreator: (configuration?: Configuration)
      * @throws {RequiredError}
      */
     getEvent: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listEvents: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * EventsApi - functional programming interface
@@ -1978,6 +2099,14 @@ export declare const EventsApiFp: (configuration?: Configuration) => {
      * @throws {RequiredError}
      */
     getEvent(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventGetResponse>>;
+    /**
+     *
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listEvents(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventListResponse>>;
 };
 /**
  * EventsApi - factory interface
@@ -1990,7 +2119,33 @@ export declare const EventsApiFactory: (configuration?: Configuration, basePath?
      * @throws {RequiredError}
      */
     getEvent(options?: AxiosRequestConfig): AxiosPromise<EventGetResponse>;
+    /**
+     *
+     * @param {EventsApiListEventsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listEvents(requestParameters?: EventsApiListEventsRequest, options?: AxiosRequestConfig): AxiosPromise<EventListResponse>;
 };
+/**
+ * Request parameters for listEvents operation in EventsApi.
+ * @export
+ * @interface EventsApiListEventsRequest
+ */
+export interface EventsApiListEventsRequest {
+    /**
+     *
+     * @type {number}
+     * @memberof EventsApiListEvents
+     */
+    readonly offset?: number;
+    /**
+     *
+     * @type {number}
+     * @memberof EventsApiListEvents
+     */
+    readonly limit?: number;
+}
 /**
  * EventsApi - object-oriented interface
  * @export
@@ -2005,6 +2160,14 @@ export declare class EventsApi extends BaseAPI {
      * @memberof EventsApi
      */
     getEvent(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<EventGetResponse, any>>;
+    /**
+     *
+     * @param {EventsApiListEventsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof EventsApi
+     */
+    listEvents(requestParameters?: EventsApiListEventsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<EventListResponse, any>>;
 }
 /**
  * FoldersApi - axios parameter creator
@@ -2557,6 +2720,107 @@ export declare class FoldersApi extends BaseAPI {
      * @memberof FoldersApi
      */
     rescanFolder(requestParameters: FoldersApiRescanFolderRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+}
+/**
+ * LogEntriesApi - axios parameter creator
+ * @export
+ */
+export declare const LogEntriesApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getLogEntry: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listLogEntries: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * LogEntriesApi - functional programming interface
+ * @export
+ */
+export declare const LogEntriesApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getLogEntry(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<LogEntryGetResponse>>;
+    /**
+     *
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listLogEntries(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<LogEntryListResponse>>;
+};
+/**
+ * LogEntriesApi - factory interface
+ * @export
+ */
+export declare const LogEntriesApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getLogEntry(options?: AxiosRequestConfig): AxiosPromise<LogEntryGetResponse>;
+    /**
+     *
+     * @param {LogEntriesApiListLogEntriesRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listLogEntries(requestParameters?: LogEntriesApiListLogEntriesRequest, options?: AxiosRequestConfig): AxiosPromise<LogEntryListResponse>;
+};
+/**
+ * Request parameters for listLogEntries operation in LogEntriesApi.
+ * @export
+ * @interface LogEntriesApiListLogEntriesRequest
+ */
+export interface LogEntriesApiListLogEntriesRequest {
+    /**
+     *
+     * @type {number}
+     * @memberof LogEntriesApiListLogEntries
+     */
+    readonly offset?: number;
+    /**
+     *
+     * @type {number}
+     * @memberof LogEntriesApiListLogEntries
+     */
+    readonly limit?: number;
+}
+/**
+ * LogEntriesApi - object-oriented interface
+ * @export
+ * @class LogEntriesApi
+ * @extends {BaseAPI}
+ */
+export declare class LogEntriesApi extends BaseAPI {
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof LogEntriesApi
+     */
+    getLogEntry(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<LogEntryGetResponse, any>>;
+    /**
+     *
+     * @param {LogEntriesApiListLogEntriesRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof LogEntriesApi
+     */
+    listLogEntries(requestParameters?: LogEntriesApiListLogEntriesRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<LogEntryListResponse, any>>;
 }
 /**
  * ServerApi - axios parameter creator

@@ -1,8 +1,12 @@
+import { InboxIcon } from '@heroicons/react/20/solid'
 import {
-  BoltIcon,
-  CircleStackIcon,
+  BuildingLibraryIcon,
   Cog8ToothIcon,
+  QueueListIcon,
   ServerIcon,
+  ServerStackIcon,
+  SignalIcon,
+  Square3Stack3DIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
@@ -21,14 +25,26 @@ export function ServerTabs({ activeTab }: { activeTab: string }) {
     {
       name: 'storage',
       label: 'Storage',
-      icon: CircleStackIcon,
+      icon: ServerStackIcon,
       href: '/server/storage',
     },
     {
       name: 'apps',
       label: 'Apps',
-      icon: BoltIcon,
+      icon: Square3Stack3DIcon,
       href: '/server/apps',
+    },
+    {
+      name: 'events',
+      label: 'Events',
+      icon: SignalIcon,
+      href: '/server/events',
+    },
+    {
+      name: 'logs',
+      label: 'Logs',
+      icon: QueueListIcon,
+      href: '/server/logs',
     },
     {
       name: 'settings',

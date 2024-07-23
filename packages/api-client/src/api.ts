@@ -270,6 +270,62 @@ export interface AppListResponseInstalledResultInnerUiValueFilesValue {
 /**
  * 
  * @export
+ * @interface EventDTO
+ */
+export interface EventDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof EventDTO
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EventDTO
+     */
+    'eventKey': string;
+    /**
+     * 
+     * @type {EventDTOData}
+     * @memberof EventDTO
+     */
+    'data': EventDTOData;
+    /**
+     * 
+     * @type {string}
+     * @memberof EventDTO
+     */
+    'createdAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EventDTO
+     */
+    'updatedAt': string;
+}
+/**
+ * 
+ * @export
+ * @interface EventDTOData
+ */
+export interface EventDTOData {
+    /**
+     * 
+     * @type {string}
+     * @memberof EventDTOData
+     */
+    'folderId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EventDTOData
+     */
+    'objectKey'?: string;
+}
+/**
+ * 
+ * @export
  * @interface EventGetResponse
  */
 export interface EventGetResponse {
@@ -300,10 +356,10 @@ export interface EventGetResponseEvent {
     'eventKey': string;
     /**
      * 
-     * @type {EventGetResponseEventData}
+     * @type {EventDTOData}
      * @memberof EventGetResponseEvent
      */
-    'data': EventGetResponseEventData;
+    'data': EventDTOData;
     /**
      * 
      * @type {string}
@@ -320,21 +376,21 @@ export interface EventGetResponseEvent {
 /**
  * 
  * @export
- * @interface EventGetResponseEventData
+ * @interface EventListResponse
  */
-export interface EventGetResponseEventData {
+export interface EventListResponse {
     /**
      * 
-     * @type {string}
-     * @memberof EventGetResponseEventData
+     * @type {UserListResponseMeta}
+     * @memberof EventListResponse
      */
-    'folderId': string;
+    'meta': UserListResponseMeta;
     /**
      * 
-     * @type {string}
-     * @memberof EventGetResponseEventData
+     * @type {Array<EventGetResponseEvent>}
+     * @memberof EventListResponse
      */
-    'objectKey'?: string;
+    'result': Array<EventGetResponseEvent>;
 }
 /**
  * 
@@ -1066,6 +1122,63 @@ export const FolderObjectListResponseResultInnerMediaTypeEnum = {
 
 export type FolderObjectListResponseResultInnerMediaTypeEnum = typeof FolderObjectListResponseResultInnerMediaTypeEnum[keyof typeof FolderObjectListResponseResultInnerMediaTypeEnum];
 
+/**
+ * 
+ * @export
+ * @interface LogEntryGetResponse
+ */
+export interface LogEntryGetResponse {
+    /**
+     * 
+     * @type {LogEntryGetResponseEvent}
+     * @memberof LogEntryGetResponse
+     */
+    'event': LogEntryGetResponseEvent;
+}
+/**
+ * 
+ * @export
+ * @interface LogEntryGetResponseEvent
+ */
+export interface LogEntryGetResponseEvent {
+    /**
+     * 
+     * @type {string}
+     * @memberof LogEntryGetResponseEvent
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LogEntryGetResponseEvent
+     */
+    'createdAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LogEntryGetResponseEvent
+     */
+    'updatedAt': string;
+}
+/**
+ * 
+ * @export
+ * @interface LogEntryListResponse
+ */
+export interface LogEntryListResponse {
+    /**
+     * 
+     * @type {UserListResponseMeta}
+     * @memberof LogEntryListResponse
+     */
+    'meta': UserListResponseMeta;
+    /**
+     * 
+     * @type {Array<LogEntryGetResponseEvent>}
+     * @memberof LogEntryListResponse
+     */
+    'result': Array<LogEntryGetResponseEvent>;
+}
 /**
  * 
  * @export
@@ -2225,6 +2338,49 @@ export const EventsApiAxiosParamCreator = function (configuration?: Configuratio
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listEvents: async (offset?: number, limit?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/events`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -2242,6 +2398,17 @@ export const EventsApiFp = function(configuration?: Configuration) {
          */
         async getEvent(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getEvent(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listEvents(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listEvents(offset, limit, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -2262,8 +2429,38 @@ export const EventsApiFactory = function (configuration?: Configuration, basePat
         getEvent(options?: AxiosRequestConfig): AxiosPromise<EventGetResponse> {
             return localVarFp.getEvent(options).then((request) => request(axios, basePath));
         },
+        /**
+         * 
+         * @param {EventsApiListEventsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listEvents(requestParameters: EventsApiListEventsRequest = {}, options?: AxiosRequestConfig): AxiosPromise<EventListResponse> {
+            return localVarFp.listEvents(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
     };
 };
+
+/**
+ * Request parameters for listEvents operation in EventsApi.
+ * @export
+ * @interface EventsApiListEventsRequest
+ */
+export interface EventsApiListEventsRequest {
+    /**
+     * 
+     * @type {number}
+     * @memberof EventsApiListEvents
+     */
+    readonly offset?: number
+
+    /**
+     * 
+     * @type {number}
+     * @memberof EventsApiListEvents
+     */
+    readonly limit?: number
+}
 
 /**
  * EventsApi - object-oriented interface
@@ -2280,6 +2477,17 @@ export class EventsApi extends BaseAPI {
      */
     public getEvent(options?: AxiosRequestConfig) {
         return EventsApiFp(this.configuration).getEvent(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {EventsApiListEventsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof EventsApi
+     */
+    public listEvents(requestParameters: EventsApiListEventsRequest = {}, options?: AxiosRequestConfig) {
+        return EventsApiFp(this.configuration).listEvents(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -3315,6 +3523,200 @@ export class FoldersApi extends BaseAPI {
      */
     public rescanFolder(requestParameters: FoldersApiRescanFolderRequest, options?: AxiosRequestConfig) {
         return FoldersApiFp(this.configuration).rescanFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * LogEntriesApi - axios parameter creator
+ * @export
+ */
+export const LogEntriesApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getLogEntry: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/log-entries/{logEntryId}`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listLogEntries: async (offset?: number, limit?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/log-entries`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * LogEntriesApi - functional programming interface
+ * @export
+ */
+export const LogEntriesApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = LogEntriesApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getLogEntry(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<LogEntryGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getLogEntry(options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listLogEntries(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<LogEntryListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listLogEntries(offset, limit, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * LogEntriesApi - factory interface
+ * @export
+ */
+export const LogEntriesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = LogEntriesApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getLogEntry(options?: AxiosRequestConfig): AxiosPromise<LogEntryGetResponse> {
+            return localVarFp.getLogEntry(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {LogEntriesApiListLogEntriesRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listLogEntries(requestParameters: LogEntriesApiListLogEntriesRequest = {}, options?: AxiosRequestConfig): AxiosPromise<LogEntryListResponse> {
+            return localVarFp.listLogEntries(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for listLogEntries operation in LogEntriesApi.
+ * @export
+ * @interface LogEntriesApiListLogEntriesRequest
+ */
+export interface LogEntriesApiListLogEntriesRequest {
+    /**
+     * 
+     * @type {number}
+     * @memberof LogEntriesApiListLogEntries
+     */
+    readonly offset?: number
+
+    /**
+     * 
+     * @type {number}
+     * @memberof LogEntriesApiListLogEntries
+     */
+    readonly limit?: number
+}
+
+/**
+ * LogEntriesApi - object-oriented interface
+ * @export
+ * @class LogEntriesApi
+ * @extends {BaseAPI}
+ */
+export class LogEntriesApi extends BaseAPI {
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof LogEntriesApi
+     */
+    public getLogEntry(options?: AxiosRequestConfig) {
+        return LogEntriesApiFp(this.configuration).getLogEntry(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {LogEntriesApiListLogEntriesRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof LogEntriesApi
+     */
+    public listLogEntries(requestParameters: LogEntriesApiListLogEntriesRequest = {}, options?: AxiosRequestConfig) {
+        return LogEntriesApiFp(this.configuration).listLogEntries(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

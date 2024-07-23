@@ -1,4 +1,5 @@
 import {
+  AdjustmentsHorizontalIcon,
   BoltIcon,
   Cog8ToothIcon,
   DocumentTextIcon,
@@ -19,7 +20,12 @@ export function InstalledAppTabs({
   onChange: (tab: string) => void
 }) {
   const tabs = [
-    { name: 'config', label: 'Config', icon: Cog8ToothIcon, href: '/config' },
+    {
+      name: 'config',
+      label: 'Config',
+      icon: AdjustmentsHorizontalIcon,
+      href: '/config',
+    },
     {
       name: 'workers',
       label: 'Workers',

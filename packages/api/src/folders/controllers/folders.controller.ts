@@ -96,8 +96,10 @@ export class FoldersController {
     @Req() req: express.Request,
     @Query() queryParams: FoldersListQueryParamsDTO,
   ): Promise<FolderListResponse> {
-    const result = await this.folderService.listFoldersAsUser({
-      userId: req.user?.id ?? '',
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const result = await this.folderService.listFoldersAsUser(req.user, {
       ...queryParams,
     })
     return {

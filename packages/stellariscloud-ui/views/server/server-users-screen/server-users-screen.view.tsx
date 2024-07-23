@@ -10,7 +10,7 @@ import { ButtonGroup } from '../../../design-system/button-group/button-group'
 import { Table } from '../../../design-system/table/table'
 import { apiClient } from '../../../services/api'
 
-export function ServerUsers() {
+export function ServerUsersScreen() {
   const router = useRouter()
   const [users, setUsers] =
     React.useState<(UserDTO & { permissions: { label: string }[] })[]>()

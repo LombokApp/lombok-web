@@ -351,18 +351,19 @@ export class FolderService implements OnModuleInit {
     return folder
   }
 
-  async listFoldersAsUser({
-    userId,
-    offset,
-    limit,
-  }: {
-    userId: string
-    offset?: number
-    limit?: number
-  }) {
+  async listFoldersAsUser(
+    actor: User,
+    {
+      offset,
+      limit,
+    }: {
+      offset?: number
+      limit?: number
+    },
+  ) {
     const folders: Folder[] =
       await this.ormService.db.query.foldersTable.findMany({
-        where: eq(foldersTable.ownerId, userId),
+        where: eq(foldersTable.ownerId, actor.id),
         offset: offset ?? 0,
         limit: limit ?? 25,
         with: {

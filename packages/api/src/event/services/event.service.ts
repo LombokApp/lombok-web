@@ -1,13 +1,20 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
-import { isNull, sql } from 'drizzle-orm'
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common'
+import { eq, isNull, sql } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
 import { OrmService } from 'src/orm/orm.service'
 import { QueueName } from 'src/queue/queue.constants'
 import { QueueService } from 'src/queue/queue.service'
+import { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
 import type { EventDTO } from '../dto/event.dto'
-import { eventsTable } from '../entities/event.entity'
+import { Event, eventsTable } from '../entities/event.entity'
 import type { NewEventReceipt } from '../entities/event-receipt.entity'
 import { eventReceiptsTable } from '../entities/event-receipt.entity'
 
@@ -110,14 +117,42 @@ export class EventService {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async getEvent(eventId: string): Promise<EventDTO> {
+  async getEventAsAdmin(actor: User, eventId: string): Promise<Event> {
+    const event = await this.ormService.db.query.eventsTable.findFirst({
+      where: eq(eventsTable.id, eventId),
+    })
+    if (!event) {
+      throw new NotFoundException()
+    }
+    return event
+  }
+
+  async listEventsAsAdmin(
+    actor: User,
+    {
+      offset,
+      limit,
+    }: {
+      offset?: number
+      limit?: number
+    },
+  ): Promise<{ meta: { totalCount: number }; result: EventDTO[] }> {
+    if (!actor.isAdmin) {
+      throw new UnauthorizedException()
+    }
+    const events: Event[] = await this.ormService.db.query.eventsTable.findMany(
+      {
+        offset: offset ?? 0,
+        limit: limit ?? 25,
+      },
+    )
+    const [eventsCount] = await this.ormService.db
+      .select({ count: sql<string | null>`count(*)` })
+      .from(eventsTable)
+
     return {
-      id: eventId,
-      eventKey: '__dummy_event_key__',
-      data: { folderId: '__dummy__', objectKey: '__dummy__' },
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      result: events,
+      meta: { totalCount: parseInt(eventsCount.count ?? '0', 10) },
     }
   }
 }
