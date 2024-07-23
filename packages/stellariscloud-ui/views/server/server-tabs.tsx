@@ -1,6 +1,7 @@
 import { InboxIcon } from '@heroicons/react/20/solid'
 import {
   BuildingLibraryIcon,
+  CircleStackIcon,
   Cog8ToothIcon,
   QueueListIcon,
   ServerIcon,
@@ -25,7 +26,7 @@ export function ServerTabs({ activeTab }: { activeTab: string }) {
     {
       name: 'storage',
       label: 'Storage',
-      icon: ServerStackIcon,
+      icon: CircleStackIcon,
       href: '/server/storage',
     },
     {
