@@ -1,6 +1,8 @@
 import { getQueueToken } from '@nestjs/bullmq'
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
+import nestjsConfig from '@nestjs/config'
 import type { JobsOptions } from 'bullmq'
+import { redisConfig } from 'src/cache/redis.config'
 import { getApp } from 'src/core/app-helper'
 import type { BaseProcessor } from 'src/core/base-processor'
 
@@ -13,9 +15,14 @@ export class QueueService {
   processors: { [key: string]: BaseProcessor } = {}
   initPromise: Promise<void>
 
-  constructor() {
+  constructor(
+    @Inject(redisConfig.KEY)
+    private readonly _redisConfig: nestjsConfig.ConfigType<typeof redisConfig>,
+  ) {
     // defer the init so the app can is created first
-    setTimeout(() => void this.init(), 100)
+    this.initPromise = new Promise((resolve) => {
+      setTimeout(() => void this.init().then(resolve), 1000)
+    })
   }
 
   async init() {
@@ -46,8 +53,16 @@ export class QueueService {
     // console.log('addJob:', queueName, this.queues)
     if (queueName in this.queues) {
       const queue = this.queues[queueName]
-      console.log('About to call add on queue instance', queue.constructor.name)
-      await queue.add(queueName, data, opts)
+      if (this._redisConfig.enabled || !opts?.repeat) {
+        // it's using bullmq or it's a simple (non repeating) job
+        await queue.add(queueName, data, opts)
+      } else {
+        setInterval(() => {
+          void queue.add(queueName, data, opts)
+        }, opts.repeat.every)
+      }
+    } else {
+      throw new Error(`Unknown queue job type: "${queueName}"`)
     }
   }
 

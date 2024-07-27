@@ -819,6 +819,60 @@ export const schema = {
                 ]
             }
         },
+        "/api/v1/folders/{folderId}/apps/{appIdentifier}/actions/{actionKey}": {
+            "post": {
+                "operationId": "handleFolderAction",
+                "parameters": [
+                    {
+                        "name": "folderId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "appIdentifier",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "actionKey",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FolderHandleActionInputDTO"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Handle folder action."
+                    }
+                },
+                "tags": [
+                    "Folders"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
         "/api/v1/server/settings": {
             "get": {
                 "operationId": "getServerSettings",
@@ -1164,77 +1218,6 @@ export const schema = {
                 },
                 "tags": [
                     "Apps"
-                ],
-                "security": [
-                    {
-                        "bearer": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/log-entries/{logEntryId}": {
-            "get": {
-                "operationId": "getLogEntry",
-                "parameters": [],
-                "responses": {
-                    "200": {
-                        "description": "Get an event by id.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/LogEntryGetResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "LogEntries"
-                ],
-                "security": [
-                    {
-                        "bearer": []
-                    }
-                ]
-            }
-        },
-        "/api/v1/log-entries": {
-            "get": {
-                "operationId": "listLogEntries",
-                "parameters": [
-                    {
-                        "name": "offset",
-                        "required": false,
-                        "in": "query",
-                        "schema": {
-                            "type": "number"
-                        }
-                    },
-                    {
-                        "name": "limit",
-                        "required": false,
-                        "in": "query",
-                        "schema": {
-                            "minimum": 0,
-                            "exclusiveMinimum": true,
-                            "type": "number"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List events.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/LogEntryListResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "tags": [
-                    "LogEntries"
                 ],
                 "security": [
                     {
@@ -2854,6 +2837,15 @@ export const schema = {
                     "urls"
                 ]
             },
+            "FolderHandleActionInputDTO": {
+                "type": "object",
+                "properties": {
+                    "objectKey": {
+                        "type": "string"
+                    },
+                    "actionParams": {}
+                }
+            },
             "SettingsGetResponse": {
                 "type": "object",
                 "properties": {
@@ -3075,7 +3067,13 @@ export const schema = {
                     "eventKey": {
                         "type": "string"
                     },
-                    "data": {
+                    "appIdentifier": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "locationContext": {
                         "type": "object",
                         "properties": {
                             "folderId": {
@@ -3089,11 +3087,8 @@ export const schema = {
                             "folderId"
                         ]
                     },
+                    "data": {},
                     "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updatedAt": {
                         "type": "string",
                         "format": "date-time"
                     }
@@ -3101,9 +3096,8 @@ export const schema = {
                 "required": [
                     "id",
                     "eventKey",
-                    "data",
-                    "createdAt",
-                    "updatedAt"
+                    "appIdentifier",
+                    "createdAt"
                 ]
             },
             "EventGetResponse": {
@@ -3118,7 +3112,13 @@ export const schema = {
                             "eventKey": {
                                 "type": "string"
                             },
-                            "data": {
+                            "appIdentifier": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "locationContext": {
                                 "type": "object",
                                 "properties": {
                                     "folderId": {
@@ -3132,11 +3132,8 @@ export const schema = {
                                     "folderId"
                                 ]
                             },
+                            "data": {},
                             "createdAt": {
-                                "type": "string",
-                                "format": "date-time"
-                            },
-                            "updatedAt": {
                                 "type": "string",
                                 "format": "date-time"
                             }
@@ -3144,9 +3141,8 @@ export const schema = {
                         "required": [
                             "id",
                             "eventKey",
-                            "data",
-                            "createdAt",
-                            "updatedAt"
+                            "appIdentifier",
+                            "createdAt"
                         ]
                     }
                 },
@@ -3179,7 +3175,13 @@ export const schema = {
                                 "eventKey": {
                                     "type": "string"
                                 },
-                                "data": {
+                                "appIdentifier": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ]
+                                },
+                                "locationContext": {
                                     "type": "object",
                                     "properties": {
                                         "folderId": {
@@ -3193,11 +3195,8 @@ export const schema = {
                                         "folderId"
                                     ]
                                 },
+                                "data": {},
                                 "createdAt": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                },
-                                "updatedAt": {
                                     "type": "string",
                                     "format": "date-time"
                                 }
@@ -3205,9 +3204,8 @@ export const schema = {
                             "required": [
                                 "id",
                                 "eventKey",
-                                "data",
-                                "createdAt",
-                                "updatedAt"
+                                "appIdentifier",
+                                "createdAt"
                             ]
                         }
                     }
@@ -3423,136 +3421,6 @@ export const schema = {
                 "required": [
                     "installed",
                     "connected"
-                ]
-            },
-            "LogEntryDTO": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "appIdentifier": {
-                        "type": "string"
-                    },
-                    "message": {
-                        "type": "string"
-                    },
-                    "data": {},
-                    "level": {
-                        "type": "string"
-                    },
-                    "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    }
-                },
-                "required": [
-                    "id",
-                    "name",
-                    "appIdentifier",
-                    "message",
-                    "level",
-                    "createdAt"
-                ]
-            },
-            "LogEntryGetResponse": {
-                "type": "object",
-                "properties": {
-                    "event": {
-                        "type": "object",
-                        "properties": {
-                            "id": {
-                                "type": "string"
-                            },
-                            "name": {
-                                "type": "string"
-                            },
-                            "appIdentifier": {
-                                "type": "string"
-                            },
-                            "message": {
-                                "type": "string"
-                            },
-                            "data": {},
-                            "level": {
-                                "type": "string"
-                            },
-                            "createdAt": {
-                                "type": "string",
-                                "format": "date-time"
-                            }
-                        },
-                        "required": [
-                            "id",
-                            "name",
-                            "appIdentifier",
-                            "message",
-                            "level",
-                            "createdAt"
-                        ]
-                    }
-                },
-                "required": [
-                    "event"
-                ]
-            },
-            "LogEntryListResponse": {
-                "type": "object",
-                "properties": {
-                    "meta": {
-                        "type": "object",
-                        "properties": {
-                            "totalCount": {
-                                "type": "number"
-                            }
-                        },
-                        "required": [
-                            "totalCount"
-                        ]
-                    },
-                    "result": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "type": "string"
-                                },
-                                "name": {
-                                    "type": "string"
-                                },
-                                "appIdentifier": {
-                                    "type": "string"
-                                },
-                                "message": {
-                                    "type": "string"
-                                },
-                                "data": {},
-                                "level": {
-                                    "type": "string"
-                                },
-                                "createdAt": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                }
-                            },
-                            "required": [
-                                "id",
-                                "name",
-                                "appIdentifier",
-                                "message",
-                                "level",
-                                "createdAt"
-                            ]
-                        }
-                    }
-                },
-                "required": [
-                    "meta",
-                    "result"
                 ]
             }
         }

@@ -15,8 +15,7 @@ import { FolderSocketService } from './folder-socket.service'
     methods: ['GET', 'POST'],
     credentials: true,
   },
-  namespace:
-    /^\/folders\/[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12}$/,
+  namespace: '/folder',
 })
 export class FolderSocketGateway implements OnGatewayConnection, OnGatewayInit {
   @WebSocketServer()
@@ -25,7 +24,7 @@ export class FolderSocketGateway implements OnGatewayConnection, OnGatewayInit {
   constructor(private readonly folderSocketService: FolderSocketService) {}
 
   afterInit(namespace: Namespace) {
-    this.folderSocketService.setServer(namespace.server)
+    this.folderSocketService.setNamespace(namespace)
   }
 
   async handleConnection(socket: Socket): Promise<void> {

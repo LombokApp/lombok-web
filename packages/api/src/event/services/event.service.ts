@@ -13,7 +13,6 @@ import { QueueService } from 'src/queue/queue.service'
 import { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
-import type { EventDTO } from '../dto/event.dto'
 import { Event, eventsTable } from '../entities/event.entity'
 import type { NewEventReceipt } from '../entities/event-receipt.entity'
 import { eventReceiptsTable } from '../entities/event-receipt.entity'
@@ -30,21 +29,26 @@ export class EventService {
     appIdentifier,
     eventKey,
     data,
+    locationContext,
+    userId,
   }: {
     appIdentifier: string // id of the inserting app
     eventKey: string
     data: any
+    locationContext?: { folderId: string; objectKey?: string }
+    userId?: string
   }) {
     const now = new Date()
 
     // check this app can emit this event
     const actorApp = await this.appService.getApp(appIdentifier)
+    const _authorized = actorApp?.emitEvents.includes(eventKey)
 
     // console.log('emitEvent:', {
     //   eventKey,
     //   appIdentifier,
     //   data,
-    //   authorized: actorApp?.emitEvents.includes(eventKey),
+    //   authorized,
     // })
 
     if (!actorApp?.emitEvents.includes(eventKey)) {
@@ -55,7 +59,16 @@ export class EventService {
       const [event] = await db
         .insert(eventsTable)
         .values([
-          { id: uuidV4(), eventKey, createdAt: now, updatedAt: now, data },
+          {
+            id: uuidV4(),
+            eventKey,
+            appIdentifier,
+            folderId: locationContext?.folderId,
+            objectKey: locationContext?.objectKey,
+            userId,
+            createdAt: now,
+            data,
+          },
         ])
         .returning()
       const eventReceipts: NewEventReceipt[] = await this.appService
@@ -90,7 +103,7 @@ export class EventService {
       .groupBy(eventReceiptsTable.eventKey, eventReceiptsTable.appIdentifier)
 
     const pendingEventsByApp = pendingEventReceipts.reduce<{
-      [appId: string]: { [key: string]: number }
+      [appIdentifier: string]: { [key: string]: number }
     }>(
       (acc, next) => ({
         ...acc,
@@ -102,12 +115,12 @@ export class EventService {
       {},
     )
 
-    for (const appId of Object.keys(pendingEventsByApp)) {
-      for (const eventKey of Object.keys(pendingEventsByApp[appId])) {
+    for (const appIdentifier of Object.keys(pendingEventsByApp)) {
+      for (const eventKey of Object.keys(pendingEventsByApp[appIdentifier])) {
         const jobPayload = {
-          appId,
+          appIdentifier,
           eventKey,
-          eventCount: pendingEventsByApp[appId][eventKey],
+          eventCount: pendingEventsByApp[appIdentifier][eventKey],
         }
         await this.queueService.addJob(
           QueueName.NotifyAppOfPendingEvents,
@@ -136,7 +149,7 @@ export class EventService {
       offset?: number
       limit?: number
     },
-  ): Promise<{ meta: { totalCount: number }; result: EventDTO[] }> {
+  ): Promise<{ meta: { totalCount: number }; result: Event[] }> {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }

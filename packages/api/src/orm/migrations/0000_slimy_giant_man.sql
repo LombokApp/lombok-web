@@ -30,9 +30,12 @@ CREATE TABLE IF NOT EXISTS "event_receipts" (
 CREATE TABLE IF NOT EXISTS "events" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"eventKey" text NOT NULL,
-	"data" jsonb NOT NULL,
-	"createdAt" timestamp NOT NULL,
-	"updatedAt" timestamp NOT NULL
+	"appIdentifier" text,
+	"userId" text,
+	"folderId" text,
+	"objectKey" text,
+	"data" jsonb,
+	"createdAt" timestamp NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "folder_objects" (

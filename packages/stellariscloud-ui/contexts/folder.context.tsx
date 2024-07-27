@@ -120,9 +120,9 @@ export const FolderContextProvider = ({
     [fetchFolder, fetchFolderMetadata],
   )
   const { socket, connected: socketConnected } = useWebsocket(
-    `folders/${folderId}`,
-    // `folders/111`,
+    'folder',
     messageHandler,
+    { folderId },
   )
 
   const showNotification = React.useCallback((notification: Notification) => {

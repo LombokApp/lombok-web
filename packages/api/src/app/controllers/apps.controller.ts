@@ -25,7 +25,7 @@ export class AppsController {
 
   @Get()
   async listApps(@Req() req: express.Request): Promise<AppListResponse> {
-    if (!req.user?.isAdmin) {
+    if (!req.user) {
       throw new UnauthorizedException()
     }
     const apps = await this.appService.getApps()

@@ -1,7 +1,11 @@
 # use the official Bun image
 # see all versions at https://hub.docker.com/r/oven/bun/tags
-FROM oven/bun:1.1.17-alpine as local
+FROM oven/bun:1.1.21-alpine as local
 WORKDIR /usr/src/app
+RUN set -eux \
+  & apk add \
+  --no-cache \
+  ffmpeg
 
 FROM local AS test
 
@@ -13,6 +17,7 @@ RUN set -eux \
   --update-cache \
   --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
   --allow-untrusted \
+  ffmpeg \
   nodejs \
   yarn \
   && yarn set version berry

@@ -1,10 +1,12 @@
 import type { OnModuleInit } from '@nestjs/common'
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common'
+import nestJsConfig from '@nestjs/config'
 import { ModuleRef } from '@nestjs/core'
 import type { ConnectedAppInstance } from '@stellariscloud/types'
 import * as r from 'runtypes'
-import { Server, Socket } from 'socket.io'
+import { Namespace, Socket } from 'socket.io'
 import { AppService } from 'src/app/services/app.service'
+import { redisConfig } from 'src/cache/redis.config'
 import { RedisService } from 'src/cache/redis.service'
 
 import { JWTService } from '../../auth/services/jwt.service'
@@ -15,12 +17,24 @@ const AppAuthPayload = r.Record({
   eventSubscriptionKeys: r.Array(r.String),
 })
 
+const REDIS_APP_WORKER_INFO_PREFIX = 'APP_WORKER'
+
 @Injectable()
 export class AppSocketService implements OnModuleInit {
   private readonly connectedClients: Map<string, Socket> = new Map()
-  private server: Server
-  setServer(server: Server) {
-    this.server = server
+  private readonly connectedAppWorkers: Map<
+    string,
+    {
+      appIdentifier: string
+      socketClientId: string
+      name: string
+      ip: string
+    }
+  > = new Map()
+
+  private namespace: Namespace
+  setNamespace(namespace: Namespace) {
+    this.namespace = namespace
   }
 
   private appService: AppService
@@ -29,6 +43,8 @@ export class AppSocketService implements OnModuleInit {
     private readonly moduleRef: ModuleRef,
     private readonly jwtService: JWTService,
     private readonly redisService: RedisService,
+    @Inject(redisConfig.KEY)
+    private readonly _redisConfig: nestJsConfig.ConfigType<typeof redisConfig>,
   ) {}
 
   async handleConnection(socket: Socket): Promise<void> {
@@ -37,7 +53,6 @@ export class AppSocketService implements OnModuleInit {
       socket.client.conn.remoteAddress,
     )
 
-    // console.log('SERVER SOCKET handleConnection:', socket)
     const clientId = socket.id
     this.connectedClients.set(clientId, socket)
     socket.on('disconnect', () => {
@@ -78,18 +93,22 @@ export class AppSocketService implements OnModuleInit {
         socket.disconnect(true)
         throw new UnauthorizedException()
       }
-
-      // persist worker state to redis
-      const workerRedisStateKey = `APP_WORKER:${appIdentifier}:${auth.appWorkerId}`
-      void this.redisService.client.SET(
-        workerRedisStateKey,
-        JSON.stringify({
-          appIdentifier,
-          socketClientId: socket.id,
-          name: auth.appWorkerId,
-          ip: socket.handshake.address,
-        }),
-      )
+      const workerInfo = {
+        appIdentifier,
+        socketClientId: socket.id,
+        name: auth.appWorkerId,
+        ip: socket.handshake.address,
+      }
+      const workerCacheKey = `${appIdentifier}:${auth.appWorkerId}`
+      if (this._redisConfig.enabled) {
+        // persist worker state to redis
+        void this.redisService.client.SET(
+          `${REDIS_APP_WORKER_INFO_PREFIX}:${workerCacheKey}`,
+          JSON.stringify(workerInfo),
+        )
+      } else {
+        this.connectedAppWorkers.set(workerCacheKey, workerInfo)
+      }
 
       // register listener for requests from the app
       socket.on('APP_API', async (message, ack) => {
@@ -102,14 +121,19 @@ export class AppSocketService implements OnModuleInit {
       })
 
       socket.on('disconnect', () => {
-        // remove client state from redis
-        console.log('Removing worker state from redis...')
-        void this.redisService.client.del(workerRedisStateKey)
+        if (this._redisConfig.enabled) {
+          void this.redisService.client.del(
+            `${REDIS_APP_WORKER_INFO_PREFIX}:${workerCacheKey}`,
+          )
+        } else {
+          this.connectedAppWorkers.delete(workerCacheKey)
+        }
       })
       // add the clients to the rooms corresponding to their subscriptions
       await Promise.all(
         auth.eventSubscriptionKeys.map((eventKey) => {
-          const roomKey = `app:${appIdentifier}__event:${eventKey}`
+          const roomKey = this.getRoomKeyForAppAndEvent(appIdentifier, eventKey)
+          console.log('App worker joining room:', roomKey)
           return socket.join(roomKey)
         }),
       )
@@ -125,14 +149,18 @@ export class AppSocketService implements OnModuleInit {
     this.appService = this.moduleRef.get(AppService)
   }
 
+  getRoomKeyForAppAndEvent(appIdentifier: string, eventKey: string) {
+    const roomKey = `app:${appIdentifier}__event:${eventKey}`
+    return roomKey
+  }
+
   notifyAppWorkersOfPendingEvents(
-    appId: string,
+    appIdentifier: string,
     eventKey: string,
     count: number,
   ) {
-    const roomKey = `app:${appId}__event:${eventKey}`
-    this.server
-      .to(roomKey)
+    this.namespace
+      .to(this.getRoomKeyForAppAndEvent(appIdentifier, eventKey))
       .emit('PENDING_EVENTS_NOTIFICATION', { eventKey, count })
   }
 
@@ -145,7 +173,7 @@ export class AppSocketService implements OnModuleInit {
     while (!started || cursor !== 0) {
       started = true
       const scanResult = await this.redisService.client.scan(cursor, {
-        MATCH: 'APP_WORKER:*',
+        MATCH: `${REDIS_APP_WORKER_INFO_PREFIX}:*`,
         TYPE: 'string',
         COUNT: 10000,
       })

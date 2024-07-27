@@ -14,9 +14,9 @@ import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
 import { EventDTO } from '../dto/event.dto'
+import { EventsListQueryParamsDTO } from '../dto/events-list-query-params.dto'
 import { EventGetResponse } from '../dto/responses/event-get-response.dto'
 import { EventListResponse } from '../dto/responses/event-list-response.dto'
-import { EventsListQueryParamsDTO } from '../dto/events-list-query-params.dto'
 import { EventService } from '../services/event.service'
 import { transformEventToDTO } from '../transforms/event.transforms'
 

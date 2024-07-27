@@ -11,7 +11,6 @@ import { ServerSettingsScreen } from './server-settings-screen/server-settings-s
 import { ServerStorageConfig } from './server-storage-config-screen/server-storage-config-screen.view'
 import { ServerTabs } from './server-tabs'
 import { ServerEventsScreen } from './server-events-screen/server-events-screen.view'
-import { ServerLogEntriesScreen } from './server-log-entries-screen/server-log-entries-screen.view'
 
 export function ServerScreen() {
   const router = useRouter()
@@ -46,7 +45,6 @@ export function ServerScreen() {
               <ServerOverview serverInfo={SERVER_INFO} />
             )}
             {activeTab === 'users' && <ServerUsersScreen />}
-            {activeTab === 'logs' && <ServerLogEntriesScreen />}
             {activeTab === 'events' && <ServerEventsScreen />}
             {activeTab === 'storage' && <ServerStorageConfig />}
             {activeTab === 'apps' && <ServerAppsScreen />}

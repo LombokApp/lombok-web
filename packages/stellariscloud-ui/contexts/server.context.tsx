@@ -1,4 +1,8 @@
-import type { AppMenuItem, AppPushMessage } from '@stellariscloud/types'
+import type {
+  AppAction,
+  AppMenuItem,
+  AppPushMessage,
+} from '@stellariscloud/types'
 import { ServerPushMessage } from '@stellariscloud/types'
 import React from 'react'
 import type { Socket } from 'socket.io-client'
@@ -12,11 +16,13 @@ import {
   SettingsGetResponse,
   SettingsGetResponseSettings,
 } from '@stellariscloud/api-client'
+import { useAuthContext } from '@stellariscloud/auth-utils'
 
 export interface IServerContext {
   refreshApps: () => Promise<void>
   refreshSettings: () => Promise<void>
   menuItems: AppMenuItemAndHref[]
+  appFolderActions: { action: AppAction; appIdentifier: string }[]
   settings?: SettingsGetResponseSettings
   apps?: AppListResponse
   subscribeToMessages: (handler: SocketMessageHandler) => void
@@ -56,14 +62,19 @@ export const ServerContextProvider = ({
   const [serverSettings, setServerSettings] =
     React.useState<SettingsGetResponseSettings>()
   const [menuItems, setMenuItems] = React.useState<AppMenuItemAndHref[]>()
+  const [appFolderActions, setAppFolderActions] =
+    React.useState<{ action: AppAction; appIdentifier: string }[]>()
   const [serverApps, setServerApps] = React.useState<AppListResponse>()
+  const authContext = useAuthContext()
 
   const fetchServerSettings = React.useCallback(
     () =>
-      apiClient.serverApi
-        .getServerSettings()
-        .then((response) => setServerSettings(response.data.settings)),
-    [],
+      authContext.viewer?.isAdmin
+        ? apiClient.serverApi
+            .getServerSettings()
+            .then((response) => setServerSettings(response.data.settings))
+        : Promise.reject('Not admin.'),
+    [authContext.viewer?.isAdmin],
   )
 
   const fetchServerApps = React.useCallback(
@@ -85,6 +96,18 @@ export const ServerContextProvider = ({
             },
             [],
           ),
+        )
+        setAppFolderActions(
+          response.data.installed.result.reduce<
+            { action: AppAction; appIdentifier: string }[]
+          >((acc, next) => {
+            return acc.concat(
+              next.config.actions.object.map((item) => ({
+                action: item,
+                appIdentifier: next.identifier,
+              })),
+            )
+          }, []),
         )
       }),
     [],
@@ -126,6 +149,7 @@ export const ServerContextProvider = ({
         refreshSettings: fetchServerSettings,
         socketConnected,
         menuItems: menuItems ?? [],
+        appFolderActions: appFolderActions ?? [],
         settings: serverSettings,
         apps: serverApps,
         subscribeToMessages,

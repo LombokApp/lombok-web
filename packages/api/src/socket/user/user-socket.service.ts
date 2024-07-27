@@ -2,12 +2,11 @@ import type { OnModuleInit } from '@nestjs/common'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { UserPushMessage } from '@stellariscloud/types'
 import * as r from 'runtypes'
-import { Server, Socket } from 'socket.io'
+import { Namespace, Socket } from 'socket.io'
 
 import { AccessTokenJWT, JWTService } from '../../auth/services/jwt.service'
 
 const UserAuthPayload = r.Record({
-  userId: r.String,
   token: r.String,
 })
 
@@ -15,9 +14,9 @@ const UserAuthPayload = r.Record({
 export class UserSocketService implements OnModuleInit {
   private readonly connectedClients: Map<string, Socket> = new Map()
 
-  private server: Server
-  setServer(server: Server) {
-    this.server = server
+  private namespace: Namespace
+  setNamespace(namespace: Namespace) {
+    this.namespace = namespace
   }
 
   constructor(private readonly jwtService: JWTService) {}
@@ -64,6 +63,6 @@ export class UserSocketService implements OnModuleInit {
   onModuleInit() {}
 
   sendToUserRoom(userId: string, name: UserPushMessage, msg: any) {
-    this.server.to(`user:${userId}`).emit(name, msg)
+    this.namespace.to(`user:${userId}`).emit(name, msg)
   }
 }

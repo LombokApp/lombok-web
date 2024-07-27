@@ -19,6 +19,7 @@
     "dev:docker:services": "docker compose --env-file \"./packages/api/.env\" up db redis",
     "dev:docker:down": "docker compose --env-file \"./packages/api/.env\" down",
     "dev:docker:api:kill": "docker compose --env-file \"./packages/api/.env\" kill api",
+    "dev:docker:api:down": "docker compose --env-file \"./packages/api/.env\" down api",
     "dev:docker:kill": "docker compose --env-file \"./packages/api/.env\" kill",
     "dev:check-all": "sh ./cmd/dev-check-all.sh",
     "api:dev": "bun --cwd packages/api dev"
@@ -41,8 +42,5 @@
     "prettier": "3.3.2",
     "ts-node": "10.9.2",
     "ts-node-dev": "2.0.0"
-  },
-  "engines": {
-    "node": "18"
   }
 }

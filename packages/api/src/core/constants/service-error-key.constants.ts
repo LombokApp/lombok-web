@@ -15,6 +15,7 @@ export enum ServiceErrorKey {
   UserIdentityConflict = 'user.identityConflict',
 
   FolderNotFound = 'folder.notFound',
+  FolderLocationNotFound = 'folderLocation.notFound',
   FolderForbidden = 'folder.notAuthorized',
   FolderInvalid = 'folder.invalid',
   FolderShareNotFound = 'folderShare.notFound',

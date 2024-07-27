@@ -1,6 +1,7 @@
 import { BullModule, getQueueToken } from '@nestjs/bullmq'
 import type { DynamicModule, OnModuleDestroy, Provider } from '@nestjs/common'
 import { Global, Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
 import { redisConfig } from 'src/cache/redis.config'
 import { QueueName } from 'src/queue/queue.constants'
 
@@ -56,6 +57,7 @@ const registeredQueues = registerQueues()
 @Global()
 @Module({
   imports: [
+    ConfigModule.forFeature(redisConfig),
     ...Object.keys(registeredQueues).map(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       (queueName) => registeredQueues[queueName]!,

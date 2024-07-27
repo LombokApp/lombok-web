@@ -20,6 +20,7 @@ import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { FolderDTO } from '../dto/folder.dto'
 import { FolderCreateInputDTO } from '../dto/folder-create-input.dto'
 import { FolderCreateSignedUrlInputDTO } from '../dto/folder-create-signed-url-input.dto'
+import { FolderHandleActionInputDTO } from '../dto/folder-handle-action-input.dto'
 import { FolderObjectDTO } from '../dto/folder-object.dto'
 import { FolderObjectContentAttributesDTO } from '../dto/folder-object-content-attributes.dto'
 import { FolderObjectContentMetadataDTO } from '../dto/folder-object-content-metadata.dto'
@@ -271,5 +272,28 @@ export class FoldersController {
     return {
       folderObject,
     }
+  }
+
+  /**
+   * Handle folder action.
+   */
+  @Post('/:folderId/apps/:appIdentifier/actions/:actionKey')
+  async handleFolderAction(
+    @Req() req: express.Request,
+    @Param('folderId') folderId: string,
+    @Param('appIdentifier') appIdentifier: string,
+    @Param('actionKey') actionKey: string,
+    @Body() body: FolderHandleActionInputDTO,
+  ): Promise<void> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    await this.folderService.handleFolderAction(req.user, {
+      folderId,
+      actionKey,
+      actionParams: body.actionParams,
+      appIdentifier,
+      objectKey: body.objectKey,
+    })
   }
 }

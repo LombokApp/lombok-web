@@ -29,6 +29,7 @@ import { Queue } from 'bullmq'
 import { and, eq, like, sql } from 'drizzle-orm'
 import mime from 'mime'
 import * as r from 'runtypes'
+import { AppService } from 'src/app/services/app.service'
 import { parseSort } from 'src/core/utils/sort.util'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
@@ -50,6 +51,7 @@ import type { Folder } from '../entities/folder.entity'
 import { foldersTable } from '../entities/folder.entity'
 import type { FolderObject } from '../entities/folder-object.entity'
 import { folderObjectsTable } from '../entities/folder-object.entity'
+import { FolderLocationNotFoundException } from '../exceptions/folder-location-not-found.exception'
 import { FolderMetadataWriteUnauthorisedException } from '../exceptions/folder-metadata-write-unauthorized.exception'
 import { FolderNotFoundException } from '../exceptions/folder-not-found.exception'
 import { FolderObjectNotFoundException } from '../exceptions/folder-object-not-found.exception'
@@ -137,7 +139,10 @@ const ServerLocationPayloadRunType = r.Record({
 @Injectable()
 export class FolderService implements OnModuleInit {
   eventService: EventService
+  appService: AppService
   constructor(
+    @Inject(forwardRef(() => AppService))
+    private readonly _appService,
     private readonly folderSocketService: FolderSocketService,
     private readonly s3Service: S3Service,
     @Inject(forwardRef(() => EventService))
@@ -153,6 +158,7 @@ export class FolderService implements OnModuleInit {
     private readonly userService: UserService,
   ) {
     this.eventService = _eventService
+    this.appService = _appService
   }
 
   onModuleInit() {
@@ -582,44 +588,48 @@ export class FolderService implements OnModuleInit {
         ) {
           throw new FolderObjectNotFoundException()
         }
+        try {
+          const { isMetadataIdentifier, objectKey, metadataHash } =
+            objectIdentifierToObjectKey(urlRequest.objectIdentifier)
+          const absoluteObjectKey = isMetadataIdentifier
+            ? `${folder.metadataLocation.prefix}${folder.metadataLocation.prefix.length > 0 && !folder.metadataLocation.prefix.endsWith('/') ? '/' : ''}${objectKey}/${metadataHash}`
+            : `${folder.contentLocation.prefix}${folder.contentLocation.prefix.length > 0 && !folder.contentLocation.prefix.endsWith('/') ? '/' : ''}${objectKey}`
 
-        const { isMetadataIdentifier, objectKey } = objectIdentifierToObjectKey(
-          urlRequest.objectIdentifier,
-        )
+          // deny access to write operations for anyone without edit perms
+          if (
+            [
+              SignedURLsRequestMethod.DELETE,
+              SignedURLsRequestMethod.PUT,
+            ].includes(urlRequest.method) &&
+            !permissions.includes(FolderPermissionEnum.OBJECT_EDIT)
+          ) {
+            throw new FolderPermissionUnauthorizedException()
+          }
 
-        const absoluteObjectKey = isMetadataIdentifier
-          ? `${folder.metadataLocation.prefix}${folder.metadataLocation.prefix.length > 0 && !folder.metadataLocation.prefix.endsWith('/') ? '/' : ''}${objectKey}`
-          : `${folder.contentLocation.prefix}${folder.contentLocation.prefix.length > 0 && !folder.contentLocation.prefix.endsWith('/') ? '/' : ''}${objectKey}`
+          // deny all write operations for metadata
+          if (
+            isMetadataIdentifier &&
+            urlRequest.method !== SignedURLsRequestMethod.GET
+          ) {
+            throw new FolderMetadataWriteUnauthorisedException()
+          }
 
-        // deny access to write operations for anyone without edit perms
-        if (
-          [
-            SignedURLsRequestMethod.DELETE,
-            SignedURLsRequestMethod.PUT,
-          ].includes(urlRequest.method) &&
-          !permissions.includes(FolderPermissionEnum.OBJECT_EDIT)
-        ) {
-          throw new FolderPermissionUnauthorizedException()
-        }
-
-        // deny all write operations for metadata
-        if (
-          urlRequest.method !== SignedURLsRequestMethod.GET &&
-          isMetadataIdentifier
-        ) {
-          throw new FolderMetadataWriteUnauthorisedException()
-        }
-
-        return {
-          ...(isMetadataIdentifier
-            ? folder.metadataLocation
-            : folder.contentLocation),
-          region: isMetadataIdentifier
-            ? folder.metadataLocation.region
-            : folder.contentLocation.region,
-          method: urlRequest.method,
-          objectKey: absoluteObjectKey,
-          expirySeconds: 3600,
+          return {
+            ...(isMetadataIdentifier
+              ? folder.metadataLocation
+              : folder.contentLocation),
+            region: isMetadataIdentifier
+              ? folder.metadataLocation.region
+              : folder.contentLocation.region,
+            method: urlRequest.method,
+            objectKey: absoluteObjectKey,
+            expirySeconds: 3600,
+          }
+        } catch (e) {
+          if (e.constructor.name === 'BadObjectIdentifierError') {
+            throw new FolderLocationNotFoundException()
+          }
+          throw e
         }
       }),
     )
@@ -734,6 +744,8 @@ export class FolderService implements OnModuleInit {
       )
     }
 
+    const absoluteObjectKey = `${contentStorageLocation.prefix}${contentStorageLocation.prefix.endsWith('/') ? '' : '/'}${objectKey}`
+
     const s3Client = configureS3Client({
       accessKeyId: contentStorageLocation.accessKeyId,
       secretAccessKey: contentStorageLocation.secretAccessKey,
@@ -744,10 +756,43 @@ export class FolderService implements OnModuleInit {
     const response = await this.s3Service.s3HeadObject({
       s3Client,
       bucketName: contentStorageLocation.bucket,
-      objectKey,
+      objectKey: absoluteObjectKey,
       eTag,
     })
     return this.updateFolderObjectInDB(folderId, objectKey, response)
+  }
+
+  async handleFolderAction(
+    actor: User,
+    {
+      folderId,
+      appIdentifier,
+      actionKey,
+      actionParams,
+      objectKey,
+    }: {
+      folderId: string
+      appIdentifier: string
+      actionKey: string
+      actionParams: any
+      objectKey?: string
+    },
+  ): Promise<void> {
+    const _folderAndPermissions = await this.getFolderAsUser(actor, folderId)
+    // console.log('Handling Action:', {
+    //   actionKey,
+    //   folderId,
+    //   appIdentifier,
+    //   actionParams,
+    //   objectKey,
+    // })
+    await this.eventService.emitEvent({
+      appIdentifier,
+      locationContext: folderId ? { folderId, objectKey } : undefined,
+      userId: actor.id,
+      data: { params: actionParams },
+      eventKey: actionKey,
+    })
   }
 
   async updateFolderObjectInDB(
@@ -815,6 +860,10 @@ export class FolderService implements OnModuleInit {
     await this.eventService.emitEvent({
       appIdentifier: 'core',
       eventKey: previousRecord ? 'CORE:OBJECT_UPDATED' : 'CORE:OBJECT_ADDED',
+      locationContext: {
+        folderId: record.folderId,
+        objectKey: record.objectKey,
+      },
       data: record,
     })
 
@@ -859,7 +908,7 @@ export class FolderService implements OnModuleInit {
       )[0]
       this.folderSocketService.sendToFolderRoom(
         folderId,
-        FolderPushMessage.OBJECTS_UPDATED,
+        FolderPushMessage.OBJECT_UPDATED,
         updatedObject,
       )
     }

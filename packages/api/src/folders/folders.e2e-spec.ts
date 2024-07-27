@@ -469,19 +469,19 @@ describe('Folders', () => {
           },
           {
             method: 'GET',
-            objectIdentifier: 'metadata:someobjectkey',
+            objectIdentifier: 'metadata:someobjectkey:somehash',
           },
         ],
       })
 
     expect(presignedUrls.status).toBe(201)
 
-    const expectedContentUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}${folderCreateResponse.data.folder.id}/.content/someobjectkey`
+    const expectedContentUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}${folderCreateResponse.data.folder.id}/.content/someobjectkey?`
     expect(
       presignedUrls.data.urls[0].slice(0, expectedContentUrlPrefix.length),
     ).toBe(expectedContentUrlPrefix)
 
-    const expectedMetadataUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}${folderCreateResponse.data.folder.id}/.content/.stellaris_folder_metadata_${folderCreateResponse.data.folder.id}/someobjectkey`
+    const expectedMetadataUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}${folderCreateResponse.data.folder.id}/.content/.stellaris_folder_metadata_${folderCreateResponse.data.folder.id}/someobjectkey/somehash`
     expect(
       presignedUrls.data.urls[1].slice(0, expectedMetadataUrlPrefix.length),
     ).toBe(expectedMetadataUrlPrefix)
@@ -524,7 +524,7 @@ describe('Folders', () => {
           },
           {
             method: 'GET',
-            objectIdentifier: 'metadata:someobjectkey',
+            objectIdentifier: 'metadata:someobjectkey:somehash',
           },
         ],
       })
@@ -536,7 +536,7 @@ describe('Folders', () => {
       presignedUrls.data.urls[0].slice(0, expectedContentUrlPrefix.length),
     ).toBe(expectedContentUrlPrefix)
 
-    const expectedMetadataUrlPrefix = `https://endpointexample.com/somebucket/.stellaris_folder_metadata_${folderCreateResponse.data.folder.id}/someobjectkey`
+    const expectedMetadataUrlPrefix = `https://endpointexample.com/somebucket/.stellaris_folder_metadata_${folderCreateResponse.data.folder.id}/someobjectkey/somehash?`
     expect(
       presignedUrls.data.urls[1].slice(0, expectedMetadataUrlPrefix.length),
     ).toBe(expectedMetadataUrlPrefix)
@@ -587,19 +587,18 @@ describe('Folders', () => {
           },
           {
             method: 'GET',
-            objectIdentifier: 'metadata:someobjectkey',
+            objectIdentifier: 'metadata:someobjectkey:somehash',
           },
         ],
       })
 
     expect(presignedUrls.status).toBe(201)
 
-    const expectedContentUrlPrefix = `https://endpointexample.com/somebucket/someobjectkey`
+    const expectedContentUrlPrefix = `https://endpointexample.com/somebucket/someobjectkey?`
     expect(
       presignedUrls.data.urls[0].slice(0, expectedContentUrlPrefix.length),
     ).toBe(expectedContentUrlPrefix)
-
-    const expectedMetadataUrlPrefix = `https://metadatatestexample.com/metadatatestbucket/someobjectkey`
+    const expectedMetadataUrlPrefix = `https://metadatatestexample.com/metadatatestbucket/someobjectkey/somehash?`
     expect(
       presignedUrls.data.urls[1].slice(0, expectedMetadataUrlPrefix.length),
     ).toBe(expectedMetadataUrlPrefix)
@@ -645,7 +644,7 @@ describe('Folders', () => {
         folderCreateSignedUrlInputDTOInner: [
           {
             method: 'GET',
-            objectIdentifier: 'metadata:someobjectkey',
+            objectIdentifier: 'metadata:someobjectkey:somehash',
           },
         ],
       })
@@ -658,7 +657,7 @@ describe('Folders', () => {
         folderCreateSignedUrlInputDTOInner: [
           {
             method: 'PUT',
-            objectIdentifier: 'metadata:someobjectkey',
+            objectIdentifier: 'metadata:someobjectkey:somehash',
           },
         ],
       })
@@ -672,7 +671,7 @@ describe('Folders', () => {
         folderCreateSignedUrlInputDTOInner: [
           {
             method: 'DELETE',
-            objectIdentifier: 'metadata:someobjectkey',
+            objectIdentifier: 'metadata:someobjectkey:somehash',
           },
         ],
       })

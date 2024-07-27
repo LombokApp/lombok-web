@@ -13,11 +13,11 @@ export class NotifyPendingEventsProcessor extends BaseProcessor {
 
   // eslint-disable-next-line @typescript-eslint/require-await
   async process(
-    job: Job<{ appId: string; eventKey: string; eventCount: number }>,
+    job: Job<{ appIdentifier: string; eventKey: string; eventCount: number }>,
   ): Promise<void> {
     console.log('Runnning notifyAppWorkersOfPendingEvents:', job.data)
     this.appSocketService.notifyAppWorkersOfPendingEvents(
-      job.data.appId,
+      job.data.appIdentifier,
       job.data.eventKey,
       job.data.eventCount,
     )

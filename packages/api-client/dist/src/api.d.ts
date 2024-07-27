@@ -283,39 +283,45 @@ export interface EventDTO {
     'eventKey': string;
     /**
      *
-     * @type {EventDTOData}
+     * @type {any}
      * @memberof EventDTO
      */
-    'data': EventDTOData;
+    'appIdentifier': any;
+    /**
+     *
+     * @type {EventDTOLocationContext}
+     * @memberof EventDTO
+     */
+    'locationContext'?: EventDTOLocationContext;
+    /**
+     *
+     * @type {any}
+     * @memberof EventDTO
+     */
+    'data'?: any;
     /**
      *
      * @type {string}
      * @memberof EventDTO
      */
     'createdAt': string;
-    /**
-     *
-     * @type {string}
-     * @memberof EventDTO
-     */
-    'updatedAt': string;
 }
 /**
  *
  * @export
- * @interface EventDTOData
+ * @interface EventDTOLocationContext
  */
-export interface EventDTOData {
+export interface EventDTOLocationContext {
     /**
      *
      * @type {string}
-     * @memberof EventDTOData
+     * @memberof EventDTOLocationContext
      */
     'folderId': string;
     /**
      *
      * @type {string}
-     * @memberof EventDTOData
+     * @memberof EventDTOLocationContext
      */
     'objectKey'?: string;
 }
@@ -352,22 +358,28 @@ export interface EventGetResponseEvent {
     'eventKey': string;
     /**
      *
-     * @type {EventDTOData}
+     * @type {any}
      * @memberof EventGetResponseEvent
      */
-    'data': EventDTOData;
+    'appIdentifier': any;
+    /**
+     *
+     * @type {EventDTOLocationContext}
+     * @memberof EventGetResponseEvent
+     */
+    'locationContext'?: EventDTOLocationContext;
+    /**
+     *
+     * @type {any}
+     * @memberof EventGetResponseEvent
+     */
+    'data'?: any;
     /**
      *
      * @type {string}
      * @memberof EventGetResponseEvent
      */
     'createdAt': string;
-    /**
-     *
-     * @type {string}
-     * @memberof EventGetResponseEvent
-     */
-    'updatedAt': string;
 }
 /**
  *
@@ -715,6 +727,25 @@ export interface FolderGetResponseFolder {
      * @memberof FolderGetResponseFolder
      */
     'contentLocation': FolderDTOMetadataLocation;
+}
+/**
+ *
+ * @export
+ * @interface FolderHandleActionInputDTO
+ */
+export interface FolderHandleActionInputDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof FolderHandleActionInputDTO
+     */
+    'objectKey'?: string;
+    /**
+     *
+     * @type {any}
+     * @memberof FolderHandleActionInputDTO
+     */
+    'actionParams'?: any;
 }
 /**
  *
@@ -1106,136 +1137,6 @@ export declare const FolderObjectListResponseResultInnerMediaTypeEnum: {
     readonly Unknown: "UNKNOWN";
 };
 export type FolderObjectListResponseResultInnerMediaTypeEnum = typeof FolderObjectListResponseResultInnerMediaTypeEnum[keyof typeof FolderObjectListResponseResultInnerMediaTypeEnum];
-/**
- *
- * @export
- * @interface LogEntryDTO
- */
-export interface LogEntryDTO {
-    /**
-     *
-     * @type {string}
-     * @memberof LogEntryDTO
-     */
-    'id': string;
-    /**
-     *
-     * @type {string}
-     * @memberof LogEntryDTO
-     */
-    'name': string;
-    /**
-     *
-     * @type {string}
-     * @memberof LogEntryDTO
-     */
-    'appIdentifier': string;
-    /**
-     *
-     * @type {string}
-     * @memberof LogEntryDTO
-     */
-    'message': string;
-    /**
-     *
-     * @type {any}
-     * @memberof LogEntryDTO
-     */
-    'data'?: any;
-    /**
-     *
-     * @type {string}
-     * @memberof LogEntryDTO
-     */
-    'level': string;
-    /**
-     *
-     * @type {string}
-     * @memberof LogEntryDTO
-     */
-    'createdAt': string;
-}
-/**
- *
- * @export
- * @interface LogEntryGetResponse
- */
-export interface LogEntryGetResponse {
-    /**
-     *
-     * @type {LogEntryGetResponseEvent}
-     * @memberof LogEntryGetResponse
-     */
-    'event': LogEntryGetResponseEvent;
-}
-/**
- *
- * @export
- * @interface LogEntryGetResponseEvent
- */
-export interface LogEntryGetResponseEvent {
-    /**
-     *
-     * @type {string}
-     * @memberof LogEntryGetResponseEvent
-     */
-    'id': string;
-    /**
-     *
-     * @type {string}
-     * @memberof LogEntryGetResponseEvent
-     */
-    'name': string;
-    /**
-     *
-     * @type {string}
-     * @memberof LogEntryGetResponseEvent
-     */
-    'appIdentifier': string;
-    /**
-     *
-     * @type {string}
-     * @memberof LogEntryGetResponseEvent
-     */
-    'message': string;
-    /**
-     *
-     * @type {any}
-     * @memberof LogEntryGetResponseEvent
-     */
-    'data'?: any;
-    /**
-     *
-     * @type {string}
-     * @memberof LogEntryGetResponseEvent
-     */
-    'level': string;
-    /**
-     *
-     * @type {string}
-     * @memberof LogEntryGetResponseEvent
-     */
-    'createdAt': string;
-}
-/**
- *
- * @export
- * @interface LogEntryListResponse
- */
-export interface LogEntryListResponse {
-    /**
-     *
-     * @type {UserListResponseMeta}
-     * @memberof LogEntryListResponse
-     */
-    'meta': UserListResponseMeta;
-    /**
-     *
-     * @type {Array<LogEntryGetResponseEvent>}
-     * @memberof LogEntryListResponse
-     */
-    'result': Array<LogEntryGetResponseEvent>;
-}
 /**
  *
  * @export
@@ -2302,6 +2203,16 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
     /**
      *
      * @param {string} folderId
+     * @param {string} appIdentifier
+     * @param {string} actionKey
+     * @param {FolderHandleActionInputDTO} folderHandleActionInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    handleFolderAction: (folderId: string, appIdentifier: string, actionKey: string, folderHandleActionInputDTO: FolderHandleActionInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} folderId
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {string} [search]
@@ -2393,6 +2304,16 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
     /**
      *
      * @param {string} folderId
+     * @param {string} appIdentifier
+     * @param {string} actionKey
+     * @param {FolderHandleActionInputDTO} folderHandleActionInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    handleFolderAction(folderId: string, appIdentifier: string, actionKey: string, folderHandleActionInputDTO: FolderHandleActionInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    /**
+     *
+     * @param {string} folderId
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {string} [search]
@@ -2478,6 +2399,13 @@ export declare const FoldersApiFactory: (configuration?: Configuration, basePath
      * @throws {RequiredError}
      */
     getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: AxiosRequestConfig): AxiosPromise<FolderObjectGetResponse>;
+    /**
+     *
+     * @param {FoldersApiHandleFolderActionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    handleFolderAction(requestParameters: FoldersApiHandleFolderActionRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
     /**
      *
      * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
@@ -2615,6 +2543,37 @@ export interface FoldersApiGetFolderObjectRequest {
      * @memberof FoldersApiGetFolderObject
      */
     readonly objectKey: string;
+}
+/**
+ * Request parameters for handleFolderAction operation in FoldersApi.
+ * @export
+ * @interface FoldersApiHandleFolderActionRequest
+ */
+export interface FoldersApiHandleFolderActionRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof FoldersApiHandleFolderAction
+     */
+    readonly folderId: string;
+    /**
+     *
+     * @type {string}
+     * @memberof FoldersApiHandleFolderAction
+     */
+    readonly appIdentifier: string;
+    /**
+     *
+     * @type {string}
+     * @memberof FoldersApiHandleFolderAction
+     */
+    readonly actionKey: string;
+    /**
+     *
+     * @type {FolderHandleActionInputDTO}
+     * @memberof FoldersApiHandleFolderAction
+     */
+    readonly folderHandleActionInputDTO: FolderHandleActionInputDTO;
 }
 /**
  * Request parameters for listFolderObjects operation in FoldersApi.
@@ -2763,6 +2722,14 @@ export declare class FoldersApi extends BaseAPI {
     getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderObjectGetResponse, any>>;
     /**
      *
+     * @param {FoldersApiHandleFolderActionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    handleFolderAction(requestParameters: FoldersApiHandleFolderActionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+    /**
+     *
      * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2793,107 +2760,6 @@ export declare class FoldersApi extends BaseAPI {
      * @memberof FoldersApi
      */
     rescanFolder(requestParameters: FoldersApiRescanFolderRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
-}
-/**
- * LogEntriesApi - axios parameter creator
- * @export
- */
-export declare const LogEntriesApiAxiosParamCreator: (configuration?: Configuration) => {
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getLogEntry: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {number} [offset]
-     * @param {number} [limit]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listLogEntries: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-};
-/**
- * LogEntriesApi - functional programming interface
- * @export
- */
-export declare const LogEntriesApiFp: (configuration?: Configuration) => {
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getLogEntry(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<LogEntryGetResponse>>;
-    /**
-     *
-     * @param {number} [offset]
-     * @param {number} [limit]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listLogEntries(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<LogEntryListResponse>>;
-};
-/**
- * LogEntriesApi - factory interface
- * @export
- */
-export declare const LogEntriesApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getLogEntry(options?: AxiosRequestConfig): AxiosPromise<LogEntryGetResponse>;
-    /**
-     *
-     * @param {LogEntriesApiListLogEntriesRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listLogEntries(requestParameters?: LogEntriesApiListLogEntriesRequest, options?: AxiosRequestConfig): AxiosPromise<LogEntryListResponse>;
-};
-/**
- * Request parameters for listLogEntries operation in LogEntriesApi.
- * @export
- * @interface LogEntriesApiListLogEntriesRequest
- */
-export interface LogEntriesApiListLogEntriesRequest {
-    /**
-     *
-     * @type {number}
-     * @memberof LogEntriesApiListLogEntries
-     */
-    readonly offset?: number;
-    /**
-     *
-     * @type {number}
-     * @memberof LogEntriesApiListLogEntries
-     */
-    readonly limit?: number;
-}
-/**
- * LogEntriesApi - object-oriented interface
- * @export
- * @class LogEntriesApi
- * @extends {BaseAPI}
- */
-export declare class LogEntriesApi extends BaseAPI {
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof LogEntriesApi
-     */
-    getLogEntry(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<LogEntryGetResponse, any>>;
-    /**
-     *
-     * @param {LogEntriesApiListLogEntriesRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof LogEntriesApi
-     */
-    listLogEntries(requestParameters?: LogEntriesApiListLogEntriesRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<LogEntryListResponse, any>>;
 }
 /**
  * ServerApi - axios parameter creator

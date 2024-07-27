@@ -4,12 +4,15 @@ import { z } from 'zod'
 export const eventSchema = z.object({
   id: z.string(),
   eventKey: z.string(),
-  data: z.object({
-    folderId: z.string(),
-    objectKey: z.string().optional(),
-  }),
+  appIdentifier: z.string().nullable(),
+  locationContext: z
+    .object({
+      folderId: z.string(),
+      objectKey: z.string().optional(),
+    })
+    .optional(),
+  data: z.any(),
   createdAt: z.date(),
-  updatedAt: z.date(),
 })
 
 export class EventDTO extends createZodDto(eventSchema) {}

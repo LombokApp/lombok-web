@@ -1,5 +1,5 @@
 {
-  "id": "52716465-8de8-4e91-ae64-05b9c464215d",
+  "id": "356ca32b-f569-4a95-a652-88a35da5dab4",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -156,20 +156,38 @@
           "primaryKey": false,
           "notNull": true
         },
+        "appIdentifier": {
+          "name": "appIdentifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "folderId": {
+          "name": "folderId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "objectKey": {
+          "name": "objectKey",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "data": {
           "name": "data",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "createdAt": {
           "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updatedAt": {
-          "name": "updatedAt",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true

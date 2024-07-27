@@ -8,7 +8,9 @@ const ServerPage: NextPage = () => {
   const authContext = useAuthContext()
   return (
     <div className="h-full w-full">
-      {authContext.authState.isAuthenticated && <ServerScreen />}
+      {authContext.authState.isAuthenticated && authContext.viewer?.isAdmin && (
+        <ServerScreen />
+      )}
     </div>
   )
 }

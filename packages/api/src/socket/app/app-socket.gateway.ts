@@ -24,7 +24,7 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
   constructor(private readonly appSocketService: AppSocketService) {}
 
   afterInit(namespace: Namespace) {
-    this.appSocketService.setServer(namespace.server)
+    this.appSocketService.setNamespace(namespace)
   }
 
   async handleConnection(socket: Socket): Promise<void> {

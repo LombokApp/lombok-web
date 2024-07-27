@@ -3,23 +3,23 @@ import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
 import { FolderPushMessage } from '@stellariscloud/types'
 import * as r from 'runtypes'
-import { Server, Socket } from 'socket.io'
+import { Namespace, Socket } from 'socket.io'
 import { FolderService } from 'src/folders/services/folder.service'
 import { UserService } from 'src/users/services/users.service'
 
 import { AccessTokenJWT, JWTService } from '../../auth/services/jwt.service'
 
 const UserAuthPayload = r.Record({
-  userId: r.String,
   token: r.String,
+  folderId: r.String,
 })
 
 @Injectable()
 export class FolderSocketService implements OnModuleInit {
   private readonly connectedClients: Map<string, Socket> = new Map()
-  private server: Server
-  setServer(server: Server) {
-    this.server = server
+  private namespace: Namespace
+  setNamespace(namespace: Namespace) {
+    this.namespace = namespace
   }
   private folderService: FolderService
 
@@ -30,7 +30,7 @@ export class FolderSocketService implements OnModuleInit {
   ) {}
 
   async handleConnection(socket: Socket): Promise<void> {
-    const folderId = socket.nsp.name.slice('/folders/'.length)
+    // const folderId = socket.nsp.name.slice('/folders/'.length)
     // console.log('FolderSocketService handleConnection:', folderId)
 
     const clientId = socket.id
@@ -43,6 +43,7 @@ export class FolderSocketService implements OnModuleInit {
     const auth = socket.handshake.auth
     // console.log('folder socket auth:', auth)
     if (UserAuthPayload.guard(auth)) {
+      const folderId = auth.folderId
       const token = auth.token
       if (typeof token !== 'string') {
         throw new UnauthorizedException()
@@ -89,18 +90,13 @@ export class FolderSocketService implements OnModuleInit {
   }
 
   sendToFolderRoom(folderId: string, name: FolderPushMessage, msg: any) {
-    // console
-    //   .log(
-    //     'this.server:',
-    //     typeof this.server,
-    //     this.server.constructor.name,
-    //   )
+    console.log('sendToFolderRoom:', { folderId, name, msg })
     // this.server?.to(this.getRoomId(folderId)).emit(name, msg)
     // console.log(
     //   'folderSocketGateway:',
     //   this.folderSocketGateway.namespace.server,
     // )
 
-    this.server.to(this.getRoomId(folderId)).emit(name, msg)
+    this.namespace.to(this.getRoomId(folderId)).emit(name, msg)
   }
 }

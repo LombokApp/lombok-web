@@ -684,6 +684,52 @@ export declare const schema: {
                 }];
             };
         };
+        readonly "/api/v1/folders/{folderId}/apps/{appIdentifier}/actions/{actionKey}": {
+            readonly post: {
+                readonly operationId: "handleFolderAction";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "appIdentifier";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "actionKey";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/FolderHandleActionInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Handle folder action.";
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
         readonly "/api/v1/server/settings": {
             readonly get: {
                 readonly operationId: "getServerSettings";
@@ -975,66 +1021,6 @@ export declare const schema: {
                     };
                 };
                 readonly tags: readonly ["Apps"];
-                readonly security: readonly [{
-                    readonly bearer: readonly [];
-                }];
-            };
-        };
-        readonly "/api/v1/log-entries/{logEntryId}": {
-            readonly get: {
-                readonly operationId: "getLogEntry";
-                readonly parameters: readonly [];
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Get an event by id.";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/LogEntryGetResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["LogEntries"];
-                readonly security: readonly [{
-                    readonly bearer: readonly [];
-                }];
-            };
-        };
-        readonly "/api/v1/log-entries": {
-            readonly get: {
-                readonly operationId: "listLogEntries";
-                readonly parameters: readonly [{
-                    readonly name: "offset";
-                    readonly required: false;
-                    readonly in: "query";
-                    readonly schema: {
-                        readonly type: "number";
-                    };
-                }, {
-                    readonly name: "limit";
-                    readonly required: false;
-                    readonly in: "query";
-                    readonly schema: {
-                        readonly minimum: 0;
-                        readonly exclusiveMinimum: true;
-                        readonly type: "number";
-                    };
-                }];
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "List events.";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/LogEntryListResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["LogEntries"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
@@ -2248,6 +2234,15 @@ export declare const schema: {
                 };
                 readonly required: readonly ["urls"];
             };
+            readonly FolderHandleActionInputDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly objectKey: {
+                        readonly type: "string";
+                    };
+                    readonly actionParams: {};
+                };
+            };
             readonly SettingsGetResponse: {
                 readonly type: "object";
                 readonly properties: {
@@ -2424,7 +2419,10 @@ export declare const schema: {
                     readonly eventKey: {
                         readonly type: "string";
                     };
-                    readonly data: {
+                    readonly appIdentifier: {
+                        readonly type: readonly ["string", "null"];
+                    };
+                    readonly locationContext: {
                         readonly type: "object";
                         readonly properties: {
                             readonly folderId: {
@@ -2436,16 +2434,13 @@ export declare const schema: {
                         };
                         readonly required: readonly ["folderId"];
                     };
+                    readonly data: {};
                     readonly createdAt: {
                         readonly type: "string";
                         readonly format: "date-time";
                     };
-                    readonly updatedAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
                 };
-                readonly required: readonly ["id", "eventKey", "data", "createdAt", "updatedAt"];
+                readonly required: readonly ["id", "eventKey", "appIdentifier", "createdAt"];
             };
             readonly EventGetResponse: {
                 readonly type: "object";
@@ -2459,7 +2454,10 @@ export declare const schema: {
                             readonly eventKey: {
                                 readonly type: "string";
                             };
-                            readonly data: {
+                            readonly appIdentifier: {
+                                readonly type: readonly ["string", "null"];
+                            };
+                            readonly locationContext: {
                                 readonly type: "object";
                                 readonly properties: {
                                     readonly folderId: {
@@ -2471,16 +2469,13 @@ export declare const schema: {
                                 };
                                 readonly required: readonly ["folderId"];
                             };
+                            readonly data: {};
                             readonly createdAt: {
                                 readonly type: "string";
                                 readonly format: "date-time";
                             };
-                            readonly updatedAt: {
-                                readonly type: "string";
-                                readonly format: "date-time";
-                            };
                         };
-                        readonly required: readonly ["id", "eventKey", "data", "createdAt", "updatedAt"];
+                        readonly required: readonly ["id", "eventKey", "appIdentifier", "createdAt"];
                     };
                 };
                 readonly required: readonly ["event"];
@@ -2508,7 +2503,10 @@ export declare const schema: {
                                 readonly eventKey: {
                                     readonly type: "string";
                                 };
-                                readonly data: {
+                                readonly appIdentifier: {
+                                    readonly type: readonly ["string", "null"];
+                                };
+                                readonly locationContext: {
                                     readonly type: "object";
                                     readonly properties: {
                                         readonly folderId: {
@@ -2520,16 +2518,13 @@ export declare const schema: {
                                     };
                                     readonly required: readonly ["folderId"];
                                 };
+                                readonly data: {};
                                 readonly createdAt: {
                                     readonly type: "string";
                                     readonly format: "date-time";
                                 };
-                                readonly updatedAt: {
-                                    readonly type: "string";
-                                    readonly format: "date-time";
-                                };
                             };
-                            readonly required: readonly ["id", "eventKey", "data", "createdAt", "updatedAt"];
+                            readonly required: readonly ["id", "eventKey", "appIdentifier", "createdAt"];
                         };
                     };
                 };
@@ -2699,108 +2694,6 @@ export declare const schema: {
                     };
                 };
                 readonly required: readonly ["installed", "connected"];
-            };
-            readonly LogEntryDTO: {
-                readonly type: "object";
-                readonly properties: {
-                    readonly id: {
-                        readonly type: "string";
-                    };
-                    readonly name: {
-                        readonly type: "string";
-                    };
-                    readonly appIdentifier: {
-                        readonly type: "string";
-                    };
-                    readonly message: {
-                        readonly type: "string";
-                    };
-                    readonly data: {};
-                    readonly level: {
-                        readonly type: "string";
-                    };
-                    readonly createdAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
-                };
-                readonly required: readonly ["id", "name", "appIdentifier", "message", "level", "createdAt"];
-            };
-            readonly LogEntryGetResponse: {
-                readonly type: "object";
-                readonly properties: {
-                    readonly event: {
-                        readonly type: "object";
-                        readonly properties: {
-                            readonly id: {
-                                readonly type: "string";
-                            };
-                            readonly name: {
-                                readonly type: "string";
-                            };
-                            readonly appIdentifier: {
-                                readonly type: "string";
-                            };
-                            readonly message: {
-                                readonly type: "string";
-                            };
-                            readonly data: {};
-                            readonly level: {
-                                readonly type: "string";
-                            };
-                            readonly createdAt: {
-                                readonly type: "string";
-                                readonly format: "date-time";
-                            };
-                        };
-                        readonly required: readonly ["id", "name", "appIdentifier", "message", "level", "createdAt"];
-                    };
-                };
-                readonly required: readonly ["event"];
-            };
-            readonly LogEntryListResponse: {
-                readonly type: "object";
-                readonly properties: {
-                    readonly meta: {
-                        readonly type: "object";
-                        readonly properties: {
-                            readonly totalCount: {
-                                readonly type: "number";
-                            };
-                        };
-                        readonly required: readonly ["totalCount"];
-                    };
-                    readonly result: {
-                        readonly type: "array";
-                        readonly items: {
-                            readonly type: "object";
-                            readonly properties: {
-                                readonly id: {
-                                    readonly type: "string";
-                                };
-                                readonly name: {
-                                    readonly type: "string";
-                                };
-                                readonly appIdentifier: {
-                                    readonly type: "string";
-                                };
-                                readonly message: {
-                                    readonly type: "string";
-                                };
-                                readonly data: {};
-                                readonly level: {
-                                    readonly type: "string";
-                                };
-                                readonly createdAt: {
-                                    readonly type: "string";
-                                    readonly format: "date-time";
-                                };
-                            };
-                            readonly required: readonly ["id", "name", "appIdentifier", "message", "level", "createdAt"];
-                        };
-                    };
-                };
-                readonly required: readonly ["meta", "result"];
             };
         };
     };

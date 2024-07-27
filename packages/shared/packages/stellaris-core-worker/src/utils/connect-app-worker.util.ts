@@ -194,6 +194,7 @@ export const connectAndPerformWork = (
     })
 
     socket.on('PENDING_EVENTS_NOTIFICATION', async (_data) => {
+      console.log('Worker for PENDING_EVENTS_NOTIFICATION!', _data)
       if (concurrentTasks < 10) {
         try {
           concurrentTasks++
@@ -207,6 +208,11 @@ export const connectAndPerformWork = (
             await eventHandlers[event.eventKey](event, serverClient)
               .then(() => serverClient.completeHandleEvent(event.id))
               .catch((e) => {
+                console.log(
+                  'APP_WORKER_EXECUTION_ERROR: %s - %s',
+                  e.name,
+                  e.message,
+                )
                 return serverClient.failHandleEvent(event.id, {
                   code:
                     e instanceof AppAPIError

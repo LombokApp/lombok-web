@@ -8,8 +8,10 @@ export const streamUploadFile = async (
   mimeType: string,
 ) => {
   const readmeStream = fs.createReadStream(filepath)
-  readmeStream.on('error', (e) => {
-    console.log(e)
+  readmeStream.on('error', (e: any) => {
+    if (e.isAxiosError) {
+      console.log({ status: e.status, json: e.toJSON() })
+    }
     throw e
   })
   const { size } = fs.statSync(filepath)
@@ -134,7 +136,10 @@ export const downloadFileToDisk = async (
           lastAnnounce = now
         }
       })
-      response.data.on('error', (e) => {
+      response.data.on('error', (e: any) => {
+        if (e.isAxiosError) {
+          console.log('Download error:', { status: e.status, json: e.toJSON() })
+        }
         throw e
       })
       await new Promise((resolve) => {

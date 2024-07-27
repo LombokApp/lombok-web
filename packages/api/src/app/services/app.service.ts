@@ -1,7 +1,5 @@
 import {
   forwardRef,
-  HttpException,
-  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
@@ -17,6 +15,7 @@ import * as r from 'runtypes'
 import { redisConfig } from 'src/cache/redis.config'
 import { RedisService } from 'src/cache/redis.service'
 import { readDirRecursive } from 'src/core/utils/fs.util'
+import { eventsTable } from 'src/event/entities/event.entity'
 import { eventReceiptsTable } from 'src/event/entities/event-receipt.entity'
 import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
 import { foldersTable } from 'src/folders/entities/folder.entity'
@@ -27,10 +26,8 @@ import { OrmService } from 'src/orm/orm.service'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
-import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
-import { logEntriesTable } from '../../log-entries/entities/log-entry.entity'
 import { appConfig } from '../config'
 import { AppSocketAPIRequest } from '../constants/app-api-messages'
 
@@ -42,10 +39,16 @@ export type MetadataUploadUrlsResponse = {
   url: string
 }[]
 
-const AppLogEntryValidator = r.Record({
+const LogEntryValidator = r.Record({
   name: r.String,
   message: r.String,
   level: r.String,
+  locationContext: r
+    .Record({
+      folderId: r.String,
+      objectKey: r.String.optional(),
+    })
+    .optional(),
   data: r.Unknown.optional(),
 })
 
@@ -159,14 +162,6 @@ export class AppService {
     this.folderService = _folderService
   }
 
-  async getAppAsAdmin(user: User, appIdentifier: string) {
-    if (!user.isAdmin) {
-      throw new HttpException('Not Found', HttpStatus.NOT_FOUND)
-    }
-
-    return this.getApp(appIdentifier)
-  }
-
   async getApp(appIdentifier: string): Promise<AppConfig | undefined> {
     const installedApps = await this.getApps()
     return appIdentifier in installedApps
@@ -184,12 +179,15 @@ export class AppService {
       const requestData = message.data
       switch (message.name) {
         case 'SAVE_LOG_ENTRY':
-          if (AppLogEntryValidator.guard(requestData)) {
-            await this.ormService.db.insert(logEntriesTable).values([
+          if (LogEntryValidator.guard(requestData)) {
+            await this.ormService.db.insert(eventsTable).values([
               {
                 ...requestData,
                 createdAt: now,
                 appIdentifier,
+                eventKey: `${appIdentifier.toUpperCase()}:LOG_ENTRY`,
+                // folderId: '',
+                // objectKey: '',
                 id: uuidV4(),
               },
             ])
@@ -331,8 +329,8 @@ export class AppService {
                     .returning()
                 )[0],
                 data: {
-                  folderId: eventReceipt.event.data.folderId,
-                  objectKey: eventReceipt.event.data.objectKey,
+                  folderId: eventReceipt.event.folderId,
+                  objectKey: eventReceipt.event.objectKey,
                 },
               },
             }
@@ -442,9 +440,11 @@ export class AppService {
           }
           return {
             method: request.method,
-            objectKey: `${
-              metadataLocation.prefix ? metadataLocation.prefix : ''
-            }${folder.id}/${request.objectKey}/${request.metadataHash}`,
+            objectKey: `${metadataLocation.prefix}${
+              metadataLocation.prefix && !metadataLocation.prefix.endsWith('/')
+                ? '/'
+                : ''
+            }${request.objectKey}/${request.metadataHash}`,
             accessKeyId: metadataLocation.accessKeyId,
             secretAccessKey: metadataLocation.secretAccessKey,
             bucket: metadataLocation.bucket,
@@ -569,12 +569,13 @@ export class AppService {
     }[] = []
 
     for (const folderId of folderIds) {
-      const folder = await this.ormService.db.query.foldersTable.findFirst(
-        {
-          where: eq(foldersTable.id, folderId),
+      const folder = await this.ormService.db.query.foldersTable.findFirst({
+        where: eq(foldersTable.id, folderId),
+        with: {
+          contentLocation: true,
+          metadataLocation: true,
         },
-        // { populate: ['contentLocation', 'metadataLocation'] },
-      )
+      })
       if (!folder) {
         throw new FolderNotFoundException()
       }
@@ -584,30 +585,18 @@ export class AppService {
         continue
       }
 
-      const contentLocation =
-        await this.ormService.db.query.storageLocationsTable.findFirst({
-          where: eq(storageLocationsTable.id, folder.metadataLocationId),
-        })
-
-      if (!contentLocation) {
-        throw new NotFoundException(
-          undefined,
-          `Storage location not found by id "${folder.metadataLocationId}"`,
-        )
-      }
-
       signedUrls = signedUrls.concat(
         this.s3Service
           .createS3PresignedUrls(
             folderRequests.map(({ method, objectKey }) => ({
               method,
-              objectKey,
-              accessKeyId: contentLocation.accessKeyId,
-              secretAccessKey: contentLocation.secretAccessKey,
-              bucket: contentLocation.bucket,
-              endpoint: contentLocation.endpoint,
+              objectKey: `${folder.contentLocation.prefix}${!folder.contentLocation.prefix || folder.contentLocation.prefix.endsWith('/') ? '' : '/'}${objectKey}`,
+              accessKeyId: folder.contentLocation.accessKeyId,
+              secretAccessKey: folder.contentLocation.secretAccessKey,
+              bucket: folder.contentLocation.bucket,
+              endpoint: folder.contentLocation.endpoint,
               expirySeconds: 3600,
-              region: contentLocation.region,
+              region: folder.contentLocation.region,
             })),
           )
           .map((url, i) => ({

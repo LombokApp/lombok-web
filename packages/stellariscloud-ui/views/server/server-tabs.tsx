@@ -42,12 +42,6 @@ export function ServerTabs({ activeTab }: { activeTab: string }) {
       href: '/server/events',
     },
     {
-      name: 'logs',
-      label: 'Logs',
-      icon: QueueListIcon,
-      href: '/server/logs',
-    },
-    {
       name: 'settings',
       label: 'Settings',
       icon: Cog8ToothIcon,

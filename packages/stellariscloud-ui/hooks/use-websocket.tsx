@@ -11,7 +11,11 @@ type MessageCallback = (msg: {
 
 const SOCKET_BASE_URL = process.env.NEXT_PUBLIC_SOCKET_BASE_URL ?? ''
 
-export const useWebsocket = (namespace: string, onMessage: MessageCallback) => {
+export const useWebsocket = (
+  namespace: string,
+  onMessage: MessageCallback,
+  authParams: { [key: string]: string } = {},
+) => {
   const [socketState, setSocketState] = React.useState<{
     socket?: Socket
     connected: boolean
@@ -38,7 +42,8 @@ export const useWebsocket = (namespace: string, onMessage: MessageCallback) => {
       void authContext.getAccessToken().then((token) => {
         const s = io(`${SOCKET_BASE_URL}/${namespace}`, {
           auth: {
-            userId: authContext.viewer?.id,
+            // userId: authContext.viewer?.id,
+            ...authParams,
             token,
           },
           reconnection: false,

@@ -27,12 +27,12 @@ export const objectAddedEventHandler = async (
     throw new AppAPIError('INVALID_EVENT', 'Missing event id.')
   }
 
-  if (!event.data.objectKey) {
-    throw new AppAPIError('INVALID_EVENT', 'Missing objectKey.')
-  }
-
   if (!event.data.folderId) {
     throw new AppAPIError('INVALID_EVENT', 'Missing folderId.')
+  }
+
+  if (!event.data.objectKey) {
+    throw new AppAPIError('INVALID_EVENT', 'Missing objectKey.')
   }
 
   const response = await server.getContentSignedUrls(

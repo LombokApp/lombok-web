@@ -13,7 +13,8 @@ const sql = postgres(
 
 async function main(): Promise<void> {
   const USER_1_ID = 'ad619a15-7326-44e9-a68b-0170a3cf4a94'
-  const USER_1_FOLDER_ID = '67137165-2df6-46a4-8770-ecc0deab39b5'
+  const USER_1_FOLDER_1_ID = '67137165-2df6-46a4-8770-ecc0deab39b5'
+  const USER_1_FOLDER_2_ID = 'ea09b961-f7e0-4a24-899d-fe398edabe01'
   const ADMIN_1_ID = '3bc93392-d38f-4a59-8668-c16c5a9f3250'
   const ADMIN_1_FOLDER_ID = 'b85646a9-3c5c-40c6-afe8-6035fdb827da'
   const db = drizzle(sql)
@@ -48,7 +49,10 @@ async function main(): Promise<void> {
 
   const data: NewUser[] = [admin, user]
 
-  function buildDevSeedLocation(userId: string): NewStorageLocation {
+  function buildDevSeedLocation(
+    userId: string,
+    prefix: string = '',
+  ): NewStorageLocation {
     return {
       id: uuidV4(),
       accessKeyId: '2ZpHPnybEUM0GtzD',
@@ -61,30 +65,39 @@ async function main(): Promise<void> {
       userId,
       createdAt: new Date('2023-11-01 22:49:00.93'),
       updatedAt: new Date('2023-11-01 22:49:00.93'),
-      prefix: '',
+      prefix,
     }
   }
 
   console.log('Seed start')
 
   const locations = [
-    buildDevSeedLocation(USER_1_ID),
+    buildDevSeedLocation(USER_1_ID, 'user-1-folder-1-prefix'),
+    buildDevSeedLocation(
+      USER_1_ID,
+      `user-1-folder-1-prefix/.stellaris_folder_metadata_${USER_1_FOLDER_1_ID}`,
+    ),
+    buildDevSeedLocation(USER_1_ID, 'user-1-folder-2-prefix'),
+    buildDevSeedLocation(
+      USER_1_ID,
+      `user-1-folder-2-prefix/.stellaris_folder_metadata_${USER_1_FOLDER_2_ID}`,
+    ),
+    buildDevSeedLocation(ADMIN_1_ID, 'admin-1-folder-1-prefix'),
+    buildDevSeedLocation(
+      ADMIN_1_ID,
+      `admin-1-folder-1-prefix/.stellaris_folder_metadata_${ADMIN_1_FOLDER_ID}`,
+    ),
     {
-      ...buildDevSeedLocation(USER_1_ID),
-      prefix: `.stellaris_folder_metadata_${uuidV4()}`,
-    },
-    buildDevSeedLocation(ADMIN_1_ID),
-    {
-      ...buildDevSeedLocation(ADMIN_1_ID),
-      prefix: `.stellaris_folder_metadata_${uuidV4()}`,
+      ...buildDevSeedLocation(ADMIN_1_ID, 'admin-1-folder-1-prefix'),
+      prefix: `.stellaris_folder_metadata_${ADMIN_1_FOLDER_ID}`,
     },
   ]
 
   await db.insert(usersTable).values(data)
   await db.insert(storageLocationsTable).values(locations)
   await db.insert(foldersTable).values({
-    id: USER_1_FOLDER_ID,
-    name: 'User1Folder',
+    id: USER_1_FOLDER_1_ID,
+    name: 'User1 Folder 1',
     contentLocationId: locations[0].id,
     metadataLocationId: locations[1].id,
     ownerId: USER_1_ID,
@@ -92,10 +105,19 @@ async function main(): Promise<void> {
     updatedAt: new Date('2023-11-01 22:49:00.93'),
   })
   await db.insert(foldersTable).values({
-    id: ADMIN_1_FOLDER_ID,
-    name: 'Admin1Folder',
+    id: USER_1_FOLDER_2_ID,
+    name: 'User1 Folder 2',
     contentLocationId: locations[2].id,
     metadataLocationId: locations[3].id,
+    ownerId: USER_1_ID,
+    createdAt: new Date('2023-11-01 22:49:00.93'),
+    updatedAt: new Date('2023-11-01 22:49:00.93'),
+  })
+  await db.insert(foldersTable).values({
+    id: ADMIN_1_FOLDER_ID,
+    name: 'Admin1 Folder',
+    contentLocationId: locations[4].id,
+    metadataLocationId: locations[5].id,
     ownerId: ADMIN_1_ID,
     createdAt: new Date('2023-11-01 22:49:00.93'),
     updatedAt: new Date('2023-11-01 22:49:00.93'),
