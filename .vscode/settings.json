@@ -1,26 +1,14 @@
 {
   "editor.formatOnSave": true,
   "editor.tabSize": 2,
-  "eslint.nodePath": ".yarn/sdks",
   "eslint.workingDirectories": [
     {
       "mode": "auto"
     }
   ],
-  "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
-  "search.exclude": {
-    "**/.yarn": true,
-    "**/.pnp.*": true
-  },
-  "typescript.enablePromptUseWorkspaceTsdk": true,
-  "typescript.preferences.importModuleSpecifier": "relative",
-  "typescript.tsdk": ".yarn/sdks/typescript/lib",
-  "typescript.tsserver.watchOptions": {
-    "watchFile": "useFsEventsOnParentDirectory",
-    "watchDirectory": "useFsEvents"
-  },
   "git.ignoreLimitWarning": true,
   "typescript.format.enable": false,
   "javascript.format.enable": false,
-  "prettier.requireConfig": true
+  "prettier.requireConfig": true,
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

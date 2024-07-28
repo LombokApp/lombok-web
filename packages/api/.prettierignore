@@ -1,6 +1,0 @@
-/.orm-cache
-/dist
-/src/generated
-/src/templates/*.hbs
-/src/orm/migrations/**/*.json
-/src/**/tracer.js

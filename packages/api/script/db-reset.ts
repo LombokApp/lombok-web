@@ -5,11 +5,11 @@ const sql = postgres(
 )
 
 async function main(): Promise<void> {
-  await sql`DROP SCHEMA public CASCADE;`
+  await sql`DROP SCHEMA IF EXISTS public CASCADE;`
   await sql`CREATE SCHEMA public;`
   await sql`GRANT ALL ON SCHEMA public TO public;`
 
-  await sql`DROP SCHEMA drizzle CASCADE;`
+  await sql`DROP SCHEMA IF EXISTS drizzle CASCADE;`
   await sql`CREATE SCHEMA drizzle;`
   await sql`GRANT ALL ON SCHEMA drizzle TO public;`
 }

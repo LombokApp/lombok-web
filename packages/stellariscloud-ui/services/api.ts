@@ -1,26 +1,17 @@
-import type * as apiClient from '@stellariscloud/api-client'
-import {
-  AuthApi,
-  FoldersApi,
-  ServerApi,
-  ViewerApi,
-} from '@stellariscloud/api-client'
-import type { ApiQueryHooks } from '@stellariscloud/api-utils'
-import { bindApiConfig } from '@stellariscloud/api-utils'
-import { Authenticator } from '@stellariscloud/auth-utils'
+import { StellarisCloudAppBrowserSdk } from '@stellariscloud/app-browser-sdk'
+import { StellarisCloudAPI } from '@stellariscloud/app-browser-sdk/src/app-browser-sdk'
+import type { ApiQueryHooks } from '@stellariscloud/auth-utils'
 import { capitalize } from '@stellariscloud/utils'
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
 import type { QueryFunctionContext } from 'react-query'
 import { useQuery } from 'react-query'
 
-export const authenticator = new Authenticator({
+export const sdkInstance = new StellarisCloudAppBrowserSdk({
   basePath: process.env.NEXT_PUBLIC_API_BASE_URL ?? '',
 })
 
 export const createQueryHooks = <
-  T extends InstanceType<
-    (typeof apiClient)[keyof typeof apiClient & `${string}Api`]
-  >,
+  T extends StellarisCloudAPI[keyof StellarisCloudAPI & `${string}Api`],
 >(
   api: T,
 ) => {
@@ -58,15 +49,9 @@ export const createQueryHooks = <
   return hooks as unknown as ApiQueryHooks<T>
 }
 
-const defaultConfig = {
-  basePath: process.env.NEXT_PUBLIC_API_BASE_URL,
-  accessToken: async () => (await authenticator.getAccessToken()) ?? '',
-}
+export const authApiHooks = createQueryHooks(sdkInstance.apiClient.authApi)
+export const foldersApiHooks = createQueryHooks(
+  sdkInstance.apiClient.foldersApi,
+)
 
-export const authApi = bindApiConfig(defaultConfig, AuthApi)()
-export const viewerApi = bindApiConfig(defaultConfig, ViewerApi)()
-export const foldersApi = bindApiConfig(defaultConfig, FoldersApi)()
-export const serverApi = bindApiConfig(defaultConfig, ServerApi)()
-
-export const authApiHooks = createQueryHooks(authApi)
-export const foldersApiHooks = createQueryHooks(foldersApi)
+export const apiClient = sdkInstance.apiClient

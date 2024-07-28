@@ -1,7 +1,6 @@
 import type {
-  ServerLocationData,
-  ServerLocationType,
-  UserLocationInputData,
+  StorageProvisionDTO,
+  StorageProvisionInputDTO,
 } from '@stellariscloud/api-client'
 import { FOLDER_NAME_VALIDATORS_COMBINED } from '@stellariscloud/utils'
 import React from 'react'
@@ -11,17 +10,17 @@ import { Button } from '../../design-system/button/button'
 import { ButtonDropdown } from '../../design-system/button-dropdown/button-dropdown'
 import { Input } from '../../design-system/input/input'
 import { useFormState } from '../../utils/forms'
-import type { LocationFormValues } from '../../views/server/server-storage-config/location-form-fields'
-import { LocationFormFields } from '../../views/server/server-storage-config/location-form-fields'
+import type { StorageProvisionFormValues } from '../../views/server/server-storage-config-screen/storage-provision-form-fields'
+import { StorageProvisionFormFields } from '../../views/server/server-storage-config-screen/storage-provision-form-fields'
 
 interface CreateFolderFormValues {
   name: string
-  contentLocation: UserLocationInputData
-  metadataLocation?: UserLocationInputData
+  contentLocation: StorageProvisionInputDTO
+  metadataLocation?: StorageProvisionInputDTO
 }
 
-const ServerLocationRecord = r.Record({
-  serverLocationId: r.String,
+const StorageProvisionRecord = r.Record({
+  storageProvisionId: r.String,
 })
 
 const CustomLocationRecord = r.Record({
@@ -41,50 +40,48 @@ const UserLocationRecord = r.Record({
 export const CreateFolderForm = ({
   onSubmit,
   onCancel,
-  serverLocations,
+  storageProvisions: storageProvisions,
 }: {
   onSubmit: (values: CreateFolderFormValues) => void
   onCancel: () => void
-  serverLocations: {
-    [ServerLocationType.Metadata]: ServerLocationData[]
-    [ServerLocationType.Content]: ServerLocationData[]
-    [ServerLocationType.Backup]: ServerLocationData[]
-  }
+  storageProvisions: StorageProvisionDTO[]
 }) => {
-  // const [newMetadataLocation, setNewMetadataLocation] = React.useState(false)
+  const [newMetadataLocation, setNewMetadataLocation] = React.useState(false)
   const [newContentLocation, setNewContentLocation] = React.useState(false)
   const form = useFormState({
     name: { validator: FOLDER_NAME_VALIDATORS_COMBINED },
     contentLocation: {
-      validator:
-        UserLocationRecord.Or(ServerLocationRecord).Or(CustomLocationRecord),
+      validator: UserLocationRecord.Or(StorageProvisionRecord).Or(
+        CustomLocationRecord,
+      ),
     },
     metadataLocation: {
-      validator: UserLocationRecord.Or(ServerLocationRecord)
+      validator: UserLocationRecord.Or(StorageProvisionRecord)
         .Or(CustomLocationRecord)
         .optional(),
     },
   })
 
-  const serverContentLocationValidation = ServerLocationRecord.validate(
+  const serverContentLocationValidation = StorageProvisionRecord.validate(
     form.values.contentLocation,
   )
   const selectedContentServerLocation = serverContentLocationValidation.success
-    ? serverLocations.USER_CONTENT.find(
-        (l) => l.id === serverContentLocationValidation.value.serverLocationId,
+    ? storageProvisions.find(
+        (l) =>
+          l.id === serverContentLocationValidation.value.storageProvisionId,
       )
     : undefined
 
-  // const serverMetadataLocationValidation = ServerLocationRecord.validate(
-  //   form.values.metadataLocation,
-  // )
-  // const selectedMetadataServerLocation =
-  //   serverMetadataLocationValidation.success
-  //     ? serverLocations.USER_METADATA.find(
-  //         (l) =>
-  //           l.id === serverMetadataLocationValidation.value.serverLocationId,
-  //       )
-  //     : undefined
+  const serverMetadataLocationValidation = StorageProvisionRecord.validate(
+    form.values.metadataLocation,
+  )
+  const selectedMetadataServerLocation =
+    serverMetadataLocationValidation.success
+      ? storageProvisions.find(
+          (l) =>
+            l.id === serverMetadataLocationValidation.value.storageProvisionId,
+        )
+      : undefined
 
   return (
     <div className="lg:min-w-[28rem] lg:max-w-[30rem] flex flex-col gap-4">
@@ -112,9 +109,12 @@ export const CreateFolderForm = ({
         </h3>
         {newContentLocation ? (
           <>
-            <LocationFormFields
+            <StorageProvisionFormFields
               onChange={({ value }) =>
-                form.setValue('contentLocation', value as LocationFormValues)
+                form.setValue(
+                  'contentLocation',
+                  value as StorageProvisionFormValues,
+                )
               }
             />
             <Button onClick={() => setNewContentLocation(false)}>Cancel</Button>
@@ -123,22 +123,70 @@ export const CreateFolderForm = ({
           <ButtonDropdown
             label={
               selectedContentServerLocation
-                ? selectedContentServerLocation.name
+                ? selectedContentServerLocation.label
                 : 'choose content location...'
             }
-            items={serverLocations.USER_CONTENT.map((l) => ({
-              name: l.name,
-              onClick: () =>
-                form.setValue('contentLocation', { serverLocationId: l.id }),
-            })).concat([
-              {
-                name: 'custom...',
-                onClick: () => setNewContentLocation(true),
-              },
-            ])}
+            items={storageProvisions
+              .map((l) => ({
+                name: l.label,
+                onClick: () =>
+                  form.setValue('contentLocation', {
+                    storageProvisionId: l.id,
+                  }),
+              }))
+              .concat([
+                {
+                  name: 'custom...',
+                  onClick: () => setNewContentLocation(true),
+                },
+              ])}
           />
         )}
       </div>
+      <div className="flex flex-col gap-4 justify-stretch">
+        <h3 className="font-semibold dark:text-gray-200">
+          <div className="flex justify-between">Metadata Location</div>
+        </h3>
+
+        {newMetadataLocation ? (
+          <>
+            <StorageProvisionFormFields
+              onChange={({ value }) =>
+                form.setValue(
+                  'metadataLocation',
+                  value as StorageProvisionFormValues,
+                )
+              }
+            />
+            <Button onClick={() => setNewMetadataLocation(false)}>
+              Cancel
+            </Button>
+          </>
+        ) : (
+          <ButtonDropdown
+            label={
+              selectedMetadataServerLocation
+                ? selectedMetadataServerLocation.label
+                : 'choose metadata location...'
+            }
+            items={storageProvisions
+              .map((l) => ({
+                name: l.label,
+                onClick: () =>
+                  form.setValue('metadataLocation', {
+                    storageProvisionId: l.id,
+                  }),
+              }))
+              .concat([
+                {
+                  name: 'add custom...',
+                  onClick: () => setNewMetadataLocation(true),
+                },
+              ])}
+          />
+        )}
+      </div>
+
       <div className="flex gap-2 justify-end">
         <Button onClick={onCancel}>Cancel</Button>
         <Button

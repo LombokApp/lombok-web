@@ -5,6 +5,7 @@ import '../fonts/inter/inter.css'
 import { Menu } from '@headlessui/react'
 import {
   ArrowRightOnRectangleIcon,
+  CubeIcon,
   FolderOpenIcon,
   ServerStackIcon,
 } from '@heroicons/react/24/outline'
@@ -22,10 +23,14 @@ import { Header } from '../components/header'
 import { ThemeSwitch } from '../components/theme-switch/theme-switch'
 import { LocalFileCacheContextProvider } from '../contexts/local-file-cache.context'
 import { LoggingContextProvider } from '../contexts/logging.context'
+import {
+  ServerContextProvider,
+  useServerContext,
+} from '../contexts/server.context'
 import { ThemeContextProvider } from '../contexts/theme.context'
 import { Avatar } from '../design-system/avatar'
 import { Icon } from '../design-system/icon'
-import { authenticator } from '../services/api'
+import { sdkInstance } from '../services/api'
 
 const queryClient = new QueryClient()
 
@@ -34,7 +39,6 @@ const SHOW_HEADER_ROUTES = ['/', '/sponsor', '/how-it-works', '/contact']
 const SIDEBAR_COLOR =
   // 'lg:bg-indigo-600 dark:lg:bg-indigo-800 transition duration-100'
   'bg-gradient-to-l from-indigo-900 to-indigo-950 dark:bg-gradient-to-r dark:from-blue-950 dark:to-indigo-950 transition duration-100'
-const _BODY_COLOR = 'bg-gray-100 dark:bg-indigo-950 transition duration-100'
 const BODY_GRADIENT =
   'bg-gray-100 transition duration-100 dark:bg-gradient-to-r dark:from-blue-950 dark:to-indigo-950'
 
@@ -85,8 +89,6 @@ const UnauthenticatedContent = ({ Component, pageProps }: AppProps) => {
       >
         <div className={clsx('relative h-full w-full flex')}>
           <div className="relative w-full">
-            {/* TODO: Fix this type issue on "AppProps['Component']" */}
-            {/* @ts-expect-error - some type issue with AppProps['Component']  */}
             <Component {...pageProps} />
           </div>
         </div>
@@ -107,6 +109,7 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
     void logout()
   }
   const router = useRouter()
+  const { menuItems } = useServerContext()
 
   React.useEffect(() => {
     if (
@@ -138,14 +141,16 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
   ]
 
   const userNavigation = [{ name: 'Your profile', href: '/profile' }]
-  const hideSidebar = SHOW_HEADER_ROUTES.includes(router.pathname)
+  const hideHeader = !SHOW_HEADER_ROUTES.includes(router.pathname)
+  const hideSidebar = !hideHeader
+  const scheme = 'http' //TODO: Fix!
 
+  // console.log('appUIs:', appUIs)
   return (
     <div className="h-full overflow-hidden">
       <div
         className={clsx(
-          SHOW_HEADER_ROUTES.includes(router.pathname) &&
-            'max-w-0 overflow-hidden opacity-0',
+          hideSidebar && 'max-w-0 overflow-hidden opacity-0',
           'hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-20 lg:overflow-y-auto lg:pb-4',
           SIDEBAR_COLOR,
         )}
@@ -183,6 +188,35 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
                           aria-hidden="true"
                         />
                         <span className="sr-only">{item.name}</span>
+                      </Link>
+                    </li>
+                  ))}
+                  {menuItems.map((item, i) => (
+                    <li key={i}>
+                      <Link
+                        href={item.href}
+                        className={clsx(
+                          router.pathname.startsWith(item.href)
+                            ? 'bg-white/10 text-white'
+                            : 'text-gray-400 hover:text-white hover:bg-white/10',
+                          'group flex gap-x-3 rounded-md p-1 text-sm leading-6 font-semibold',
+                        )}
+                      >
+                        {item.iconPath ? (
+                          <img
+                            className="rounded-lg bg-black/50"
+                            width={40}
+                            height={40}
+                            alt={item.label}
+                            src={`${scheme}://${item.uiName}.${item.appIdentifier}.apps.${process.env.NEXT_PUBLIC_API_HOST}${item.iconPath}`}
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <>
+                            <Icon size="md" icon={CubeIcon} />
+                          </>
+                        )}
+                        <span className="sr-only">{item.label}</span>
                       </Link>
                     </li>
                   ))}
@@ -229,15 +263,13 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
           !hideSidebar && 'lg:pl-20',
         )}
       >
-        {SHOW_HEADER_ROUTES.includes(router.pathname) && (
+        {!hideHeader && (
           <div className="w-full flex shrink-0 grow-0 absolute right-0 top-0 overflow-visible">
             <Header />
           </div>
         )}
 
         <main className={clsx('overflow-hidden flex-1', BODY_GRADIENT)}>
-          {/* TODO: Fix this type issue on "AppProps['Component']" */}
-          {/* @ts-expect-error - some type issue with AppProps['Component']  */}
           <Component {...pageProps} />
         </main>
       </div>
@@ -249,38 +281,40 @@ const Layout = (appProps: AppProps) => {
   const [loaded, setLoaded] = React.useState(false)
 
   const listener = React.useCallback(() => {
-    setLoaded(authenticator.state.isLoaded)
+    setLoaded(sdkInstance.authenticator.state.isLoaded)
   }, [])
 
   React.useEffect(() => {
-    authenticator.addEventListener('onStateChanged', listener)
+    sdkInstance.authenticator.addEventListener('onStateChanged', listener)
     return () => {
-      authenticator.removeEventListener('onStateChanged', listener)
+      sdkInstance.authenticator.removeEventListener('onStateChanged', listener)
     }
   }, [listener])
 
   return (
     <LoggingContextProvider>
       <QueryClientProvider client={queryClient}>
-        <AuthContextProvider authenticator={authenticator}>
-          <LocalFileCacheContextProvider>
-            <ThemeContextProvider>
-              <Head>
-                <meta
-                  name="viewport"
-                  content="initial-scale=1.0, width=device-width"
-                />
-                <link rel="icon" href="/favicon.ico" />
-              </Head>
-              <div className="w-full h-full" id="takeover-root">
-                {loaded && authenticator.state.isAuthenticated ? (
-                  <AuthenticatedContent {...appProps} />
-                ) : (
-                  <UnauthenticatedContent {...appProps} />
-                )}
-              </div>
-            </ThemeContextProvider>
-          </LocalFileCacheContextProvider>
+        <AuthContextProvider authenticator={sdkInstance.authenticator}>
+          <ThemeContextProvider>
+            <Head>
+              <meta
+                name="viewport"
+                content="initial-scale=1.0, width=device-width"
+              />
+              <link rel="icon" href="/favicon.ico" />
+            </Head>
+            <div className="w-full h-full" id="takeover-root">
+              {loaded && sdkInstance.authenticator.state.isAuthenticated ? (
+                <LocalFileCacheContextProvider>
+                  <ServerContextProvider>
+                    <AuthenticatedContent {...appProps} />
+                  </ServerContextProvider>
+                </LocalFileCacheContextProvider>
+              ) : (
+                <UnauthenticatedContent {...appProps} />
+              )}
+            </div>
+          </ThemeContextProvider>
         </AuthContextProvider>
       </QueryClientProvider>
     </LoggingContextProvider>

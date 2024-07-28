@@ -38,8 +38,8 @@ export function ThemeToggle({
               ? 'translate-y-4 translate-x-0.5'
               : 'translate-x-[2.1rem]'
             : isVertical
-            ? '-translate-y-4 translate-x-0.5'
-            : 'translate-x-1',
+              ? '-translate-y-4 translate-x-0.5'
+              : 'translate-x-1',
           'flex items-center justify-center',
           isVertical && 'flex-col',
           'pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',

@@ -1,21 +1,18 @@
-import type {
-  FolderAndPermission,
-  FolderOperationData,
-} from '@stellariscloud/api-client'
+import type { FolderGetResponse } from '@stellariscloud/api-client'
 import type { FolderMetadata } from '@stellariscloud/types'
 import { FolderPushMessage } from '@stellariscloud/types'
 import React from 'react'
 import type { Socket } from 'socket.io-client'
 
-import { useFolderWebsocket } from '../hooks/use-folder-websocket'
-import { foldersApi } from '../services/api'
+import { apiClient } from '../services/api'
 import { useLocalFileCacheContext } from './local-file-cache.context'
 import type { LogLevel } from './logging.context'
+import { useWebsocket } from '../hooks/use-websocket'
 
 export interface IFolderContext {
   folderId: string
-  folder?: FolderAndPermission['folder']
-  folderPermissions?: FolderAndPermission['permissions']
+  folder?: FolderGetResponse['folder']
+  folderPermissions?: FolderGetResponse['permissions']
   refreshFolder: () => Promise<void>
   refreshFolderMetadata: () => Promise<void>
   folderMetadata?: FolderMetadata
@@ -55,16 +52,14 @@ export const FolderContextProvider = ({
   //   const loggingContext = useLoggingContext()
 
   const [folderAndPermission, setFolderAndPermission] =
-    React.useState<FolderAndPermission>()
+    React.useState<FolderGetResponse>()
   const [folderMetadata, setFolderMetadata] = React.useState<FolderMetadata>()
   const notifications = React.useRef<Notification[]>([])
   const [newNotificationFlag, setNewNotificationFlag] = React.useState<string>()
-  const [_folderOperations, setFolderOperations] =
-    React.useState<FolderOperationData[]>()
 
   const fetchFolder = React.useCallback(
     () =>
-      foldersApi
+      apiClient.foldersApi
         .getFolder({ folderId })
         .then((response) => setFolderAndPermission(response.data)),
     [folderId],
@@ -72,7 +67,7 @@ export const FolderContextProvider = ({
 
   const fetchFolderMetadata = React.useCallback(
     async () =>
-      foldersApi
+      apiClient.foldersApi
         .getFolderMetadata({ folderId })
         .then((response) => setFolderMetadata(response.data)),
     [folderId],
@@ -124,35 +119,11 @@ export const FolderContextProvider = ({
     },
     [fetchFolder, fetchFolderMetadata],
   )
-  const { socket, connected: socketConnected } = useFolderWebsocket(
-    folderId,
+  const { socket, connected: socketConnected } = useWebsocket(
+    'folder',
     messageHandler,
+    { folderId },
   )
-
-  // const fetchFolderTags = React.useCallback(
-  //   () =>
-  //     foldersApi
-  //       .listTags({ folderId })
-  //       .then((response) => setObjectTags(response.data.result)),
-  //   [folderId],
-  // )
-
-  const _fetchFolderOperations = React.useCallback(
-    () =>
-      foldersApi
-        .listFolderOperations({ folderId })
-        .then((response) => setFolderOperations(response.data.result)),
-    [folderId],
-  )
-
-  // const createFolderTag = (tagName: string) => {
-  //   return foldersApi
-  //     .createTag({ folderId, createTagRequest: { name: tagName } })
-  //     .then((response) => {
-  //       void fetchFolderTags()
-  //       return response.data
-  //     })
-  // }
 
   const showNotification = React.useCallback((notification: Notification) => {
     const randomId = (Math.random() + 1).toString(36).substring(7)

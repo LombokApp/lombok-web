@@ -28,7 +28,7 @@ export function ButtonGroup({
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 }) {
   return (
-    <div className={clsx('flex items-center', className)}>
+    <div className={clsx('flex gap-2 items-center', className)}>
       {buttons.map(
         (
           {

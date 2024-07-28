@@ -7,7 +7,7 @@ import {
   MagnifyingGlassIcon,
   WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline'
-import type { FolderAndPermission } from '@stellariscloud/api-client'
+import type { FolderGetResponse } from '@stellariscloud/api-client'
 import type { FolderMetadata } from '@stellariscloud/types'
 import { formatBytes } from '@stellariscloud/utils'
 import clsx from 'clsx'
@@ -16,7 +16,6 @@ import React from 'react'
 import { Button } from '../../design-system/button/button'
 import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
-import { FolderWorkersTab } from './folder-workers-tab/folder-workers-tab.view'
 
 const MAIN_TEXT_COLOR = 'text-gray-500 dark:text-gray-400'
 const MAIN_ICON_COLOR = 'text-gray-500'
@@ -35,7 +34,7 @@ export const FolderSidebar = ({
   onIndexAll: () => void
   activeTab?: FolderSidebarTab
   onTabChange: (tab: FolderSidebarTab) => void
-  folderAndPermission?: FolderAndPermission
+  folderAndPermission?: FolderGetResponse
   folderMetadata?: FolderMetadata
 }) => {
   const { folder } = folderAndPermission ?? {}
@@ -218,9 +217,6 @@ export const FolderSidebar = ({
             ))}
           </ul>
         </>
-      )}
-      {tab === 'workers' && folderAndPermission && (
-        <FolderWorkersTab folderAndPermission={folderAndPermission} />
       )}
     </div>
   )

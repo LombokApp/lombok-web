@@ -1,0 +1,50 @@
+{
+  "publicKey": "-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA1Xdrj65ljAv6mwygx+Q5\nVihYSlveX7pJh9ZNA0CxwhBntMn/rBoBjyOgM0Dluaa5iJSMiAxPi22MPFvP01EG\n+4vDwpkFbdfvtanrcipr8iaY2doOya3JLw0wznUcIObqjQi/fepBpXU1rtZxTagA\ntqj0OGW0HECucuAZOFTLfZes8tlUzTee5OWt3rkDNQis635JK2H6waeX4uomDtxG\noNaCfn9gXZ2EgrdFPbvEhnzqOGt3x4SxnIvETsOXOSO1lFLBuGj58oYZ8oFVf4n/\nZkoHugUQs6Tpf4qR/mPZ8054feTvWiKS+ClTts7iFDYOE8X+/UKw/xuDv/rE7wW+\nZP4FgsRB5Sw+LEa5csoAPPDWEOxcI7oZCHKrRwVel71Mv6O+Zlw9Q0Lm87EA6BZh\ntm8xDwISRSoHDaxz3a7r7CeVWUDIRxySAr2TRYN6ujsfXfNtdcxI75/meWFUIjWO\ndtE/hV/M+47G6DjvXMkt22yo7suBN4XcWKpMHxYTHNsEumn2PEtD3FUihqdRGiFP\ngCtEQVOskP/fZwBhEB+1StRCGpgb80onWdKxnt0SDWsp4PX7os8FdE136u6oY+3M\nSt24YpLCxEnJ8DCw8qg50wyzqViNw3qiIoqRbg+O9r8ECCgOrI0atPonhAbxRUn6\nNAWu46Afi1EhWhf7auhWfHUCAwEAAQ==\n-----END PUBLIC KEY-----\n",
+  "description": "An app implementing core functionality. This is a separate node process and can be run alongside the core app or deployed on another host.",
+  "actions": {
+    "folder": [
+      {
+        "key": "CORE:SAVE_URL_TO_FOLDER_OBJECT",
+        "description": "Download content at a URL to an object in the folder.",
+        "params": {
+          "url": "string",
+          "mimeType": "string",
+          "objectKey": "string"
+        }
+      },
+      {
+        "key": "CORE:TRIGGER_ANALYZE_ALL_NEW_OBJECTS",
+        "description": "Analyze all new (unanalyzed) content in the folder."
+      }
+    ],
+    "object": [
+      {
+        "key": "CORE:TRIGGER_ANALYZE_OBJECT",
+        "description": "Analyze the content of the object, and save the result.",
+        "params": { "generatePreviews": "boolean" }
+      }
+    ]
+  },
+  "emitEvents": [
+    "CORE:OBJECT_ADDED",
+    "CORE:OBJECT_REMOVED",
+    "CORE:FOLDER_CREATED",
+    "CORE:FOLDER_UPDATED",
+    "CORE:FOLDER_REMOVED",
+    "CORE:OBJECT_ANALYZED",
+    "CORE:OBJECT_ATTRIBUTES_UPDATED",
+    "CORE:OBJECT_METADATA_UPDATED",
+    "CORE:TRIGGER_ANALYZE_OBJECT",
+    "CORE:TRIGGER_ANALYZE_ALL_NEW_OBJECTS"
+  ],
+  "subscribedEvents": [
+    "CORE:TRIGGER_ANALYZE_ALL_NEW_OBJECTS",
+    "CORE:TRIGGER_ANALYZE_OBJECT",
+    "CORE:OBJECT_ADDED",
+    "CORE:OBJECT_REMOVED",
+    "CORE:FOLDER_CREATED",
+    "CORE:FOLDER_UPDATED",
+    "CORE:FOLDER_REMOVED"
+  ],
+  "menuItems": []
+}

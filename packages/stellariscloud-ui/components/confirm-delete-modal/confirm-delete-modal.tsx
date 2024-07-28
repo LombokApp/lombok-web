@@ -1,4 +1,4 @@
-import type { FolderObjectData } from '@stellariscloud/api-client'
+import type { FolderObjectDTO } from '@stellariscloud/api-client'
 import clsx from 'clsx'
 import React from 'react'
 
@@ -13,7 +13,7 @@ export const ConfirmDeleteModal = ({
 }: {
   onConfirm: () => void
   onCancel: () => void
-  folderObject: FolderObjectData
+  folderObject: FolderObjectDTO
 }) => {
   return (
     <Modal title="Delete Object" onClose={onCancel}>

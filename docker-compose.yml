@@ -1,23 +1,23 @@
 version: '3.5'
 
 services:
-  worker:
-    container_name: 'stellariscloud-worker'
-    build:
-      context: .
-      dockerfile: docker/worker.Dockerfile
-      target: local
-    env_file: packages/worker/env/env.${CMD_ENV:-dev}
-    volumes:
-      - ./packages:/usr/src/app/packages
-      - ./.yarnrc.yml:/usr/src/app/.yarnrc.yml
-      - ./.pnp.loader.mjs:/usr/src/app/.pnp.loader.mjs
-      - ./.pnp.cjs:/usr/src/app/.pnp.cjs
-      - ./package.json:/usr/src/app/package.json
-      - ./tsconfig.json:/usr/src/app/tsconfig.json
-      - ./yarn.lock:/usr/src/app/yarn.lock
-    restart: unless-stopped
-    command: ['yarn', 'workspace', '@stellariscloud/worker', 'dev']
+  # api:
+  #   container_name: 'stellariscloud-api'
+  #   build:
+  #     context: .
+  #     dockerfile: docker/api.Dockerfile
+  #     target: local
+  #   volumes:
+  #     - ./:/usr/src/app:cached
+  #   env_file: packages/api/env/env.${CMD_ENV:-dev}
+  #   environment:
+  #     WAIT_HOSTS: db:${DB_PORT:-0}, redis:${REDIS_PORT:-0}
+  #   deploy:
+  #     replicas: 1
+  #   command: ['yarn', 'workspace', '@stellariscloud/api', 'dev']
+  #   ports:
+  #     - 3001:3001
+  #     - 3002:3002
   api:
     container_name: 'stellariscloud-api'
     build:
@@ -26,14 +26,15 @@ services:
       target: local
     volumes:
       - ./:/usr/src/app:cached
-    env_file: packages/api/env/env.${CMD_ENV:-dev}
+    env_file: packages/api/.env
     environment:
       WAIT_HOSTS: db:${DB_PORT:-0}, redis:${REDIS_PORT:-0}
     deploy:
       replicas: 1
-    command: ['yarn', 'workspace', '@stellariscloud/api', 'dev']
+    command: ['bun', 'api:dev']
     ports:
       - 3001:3001
+      - 3002:3002
   redis:
     image: redis:alpine
     command: redis-server
@@ -81,9 +82,10 @@ services:
   #     exit 0;
   #     "
   db:
-    image: postgres:13.2-alpine
+    image: postgres
     ports:
       - 5432:${DB_PORT:-0}
+    env_file: packages/api/.env
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -101,4 +103,4 @@ services:
     ports:
       - 8080:8080
     volumes:
-      - ./packages/api/src/generated/openapi.json:/app/swagger.json
+      - ./packages/api/src/generated-openapi.json:/app/swagger.json

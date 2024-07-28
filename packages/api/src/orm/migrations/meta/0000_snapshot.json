@@ -1,10 +1,10 @@
 {
-  "version": "5",
-  "dialect": "pg",
-  "id": "0f5a6008-363b-461c-8eda-bed67238a6a2",
+  "id": "356ca32b-f569-4a95-a652-88a35da5dab4",
   "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
   "tables": {
-    "session": {
+    "public.session": {
       "name": "session",
       "schema": "",
       "columns": {
@@ -25,12 +25,6 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
-        },
-        "scopes": {
-          "name": "scopes",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": false
         },
         "expiresAt": {
           "name": "expiresAt",
@@ -56,8 +50,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "folder_operation_objects": {
-      "name": "folder_operation_objects",
+    "public.event_receipts": {
+      "name": "event_receipts",
       "schema": "",
       "columns": {
         "id": {
@@ -66,129 +60,47 @@
           "primaryKey": true,
           "notNull": true
         },
-        "operationId": {
-          "name": "operationId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "operationRelationType": {
-          "name": "operationRelationType",
+        "appIdentifier": {
+          "name": "appIdentifier",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "folderObjectId": {
-          "name": "folderObjectId",
+        "eventId": {
+          "name": "eventId",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
-        "folderId": {
-          "name": "folderId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "objectKey": {
-          "name": "objectKey",
+        "eventKey": {
+          "name": "eventKey",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "createdAt": {
-          "name": "createdAt",
+        "handlerId": {
+          "name": "handlerId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "startedAt": {
+          "name": "startedAt",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
-        "updatedAt": {
-          "name": "updatedAt",
+        "completedAt": {
+          "name": "completedAt",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "folder_operation_objects_operationId_folder_operations_id_fk": {
-          "name": "folder_operation_objects_operationId_folder_operations_id_fk",
-          "tableFrom": "folder_operation_objects",
-          "tableTo": "folder_operations",
-          "columnsFrom": [
-            "operationId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "notNull": false
         },
-        "folder_operation_objects_folderObjectId_folder_objects_id_fk": {
-          "name": "folder_operation_objects_folderObjectId_folder_objects_id_fk",
-          "tableFrom": "folder_operation_objects",
-          "tableTo": "folder_objects",
-          "columnsFrom": [
-            "folderObjectId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "folder_operation_objects_folderId_folders_id_fk": {
-          "name": "folder_operation_objects_folderId_folders_id_fk",
-          "tableFrom": "folder_operation_objects",
-          "tableTo": "folders",
-          "columnsFrom": [
-            "folderId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "folder_operations": {
-      "name": "folder_operations",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "operationData": {
-          "name": "operationData",
-          "type": "jsonb",
+        "errorAt": {
+          "name": "errorAt",
+          "type": "timestamp",
           "primaryKey": false,
-          "notNull": true
-        },
-        "started": {
-          "name": "started",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "completed": {
-          "name": "completed",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "operationName": {
-          "name": "operationName",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "error": {
           "name": "error",
@@ -196,24 +108,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "folderId": {
-          "name": "folderId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "assignedFolderWorkerId": {
-          "name": "assignedFolderWorkerId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "assignedAt": {
-          "name": "assignedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
         "createdAt": {
           "name": "createdAt",
           "type": "timestamp",
@@ -229,25 +123,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "folder_operations_folderId_folders_id_fk": {
-          "name": "folder_operations_folderId_folders_id_fk",
-          "tableFrom": "folder_operations",
-          "tableTo": "folders",
+        "event_receipts_eventId_events_id_fk": {
+          "name": "event_receipts_eventId_events_id_fk",
+          "tableFrom": "event_receipts",
+          "tableTo": "events",
           "columnsFrom": [
-            "folderId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "folder_operations_assignedFolderWorkerId_folder_workers_id_fk": {
-          "name": "folder_operations_assignedFolderWorkerId_folder_workers_id_fk",
-          "tableFrom": "folder_operations",
-          "tableTo": "folder_workers",
-          "columnsFrom": [
-            "assignedFolderWorkerId"
+            "eventId"
           ],
           "columnsTo": [
             "id"
@@ -259,8 +140,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "folder_worker_keys": {
-      "name": "folder_worker_keys",
+    "public.events": {
+      "name": "events",
       "schema": "",
       "columns": {
         "id": {
@@ -269,100 +150,39 @@
           "primaryKey": true,
           "notNull": true
         },
-        "accessTokenExpiresAt": {
-          "name": "accessTokenExpiresAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "ownerId": {
-          "name": "ownerId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "folder_worker_keys_ownerId_users_id_fk": {
-          "name": "folder_worker_keys_ownerId_users_id_fk",
-          "tableFrom": "folder_worker_keys",
-          "tableTo": "users",
-          "columnsFrom": [
-            "ownerId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "folder_workers": {
-      "name": "folder_workers",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "externalId": {
-          "name": "externalId",
+        "eventKey": {
+          "name": "eventKey",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "paused": {
-          "name": "paused",
-          "type": "boolean",
+        "appIdentifier": {
+          "name": "appIdentifier",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": false
+          "notNull": false
         },
-        "capabilities": {
-          "name": "capabilities",
-          "type": "text[]",
+        "userId": {
+          "name": "userId",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
-        "ips": {
-          "name": "ips",
+        "folderId": {
+          "name": "folderId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "objectKey": {
+          "name": "objectKey",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data": {
+          "name": "data",
           "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "firstSeen": {
-          "name": "firstSeen",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "lastSeen": {
-          "name": "lastSeen",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "keyId": {
-          "name": "keyId",
-          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -371,34 +191,14 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "folder_workers_keyId_folder_worker_keys_id_fk": {
-          "name": "folder_workers_keyId_folder_worker_keys_id_fk",
-          "tableFrom": "folder_workers",
-          "tableTo": "folder_worker_keys",
-          "columnsFrom": [
-            "keyId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "folder_objects": {
+    "public.folder_objects": {
       "name": "folder_objects",
       "schema": "",
       "columns": {
@@ -486,7 +286,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "folders": {
+    "public.folders": {
       "name": "folders",
       "schema": "",
       "columns": {
@@ -578,8 +378,61 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "server_configurations": {
-      "name": "server_configurations",
+    "public.log_entries": {
+      "name": "log_entries",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "appIdentifier": {
+          "name": "appIdentifier",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "message": {
+          "name": "message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "data": {
+          "name": "data",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "level": {
+          "name": "level",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'info'"
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.server_settings": {
+      "name": "server_settings",
       "schema": "",
       "columns": {
         "key": {
@@ -612,7 +465,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "storage_locations": {
+    "public.storage_locations": {
       "name": "storage_locations",
       "schema": "",
       "columns": {
@@ -625,11 +478,12 @@
         "providerType": {
           "name": "providerType",
           "type": "providerType",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
-        "name": {
-          "name": "name",
+        "label": {
+          "name": "label",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -708,7 +562,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "users": {
+    "public.users": {
       "name": "users",
       "schema": "",
       "columns": {
@@ -804,25 +658,19 @@
     }
   },
   "enums": {
-    "operationRelationType": {
-      "name": "operationRelationType",
-      "values": {
-        "INPUT": "INPUT",
-        "OUTPUT": "OUTPUT"
-      }
-    },
-    "providerType": {
+    "public.providerType": {
       "name": "providerType",
-      "values": {
-        "SERVER": "SERVER",
-        "USER": "USER"
-      }
+      "schema": "public",
+      "values": [
+        "SERVER",
+        "USER"
+      ]
     }
   },
   "schemas": {},
   "_meta": {
+    "columns": {},
     "schemas": {},
-    "tables": {},
-    "columns": {}
+    "tables": {}
   }
 }

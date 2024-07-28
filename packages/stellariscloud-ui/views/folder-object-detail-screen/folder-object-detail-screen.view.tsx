@@ -10,12 +10,12 @@ import {
   QuestionMarkCircleIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline'
-import type { FolderObjectData } from '@stellariscloud/api-client'
+import type { FolderObjectDTO } from '@stellariscloud/api-client'
 import {
-  FolderOperationName,
-  FolderPermissionName,
-} from '@stellariscloud/api-client'
-import { FolderPushMessage, MediaType } from '@stellariscloud/types'
+  FolderPermissionEnum,
+  FolderPushMessage,
+  MediaType,
+} from '@stellariscloud/types'
 import { formatBytes, toMetadataObjectIdentifier } from '@stellariscloud/utils'
 import { useRouter } from 'next/router'
 import React from 'react'
@@ -28,7 +28,7 @@ import { Button } from '../../design-system/button/button'
 import { ButtonGroup } from '../../design-system/button-group/button-group'
 import { Icon } from '../../design-system/icon'
 import { PageHeading } from '../../design-system/page-heading/page-heading'
-import { foldersApi } from '../../services/api'
+import { apiClient } from '../../services/api'
 import { FolderObjectPreview } from '../folder-object-preview/folder-object-preview.view'
 import { FolderObjectSidebar } from '../folder-object-sidebar/folder-object-sidebar.view'
 
@@ -47,7 +47,7 @@ export const FolderObjectDetailScreen = ({
 }) => {
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
   const [showDeleteModal, setShowDeleteModal] = React.useState(false)
-  const [folderObject, setFolderObject] = React.useState<FolderObjectData>()
+  const [folderObject, setFolderObject] = React.useState<FolderObjectDTO>()
   const logging = useLoggingContext()
   const [displaySize, setDisplaySize] = React.useState('compressed')
   const [displayObjectKey, setDisplayObjectKey] = React.useState<string>()
@@ -66,10 +66,10 @@ export const FolderObjectDetailScreen = ({
       displaySize === 'original' || folderObject?.mediaType === MediaType.Audio
         ? `content:${objectKey}`
         : displaySize === 'compressed' &&
-          folderObject?.hash &&
-          currentVersionMetadata['compressedVersion']?.hash
-        ? `metadata:${objectKey}:${currentVersionMetadata['compressedVersion'].hash}`
-        : undefined,
+            folderObject?.hash &&
+            currentVersionMetadata['compressedVersion']?.hash
+          ? `metadata:${objectKey}:${currentVersionMetadata['compressedVersion'].hash}`
+          : undefined,
     )
   }, [
     displaySize,
@@ -91,48 +91,22 @@ export const FolderObjectDetailScreen = ({
   const { getData } = useLocalFileCacheContext()
 
   const fetchKeyMetadata = React.useCallback(() => {
-    void foldersApi
+    void apiClient.foldersApi
       .getFolderObject({ folderId, objectKey })
-      .then((response) => setFolderObject(response.data))
+      .then((response) => setFolderObject(response.data.folderObject))
   }, [folderId, objectKey])
 
   const handleIndexFolderObject = () => {
-    void foldersApi.enqueueFolderOperation({
-      folderId,
-      folderOperationRequestPayload: {
-        operationName: FolderOperationName.IndexFolderObject,
-        operationData: {
-          folderId,
-          objectKey,
-        },
-      },
-    })
-  }
-
-  const _handleTranscribe = () => {
-    void foldersApi.enqueueFolderOperation({
-      folderId,
-      folderOperationRequestPayload: {
-        operationName: FolderOperationName.TranscribeAudio,
-        operationData: {
-          folderId,
-          objectKey,
-        },
-      },
-    })
-  }
-
-  const _handleDetectObjects = () => {
-    void foldersApi.enqueueFolderOperation({
-      folderId,
-      folderOperationRequestPayload: {
-        operationName: FolderOperationName.DetectObjects,
-        operationData: {
-          folderId,
-          objectKey,
-        },
-      },
-    })
+    // void apiClient.foldersApi.rescanFolderObject({
+    //   folderId,
+    //   folderOperationRequestPayload: {
+    //     operationName: FolderOperationName.IndexFolderObject,
+    //     operationData: {
+    //       folderId,
+    //       objectKey,
+    //     },
+    //   },
+    // })
   }
 
   const messageHandler = React.useCallback(
@@ -144,7 +118,7 @@ export const FolderObjectDetailScreen = ({
         ].includes(name) &&
         payload.objectKey === objectKey
       ) {
-        setFolderObject(payload as FolderObjectData)
+        setFolderObject(payload as FolderObjectDTO)
       }
     },
     [objectKey],
@@ -164,16 +138,18 @@ export const FolderObjectDetailScreen = ({
     if (!showDeleteModal) {
       setShowDeleteModal(true)
     } else {
-      void foldersApi.deleteFolderObject({ folderId, objectKey }).then(() => {
-        logging.appendLogLine({
-          level: LogLevel.INFO,
-          message: `Deleted object ${objectKey}`,
-          folderId,
-          remote: false,
-          objectKey,
+      void apiClient.foldersApi
+        .deleteFolderObject({ folderId, objectKey })
+        .then(() => {
+          logging.appendLogLine({
+            level: LogLevel.INFO,
+            message: `Deleted object ${objectKey}`,
+            folderId,
+            remote: false,
+            objectKey,
+          })
+          handleFolderLinkClick()
         })
-        handleFolderLinkClick()
-      })
     }
   }
 
@@ -259,7 +235,7 @@ export const FolderObjectDetailScreen = ({
               >
                 <div className="pt-2 flex gap-2">
                   {folderContext.folderPermissions?.includes(
-                    FolderPermissionName.ObjectEdit,
+                    FolderPermissionEnum.OBJECT_EDIT,
                   ) && (
                     <Button
                       size="sm"

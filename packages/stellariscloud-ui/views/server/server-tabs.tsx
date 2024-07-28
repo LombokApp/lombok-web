@@ -1,9 +1,14 @@
+import { InboxIcon } from '@heroicons/react/20/solid'
 import {
+  BuildingLibraryIcon,
   CircleStackIcon,
   Cog8ToothIcon,
+  QueueListIcon,
   ServerIcon,
+  ServerStackIcon,
+  SignalIcon,
+  Square3Stack3DIcon,
   UserGroupIcon,
-  WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import Link from 'next/link'
@@ -25,10 +30,16 @@ export function ServerTabs({ activeTab }: { activeTab: string }) {
       href: '/server/storage',
     },
     {
-      name: 'workers',
-      label: 'Workers',
-      icon: WrenchScrewdriverIcon,
-      href: '/server/workers',
+      name: 'apps',
+      label: 'Apps',
+      icon: Square3Stack3DIcon,
+      href: '/server/apps',
+    },
+    {
+      name: 'events',
+      label: 'Events',
+      icon: SignalIcon,
+      href: '/server/events',
     },
     {
       name: 'settings',

@@ -1,12 +1,12 @@
 {
-  "version": "5",
-  "dialect": "pg",
+  "version": "7",
+  "dialect": "postgresql",
   "entries": [
     {
       "idx": 0,
-      "version": "5",
-      "when": 1700737515021,
-      "tag": "0000_condemned_iron_lad",
+      "version": "7",
+      "when": 1721777786889,
+      "tag": "0000_slimy_giant_man",
       "breakpoints": true
     }
   ]

@@ -1,22 +1,27 @@
-import type { ServerSettings } from '@stellariscloud/api-client'
 import { removeDuplicates } from '@stellariscloud/utils'
 import clsx from 'clsx'
 import React from 'react'
 
 import { ServerSettingsForm } from '../../../components/server-settings-form/server-settings-form'
-import { serverApi } from '../../../services/api'
+import { apiClient } from '../../../services/api'
+import { SettingsGetResponse } from '@stellariscloud/api-client'
 
 export function ServerSettingsScreen() {
   const [originalSettings, setOriginalSettings] =
-    React.useState<Partial<ServerSettings>>()
-  const [settings, setSettings] = React.useState<Partial<ServerSettings>>()
+    React.useState<Partial<SettingsGetResponse['settings']>>()
+  const [settings, setSettings] =
+    React.useState<Partial<SettingsGetResponse['settings']>>()
 
   const [dataResetKey, setDataResetKey] = React.useState('___')
 
   React.useEffect(() => {
-    void serverApi.getSettings().then(({ data }) => {
+    void apiClient.serverApi.getServerSettings().then(({ data }) => {
       setOriginalSettings(data.settings)
-      setSettings(JSON.parse(JSON.stringify(data.settings)) as ServerSettings)
+      setSettings(
+        JSON.parse(
+          JSON.stringify(data.settings),
+        ) as SettingsGetResponse['settings'],
+      )
     })
   }, [dataResetKey])
 
@@ -25,32 +30,38 @@ export function ServerSettingsScreen() {
   }, [])
 
   const handleUpdateSettings = React.useCallback(() => {
-    const allSettingsKeys: (keyof ServerSettings)[] = removeDuplicates([
-      ...Object.keys(originalSettings ?? {}),
-      ...Object.keys(settings ?? {}),
-    ]) as (keyof ServerSettings)[] // TODO: filter to unique?
+    const allSettingsKeys: (keyof SettingsGetResponse['settings'])[] =
+      removeDuplicates([
+        ...Object.keys(originalSettings ?? {}),
+        ...Object.keys(settings ?? {}),
+      ]) as (keyof SettingsGetResponse['settings'])[] // TODO: filter to unique?
 
     const changedSettings = allSettingsKeys.filter((settingKey) => {
       return (
         JSON.stringify(
-          originalSettings?.[settingKey as keyof ServerSettings],
-        ) !== JSON.stringify(settings?.[settingKey as keyof ServerSettings])
+          originalSettings?.[
+            settingKey as keyof SettingsGetResponse['settings']
+          ],
+        ) !==
+        JSON.stringify(
+          settings?.[settingKey as keyof SettingsGetResponse['settings']],
+        )
       )
     })
 
     for (const changedSetting of changedSettings) {
       if (settings && changedSetting in settings) {
         if (typeof settings[changedSetting] === 'undefined') {
-          void serverApi
-            .resetSetting({
-              settingsKey: changedSetting,
+          void apiClient.serverApi
+            .resetServerSetting({
+              settingKey: changedSetting,
             })
             .then(reloadSettings)
         }
-        void serverApi
-          .updateSetting({
-            settingsKey: changedSetting,
-            updateSettingRequest: {
+        void apiClient.serverApi
+          .setServerSetting({
+            settingKey: changedSetting,
+            setSettingInputDTO: {
               value: settings[changedSetting],
             },
           })
@@ -60,7 +71,10 @@ export function ServerSettingsScreen() {
   }, [reloadSettings, settings, originalSettings])
 
   const onFormChange = React.useCallback(
-    (updatedSettings: { valid: boolean; value: ServerSettings }) => {
+    (updatedSettings: {
+      valid: boolean
+      value: SettingsGetResponse['settings']
+    }) => {
       setSettings(updatedSettings.value)
     },
     [],
@@ -80,7 +94,7 @@ export function ServerSettingsScreen() {
                 setSettings(
                   JSON.parse(
                     JSON.stringify(originalSettings),
-                  ) as ServerSettings,
+                  ) as SettingsGetResponse['settings'],
                 )
               }
               onChange={onFormChange}

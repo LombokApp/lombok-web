@@ -1,13 +1,9 @@
 import {
-  ChatBubbleBottomCenterTextIcon,
-  CubeIcon,
   DocumentIcon,
   FilmIcon,
-  MagnifyingGlassIcon,
   MusicalNoteIcon,
   PhotoIcon,
 } from '@heroicons/react/24/outline'
-import { FolderOperationName } from '@stellariscloud/api-client'
 import { MediaType } from '@stellariscloud/types'
 import type {
   AudioMediaMimeTypes,
@@ -40,15 +36,4 @@ export const iconForMediaType = (mediaType: MediaType) => {
     return FilmIcon
   }
   return DocumentIcon
-}
-
-export const iconForOperationType = (operationName: FolderOperationName) => {
-  switch (operationName) {
-    case FolderOperationName.IndexFolderObject:
-      return MagnifyingGlassIcon
-    case FolderOperationName.TranscribeAudio:
-      return ChatBubbleBottomCenterTextIcon
-    case FolderOperationName.DetectObjects:
-      return CubeIcon
-  }
 }

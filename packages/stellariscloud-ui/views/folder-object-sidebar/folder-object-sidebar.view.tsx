@@ -3,6 +3,7 @@ import {
   ArrowPathIcon,
   BeakerIcon,
   BookOpenIcon,
+  CheckIcon,
   CubeIcon,
   DocumentTextIcon,
   EyeIcon,
@@ -16,13 +17,7 @@ import {
   TvIcon,
   VideoCameraIcon,
 } from '@heroicons/react/24/outline'
-import type {
-  FolderAndPermission,
-  FolderData,
-  FolderObjectData,
-} from '@stellariscloud/api-client'
-import { FolderOperationName } from '@stellariscloud/api-client'
-import { MediaType } from '@stellariscloud/types'
+import { AppAction, MediaType } from '@stellariscloud/types'
 import {
   extensionFromMimeType,
   formatBytes,
@@ -37,7 +32,12 @@ import { useLocalFileCacheContext } from '../../contexts/local-file-cache.contex
 import { Button } from '../../design-system/button/button'
 import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
-import { foldersApi } from '../../services/api'
+import { apiClient } from '../../services/api'
+import { FolderDTO } from '@stellariscloud/api-client'
+import { FolderObjectDTO } from '@stellariscloud/api-client'
+import { FolderGetResponse } from '@stellariscloud/api-client'
+import { useServerContext } from '../../contexts/server.context'
+import { Heading } from '../../design-system/typography'
 
 const MAIN_TEXT_COLOR = 'text-gray-500 dark:text-gray-400'
 const MAIN_ICON_COLOR = 'text-gray-500'
@@ -47,24 +47,20 @@ export const FolderObjectSidebar = ({
   folderObject,
   objectKey,
 }: {
-  folder: FolderData
-  folderObject: FolderObjectData
+  folder: FolderDTO
+  folderObject: FolderObjectDTO
   objectKey: string
-  folderAndPermission?: FolderAndPermission
+  folderAndPermission?: FolderGetResponse
 }) => {
   const { downloadToFile, getData } = useLocalFileCacheContext()
-  const [tab, setTab] = React.useState('overview')
-  const tabs: { id: string; name: string; icon?: IconProps['icon'] }[] = [
-    { id: 'overview', name: 'Overview', icon: BookOpenIcon },
-    { id: 'actions', name: 'Actions', icon: BeakerIcon },
-    // { id: 'tasks', name: 'Tasks', icon: BoltIcon },
-    // { id: 'metadata_raw', name: 'Raw', icon: MagnifyingGlassIcon },
-  ]
+  const [showRawMetadata, setShowRawMetadata] = React.useState(false)
   const folderId = folder.id
   const [focusedMetadata, setFocusedMetadata] = React.useState<string>()
   const [metadataContent, setMetadataContent] = React.useState<{
     [key: string]: string
   }>({})
+
+  const serverContext = useServerContext()
 
   React.useEffect(() => {
     if (
@@ -96,44 +92,6 @@ export const FolderObjectSidebar = ({
     objectKey,
   ])
 
-  const handleIndexFolderObject = () => {
-    void foldersApi.enqueueFolderOperation({
-      folderId,
-      folderOperationRequestPayload: {
-        operationName: FolderOperationName.IndexFolderObject,
-        operationData: {
-          folderId,
-          objectKey,
-        },
-      },
-    })
-  }
-
-  const handleTranscribe = () => {
-    void foldersApi.enqueueFolderOperation({
-      folderId,
-      folderOperationRequestPayload: {
-        operationName: FolderOperationName.TranscribeAudio,
-        operationData: {
-          folderId,
-          objectKey,
-        },
-      },
-    })
-  }
-
-  const handleDetectObjects = () => {
-    void foldersApi.enqueueFolderOperation({
-      folderId,
-      folderOperationRequestPayload: {
-        operationName: FolderOperationName.DetectObjects,
-        operationData: {
-          folderId,
-          objectKey,
-        },
-      },
-    })
-  }
   const attributes = folderObject.hash
     ? folderObject.contentAttributes[folderObject.hash] ??
       ({} as { [key: string]: string })
@@ -145,94 +103,30 @@ export const FolderObjectSidebar = ({
     description: string
     icon: IconProps['icon']
     onExecute: () => void
-  }[] = [
-    {
-      id: 'index',
-      label: 'Index content',
-      description:
-        'Resolve basic attributes of the object and generate preview media',
-      icon: ArrowPathIcon,
-      onExecute: handleIndexFolderObject,
-    },
-    ...(folderObject.mediaType === MediaType.Image
-      ? [
-          {
-            id: 'detect_objects',
-            label: 'Detect objects',
-            description: 'Use AI to detect objects in the image',
-            icon: ArrowPathIcon,
-            onExecute: handleDetectObjects,
-          },
-        ]
-      : []),
-    ...(folderObject.mediaType === MediaType.Audio
-      ? [
-          {
-            id: 'transcribe',
-            label: 'Transcribe audio',
-            description: 'Use AI to transcribe the audio track',
-            icon: ArrowPathIcon,
-            onExecute: handleTranscribe,
-          },
-        ]
-      : []),
-  ]
+  }[] = serverContext.appFolderActions.map(({ action, appIdentifier }) => ({
+    description: action.description,
+    icon: CheckIcon,
+    id: action.key,
+    label: action.key,
+    onExecute: () =>
+      apiClient.foldersApi.handleFolderAction({
+        folderId,
+        actionKey: action.key,
+        appIdentifier,
+        folderHandleActionInputDTO: {
+          actionParams: {},
+          objectKey,
+        },
+      }),
+  }))
 
   return (
-    <div className="h-full px-1 flex flex-col bg-gray-50 dark:bg-gray-600/5 h-full">
-      <div className="sm:hidden">
-        <label htmlFor="tabs" className="sr-only">
-          Select a tab
-        </label>
-        {/* Use an "onChange" listener to redirect the user to the selected tab URL. */}
-        <select
-          id="tabs"
-          name="tabs"
-          className="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-        >
-          {tabs.map((t) => (
-            <option key={t.name}>{t.name}</option>
-          ))}
-        </select>
-      </div>
-      <div className="hidden sm:block">
-        <nav
-          className="isolate flex divide-x divide-gray-200 dark:divide-gray-200/10 rounded-lg shadow"
-          aria-label="Tabs"
-        >
-          {tabs.map((t, tabIdx) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={clsx(
-                tab === t.id
-                  ? 'text-gray-900 dark:text-gray-300'
-                  : `text-gray-400 hover:text-gray-500`,
-                tabIdx === 0 ? 'rounded-l-lg' : '',
-                tabIdx === tabs.length - 1 ? 'rounded-r-lg' : '',
-                'group relative min-w-0 flex-1 overflow-hidden bg-white dark:bg-white/5 py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10',
-              )}
-              aria-current={t.id === tab ? 'page' : undefined}
-            >
-              <div className="flex items-center gap-2">
-                {t.icon && <Icon size="sm" icon={t.icon} />}
-                {t.name && <span>{t.name}</span>}
-              </div>
-              <span
-                aria-hidden="true"
-                className={clsx(
-                  t.id === tab ? 'bg-indigo-500' : 'bg-transparent',
-                  'absolute inset-x-0 bottom-0 h-0.5',
-                )}
-              />
-            </button>
-          ))}
-        </nav>
-      </div>
-      {tab === 'overview' && (
-        <div className="flex-1 flex flex-col overflow-y-auto mt-4">
-          <dl className="border-b border-gray-900/5 dark:border-gray-800 pb-6 pt-2">
-            <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
+    <div className="px-1 flex flex-col bg-gray-50 dark:bg-gray-600/5 text-gray-400">
+      <div className="mt-4 px-2 flex flex-col gap-2">
+        <Heading level={6}>Details</Heading>
+        <div className="flex-1 flex flex-col overflow-y-auto">
+          <dl className="border-b border-gray-900/5 dark:border-gray-800 pb-6">
+            <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
               <dt className="flex-none flex">
                 <span className="sr-only">Path</span>
                 <Icon
@@ -247,11 +141,12 @@ export const FolderObjectSidebar = ({
                 {folder.contentLocation.bucket}
                 {folder.contentLocation.bucket.endsWith('/') ? '' : '/'}
                 {folder.contentLocation.prefix}
+                {folder.contentLocation.prefix?.endsWith('/') ? '' : '/'}
                 {folderObject.objectKey}
               </dd>
             </div>
             {folderObject.hash && (
-              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
+              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
                 <dt className="flex-none flex">
                   <span className="sr-only">Hash</span>
                   <Icon
@@ -265,7 +160,7 @@ export const FolderObjectSidebar = ({
                 </dd>
               </div>
             )}
-            <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
+            <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
               <dt className="flex-none flex">
                 <span className="sr-only">Folder</span>
                 <Icon icon={FolderIcon} size="md" className={MAIN_ICON_COLOR} />
@@ -274,7 +169,7 @@ export const FolderObjectSidebar = ({
                 {folder.name}
               </dd>
             </div>
-            <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
+            <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
               <dt className="flex-none flex">
                 <span className="sr-only">Size</span>
                 <Icon icon={CubeIcon} size="md" className={MAIN_ICON_COLOR} />
@@ -285,7 +180,7 @@ export const FolderObjectSidebar = ({
               </dd>
             </div>
             {attributes.height && attributes.width ? (
-              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
+              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
                 <dt className="flex-none flex">
                   <span className="sr-only">Dimensions</span>
                   <Icon icon={TvIcon} size="md" className={MAIN_ICON_COLOR} />
@@ -298,7 +193,7 @@ export const FolderObjectSidebar = ({
               ''
             )}
             {attributes.mimeType && (
-              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
+              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
                 <dt className="flex-none">
                   <span className="sr-only">Status</span>
                   <Icon
@@ -306,12 +201,12 @@ export const FolderObjectSidebar = ({
                       folderObject.mediaType === MediaType.Audio
                         ? MusicalNoteIcon
                         : folderObject.mediaType === MediaType.Image
-                        ? PhotoIcon
-                        : folderObject.mediaType === MediaType.Video
-                        ? VideoCameraIcon
-                        : folderObject.mediaType === MediaType.Document
-                        ? DocumentTextIcon
-                        : QuestionMarkCircleIcon
+                          ? PhotoIcon
+                          : folderObject.mediaType === MediaType.Video
+                            ? VideoCameraIcon
+                            : folderObject.mediaType === MediaType.Document
+                              ? DocumentTextIcon
+                              : QuestionMarkCircleIcon
                     }
                     size="md"
                     className={MAIN_ICON_COLOR}
@@ -359,8 +254,8 @@ export const FolderObjectSidebar = ({
                                     mediaType === MediaType.Image
                                       ? PhotoIcon
                                       : mediaType === MediaType.Audio
-                                      ? MusicalNoteIcon
-                                      : DocumentTextIcon
+                                        ? MusicalNoteIcon
+                                        : DocumentTextIcon
                                   }
                                   size="md"
                                   className={clsx('text-gray-400')}
@@ -472,9 +367,10 @@ export const FolderObjectSidebar = ({
             )}
           </div>
         </div>
-      )}
-      {tab === 'actions' && (
-        <ul className="space-y-3 mt-4 px-2">
+      </div>
+      <div className="px-2 pt-2 flex flex-col gap-4">
+        <Heading level={6}>Actions</Heading>
+        <ul className="space-y-3">
           {actionItems.map((actionItem) => (
             <li
               key={actionItem.id}
@@ -502,8 +398,8 @@ export const FolderObjectSidebar = ({
             </li>
           ))}
         </ul>
-      )}
-      {tab === 'metadata_raw' && (
+      </div>
+      {showRawMetadata && (
         <div className="text-xs p-4">
           <pre className="p-6 dark:bg-white/5 dark:text-gray-200">
             {JSON.stringify(

@@ -1,7 +1,7 @@
 import type {
-  LoginParams,
-  SignupParams,
-  UserData,
+  LoginCredentialsDTO,
+  SignupCredentialsDTO,
+  ViewerGetResponse,
 } from '@stellariscloud/api-client'
 import React from 'react'
 
@@ -14,11 +14,12 @@ export interface IAuthContext {
   authState: AuthenticatorStateType
   isLoggingIn: boolean
   isAuthenticated: boolean
-  viewer?: UserData
+  viewer?: ViewerGetResponse['user']
   isLoggingOut: boolean
-  login: (loginParams: LoginParams) => Promise<boolean>
-  signup: (signupParams: SignupParams) => Promise<boolean>
+  login: (loginParams: LoginCredentialsDTO) => Promise<boolean>
+  signup: (signupParams: SignupCredentialsDTO) => Promise<boolean>
   logout: () => Promise<void>
+  getAccessToken: () => Promise<string | undefined>
 }
 const AuthContext = React.createContext<IAuthContext>({} as IAuthContext)
 
@@ -39,7 +40,7 @@ export const AuthContextProvider = ({
   })
   const [viewerRefreshKey, _setViewerRefreshKey] = React.useState('___')
   const [viewer, setViewer] = React.useState<{
-    [key: string]: UserData | undefined
+    [key: string]: ViewerGetResponse['user'] | undefined
   }>()
   const [error, setError] = React.useState<AuthError>()
   const { isAuthenticated } = authState
@@ -66,7 +67,7 @@ export const AuthContextProvider = ({
     }
   }, [])
 
-  const login = async (loginParams: LoginParams) => {
+  const login = async (loginParams: LoginCredentialsDTO) => {
     setError(undefined)
     setIsLoggingIn(true)
 
@@ -86,7 +87,7 @@ export const AuthContextProvider = ({
     }
   }
 
-  const signup = async (signupParams: SignupParams) => {
+  const signup = async (signupParams: SignupCredentialsDTO) => {
     setError(undefined)
 
     try {
@@ -107,12 +108,20 @@ export const AuthContextProvider = ({
   }
 
   React.useEffect(() => {
-    if (!viewerRequested.current[viewerRefreshKey]) {
+    if (
+      authState.isAuthenticated &&
+      !viewerRequested.current[viewerRefreshKey]
+    ) {
       void authenticator.getViewer().then(({ user }) => {
-        setViewer((_viewerMap) => ({ [`${viewerRefreshKey}`]: user }))
+        setViewer((_viewerMap) => ({ [viewerRefreshKey]: user }))
       })
     }
   }, [authState.isAuthenticated, viewerRefreshKey])
+
+  const getAccessToken = React.useCallback(
+    () => authenticator.getAccessToken(),
+    [],
+  )
 
   return (
     <AuthContext.Provider
@@ -126,6 +135,7 @@ export const AuthContextProvider = ({
         signup,
         logout,
         authState,
+        getAccessToken,
       }}
     >
       {children}

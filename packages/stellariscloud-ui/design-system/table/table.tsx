@@ -28,22 +28,22 @@ export function Table({
             </thead>
             <tbody className="divide-y dark:divide-y-0 divide-gray-200 dark:divide-gray-700 gap-4 py-4">
               {rows.map((cells, i) => (
-                <tr key={i} className="pl-4 overflow-hidden">
+                <tr key={i} className="pl-2 overflow-hidden">
                   {cells.map((cell, j) => (
                     <td
                       key={j}
                       className={clsx(
                         'bg-white/80 dark:bg-white/10',
                         'border first:border-r-0 last:border-l-0 border-gray-100 dark:border-0',
-                        'first:rounded-l-lg last:rounded-r-lg dark:bg-white/5',
+                        'first:rounded-l-md last:rounded-r-md dark:bg-white/5',
                         typeof headers[j] !== 'string' &&
                           'cellStyles' in (headers[j] as object)
                           ? ((headers[j] as any).cellStyles as string)
-                          : 'p-4 pl-0 first:pl-4',
+                          : 'p-2 pl-0 first:pl-2',
                         j > 0 && j < headers.length - 1 && 'border-x-0',
                       )}
                     >
-                      <div className="flex items-center text-gray-700 dark:text-gray-300/90">
+                      <div className="flex text-gray-700 dark:text-gray-300/90">
                         <div className="flex-shrink-0">{cell}</div>
                       </div>
                     </td>

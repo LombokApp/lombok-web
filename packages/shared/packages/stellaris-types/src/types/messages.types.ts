@@ -6,3 +6,24 @@ export enum FolderPushMessage {
   OBJECT_REMOVED = 'OBJECT_REMOVED',
   OBJECT_UPDATED = 'OBJECT_UPDATED',
 }
+
+export enum UserPushMessage {
+  FOLDER_CREATED = 'FOLDER_CREATED',
+  FOLDER_DELETED = 'FOLDER_DELETED',
+}
+
+export enum ServerPushMessage {
+  APPS_UPDATED = 'APPS_UPDATED',
+  SETTINGS_UPDATED = 'SETTINGS_UPDATED',
+}
+
+export type AppPushMessage = ServerPushMessage | FolderPushMessage
+
+export interface AppLogEntry {
+  level: 'error' | 'warning' | 'info' | 'debug'
+  name: string
+  message: string
+  data: {
+    [key: string]: any
+  }
+}

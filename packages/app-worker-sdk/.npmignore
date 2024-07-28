@@ -1,0 +1,6 @@
+.prettierrc
+.prettierignore
+.eslintrc.js
+.eslintignore
+.rollup.cache
+.rollup.config.js

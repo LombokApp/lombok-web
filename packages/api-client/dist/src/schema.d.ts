@@ -1,141 +1,1051 @@
 export declare const schema: {
+    readonly openapi: "3.0.0";
+    readonly paths: {
+        readonly "/api/v1/auth/login": {
+            readonly post: {
+                readonly operationId: "login";
+                readonly parameters: readonly [];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/LoginCredentialsDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Authenticate the user and return access and refresh tokens.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/LoginResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Auth"];
+            };
+        };
+        readonly "/api/v1/auth/signup": {
+            readonly post: {
+                readonly operationId: "signup";
+                readonly parameters: readonly [];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/SignupCredentialsDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Register a new user.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/SignupResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Auth"];
+            };
+        };
+        readonly "/api/v1/auth/logout": {
+            readonly post: {
+                readonly operationId: "logout";
+                readonly parameters: readonly [];
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Logout. Kill the current session.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly type: "boolean";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Auth"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/auth/refresh-token": {
+            readonly post: {
+                readonly operationId: "refreshToken";
+                readonly parameters: readonly [{
+                    readonly name: "refeshToken";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Refresh a session with a refresh token.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/TokenRefreshResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Auth"];
+            };
+        };
+        readonly "/api/v1/viewer": {
+            readonly get: {
+                readonly operationId: "getViewer";
+                readonly parameters: readonly [];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/ViewerGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Viewer"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+            readonly put: {
+                readonly operationId: "updateViewer";
+                readonly parameters: readonly [];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/UpdateViewerInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/ViewerGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Viewer"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/server/users": {
+            readonly post: {
+                readonly operationId: "createUser";
+                readonly parameters: readonly [];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/UserCreateInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Create a user.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/UserGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Users"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+            readonly get: {
+                readonly operationId: "listUsers";
+                readonly parameters: readonly [{
+                    readonly name: "offset";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly name: "limit";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly minimum: 0;
+                        readonly exclusiveMinimum: true;
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly name: "isAdmin";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "boolean";
+                    };
+                }, {
+                    readonly name: "sort";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly enum: readonly ["createdAt-asc", "createdAt-desc", "email-asc", "email-desc", "name-asc", "name-desc", "role-asc", "role-desc", "status-asc", "status-desc", "updatedAt-asc", "updatedAt-desc"];
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "List the users.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/UserListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Users"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/server/users/{userId}": {
+            readonly patch: {
+                readonly operationId: "updateUser";
+                readonly parameters: readonly [{
+                    readonly name: "userId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/UserUpdateInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Update a user.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/UserGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Users"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+            readonly get: {
+                readonly operationId: "getUser";
+                readonly parameters: readonly [{
+                    readonly name: "userId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Get a user by id.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/UserGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Users"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+            readonly delete: {
+                readonly operationId: "deleteUser";
+                readonly parameters: readonly [{
+                    readonly name: "userId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Delete a server user by id.";
+                    };
+                };
+                readonly tags: readonly ["Users"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/folders/{folderId}": {
+            readonly get: {
+                readonly operationId: "getFolder";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Get a folder by id.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/FolderGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+            readonly delete: {
+                readonly operationId: "deleteFolder";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Delete a folder by id.";
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/folders/{folderId}/metadata": {
+            readonly get: {
+                readonly operationId: "getFolderMetadata";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Get the metadata for a folder by id.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/FolderGetMetadataResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/folders": {
+            readonly get: {
+                readonly operationId: "listFolders";
+                readonly parameters: readonly [{
+                    readonly name: "offset";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly name: "limit";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly minimum: 0;
+                        readonly exclusiveMinimum: true;
+                        readonly type: "number";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "List folders.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/FolderListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+            readonly post: {
+                readonly operationId: "createFolder";
+                readonly parameters: readonly [];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/FolderCreateInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Create a folder.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/FolderCreateResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/folders/{folderId}/rescan": {
+            readonly post: {
+                readonly operationId: "rescanFolder";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Scan the underlying S3 location and update our local representation of it.";
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/folders/{folderId}/objects": {
+            readonly get: {
+                readonly operationId: "listFolderObjects";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "offset";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly name: "limit";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly minimum: 0;
+                        readonly exclusiveMinimum: true;
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly name: "search";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "List folder objects by folderId.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/FolderObjectListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/folders/{folderId}/objects/{objectKey}": {
+            readonly get: {
+                readonly operationId: "getFolderObject";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "objectKey";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Get a folder object by folderId and objectKey.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/FolderObjectGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+            readonly delete: {
+                readonly operationId: "deleteFolderObject";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "objectKey";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Delete a folder object by folderId and objectKey.";
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+            readonly post: {
+                readonly operationId: "refreshFolderObjectS3Metadata";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "objectKey";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Scan the object again in the underlying storage, and update its state in our db.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/FolderObjectGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/folders/{folderId}/presigned-urls": {
+            readonly post: {
+                readonly operationId: "createPresignedUrls";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/FolderCreateSignedUrlInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Create presigned urls for objects in a folder.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/FolderCreateSignedUrlsResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/folders/{folderId}/apps/{appIdentifier}/actions/{actionKey}": {
+            readonly post: {
+                readonly operationId: "handleFolderAction";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "appIdentifier";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "actionKey";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/FolderHandleActionInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Handle folder action.";
+                    };
+                };
+                readonly tags: readonly ["Folders"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/server/settings": {
+            readonly get: {
+                readonly operationId: "getServerSettings";
+                readonly parameters: readonly [];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Get the server settings object.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/SettingsGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Server"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/server/settings/{settingKey}": {
+            readonly put: {
+                readonly operationId: "setServerSetting";
+                readonly parameters: readonly [{
+                    readonly name: "settingKey";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/SetSettingInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Set a setting in the server settings objects.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/SettingSetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Server"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+            readonly delete: {
+                readonly operationId: "resetServerSetting";
+                readonly parameters: readonly [{
+                    readonly name: "settingKey";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Reset a setting in the server settings objects.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/SettingSetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Server"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/server/storage-provisions": {
+            readonly get: {
+                readonly operationId: "listStorageProvisions";
+                readonly parameters: readonly [{
+                    readonly name: "provisionType";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly enum: readonly ["CONTENT", "METADATA", "BACKUP"];
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "List the server provisions.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/StorageProvisionListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["StorageProvisions"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+            readonly post: {
+                readonly operationId: "createServerProvision";
+                readonly parameters: readonly [];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/StorageProvisionInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Create a new server provision.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/StorageProvisionListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["StorageProvisions"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/server/storage-provisions/{storageProvisionId}": {
+            readonly put: {
+                readonly operationId: "updateStorageProvision";
+                readonly parameters: readonly [{
+                    readonly name: "storageProvisionId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/StorageProvisionInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Update a server provision by id.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/StorageProvisionListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["StorageProvisions"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+            readonly delete: {
+                readonly operationId: "deleteStorageProvision";
+                readonly parameters: readonly [{
+                    readonly name: "storageProvisionId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Delete a server provision by id.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/StorageProvisionListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["StorageProvisions"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/events/{eventId}": {
+            readonly get: {
+                readonly operationId: "getEvent";
+                readonly parameters: readonly [];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Get an event by id.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/EventGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Events"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/events": {
+            readonly get: {
+                readonly operationId: "listEvents";
+                readonly parameters: readonly [{
+                    readonly name: "offset";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly name: "limit";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly minimum: 0;
+                        readonly exclusiveMinimum: true;
+                        readonly type: "number";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "List events.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/EventListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Events"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/server/apps": {
+            readonly get: {
+                readonly operationId: "listApps";
+                readonly parameters: readonly [];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/AppListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Apps"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+    };
+    readonly info: {
+        readonly title: "@stellariscloud/api";
+        readonly description: "The Stellaris Cloud core API";
+        readonly version: "1.0";
+        readonly contact: {};
+    };
+    readonly tags: readonly [];
+    readonly servers: readonly [];
     readonly components: {
-        readonly examples: {};
-        readonly headers: {};
-        readonly parameters: {};
-        readonly requestBodies: {};
-        readonly responses: {};
+        readonly securitySchemes: {
+            readonly bearer: {
+                readonly scheme: "bearer";
+                readonly bearerFormat: "JWT";
+                readonly type: "http";
+            };
+        };
         readonly schemas: {
-            readonly SessionResponse: {
-                readonly properties: {
-                    readonly accessToken: {
-                        readonly type: "string";
-                    };
-                    readonly refreshToken: {
-                        readonly type: "string";
-                    };
-                    readonly expiresAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
-                };
-                readonly required: readonly ["accessToken", "refreshToken", "expiresAt"];
+            readonly LoginCredentialsDTO: {
                 readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly ErrorMetaData: {
-                readonly properties: {};
-                readonly type: "object";
-                readonly additionalProperties: {};
-            };
-            readonly ErrorData: {
-                readonly properties: {
-                    readonly code: {
-                        readonly type: "string";
-                    };
-                    readonly title: {
-                        readonly type: "string";
-                    };
-                    readonly detail: {
-                        readonly type: "string";
-                    };
-                    readonly meta: {
-                        readonly $ref: "#/components/schemas/ErrorMetaData";
-                    };
-                    readonly pointer: {
-                        readonly type: "string";
-                    };
-                };
-                readonly required: readonly ["code"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly ErrorResponse: {
-                readonly properties: {
-                    readonly errors: {
-                        readonly items: {
-                            readonly $ref: "#/components/schemas/ErrorData";
-                        };
-                        readonly type: "array";
-                    };
-                };
-                readonly required: readonly ["errors"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly EmailFormat: {
-                readonly type: "string";
-                readonly format: "email";
-                readonly maxLength: 255;
-            };
-            readonly UsernameFormat: {
-                readonly type: "string";
-                readonly format: "email";
-                readonly maxLength: 64;
-            };
-            readonly UserData: {
-                readonly properties: {
-                    readonly createdAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
-                    readonly updatedAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
-                    readonly id: {
-                        readonly type: "string";
-                    };
-                    readonly name: {
-                        readonly type: "string";
-                        readonly nullable: true;
-                    };
-                    readonly email: {
-                        readonly allOf: readonly [{
-                            readonly $ref: "#/components/schemas/EmailFormat";
-                        }];
-                        readonly nullable: true;
-                    };
-                    readonly emailVerified: {
-                        readonly type: "boolean";
-                    };
-                    readonly isAdmin: {
-                        readonly type: "boolean";
-                    };
-                    readonly username: {
-                        readonly $ref: "#/components/schemas/UsernameFormat";
-                    };
-                    readonly permissions: {
-                        readonly items: {
-                            readonly type: "string";
-                        };
-                        readonly type: "array";
-                    };
-                };
-                readonly required: readonly ["createdAt", "updatedAt", "id", "name", "email", "emailVerified", "isAdmin", "permissions"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly SignupParams: {
-                readonly properties: {
-                    readonly username: {
-                        readonly type: "string";
-                        readonly maxLength: 255;
-                    };
-                    readonly email: {
-                        readonly type: "string";
-                        readonly maxLength: 255;
-                    };
-                    readonly password: {
-                        readonly type: "string";
-                        readonly maxLength: 255;
-                    };
-                };
-                readonly required: readonly ["username", "email", "password"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly LoginParams: {
                 readonly properties: {
                     readonly login: {
                         readonly type: "string";
@@ -145,243 +1055,186 @@ export declare const schema: {
                     };
                 };
                 readonly required: readonly ["login", "password"];
-                readonly type: "object";
-                readonly additionalProperties: false;
             };
-            readonly OutputUploadUrlsResponse: {
-                readonly properties: {
-                    readonly folderId: {
-                        readonly type: "string";
-                    };
-                    readonly objectKey: {
-                        readonly type: "string";
-                    };
-                    readonly url: {
-                        readonly type: "string";
-                    };
-                };
-                readonly required: readonly ["folderId", "objectKey", "url"];
+            readonly LoginResponse: {
                 readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly CreateOutputUploadUrlsPayload: {
                 readonly properties: {
-                    readonly outputFiles: {
-                        readonly items: {
-                            readonly properties: {
-                                readonly objectKey: {
-                                    readonly type: "string";
-                                };
-                                readonly folderId: {
-                                    readonly type: "string";
-                                };
-                            };
-                            readonly required: readonly ["objectKey", "folderId"];
-                            readonly type: "object";
-                        };
-                        readonly type: "array";
-                    };
-                };
-                readonly required: readonly ["outputFiles"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly MetadataUploadUrlsResponse: {
-                readonly properties: {
-                    readonly folderId: {
-                        readonly type: "string";
-                    };
-                    readonly objectKey: {
-                        readonly type: "string";
-                    };
-                    readonly urls: {
-                        readonly properties: {};
-                        readonly additionalProperties: {
-                            readonly type: "string";
-                        };
+                    readonly session: {
                         readonly type: "object";
+                        readonly properties: {
+                            readonly accessToken: {
+                                readonly type: "string";
+                            };
+                            readonly refreshToken: {
+                                readonly type: "string";
+                            };
+                        };
+                        readonly required: readonly ["accessToken", "refreshToken"];
                     };
                 };
-                readonly required: readonly ["folderId", "objectKey", "urls"];
-                readonly type: "object";
-                readonly additionalProperties: false;
+                readonly required: readonly ["session"];
             };
-            readonly CreateMetadataUploadUrlsPayload: {
+            readonly SignupCredentialsDTO: {
+                readonly type: "object";
                 readonly properties: {
-                    readonly contentHash: {
+                    readonly username: {
                         readonly type: "string";
+                        readonly minLength: 3;
+                        readonly maxLength: 64;
                     };
-                    readonly metadataFiles: {
-                        readonly items: {
-                            readonly properties: {
-                                readonly metadataHashes: {
-                                    readonly properties: {};
-                                    readonly additionalProperties: {
-                                        readonly type: "string";
-                                    };
-                                    readonly type: "object";
-                                };
-                                readonly objectKey: {
-                                    readonly type: "string";
-                                };
-                                readonly folderId: {
+                    readonly email: {
+                        readonly type: "string";
+                        readonly maxLength: 255;
+                    };
+                    readonly password: {
+                        readonly type: "string";
+                        readonly maxLength: 255;
+                    };
+                };
+                readonly required: readonly ["username", "password"];
+            };
+            readonly SignupResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly user: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
+                            readonly name: {
+                                readonly type: readonly ["string", "null"];
+                            };
+                            readonly email: {
+                                readonly type: readonly ["string", "null"];
+                            };
+                            readonly emailVerified: {
+                                readonly type: "boolean";
+                            };
+                            readonly isAdmin: {
+                                readonly type: "boolean";
+                            };
+                            readonly username: {
+                                readonly type: "string";
+                            };
+                            readonly permissions: {
+                                readonly type: "array";
+                                readonly items: {
                                     readonly type: "string";
                                 };
                             };
-                            readonly required: readonly ["metadataHashes", "objectKey", "folderId"];
-                            readonly type: "object";
+                            readonly createdAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                            readonly updatedAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
                         };
-                        readonly type: "array";
+                        readonly required: readonly ["id", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
                     };
                 };
-                readonly required: readonly ["contentHash", "metadataFiles"];
+                readonly required: readonly ["user"];
+            };
+            readonly TokenRefreshResponse: {
                 readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly MediaType: {
-                readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
-                readonly type: "string";
-            };
-            readonly ContentAttributesType: {
                 readonly properties: {
-                    readonly mediaType: {
-                        readonly $ref: "#/components/schemas/MediaType";
-                    };
-                    readonly mimeType: {
-                        readonly type: "string";
-                    };
-                    readonly height: {
-                        readonly type: "number";
-                        readonly format: "double";
-                    };
-                    readonly width: {
-                        readonly type: "number";
-                        readonly format: "double";
-                    };
-                    readonly orientation: {
-                        readonly type: "number";
-                        readonly format: "double";
-                    };
-                    readonly lengthMs: {
-                        readonly type: "number";
-                        readonly format: "double";
-                    };
-                    readonly bitrate: {
-                        readonly type: "number";
-                        readonly format: "double";
+                    readonly session: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly accessToken: {
+                                readonly type: "string";
+                            };
+                            readonly refreshToken: {
+                                readonly type: "string";
+                            };
+                        };
+                        readonly required: readonly ["accessToken", "refreshToken"];
                     };
                 };
-                readonly required: readonly ["mediaType", "mimeType", "height", "width", "orientation", "lengthMs", "bitrate"];
-                readonly type: "object";
-                readonly additionalProperties: false;
+                readonly required: readonly ["session"];
             };
-            readonly ContentAttibutesPayload: {
+            readonly ViewerGetResponse: {
+                readonly type: "object";
                 readonly properties: {
-                    readonly folderId: {
-                        readonly type: "string";
-                    };
-                    readonly objectKey: {
-                        readonly type: "string";
-                    };
-                    readonly hash: {
-                        readonly type: "string";
-                    };
-                    readonly attributes: {
-                        readonly $ref: "#/components/schemas/ContentAttributesType";
+                    readonly user: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
+                            readonly name: {
+                                readonly type: readonly ["string", "null"];
+                            };
+                            readonly email: {
+                                readonly type: readonly ["string", "null"];
+                            };
+                            readonly emailVerified: {
+                                readonly type: "boolean";
+                            };
+                            readonly isAdmin: {
+                                readonly type: "boolean";
+                            };
+                            readonly username: {
+                                readonly type: "string";
+                            };
+                            readonly permissions: {
+                                readonly type: "array";
+                                readonly items: {
+                                    readonly type: "string";
+                                };
+                            };
+                            readonly createdAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                            readonly updatedAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                        };
+                        readonly required: readonly ["id", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
                     };
                 };
-                readonly required: readonly ["folderId", "objectKey", "hash", "attributes"];
-                readonly type: "object";
-                readonly additionalProperties: false;
+                readonly required: readonly ["user"];
             };
-            readonly MetadataEntry: {
+            readonly UpdateViewerInputDTO: {
+                readonly type: "object";
                 readonly properties: {
-                    readonly mimeType: {
-                        readonly type: "string";
-                    };
-                    readonly size: {
-                        readonly type: "number";
-                        readonly format: "double";
-                    };
-                    readonly hash: {
-                        readonly type: "string";
-                    };
-                };
-                readonly required: readonly ["mimeType", "size", "hash"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly ContentMetadataType: {
-                readonly properties: {};
-                readonly type: "object";
-                readonly additionalProperties: {
-                    readonly $ref: "#/components/schemas/MetadataEntry";
-                };
-            };
-            readonly ContentMetadataPayload: {
-                readonly properties: {
-                    readonly folderId: {
-                        readonly type: "string";
-                    };
-                    readonly objectKey: {
-                        readonly type: "string";
-                    };
-                    readonly hash: {
-                        readonly type: "string";
-                    };
-                    readonly metadata: {
-                        readonly $ref: "#/components/schemas/ContentMetadataType";
-                    };
-                };
-                readonly required: readonly ["folderId", "objectKey", "hash", "metadata"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly StorageLocationData: {
-                readonly properties: {
-                    readonly createdAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
-                    readonly updatedAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
-                    readonly id: {
-                        readonly type: "string";
-                    };
-                    readonly userId: {
-                        readonly type: "string";
-                    };
-                    readonly providerType: {
-                        readonly type: "string";
-                        readonly enum: readonly ["SERVER", "USER"];
-                    };
                     readonly name: {
                         readonly type: "string";
                     };
-                    readonly endpoint: {
-                        readonly type: "string";
-                    };
-                    readonly region: {
-                        readonly type: "string";
-                    };
-                    readonly bucket: {
-                        readonly type: "string";
-                    };
-                    readonly prefix: {
-                        readonly type: "string";
-                    };
-                    readonly accessKeyId: {
-                        readonly type: "string";
-                    };
                 };
-                readonly required: readonly ["createdAt", "updatedAt", "id", "providerType", "name", "endpoint", "bucket", "accessKeyId"];
-                readonly type: "object";
-                readonly additionalProperties: false;
+                readonly required: readonly ["name"];
             };
-            readonly FolderData: {
+            readonly UserDTO: {
+                readonly type: "object";
                 readonly properties: {
+                    readonly id: {
+                        readonly type: "string";
+                    };
+                    readonly name: {
+                        readonly type: readonly ["string", "null"];
+                    };
+                    readonly email: {
+                        readonly type: readonly ["string", "null"];
+                    };
+                    readonly emailVerified: {
+                        readonly type: "boolean";
+                    };
+                    readonly isAdmin: {
+                        readonly type: "boolean";
+                    };
+                    readonly username: {
+                        readonly type: "string";
+                    };
+                    readonly permissions: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "string";
+                        };
+                    };
                     readonly createdAt: {
                         readonly type: "string";
                         readonly format: "date-time";
@@ -390,6 +1243,171 @@ export declare const schema: {
                         readonly type: "string";
                         readonly format: "date-time";
                     };
+                };
+                readonly required: readonly ["id", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
+            };
+            readonly UserCreateInputDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly name: {
+                        readonly type: readonly ["string", "null"];
+                    };
+                    readonly email: {
+                        readonly type: readonly ["string", "null"];
+                    };
+                    readonly emailVerified: {
+                        readonly type: "boolean";
+                    };
+                    readonly isAdmin: {
+                        readonly type: "boolean";
+                    };
+                    readonly username: {
+                        readonly type: "string";
+                    };
+                    readonly password: {
+                        readonly type: "string";
+                    };
+                    readonly permissions: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "string";
+                        };
+                    };
+                };
+                readonly required: readonly ["username", "password"];
+            };
+            readonly UserGetResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly user: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
+                            readonly name: {
+                                readonly type: readonly ["string", "null"];
+                            };
+                            readonly email: {
+                                readonly type: readonly ["string", "null"];
+                            };
+                            readonly emailVerified: {
+                                readonly type: "boolean";
+                            };
+                            readonly isAdmin: {
+                                readonly type: "boolean";
+                            };
+                            readonly username: {
+                                readonly type: "string";
+                            };
+                            readonly permissions: {
+                                readonly type: "array";
+                                readonly items: {
+                                    readonly type: "string";
+                                };
+                            };
+                            readonly createdAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                            readonly updatedAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                        };
+                        readonly required: readonly ["id", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
+                    };
+                };
+                readonly required: readonly ["user"];
+            };
+            readonly UserUpdateInputDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly name: {
+                        readonly type: readonly ["string", "null"];
+                    };
+                    readonly email: {
+                        readonly type: readonly ["string", "null"];
+                    };
+                    readonly emailVerified: {
+                        readonly type: "boolean";
+                    };
+                    readonly isAdmin: {
+                        readonly type: "boolean";
+                    };
+                    readonly username: {
+                        readonly type: "string";
+                    };
+                    readonly password: {
+                        readonly type: "string";
+                    };
+                    readonly permissions: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "string";
+                        };
+                    };
+                };
+            };
+            readonly UserListResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly meta: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly totalCount: {
+                                readonly type: "number";
+                            };
+                        };
+                        readonly required: readonly ["totalCount"];
+                    };
+                    readonly result: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "object";
+                            readonly properties: {
+                                readonly id: {
+                                    readonly type: "string";
+                                };
+                                readonly name: {
+                                    readonly type: readonly ["string", "null"];
+                                };
+                                readonly email: {
+                                    readonly type: readonly ["string", "null"];
+                                };
+                                readonly emailVerified: {
+                                    readonly type: "boolean";
+                                };
+                                readonly isAdmin: {
+                                    readonly type: "boolean";
+                                };
+                                readonly username: {
+                                    readonly type: "string";
+                                };
+                                readonly permissions: {
+                                    readonly type: "array";
+                                    readonly items: {
+                                        readonly type: "string";
+                                    };
+                                };
+                                readonly createdAt: {
+                                    readonly type: "string";
+                                    readonly format: "date-time";
+                                };
+                                readonly updatedAt: {
+                                    readonly type: "string";
+                                    readonly format: "date-time";
+                                };
+                            };
+                            readonly required: readonly ["id", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
+                        };
+                    };
+                };
+                readonly required: readonly ["meta", "result"];
+            };
+            readonly FolderDTO: {
+                readonly type: "object";
+                readonly properties: {
                     readonly id: {
                         readonly type: "string";
                     };
@@ -400,119 +1418,79 @@ export declare const schema: {
                         readonly type: "string";
                     };
                     readonly metadataLocation: {
-                        readonly $ref: "#/components/schemas/StorageLocationData";
-                    };
-                    readonly contentLocation: {
-                        readonly $ref: "#/components/schemas/StorageLocationData";
-                    };
-                };
-                readonly required: readonly ["createdAt", "updatedAt", "id", "name", "metadataLocation", "contentLocation"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly UserLocationInputData: {
-                readonly properties: {
-                    readonly serverLocationId: {
-                        readonly type: "string";
-                    };
-                    readonly userLocationId: {
-                        readonly type: "string";
-                    };
-                    readonly userLocationBucketOverride: {
-                        readonly type: "string";
-                    };
-                    readonly userLocationPrefixOverride: {
-                        readonly type: "string";
-                    };
-                    readonly accessKeyId: {
-                        readonly type: "string";
-                    };
-                    readonly secretAccessKey: {
-                        readonly type: "string";
-                    };
-                    readonly endpoint: {
-                        readonly type: "string";
-                    };
-                    readonly bucket: {
-                        readonly type: "string";
-                    };
-                    readonly region: {
-                        readonly type: "string";
-                    };
-                    readonly prefix: {
-                        readonly type: "string";
-                    };
-                };
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly FolderPermissionName: {
-                readonly enum: readonly ["folder_refresh", "folder_manage_shares", "folder_forget", "object_edit", "object_manage", "tag_create", "tag_associate"];
-                readonly type: "string";
-            };
-            readonly FolderAndPermission: {
-                readonly properties: {
-                    readonly folder: {
-                        readonly $ref: "#/components/schemas/FolderData";
-                    };
-                    readonly permissions: {
-                        readonly items: {
-                            readonly type: "string";
-                        };
-                        readonly type: "array";
-                    };
-                };
-                readonly required: readonly ["folder", "permissions"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly ListFoldersResponse: {
-                readonly properties: {
-                    readonly meta: {
+                        readonly type: "object";
                         readonly properties: {
-                            readonly totalCount: {
-                                readonly type: "number";
-                                readonly format: "double";
+                            readonly id: {
+                                readonly type: "string";
+                            };
+                            readonly userId: {
+                                readonly type: "string";
+                            };
+                            readonly providerType: {
+                                readonly type: "string";
+                                readonly enum: readonly ["SERVER", "USER"];
+                            };
+                            readonly label: {
+                                readonly type: "string";
+                            };
+                            readonly endpoint: {
+                                readonly type: "string";
+                            };
+                            readonly region: {
+                                readonly type: "string";
+                            };
+                            readonly bucket: {
+                                readonly type: "string";
+                            };
+                            readonly prefix: {
+                                readonly type: "string";
+                            };
+                            readonly accessKeyId: {
+                                readonly type: "string";
                             };
                         };
-                        readonly required: readonly ["totalCount"];
+                        readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                    };
+                    readonly contentLocation: {
                         readonly type: "object";
-                    };
-                    readonly result: {
-                        readonly items: {
-                            readonly $ref: "#/components/schemas/FolderAndPermission";
+                        readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
+                            readonly userId: {
+                                readonly type: "string";
+                            };
+                            readonly providerType: {
+                                readonly type: "string";
+                                readonly enum: readonly ["SERVER", "USER"];
+                            };
+                            readonly label: {
+                                readonly type: "string";
+                            };
+                            readonly endpoint: {
+                                readonly type: "string";
+                            };
+                            readonly region: {
+                                readonly type: "string";
+                            };
+                            readonly bucket: {
+                                readonly type: "string";
+                            };
+                            readonly prefix: {
+                                readonly type: "string";
+                            };
+                            readonly accessKeyId: {
+                                readonly type: "string";
+                            };
                         };
-                        readonly type: "array";
+                        readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
                     };
                 };
-                readonly required: readonly ["meta", "result"];
-                readonly type: "object";
-                readonly additionalProperties: false;
+                readonly required: readonly ["id", "ownerId", "name", "metadataLocation", "contentLocation"];
             };
-            readonly ContentAttributesByHash: {
-                readonly properties: {};
+            readonly FolderObjectDTO: {
                 readonly type: "object";
-                readonly additionalProperties: {
-                    readonly $ref: "#/components/schemas/ContentAttributesType";
-                };
-            };
-            readonly ContentMetadataByHash: {
-                readonly properties: {};
-                readonly type: "object";
-                readonly additionalProperties: {
-                    readonly $ref: "#/components/schemas/ContentMetadataType";
-                };
-            };
-            readonly FolderObjectData: {
                 readonly properties: {
-                    readonly createdAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
-                    readonly updatedAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
                     readonly id: {
                         readonly type: "string";
                     };
@@ -522,190 +1500,894 @@ export declare const schema: {
                     readonly folderId: {
                         readonly type: "string";
                     };
-                    readonly contentAttributes: {
-                        readonly $ref: "#/components/schemas/ContentAttributesByHash";
-                    };
-                    readonly contentMetadata: {
-                        readonly $ref: "#/components/schemas/ContentMetadataByHash";
-                    };
                     readonly hash: {
-                        readonly type: "string";
-                        readonly nullable: true;
+                        readonly type: readonly ["string", "null"];
                     };
                     readonly lastModified: {
                         readonly type: "number";
-                        readonly format: "double";
                     };
                     readonly eTag: {
                         readonly type: "string";
                     };
                     readonly sizeBytes: {
                         readonly type: "number";
-                        readonly format: "double";
-                    };
-                    readonly mediaType: {
-                        readonly $ref: "#/components/schemas/MediaType";
                     };
                     readonly mimeType: {
                         readonly type: "string";
                     };
-                };
-                readonly required: readonly ["createdAt", "updatedAt", "id", "objectKey", "folderId", "contentAttributes", "contentMetadata", "hash", "lastModified", "eTag", "sizeBytes", "mediaType", "mimeType"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly FolderOperationName: {
-                readonly enum: readonly ["IndexFolderObject", "TranscribeAudio", "DetectObjects"];
-                readonly type: "string";
-            };
-            readonly FolderOperationData: {
-                readonly properties: {
-                    readonly createdAt: {
+                    readonly mediaType: {
                         readonly type: "string";
-                        readonly format: "date-time";
+                        readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
                     };
-                    readonly updatedAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
-                    readonly id: {
-                        readonly type: "string";
-                    };
-                    readonly operationName: {
-                        readonly $ref: "#/components/schemas/FolderOperationName";
-                    };
-                    readonly operationData: {
-                        readonly properties: {};
-                        readonly additionalProperties: {};
+                    readonly contentAttributes: {
                         readonly type: "object";
+                        readonly additionalProperties: {
+                            readonly type: "object";
+                            readonly properties: {
+                                readonly mediaType: {
+                                    readonly type: "string";
+                                    readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
+                                };
+                                readonly mimeType: {
+                                    readonly type: "string";
+                                };
+                                readonly height: {
+                                    readonly type: "number";
+                                };
+                                readonly width: {
+                                    readonly type: "number";
+                                };
+                                readonly orientation: {
+                                    readonly type: "number";
+                                };
+                                readonly lengthMs: {
+                                    readonly type: "number";
+                                };
+                                readonly bitrate: {
+                                    readonly type: "number";
+                                };
+                            };
+                            readonly required: readonly ["mediaType", "mimeType", "height", "width", "orientation", "lengthMs", "bitrate"];
+                        };
                     };
-                    readonly started: {
-                        readonly type: "boolean";
-                    };
-                    readonly completed: {
-                        readonly type: "boolean";
-                    };
-                    readonly error: {
-                        readonly type: "string";
-                        readonly nullable: true;
-                    };
-                };
-                readonly required: readonly ["createdAt", "updatedAt", "id", "operationName", "operationData", "started", "completed", "error"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly FolderOperationRequestPayload: {
-                readonly properties: {
-                    readonly operationName: {
-                        readonly $ref: "#/components/schemas/FolderOperationName";
-                    };
-                    readonly operationData: {
-                        readonly properties: {};
-                        readonly additionalProperties: {};
+                    readonly contentMetadata: {
                         readonly type: "object";
+                        readonly additionalProperties: {
+                            readonly type: "object";
+                            readonly additionalProperties: {
+                                readonly type: "object";
+                                readonly properties: {
+                                    readonly mimeType: {
+                                        readonly type: "string";
+                                    };
+                                    readonly size: {
+                                        readonly type: "number";
+                                    };
+                                    readonly hash: {
+                                        readonly type: "string";
+                                    };
+                                };
+                                readonly required: readonly ["mimeType", "size", "hash"];
+                            };
+                        };
                     };
                 };
-                readonly required: readonly ["operationName", "operationData"];
-                readonly type: "object";
-                readonly additionalProperties: false;
+                readonly required: readonly ["id", "objectKey", "folderId", "lastModified", "eTag", "sizeBytes", "mimeType", "mediaType", "contentAttributes", "contentMetadata"];
             };
-            readonly ListResponseMeta: {
+            readonly FolderObjectContentMetadataDTO: {
+                readonly type: "object";
+                readonly additionalProperties: {
+                    readonly type: "object";
+                    readonly properties: {
+                        readonly mimeType: {
+                            readonly type: "string";
+                        };
+                        readonly size: {
+                            readonly type: "number";
+                        };
+                        readonly hash: {
+                            readonly type: "string";
+                        };
+                    };
+                    readonly required: readonly ["mimeType", "size", "hash"];
+                };
+            };
+            readonly FolderObjectContentAttributesDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly mediaType: {
+                        readonly type: "string";
+                        readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
+                    };
+                    readonly mimeType: {
+                        readonly type: "string";
+                    };
+                    readonly height: {
+                        readonly type: "number";
+                    };
+                    readonly width: {
+                        readonly type: "number";
+                    };
+                    readonly orientation: {
+                        readonly type: "number";
+                    };
+                    readonly lengthMs: {
+                        readonly type: "number";
+                    };
+                    readonly bitrate: {
+                        readonly type: "number";
+                    };
+                };
+                readonly required: readonly ["mediaType", "mimeType", "height", "width", "orientation", "lengthMs", "bitrate"];
+            };
+            readonly FolderGetResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly folder: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
+                            readonly ownerId: {
+                                readonly type: "string";
+                            };
+                            readonly name: {
+                                readonly type: "string";
+                            };
+                            readonly metadataLocation: {
+                                readonly type: "object";
+                                readonly properties: {
+                                    readonly id: {
+                                        readonly type: "string";
+                                    };
+                                    readonly userId: {
+                                        readonly type: "string";
+                                    };
+                                    readonly providerType: {
+                                        readonly type: "string";
+                                        readonly enum: readonly ["SERVER", "USER"];
+                                    };
+                                    readonly label: {
+                                        readonly type: "string";
+                                    };
+                                    readonly endpoint: {
+                                        readonly type: "string";
+                                    };
+                                    readonly region: {
+                                        readonly type: "string";
+                                    };
+                                    readonly bucket: {
+                                        readonly type: "string";
+                                    };
+                                    readonly prefix: {
+                                        readonly type: "string";
+                                    };
+                                    readonly accessKeyId: {
+                                        readonly type: "string";
+                                    };
+                                };
+                                readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                            };
+                            readonly contentLocation: {
+                                readonly type: "object";
+                                readonly properties: {
+                                    readonly id: {
+                                        readonly type: "string";
+                                    };
+                                    readonly userId: {
+                                        readonly type: "string";
+                                    };
+                                    readonly providerType: {
+                                        readonly type: "string";
+                                        readonly enum: readonly ["SERVER", "USER"];
+                                    };
+                                    readonly label: {
+                                        readonly type: "string";
+                                    };
+                                    readonly endpoint: {
+                                        readonly type: "string";
+                                    };
+                                    readonly region: {
+                                        readonly type: "string";
+                                    };
+                                    readonly bucket: {
+                                        readonly type: "string";
+                                    };
+                                    readonly prefix: {
+                                        readonly type: "string";
+                                    };
+                                    readonly accessKeyId: {
+                                        readonly type: "string";
+                                    };
+                                };
+                                readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                            };
+                        };
+                        readonly required: readonly ["id", "ownerId", "name", "metadataLocation", "contentLocation"];
+                    };
+                    readonly permissions: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "string";
+                            readonly enum: readonly ["FOLDER_RESCAN", "FOLDER_FORGET", "OBJECT_EDIT", "OBJECT_MANAGE"];
+                        };
+                    };
+                };
+                readonly required: readonly ["folder", "permissions"];
+            };
+            readonly FolderGetMetadataResponse: {
+                readonly type: "object";
                 readonly properties: {
                     readonly totalCount: {
                         readonly type: "number";
-                        readonly format: "double";
+                    };
+                    readonly totalSizeBytes: {
+                        readonly type: "number";
                     };
                 };
-                readonly required: readonly ["totalCount"];
+                readonly required: readonly ["totalCount", "totalSizeBytes"];
+            };
+            readonly FolderListResponse: {
                 readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly SignedURLsRequestMethod: {
-                readonly enum: readonly ["PUT", "DELETE", "GET"];
-                readonly type: "string";
-            };
-            readonly SignedURLsRequest: {
-                readonly properties: {
-                    readonly objectIdentifier: {
-                        readonly type: "string";
-                    };
-                    readonly method: {
-                        readonly $ref: "#/components/schemas/SignedURLsRequestMethod";
-                    };
-                };
-                readonly required: readonly ["objectIdentifier", "method"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly FolderOperationsResponse: {
                 readonly properties: {
                     readonly meta: {
+                        readonly type: "object";
                         readonly properties: {
                             readonly totalCount: {
                                 readonly type: "number";
-                                readonly format: "double";
                             };
                         };
                         readonly required: readonly ["totalCount"];
-                        readonly type: "object";
                     };
                     readonly result: {
-                        readonly items: {
-                            readonly $ref: "#/components/schemas/FolderOperationData";
-                        };
                         readonly type: "array";
+                        readonly items: {
+                            readonly type: "object";
+                            readonly properties: {
+                                readonly permissions: {
+                                    readonly type: "array";
+                                    readonly items: {
+                                        readonly type: "string";
+                                        readonly enum: readonly ["FOLDER_RESCAN", "FOLDER_FORGET", "OBJECT_EDIT", "OBJECT_MANAGE"];
+                                    };
+                                };
+                                readonly folder: {
+                                    readonly type: "object";
+                                    readonly properties: {
+                                        readonly id: {
+                                            readonly type: "string";
+                                        };
+                                        readonly ownerId: {
+                                            readonly type: "string";
+                                        };
+                                        readonly name: {
+                                            readonly type: "string";
+                                        };
+                                        readonly metadataLocation: {
+                                            readonly type: "object";
+                                            readonly properties: {
+                                                readonly id: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly userId: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly providerType: {
+                                                    readonly type: "string";
+                                                    readonly enum: readonly ["SERVER", "USER"];
+                                                };
+                                                readonly label: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly endpoint: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly region: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly bucket: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly prefix: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly accessKeyId: {
+                                                    readonly type: "string";
+                                                };
+                                            };
+                                            readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                                        };
+                                        readonly contentLocation: {
+                                            readonly type: "object";
+                                            readonly properties: {
+                                                readonly id: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly userId: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly providerType: {
+                                                    readonly type: "string";
+                                                    readonly enum: readonly ["SERVER", "USER"];
+                                                };
+                                                readonly label: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly endpoint: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly region: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly bucket: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly prefix: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly accessKeyId: {
+                                                    readonly type: "string";
+                                                };
+                                            };
+                                            readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                                        };
+                                    };
+                                    readonly required: readonly ["id", "ownerId", "name", "metadataLocation", "contentLocation"];
+                                };
+                            };
+                            readonly required: readonly ["permissions", "folder"];
+                        };
                     };
                 };
                 readonly required: readonly ["meta", "result"];
+            };
+            readonly FolderCreateInputDTO: {
                 readonly type: "object";
-                readonly additionalProperties: false;
+                readonly properties: {
+                    readonly name: {
+                        readonly type: "string";
+                    };
+                    readonly metadataLocation: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly storageProvisionId: {
+                                readonly type: "string";
+                            };
+                            readonly userLocationId: {
+                                readonly type: "string";
+                            };
+                            readonly userLocationBucketOverride: {
+                                readonly type: "string";
+                            };
+                            readonly userLocationPrefixOverride: {
+                                readonly type: "string";
+                            };
+                            readonly accessKeyId: {
+                                readonly type: "string";
+                            };
+                            readonly secretAccessKey: {
+                                readonly type: "string";
+                            };
+                            readonly endpoint: {
+                                readonly type: "string";
+                            };
+                            readonly bucket: {
+                                readonly type: "string";
+                            };
+                            readonly region: {
+                                readonly type: "string";
+                            };
+                            readonly prefix: {
+                                readonly type: "string";
+                            };
+                        };
+                    };
+                    readonly contentLocation: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly storageProvisionId: {
+                                readonly type: "string";
+                            };
+                            readonly userLocationId: {
+                                readonly type: "string";
+                            };
+                            readonly userLocationBucketOverride: {
+                                readonly type: "string";
+                            };
+                            readonly userLocationPrefixOverride: {
+                                readonly type: "string";
+                            };
+                            readonly accessKeyId: {
+                                readonly type: "string";
+                            };
+                            readonly secretAccessKey: {
+                                readonly type: "string";
+                            };
+                            readonly endpoint: {
+                                readonly type: "string";
+                            };
+                            readonly bucket: {
+                                readonly type: "string";
+                            };
+                            readonly region: {
+                                readonly type: "string";
+                            };
+                            readonly prefix: {
+                                readonly type: "string";
+                            };
+                        };
+                    };
+                };
+                readonly required: readonly ["name", "contentLocation"];
             };
-            readonly FolderOperationSort: {
-                readonly enum: readonly ["createdAt-asc", "createdAt-desc", "updatedAt-asc", "updatedAt-desc"];
-                readonly type: "string";
+            readonly FolderCreateResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly folder: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
+                            readonly ownerId: {
+                                readonly type: "string";
+                            };
+                            readonly name: {
+                                readonly type: "string";
+                            };
+                            readonly metadataLocation: {
+                                readonly type: "object";
+                                readonly properties: {
+                                    readonly id: {
+                                        readonly type: "string";
+                                    };
+                                    readonly userId: {
+                                        readonly type: "string";
+                                    };
+                                    readonly providerType: {
+                                        readonly type: "string";
+                                        readonly enum: readonly ["SERVER", "USER"];
+                                    };
+                                    readonly label: {
+                                        readonly type: "string";
+                                    };
+                                    readonly endpoint: {
+                                        readonly type: "string";
+                                    };
+                                    readonly region: {
+                                        readonly type: "string";
+                                    };
+                                    readonly bucket: {
+                                        readonly type: "string";
+                                    };
+                                    readonly prefix: {
+                                        readonly type: "string";
+                                    };
+                                    readonly accessKeyId: {
+                                        readonly type: "string";
+                                    };
+                                };
+                                readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                            };
+                            readonly contentLocation: {
+                                readonly type: "object";
+                                readonly properties: {
+                                    readonly id: {
+                                        readonly type: "string";
+                                    };
+                                    readonly userId: {
+                                        readonly type: "string";
+                                    };
+                                    readonly providerType: {
+                                        readonly type: "string";
+                                        readonly enum: readonly ["SERVER", "USER"];
+                                    };
+                                    readonly label: {
+                                        readonly type: "string";
+                                    };
+                                    readonly endpoint: {
+                                        readonly type: "string";
+                                    };
+                                    readonly region: {
+                                        readonly type: "string";
+                                    };
+                                    readonly bucket: {
+                                        readonly type: "string";
+                                    };
+                                    readonly prefix: {
+                                        readonly type: "string";
+                                    };
+                                    readonly accessKeyId: {
+                                        readonly type: "string";
+                                    };
+                                };
+                                readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                            };
+                        };
+                        readonly required: readonly ["id", "ownerId", "name", "metadataLocation", "contentLocation"];
+                    };
+                };
+                readonly required: readonly ["folder"];
             };
-            readonly FolderOperationStatus: {
-                readonly enum: readonly ["PENDING", "FAILED", "COMPLETE"];
-                readonly type: "string";
+            readonly FolderObjectListResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly meta: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly totalCount: {
+                                readonly type: "number";
+                            };
+                        };
+                        readonly required: readonly ["totalCount"];
+                    };
+                    readonly result: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "object";
+                            readonly properties: {
+                                readonly id: {
+                                    readonly type: "string";
+                                };
+                                readonly objectKey: {
+                                    readonly type: "string";
+                                };
+                                readonly folderId: {
+                                    readonly type: "string";
+                                };
+                                readonly hash: {
+                                    readonly type: readonly ["string", "null"];
+                                };
+                                readonly lastModified: {
+                                    readonly type: "number";
+                                };
+                                readonly eTag: {
+                                    readonly type: "string";
+                                };
+                                readonly sizeBytes: {
+                                    readonly type: "number";
+                                };
+                                readonly mimeType: {
+                                    readonly type: "string";
+                                };
+                                readonly mediaType: {
+                                    readonly type: "string";
+                                    readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
+                                };
+                                readonly contentAttributes: {
+                                    readonly type: "object";
+                                    readonly additionalProperties: {
+                                        readonly type: "object";
+                                        readonly properties: {
+                                            readonly mediaType: {
+                                                readonly type: "string";
+                                                readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
+                                            };
+                                            readonly mimeType: {
+                                                readonly type: "string";
+                                            };
+                                            readonly height: {
+                                                readonly type: "number";
+                                            };
+                                            readonly width: {
+                                                readonly type: "number";
+                                            };
+                                            readonly orientation: {
+                                                readonly type: "number";
+                                            };
+                                            readonly lengthMs: {
+                                                readonly type: "number";
+                                            };
+                                            readonly bitrate: {
+                                                readonly type: "number";
+                                            };
+                                        };
+                                        readonly required: readonly ["mediaType", "mimeType", "height", "width", "orientation", "lengthMs", "bitrate"];
+                                    };
+                                };
+                                readonly contentMetadata: {
+                                    readonly type: "object";
+                                    readonly additionalProperties: {
+                                        readonly type: "object";
+                                        readonly additionalProperties: {
+                                            readonly type: "object";
+                                            readonly properties: {
+                                                readonly mimeType: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly size: {
+                                                    readonly type: "number";
+                                                };
+                                                readonly hash: {
+                                                    readonly type: "string";
+                                                };
+                                            };
+                                            readonly required: readonly ["mimeType", "size", "hash"];
+                                        };
+                                    };
+                                };
+                            };
+                            readonly required: readonly ["id", "objectKey", "folderId", "lastModified", "eTag", "sizeBytes", "mimeType", "mediaType", "contentAttributes", "contentMetadata"];
+                        };
+                    };
+                };
+                readonly required: readonly ["meta", "result"];
             };
-            readonly ServerLocationData: {
+            readonly FolderObjectGetResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly folderObject: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
+                            readonly objectKey: {
+                                readonly type: "string";
+                            };
+                            readonly folderId: {
+                                readonly type: "string";
+                            };
+                            readonly hash: {
+                                readonly type: readonly ["string", "null"];
+                            };
+                            readonly lastModified: {
+                                readonly type: "number";
+                            };
+                            readonly eTag: {
+                                readonly type: "string";
+                            };
+                            readonly sizeBytes: {
+                                readonly type: "number";
+                            };
+                            readonly mimeType: {
+                                readonly type: "string";
+                            };
+                            readonly mediaType: {
+                                readonly type: "string";
+                                readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
+                            };
+                            readonly contentAttributes: {
+                                readonly type: "object";
+                                readonly additionalProperties: {
+                                    readonly type: "object";
+                                    readonly properties: {
+                                        readonly mediaType: {
+                                            readonly type: "string";
+                                            readonly enum: readonly ["IMAGE", "VIDEO", "AUDIO", "DOCUMENT", "UNKNOWN"];
+                                        };
+                                        readonly mimeType: {
+                                            readonly type: "string";
+                                        };
+                                        readonly height: {
+                                            readonly type: "number";
+                                        };
+                                        readonly width: {
+                                            readonly type: "number";
+                                        };
+                                        readonly orientation: {
+                                            readonly type: "number";
+                                        };
+                                        readonly lengthMs: {
+                                            readonly type: "number";
+                                        };
+                                        readonly bitrate: {
+                                            readonly type: "number";
+                                        };
+                                    };
+                                    readonly required: readonly ["mediaType", "mimeType", "height", "width", "orientation", "lengthMs", "bitrate"];
+                                };
+                            };
+                            readonly contentMetadata: {
+                                readonly type: "object";
+                                readonly additionalProperties: {
+                                    readonly type: "object";
+                                    readonly additionalProperties: {
+                                        readonly type: "object";
+                                        readonly properties: {
+                                            readonly mimeType: {
+                                                readonly type: "string";
+                                            };
+                                            readonly size: {
+                                                readonly type: "number";
+                                            };
+                                            readonly hash: {
+                                                readonly type: "string";
+                                            };
+                                        };
+                                        readonly required: readonly ["mimeType", "size", "hash"];
+                                    };
+                                };
+                            };
+                        };
+                        readonly required: readonly ["id", "objectKey", "folderId", "lastModified", "eTag", "sizeBytes", "mimeType", "mediaType", "contentAttributes", "contentMetadata"];
+                    };
+                };
+                readonly required: readonly ["folderObject"];
+            };
+            readonly FolderCreateSignedUrlInputDTO: {
+                readonly type: "array";
+                readonly items: {
+                    readonly type: "object";
+                    readonly properties: {
+                        readonly objectIdentifier: {
+                            readonly type: "string";
+                        };
+                        readonly method: {
+                            readonly type: "string";
+                            readonly enum: readonly ["DELETE", "PUT", "GET"];
+                        };
+                    };
+                    readonly required: readonly ["objectIdentifier", "method"];
+                };
+            };
+            readonly FolderCreateSignedUrlsResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly urls: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "string";
+                        };
+                    };
+                };
+                readonly required: readonly ["urls"];
+            };
+            readonly FolderHandleActionInputDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly objectKey: {
+                        readonly type: "string";
+                    };
+                    readonly actionParams: {};
+                };
+            };
+            readonly SettingsGetResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly settings: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly SIGNUP_ENABLED: {
+                                readonly type: "boolean";
+                            };
+                            readonly SIGNUP_PERMISSIONS: {
+                                readonly type: "array";
+                                readonly items: {
+                                    readonly type: "string";
+                                };
+                            };
+                            readonly SERVER_HOSTNAME: {
+                                readonly type: "string";
+                            };
+                        };
+                    };
+                };
+                readonly required: readonly ["settings"];
+            };
+            readonly SetSettingInputDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly value: {};
+                };
+            };
+            readonly SettingSetResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly settingKey: {
+                        readonly type: "string";
+                    };
+                    readonly settingValue: {};
+                };
+                readonly required: readonly ["settingKey"];
+            };
+            readonly StorageProvisionDTO: {
+                readonly type: "object";
                 readonly properties: {
                     readonly id: {
                         readonly type: "string";
                     };
-                    readonly name: {
-                        readonly type: "string";
-                    };
                     readonly endpoint: {
-                        readonly type: "string";
-                    };
-                    readonly accessKeyId: {
-                        readonly type: "string";
-                    };
-                    readonly region: {
                         readonly type: "string";
                     };
                     readonly bucket: {
                         readonly type: "string";
                     };
+                    readonly region: {
+                        readonly type: "string";
+                    };
+                    readonly accessKeyId: {
+                        readonly type: "string";
+                    };
                     readonly prefix: {
                         readonly type: "string";
                     };
-                };
-                readonly required: readonly ["id", "name", "endpoint", "accessKeyId", "region", "bucket"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly ServerLocationType: {
-                readonly enum: readonly ["USER_METADATA", "USER_CONTENT", "USER_BACKUP"];
-                readonly type: "string";
-            };
-            readonly ServerLocationInputData: {
-                readonly properties: {
-                    readonly name: {
+                    readonly provisionTypes: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "string";
+                            readonly enum: readonly ["CONTENT", "METADATA", "BACKUP"];
+                        };
+                        readonly minItems: 1;
+                    };
+                    readonly label: {
                         readonly type: "string";
+                        readonly maxLength: 32;
+                    };
+                    readonly description: {
+                        readonly type: "string";
+                        readonly maxLength: 128;
+                    };
+                };
+                readonly required: readonly ["id", "endpoint", "bucket", "region", "accessKeyId", "provisionTypes", "label", "description"];
+            };
+            readonly StorageProvisionListResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly result: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "object";
+                            readonly properties: {
+                                readonly id: {
+                                    readonly type: "string";
+                                };
+                                readonly label: {
+                                    readonly type: "string";
+                                    readonly maxLength: 32;
+                                };
+                                readonly description: {
+                                    readonly type: "string";
+                                    readonly maxLength: 128;
+                                };
+                                readonly endpoint: {
+                                    readonly type: "string";
+                                };
+                                readonly bucket: {
+                                    readonly type: "string";
+                                };
+                                readonly region: {
+                                    readonly type: "string";
+                                };
+                                readonly accessKeyId: {
+                                    readonly type: "string";
+                                };
+                                readonly prefix: {
+                                    readonly type: "string";
+                                };
+                                readonly provisionTypes: {
+                                    readonly type: "array";
+                                    readonly items: {
+                                        readonly type: "string";
+                                        readonly enum: readonly ["CONTENT", "METADATA", "BACKUP"];
+                                    };
+                                };
+                            };
+                            readonly required: readonly ["id", "label", "description", "endpoint", "bucket", "region", "accessKeyId", "provisionTypes"];
+                        };
+                    };
+                };
+                readonly required: readonly ["result"];
+            };
+            readonly StorageProvisionInputDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly label: {
+                        readonly type: "string";
+                        readonly maxLength: 32;
+                    };
+                    readonly description: {
+                        readonly type: "string";
+                        readonly maxLength: 128;
                     };
                     readonly endpoint: {
+                        readonly type: "string";
+                    };
+                    readonly bucket: {
+                        readonly type: "string";
+                    };
+                    readonly region: {
                         readonly type: "string";
                     };
                     readonly accessKeyId: {
@@ -714,2131 +2396,305 @@ export declare const schema: {
                     readonly secretAccessKey: {
                         readonly type: "string";
                     };
-                    readonly region: {
-                        readonly type: "string";
-                    };
-                    readonly bucket: {
-                        readonly type: "string";
-                    };
                     readonly prefix: {
                         readonly type: "string";
                     };
+                    readonly provisionTypes: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "string";
+                            readonly enum: readonly ["CONTENT", "METADATA", "BACKUP"];
+                        };
+                        readonly minItems: 1;
+                    };
                 };
-                readonly required: readonly ["name", "endpoint", "accessKeyId", "secretAccessKey", "region", "bucket"];
-                readonly type: "object";
-                readonly additionalProperties: false;
+                readonly required: readonly ["label", "description", "endpoint", "bucket", "region", "accessKeyId", "secretAccessKey", "provisionTypes"];
             };
-            readonly ListUsersResponse: {
+            readonly EventDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly id: {
+                        readonly type: "string";
+                    };
+                    readonly eventKey: {
+                        readonly type: "string";
+                    };
+                    readonly appIdentifier: {
+                        readonly type: readonly ["string", "null"];
+                    };
+                    readonly locationContext: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly folderId: {
+                                readonly type: "string";
+                            };
+                            readonly objectKey: {
+                                readonly type: "string";
+                            };
+                        };
+                        readonly required: readonly ["folderId"];
+                    };
+                    readonly data: {};
+                    readonly createdAt: {
+                        readonly type: "string";
+                        readonly format: "date-time";
+                    };
+                };
+                readonly required: readonly ["id", "eventKey", "appIdentifier", "createdAt"];
+            };
+            readonly EventGetResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly event: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
+                            readonly eventKey: {
+                                readonly type: "string";
+                            };
+                            readonly appIdentifier: {
+                                readonly type: readonly ["string", "null"];
+                            };
+                            readonly locationContext: {
+                                readonly type: "object";
+                                readonly properties: {
+                                    readonly folderId: {
+                                        readonly type: "string";
+                                    };
+                                    readonly objectKey: {
+                                        readonly type: "string";
+                                    };
+                                };
+                                readonly required: readonly ["folderId"];
+                            };
+                            readonly data: {};
+                            readonly createdAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                        };
+                        readonly required: readonly ["id", "eventKey", "appIdentifier", "createdAt"];
+                    };
+                };
+                readonly required: readonly ["event"];
+            };
+            readonly EventListResponse: {
+                readonly type: "object";
                 readonly properties: {
                     readonly meta: {
+                        readonly type: "object";
                         readonly properties: {
                             readonly totalCount: {
                                 readonly type: "number";
-                                readonly format: "double";
                             };
                         };
                         readonly required: readonly ["totalCount"];
-                        readonly type: "object";
                     };
                     readonly result: {
-                        readonly items: {
-                            readonly $ref: "#/components/schemas/UserData";
-                        };
                         readonly type: "array";
-                    };
-                };
-                readonly required: readonly ["meta", "result"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly CreateUserData: {
-                readonly properties: {
-                    readonly isAdmin: {
-                        readonly type: "boolean";
-                    };
-                    readonly emailVerified: {
-                        readonly type: "boolean";
-                    };
-                    readonly password: {
-                        readonly type: "string";
-                    };
-                    readonly name: {
-                        readonly type: "string";
-                        readonly maxLength: 255;
-                    };
-                    readonly email: {
-                        readonly type: "string";
-                        readonly maxLength: 255;
-                    };
-                    readonly permissions: {
                         readonly items: {
-                            readonly type: "string";
-                        };
-                        readonly type: "array";
-                    };
-                    readonly username: {
-                        readonly type: "string";
-                        readonly maxLength: 64;
-                    };
-                };
-                readonly required: readonly ["username", "password"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly UpdateUserData: {
-                readonly properties: {
-                    readonly isAdmin: {
-                        readonly type: "boolean";
-                    };
-                    readonly emailVerified: {
-                        readonly type: "boolean";
-                    };
-                    readonly password: {
-                        readonly type: "string";
-                    };
-                    readonly name: {
-                        readonly type: "string";
-                        readonly maxLength: 255;
-                    };
-                    readonly email: {
-                        readonly type: "string";
-                        readonly maxLength: 255;
-                    };
-                    readonly permissions: {
-                        readonly items: {
-                            readonly type: "string";
-                        };
-                        readonly type: "array";
-                    };
-                };
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly ServerSettings: {
-                readonly properties: {
-                    readonly SIGNUP_ENABLED: {
-                        readonly type: "boolean";
-                    };
-                };
-                readonly required: readonly ["SIGNUP_ENABLED"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly FolderWorkerKeyData: {
-                readonly properties: {
-                    readonly id: {
-                        readonly type: "string";
-                    };
-                    readonly accessTokenExpiresAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
-                    readonly createdAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
-                    readonly updatedAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
-                };
-                readonly required: readonly ["id", "accessTokenExpiresAt", "createdAt", "updatedAt"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly FolderWorkerKeySort: {
-                readonly enum: readonly ["createdAt-asc", "createdAt-desc", "updatedAt-asc", "updatedAt-desc"];
-                readonly type: "string";
-            };
-            readonly FolderWorkerData: {
-                readonly properties: {
-                    readonly id: {
-                        readonly type: "string";
-                    };
-                    readonly externalId: {
-                        readonly type: "string";
-                    };
-                    readonly paused: {
-                        readonly type: "boolean";
-                    };
-                    readonly ips: {
-                        readonly properties: {};
-                        readonly additionalProperties: {
-                            readonly properties: {
-                                readonly lastSeen: {
-                                    readonly type: "string";
-                                    readonly format: "date-time";
-                                };
-                                readonly firstSeen: {
-                                    readonly type: "string";
-                                    readonly format: "date-time";
-                                };
-                            };
-                            readonly required: readonly ["lastSeen", "firstSeen"];
                             readonly type: "object";
-                        };
-                        readonly type: "object";
-                    };
-                    readonly capabilities: {
-                        readonly items: {
-                            readonly type: "string";
-                        };
-                        readonly type: "array";
-                    };
-                    readonly firstSeen: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
-                    readonly lastSeen: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
-                    readonly keyId: {
-                        readonly type: "string";
-                        readonly nullable: true;
-                    };
-                    readonly createdAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
-                    readonly updatedAt: {
-                        readonly type: "string";
-                        readonly format: "date-time";
-                    };
-                };
-                readonly required: readonly ["id", "externalId", "paused", "ips", "capabilities", "firstSeen", "lastSeen", "keyId", "createdAt", "updatedAt"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-            readonly FolderWorkerSort: {
-                readonly enum: readonly ["createdAt-asc", "createdAt-desc", "updatedAt-asc", "updatedAt-desc", "lastSeen-asc", "lastSeen-desc", "firstSeen-asc", "firstSeen-desc"];
-                readonly type: "string";
-            };
-            readonly ViewerUpdatePayload: {
-                readonly properties: {
-                    readonly name: {
-                        readonly type: "string";
-                    };
-                };
-                readonly required: readonly ["name"];
-                readonly type: "object";
-                readonly additionalProperties: false;
-            };
-        };
-        readonly securitySchemes: {
-            readonly RefreshToken: {
-                readonly type: "apiKey";
-                readonly in: "query";
-                readonly name: "refresh_token";
-            };
-            readonly AccessToken: {
-                readonly type: "http";
-                readonly scheme: "bearer";
-                readonly bearerFormat: "JWT";
-            };
-            readonly WorkerAccessToken: {
-                readonly type: "http";
-                readonly scheme: "bearer";
-                readonly bearerFormat: "JWT";
-            };
-        };
-    };
-    readonly info: {
-        readonly title: "@stellariscloud/api";
-        readonly version: "1.0.0";
-        readonly contact: {};
-    };
-    readonly openapi: "3.0.0";
-    readonly paths: {
-        readonly "/token": {
-            readonly post: {
-                readonly operationId: "refreshToken";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/SessionResponse";
+                            readonly properties: {
+                                readonly id: {
+                                    readonly type: "string";
                                 };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
+                                readonly eventKey: {
+                                    readonly type: "string";
                                 };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Auth"];
-                readonly security: readonly [{
-                    readonly RefreshToken: readonly [];
-                }];
-                readonly parameters: readonly [];
-            };
-        };
-        readonly "/signup": {
-            readonly post: {
-                readonly operationId: "Signup";
-                readonly responses: {
-                    readonly "201": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly user: {
-                                            readonly $ref: "#/components/schemas/UserData";
-                                        };
-                                    };
-                                    readonly required: readonly ["user"];
+                                readonly appIdentifier: {
+                                    readonly type: readonly ["string", "null"];
+                                };
+                                readonly locationContext: {
                                     readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly description: "Given a user's credentials, this endpoint will create a new user.";
-                readonly tags: readonly ["Auth"];
-                readonly security: readonly [];
-                readonly parameters: readonly [];
-                readonly requestBody: {
-                    readonly required: true;
-                    readonly content: {
-                        readonly "application/json": {
-                            readonly schema: {
-                                readonly $ref: "#/components/schemas/SignupParams";
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        readonly "/login": {
-            readonly post: {
-                readonly operationId: "Login";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/SessionResponse";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Auth"];
-                readonly security: readonly [{
-                    readonly Public: readonly [];
-                }];
-                readonly parameters: readonly [];
-                readonly requestBody: {
-                    readonly required: true;
-                    readonly content: {
-                        readonly "application/json": {
-                            readonly schema: {
-                                readonly $ref: "#/components/schemas/LoginParams";
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        readonly "/logout": {
-            readonly get: {
-                readonly operationId: "logout";
-                readonly responses: {
-                    readonly "204": {
-                        readonly description: "";
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Auth"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [];
-            };
-        };
-        readonly "/worker/{operationId}/start": {
-            readonly get: {
-                readonly operationId: "startJob";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly items: {
-                                        readonly properties: {
-                                            readonly url: {
-                                                readonly type: "string";
-                                            };
-                                            readonly objectKey: {
-                                                readonly type: "string";
-                                            };
-                                            readonly folderId: {
-                                                readonly type: "string";
-                                            };
-                                        };
-                                        readonly required: readonly ["url", "objectKey", "folderId"];
-                                        readonly type: "object";
-                                    };
-                                    readonly type: "array";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Worker"];
-                readonly security: readonly [{
-                    readonly WorkerAccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "operationId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-            };
-        };
-        readonly "/worker/{operationId}/complete": {
-            readonly post: {
-                readonly operationId: "completeJob";
-                readonly responses: {
-                    readonly "204": {
-                        readonly description: "No content";
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Worker"];
-                readonly security: readonly [{
-                    readonly WorkerAccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "operationId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-            };
-        };
-        readonly "/worker/{operationId}/output-upload-urls": {
-            readonly post: {
-                readonly operationId: "createOutputUploadUrls";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
                                     readonly properties: {
-                                        readonly outputUploadUrls: {
-                                            readonly items: {
-                                                readonly $ref: "#/components/schemas/OutputUploadUrlsResponse";
-                                            };
-                                            readonly type: "array";
+                                        readonly folderId: {
+                                            readonly type: "string";
                                         };
-                                    };
-                                    readonly required: readonly ["outputUploadUrls"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Worker"];
-                readonly security: readonly [{
-                    readonly WorkerAccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "operationId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-                readonly requestBody: {
-                    readonly required: true;
-                    readonly content: {
-                        readonly "application/json": {
-                            readonly schema: {
-                                readonly $ref: "#/components/schemas/CreateOutputUploadUrlsPayload";
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        readonly "/worker/{operationId}/metadata-upload-urls": {
-            readonly post: {
-                readonly operationId: "createMetadataUploadUrls";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly metadataUploadUrls: {
-                                            readonly items: {
-                                                readonly $ref: "#/components/schemas/MetadataUploadUrlsResponse";
-                                            };
-                                            readonly type: "array";
-                                        };
-                                    };
-                                    readonly required: readonly ["metadataUploadUrls"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Worker"];
-                readonly security: readonly [{
-                    readonly WorkerAccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "operationId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-                readonly requestBody: {
-                    readonly required: true;
-                    readonly content: {
-                        readonly "application/json": {
-                            readonly schema: {
-                                readonly $ref: "#/components/schemas/CreateMetadataUploadUrlsPayload";
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        readonly "/worker/content-attributes": {
-            readonly post: {
-                readonly operationId: "updateContentAttributes";
-                readonly responses: {
-                    readonly "204": {
-                        readonly description: "No content";
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Worker"];
-                readonly security: readonly [{
-                    readonly WorkerAccessToken: readonly [];
-                }];
-                readonly parameters: readonly [];
-                readonly requestBody: {
-                    readonly required: true;
-                    readonly content: {
-                        readonly "application/json": {
-                            readonly schema: {
-                                readonly items: {
-                                    readonly $ref: "#/components/schemas/ContentAttibutesPayload";
-                                };
-                                readonly type: "array";
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        readonly "/worker/content-metadata": {
-            readonly post: {
-                readonly operationId: "updateContentMetadata";
-                readonly responses: {
-                    readonly "204": {
-                        readonly description: "No content";
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Worker"];
-                readonly security: readonly [{
-                    readonly WorkerAccessToken: readonly [];
-                }];
-                readonly parameters: readonly [];
-                readonly requestBody: {
-                    readonly required: true;
-                    readonly content: {
-                        readonly "application/json": {
-                            readonly schema: {
-                                readonly items: {
-                                    readonly $ref: "#/components/schemas/ContentMetadataPayload";
-                                };
-                                readonly type: "array";
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        readonly "/worker/socket": {
-            readonly post: {
-                readonly operationId: "createSocketAuthentication";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly token: {
+                                        readonly objectKey: {
                                             readonly type: "string";
                                         };
                                     };
-                                    readonly required: readonly ["token"];
-                                    readonly type: "object";
+                                    readonly required: readonly ["folderId"];
+                                };
+                                readonly data: {};
+                                readonly createdAt: {
+                                    readonly type: "string";
+                                    readonly format: "date-time";
                                 };
                             };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
+                            readonly required: readonly ["id", "eventKey", "appIdentifier", "createdAt"];
                         };
                     };
                 };
-                readonly tags: readonly ["Worker"];
-                readonly security: readonly [{
-                    readonly WorkerAccessToken: readonly [];
-                }];
-                readonly parameters: readonly [];
+                readonly required: readonly ["meta", "result"];
             };
-        };
-        readonly "/folders": {
-            readonly post: {
-                readonly operationId: "createFolder";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
+            readonly AppListResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly installed: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly meta: {
+                                readonly type: "object";
+                                readonly properties: {
+                                    readonly totalCount: {
+                                        readonly type: "number";
+                                    };
+                                };
+                                readonly required: readonly ["totalCount"];
+                            };
+                            readonly result: {
+                                readonly type: "array";
+                                readonly items: {
+                                    readonly type: "object";
                                     readonly properties: {
-                                        readonly folder: {
-                                            readonly $ref: "#/components/schemas/FolderData";
+                                        readonly identifier: {
+                                            readonly type: "string";
+                                        };
+                                        readonly config: {
+                                            readonly type: "object";
+                                            readonly properties: {
+                                                readonly publicKey: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly description: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly subscribedEvents: {
+                                                    readonly type: "array";
+                                                    readonly items: {
+                                                        readonly type: "string";
+                                                    };
+                                                };
+                                                readonly emitEvents: {
+                                                    readonly type: "array";
+                                                    readonly items: {
+                                                        readonly type: "string";
+                                                    };
+                                                };
+                                                readonly actions: {
+                                                    readonly type: "object";
+                                                    readonly properties: {
+                                                        readonly folder: {
+                                                            readonly type: "array";
+                                                            readonly items: {
+                                                                readonly type: "object";
+                                                                readonly properties: {
+                                                                    readonly key: {
+                                                                        readonly type: "string";
+                                                                    };
+                                                                    readonly description: {
+                                                                        readonly type: "string";
+                                                                    };
+                                                                };
+                                                                readonly required: readonly ["key", "description"];
+                                                            };
+                                                        };
+                                                        readonly object: {
+                                                            readonly type: "array";
+                                                            readonly items: {
+                                                                readonly type: "object";
+                                                                readonly properties: {
+                                                                    readonly key: {
+                                                                        readonly type: "string";
+                                                                    };
+                                                                    readonly description: {
+                                                                        readonly type: "string";
+                                                                    };
+                                                                };
+                                                                readonly required: readonly ["key", "description"];
+                                                            };
+                                                        };
+                                                    };
+                                                    readonly required: readonly ["folder", "object"];
+                                                };
+                                                readonly menuItems: {
+                                                    readonly type: "array";
+                                                    readonly items: {
+                                                        readonly type: "object";
+                                                        readonly properties: {
+                                                            readonly label: {
+                                                                readonly type: "string";
+                                                            };
+                                                            readonly iconPath: {
+                                                                readonly type: "string";
+                                                            };
+                                                            readonly uiName: {
+                                                                readonly type: "string";
+                                                            };
+                                                        };
+                                                        readonly required: readonly ["label", "uiName"];
+                                                    };
+                                                };
+                                            };
+                                            readonly required: readonly ["publicKey", "description", "subscribedEvents", "emitEvents", "actions", "menuItems"];
+                                        };
+                                        readonly ui: {
+                                            readonly type: "object";
+                                            readonly additionalProperties: {
+                                                readonly type: "object";
+                                                readonly properties: {
+                                                    readonly path: {
+                                                        readonly type: "string";
+                                                    };
+                                                    readonly name: {
+                                                        readonly type: "string";
+                                                    };
+                                                    readonly files: {
+                                                        readonly type: "object";
+                                                        readonly additionalProperties: {
+                                                            readonly type: "object";
+                                                            readonly properties: {
+                                                                readonly size: {
+                                                                    readonly type: "number";
+                                                                };
+                                                                readonly hash: {
+                                                                    readonly type: "string";
+                                                                };
+                                                            };
+                                                            readonly required: readonly ["size", "hash"];
+                                                        };
+                                                    };
+                                                };
+                                                readonly required: readonly ["path", "name", "files"];
+                                            };
                                         };
                                     };
-                                    readonly required: readonly ["folder"];
-                                    readonly type: "object";
+                                    readonly required: readonly ["identifier", "config", "ui"];
                                 };
                             };
                         };
+                        readonly required: readonly ["meta", "result"];
                     };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Folders"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [];
-                readonly requestBody: {
-                    readonly required: true;
-                    readonly content: {
-                        readonly "application/json": {
-                            readonly schema: {
+                    readonly connected: {
+                        readonly type: "object";
+                        readonly additionalProperties: {
+                            readonly type: "array";
+                            readonly items: {
+                                readonly type: "object";
                                 readonly properties: {
-                                    readonly metadataLocation: {
-                                        readonly $ref: "#/components/schemas/UserLocationInputData";
+                                    readonly appIdentifier: {
+                                        readonly type: "string";
                                     };
-                                    readonly contentLocation: {
-                                        readonly $ref: "#/components/schemas/UserLocationInputData";
+                                    readonly socketClientId: {
+                                        readonly type: "string";
                                     };
                                     readonly name: {
                                         readonly type: "string";
                                     };
-                                };
-                                readonly required: readonly ["contentLocation", "name"];
-                                readonly type: "object";
-                            };
-                        };
-                    };
-                };
-            };
-            readonly get: {
-                readonly operationId: "listFolders";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ListFoldersResponse";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Folders"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [];
-            };
-        };
-        readonly "/folders/{folderId}": {
-            readonly get: {
-                readonly operationId: "getFolder";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly permissions: {
-                                            readonly items: {
-                                                readonly $ref: "#/components/schemas/FolderPermissionName";
-                                            };
-                                            readonly type: "array";
-                                        };
-                                        readonly folder: {
-                                            readonly $ref: "#/components/schemas/FolderData";
-                                        };
-                                    };
-                                    readonly required: readonly ["permissions", "folder"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Folders"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "folderId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-            };
-            readonly delete: {
-                readonly operationId: "deleteFolder";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly success: {
-                                            readonly type: "boolean";
-                                        };
-                                    };
-                                    readonly required: readonly ["success"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Folders"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "folderId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-            };
-        };
-        readonly "/folders/{folderId}/metadata": {
-            readonly get: {
-                readonly operationId: "getFolderMetadata";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly totalSizeBytes: {
-                                            readonly type: "number";
-                                            readonly format: "double";
-                                        };
-                                        readonly totalCount: {
-                                            readonly type: "number";
-                                            readonly format: "double";
-                                        };
-                                    };
-                                    readonly required: readonly ["totalSizeBytes", "totalCount"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Folders"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "folderId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-            };
-        };
-        readonly "/folders/{folderId}/objects/{objectKey}": {
-            readonly get: {
-                readonly operationId: "getFolderObject";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/FolderObjectData";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Folders"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "folderId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }, {
-                    readonly in: "path";
-                    readonly name: "objectKey";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-            };
-            readonly delete: {
-                readonly operationId: "deleteFolderObject";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly success: {
-                                            readonly type: "boolean";
-                                        };
-                                    };
-                                    readonly required: readonly ["success"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Folders"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "folderId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }, {
-                    readonly in: "path";
-                    readonly name: "objectKey";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-            };
-            readonly put: {
-                readonly operationId: "refreshFolderObjectS3Metadata";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/FolderObjectData";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Folders"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "folderId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }, {
-                    readonly in: "path";
-                    readonly name: "objectKey";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-                readonly requestBody: {
-                    readonly required: true;
-                    readonly content: {
-                        readonly "application/json": {
-                            readonly schema: {
-                                readonly properties: {
-                                    readonly eTag: {
+                                    readonly ip: {
                                         readonly type: "string";
                                     };
                                 };
-                                readonly type: "object";
+                                readonly required: readonly ["appIdentifier", "socketClientId", "name", "ip"];
                             };
                         };
                     };
                 };
-            };
-        };
-        readonly "/folders/{folderId}/operations": {
-            readonly post: {
-                readonly operationId: "enqueueFolderOperation";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/FolderOperationData";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Folders"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "folderId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-                readonly requestBody: {
-                    readonly required: true;
-                    readonly content: {
-                        readonly "application/json": {
-                            readonly schema: {
-                                readonly $ref: "#/components/schemas/FolderOperationRequestPayload";
-                            };
-                        };
-                    };
-                };
-            };
-            readonly get: {
-                readonly operationId: "listFolderOperations";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/FolderOperationsResponse";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Folders"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "folderId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }, {
-                    readonly in: "query";
-                    readonly name: "sort";
-                    readonly required: false;
-                    readonly schema: {
-                        readonly $ref: "#/components/schemas/FolderOperationSort";
-                    };
-                }, {
-                    readonly in: "query";
-                    readonly name: "status";
-                    readonly required: false;
-                    readonly schema: {
-                        readonly $ref: "#/components/schemas/FolderOperationStatus";
-                    };
-                }, {
-                    readonly in: "query";
-                    readonly name: "limit";
-                    readonly required: false;
-                    readonly schema: {
-                        readonly format: "double";
-                        readonly type: "number";
-                    };
-                }, {
-                    readonly in: "query";
-                    readonly name: "offset";
-                    readonly required: false;
-                    readonly schema: {
-                        readonly format: "double";
-                        readonly type: "number";
-                    };
-                }];
-            };
-        };
-        readonly "/folders/{folderId}/objects": {
-            readonly get: {
-                readonly operationId: "listFolderObjects";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly meta: {
-                                            readonly $ref: "#/components/schemas/ListResponseMeta";
-                                        };
-                                        readonly result: {
-                                            readonly items: {
-                                                readonly $ref: "#/components/schemas/FolderObjectData";
-                                            };
-                                            readonly type: "array";
-                                        };
-                                    };
-                                    readonly required: readonly ["meta", "result"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Folders"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "folderId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }, {
-                    readonly in: "query";
-                    readonly name: "search";
-                    readonly required: false;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }, {
-                    readonly in: "query";
-                    readonly name: "offset";
-                    readonly required: false;
-                    readonly schema: {
-                        readonly format: "double";
-                        readonly type: "number";
-                    };
-                }, {
-                    readonly in: "query";
-                    readonly name: "limit";
-                    readonly required: false;
-                    readonly schema: {
-                        readonly format: "double";
-                        readonly type: "number";
-                    };
-                }];
-            };
-        };
-        readonly "/folders/{folderId}/index-all": {
-            readonly post: {
-                readonly operationId: "indexAllContent";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly type: "boolean";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Folders"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "folderId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-            };
-        };
-        readonly "/folders/{folderId}/refresh": {
-            readonly post: {
-                readonly operationId: "refreshFolder";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly type: "boolean";
-                                    readonly enum: readonly [true];
-                                    readonly nullable: false;
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Folders"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "folderId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-            };
-        };
-        readonly "/folders/{folderId}/presigned-urls": {
-            readonly post: {
-                readonly operationId: "createPresignedUrls";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly items: {
-                                        readonly type: "string";
-                                    };
-                                    readonly type: "array";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Folders"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "folderId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-                readonly requestBody: {
-                    readonly required: true;
-                    readonly content: {
-                        readonly "application/json": {
-                            readonly schema: {
-                                readonly items: {
-                                    readonly $ref: "#/components/schemas/SignedURLsRequest";
-                                };
-                                readonly type: "array";
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        readonly "/folders/{folderId}/socket-auth": {
-            readonly post: {
-                readonly operationId: "createSocketAuthentication";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly token: {
-                                            readonly type: "string";
-                                        };
-                                    };
-                                    readonly required: readonly ["token"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Folders"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly [];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "folderId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-            };
-        };
-        readonly "/server/settings/server-locations/{locationType}": {
-            readonly get: {
-                readonly operationId: "listServerLocations";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly items: {
-                                        readonly $ref: "#/components/schemas/ServerLocationData";
-                                    };
-                                    readonly type: "array";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Server"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["user_folders_location:read"];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "locationType";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly $ref: "#/components/schemas/ServerLocationType";
-                    };
-                }];
-            };
-        };
-        readonly "/server/settings/locations/{locationType}": {
-            readonly post: {
-                readonly operationId: "addServerLocation";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ServerLocationData";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Server"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["metadata_location:read"];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "locationType";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly $ref: "#/components/schemas/ServerLocationType";
-                    };
-                }];
-                readonly requestBody: {
-                    readonly required: true;
-                    readonly content: {
-                        readonly "application/json": {
-                            readonly schema: {
-                                readonly $ref: "#/components/schemas/ServerLocationInputData";
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        readonly "/server/settings/locations/{locationType}/{locationId}": {
-            readonly delete: {
-                readonly operationId: "deleteServerLocation";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly type: "boolean";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Server"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["metadata_location:read"];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "locationType";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly $ref: "#/components/schemas/ServerLocationType";
-                    };
-                }, {
-                    readonly in: "path";
-                    readonly name: "locationId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-            };
-        };
-        readonly "/server/users": {
-            readonly get: {
-                readonly operationId: "listUsers";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ListUsersResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Server"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["user:read"];
-                }];
-                readonly parameters: readonly [];
-            };
-            readonly post: {
-                readonly operationId: "createUser";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly user: {
-                                            readonly $ref: "#/components/schemas/UserData";
-                                        };
-                                    };
-                                    readonly required: readonly ["user"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Server"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["user:create"];
-                }];
-                readonly parameters: readonly [];
-                readonly requestBody: {
-                    readonly required: true;
-                    readonly content: {
-                        readonly "application/json": {
-                            readonly schema: {
-                                readonly $ref: "#/components/schemas/CreateUserData";
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        readonly "/server/users/{userId}": {
-            readonly get: {
-                readonly operationId: "getUser";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly result: {
-                                            readonly $ref: "#/components/schemas/UserData";
-                                        };
-                                    };
-                                    readonly required: readonly ["result"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Server"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["user:read"];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "userId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-            };
-            readonly put: {
-                readonly operationId: "updateUser";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly user: {
-                                            readonly $ref: "#/components/schemas/UserData";
-                                        };
-                                    };
-                                    readonly required: readonly ["user"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Server"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["user:create"];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "userId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-                readonly requestBody: {
-                    readonly required: true;
-                    readonly content: {
-                        readonly "application/json": {
-                            readonly schema: {
-                                readonly $ref: "#/components/schemas/UpdateUserData";
-                            };
-                        };
-                    };
-                };
-            };
-            readonly delete: {
-                readonly operationId: "deleteUser";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly type: "boolean";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Server"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["user:create"];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "userId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-            };
-        };
-        readonly "/server/settings": {
-            readonly get: {
-                readonly operationId: "getSettings";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly settings: {
-                                            readonly $ref: "#/components/schemas/ServerSettings";
-                                        };
-                                    };
-                                    readonly required: readonly ["settings"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Server"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["server_settings:read"];
-                }];
-                readonly parameters: readonly [];
-            };
-        };
-        readonly "/server/settings/{settingsKey}": {
-            readonly put: {
-                readonly operationId: "updateSetting";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly settings: {
-                                            readonly $ref: "#/components/schemas/ServerSettings";
-                                        };
-                                    };
-                                    readonly required: readonly ["settings"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Server"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["server_settings:update"];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "settingsKey";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-                readonly requestBody: {
-                    readonly required: true;
-                    readonly content: {
-                        readonly "application/json": {
-                            readonly schema: {
-                                readonly properties: {
-                                    readonly value: {};
-                                };
-                                readonly required: readonly ["value"];
-                                readonly type: "object";
-                            };
-                        };
-                    };
-                };
-            };
-            readonly delete: {
-                readonly operationId: "resetSetting";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly settings: {
-                                            readonly $ref: "#/components/schemas/ServerSettings";
-                                        };
-                                    };
-                                    readonly required: readonly ["settings"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Server"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["server_settings:update"];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "settingsKey";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-            };
-        };
-        readonly "/server/worker-keys": {
-            readonly post: {
-                readonly operationId: "createServerWorkerKey";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly workerKey: {
-                                            readonly $ref: "#/components/schemas/FolderWorkerKeyData";
-                                        };
-                                        readonly token: {
-                                            readonly type: "string";
-                                        };
-                                    };
-                                    readonly required: readonly ["workerKey", "token"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Server"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["server_worker_key:create"];
-                }];
-                readonly parameters: readonly [];
-            };
-            readonly get: {
-                readonly operationId: "listServerWorkerKeys";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly result: {
-                                            readonly items: {
-                                                readonly $ref: "#/components/schemas/FolderWorkerKeyData";
-                                            };
-                                            readonly type: "array";
-                                        };
-                                        readonly meta: {
-                                            readonly properties: {
-                                                readonly totalCount: {
-                                                    readonly type: "number";
-                                                    readonly format: "double";
-                                                };
-                                            };
-                                            readonly required: readonly ["totalCount"];
-                                            readonly type: "object";
-                                        };
-                                    };
-                                    readonly required: readonly ["result", "meta"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Server"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["server_worker_key:read"];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "query";
-                    readonly name: "sort";
-                    readonly required: false;
-                    readonly schema: {
-                        readonly $ref: "#/components/schemas/FolderWorkerKeySort";
-                    };
-                }, {
-                    readonly in: "query";
-                    readonly name: "limit";
-                    readonly required: false;
-                    readonly schema: {
-                        readonly format: "double";
-                        readonly type: "number";
-                    };
-                }, {
-                    readonly in: "query";
-                    readonly name: "offset";
-                    readonly required: false;
-                    readonly schema: {
-                        readonly format: "double";
-                        readonly type: "number";
-                    };
-                }];
-            };
-        };
-        readonly "/server/worker-keys/{workerKeyId}": {
-            readonly delete: {
-                readonly operationId: "deleteServerWorkerKey";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly success: {
-                                            readonly type: "boolean";
-                                        };
-                                    };
-                                    readonly required: readonly ["success"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Server"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["server_worker_key:delete"];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "path";
-                    readonly name: "workerKeyId";
-                    readonly required: true;
-                    readonly schema: {
-                        readonly type: "string";
-                    };
-                }];
-            };
-        };
-        readonly "/server/workers": {
-            readonly get: {
-                readonly operationId: "listServerWorkers";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly result: {
-                                            readonly items: {
-                                                readonly $ref: "#/components/schemas/FolderWorkerData";
-                                            };
-                                            readonly type: "array";
-                                        };
-                                        readonly meta: {
-                                            readonly properties: {
-                                                readonly totalCount: {
-                                                    readonly type: "number";
-                                                    readonly format: "double";
-                                                };
-                                            };
-                                            readonly required: readonly ["totalCount"];
-                                            readonly type: "object";
-                                        };
-                                    };
-                                    readonly required: readonly ["result", "meta"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                    readonly "4XX": {
-                        readonly description: "";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly $ref: "#/components/schemas/ErrorResponse";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Server"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["server_worker_key:read"];
-                }];
-                readonly parameters: readonly [{
-                    readonly in: "query";
-                    readonly name: "sort";
-                    readonly required: false;
-                    readonly schema: {
-                        readonly $ref: "#/components/schemas/FolderWorkerSort";
-                    };
-                }, {
-                    readonly in: "query";
-                    readonly name: "limit";
-                    readonly required: false;
-                    readonly schema: {
-                        readonly format: "double";
-                        readonly type: "number";
-                    };
-                }, {
-                    readonly in: "query";
-                    readonly name: "offset";
-                    readonly required: false;
-                    readonly schema: {
-                        readonly format: "double";
-                        readonly type: "number";
-                    };
-                }];
-            };
-        };
-        readonly "/viewer": {
-            readonly get: {
-                readonly operationId: "getViewer";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly user: {
-                                            readonly $ref: "#/components/schemas/UserData";
-                                        };
-                                    };
-                                    readonly required: readonly ["user"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Viewer"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["viewer:read"];
-                }];
-                readonly parameters: readonly [];
-            };
-            readonly put: {
-                readonly operationId: "updateViewer";
-                readonly responses: {
-                    readonly "200": {
-                        readonly description: "Ok";
-                        readonly content: {
-                            readonly "application/json": {
-                                readonly schema: {
-                                    readonly properties: {
-                                        readonly user: {
-                                            readonly $ref: "#/components/schemas/UserData";
-                                        };
-                                    };
-                                    readonly required: readonly ["user"];
-                                    readonly type: "object";
-                                };
-                            };
-                        };
-                    };
-                };
-                readonly tags: readonly ["Viewer"];
-                readonly security: readonly [{
-                    readonly AccessToken: readonly ["viewer:update"];
-                }];
-                readonly parameters: readonly [];
-                readonly requestBody: {
-                    readonly required: true;
-                    readonly content: {
-                        readonly "application/json": {
-                            readonly schema: {
-                                readonly $ref: "#/components/schemas/ViewerUpdatePayload";
-                            };
-                        };
-                    };
-                };
+                readonly required: readonly ["installed", "connected"];
             };
         };
     };
-    readonly servers: readonly [{
-        readonly url: "http://localhost:3001/api/v1";
-    }];
 };

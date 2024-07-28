@@ -1,11 +1,11 @@
 import React from 'react'
 
-import { authenticator } from '../services/api'
 import { indexedDb } from '../services/indexed-db'
 import { getDataFromDisk } from '../services/local-cache/local-cache.service'
 import { downloadData } from '../utils/file'
 import type { LogLine } from './logging.context'
 import { useLoggingContext } from './logging.context'
+import { sdkInstance } from '../services/api'
 
 export interface LocalFileCache {
   [key: string]: { size: number; type: string }
@@ -113,7 +113,7 @@ export const LocalFileCacheContextProvider = ({
   )
 
   const updateWorkerWithAuth = React.useCallback(() => {
-    void authenticator.getAccessToken().then((t) => {
+    void sdkInstance.authenticator.getAccessToken().then((t) => {
       workerRef.current?.postMessage(['AUTH_UPDATED', t])
     })
   }, [])
@@ -122,7 +122,7 @@ export const LocalFileCacheContextProvider = ({
     if (!workerRef.current) {
       updateWorkerWithAuth()
       workerRef.current = new Worker(new URL('../worker.ts', import.meta.url))
-      authenticator.addEventListener('onStateChanged', () => {
+      sdkInstance.authenticator.addEventListener('onStateChanged', () => {
         updateWorkerWithAuth()
       })
 

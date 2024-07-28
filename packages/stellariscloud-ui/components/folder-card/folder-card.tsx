@@ -1,5 +1,5 @@
 import { KeyIcon } from '@heroicons/react/24/outline'
-import type { FolderAndPermission } from '@stellariscloud/api-client'
+import type { FolderGetResponse } from '@stellariscloud/api-client'
 import clsx from 'clsx'
 import React from 'react'
 
@@ -11,7 +11,7 @@ export const FolderCard = ({
   folderAndPermission: { folder },
   onForget,
 }: {
-  folderAndPermission: FolderAndPermission
+  folderAndPermission: FolderGetResponse
   className?: string
   onForget?: () => void
 }) => {

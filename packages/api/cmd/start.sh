@@ -1,8 +1,4 @@
 #!/usr/bin/env sh
-set -e
-source ./cmd/env.sh
-set -x
-
-/wait && yarn node dist
+/wait && bun ./dist/index.ts
 
 { set +x; } 2>/dev/null

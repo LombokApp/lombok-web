@@ -20,12 +20,12 @@ export const Avatar = ({ uniqueKey, className, size = 'md' }: AvatarProps) => {
           size === 'xl'
             ? 'p-4'
             : size === 'lg'
-            ? 'p-4'
-            : size === 'md'
-            ? 'p-2'
-            : size === 'sm'
-            ? 'p-1'
-            : '',
+              ? 'p-4'
+              : size === 'md'
+                ? 'p-2'
+                : size === 'sm'
+                  ? 'p-1'
+                  : '',
           className ? className : '',
         )}
       >

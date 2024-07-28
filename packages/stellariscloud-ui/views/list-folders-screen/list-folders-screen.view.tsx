@@ -1,10 +1,12 @@
 import { PlusIcon } from '@heroicons/react/20/solid'
 import type {
-  FolderAndPermission,
+  FolderGetResponse,
+  // FolderAndPermission,
   FoldersApiCreateFolderRequest,
-  ServerLocationData,
+  StorageProvisionDTO,
+  // ServerLocationData,
 } from '@stellariscloud/api-client'
-import { ServerLocationType } from '@stellariscloud/api-client'
+// import { ServerLocationType } from '@stellariscloud/api-client'
 import clsx from 'clsx'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -17,52 +19,37 @@ import { FolderCard } from '../../components/folder-card/folder-card'
 import { Button } from '../../design-system/button/button'
 import { Icon } from '../../design-system/icon/icon'
 import { PageHeading } from '../../design-system/page-heading/page-heading'
-import { foldersApi, foldersApiHooks, serverApi } from '../../services/api'
+import { apiClient, foldersApiHooks } from '../../services/api'
 
 export const ListFoldersScreen = () => {
   const router = useRouter()
-  const [folders, setFolders] = React.useState<FolderAndPermission[]>()
+  const [folders, setFolders] = React.useState<FolderGetResponse[]>()
   const [folderFormKey, setFolderFormKey] = React.useState<string>()
   const [forgetFolderConfirmationOpen, setForgetFolderConfirmationOpen] =
     React.useState<string | false>(false)
-  const [serverLocations, setServerLocations] = React.useState<{
-    [ServerLocationType.Backup]: ServerLocationData[]
-    [ServerLocationType.Metadata]: ServerLocationData[]
-    [ServerLocationType.Content]: ServerLocationData[]
-  }>({
-    [ServerLocationType.Backup]: [],
-    [ServerLocationType.Metadata]: [],
-    [ServerLocationType.Content]: [],
-  })
+  const [storageProvisions, setStorageProvisions] = React.useState<
+    StorageProvisionDTO[]
+  >([])
   const handleForgetFolder = React.useCallback(
     (folderId: string) => {
       if (!forgetFolderConfirmationOpen) {
         setForgetFolderConfirmationOpen(folderId)
       } else {
         setForgetFolderConfirmationOpen(false)
-        void foldersApi
+        void apiClient.foldersApi
           .deleteFolder({ folderId })
           .then(() =>
             setFolders(folders?.filter((b) => b.folder.id !== folderId)),
           )
       }
     },
-    [setForgetFolderConfirmationOpen, forgetFolderConfirmationOpen, folders],
+    [setForgetFolderConfirmationOpen, forgetFolderConfirmationOpen /*folders*/],
   )
 
   const handleStartCreate = () => {
-    for (const k of [
-      ServerLocationType.Backup,
-      ServerLocationType.Metadata,
-      ServerLocationType.Content,
-    ]) {
-      void serverApi.listServerLocations({ locationType: k }).then((resp) => {
-        setServerLocations((locations) => ({
-          ...locations,
-          [k]: resp.data,
-        }))
-      })
-    }
+    void apiClient.storageProvisionsApi
+      .listStorageProvisions()
+      .then((resp) => setStorageProvisions(resp.data.result))
 
     void router.push({
       pathname: router.pathname,
@@ -92,10 +79,10 @@ export const ListFoldersScreen = () => {
   }, [refreshFolders])
 
   const handleCreateFolder = (
-    folder: FoldersApiCreateFolderRequest['createFolderRequest'],
+    folder: FoldersApiCreateFolderRequest['folderCreateInputDTO'],
   ) => {
-    void foldersApi
-      .createFolder({ createFolderRequest: folder })
+    void apiClient.foldersApi
+      .createFolder({ folderCreateInputDTO: folder })
       .then((response) => {
         setFolders(
           folders?.concat([{ folder: response.data.folder, permissions: [] }]),
@@ -139,7 +126,7 @@ export const ListFoldersScreen = () => {
             <div className="p-10 rounded-xl w-fit border border-gray-200 bg-white dark:border-0 dark:bg-white/5">
               <CreateFolderForm
                 onCancel={() => void router.push({ pathname: router.pathname })}
-                serverLocations={serverLocations}
+                storageProvisions={storageProvisions}
                 key={folderFormKey}
                 onSubmit={handleCreateFolder}
               />
