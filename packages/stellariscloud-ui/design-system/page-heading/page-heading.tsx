@@ -57,7 +57,6 @@ export function PageHeading({
                       alt={typeof title === 'string' ? title : title[0]}
                       src={titleIconSrc}
                       fill
-                      objectFit="cover"
                     />
                   ) : (
                     <Icon size="sm" className="text-white" icon={titleIcon} />

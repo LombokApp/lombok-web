@@ -16,7 +16,7 @@ import { StorageProvisionFormFields } from '../../views/server/server-storage-co
 interface CreateFolderFormValues {
   name: string
   contentLocation: StorageProvisionInputDTO
-  metadataLocation?: StorageProvisionInputDTO
+  metadataLocation: StorageProvisionInputDTO
 }
 
 const StorageProvisionRecord = r.Record({

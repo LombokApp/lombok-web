@@ -1919,7 +1919,7 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly required: readonly ["name", "contentLocation"];
+                readonly required: readonly ["name", "metadataLocation", "contentLocation"];
             };
             readonly FolderCreateResponse: {
                 readonly type: "object";

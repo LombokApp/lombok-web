@@ -177,7 +177,7 @@ export class FolderService implements OnModuleInit {
       //  - A reference to a server storage provision (in which case no overrides are allowed)
       name: string
       contentLocation: UserLocationInputDTO
-      metadataLocation?: UserLocationInputDTO
+      metadataLocation: UserLocationInputDTO
     }
     userId: string
   }): Promise<Folder> {
@@ -265,6 +265,13 @@ export class FolderService implements OnModuleInit {
           throw new StorageLocationNotFoundException()
         }
 
+        const prefixSuffix =
+          storageProvisionType === StorageProvisionTypeEnum.METADATA
+            ? `.metadata/.stellaris_folder_metadata_${prospectiveFolderId}/`
+            : storageProvisionType === StorageProvisionTypeEnum.CONTENT
+              ? `.content/.stellaris_folder_content_${prospectiveFolderId}/`
+              : `.backup/.stellaris_folder_backup_${prospectiveFolderId}/`
+
         location = (
           await this.ormService.db
             .insert(storageLocationsTable)
@@ -282,7 +289,7 @@ export class FolderService implements OnModuleInit {
                 existingServerLocation.prefix
                   ? existingServerLocation.prefix
                   : ''
-              }${existingServerLocation.prefix?.endsWith('/') ? '' : '/'}${prospectiveFolderId}/${storageProvisionType === StorageProvisionTypeEnum.CONTENT ? '.content/' : storageProvisionType === StorageProvisionTypeEnum.METADATA ? '.metadata/' : '.backup/'}`,
+              }${!existingServerLocation.prefix || existingServerLocation.prefix.endsWith('/') ? '' : '/'}${prefixSuffix}`,
               createdAt: now,
               updatedAt: now,
             })
@@ -300,31 +307,10 @@ export class FolderService implements OnModuleInit {
       body.contentLocation,
     )
 
-    const defaultMetadataPrefix = `.stellaris_folder_metadata_${prospectiveFolderId}/`
-    const metadataLocation = body.metadataLocation
-      ? await buildLocation(
-          StorageProvisionTypeEnum.METADATA,
-          body.metadataLocation,
-        )
-      : // if no metadata location is provided it defaults to a special
-        // prefixed location at the root of the content location
-        // e.g. .stellaris_folder_metadata_${prospectiveFolderId}/
-
-        (
-          await this.ormService.db
-            .insert(storageLocationsTable)
-            .values({
-              ...contentLocation,
-              id: uuidV4(),
-              prefix: `${contentLocation.prefix}${
-                contentLocation.prefix.length > 0 &&
-                !contentLocation.prefix.endsWith('/')
-                  ? '/'
-                  : ''
-              }${defaultMetadataPrefix}`,
-            })
-            .returning()
-        )[0]
+    const metadataLocation = await buildLocation(
+      StorageProvisionTypeEnum.METADATA,
+      body.metadataLocation,
+    )
 
     const folder = (
       await this.ormService.db
@@ -663,11 +649,9 @@ export class FolderService implements OnModuleInit {
     await this.ormService.db
       .delete(folderObjectsTable)
       .where(eq(folderObjectsTable.folderId, folder.id))
-    // TODO: implement folder object refreshing from bucket
 
     // consume the objects in the bucket, 1000 at a time, turning them into FolderObject entities
     let _contentCount = 0
-    let _metadataCount = 0
     let continuationToken: string | undefined = ''
     while (typeof continuationToken === 'string') {
       // list objects in the bucket, with the given prefix
@@ -684,21 +668,11 @@ export class FolderService implements OnModuleInit {
         prefix: contentStorageLocation.prefix,
       })
       for (const obj of response.result) {
-        const objectKey = obj.key
-        if (
-          objectKey.startsWith(
-            `${contentStorageLocation.prefix}${
-              !contentStorageLocation.prefix ||
-              contentStorageLocation.prefix.endsWith('/')
-                ? ''
-                : '/'
-            }.stellaris_folder_metadata`,
-          )
-        ) {
-          _metadataCount++
-        } else if (obj.size > 0) {
+        const objectKey = folder.contentLocation.prefix.length
+          ? obj.key.slice(folder.contentLocation.prefix.length)
+          : obj.key
+        if (obj.size > 0) {
           _contentCount++
-          // this is a user file
           // console.log('Trying to update key metadata [%s]:', objectKey, obj)
           await this.updateFolderObjectInDB(folder.id, objectKey, obj)
         }

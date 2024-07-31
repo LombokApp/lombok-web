@@ -90,7 +90,7 @@ export class FolderSocketService implements OnModuleInit {
   }
 
   sendToFolderRoom(folderId: string, name: FolderPushMessage, msg: any) {
-    console.log('sendToFolderRoom:', { folderId, name, msg })
+    // console.log('sendToFolderRoom:', { folderId, name, msg })
     // this.server?.to(this.getRoomId(folderId)).emit(name, msg)
     // console.log(
     //   'folderSocketGateway:',

@@ -5,7 +5,7 @@ import { folderLocationInputSchema } from './folder-location-input.dto'
 
 export const folderCreateInputSchema = z.object({
   name: z.string(),
-  metadataLocation: folderLocationInputSchema.optional(),
+  metadataLocation: folderLocationInputSchema,
   contentLocation: folderLocationInputSchema,
 })
 

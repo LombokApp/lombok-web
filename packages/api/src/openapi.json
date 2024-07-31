@@ -2399,6 +2399,7 @@
         },
         "required": [
           "name",
+          "metadataLocation",
           "contentLocation"
         ]
       },

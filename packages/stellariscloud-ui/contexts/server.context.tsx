@@ -13,7 +13,6 @@ import { useLocalFileCacheContext } from './local-file-cache.context'
 import type { LogLevel } from './logging.context'
 import {
   AppListResponse,
-  SettingsGetResponse,
   SettingsGetResponseSettings,
 } from '@stellariscloud/api-client'
 import { useAuthContext } from '@stellariscloud/auth-utils'
@@ -67,15 +66,13 @@ export const ServerContextProvider = ({
   const [serverApps, setServerApps] = React.useState<AppListResponse>()
   const authContext = useAuthContext()
 
-  const fetchServerSettings = React.useCallback(
-    () =>
-      authContext.viewer?.isAdmin
-        ? apiClient.serverApi
-            .getServerSettings()
-            .then((response) => setServerSettings(response.data.settings))
-        : Promise.reject('Not admin.'),
-    [authContext.viewer?.isAdmin],
-  )
+  const fetchServerSettings = React.useCallback(async () => {
+    if (authContext.viewer?.isAdmin) {
+      void apiClient.serverApi
+        .getServerSettings()
+        .then((response) => setServerSettings(response.data.settings))
+    }
+  }, [authContext.viewer?.isAdmin])
 
   const fetchServerApps = React.useCallback(
     async () =>

@@ -197,7 +197,7 @@ const renderFolderObjectPreview = (
       contentWrapperDiv.setAttribute('x-data-preview-rendered', '1')
       const image = new Image()
       linkElement.append(image)
-      image.style.objectFit = 'cover'
+      image.className = 'object-cover'
       image.style.position = 'absolute'
       image.style.height = '100%'
       image.style.width = '100%'
@@ -215,7 +215,7 @@ const renderFolderObjectPreview = (
       contentWrapperDiv.setAttribute('x-data-preview-rendered', '1')
       const video = document.createElement('video')
       linkElement.append(video)
-      video.style.objectFit = 'cover'
+      video.className = 'object-cover'
       video.style.position = 'absolute'
       video.style.height = '100%'
       video.style.width = '100%'
