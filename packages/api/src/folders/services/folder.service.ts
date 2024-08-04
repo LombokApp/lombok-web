@@ -267,10 +267,10 @@ export class FolderService implements OnModuleInit {
 
         const prefixSuffix =
           storageProvisionType === StorageProvisionTypeEnum.METADATA
-            ? `.metadata/.stellaris_folder_metadata_${prospectiveFolderId}/`
+            ? `.stellaris_folder_metadata_${prospectiveFolderId}/`
             : storageProvisionType === StorageProvisionTypeEnum.CONTENT
-              ? `.content/.stellaris_folder_content_${prospectiveFolderId}/`
-              : `.backup/.stellaris_folder_backup_${prospectiveFolderId}/`
+              ? `.stellaris_folder_content_${prospectiveFolderId}/`
+              : `.stellaris_folder_backup_${prospectiveFolderId}/`
 
         location = (
           await this.ormService.db
