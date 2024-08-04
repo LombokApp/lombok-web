@@ -1,6 +1,9 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import { foldersTable } from 'src/folders/entities/folder.entity'
+import { STORAGE_PROVISIONS_KEY } from 'src/server/constants/server.constants'
+import type { StorageProvisionDTO } from 'src/server/dto/storage-provision.dto'
+import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
 import type { NewStorageLocation } from 'src/storage/entities/storage-location.entity'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import type { NewUser } from 'src/users/entities/user.entity'
@@ -10,6 +13,23 @@ import { v4 as uuidV4 } from 'uuid'
 const sql = postgres(
   `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
 )
+
+if (
+  !process.env.DEV_S3_ACCESS_KEY_ID ||
+  !process.env.DEV_S3_SECRET_ACCESS_KEY ||
+  !process.env.DEV_S3_BUCKET_NAME ||
+  !process.env.DEV_S3_PREFIX ||
+  !process.env.DEV_S3_REGION ||
+  !process.env.DEV_S3_ENDPOINT ||
+  !process.env.DEV_S3_LABEL
+) {
+  throw new Error('Set DEV_S3_* env vars before running the dev seed.')
+}
+
+const S3_CREDENTIALS = {
+  accessKeyId: process.env.DEV_S3_ACCESS_KEY_ID,
+  secretAccessKey: process.env.DEV_S3_SECRET_ACCESS_KEY,
+}
 
 async function main(): Promise<void> {
   const USER_1_ID = 'ad619a15-7326-44e9-a68b-0170a3cf4a94'
@@ -55,9 +75,8 @@ async function main(): Promise<void> {
   ): NewStorageLocation {
     return {
       id: uuidV4(),
-      accessKeyId: '2ZpHPnybEUM0GtzD',
-      secretAccessKey: 'HyLwLLCwEw9ni888fQvHENgMxelgNrAO',
-      bucket: 'stellaris-dev',
+      ...S3_CREDENTIALS,
+      bucket: process.env.DEV_S3_BUCKET_NAME ?? '',
       endpoint: 'https://m8.wasteofpaper.com',
       label: 'https://m8.wasteofpaper.com utrecht-1 2ZpHPnybEUM0GtzD',
       providerType: 'USER',
@@ -119,6 +138,25 @@ async function main(): Promise<void> {
     contentLocationId: locations[4].id,
     metadataLocationId: locations[5].id,
     ownerId: ADMIN_1_ID,
+    createdAt: new Date('2023-11-01 22:49:00.93'),
+    updatedAt: new Date('2023-11-01 22:49:00.93'),
+  })
+  // add server storage provision
+  const storageProvision: StorageProvisionDTO = {
+    ...S3_CREDENTIALS,
+    id: uuidV4(),
+    bucket: process.env.DEV_S3_BUCKET_NAME ?? '',
+    description:
+      "An special dev only S3 location. Don't store anything sensitive here.",
+    label: process.env.DEV_S3_LABEL ?? '',
+    endpoint: process.env.DEV_S3_ENDPOINT ?? '',
+    region: process.env.DEV_S3_REGION ?? '',
+    prefix: process.env.DEV_S3_PREFIX,
+    provisionTypes: ['CONTENT', 'METADATA'],
+  }
+  await db.insert(serverSettingsTable).values({
+    key: STORAGE_PROVISIONS_KEY.key,
+    value: [storageProvision],
     createdAt: new Date('2023-11-01 22:49:00.93'),
     updatedAt: new Date('2023-11-01 22:49:00.93'),
   })
