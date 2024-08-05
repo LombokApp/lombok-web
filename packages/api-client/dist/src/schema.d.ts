@@ -730,6 +730,82 @@ export declare const schema: {
                 }];
             };
         };
+        readonly "/api/v1/access-keys": {
+            readonly get: {
+                readonly operationId: "listAccessKeys";
+                readonly parameters: readonly [{
+                    readonly name: "offset";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly name: "limit";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly minimum: 0;
+                        readonly exclusiveMinimum: true;
+                        readonly type: "number";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "List access keys.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/AccessKeyListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["AccessKeys"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/server/access-keys": {
+            readonly get: {
+                readonly operationId: "listServerAccessKeys";
+                readonly parameters: readonly [{
+                    readonly name: "offset";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly name: "limit";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly minimum: 0;
+                        readonly exclusiveMinimum: true;
+                        readonly type: "number";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "List server access keys.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/AccessKeyListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["ServerAccessKeys"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
         readonly "/api/v1/server/settings": {
             readonly get: {
                 readonly operationId: "getServerSettings";
@@ -2242,6 +2318,54 @@ export declare const schema: {
                     };
                     readonly actionParams: {};
                 };
+            };
+            readonly AccessKeyDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly accessKeyId: {
+                        readonly type: "string";
+                    };
+                    readonly endpointHost: {
+                        readonly type: "string";
+                    };
+                    readonly folderCount: {
+                        readonly type: "number";
+                    };
+                };
+                readonly required: readonly ["accessKeyId", "endpointHost", "folderCount"];
+            };
+            readonly AccessKeyListResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly meta: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly totalCount: {
+                                readonly type: "number";
+                            };
+                        };
+                        readonly required: readonly ["totalCount"];
+                    };
+                    readonly result: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "object";
+                            readonly properties: {
+                                readonly accessKeyId: {
+                                    readonly type: "string";
+                                };
+                                readonly endpointHost: {
+                                    readonly type: "string";
+                                };
+                                readonly folderCount: {
+                                    readonly type: "number";
+                                };
+                            };
+                            readonly required: readonly ["accessKeyId", "endpointHost", "folderCount"];
+                        };
+                    };
+                };
+                readonly required: readonly ["meta", "result"];
             };
             readonly SettingsGetResponse: {
                 readonly type: "object";

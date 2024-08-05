@@ -1,5 +1,5 @@
 {
-  "id": "356ca32b-f569-4a95-a652-88a35da5dab4",
+  "id": "0562e044-a3fd-4a64-86ba-f606b9200e9a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -378,59 +378,6 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "public.log_entries": {
-      "name": "log_entries",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "appIdentifier": {
-          "name": "appIdentifier",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "message": {
-          "name": "message",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "data": {
-          "name": "data",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "level": {
-          "name": "level",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'info'"
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
     "public.server_settings": {
       "name": "server_settings",
       "schema": "",
@@ -490,6 +437,12 @@
         },
         "endpoint": {
           "name": "endpoint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "endpointHost": {
+          "name": "endpointHost",
           "type": "text",
           "primaryKey": false,
           "notNull": true

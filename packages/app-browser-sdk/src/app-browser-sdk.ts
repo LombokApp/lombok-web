@@ -1,9 +1,11 @@
 import {
+  AccessKeysApi,
   AppsApi,
   AuthApi,
   EventsApi,
   FoldersApi,
   ServerApi,
+  ServerAccessKeysApi,
   StorageProvisionsApi,
   UsersApi,
   ViewerApi,
@@ -17,6 +19,8 @@ export type StellarisCloudAPI = {
   eventsApi: EventsApi
   serverApi: ServerApi
   storageProvisionsApi: StorageProvisionsApi
+  serverAccessKeysApi: ServerAccessKeysApi
+  accessKeysApi: AccessKeysApi
   usersApi: UsersApi
   appsApi: AppsApi
 }
@@ -49,6 +53,8 @@ export class AppBrowserSdk {
       viewerApi: bindApiConfig(defaultConfig, ViewerApi)(),
       serverApi: bindApiConfig(defaultConfig, ServerApi)(),
       eventsApi: bindApiConfig(defaultConfig, EventsApi)(),
+      accessKeysApi: bindApiConfig(defaultConfig, AccessKeysApi)(),
+      serverAccessKeysApi: bindApiConfig(defaultConfig, ServerAccessKeysApi)(),
       storageProvisionsApi: bindApiConfig(
         defaultConfig,
         StorageProvisionsApi,

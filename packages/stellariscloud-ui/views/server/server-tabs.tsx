@@ -16,7 +16,7 @@ import React from 'react'
 
 export function ServerTabs({ activeTab }: { activeTab: string }) {
   const tabs = [
-    { name: 'info', label: 'Info', icon: ServerIcon, href: '/server' },
+    { name: 'overview', label: 'Info', icon: ServerIcon, href: '/server' },
     {
       name: 'users',
       label: 'Users',

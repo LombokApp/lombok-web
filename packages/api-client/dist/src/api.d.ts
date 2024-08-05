@@ -16,6 +16,75 @@ import { BaseAPI } from './base';
 /**
  *
  * @export
+ * @interface AccessKeyDTO
+ */
+export interface AccessKeyDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyDTO
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyDTO
+     */
+    'endpointHost': string;
+    /**
+     *
+     * @type {number}
+     * @memberof AccessKeyDTO
+     */
+    'folderCount': number;
+}
+/**
+ *
+ * @export
+ * @interface AccessKeyListResponse
+ */
+export interface AccessKeyListResponse {
+    /**
+     *
+     * @type {UserListResponseMeta}
+     * @memberof AccessKeyListResponse
+     */
+    'meta': UserListResponseMeta;
+    /**
+     *
+     * @type {Array<AccessKeyListResponseResultInner>}
+     * @memberof AccessKeyListResponse
+     */
+    'result': Array<AccessKeyListResponseResultInner>;
+}
+/**
+ *
+ * @export
+ * @interface AccessKeyListResponseResultInner
+ */
+export interface AccessKeyListResponseResultInner {
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'endpointHost': string;
+    /**
+     *
+     * @type {number}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'folderCount': number;
+}
+/**
+ *
+ * @export
  * @interface AppListResponse
  */
 export interface AppListResponse {
@@ -1815,6 +1884,82 @@ export interface ViewerGetResponse {
     'user': SignupResponseUser;
 }
 /**
+ * AccessKeysApi - axios parameter creator
+ * @export
+ */
+export declare const AccessKeysApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAccessKeys: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * AccessKeysApi - functional programming interface
+ * @export
+ */
+export declare const AccessKeysApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAccessKeys(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
+};
+/**
+ * AccessKeysApi - factory interface
+ * @export
+ */
+export declare const AccessKeysApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAccessKeys(requestParameters?: AccessKeysApiListAccessKeysRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyListResponse>;
+};
+/**
+ * Request parameters for listAccessKeys operation in AccessKeysApi.
+ * @export
+ * @interface AccessKeysApiListAccessKeysRequest
+ */
+export interface AccessKeysApiListAccessKeysRequest {
+    /**
+     *
+     * @type {number}
+     * @memberof AccessKeysApiListAccessKeys
+     */
+    readonly offset?: number;
+    /**
+     *
+     * @type {number}
+     * @memberof AccessKeysApiListAccessKeys
+     */
+    readonly limit?: number;
+}
+/**
+ * AccessKeysApi - object-oriented interface
+ * @export
+ * @class AccessKeysApi
+ * @extends {BaseAPI}
+ */
+export declare class AccessKeysApi extends BaseAPI {
+    /**
+     *
+     * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessKeysApi
+     */
+    listAccessKeys(requestParameters?: AccessKeysApiListAccessKeysRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyListResponse, any>>;
+}
+/**
  * AppsApi - axios parameter creator
  * @export
  */
@@ -2903,6 +3048,82 @@ export declare class ServerApi extends BaseAPI {
      * @memberof ServerApi
      */
     setServerSetting(requestParameters: ServerApiSetServerSettingRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SettingSetResponse, any>>;
+}
+/**
+ * ServerAccessKeysApi - axios parameter creator
+ * @export
+ */
+export declare const ServerAccessKeysApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listServerAccessKeys: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * ServerAccessKeysApi - functional programming interface
+ * @export
+ */
+export declare const ServerAccessKeysApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listServerAccessKeys(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
+};
+/**
+ * ServerAccessKeysApi - factory interface
+ * @export
+ */
+export declare const ServerAccessKeysApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listServerAccessKeys(requestParameters?: ServerAccessKeysApiListServerAccessKeysRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyListResponse>;
+};
+/**
+ * Request parameters for listServerAccessKeys operation in ServerAccessKeysApi.
+ * @export
+ * @interface ServerAccessKeysApiListServerAccessKeysRequest
+ */
+export interface ServerAccessKeysApiListServerAccessKeysRequest {
+    /**
+     *
+     * @type {number}
+     * @memberof ServerAccessKeysApiListServerAccessKeys
+     */
+    readonly offset?: number;
+    /**
+     *
+     * @type {number}
+     * @memberof ServerAccessKeysApiListServerAccessKeys
+     */
+    readonly limit?: number;
+}
+/**
+ * ServerAccessKeysApi - object-oriented interface
+ * @export
+ * @class ServerAccessKeysApi
+ * @extends {BaseAPI}
+ */
+export declare class ServerAccessKeysApi extends BaseAPI {
+    /**
+     *
+     * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerAccessKeysApi
+     */
+    listServerAccessKeys(requestParameters?: ServerAccessKeysApiListServerAccessKeysRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyListResponse, any>>;
 }
 /**
  * StorageProvisionsApi - axios parameter creator

@@ -27,6 +27,41 @@ describe('Folder Objects', () => {
     await testModule?.resetDb()
   })
 
+  it(`should 401 on list folder objects without token`, async () => {
+    const response = await apiClient
+      .foldersApi()
+      .listFolderObjects({ folderId: '__dummy__' })
+
+    expect(response.status).toEqual(401)
+  })
+
+  it(`should 401 on get folder object without token`, async () => {
+    const response = await apiClient
+      .foldersApi()
+      .getFolderObject({ folderId: '__dummy__', objectKey: '__dummy__' })
+
+    expect(response.status).toEqual(401)
+  })
+
+  it(`should 401 on delete folder object without token`, async () => {
+    const response = await apiClient
+      .foldersApi()
+      .deleteFolderObject({ folderId: '__dummy__', objectKey: '__dummy__' })
+
+    expect(response.status).toEqual(401)
+  })
+
+  it(`should 401 on refresh folder object S3 metadata without token`, async () => {
+    const response = await apiClient
+      .foldersApi()
+      .refreshFolderObjectS3Metadata({
+        folderId: '__dummy__',
+        objectKey: '__dummy__',
+      })
+
+    expect(response.status).toEqual(401)
+  })
+
   it(`should get a folder object by folderId and objectKey`, async () => {
     const {
       session: { accessToken },

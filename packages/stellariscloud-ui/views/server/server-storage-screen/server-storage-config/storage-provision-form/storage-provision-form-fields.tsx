@@ -1,13 +1,13 @@
 import React from 'react'
 import * as r from 'runtypes'
 
-import { Input } from '../../../design-system/input/input'
-import { useFormState } from '../../../utils/forms'
+import { Input } from '../../../../../design-system/input/input'
+import { useFormState } from '../../../../../utils/forms'
 import {
   StorageProvisionType,
   StorageProvisionTypeEnum,
 } from '@stellariscloud/types'
-import { Toggle } from '../../../design-system/toggle/toggle'
+import { Toggle } from '../../../../../design-system/toggle/toggle'
 
 export interface StorageProvisionFormValues {
   name: string

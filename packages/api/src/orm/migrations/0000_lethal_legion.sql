@@ -64,16 +64,6 @@ CREATE TABLE IF NOT EXISTS "folders" (
 	"updatedAt" timestamp NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "log_entries" (
-	"id" uuid PRIMARY KEY NOT NULL,
-	"name" text NOT NULL,
-	"appIdentifier" uuid NOT NULL,
-	"message" text NOT NULL,
-	"data" jsonb,
-	"level" text DEFAULT 'info' NOT NULL,
-	"createdAt" timestamp NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "server_settings" (
 	"key" text PRIMARY KEY NOT NULL,
 	"value" jsonb,
@@ -86,6 +76,7 @@ CREATE TABLE IF NOT EXISTS "storage_locations" (
 	"providerType" "providerType" NOT NULL,
 	"label" text NOT NULL,
 	"endpoint" text NOT NULL,
+	"endpointHost" text NOT NULL,
 	"region" text NOT NULL,
 	"accessKeyId" text NOT NULL,
 	"secretAccessKey" text NOT NULL,

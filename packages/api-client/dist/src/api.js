@@ -82,6 +82,105 @@ export const StorageProvisionListResponseResultInnerProvisionTypesEnum = {
     Backup: 'BACKUP'
 };
 /**
+ * AccessKeysApi - axios parameter creator
+ * @export
+ */
+export const AccessKeysApiAxiosParamCreator = function (configuration) {
+    return {
+        /**
+         *
+         * @param {number} [offset]
+         * @param {number} [limit]
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listAccessKeys: async (offset, limit, options = {}) => {
+            const localVarPath = `/api/v1/access-keys`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    };
+};
+/**
+ * AccessKeysApi - functional programming interface
+ * @export
+ */
+export const AccessKeysApiFp = function (configuration) {
+    const localVarAxiosParamCreator = AccessKeysApiAxiosParamCreator(configuration);
+    return {
+        /**
+         *
+         * @param {number} [offset]
+         * @param {number} [limit]
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listAccessKeys(offset, limit, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listAccessKeys(offset, limit, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    };
+};
+/**
+ * AccessKeysApi - factory interface
+ * @export
+ */
+export const AccessKeysApiFactory = function (configuration, basePath, axios) {
+    const localVarFp = AccessKeysApiFp(configuration);
+    return {
+        /**
+         *
+         * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listAccessKeys(requestParameters = {}, options) {
+            return localVarFp.listAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+/**
+ * AccessKeysApi - object-oriented interface
+ * @export
+ * @class AccessKeysApi
+ * @extends {BaseAPI}
+ */
+export class AccessKeysApi extends BaseAPI {
+    /**
+     *
+     * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessKeysApi
+     */
+    listAccessKeys(requestParameters = {}, options) {
+        return AccessKeysApiFp(this.configuration).listAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+/**
  * AppsApi - axios parameter creator
  * @export
  */
@@ -1603,6 +1702,105 @@ export class ServerApi extends BaseAPI {
      */
     setServerSetting(requestParameters, options) {
         return ServerApiFp(this.configuration).setServerSetting(requestParameters.settingKey, requestParameters.setSettingInputDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+/**
+ * ServerAccessKeysApi - axios parameter creator
+ * @export
+ */
+export const ServerAccessKeysApiAxiosParamCreator = function (configuration) {
+    return {
+        /**
+         *
+         * @param {number} [offset]
+         * @param {number} [limit]
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerAccessKeys: async (offset, limit, options = {}) => {
+            const localVarPath = `/api/v1/server/access-keys`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    };
+};
+/**
+ * ServerAccessKeysApi - functional programming interface
+ * @export
+ */
+export const ServerAccessKeysApiFp = function (configuration) {
+    const localVarAxiosParamCreator = ServerAccessKeysApiAxiosParamCreator(configuration);
+    return {
+        /**
+         *
+         * @param {number} [offset]
+         * @param {number} [limit]
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listServerAccessKeys(offset, limit, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listServerAccessKeys(offset, limit, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    };
+};
+/**
+ * ServerAccessKeysApi - factory interface
+ * @export
+ */
+export const ServerAccessKeysApiFactory = function (configuration, basePath, axios) {
+    const localVarFp = ServerAccessKeysApiFp(configuration);
+    return {
+        /**
+         *
+         * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerAccessKeys(requestParameters = {}, options) {
+            return localVarFp.listServerAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+/**
+ * ServerAccessKeysApi - object-oriented interface
+ * @export
+ * @class ServerAccessKeysApi
+ * @extends {BaseAPI}
+ */
+export class ServerAccessKeysApi extends BaseAPI {
+    /**
+     *
+     * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerAccessKeysApi
+     */
+    listServerAccessKeys(requestParameters = {}, options) {
+        return ServerAccessKeysApiFp(this.configuration).listServerAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
     }
 }
 /**

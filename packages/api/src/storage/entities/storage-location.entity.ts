@@ -8,6 +8,7 @@ export const storageLocationsTable = pgTable('storage_locations', {
   providerType: providerTypeEnum('providerType').notNull(),
   label: text('label').notNull(),
   endpoint: text('endpoint').notNull(),
+  endpointHost: text('endpointHost').notNull(),
   region: text('region').notNull(),
   accessKeyId: text('accessKeyId').notNull(),
   secretAccessKey: text('secretAccessKey').notNull(),

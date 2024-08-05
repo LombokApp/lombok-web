@@ -7,7 +7,9 @@ import {
   ArrowRightOnRectangleIcon,
   CubeIcon,
   FolderOpenIcon,
+  KeyIcon,
   ServerStackIcon,
+  UserIcon,
 } from '@heroicons/react/24/outline'
 import { AuthContextProvider, useAuthContext } from '@stellariscloud/auth-utils'
 import clsx from 'clsx'
@@ -41,42 +43,6 @@ const SIDEBAR_COLOR =
   'bg-gradient-to-l from-indigo-900 to-indigo-950 dark:bg-gradient-to-r dark:from-blue-950 dark:to-indigo-950 transition duration-100'
 const BODY_GRADIENT =
   'bg-gray-100 transition duration-100 dark:bg-gradient-to-r dark:from-blue-950 dark:to-indigo-950'
-
-export function ProfileMenu({
-  profileImgSrc,
-  profileAvatarUniqueKey,
-  // profileMenuItems,
-  onProfileClick,
-}: {
-  profileAvatarUniqueKey?: string
-  profileImgSrc?: string
-  profileMenuItems: { name: string; href: string; onClick?: () => void }[]
-  profileName: string
-  onProfileClick: () => void
-}) {
-  return (
-    <Menu as="div" className="relative">
-      <Menu.Button
-        className="-m-1.5 flex items-center p-1.5"
-        onClick={onProfileClick}
-      >
-        <span className="sr-only">Open user menu</span>
-        {profileImgSrc && (
-          <img
-            className="h-8 w-8 rounded-full bg-gray-50"
-            src={profileImgSrc}
-            alt=""
-          />
-        )}
-        {profileAvatarUniqueKey && (
-          <div className="flex rounded-full overflow-hidden bg-pink-500">
-            <Avatar size="sm" uniqueKey={profileAvatarUniqueKey} />
-          </div>
-        )}
-      </Menu.Button>
-    </Menu>
-  )
-}
 
 const UnauthenticatedContent = ({ Component, pageProps }: AppProps) => {
   return (
@@ -128,16 +94,12 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
       icon: FolderOpenIcon,
       current: router.pathname.startsWith('/folders'),
     },
-    ...(viewer?.isAdmin
-      ? [
-          {
-            name: 'Server',
-            href: '/server',
-            icon: ServerStackIcon,
-            current: router.pathname.startsWith('/server'),
-          },
-        ]
-      : []),
+    {
+      name: 'Access Keys',
+      href: '/access-keys',
+      icon: KeyIcon,
+      current: router.pathname.startsWith('/access-keys'),
+    },
   ]
 
   const userNavigation = [{ name: 'Your profile', href: '/profile' }]
@@ -225,12 +187,44 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
               <div className="flex-1 flex flex-col items-center justify-end">
                 <ul className="flex flex-col gap-6 pb-4">
                   <li>
-                    <ProfileMenu
-                      onProfileClick={() => void router.push('/profile')}
-                      profileAvatarUniqueKey={'asdfsadf'}
-                      profileMenuItems={userNavigation}
-                      profileName="Tom Kek"
-                    />
+                    <ul className="flex flex-col gap-2 pb-4">
+                      {viewer.isAdmin && (
+                        <li>
+                          <Link
+                            href={'/server'}
+                            className={clsx(
+                              router.pathname.startsWith('/server')
+                                ? 'bg-white/10 text-white'
+                                : 'text-gray-400 hover:text-white hover:bg-white/10',
+                              'group flex gap-x-3 rounded-full p-3 text-sm leading-6 font-semibold',
+                            )}
+                          >
+                            <ServerStackIcon
+                              className="h-6 w-6 shrink-0"
+                              aria-hidden="true"
+                            />
+                            <span className="sr-only">Server</span>
+                          </Link>
+                        </li>
+                      )}
+                      <li>
+                        <Link
+                          href={'/profile'}
+                          className={clsx(
+                            router.pathname.startsWith('/profile')
+                              ? 'bg-white/10 text-white'
+                              : 'text-gray-400 hover:text-white hover:bg-white/10',
+                            'group flex gap-x-3 rounded-full p-3 text-sm leading-6 font-semibold',
+                          )}
+                        >
+                          <UserIcon
+                            className="h-6 w-6 shrink-0"
+                            aria-hidden="true"
+                          />
+                          <span className="sr-only">Profile</span>
+                        </Link>
+                      </li>
+                    </ul>
                   </li>
                   <li>
                     <div className="flex flex-col items-center">

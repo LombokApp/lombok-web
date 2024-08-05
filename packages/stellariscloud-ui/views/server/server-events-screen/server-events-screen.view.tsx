@@ -43,7 +43,7 @@ export function ServerEventsScreen() {
                   </div>,
                   <div>
                     <div className="flex flex-col">
-                      <div>{event.locationContext?.folderId}</div>
+                      <div>{event.locationContext?.folderId.slice(0, 8)}</div>
                     </div>
                   </div>,
                   <div>

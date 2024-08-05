@@ -8,7 +8,7 @@ import { ServerUsersScreen } from './server-users-screen/server-users-screen.vie
 import { ServerAppsScreen } from './server-apps-screen/server-apps-screen.view'
 import { ServerOverview } from './server-overview-screen/server-overview-screen'
 import { ServerSettingsScreen } from './server-settings-screen/server-settings-screen'
-import { ServerStorageConfig } from './server-storage-config-screen/server-storage-config-screen.view'
+import { ServerStorageScreen } from './server-storage-screen/server-storage-screen.view'
 import { ServerTabs } from './server-tabs'
 import { ServerEventsScreen } from './server-events-screen/server-events-screen.view'
 
@@ -46,7 +46,7 @@ export function ServerScreen() {
             )}
             {activeTab === 'users' && <ServerUsersScreen />}
             {activeTab === 'events' && <ServerEventsScreen />}
-            {activeTab === 'storage' && <ServerStorageConfig />}
+            {activeTab === 'storage' && <ServerStorageScreen />}
             {activeTab === 'apps' && <ServerAppsScreen />}
             {activeTab === 'settings' && <ServerSettingsScreen />}
           </div>

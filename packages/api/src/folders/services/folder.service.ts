@@ -120,7 +120,10 @@ export interface FolderObjectUpdate {
 const NewUserLocationPayloadRunType = r.Record({
   accessKeyId: r.String,
   secretAccessKey: r.String,
-  endpoint: r.String,
+  endpoint: r.String.withConstraint((endpoint) => {
+    new URL(endpoint)
+    return true
+  }),
   bucket: r.String,
   region: r.String,
   prefix: r.String,
@@ -207,6 +210,9 @@ export class FolderService implements OnModuleInit {
             .insert(storageLocationsTable)
             .values({
               ...withNewUserLocationConnection.value,
+              endpointHost: new URL(
+                withNewUserLocationConnection.value.endpoint,
+              ).host,
               id: uuidV4(),
               label: `${withNewUserLocationConnection.value.endpoint} - ${withNewUserLocationConnection.value.accessKeyId}`,
               providerType: 'USER',
@@ -239,6 +245,7 @@ export class FolderService implements OnModuleInit {
                 providerType: 'USER',
                 userId,
                 endpoint: existingLocation.endpoint,
+                endpointHost: new URL(existingLocation.endpoint).host,
                 accessKeyId: existingLocation.accessKeyId,
                 secretAccessKey: existingLocation.secretAccessKey,
                 region: existingLocation.region,
@@ -281,6 +288,7 @@ export class FolderService implements OnModuleInit {
               providerType: 'SERVER',
               userId,
               endpoint: existingServerLocation.endpoint,
+              endpointHost: new URL(existingServerLocation.endpoint).host,
               accessKeyId: existingServerLocation.accessKeyId,
               secretAccessKey: existingServerLocation.secretAccessKey,
               region: existingServerLocation.region,

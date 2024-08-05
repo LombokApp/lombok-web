@@ -10,8 +10,8 @@ import { Button } from '../../design-system/button/button'
 import { ButtonDropdown } from '../../design-system/button-dropdown/button-dropdown'
 import { Input } from '../../design-system/input/input'
 import { useFormState } from '../../utils/forms'
-import type { StorageProvisionFormValues } from '../../views/server/server-storage-config-screen/storage-provision-form-fields'
-import { StorageProvisionFormFields } from '../../views/server/server-storage-config-screen/storage-provision-form-fields'
+import type { StorageProvisionFormValues } from '../../views/server/server-storage-screen/server-storage-config/storage-provision-form/storage-provision-form-fields'
+import { StorageProvisionFormFields } from '../../views/server/server-storage-screen/server-storage-config/storage-provision-form/storage-provision-form-fields'
 
 interface CreateFolderFormValues {
   name: string

@@ -692,6 +692,86 @@ describe('Folders', () => {
     expect(presignedUrls2.status).toBe(401)
   })
 
+  it(`should 401 on create folder without token`, async () => {
+    const response = await apiClient.foldersApi().createFolder({
+      folderCreateInputDTO: {
+        name: '__dummy__',
+        contentLocation: {
+          accessKeyId: '__dummy__',
+          secretAccessKey: '__dummy__',
+          endpoint: '__dummy__',
+          bucket: '__dummy__',
+          region: '__dummy__',
+          prefix: '__dummy__',
+        },
+        metadataLocation: {
+          accessKeyId: '__dummy__',
+          secretAccessKey: '__dummy__',
+          endpoint: '__dummy__',
+          bucket: '__dummy__',
+          region: '__dummy__',
+          prefix: '__dummy__',
+        },
+      },
+    })
+
+    expect(response.status).toEqual(401)
+  })
+
+  it(`should 401 on list folders without token`, async () => {
+    const response = await apiClient.foldersApi().listFolders()
+
+    expect(response.status).toEqual(401)
+  })
+
+  it(`should 401 on rescan folder without token`, async () => {
+    const response = await apiClient
+      .foldersApi()
+      .rescanFolder({ folderId: '__dummy__' })
+
+    expect(response.status).toEqual(401)
+  })
+
+  it(`should 401 on get folder metadata without token`, async () => {
+    const response = await apiClient
+      .foldersApi()
+      .getFolderMetadata({ folderId: '__dummy__' })
+
+    expect(response.status).toEqual(401)
+  })
+
+  it(`should 401 on delete folder without token`, async () => {
+    const response = await apiClient
+      .foldersApi()
+      .deleteFolder({ folderId: '__dummy__' })
+
+    expect(response.status).toEqual(401)
+  })
+
+  it(`should 401 on createPresignedUrls without token`, async () => {
+    const response = await apiClient.foldersApi().createPresignedUrls({
+      folderCreateSignedUrlInputDTOInner: [
+        { method: 'GET', objectIdentifier: '__dummy__' },
+      ],
+      folderId: '__dummy__',
+    })
+
+    expect(response.status).toEqual(401)
+  })
+
+  it(`should 401 on handleFolderAction without token`, async () => {
+    const response = await apiClient.foldersApi().handleFolderAction({
+      actionKey: '__dummy__',
+      appIdentifier: '__dummy__',
+      folderHandleActionInputDTO: {
+        actionParams: {},
+      },
+      folderId: '__dummy__',
+    })
+
+    expect(response.status).toEqual(401)
+  })
+
   afterAll(async () => {
     await testModule?.shutdown()
   })

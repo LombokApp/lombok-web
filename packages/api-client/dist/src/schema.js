@@ -873,6 +873,96 @@ export const schema = {
                 ]
             }
         },
+        "/api/v1/access-keys": {
+            "get": {
+                "operationId": "listAccessKeys",
+                "parameters": [
+                    {
+                        "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "minimum": 0,
+                            "exclusiveMinimum": true,
+                            "type": "number"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List access keys.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessKeyListResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "AccessKeys"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/server/access-keys": {
+            "get": {
+                "operationId": "listServerAccessKeys",
+                "parameters": [
+                    {
+                        "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "minimum": 0,
+                            "exclusiveMinimum": true,
+                            "type": "number"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List server access keys.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessKeyListResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "ServerAccessKeys"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
         "/api/v1/server/settings": {
             "get": {
                 "operationId": "getServerSettings",
@@ -2846,6 +2936,67 @@ export const schema = {
                     },
                     "actionParams": {}
                 }
+            },
+            "AccessKeyDTO": {
+                "type": "object",
+                "properties": {
+                    "accessKeyId": {
+                        "type": "string"
+                    },
+                    "endpointHost": {
+                        "type": "string"
+                    },
+                    "folderCount": {
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "accessKeyId",
+                    "endpointHost",
+                    "folderCount"
+                ]
+            },
+            "AccessKeyListResponse": {
+                "type": "object",
+                "properties": {
+                    "meta": {
+                        "type": "object",
+                        "properties": {
+                            "totalCount": {
+                                "type": "number"
+                            }
+                        },
+                        "required": [
+                            "totalCount"
+                        ]
+                    },
+                    "result": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "accessKeyId": {
+                                    "type": "string"
+                                },
+                                "endpointHost": {
+                                    "type": "string"
+                                },
+                                "folderCount": {
+                                    "type": "number"
+                                }
+                            },
+                            "required": [
+                                "accessKeyId",
+                                "endpointHost",
+                                "folderCount"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "meta",
+                    "result"
+                ]
             },
             "SettingsGetResponse": {
                 "type": "object",
