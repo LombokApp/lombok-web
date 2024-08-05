@@ -2030,11 +2030,11 @@ export declare const AuthApiAxiosParamCreator: (configuration?: Configuration) =
     logout: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
-     * @param {string} refeshToken
+     * @param {string} refreshToken
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    refreshToken: (refeshToken: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    refreshToken: (refreshToken: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {SignupCredentialsDTO} signupCredentialsDTO
@@ -2063,11 +2063,11 @@ export declare const AuthApiFp: (configuration?: Configuration) => {
     logout(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>>;
     /**
      *
-     * @param {string} refeshToken
+     * @param {string} refreshToken
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    refreshToken(refeshToken: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TokenRefreshResponse>>;
+    refreshToken(refreshToken: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TokenRefreshResponse>>;
     /**
      *
      * @param {SignupCredentialsDTO} signupCredentialsDTO
@@ -2133,7 +2133,7 @@ export interface AuthApiRefreshTokenRequest {
      * @type {string}
      * @memberof AuthApiRefreshToken
      */
-    readonly refeshToken: string;
+    readonly refreshToken: string;
 }
 /**
  * Request parameters for signup operation in AuthApi.

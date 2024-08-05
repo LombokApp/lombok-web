@@ -81,11 +81,11 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/api/v1/auth/refresh-token": {
+        readonly "/api/v1/auth/{refreshToken}": {
             readonly post: {
                 readonly operationId: "refreshToken";
                 readonly parameters: readonly [{
-                    readonly name: "refeshToken";
+                    readonly name: "refreshToken";
                     readonly required: true;
                     readonly in: "path";
                     readonly schema: {

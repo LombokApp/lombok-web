@@ -331,15 +331,15 @@ export const AuthApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
-         * @param {string} refeshToken
+         * @param {string} refreshToken
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        refreshToken: async (refeshToken, options = {}) => {
-            // verify required parameter 'refeshToken' is not null or undefined
-            assertParamExists('refreshToken', 'refeshToken', refeshToken);
-            const localVarPath = `/api/v1/auth/refresh-token`
-                .replace(`{${"refeshToken"}}`, encodeURIComponent(String(refeshToken)));
+        refreshToken: async (refreshToken, options = {}) => {
+            // verify required parameter 'refreshToken' is not null or undefined
+            assertParamExists('refreshToken', 'refreshToken', refreshToken);
+            const localVarPath = `/api/v1/auth/{refreshToken}`
+                .replace(`{${"refreshToken"}}`, encodeURIComponent(String(refreshToken)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -416,12 +416,12 @@ export const AuthApiFp = function (configuration) {
         },
         /**
          *
-         * @param {string} refeshToken
+         * @param {string} refreshToken
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async refreshToken(refeshToken, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.refreshToken(refeshToken, options);
+        async refreshToken(refreshToken, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.refreshToken(refreshToken, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -467,7 +467,7 @@ export const AuthApiFactory = function (configuration, basePath, axios) {
          * @throws {RequiredError}
          */
         refreshToken(requestParameters, options) {
-            return localVarFp.refreshToken(requestParameters.refeshToken, options).then((request) => request(axios, basePath));
+            return localVarFp.refreshToken(requestParameters.refreshToken, options).then((request) => request(axios, basePath));
         },
         /**
          *
@@ -514,7 +514,7 @@ export class AuthApi extends BaseAPI {
      * @memberof AuthApi
      */
     refreshToken(requestParameters, options) {
-        return AuthApiFp(this.configuration).refreshToken(requestParameters.refeshToken, options).then((request) => request(this.axios, this.basePath));
+        return AuthApiFp(this.configuration).refreshToken(requestParameters.refreshToken, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *

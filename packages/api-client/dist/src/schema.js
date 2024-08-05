@@ -89,12 +89,12 @@ export const schema = {
                 ]
             }
         },
-        "/api/v1/auth/refresh-token": {
+        "/api/v1/auth/{refreshToken}": {
             "post": {
                 "operationId": "refreshToken",
                 "parameters": [
                     {
-                        "name": "refeshToken",
+                        "name": "refreshToken",
                         "required": true,
                         "in": "path",
                         "schema": {
