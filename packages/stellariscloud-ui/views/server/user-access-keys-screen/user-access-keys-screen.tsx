@@ -11,11 +11,35 @@ import { AccessKeysTable } from '../../../components/access-keys-table/access-ke
 export function UserAccessKeysScreen() {
   const [accessKeys, setAccessKeys] = React.useState<AccessKeyDTO[]>()
 
-  React.useEffect(() => {
+  const fetchAccessKeys = React.useCallback(() => {
     void apiClient.accessKeysApi.listAccessKeys().then((resp) => {
       setAccessKeys(resp.data.result)
     })
   }, [])
+
+  React.useEffect(() => {
+    void fetchAccessKeys()
+  }, [])
+
+  const handleRotate = React.useCallback(
+    (
+      accessKeyId: string,
+      newAccessKey: { accessKeyId: string; secretAccessKey: string },
+    ) => {
+      void apiClient.accessKeysApi
+        .rotateAccessKey({
+          rotateAccessKeyInputDTO: {
+            accessKeyId,
+            newAccessKeyId: newAccessKey.accessKeyId,
+            newSecretAccessKey: newAccessKey.secretAccessKey,
+          },
+        })
+        .then((resp) => {
+          fetchAccessKeys()
+        })
+    },
+    [],
+  )
 
   return (
     <>
@@ -35,7 +59,12 @@ export function UserAccessKeysScreen() {
           <div className="pt-8">
             {(accessKeys?.length ?? 0) > 0 ? (
               <div className="flex flex-col gap-4 items-start">
-                <AccessKeysTable accessKeys={accessKeys ?? []} />
+                <AccessKeysTable
+                  onRotateAccessKey={(accessKeyId, newAccessKey) =>
+                    handleRotate(accessKeyId, newAccessKey)
+                  }
+                  accessKeys={accessKeys ?? []}
+                />
               </div>
             ) : (
               <EmptyState

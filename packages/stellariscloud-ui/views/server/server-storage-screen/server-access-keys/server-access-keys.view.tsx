@@ -8,11 +8,35 @@ import { AccessKeysTable } from '../../../../components/access-keys-table/access
 export function ServerAccessKeys() {
   const [accessKeys, setAccessKeys] = React.useState<AccessKeyDTO[]>()
 
-  React.useEffect(() => {
+  const fetchAccessKeys = React.useCallback(() => {
     void apiClient.serverAccessKeysApi.listServerAccessKeys().then((resp) => {
       setAccessKeys(resp.data.result)
     })
   }, [])
+
+  React.useEffect(() => {
+    void fetchAccessKeys()
+  }, [])
+
+  const handleRotate = React.useCallback(
+    (
+      accessKeyId: string,
+      newAccessKey: { accessKeyId: string; secretAccessKey: string },
+    ) => {
+      void apiClient.serverAccessKeysApi
+        .rotateAccessKey({
+          rotateAccessKeyInputDTO: {
+            accessKeyId,
+            newAccessKeyId: newAccessKey.accessKeyId,
+            newSecretAccessKey: newAccessKey.secretAccessKey,
+          },
+        })
+        .then((resp) => {
+          fetchAccessKeys()
+        })
+    },
+    [],
+  )
 
   return (
     <div className="">
@@ -29,7 +53,12 @@ export function ServerAccessKeys() {
           <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-5 sm:mt-0">
             {(accessKeys?.length ?? 0) > 0 ? (
               <div className="flex flex-col gap-4 items-start">
-                <AccessKeysTable accessKeys={accessKeys ?? []} />
+                <AccessKeysTable
+                  onRotateAccessKey={(accessKeyId, newAccessKey) =>
+                    handleRotate(accessKeyId, newAccessKey)
+                  }
+                  accessKeys={accessKeys ?? []}
+                />
               </div>
             ) : (
               <EmptyState

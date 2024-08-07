@@ -1,10 +1,15 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common'
 import { and, countDistinct, eq, or, SQLWrapper } from 'drizzle-orm'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { S3Service } from 'src/storage/s3.service'
 import { User } from 'src/users/entities/user.entity'
 
+import { RotateAccessKeyInputDTO } from './dto/rotate-access-key-input.dto'
 import { storageLocationsTable } from './entities/storage-location.entity'
 
 @Injectable()
@@ -125,6 +130,33 @@ export class StorageLocationService {
     }
   }
 
+  async rotateAccessKeyAsUser(actor: User, input: RotateAccessKeyInputDTO) {
+    // the where clause for all storage locations owned by this user and matching the given accessKeyId
+    const where = and(
+      eq(storageLocationsTable.accessKeyId, input.accessKeyId),
+      eq(storageLocationsTable.userId, actor.id),
+      eq(storageLocationsTable.providerType, 'USER'),
+    )
+
+    const accessKeyLocation =
+      await this.ormService.db.query.storageLocationsTable.findFirst({
+        where,
+      })
+
+    if (!accessKeyLocation) {
+      // no storage locations exist matching the given accessKeyId
+      throw new NotFoundException()
+    }
+
+    await this.ormService.db
+      .update(storageLocationsTable)
+      .set({
+        accessKeyId: input.newAccessKeyId,
+        secretAccessKey: input.newSecretAccessKey,
+      })
+      .where(where)
+  }
+
   async listServerAccessKeysAsAdmin(
     actor: User,
     {
@@ -211,5 +243,35 @@ export class StorageLocationService {
       })),
       meta: { totalCount: accessKeysCountResult[0].count },
     }
+  }
+
+  async rotateAccessKeyAsAdmin(actor: User, input: RotateAccessKeyInputDTO) {
+    if (!actor.isAdmin) {
+      throw new UnauthorizedException()
+    }
+
+    // the where clause for all storage locations owned by the server and matching the given accessKeyId
+    const where = and(
+      eq(storageLocationsTable.accessKeyId, input.accessKeyId),
+      eq(storageLocationsTable.providerType, 'SERVER'),
+    )
+
+    const accessKeyLocation =
+      await this.ormService.db.query.storageLocationsTable.findFirst({
+        where,
+      })
+
+    if (!accessKeyLocation) {
+      // no storage locations exist matching the given accessKeyId
+      throw new NotFoundException()
+    }
+
+    await this.ormService.db
+      .update(storageLocationsTable)
+      .set({
+        accessKeyId: input.newAccessKeyId,
+        secretAccessKey: input.newSecretAccessKey,
+      })
+      .where(where)
   }
 }

@@ -1260,6 +1260,31 @@ export interface LoginResponseSession {
 /**
  *
  * @export
+ * @interface RotateAccessKeyInputDTO
+ */
+export interface RotateAccessKeyInputDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof RotateAccessKeyInputDTO
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof RotateAccessKeyInputDTO
+     */
+    'newAccessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof RotateAccessKeyInputDTO
+     */
+    'newSecretAccessKey': string;
+}
+/**
+ *
+ * @export
  * @interface SetSettingInputDTO
  */
 export interface SetSettingInputDTO {
@@ -1896,6 +1921,13 @@ export declare const AccessKeysApiAxiosParamCreator: (configuration?: Configurat
      * @throws {RequiredError}
      */
     listAccessKeys: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    rotateAccessKey: (rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * AccessKeysApi - functional programming interface
@@ -1910,6 +1942,13 @@ export declare const AccessKeysApiFp: (configuration?: Configuration) => {
      * @throws {RequiredError}
      */
     listAccessKeys(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
+    /**
+     *
+     * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    rotateAccessKey(rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
 };
 /**
  * AccessKeysApi - factory interface
@@ -1923,6 +1962,13 @@ export declare const AccessKeysApiFactory: (configuration?: Configuration, baseP
      * @throws {RequiredError}
      */
     listAccessKeys(requestParameters?: AccessKeysApiListAccessKeysRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyListResponse>;
+    /**
+     *
+     * @param {AccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
 };
 /**
  * Request parameters for listAccessKeys operation in AccessKeysApi.
@@ -1944,6 +1990,19 @@ export interface AccessKeysApiListAccessKeysRequest {
     readonly limit?: number;
 }
 /**
+ * Request parameters for rotateAccessKey operation in AccessKeysApi.
+ * @export
+ * @interface AccessKeysApiRotateAccessKeyRequest
+ */
+export interface AccessKeysApiRotateAccessKeyRequest {
+    /**
+     *
+     * @type {RotateAccessKeyInputDTO}
+     * @memberof AccessKeysApiRotateAccessKey
+     */
+    readonly rotateAccessKeyInputDTO: RotateAccessKeyInputDTO;
+}
+/**
  * AccessKeysApi - object-oriented interface
  * @export
  * @class AccessKeysApi
@@ -1958,6 +2017,14 @@ export declare class AccessKeysApi extends BaseAPI {
      * @memberof AccessKeysApi
      */
     listAccessKeys(requestParameters?: AccessKeysApiListAccessKeysRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyListResponse, any>>;
+    /**
+     *
+     * @param {AccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessKeysApi
+     */
+    rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
 }
 /**
  * AppsApi - axios parameter creator
@@ -3062,6 +3129,13 @@ export declare const ServerAccessKeysApiAxiosParamCreator: (configuration?: Conf
      * @throws {RequiredError}
      */
     listServerAccessKeys: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    rotateAccessKey: (rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * ServerAccessKeysApi - functional programming interface
@@ -3076,6 +3150,13 @@ export declare const ServerAccessKeysApiFp: (configuration?: Configuration) => {
      * @throws {RequiredError}
      */
     listServerAccessKeys(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
+    /**
+     *
+     * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    rotateAccessKey(rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
 };
 /**
  * ServerAccessKeysApi - factory interface
@@ -3089,6 +3170,13 @@ export declare const ServerAccessKeysApiFactory: (configuration?: Configuration,
      * @throws {RequiredError}
      */
     listServerAccessKeys(requestParameters?: ServerAccessKeysApiListServerAccessKeysRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyListResponse>;
+    /**
+     *
+     * @param {ServerAccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
 };
 /**
  * Request parameters for listServerAccessKeys operation in ServerAccessKeysApi.
@@ -3110,6 +3198,19 @@ export interface ServerAccessKeysApiListServerAccessKeysRequest {
     readonly limit?: number;
 }
 /**
+ * Request parameters for rotateAccessKey operation in ServerAccessKeysApi.
+ * @export
+ * @interface ServerAccessKeysApiRotateAccessKeyRequest
+ */
+export interface ServerAccessKeysApiRotateAccessKeyRequest {
+    /**
+     *
+     * @type {RotateAccessKeyInputDTO}
+     * @memberof ServerAccessKeysApiRotateAccessKey
+     */
+    readonly rotateAccessKeyInputDTO: RotateAccessKeyInputDTO;
+}
+/**
  * ServerAccessKeysApi - object-oriented interface
  * @export
  * @class ServerAccessKeysApi
@@ -3124,6 +3225,14 @@ export declare class ServerAccessKeysApi extends BaseAPI {
      * @memberof ServerAccessKeysApi
      */
     listServerAccessKeys(requestParameters?: ServerAccessKeysApiListServerAccessKeysRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyListResponse, any>>;
+    /**
+     *
+     * @param {ServerAccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerAccessKeysApi
+     */
+    rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
 }
 /**
  * StorageProvisionsApi - axios parameter creator

@@ -916,6 +916,33 @@ export const schema = {
             "bearer": []
           }
         ]
+      },
+      "post": {
+        "operationId": "rotateAccessKey",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RotateAccessKeyInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "AccessKeys"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     },
     "/api/v1/server/access-keys": {
@@ -951,6 +978,33 @@ export const schema = {
                 }
               }
             }
+          }
+        },
+        "tags": [
+          "ServerAccessKeys"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "rotateAccessKey",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RotateAccessKeyInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
           }
         },
         "tags": [
@@ -2996,6 +3050,25 @@ export const schema = {
         "required": [
           "meta",
           "result"
+        ]
+      },
+      "RotateAccessKeyInputDTO": {
+        "type": "object",
+        "properties": {
+          "accessKeyId": {
+            "type": "string"
+          },
+          "newAccessKeyId": {
+            "type": "string"
+          },
+          "newSecretAccessKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "accessKeyId",
+          "newAccessKeyId",
+          "newSecretAccessKey"
         ]
       },
       "SettingsGetResponse": {

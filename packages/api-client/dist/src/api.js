@@ -122,6 +122,38 @@ export const AccessKeysApiAxiosParamCreator = function (configuration) {
                 options: localVarRequestOptions,
             };
         },
+        /**
+         *
+         * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        rotateAccessKey: async (rotateAccessKeyInputDTO, options = {}) => {
+            // verify required parameter 'rotateAccessKeyInputDTO' is not null or undefined
+            assertParamExists('rotateAccessKey', 'rotateAccessKeyInputDTO', rotateAccessKeyInputDTO);
+            const localVarPath = `/api/v1/access-keys`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = serializeDataIfNeeded(rotateAccessKeyInputDTO, localVarRequestOptions, configuration);
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     };
 };
 /**
@@ -142,6 +174,16 @@ export const AccessKeysApiFp = function (configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listAccessKeys(offset, limit, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
+        /**
+         *
+         * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async rotateAccessKey(rotateAccessKeyInputDTO, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.rotateAccessKey(rotateAccessKeyInputDTO, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
     };
 };
 /**
@@ -159,6 +201,15 @@ export const AccessKeysApiFactory = function (configuration, basePath, axios) {
          */
         listAccessKeys(requestParameters = {}, options) {
             return localVarFp.listAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {AccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        rotateAccessKey(requestParameters, options) {
+            return localVarFp.rotateAccessKey(requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -178,6 +229,16 @@ export class AccessKeysApi extends BaseAPI {
      */
     listAccessKeys(requestParameters = {}, options) {
         return AccessKeysApiFp(this.configuration).listAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {AccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessKeysApi
+     */
+    rotateAccessKey(requestParameters, options) {
+        return AccessKeysApiFp(this.configuration).rotateAccessKey(requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
 /**
@@ -1745,6 +1806,38 @@ export const ServerAccessKeysApiAxiosParamCreator = function (configuration) {
                 options: localVarRequestOptions,
             };
         },
+        /**
+         *
+         * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        rotateAccessKey: async (rotateAccessKeyInputDTO, options = {}) => {
+            // verify required parameter 'rotateAccessKeyInputDTO' is not null or undefined
+            assertParamExists('rotateAccessKey', 'rotateAccessKeyInputDTO', rotateAccessKeyInputDTO);
+            const localVarPath = `/api/v1/server/access-keys`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = serializeDataIfNeeded(rotateAccessKeyInputDTO, localVarRequestOptions, configuration);
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     };
 };
 /**
@@ -1765,6 +1858,16 @@ export const ServerAccessKeysApiFp = function (configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listServerAccessKeys(offset, limit, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
+        /**
+         *
+         * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async rotateAccessKey(rotateAccessKeyInputDTO, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.rotateAccessKey(rotateAccessKeyInputDTO, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
     };
 };
 /**
@@ -1782,6 +1885,15 @@ export const ServerAccessKeysApiFactory = function (configuration, basePath, axi
          */
         listServerAccessKeys(requestParameters = {}, options) {
             return localVarFp.listServerAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {ServerAccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        rotateAccessKey(requestParameters, options) {
+            return localVarFp.rotateAccessKey(requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -1801,6 +1913,16 @@ export class ServerAccessKeysApi extends BaseAPI {
      */
     listServerAccessKeys(requestParameters = {}, options) {
         return ServerAccessKeysApiFp(this.configuration).listServerAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {ServerAccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerAccessKeysApi
+     */
+    rotateAccessKey(requestParameters, options) {
+        return ServerAccessKeysApiFp(this.configuration).rotateAccessKey(requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
 /**

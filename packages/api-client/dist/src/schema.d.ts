@@ -767,6 +767,29 @@ export declare const schema: {
                     readonly bearer: readonly [];
                 }];
             };
+            readonly post: {
+                readonly operationId: "rotateAccessKey";
+                readonly parameters: readonly [];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/RotateAccessKeyInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "";
+                    };
+                };
+                readonly tags: readonly ["AccessKeys"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
         };
         readonly "/api/v1/server/access-keys": {
             readonly get: {
@@ -798,6 +821,29 @@ export declare const schema: {
                                 };
                             };
                         };
+                    };
+                };
+                readonly tags: readonly ["ServerAccessKeys"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+            readonly post: {
+                readonly operationId: "rotateAccessKey";
+                readonly parameters: readonly [];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/RotateAccessKeyInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "";
                     };
                 };
                 readonly tags: readonly ["ServerAccessKeys"];
@@ -2366,6 +2412,21 @@ export declare const schema: {
                     };
                 };
                 readonly required: readonly ["meta", "result"];
+            };
+            readonly RotateAccessKeyInputDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly accessKeyId: {
+                        readonly type: "string";
+                    };
+                    readonly newAccessKeyId: {
+                        readonly type: "string";
+                    };
+                    readonly newSecretAccessKey: {
+                        readonly type: "string";
+                    };
+                };
+                readonly required: readonly ["accessKeyId", "newAccessKeyId", "newSecretAccessKey"];
             };
             readonly SettingsGetResponse: {
                 readonly type: "object";

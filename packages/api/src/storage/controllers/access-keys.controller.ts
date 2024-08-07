@@ -1,7 +1,9 @@
 import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import {
+  Body,
   Controller,
   Get,
+  Post,
   Query,
   Req,
   UnauthorizedException,
@@ -15,6 +17,7 @@ import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { AccessKeyDTO } from '../dto/access-key.dto'
 import { AccessKeyListQueryParamsDTO } from '../dto/access-key-list-query-params.dto'
 import { AccessKeyListResponse } from '../dto/responses/access-key-list-response.dto'
+import { RotateAccessKeyInputDTO } from '../dto/rotate-access-key-input.dto'
 import { StorageLocationService } from '../storage-location.service'
 
 @Controller('/api/v1/access-keys')
@@ -44,5 +47,19 @@ export class AccessKeysController {
       queryParams,
     )
     return result
+  }
+
+  /**
+   * Rotate an access key.
+   */
+  @Post()
+  async rotateAccessKey(
+    @Req() req: express.Request,
+    @Body() body: RotateAccessKeyInputDTO,
+  ): Promise<void> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    await this.storageLocationService.rotateAccessKeyAsUser(req.user, body)
   }
 }

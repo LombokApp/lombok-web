@@ -7,8 +7,13 @@ import { ButtonGroup } from '../../design-system/button-group/button-group'
 
 export function AccessKeysTable({
   accessKeys,
+  onRotateAccessKey,
 }: {
   accessKeys: AccessKeyDTO[]
+  onRotateAccessKey: (
+    accessKeyId: string,
+    newAccessKey: { accessKeyId: string; secretAccessKey: string },
+  ) => void
 }) {
   return (
     <Table
@@ -52,7 +57,11 @@ export function AccessKeysTable({
               {
                 name: 'Rotate Access Key',
                 icon: ArrowPathIcon,
-                onClick: () => undefined,
+                onClick: () =>
+                  onRotateAccessKey(accessKey.accessKeyId, {
+                    accessKeyId: 'testes',
+                    secretAccessKey: 'ereree',
+                  }),
               },
             ]}
           />
