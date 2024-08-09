@@ -1,12 +1,9 @@
 import { PlusIcon } from '@heroicons/react/20/solid'
 import type {
   FolderGetResponse,
-  // FolderAndPermission,
   FoldersApiCreateFolderRequest,
   StorageProvisionDTO,
-  // ServerLocationData,
 } from '@stellariscloud/api-client'
-// import { ServerLocationType } from '@stellariscloud/api-client'
 import clsx from 'clsx'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -20,8 +17,9 @@ import { Button } from '../../design-system/button/button'
 import { Icon } from '../../design-system/icon/icon'
 import { PageHeading } from '../../design-system/page-heading/page-heading'
 import { apiClient, foldersApiHooks } from '../../services/api'
+import { FolderIcon } from '@heroicons/react/24/outline'
 
-export const ListFoldersScreen = () => {
+export const FoldersScreen = () => {
   const router = useRouter()
   const [folders, setFolders] = React.useState<FolderGetResponse[]>()
   const [folderFormKey, setFolderFormKey] = React.useState<string>()
@@ -100,15 +98,19 @@ export const ListFoldersScreen = () => {
         />
       )}
 
-      <div className={clsx('items-center flex flex-col gap-6 h-full px-6')}>
+      <div
+        className={clsx(
+          'p-4 items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
+        )}
+      >
         <div className="container flex-1 flex flex-col">
-          <div
-            className={clsx(
-              'py-4 flex items-start gap-10 duratio-200',
-              folderFormKey && 'opacity-0',
-            )}
-          >
-            <PageHeading title={'Your Folders'}>
+          <div className={clsx(folderFormKey && 'opacity-0')}>
+            <PageHeading
+              title={'Your Folders'}
+              titleIcon={FolderIcon}
+              titleIconBg="bg-rose-500"
+              subtitle="Create and manage users on this server."
+            >
               {!folderFormKey && (
                 <Button size="lg" primary={true} onClick={handleStartCreate}>
                   <Icon size="sm" icon={PlusIcon} className="text-white" />

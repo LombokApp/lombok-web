@@ -69,7 +69,7 @@ export function ServerStorageConfig() {
   }, [])
 
   return (
-    <div className="">
+    <div className="w-full">
       <dl className="divide-y divide-gray-100 dark:divide-gray-700">
         <div className="px-4 py-6 flex flex-col sm:gap-4 sm:px-0">
           <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 sm:col-span-3">

@@ -44,8 +44,7 @@ export function ServerAccessKeys() {
         <div className="px-4 py-6 flex flex-col sm:gap-4 sm:px-0">
           <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 sm:col-span-3">
             <span className="text-xl">Access Keys In Use</span>
-            <div className="mt-1 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:mt-0"></div>
-            <div className="pt-2 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:mt-0">
+            <div className="mt-1 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:mt-0">
               Distinct server provisioned S3 credentials in use by all users
               across the server.
             </div>

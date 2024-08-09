@@ -36,35 +36,35 @@ export function UserProfileScreen() {
   }, [userFormState])
 
   return (
-    <>
-      <div
-        className={clsx(
-          'px-4 items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
-        )}
-      >
-        <div className="container flex-1 flex flex-col">
-          <div className="py-4 flex items-start gap-10">
-            <PageHeading
-              titleIconBg={'bg-amber-100'}
-              avatarKey={user?.id ?? undefined}
-              title={['Profile', user?.username ?? '']}
-            />
-          </div>
-          <div className="pt-8">
-            <div className="inline-block min-w-full py-2 align-middle">
-              <ProfileUserForm
-                onChange={(changedUser) => setUserFormState(changedUser.value)}
-                value={userFormState}
-              />
-              <div className="py-4">
-                <Button primary onClick={handleSubmitClick}>
-                  Update
-                </Button>
-              </div>
-            </div>
+    <div
+      className={clsx(
+        'p-4 items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
+      )}
+    >
+      <div className="container flex-1 flex flex-col">
+        <PageHeading
+          titleIconBg={'bg-amber-100'}
+          avatarKey={user?.id ?? undefined}
+          title={
+            user
+              ? [
+                  `Server User: ${user.username ? user.username : user.email ? user.email : user.id}`,
+                ]
+              : ['Server User:']
+          }
+        />
+        <div className="inline-block min-w-full py-2 align-middle">
+          <ProfileUserForm
+            onChange={(changedUser) => setUserFormState(changedUser.value)}
+            value={userFormState}
+          />
+          <div className="py-4">
+            <Button primary onClick={handleSubmitClick}>
+              Update
+            </Button>
           </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }

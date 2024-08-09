@@ -12,7 +12,7 @@ export function ServerEventDetailScreen({ event }: { event: EventDTO }) {
     <>
       <div
         className={clsx(
-          'p-4 items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto px-4',
+          'p-4 items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
         )}
       >
         <div className="container flex-1 flex flex-col">

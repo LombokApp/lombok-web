@@ -1236,28 +1236,6 @@ export const FolderDetailScreen = () => {
                 title={folderContext.folder?.name ?? ''}
                 titleIconBg={'bg-blue-100'}
                 avatarKey={folderContext.folder?.id}
-                properties={[
-                  {
-                    icon: FolderIcon,
-                    value: formatBytes(
-                      folderContext.folderMetadata?.totalSizeBytes ?? 0,
-                    ),
-                  },
-                  {
-                    icon: DocumentTextIcon,
-                    value: `${folderContext.folderMetadata?.totalCount} files`,
-                  },
-                  {
-                    icon: MapPinIcon,
-                    value: `${folderContext.folder?.contentLocation.endpoint}${
-                      folderContext.folder?.contentLocation.endpoint.endsWith(
-                        '/',
-                      )
-                        ? ''
-                        : '/'
-                    }${folderContext.folder?.contentLocation.bucket}`,
-                  },
-                ]}
               >
                 <div className="pt-2 flex gap-2">
                   {folderContext.folderPermissions?.includes(

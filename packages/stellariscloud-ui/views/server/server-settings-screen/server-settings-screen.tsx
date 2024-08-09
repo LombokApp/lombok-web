@@ -6,6 +6,7 @@ import { ServerSettingsForm } from '../../../components/server-settings-form/ser
 import { apiClient } from '../../../services/api'
 import { SettingsGetResponse } from '@stellariscloud/api-client'
 import { PageHeading } from '../../../design-system/page-heading/page-heading'
+import { Cog6ToothIcon } from '@heroicons/react/24/outline'
 
 export function ServerSettingsScreen() {
   const [originalSettings, setOriginalSettings] =
@@ -84,11 +85,15 @@ export function ServerSettingsScreen() {
   return (
     <div
       className={clsx(
-        'p-4 items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
+        'p-4 items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
       )}
     >
-      <PageHeading title={'Server Settings'} />
       <div className="container flex-1 flex flex-col">
+        <PageHeading
+          titleIcon={Cog6ToothIcon}
+          title={'Settings'}
+          subtitle="Control how your server behaves."
+        />
         <div className="inline-block min-w-full py-2 align-middle">
           <ServerSettingsForm
             onReset={() =>

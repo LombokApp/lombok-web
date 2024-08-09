@@ -61,7 +61,7 @@ export function PageHeading({
                       fill
                     />
                   ) : (
-                    <Icon size="sm" className="text-white" icon={titleIcon} />
+                    <Icon size="md" className="text-white" icon={titleIcon} />
                   )}
                 </div>
               </div>

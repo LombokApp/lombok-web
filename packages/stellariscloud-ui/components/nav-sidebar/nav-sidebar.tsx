@@ -86,8 +86,8 @@ export const NavSidebar = ({
   ]
 
   return (
-    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6">
-      <div className="flex justify-between h-20 shrink-0 items-center">
+    <div className="flex grow flex-col justify-between gap-y-5 overflow-hidden bg-gray-900 h-full flex-1">
+      <div className="flex justify-between h-14 shrink-0 items-center px-2">
         <Link href={'/'} passHref>
           <Image
             className="rounded-full"
@@ -100,89 +100,23 @@ export const NavSidebar = ({
         </Link>
         <ThemeSwitch isVertical={false} />
       </div>
-      <nav className="flex flex-1 flex-col">
-        <div className="text-xs font-semibold leading-6 text-gray-400">
-          User
-        </div>
-        <ul role="list" className="flex flex-1 flex-col gap-y-7">
-          <li>
-            <ul role="list" className="-mx-2 space-y-1">
-              {navigation.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    className={clsx(
-                      item.current
-                        ? 'bg-gray-800 text-white'
-                        : 'text-gray-400 hover:bg-gray-800 hover:text-white',
-                      'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6',
-                    )}
-                  >
-                    <item.icon
-                      aria-hidden="true"
-                      className="h-6 w-6 shrink-0"
-                    />
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </li>
-          {menuItems.length && (
-            <li>
-              <div className="text-xs font-semibold leading-6 text-gray-400">
-                Apps
-              </div>
-              <ul role="list" className="-mx-2 mt-2 space-y-1">
-                {menuItems.map((item, i) => (
-                  <li key={i}>
-                    <Link
-                      href={item.href}
-                      className={clsx(
-                        router.asPath.startsWith(item.href)
-                          ? 'bg-gray-800 text-white'
-                          : 'text-gray-400 hover:bg-gray-800 hover:text-white',
-                        'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6',
-                      )}
-                    >
-                      <div className="flex items-center gap-2">
-                        {item.iconPath ? (
-                          <img
-                            className="rounded-lg bg-black/50"
-                            width={40}
-                            height={40}
-                            alt={item.label}
-                            src={`${protocol}//${item.uiName}.${item.appIdentifier}.apps.${process.env.NEXT_PUBLIC_API_HOST}${item.iconPath}`}
-                            aria-hidden="true"
-                          />
-                        ) : (
-                          <>
-                            <Icon size="md" icon={CubeIcon} />
-                          </>
-                        )}
-                        {item.label}
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </li>
-          )}
-          {authContext.viewer?.isAdmin && (
-            <li>
-              <div className="text-xs font-semibold leading-6 text-gray-400">
-                Server
-              </div>
-              <ul role="list" className="-mx-2 mt-2 space-y-1">
-                {serverNavigation.map((item) => (
-                  <li key={item.name}>
+      <nav className="flex flex-1 flex-col overflow-hidden">
+        <div className="overflow-y-auto px-2">
+          <div className="pl-2 text-xs font-semibold leading-6 text-gray-400">
+            User
+          </div>
+          <div className="flex flex-1 flex-col gap-y-7 overflow-hidden">
+            <div>
+              <ul role="list" className="space-y-1">
+                {navigation.map((item) => (
+                  <li key={item.name} className="">
                     <Link
                       href={item.href}
                       className={clsx(
                         item.current
                           ? 'bg-gray-800 text-white'
                           : 'text-gray-400 hover:bg-gray-800 hover:text-white',
-                        'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6',
+                        'group flex gap-x-3 p-2 text-sm font-semibold leading-6 rounded-md overflow-hidden',
                       )}
                     >
                       <item.icon
@@ -194,38 +128,104 @@ export const NavSidebar = ({
                   </li>
                 ))}
               </ul>
-            </li>
-          )}
-          {authContext.viewer && (
-            <li className="-mx-6 mt-auto pr-6">
-              <div className="flex items-center justify-between">
-                <Link
-                  href="/profile"
-                  className="text-sm font-semibold leading-6 text-white px-3 py-3 group"
-                >
-                  <div className="flex items-center gap-x-4 px-4 py-2 group-hover:bg-gray-800/70 rounded-xl">
-                    <Avatar
-                      className="bg-gray-50/10"
-                      size="sm"
-                      uniqueKey={authContext.viewer.id}
-                    />
-                    <span className="sr-only">Your profile</span>
-                    <span aria-hidden="true">
-                      {authContext.viewer.username}
-                    </span>
-                  </div>
-                </Link>
-                <Button link onClick={() => authContext.logout()}>
-                  <Icon
-                    className="text-gray-50"
-                    size="md"
-                    icon={ArrowRightEndOnRectangleIcon}
-                  />
-                </Button>
+            </div>
+            {menuItems.length && (
+              <div className="">
+                <div className="pl-2 text-xs font-semibold leading-6 text-gray-400">
+                  Apps
+                </div>
+                <ul role="list" className="mt-2 space-y-1">
+                  {menuItems.map((item, i) => (
+                    <li key={i}>
+                      <Link
+                        href={item.href}
+                        className={clsx(
+                          router.asPath.startsWith(item.href)
+                            ? 'bg-gray-800 text-white'
+                            : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                          'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6',
+                        )}
+                      >
+                        <div className="flex items-center gap-2">
+                          {item.iconPath ? (
+                            <img
+                              className="rounded-lg bg-black/50"
+                              width={40}
+                              height={40}
+                              alt={item.label}
+                              src={`${protocol}//${item.uiName}.${item.appIdentifier}.apps.${process.env.NEXT_PUBLIC_API_HOST}${item.iconPath}`}
+                              aria-hidden="true"
+                            />
+                          ) : (
+                            <>
+                              <Icon size="md" icon={CubeIcon} />
+                            </>
+                          )}
+                          {item.label}
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </li>
-          )}
-        </ul>
+            )}
+            {authContext.viewer?.isAdmin && (
+              <div>
+                <div className="pl-2 text-xs font-semibold leading-6 text-gray-400">
+                  Server
+                </div>
+                <ul role="list" className="mt-2 space-y-1">
+                  {serverNavigation.map((item) => (
+                    <li key={item.name}>
+                      <Link
+                        href={item.href}
+                        className={clsx(
+                          item.current
+                            ? 'bg-gray-800 text-white'
+                            : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                          'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6',
+                        )}
+                      >
+                        <item.icon
+                          aria-hidden="true"
+                          className="h-6 w-6 shrink-0"
+                        />
+                        {item.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+        {authContext.viewer && (
+          <div className="mt-auto bg-black/15 py-2 px-2">
+            <div className="flex items-center justify-between">
+              <Link
+                href="/profile"
+                className="-ml-2 text-sm font-semibold leading-6 text-white px-3 py-1 group"
+              >
+                <div className="flex items-center gap-x-2 px-1 py-1 pr-3 group-hover:bg-gray-800/70 rounded-full">
+                  <Avatar
+                    className="bg-gray-50/10"
+                    size="sm"
+                    uniqueKey={authContext.viewer.id}
+                  />
+                  <span className="sr-only">Your profile</span>
+                  <span aria-hidden="true">{authContext.viewer.username}</span>
+                </div>
+              </Link>
+              <Button link onClick={() => authContext.logout()}>
+                <Icon
+                  className="text-gray-50"
+                  size="md"
+                  icon={ArrowRightEndOnRectangleIcon}
+                />
+              </Button>
+            </div>
+          </div>
+        )}
       </nav>
     </div>
   )

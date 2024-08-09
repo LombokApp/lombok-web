@@ -42,39 +42,38 @@ export function UserAccessKeysScreen() {
   )
 
   return (
-    <>
-      <div
-        className={clsx(
-          'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto px-6',
-        )}
-      >
-        <div className="container flex-1 flex flex-col">
-          <div className="py-4 flex items-start gap-10">
-            <PageHeading title={['Your Access Keys']} />
-          </div>
-          <div className="pt-2 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:mt-0">
-            Distinct S3 credentials used across all your folders. Here you can
-            rotate the underlying keys as necessary.
-          </div>
-          <div className="pt-8">
-            {(accessKeys?.length ?? 0) > 0 ? (
-              <div className="flex flex-col gap-4 items-start">
-                <AccessKeysList
-                  onRotateAccessKey={(accessKeyId, newAccessKey) =>
-                    handleRotate(accessKeyId, newAccessKey)
-                  }
-                  accessKeys={accessKeys ?? []}
-                />
-              </div>
-            ) : (
-              <EmptyState
-                icon={KeyIcon}
-                text="No access keys have been created"
+    <div
+      className={clsx(
+        'p-4 items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
+      )}
+    >
+      <div className="container flex-1 flex flex-col">
+        <div className="flex items-start gap-10">
+          <PageHeading
+            title={['Your Access Keys']}
+            titleIcon={KeyIcon}
+            titleIconBg="bg-rose-500"
+            subtitle="Manage and review access keys used by your current and recent folders."
+          />
+        </div>
+        <div className="pt-8">
+          {(accessKeys?.length ?? 0) > 0 ? (
+            <div className="flex flex-col gap-4 items-start">
+              <AccessKeysList
+                onRotateAccessKey={(accessKeyId, newAccessKey) =>
+                  handleRotate(accessKeyId, newAccessKey)
+                }
+                accessKeys={accessKeys ?? []}
               />
-            )}
-          </div>
+            </div>
+          ) : (
+            <EmptyState
+              icon={KeyIcon}
+              text="No access keys have been created"
+            />
+          )}
         </div>
       </div>
-    </>
+    </div>
   )
 }
