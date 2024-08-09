@@ -6,7 +6,7 @@ import { AccessKeyDTO } from '@stellariscloud/api-client'
 import { apiClient } from '../../../services/api'
 import { EmptyState } from '../../../design-system/empty-state/empty-state'
 import { KeyIcon } from '@heroicons/react/24/outline'
-import { AccessKeysTable } from '../../../components/access-keys-table/access-keys-table'
+import { AccessKeysList } from '../../../components/access-keys-list/access-keys-list'
 
 export function UserAccessKeysScreen() {
   const [accessKeys, setAccessKeys] = React.useState<AccessKeyDTO[]>()
@@ -59,7 +59,7 @@ export function UserAccessKeysScreen() {
           <div className="pt-8">
             {(accessKeys?.length ?? 0) > 0 ? (
               <div className="flex flex-col gap-4 items-start">
-                <AccessKeysTable
+                <AccessKeysList
                   onRotateAccessKey={(accessKeyId, newAccessKey) =>
                     handleRotate(accessKeyId, newAccessKey)
                   }

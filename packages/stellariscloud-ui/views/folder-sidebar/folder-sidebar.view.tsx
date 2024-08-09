@@ -4,6 +4,7 @@ import {
   CubeIcon,
   FolderIcon,
   GlobeAltIcon,
+  KeyIcon,
   MagnifyingGlassIcon,
   WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline'
@@ -91,34 +92,57 @@ export const FolderSidebar = ({
         </div>
         <dl className="border-b border-gray-900/5 pb-6 pt-2">
           {folder && (
-            <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
-              <dt className="flex-none flex">
-                <span className="sr-only">Path</span>
-                <Icon
-                  icon={GlobeAltIcon}
-                  size="md"
-                  className={clsx(MAIN_ICON_COLOR)}
-                />
-              </dt>
-              <dd className={clsx('text-sm leading-6', MAIN_TEXT_COLOR)}>
-                {folder.contentLocation.endpoint}
-                {folder.contentLocation.endpoint.endsWith('/') ? '' : '/'}
-                {folder.contentLocation.bucket}
-                {folder.contentLocation.bucket.endsWith('/') ? '' : '/'}
-                {folder.contentLocation.prefix}
-              </dd>
-            </div>
-          )}
-          {folder && (
-            <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
-              <dt className="flex-none flex">
-                <span className="sr-only">Folder</span>
-                <Icon icon={FolderIcon} size="md" className={MAIN_ICON_COLOR} />
-              </dt>
-              <dd className={clsx('text-sm leading-6', MAIN_TEXT_COLOR)}>
-                {folder.name}
-              </dd>
-            </div>
+            <>
+              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
+                <dt className="flex-none flex">
+                  <span className="sr-only">Folder</span>
+                  <Icon
+                    icon={FolderIcon}
+                    size="md"
+                    className={MAIN_ICON_COLOR}
+                  />
+                </dt>
+                <dd className={clsx('text-sm leading-6', MAIN_TEXT_COLOR)}>
+                  {folder.name}
+                </dd>
+              </div>
+              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
+                <dt className="flex-none flex">
+                  <span className="sr-only">Path</span>
+                  <Icon
+                    icon={GlobeAltIcon}
+                    size="md"
+                    className={clsx(MAIN_ICON_COLOR)}
+                  />
+                </dt>
+                <dd className={clsx('text-sm leading-6', MAIN_TEXT_COLOR)}>
+                  {folder.contentLocation.endpoint}
+                  {folder.contentLocation.endpoint.endsWith('/') ? '' : '/'}
+                  {folder.contentLocation.bucket}
+                  {folder.contentLocation.bucket.endsWith('/') ? '' : '/'}
+                  {folder.contentLocation.prefix}
+                </dd>
+              </div>
+              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
+                <dt className="flex-none flex">
+                  <span className="sr-only">Access Key</span>
+                  <Icon
+                    icon={KeyIcon}
+                    size="md"
+                    className={'dark:text-amber-200'}
+                  />
+                </dt>
+                <dd
+                  className={clsx(
+                    'text-sm leading-6',
+                    MAIN_TEXT_COLOR,
+                    // 'dark:text-amber-200',
+                  )}
+                >
+                  {folder.contentLocation.label}
+                </dd>
+              </div>
+            </>
           )}
           <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
             <dt className="flex-none flex">
