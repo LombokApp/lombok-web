@@ -2,7 +2,7 @@ import { ChevronRightIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import Image from 'next/image'
 
-import { Avatar } from '../avatar'
+import { Avatar, AvatarSize } from '../avatar'
 import { Button } from '../button/button'
 import type { IconProps } from '../icon'
 import { Icon } from '../icon'
@@ -22,6 +22,7 @@ export function PageHeading({
   children,
   onAncestorPress,
   avatarKey,
+  avatarSize = 'sm',
 }: {
   title: string | string[]
   subtitle?: string
@@ -31,6 +32,7 @@ export function PageHeading({
   ancestorTitleIcon?: IconProps['icon']
   ancestorTitleIconBg?: string
   avatarKey?: string
+  avatarSize?: AvatarSize
   titleIconSrc?: string
   titleIcon?: IconProps['icon']
   titleIconBg?: string
@@ -66,7 +68,7 @@ export function PageHeading({
             )}
             {!titleIconSrc && avatarKey && (
               <div className={clsx(titleIconBg, 'rounded-full')}>
-                <Avatar uniqueKey={avatarKey} />
+                <Avatar size={avatarSize} uniqueKey={avatarKey} />
               </div>
             )}
             <div>

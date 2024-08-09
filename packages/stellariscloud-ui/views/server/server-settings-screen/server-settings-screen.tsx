@@ -5,6 +5,7 @@ import React from 'react'
 import { ServerSettingsForm } from '../../../components/server-settings-form/server-settings-form'
 import { apiClient } from '../../../services/api'
 import { SettingsGetResponse } from '@stellariscloud/api-client'
+import { PageHeading } from '../../../design-system/page-heading/page-heading'
 
 export function ServerSettingsScreen() {
   const [originalSettings, setOriginalSettings] =
@@ -83,25 +84,24 @@ export function ServerSettingsScreen() {
   return (
     <div
       className={clsx(
-        'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto ',
+        'p-4 items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
       )}
     >
+      <PageHeading title={'Server Settings'} />
       <div className="container flex-1 flex flex-col">
-        <div className="pt-8">
-          <div className="inline-block min-w-full py-2 align-middle">
-            <ServerSettingsForm
-              onReset={() =>
-                setSettings(
-                  JSON.parse(
-                    JSON.stringify(originalSettings),
-                  ) as SettingsGetResponse['settings'],
-                )
-              }
-              onChange={onFormChange}
-              onSubmit={(_updatedSettings) => handleUpdateSettings()}
-              formValue={settings ?? {}}
-            />
-          </div>
+        <div className="inline-block min-w-full py-2 align-middle">
+          <ServerSettingsForm
+            onReset={() =>
+              setSettings(
+                JSON.parse(
+                  JSON.stringify(originalSettings),
+                ) as SettingsGetResponse['settings'],
+              )
+            }
+            onChange={onFormChange}
+            onSubmit={(_updatedSettings) => handleUpdateSettings()}
+            formValue={settings ?? {}}
+          />
         </div>
       </div>
     </div>

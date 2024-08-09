@@ -9,7 +9,7 @@
   "subscribedEvents": [],
   "menuItems": [{
     "name": "dev-main",
-    "label": "Dev App",
+    "label": "Videos",
     "iconPath": "/assets/logo.png",
     "uiName": "main"
   }]

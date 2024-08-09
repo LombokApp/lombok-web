@@ -1,18 +1,17 @@
 import { useAuthContext } from '@stellariscloud/auth-utils'
 import type { NextPage } from 'next'
 import React from 'react'
+import { ServerUsersScreen } from '../../../views/server/server-users-screen/server-users-screen.view'
 
-import { ServerScreen } from '../../views/server/server-screen.view'
-
-const ServerPage: NextPage = () => {
+const ServerUsersPage: NextPage = () => {
   const authContext = useAuthContext()
   return (
     <div className="h-full w-full">
       {authContext.authState.isAuthenticated && authContext.viewer?.isAdmin && (
-        <ServerScreen />
+        <ServerUsersScreen />
       )}
     </div>
   )
 }
 
-export default ServerPage
+export default ServerUsersPage

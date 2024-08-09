@@ -3,11 +3,11 @@ import type { NullablePartial } from '@stellariscloud/utils'
 import clsx from 'clsx'
 import React from 'react'
 
-import type { ProfileUserFormValues } from '../../../components/profile-user-form/profile-user-form'
-import { ProfileUserForm } from '../../../components/profile-user-form/profile-user-form'
-import { Button } from '../../../design-system/button/button'
-import { PageHeading } from '../../../design-system/page-heading/page-heading'
-import { apiClient } from '../../../services/api'
+import type { ProfileUserFormValues } from '../../components/profile-user-form/profile-user-form'
+import { ProfileUserForm } from '../../components/profile-user-form/profile-user-form'
+import { Button } from '../../design-system/button/button'
+import { PageHeading } from '../../design-system/page-heading/page-heading'
+import { apiClient } from '../../services/api'
 
 export function UserProfileScreen() {
   const [user, setUser] = React.useState<UserDTO>()
@@ -39,7 +39,7 @@ export function UserProfileScreen() {
     <>
       <div
         className={clsx(
-          'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
+          'px-4 items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
         )}
       >
         <div className="container flex-1 flex flex-col">

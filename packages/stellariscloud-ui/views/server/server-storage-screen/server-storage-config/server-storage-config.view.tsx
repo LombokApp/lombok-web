@@ -7,7 +7,7 @@ import { apiClient } from '../../../../services/api'
 import type { StorageProvisionFormValues } from './storage-provision-form/storage-provision-form'
 import { StorageProvisionForm } from './storage-provision-form/storage-provision-form'
 import { StorageProvisionDTO } from '@stellariscloud/api-client'
-import { StorageProvisionsTable } from '../../../../components/storage-provisions-table/storage-provisions-table'
+import { StorageProvisionsList } from '../../../../components/storage-provisions-list/storage-provisions-list'
 
 export function ServerStorageConfig() {
   const [storageProvisions, setStorageProvisions] =
@@ -71,35 +71,16 @@ export function ServerStorageConfig() {
   return (
     <div className="">
       <dl className="divide-y divide-gray-100 dark:divide-gray-700">
-        <div className="px-4 py-6 sm:grid sm:grid-cols-8 sm:gap-4 sm:px-0">
+        <div className="px-4 py-6 flex flex-col sm:gap-4 sm:px-0">
           <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 sm:col-span-3">
             <span className="text-xl">Storage Provisions</span>
             <div className="mt-1 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:mt-0">
-              Designate S3 locations that can be used to store your users' data.
-            </div>
-            <div className="pt-2 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:mt-0">
-              Without entries here your users can only create folders by
-              providing their own credentials to a working S3-compatible
+              Designate S3 locations that a user can nominate as storage for new
+              folders. Without entries here your users can only create folders
+              by providing their own credentials to a working S3-compatible
               service.
             </div>
-            <div className="text-xs">
-              <code className="mt-2 inline-flex text-left items-center space-x-4 bg-gray-800 text-white rounded-lg p-4 pl-6">
-                <span className="flex-1">
-                  <span className="opacity-50">
-                    Data stored in these locations will be prefixed by a known
-                    key and the id of the folder.
-                  </span>
-                  <span>
-                    <br />
-                    <br />
-                  </span>
-                  <span className="opacity-50">e.g: &lt;yourLocation&gt;</span>
-                  <span>/</span>
-                  <span>.stellaris_folder_content_&lt;folderId&gt;</span>
-                  <span>/</span>
-                </span>
-              </code>
-            </div>
+            <div className="pt-2 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:mt-0"></div>
           </dt>
           <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-5 sm:mt-0">
             {editingStorageProvision ? (
@@ -128,7 +109,7 @@ export function ServerStorageConfig() {
               />
             ) : (storageProvisions?.length ?? 0) > 0 ? (
               <div className="flex flex-col gap-4 items-start">
-                <StorageProvisionsTable
+                <StorageProvisionsList
                   storageProvisions={storageProvisions ?? []}
                   onEdit={(storageProvision) =>
                     setEditingStorageProvision({

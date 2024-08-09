@@ -1,11 +1,12 @@
 import clsx from 'clsx'
 import { minidenticon } from 'minidenticons'
 
+export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 interface AvatarProps {
   uniqueKey?: string | undefined
   numColors?: number
   className?: string
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  size?: AvatarSize
 }
 
 const DEFAULT_SATURATION = 75

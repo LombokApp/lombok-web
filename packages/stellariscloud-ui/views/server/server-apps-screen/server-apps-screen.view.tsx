@@ -5,6 +5,8 @@ import React from 'react'
 import { InstalledAppDataPanel } from '../../../components/installed-app-data-panel/installed-app-data-panel'
 import { EmptyState } from '../../../design-system/empty-state/empty-state'
 import { apiClient } from '../../../services/api'
+import { PageHeading } from '../../../design-system/page-heading/page-heading'
+import clsx from 'clsx'
 
 export function ServerAppsScreen() {
   const [coreAppResetKey, _setCoreAppResetKey] = React.useState('__')
@@ -20,7 +22,12 @@ export function ServerAppsScreen() {
   }, [coreAppResetKey])
 
   return (
-    <div className="">
+    <div
+      className={clsx(
+        'p-4 items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
+      )}
+    >
+      <PageHeading title={'Server Apps'} />
       <dl className="divide-y divide-gray-100 dark:divide-gray-700">
         {installedApps?.map((app, i) => {
           return (

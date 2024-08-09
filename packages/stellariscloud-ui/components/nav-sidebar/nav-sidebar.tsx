@@ -1,26 +1,25 @@
 import clsx from 'clsx'
 import { AppMenuItemAndHref } from '../../contexts/server.context'
-import {
-  AuthenticatorStateType,
-  IAuthContext,
-} from '@stellariscloud/auth-utils'
+import { IAuthContext } from '@stellariscloud/auth-utils'
 import { ThemeSwitch } from '../theme-switch/theme-switch'
 import {
   ArrowRightEndOnRectangleIcon,
+  CircleStackIcon,
+  Cog6ToothIcon,
   CubeIcon,
-  FolderOpenIcon,
+  FolderIcon,
+  HomeIcon,
   KeyIcon,
-  ServerStackIcon,
-  UserIcon,
+  SignalIcon,
+  Square3Stack3DIcon,
+  UsersIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import Image from 'next/image'
 import { NextRouter } from 'next/router'
 import { Icon } from '../../design-system/icon'
-
-const SIDEBAR_COLOR =
-  // 'lg:bg-indigo-600 dark:lg:bg-indigo-800 transition duration-100'
-  'bg-gradient-to-l from-indigo-900 to-indigo-950 dark:bg-gradient-to-r dark:from-blue-950 dark:to-indigo-950 transition duration-100'
+import { Avatar } from '../../design-system/avatar'
+import { Button } from '../../design-system/button/button'
 
 const protocol =
   typeof window === 'undefined'
@@ -42,157 +41,192 @@ export const NavSidebar = ({
     {
       name: 'Folders',
       href: '/folders',
-      icon: FolderOpenIcon,
-      current: router.pathname.startsWith('/folders'),
+      icon: FolderIcon,
+      current: router.asPath.startsWith('/folders'),
     },
     {
       name: 'Access Keys',
       href: '/access-keys',
       icon: KeyIcon,
-      current: router.pathname.startsWith('/access-keys'),
+      current: router.asPath.startsWith('/access-keys'),
+    },
+  ]
+  const serverNavigation = [
+    {
+      name: 'Overview',
+      href: '/server/overview',
+      icon: HomeIcon,
+      current: router.asPath.startsWith('/server/overview'),
+    },
+    { name: 'Users', href: '/server/users', icon: UsersIcon, current: false },
+    {
+      name: 'Storage',
+      href: '/server/storage',
+      icon: CircleStackIcon,
+      current: router.asPath.startsWith('/server/storage'),
+    },
+    {
+      name: 'Apps',
+      href: '/server/apps',
+      icon: Square3Stack3DIcon,
+      current: router.asPath.startsWith('/server/apps'),
+    },
+    {
+      name: 'Events',
+      href: '/server/events',
+      icon: SignalIcon,
+      current: router.asPath.startsWith('/server/events'),
+    },
+    {
+      name: 'Settings',
+      href: '/server/settings',
+      icon: Cog6ToothIcon,
+      current: router.asPath.startsWith('/server/settings'),
     },
   ]
 
   return (
-    <div
-      className={clsx(
-        hideSidebar && 'max-w-0 overflow-hidden opacity-0',
-        'hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-20 lg:overflow-y-auto lg:pb-4',
-        SIDEBAR_COLOR,
-      )}
-    >
-      <div className="flex flex-col h-full">
-        <div className="flex h-16 shrink-0 items-center justify-center">
-          <Link href={'/'} passHref>
-            <Image
-              className="rounded-full"
-              priority
-              src="/stellariscloud.png"
-              width={32}
-              height={32}
-              alt="Stellaris cloud logo"
-            />
-          </Link>
+    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6">
+      <div className="flex justify-between h-20 shrink-0 items-center">
+        <Link href={'/'} passHref>
+          <Image
+            className="rounded-full"
+            priority
+            src="/stellariscloud.png"
+            width={32}
+            height={32}
+            alt="Stellaris cloud logo"
+          />
+        </Link>
+        <ThemeSwitch isVertical={false} />
+      </div>
+      <nav className="flex flex-1 flex-col">
+        <div className="text-xs font-semibold leading-6 text-gray-400">
+          User
         </div>
-        {authContext.viewer && (
-          <div className="flex flex-col flex-1">
-            <nav className="mt-8">
-              <ul className="flex flex-col items-center space-y-1">
-                {navigation.map((item) => (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      className={clsx(
-                        item.current
-                          ? 'bg-white/10 text-white'
-                          : 'text-gray-400 hover:text-white hover:bg-white/10',
-                        'group flex gap-x-3 rounded-md p-3 text-sm leading-6 font-semibold',
-                      )}
-                    >
-                      <item.icon
-                        className="h-6 w-6 shrink-0"
-                        aria-hidden="true"
-                      />
-                      <span className="sr-only">{item.name}</span>
-                    </Link>
-                  </li>
-                ))}
+        <ul role="list" className="flex flex-1 flex-col gap-y-7">
+          <li>
+            <ul role="list" className="-mx-2 space-y-1">
+              {navigation.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className={clsx(
+                      item.current
+                        ? 'bg-gray-800 text-white'
+                        : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                      'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6',
+                    )}
+                  >
+                    <item.icon
+                      aria-hidden="true"
+                      className="h-6 w-6 shrink-0"
+                    />
+                    {item.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </li>
+          {menuItems.length && (
+            <li>
+              <div className="text-xs font-semibold leading-6 text-gray-400">
+                Apps
+              </div>
+              <ul role="list" className="-mx-2 mt-2 space-y-1">
                 {menuItems.map((item, i) => (
                   <li key={i}>
                     <Link
                       href={item.href}
                       className={clsx(
-                        router.pathname.startsWith(item.href)
-                          ? 'bg-white/10 text-white'
-                          : 'text-gray-400 hover:text-white hover:bg-white/10',
-                        'group flex gap-x-3 rounded-md p-1 text-sm leading-6 font-semibold',
+                        router.asPath.startsWith(item.href)
+                          ? 'bg-gray-800 text-white'
+                          : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                        'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6',
                       )}
                     >
-                      {item.iconPath ? (
-                        <img
-                          className="rounded-lg bg-black/50"
-                          width={40}
-                          height={40}
-                          alt={item.label}
-                          src={`${protocol}//${item.uiName}.${item.appIdentifier}.apps.${process.env.NEXT_PUBLIC_API_HOST}${item.iconPath}`}
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <>
-                          <Icon size="md" icon={CubeIcon} />
-                        </>
-                      )}
-                      <span className="sr-only">{item.label}</span>
+                      <div className="flex items-center gap-2">
+                        {item.iconPath ? (
+                          <img
+                            className="rounded-lg bg-black/50"
+                            width={40}
+                            height={40}
+                            alt={item.label}
+                            src={`${protocol}//${item.uiName}.${item.appIdentifier}.apps.${process.env.NEXT_PUBLIC_API_HOST}${item.iconPath}`}
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <>
+                            <Icon size="md" icon={CubeIcon} />
+                          </>
+                        )}
+                        {item.label}
+                      </div>
                     </Link>
                   </li>
                 ))}
               </ul>
-            </nav>
-            <div className="flex-1 flex flex-col items-center justify-end">
-              <ul className="flex flex-col gap-6 pb-4">
-                <li>
-                  <ul className="flex flex-col gap-2 pb-4">
-                    {authContext.viewer.isAdmin && (
-                      <li>
-                        <Link
-                          href={'/server'}
-                          className={clsx(
-                            router.pathname.startsWith('/server')
-                              ? 'bg-white/10 text-white'
-                              : 'text-gray-400 hover:text-white hover:bg-white/10',
-                            'group flex gap-x-3 rounded-full p-3 text-sm leading-6 font-semibold',
-                          )}
-                        >
-                          <ServerStackIcon
-                            className="h-6 w-6 shrink-0"
-                            aria-hidden="true"
-                          />
-                          <span className="sr-only">Server</span>
-                        </Link>
-                      </li>
-                    )}
-                    <li>
-                      <Link
-                        href={'/profile'}
-                        className={clsx(
-                          router.pathname.startsWith('/profile')
-                            ? 'bg-white/10 text-white'
-                            : 'text-gray-400 hover:text-white hover:bg-white/10',
-                          'group flex gap-x-3 rounded-full p-3 text-sm leading-6 font-semibold',
-                        )}
-                      >
-                        <UserIcon
-                          className="h-6 w-6 shrink-0"
-                          aria-hidden="true"
-                        />
-                        <span className="sr-only">Profile</span>
-                      </Link>
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  <div className="flex flex-col items-center">
-                    <ThemeSwitch />
-                  </div>
-                </li>
-                {authContext.authState.isAuthenticated && (
-                  <li>
-                    <div className="flex justify-center">
-                      <button onClick={authContext.logout}>
-                        <Icon
-                          size="md"
-                          icon={ArrowRightEndOnRectangleIcon}
-                          className="text-gray-100 dark:text-gray-400 hover:text-gray-500"
-                        />
-                      </button>
-                    </div>
+            </li>
+          )}
+          {authContext.viewer?.isAdmin && (
+            <li>
+              <div className="text-xs font-semibold leading-6 text-gray-400">
+                Server
+              </div>
+              <ul role="list" className="-mx-2 mt-2 space-y-1">
+                {serverNavigation.map((item) => (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className={clsx(
+                        item.current
+                          ? 'bg-gray-800 text-white'
+                          : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                        'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6',
+                      )}
+                    >
+                      <item.icon
+                        aria-hidden="true"
+                        className="h-6 w-6 shrink-0"
+                      />
+                      {item.name}
+                    </Link>
                   </li>
-                )}
+                ))}
               </ul>
-            </div>
-          </div>
-        )}
-      </div>
+            </li>
+          )}
+          {authContext.viewer && (
+            <li className="-mx-6 mt-auto pr-6">
+              <div className="flex items-center justify-between">
+                <Link
+                  href="/profile"
+                  className="text-sm font-semibold leading-6 text-white px-3 py-3 group"
+                >
+                  <div className="flex items-center gap-x-4 px-4 py-2 group-hover:bg-gray-800/70 rounded-xl">
+                    <Avatar
+                      className="bg-gray-50/10"
+                      size="sm"
+                      uniqueKey={authContext.viewer.id}
+                    />
+                    <span className="sr-only">Your profile</span>
+                    <span aria-hidden="true">
+                      {authContext.viewer.username}
+                    </span>
+                  </div>
+                </Link>
+                <Button link onClick={() => authContext.logout()}>
+                  <Icon
+                    className="text-gray-50"
+                    size="md"
+                    icon={ArrowRightEndOnRectangleIcon}
+                  />
+                </Button>
+              </div>
+            </li>
+          )}
+        </ul>
+      </nav>
     </div>
   )
 }

@@ -1,12 +1,12 @@
 import clsx from 'clsx'
 import React from 'react'
 
-import { PageHeading } from '../../../design-system/page-heading/page-heading'
+import { PageHeading } from '../../design-system/page-heading/page-heading'
 import { AccessKeyDTO } from '@stellariscloud/api-client'
-import { apiClient } from '../../../services/api'
-import { EmptyState } from '../../../design-system/empty-state/empty-state'
+import { apiClient } from '../../services/api'
+import { EmptyState } from '../../design-system/empty-state/empty-state'
 import { KeyIcon } from '@heroicons/react/24/outline'
-import { AccessKeysList } from '../../../components/access-keys-list/access-keys-list'
+import { AccessKeysList } from '../../components/access-keys-list/access-keys-list'
 
 export function UserAccessKeysScreen() {
   const [accessKeys, setAccessKeys] = React.useState<AccessKeyDTO[]>()
@@ -45,7 +45,7 @@ export function UserAccessKeysScreen() {
     <>
       <div
         className={clsx(
-          'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
+          'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto px-6',
         )}
       >
         <div className="container flex-1 flex flex-col">
