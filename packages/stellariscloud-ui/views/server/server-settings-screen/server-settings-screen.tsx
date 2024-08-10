@@ -92,7 +92,7 @@ export function ServerSettingsScreen() {
         <PageHeading
           titleIcon={Cog6ToothIcon}
           title={'Settings'}
-          subtitle="Control how your server behaves."
+          subtitle="Control how this server behaves."
         />
         <div className="inline-block min-w-full py-2 align-middle">
           <ServerSettingsForm

@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import React from 'react'
 
 import { apiClient } from '../../../services/api'
-import { ServerUserDetailScreen } from '../../../views/server/server-user-detail-screen/server-user-detail-screen.view'
+import { ServerUserDetailScreen } from '../../../views/server/users/server-user-detail-screen/server-user-detail-screen.view'
 
 const ServerUserPage: NextPage = () => {
   const router = useRouter()

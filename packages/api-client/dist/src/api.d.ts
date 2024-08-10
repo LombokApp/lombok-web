@@ -1454,6 +1454,73 @@ export interface SignupResponseUser {
 /**
  *
  * @export
+ * @interface StorageLocationInputDTO
+ */
+export interface StorageLocationInputDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'storageProvisionId'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'userLocationId'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'userLocationBucketOverride'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'userLocationPrefixOverride'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'accessKeyId'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'secretAccessKey'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'endpoint'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'bucket'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'region'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'prefix'?: string;
+}
+/**
+ *
+ * @export
  * @interface StorageProvisionDTO
  */
 export interface StorageProvisionDTO {

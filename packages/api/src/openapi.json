@@ -932,7 +932,7 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "Rotate an access key."
           }
         },
         "tags": [
@@ -1004,7 +1004,7 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "Rotate a server access key."
           }
         },
         "tags": [
@@ -2161,6 +2161,41 @@
           "lengthMs",
           "bitrate"
         ]
+      },
+      "StorageLocationInputDTO": {
+        "type": "object",
+        "properties": {
+          "storageProvisionId": {
+            "type": "string"
+          },
+          "userLocationId": {
+            "type": "string"
+          },
+          "userLocationBucketOverride": {
+            "type": "string"
+          },
+          "userLocationPrefixOverride": {
+            "type": "string"
+          },
+          "accessKeyId": {
+            "type": "string"
+          },
+          "secretAccessKey": {
+            "type": "string"
+          },
+          "endpoint": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          }
+        }
       },
       "FolderGetResponse": {
         "type": "object",

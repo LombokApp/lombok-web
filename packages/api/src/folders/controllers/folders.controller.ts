@@ -16,6 +16,7 @@ import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import { FolderPermissionEnum } from '@stellariscloud/types'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
+import { StorageLocationInputDTO } from 'src/storage/dto/storage-location-input.dto'
 
 import { FolderDTO } from '../dto/folder.dto'
 import { FolderCreateInputDTO } from '../dto/folder-create-input.dto'
@@ -48,6 +49,7 @@ import { FolderService } from '../services/folder.service'
   FolderObjectDTO,
   FolderObjectContentMetadataDTO,
   FolderObjectContentAttributesDTO,
+  StorageLocationInputDTO,
 )
 export class FoldersController {
   constructor(private readonly folderService: FolderService) {}

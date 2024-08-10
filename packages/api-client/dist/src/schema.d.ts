@@ -782,7 +782,7 @@ export declare const schema: {
                 };
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "";
+                        readonly description: "Rotate an access key.";
                     };
                 };
                 readonly tags: readonly ["AccessKeys"];
@@ -843,7 +843,7 @@ export declare const schema: {
                 };
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "";
+                        readonly description: "Rotate a server access key.";
                     };
                 };
                 readonly tags: readonly ["ServerAccessKeys"];
@@ -1741,6 +1741,41 @@ export declare const schema: {
                     };
                 };
                 readonly required: readonly ["mediaType", "mimeType", "height", "width", "orientation", "lengthMs", "bitrate"];
+            };
+            readonly StorageLocationInputDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly storageProvisionId: {
+                        readonly type: "string";
+                    };
+                    readonly userLocationId: {
+                        readonly type: "string";
+                    };
+                    readonly userLocationBucketOverride: {
+                        readonly type: "string";
+                    };
+                    readonly userLocationPrefixOverride: {
+                        readonly type: "string";
+                    };
+                    readonly accessKeyId: {
+                        readonly type: "string";
+                    };
+                    readonly secretAccessKey: {
+                        readonly type: "string";
+                    };
+                    readonly endpoint: {
+                        readonly type: "string";
+                    };
+                    readonly bucket: {
+                        readonly type: "string";
+                    };
+                    readonly region: {
+                        readonly type: "string";
+                    };
+                    readonly prefix: {
+                        readonly type: "string";
+                    };
+                };
             };
             readonly FolderGetResponse: {
                 readonly type: "object";

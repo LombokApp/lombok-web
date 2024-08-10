@@ -1,6 +1,8 @@
 import {
   PencilSquareIcon,
   TrashIcon,
+  UserIcon,
+  UserPlusIcon,
   UsersIcon,
 } from '@heroicons/react/24/outline'
 import type { UserDTO } from '@stellariscloud/api-client'
@@ -8,16 +10,19 @@ import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import { Avatar } from '../../../design-system/avatar'
-import { Button } from '../../../design-system/button/button'
-import { ButtonGroup } from '../../../design-system/button-group/button-group'
-import { Table } from '../../../design-system/table/table'
-import { apiClient } from '../../../services/api'
-import { StackedList } from '../../../design-system/stacked-list/stacked-list'
-import { PageHeading } from '../../../design-system/page-heading/page-heading'
+import { Avatar } from '../../../../design-system/avatar'
+import { Button } from '../../../../design-system/button/button'
+import { ButtonGroup } from '../../../../design-system/button-group/button-group'
+import { Table } from '../../../../design-system/table/table'
+import { apiClient } from '../../../../services/api'
+import { StackedList } from '../../../../design-system/stacked-list/stacked-list'
+import { PageHeading } from '../../../../design-system/page-heading/page-heading'
+import { ServerUserCreatePanel } from '../server-user-create-panel/server-user-create-panel.view'
+import { Badge } from '../../../../design-system/badge/badge'
 
 export function ServerUsersScreen() {
   const router = useRouter()
+  const [addingUser, setAddingUser] = React.useState(false)
   const [users, setUsers] =
     React.useState<(UserDTO & { permissions: { label: string }[] })[]>()
   React.useEffect(() => {
@@ -64,7 +69,9 @@ export function ServerUsersScreen() {
                       </svg>
                       {u.isAdmin && (
                         <>
-                          <p className="truncate">admin</p>
+                          <p className="truncate">
+                            <Badge style="warn">admin</Badge>
+                          </p>
                           <svg
                             viewBox="0 0 2 2"
                             className="h-0.5 w-0.5 fill-current"
@@ -96,11 +103,18 @@ export function ServerUsersScreen() {
                 </div>
               ))}
             />
-            <div className="pt-4">
-              <Button onClick={() => void router.push('/server/users/new')}>
-                Add User
-              </Button>
-            </div>
+            {addingUser ? (
+              <div className="pt-10">
+                <PageHeading title={'Create User'} titleIcon={UserPlusIcon} />
+                <ServerUserCreatePanel
+                  onCancel={() => void setAddingUser(false)}
+                />
+              </div>
+            ) : (
+              <div className="pt-4">
+                <Button onClick={() => setAddingUser(true)}>Add User</Button>
+              </div>
+            )}
           </div>
         )}
       </div>

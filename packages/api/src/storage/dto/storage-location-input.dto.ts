@@ -2,7 +2,7 @@ import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
 // TODO: Improve this with some form of "OR" type
-export const folderLocationInputSchema = z.object({
+export const storageLocationInputSchema = z.object({
   storageProvisionId: z.string().optional(),
   userLocationId: z.string().optional(),
   userLocationBucketOverride: z.string().optional(),
@@ -15,6 +15,6 @@ export const folderLocationInputSchema = z.object({
   prefix: z.string().optional(),
 })
 
-export class FolderLocationInputDTO extends createZodDto(
-  folderLocationInputSchema,
+export class StorageLocationInputDTO extends createZodDto(
+  storageLocationInputSchema,
 ) {}
