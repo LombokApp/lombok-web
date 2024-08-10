@@ -2,17 +2,20 @@ import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import {
   Controller,
   Get,
+  NotFoundException,
+  Param,
   Req,
   UnauthorizedException,
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AppService } from 'src/app/services/app.service'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
 import { AppDTO } from '../dto/app.dto'
+import { AppGetResponse } from '../dto/responses/app-get-response.dto'
 import { AppListResponse } from '../dto/responses/app-list-response.dto'
 
 @Controller('/api/v1/server/apps')
@@ -20,6 +23,7 @@ import { AppListResponse } from '../dto/responses/app-list-response.dto'
 @UsePipes(ZodValidationPipe)
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
+@ApiExtraModels(AppDTO)
 export class AppsController {
   constructor(private readonly appService: AppService) {}
 
@@ -41,6 +45,24 @@ export class AppsController {
         result,
         meta: { totalCount: result.length },
       },
+    }
+  }
+
+  @Get('/:appIdentifier')
+  async getApp(
+    @Req() req: express.Request,
+    @Param('appIdentifier') appIdentifier: string,
+  ): Promise<AppGetResponse> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const apps = await this.appService.getApps()
+    const result = apps[appIdentifier]
+    if (!result) {
+      throw new NotFoundException()
+    }
+    return {
+      app: { ...result, identifier: appIdentifier },
     }
   }
 }

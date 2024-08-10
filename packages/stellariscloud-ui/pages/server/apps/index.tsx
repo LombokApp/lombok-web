@@ -3,7 +3,7 @@ import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import { ServerAppsScreen } from '../../../views/server/server-apps-screen/server-apps-screen.view'
+import { ServerAppsScreen } from '../../../views/server/apps/server-apps-screen/server-apps-screen.view'
 
 const ServerAppsPage: NextPage = () => {
   const router = useRouter()

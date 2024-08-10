@@ -20,13 +20,13 @@ import { EventListResponse } from '../dto/responses/event-list-response.dto'
 import { EventService } from '../services/event.service'
 import { transformEventToDTO } from '../transforms/event.transforms'
 
-@Controller('/api/v1/events')
-@ApiTags('Events')
+@Controller('/api/v1/server/events')
+@ApiTags('ServerEvents')
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
 @UsePipes(ZodValidationPipe)
 @ApiExtraModels(EventDTO)
-export class EventController {
+export class ServerEventsController {
   constructor(private readonly eventService: EventService) {}
 
   /**
@@ -35,7 +35,7 @@ export class EventController {
   @Get('/:eventId')
   async getEvent(
     @Req() req: express.Request,
-    @Param() eventId: string,
+    @Param('eventId') eventId: string,
   ): Promise<EventGetResponse> {
     if (!req.user) {
       throw new UnauthorizedException()

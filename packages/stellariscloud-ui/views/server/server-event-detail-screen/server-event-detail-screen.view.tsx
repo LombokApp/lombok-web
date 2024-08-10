@@ -4,9 +4,18 @@ import { useRouter } from 'next/router'
 import React from 'react'
 
 import { PageHeading } from '../../../design-system/page-heading/page-heading'
+import { apiClient } from '../../../services/api'
 
-export function ServerEventDetailScreen({ event }: { event: EventDTO }) {
+export function ServerEventDetailScreen() {
   const router = useRouter()
+  const [event, setEvent] = React.useState<EventDTO>()
+  React.useEffect(() => {
+    if (typeof router.query.eventId === 'string') {
+      void apiClient.eventsApi
+        .getEvent({ eventId: router.query.eventId })
+        .then((u) => setEvent(u.data.event))
+    }
+  }, [router.query.eventId])
 
   return (
     <>
@@ -16,14 +25,12 @@ export function ServerEventDetailScreen({ event }: { event: EventDTO }) {
         )}
       >
         <div className="container flex-1 flex flex-col">
-          <div className="py-4 flex items-start gap-10">
-            <PageHeading
-              titleIconBg={'bg-amber-100'}
-              avatarKey={event.id}
-              title={['Server', 'Events', event.id]}
-            />
-          </div>
-          <div className="pt-8">
+          <PageHeading
+            titleIconBg={'bg-amber-100'}
+            avatarKey={event?.id}
+            title={[`Server Event ID: ${event?.id}`]}
+          />
+          <div className="text-gray-800 dark:text-white">
             <div className="inline-block min-w-full py-2 align-middle">
               <pre>{JSON.stringify(event, null, 2)}</pre>
             </div>

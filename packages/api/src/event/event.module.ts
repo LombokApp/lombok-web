@@ -7,7 +7,7 @@ import { coreConfig } from 'src/core/config/core.config'
 import { QueueName } from 'src/queue/queue.constants'
 import { QueueService } from 'src/queue/queue.service'
 
-import { EventController } from './controllers/event.controller'
+import { ServerEventsController } from './controllers/server-events.controller'
 import { NotifyAllAppsOfPendingEventsProcessor } from './processors/notify-all-apps-of-pending-events.processor'
 import { EventService } from './services/event.service'
 
@@ -17,7 +17,7 @@ import { EventService } from './services/event.service'
     AuthModule,
     nestjsConfig.ConfigModule.forFeature(coreConfig),
   ],
-  controllers: [EventController],
+  controllers: [ServerEventsController],
   providers: [EventService, NotifyAllAppsOfPendingEventsProcessor],
   exports: [EventService],
 })

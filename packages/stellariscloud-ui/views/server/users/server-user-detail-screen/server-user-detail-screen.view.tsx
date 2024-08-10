@@ -1,23 +1,25 @@
-import type {
-  UserCreateInputDTO,
-  UserDTO,
-  UserUpdateInputDTO,
-} from '@stellariscloud/api-client'
+import type { UserDTO } from '@stellariscloud/api-client'
 import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import type { UserInput } from '../../../../components/server-user-form/server-user-form'
-import { ServerUserForm } from '../../../../components/server-user-form/server-user-form'
-import { Button } from '../../../../design-system/button/button'
 import { PageHeading } from '../../../../design-system/page-heading/page-heading'
-import { apiClient } from '../../../../services/api'
 import { UserAccountStats } from '../../../../components/user-account-stats/user-account-stats'
 import { formatBytes, timeSinceOrUntil } from '@stellariscloud/utils'
 import { UserAttributeList } from '../../../../components/user-attribute-list/user-attribute-list'
+import { apiClient } from '../../../../services/api'
 
-export function ServerUserDetailScreen({ user }: { user: UserDTO }) {
+export function ServerUserDetailScreen() {
   const router = useRouter()
+
+  const [user, setUser] = React.useState<UserDTO>()
+  React.useEffect(() => {
+    if (typeof router.query.userId === 'string' && !user) {
+      void apiClient.usersApi
+        .getUser({ userId: router.query.userId })
+        .then((u) => setUser(u.data.user))
+    }
+  }, [user, router.query.userId])
 
   // const handleSubmitClick = React.useCallback(() => {
   //   void apiClient.usersApi
@@ -41,22 +43,14 @@ export function ServerUserDetailScreen({ user }: { user: UserDTO }) {
           <div className="py-4 flex items-start gap-10">
             <PageHeading
               titleIconBg={'bg-amber-100'}
-              avatarKey={user.id}
-              title={[`User: ${user.email ?? user.id}`]}
+              avatarKey={user?.id ?? 'Loading...'}
+              title={[`User: ${user?.email ?? user?.id ?? 'loading...'}`]}
             />
           </div>
           <div className="flex flex-col gap-4">
             <div className="flex gap-4 justify-between items-start">
               <div className="flex-1">
-                <UserAttributeList
-                  attributes={{
-                    email: user.email ?? '',
-                    name: user.name ?? '',
-                    username: user.username ?? '',
-                    permissions: user.permissions ?? [],
-                    isAdmin: user.isAdmin ?? false,
-                  }}
-                />
+                <UserAttributeList user={user} />
               </div>
               <UserAccountStats
                 stats={{

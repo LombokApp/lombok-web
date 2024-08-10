@@ -1,14 +1,14 @@
 import clsx from 'clsx'
 import { Badge } from '../../design-system/badge/badge'
-import { UserDTO } from '@stellariscloud/api-client'
+import { AppDTO } from '@stellariscloud/api-client'
 
 const LABEL_TEXT_COLOR = 'text-gray-500 dark:text-white'
 const VALUE_TEXT_COLOR = 'text-black dark:text-white'
 const ROW_SPACING = 'px-4 py-3'
 
-export function UserAttributeList({ user }: { user?: UserDTO }) {
+export function AppAttributeList({ app }: { app?: AppDTO }) {
   return (
-    <div className="bg-gray-200 dark:bg-transparent rounded-lg dark:rounded-none pl-4">
+    <div className="bg-gray-200 dark:bg-transparent rounded-lg dark:rounded-none px-4">
       <dl className="divide-y divide-white/10">
         <div
           className={clsx(
@@ -19,7 +19,7 @@ export function UserAttributeList({ user }: { user?: UserDTO }) {
           <dt
             className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
           >
-            Name
+            Identifier
           </dt>
           <dd
             className={clsx(
@@ -27,8 +27,8 @@ export function UserAttributeList({ user }: { user?: UserDTO }) {
               VALUE_TEXT_COLOR,
             )}
           >
-            {user?.name ? (
-              user.name
+            {app?.identifier ? (
+              app.identifier
             ) : (
               <span className="italic opacity-50">None</span>
             )}
@@ -43,7 +43,7 @@ export function UserAttributeList({ user }: { user?: UserDTO }) {
           <dt
             className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
           >
-            Username
+            Description
           </dt>
           <dd
             className={clsx(
@@ -51,7 +51,7 @@ export function UserAttributeList({ user }: { user?: UserDTO }) {
               VALUE_TEXT_COLOR,
             )}
           >
-            {user?.username}
+            {app?.config.description}
           </dd>
         </div>
         <div
@@ -63,32 +63,7 @@ export function UserAttributeList({ user }: { user?: UserDTO }) {
           <dt
             className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
           >
-            Admin
-          </dt>
-          <dd className="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0">
-            {typeof user === 'undefined' ? (
-              <span className="italic opacity-50">Unknown</span>
-            ) : user.isAdmin ? (
-              <div className="flex gap-2 items-start">
-                <Badge style="warn" size="sm">
-                  True
-                </Badge>
-              </div>
-            ) : (
-              <Badge>False</Badge>
-            )}
-          </dd>
-        </div>
-        <div
-          className={clsx(
-            'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
-            ROW_SPACING,
-          )}
-        >
-          <dt
-            className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
-          >
-            Email
+            Emit Events
           </dt>
           <dd
             className={clsx(
@@ -96,39 +71,15 @@ export function UserAttributeList({ user }: { user?: UserDTO }) {
               VALUE_TEXT_COLOR,
             )}
           >
-            {typeof user === 'undefined' ? (
-              <span className="italic opacity-50">Unknown</span>
-            ) : (
-              user.email
-            )}
-          </dd>
-        </div>
-        <div
-          className={clsx(
-            'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
-            ROW_SPACING,
-          )}
-        >
-          <dt
-            className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
-          >
-            Permissions
-          </dt>
-          <dd
-            className={clsx(
-              'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
-              VALUE_TEXT_COLOR,
-            )}
-          >
-            <div className="flex gap-2">
-              {typeof user === 'undefined' ? (
+            <div className="flex flex-wrap gap-2">
+              {typeof app === 'undefined' ? (
                 <span className="italic opacity-50">Unknown</span>
-              ) : !user.permissions.length ? (
+              ) : !app.config.emitEvents.length ? (
                 <span className="italic opacity-50">None</span>
               ) : (
-                user.permissions.map((permission, i) => (
-                  <Badge style="info" key={i}>
-                    {permission}
+                app.config.emitEvents.map((emitEvent, i) => (
+                  <Badge style="info" key={i} size="sm">
+                    {emitEvent}
                   </Badge>
                 ))
               )}
@@ -144,7 +95,7 @@ export function UserAttributeList({ user }: { user?: UserDTO }) {
           <dt
             className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
           >
-            Password
+            Subscribed Events
           </dt>
           <dd
             className={clsx(
@@ -152,7 +103,19 @@ export function UserAttributeList({ user }: { user?: UserDTO }) {
               VALUE_TEXT_COLOR,
             )}
           >
-            **********
+            <div className="flex flex-wrap gap-2">
+              {typeof app === 'undefined' ? (
+                <span className="italic opacity-50">Unknown</span>
+              ) : !app.config.subscribedEvents.length ? (
+                <span className="italic opacity-50">None</span>
+              ) : (
+                app.config.subscribedEvents.map((subscribedEvent, i) => (
+                  <Badge style="info" key={i} size="sm">
+                    {subscribedEvent}
+                  </Badge>
+                ))
+              )}
+            </div>
           </dd>
         </div>
       </dl>
