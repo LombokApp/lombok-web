@@ -2,20 +2,21 @@ import type { EventDTO } from '@stellariscloud/api-client'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import { apiClient } from '../../../services/api'
+import { apiClient } from '../../../../services/api'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
-import { StackedList } from '../../../design-system/stacked-list/stacked-list'
-import { PageHeading } from '../../../design-system/page-heading/page-heading'
+import { StackedList } from '../../../../design-system/stacked-list/stacked-list'
+import { PageHeading } from '../../../../design-system/page-heading/page-heading'
 import clsx from 'clsx'
 import { ChevronRightIcon, SignalIcon } from '@heroicons/react/24/outline'
-import { Button } from '../../../design-system/button/button'
+import { Button } from '../../../../design-system/button/button'
 import Link from 'next/link'
+import { EmptyState } from '../../../../design-system/empty-state/empty-state'
 
 export function ServerEventsScreen() {
   const router = useRouter()
   const [events, setEvents] = React.useState<EventDTO[]>()
   React.useEffect(() => {
-    void apiClient.eventsApi
+    void apiClient.serverEventsApi
       .listEvents()
       .then((response) => setEvents(response.data.result))
   }, [])
@@ -31,6 +32,11 @@ export function ServerEventsScreen() {
           title={'Events'}
           subtitle="Review all events across the server."
         />
+        {events?.length === 0 && (
+          <div>
+            <EmptyState icon={SignalIcon} text="There are no events. Weird." />
+          </div>
+        )}
         {events && (
           <StackedList
             className=""

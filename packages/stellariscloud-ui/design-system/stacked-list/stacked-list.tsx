@@ -21,7 +21,7 @@ export function StackedList({
         {items.map((item, i) => (
           <li
             key={i}
-            className="relative flex items-center justify-between gap-x-6 px-4 py-5 hover:bg-gray-50 dark:hover:bg-indigo-700 sm:px-6"
+            className="relative flex items-center justify-between gap-x-6 px-4 py-5 hover:bg-gray-50 dark:hover:bg-indigo-700 sm:px-6 "
           >
             {item}
           </li>

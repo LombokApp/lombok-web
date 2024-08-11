@@ -916,10 +916,70 @@
             "bearer": []
           }
         ]
+      }
+    },
+    "/api/v1/access-keys/{endpointDomain}/{accessKeyId}": {
+      "get": {
+        "operationId": "getAccessKey",
+        "parameters": [
+          {
+            "name": "endpointDomain",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "accessKeyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get an access key by id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessKeyGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "AccessKeys"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       },
       "post": {
         "operationId": "rotateAccessKey",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "endpointDomain",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "accessKeyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -988,10 +1048,70 @@
             "bearer": []
           }
         ]
+      }
+    },
+    "/api/v1/server/access-keys/{endpointDomain}/{accessKeyId}": {
+      "get": {
+        "operationId": "getServerAccessKey",
+        "parameters": [
+          {
+            "name": "endpointDomain",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "accessKeyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get server access key by id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessKeyGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "ServerAccessKeys"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       },
       "post": {
         "operationId": "rotateAccessKey",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "endpointDomain",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "accessKeyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1196,6 +1316,39 @@
       }
     },
     "/api/v1/server/storage-provisions/{storageProvisionId}": {
+      "get": {
+        "operationId": "getStorageProvision",
+        "parameters": [
+          {
+            "name": "storageProvisionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List the server provisions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StorageProvisionGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "StorageProvisions"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      },
       "put": {
         "operationId": "updateStorageProvision",
         "parameters": [
@@ -3076,7 +3229,7 @@
           "accessKeyId": {
             "type": "string"
           },
-          "endpointHost": {
+          "endpointDomain": {
             "type": "string"
           },
           "folderCount": {
@@ -3085,7 +3238,7 @@
         },
         "required": [
           "accessKeyId",
-          "endpointHost",
+          "endpointDomain",
           "folderCount"
         ]
       },
@@ -3111,7 +3264,7 @@
                 "accessKeyId": {
                   "type": "string"
                 },
-                "endpointHost": {
+                "endpointDomain": {
                   "type": "string"
                 },
                 "folderCount": {
@@ -3120,7 +3273,7 @@
               },
               "required": [
                 "accessKeyId",
-                "endpointHost",
+                "endpointDomain",
                 "folderCount"
               ]
             }
@@ -3131,23 +3284,46 @@
           "result"
         ]
       },
+      "AccessKeyGetResponse": {
+        "type": "object",
+        "properties": {
+          "accessKey": {
+            "type": "object",
+            "properties": {
+              "accessKeyId": {
+                "type": "string"
+              },
+              "endpointDomain": {
+                "type": "string"
+              },
+              "folderCount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "accessKeyId",
+              "endpointDomain",
+              "folderCount"
+            ]
+          }
+        },
+        "required": [
+          "accessKey"
+        ]
+      },
       "RotateAccessKeyInputDTO": {
         "type": "object",
         "properties": {
           "accessKeyId": {
             "type": "string"
           },
-          "newAccessKeyId": {
-            "type": "string"
-          },
-          "newSecretAccessKey": {
+          "secretAccessKey": {
             "type": "string"
           }
         },
         "required": [
           "accessKeyId",
-          "newAccessKeyId",
-          "newSecretAccessKey"
+          "secretAccessKey"
         ]
       },
       "SettingsGetResponse": {
@@ -3307,6 +3483,67 @@
         },
         "required": [
           "result"
+        ]
+      },
+      "StorageProvisionGetResponse": {
+        "type": "object",
+        "properties": {
+          "storageProvision": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "endpoint": {
+                "type": "string"
+              },
+              "bucket": {
+                "type": "string"
+              },
+              "region": {
+                "type": "string"
+              },
+              "accessKeyId": {
+                "type": "string"
+              },
+              "prefix": {
+                "type": "string"
+              },
+              "provisionTypes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "CONTENT",
+                    "METADATA",
+                    "BACKUP"
+                  ]
+                },
+                "minItems": 1
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 128
+              }
+            },
+            "required": [
+              "id",
+              "endpoint",
+              "bucket",
+              "region",
+              "accessKeyId",
+              "provisionTypes",
+              "label",
+              "description"
+            ]
+          }
+        },
+        "required": [
+          "storageProvision"
         ]
       },
       "StorageProvisionInputDTO": {

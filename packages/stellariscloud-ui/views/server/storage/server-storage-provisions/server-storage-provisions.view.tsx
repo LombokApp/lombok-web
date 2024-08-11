@@ -1,4 +1,4 @@
-import { FolderIcon, PlusCircleIcon } from '@heroicons/react/24/outline'
+import { FolderIcon, PlusIcon } from '@heroicons/react/24/outline'
 import React from 'react'
 
 import { Button } from '../../../../design-system/button/button'
@@ -9,7 +9,7 @@ import { StorageProvisionForm } from './storage-provision-form/storage-provision
 import { StorageProvisionDTO } from '@stellariscloud/api-client'
 import { StorageProvisionsList } from '../../../../components/storage-provisions-list/storage-provisions-list'
 
-export function ServerStorageConfig() {
+export function ServerStorageProvisions() {
   const [storageProvisions, setStorageProvisions] =
     React.useState<StorageProvisionDTO[]>()
 
@@ -123,7 +123,7 @@ export function ServerStorageConfig() {
                 />
                 <Button
                   primary
-                  icon={PlusCircleIcon}
+                  icon={PlusIcon}
                   onClick={() =>
                     setEditingStorageProvision({
                       storageProvision: undefined,

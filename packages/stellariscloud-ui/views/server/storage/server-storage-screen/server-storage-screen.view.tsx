@@ -1,8 +1,8 @@
 import React from 'react'
 
-import { ServerStorageConfig } from './server-storage-config/server-storage-config.view'
-import { ServerAccessKeys } from './server-access-keys/server-access-keys.view'
-import { PageHeading } from '../../../design-system/page-heading/page-heading'
+import { ServerStorageProvisions } from '../server-storage-provisions/server-storage-provisions.view'
+import { ServerAccessKeys } from '../server-access-keys/server-access-keys.view'
+import { PageHeading } from '../../../../design-system/page-heading/page-heading'
 import clsx from 'clsx'
 import { CircleStackIcon } from '@heroicons/react/24/outline'
 
@@ -19,7 +19,7 @@ export function ServerStorageScreen() {
           title={'Storage'}
           subtitle="Manage configured storage provisions and active access keys on this server."
         />
-        <ServerStorageConfig />
+        <ServerStorageProvisions />
         <ServerAccessKeys />
       </div>
     </div>

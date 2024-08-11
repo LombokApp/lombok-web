@@ -49,7 +49,7 @@ describe('Access Keys', () => {
     expect(accessKeysListResponse.data.result[0].accessKeyId).toEqual(
       'testaccesskeyid',
     )
-    expect(accessKeysListResponse.data.result[0].endpointHost).toEqual(
+    expect(accessKeysListResponse.data.result[0].endpointDomain).toEqual(
       'miniotest:9000',
     )
     expect(accessKeysListResponse.data.result[0].folderCount).toEqual(1)

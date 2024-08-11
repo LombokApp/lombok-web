@@ -21,26 +21,6 @@ export function UserAccessKeysScreen() {
     void fetchAccessKeys()
   }, [])
 
-  const handleRotate = React.useCallback(
-    (
-      accessKeyId: string,
-      newAccessKey: { accessKeyId: string; secretAccessKey: string },
-    ) => {
-      void apiClient.accessKeysApi
-        .rotateAccessKey({
-          rotateAccessKeyInputDTO: {
-            accessKeyId,
-            newAccessKeyId: newAccessKey.accessKeyId,
-            newSecretAccessKey: newAccessKey.secretAccessKey,
-          },
-        })
-        .then((resp) => {
-          fetchAccessKeys()
-        })
-    },
-    [],
-  )
-
   return (
     <div
       className={clsx(
@@ -60,10 +40,8 @@ export function UserAccessKeysScreen() {
           {(accessKeys?.length ?? 0) > 0 ? (
             <div className="flex flex-col gap-4 items-start">
               <AccessKeysList
-                onRotateAccessKey={(accessKeyId, newAccessKey) =>
-                  handleRotate(accessKeyId, newAccessKey)
-                }
                 accessKeys={accessKeys ?? []}
+                urlPrefix="/access-keys"
               />
             </div>
           ) : (

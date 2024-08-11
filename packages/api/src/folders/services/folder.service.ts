@@ -210,7 +210,7 @@ export class FolderService implements OnModuleInit {
             .insert(storageLocationsTable)
             .values({
               ...withNewUserLocationConnection.value,
-              endpointHost: new URL(
+              endpointDomain: new URL(
                 withNewUserLocationConnection.value.endpoint,
               ).host,
               id: uuidV4(),
@@ -245,7 +245,7 @@ export class FolderService implements OnModuleInit {
                 providerType: 'USER',
                 userId,
                 endpoint: existingLocation.endpoint,
-                endpointHost: new URL(existingLocation.endpoint).host,
+                endpointDomain: new URL(existingLocation.endpoint).host,
                 accessKeyId: existingLocation.accessKeyId,
                 secretAccessKey: existingLocation.secretAccessKey,
                 region: existingLocation.region,
@@ -288,7 +288,7 @@ export class FolderService implements OnModuleInit {
               providerType: 'SERVER',
               userId,
               endpoint: existingServerLocation.endpoint,
-              endpointHost: new URL(existingServerLocation.endpoint).host,
+              endpointDomain: new URL(existingServerLocation.endpoint).host,
               accessKeyId: existingServerLocation.accessKeyId,
               secretAccessKey: existingServerLocation.secretAccessKey,
               region: existingServerLocation.region,

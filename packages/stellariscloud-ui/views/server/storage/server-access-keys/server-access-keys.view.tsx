@@ -18,26 +18,6 @@ export function ServerAccessKeys() {
     void fetchAccessKeys()
   }, [])
 
-  const handleRotate = React.useCallback(
-    (
-      accessKeyId: string,
-      newAccessKey: { accessKeyId: string; secretAccessKey: string },
-    ) => {
-      void apiClient.serverAccessKeysApi
-        .rotateAccessKey({
-          rotateAccessKeyInputDTO: {
-            accessKeyId,
-            newAccessKeyId: newAccessKey.accessKeyId,
-            newSecretAccessKey: newAccessKey.secretAccessKey,
-          },
-        })
-        .then((resp) => {
-          fetchAccessKeys()
-        })
-    },
-    [],
-  )
-
   return (
     <div className="w-full">
       <dl className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -53,10 +33,8 @@ export function ServerAccessKeys() {
             {(accessKeys?.length ?? 0) > 0 ? (
               <div className="flex flex-col gap-4 items-start">
                 <AccessKeysList
-                  onRotateAccessKey={(accessKeyId, newAccessKey) =>
-                    handleRotate(accessKeyId, newAccessKey)
-                  }
                   accessKeys={accessKeys ?? []}
+                  urlPrefix="/server/storage/keys"
                 />
               </div>
             ) : (

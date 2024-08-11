@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS "storage_locations" (
 	"providerType" "providerType" NOT NULL,
 	"label" text NOT NULL,
 	"endpoint" text NOT NULL,
-	"endpointHost" text NOT NULL,
+	"endpointDomain" text NOT NULL,
 	"region" text NOT NULL,
 	"accessKeyId" text NOT NULL,
 	"secretAccessKey" text NOT NULL,

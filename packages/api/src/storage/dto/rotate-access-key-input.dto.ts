@@ -3,8 +3,7 @@ import { z } from 'zod'
 
 export const rotateAccessKeyInputSchema = z.object({
   accessKeyId: z.string(),
-  newAccessKeyId: z.string(),
-  newSecretAccessKey: z.string(),
+  secretAccessKey: z.string(),
 })
 
 export class RotateAccessKeyInputDTO extends createZodDto(

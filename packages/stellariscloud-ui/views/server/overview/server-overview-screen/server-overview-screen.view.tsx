@@ -1,5 +1,5 @@
 import React from 'react'
-import { PageHeading } from '../../../design-system/page-heading/page-heading'
+import { PageHeading } from '../../../../design-system/page-heading/page-heading'
 import clsx from 'clsx'
 import { GlobeAltIcon, HomeIcon } from '@heroicons/react/24/outline'
 

@@ -3,7 +3,7 @@ import { z } from 'zod'
 
 export const accessKeySchema = z.object({
   accessKeyId: z.string(),
-  endpointHost: z.string(),
+  endpointDomain: z.string(),
   folderCount: z.number(),
 })
 

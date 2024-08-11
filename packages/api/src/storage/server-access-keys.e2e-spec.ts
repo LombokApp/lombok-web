@@ -68,7 +68,7 @@ describe('Server Access Keys', () => {
     expect(serverAccessKeysListResponse.data.result[0].accessKeyId).toEqual(
       '__dummyak__',
     )
-    expect(serverAccessKeysListResponse.data.result[0].endpointHost).toEqual(
+    expect(serverAccessKeysListResponse.data.result[0].endpointDomain).toEqual(
       'dummyendpoint.com',
     )
     expect(serverAccessKeysListResponse.data.result[0].folderCount).toEqual(2)

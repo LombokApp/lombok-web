@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Post,
   Put,
@@ -17,6 +18,7 @@ import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
+import { StorageProvisionGetResponse } from '../dto/responses/storage-provision-get-response.dto'
 import { StorageProvisionListResponse } from '../dto/responses/storage-provision-list-response.dto'
 import { StorageProvisionDTO } from '../dto/storage-provision.dto'
 import { StorageProvisionInputDTO } from '../dto/storage-provision-input.dto'
@@ -59,6 +61,31 @@ export class StorageProvisionsController {
   }
 
   /**
+   * List the server provisions.
+   */
+  @Get('/:storageProvisionId')
+  async getStorageProvision(
+    @Req() req: express.Request,
+    @Param('storageProvisionId') storageProvisionId: string,
+  ): Promise<StorageProvisionGetResponse> {
+    if (!req.user) {
+      // TODO: Should this be admin only?
+      throw new UnauthorizedException()
+    }
+
+    const result =
+      await this.serverConfigurationService.getStorageProvisionById(
+        storageProvisionId,
+      )
+    if (!result) {
+      throw new NotFoundException()
+    }
+    return {
+      storageProvision: transformStorageProvisionToDTO(result),
+    }
+  }
+
+  /**
    * Create a new server provision.
    */
   @Post()
@@ -66,7 +93,7 @@ export class StorageProvisionsController {
     @Req() req: express.Request,
     @Body() serverProvision: StorageProvisionInputDTO,
   ): Promise<StorageProvisionListResponse> {
-    if (!req.user) {
+    if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
 
@@ -95,7 +122,7 @@ export class StorageProvisionsController {
     @Param('storageProvisionId') serverProvisionId: string,
     @Body() serverProvision: StorageProvisionInputDTO,
   ): Promise<StorageProvisionListResponse> {
-    if (!req.user) {
+    if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
     const _updateResult =

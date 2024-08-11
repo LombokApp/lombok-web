@@ -441,8 +441,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "endpointHost": {
-          "name": "endpointHost",
+        "endpointDomain": {
+          "name": "endpointDomain",
           "type": "text",
           "primaryKey": false,
           "notNull": true

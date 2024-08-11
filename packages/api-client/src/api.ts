@@ -40,13 +40,26 @@ export interface AccessKeyDTO {
      * @type {string}
      * @memberof AccessKeyDTO
      */
-    'endpointHost': string;
+    'endpointDomain': string;
     /**
      * 
      * @type {number}
      * @memberof AccessKeyDTO
      */
     'folderCount': number;
+}
+/**
+ * 
+ * @export
+ * @interface AccessKeyGetResponse
+ */
+export interface AccessKeyGetResponse {
+    /**
+     * 
+     * @type {AccessKeyListResponseResultInner}
+     * @memberof AccessKeyGetResponse
+     */
+    'accessKey': AccessKeyListResponseResultInner;
 }
 /**
  * 
@@ -84,7 +97,7 @@ export interface AccessKeyListResponseResultInner {
      * @type {string}
      * @memberof AccessKeyListResponseResultInner
      */
-    'endpointHost': string;
+    'endpointDomain': string;
     /**
      * 
      * @type {number}
@@ -1328,13 +1341,7 @@ export interface RotateAccessKeyInputDTO {
      * @type {string}
      * @memberof RotateAccessKeyInputDTO
      */
-    'newAccessKeyId': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof RotateAccessKeyInputDTO
-     */
-    'newSecretAccessKey': string;
+    'secretAccessKey': string;
 }
 /**
  * 
@@ -1641,6 +1648,89 @@ export const StorageProvisionDTOProvisionTypesEnum = {
 } as const;
 
 export type StorageProvisionDTOProvisionTypesEnum = typeof StorageProvisionDTOProvisionTypesEnum[keyof typeof StorageProvisionDTOProvisionTypesEnum];
+
+/**
+ * 
+ * @export
+ * @interface StorageProvisionGetResponse
+ */
+export interface StorageProvisionGetResponse {
+    /**
+     * 
+     * @type {StorageProvisionGetResponseStorageProvision}
+     * @memberof StorageProvisionGetResponse
+     */
+    'storageProvision': StorageProvisionGetResponseStorageProvision;
+}
+/**
+ * 
+ * @export
+ * @interface StorageProvisionGetResponseStorageProvision
+ */
+export interface StorageProvisionGetResponseStorageProvision {
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'endpoint': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'bucket': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'region': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'accessKeyId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'prefix'?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'provisionTypes': Array<StorageProvisionGetResponseStorageProvisionProvisionTypesEnum>;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'label': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'description': string;
+}
+
+export const StorageProvisionGetResponseStorageProvisionProvisionTypesEnum = {
+    Content: 'CONTENT',
+    Metadata: 'METADATA',
+    Backup: 'BACKUP'
+} as const;
+
+export type StorageProvisionGetResponseStorageProvisionProvisionTypesEnum = typeof StorageProvisionGetResponseStorageProvisionProvisionTypesEnum[keyof typeof StorageProvisionGetResponseStorageProvisionProvisionTypesEnum];
 
 /**
  * 
@@ -2047,6 +2137,47 @@ export const AccessKeysApiAxiosParamCreator = function (configuration?: Configur
     return {
         /**
          * 
+         * @param {string} endpointDomain 
+         * @param {string} accessKeyId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAccessKey: async (endpointDomain: string, accessKeyId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'endpointDomain' is not null or undefined
+            assertParamExists('getAccessKey', 'endpointDomain', endpointDomain)
+            // verify required parameter 'accessKeyId' is not null or undefined
+            assertParamExists('getAccessKey', 'accessKeyId', accessKeyId)
+            const localVarPath = `/api/v1/access-keys/{endpointDomain}/{accessKeyId}`
+                .replace(`{${"endpointDomain"}}`, encodeURIComponent(String(endpointDomain)))
+                .replace(`{${"accessKeyId"}}`, encodeURIComponent(String(accessKeyId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {number} [offset] 
          * @param {number} [limit] 
          * @param {*} [options] Override http request option.
@@ -2090,14 +2221,22 @@ export const AccessKeysApiAxiosParamCreator = function (configuration?: Configur
         },
         /**
          * 
+         * @param {string} endpointDomain 
+         * @param {string} accessKeyId 
          * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        rotateAccessKey: async (rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        rotateAccessKey: async (endpointDomain: string, accessKeyId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'endpointDomain' is not null or undefined
+            assertParamExists('rotateAccessKey', 'endpointDomain', endpointDomain)
+            // verify required parameter 'accessKeyId' is not null or undefined
+            assertParamExists('rotateAccessKey', 'accessKeyId', accessKeyId)
             // verify required parameter 'rotateAccessKeyInputDTO' is not null or undefined
             assertParamExists('rotateAccessKey', 'rotateAccessKeyInputDTO', rotateAccessKeyInputDTO)
-            const localVarPath = `/api/v1/access-keys`;
+            const localVarPath = `/api/v1/access-keys/{endpointDomain}/{accessKeyId}`
+                .replace(`{${"endpointDomain"}}`, encodeURIComponent(String(endpointDomain)))
+                .replace(`{${"accessKeyId"}}`, encodeURIComponent(String(accessKeyId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -2139,6 +2278,17 @@ export const AccessKeysApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @param {string} endpointDomain 
+         * @param {string} accessKeyId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getAccessKey(endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getAccessKey(endpointDomain, accessKeyId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
          * @param {number} [offset] 
          * @param {number} [limit] 
          * @param {*} [options] Override http request option.
@@ -2150,12 +2300,14 @@ export const AccessKeysApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {string} endpointDomain 
+         * @param {string} accessKeyId 
          * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async rotateAccessKey(rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.rotateAccessKey(rotateAccessKeyInputDTO, options);
+        async rotateAccessKey(endpointDomain: string, accessKeyId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.rotateAccessKey(endpointDomain, accessKeyId, rotateAccessKeyInputDTO, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -2168,6 +2320,15 @@ export const AccessKeysApiFp = function(configuration?: Configuration) {
 export const AccessKeysApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = AccessKeysApiFp(configuration)
     return {
+        /**
+         * 
+         * @param {AccessKeysApiGetAccessKeyRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyGetResponse> {
+            return localVarFp.getAccessKey(requestParameters.endpointDomain, requestParameters.accessKeyId, options).then((request) => request(axios, basePath));
+        },
         /**
          * 
          * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
@@ -2184,10 +2345,31 @@ export const AccessKeysApiFactory = function (configuration?: Configuration, bas
          * @throws {RequiredError}
          */
         rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.rotateAccessKey(requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(axios, basePath));
+            return localVarFp.rotateAccessKey(requestParameters.endpointDomain, requestParameters.accessKeyId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(axios, basePath));
         },
     };
 };
+
+/**
+ * Request parameters for getAccessKey operation in AccessKeysApi.
+ * @export
+ * @interface AccessKeysApiGetAccessKeyRequest
+ */
+export interface AccessKeysApiGetAccessKeyRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeysApiGetAccessKey
+     */
+    readonly endpointDomain: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeysApiGetAccessKey
+     */
+    readonly accessKeyId: string
+}
 
 /**
  * Request parameters for listAccessKeys operation in AccessKeysApi.
@@ -2218,6 +2400,20 @@ export interface AccessKeysApiListAccessKeysRequest {
 export interface AccessKeysApiRotateAccessKeyRequest {
     /**
      * 
+     * @type {string}
+     * @memberof AccessKeysApiRotateAccessKey
+     */
+    readonly endpointDomain: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeysApiRotateAccessKey
+     */
+    readonly accessKeyId: string
+
+    /**
+     * 
      * @type {RotateAccessKeyInputDTO}
      * @memberof AccessKeysApiRotateAccessKey
      */
@@ -2231,6 +2427,17 @@ export interface AccessKeysApiRotateAccessKeyRequest {
  * @extends {BaseAPI}
  */
 export class AccessKeysApi extends BaseAPI {
+    /**
+     * 
+     * @param {AccessKeysApiGetAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessKeysApi
+     */
+    public getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: AxiosRequestConfig) {
+        return AccessKeysApiFp(this.configuration).getAccessKey(requestParameters.endpointDomain, requestParameters.accessKeyId, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
@@ -2250,7 +2457,7 @@ export class AccessKeysApi extends BaseAPI {
      * @memberof AccessKeysApi
      */
     public rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig) {
-        return AccessKeysApiFp(this.configuration).rotateAccessKey(requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(this.axios, this.basePath));
+        return AccessKeysApiFp(this.configuration).rotateAccessKey(requestParameters.endpointDomain, requestParameters.accessKeyId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -4207,6 +4414,47 @@ export const ServerAccessKeysApiAxiosParamCreator = function (configuration?: Co
     return {
         /**
          * 
+         * @param {string} endpointDomain 
+         * @param {string} accessKeyId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getServerAccessKey: async (endpointDomain: string, accessKeyId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'endpointDomain' is not null or undefined
+            assertParamExists('getServerAccessKey', 'endpointDomain', endpointDomain)
+            // verify required parameter 'accessKeyId' is not null or undefined
+            assertParamExists('getServerAccessKey', 'accessKeyId', accessKeyId)
+            const localVarPath = `/api/v1/server/access-keys/{endpointDomain}/{accessKeyId}`
+                .replace(`{${"endpointDomain"}}`, encodeURIComponent(String(endpointDomain)))
+                .replace(`{${"accessKeyId"}}`, encodeURIComponent(String(accessKeyId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {number} [offset] 
          * @param {number} [limit] 
          * @param {*} [options] Override http request option.
@@ -4250,14 +4498,22 @@ export const ServerAccessKeysApiAxiosParamCreator = function (configuration?: Co
         },
         /**
          * 
+         * @param {string} endpointDomain 
+         * @param {string} accessKeyId 
          * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        rotateAccessKey: async (rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        rotateAccessKey: async (endpointDomain: string, accessKeyId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'endpointDomain' is not null or undefined
+            assertParamExists('rotateAccessKey', 'endpointDomain', endpointDomain)
+            // verify required parameter 'accessKeyId' is not null or undefined
+            assertParamExists('rotateAccessKey', 'accessKeyId', accessKeyId)
             // verify required parameter 'rotateAccessKeyInputDTO' is not null or undefined
             assertParamExists('rotateAccessKey', 'rotateAccessKeyInputDTO', rotateAccessKeyInputDTO)
-            const localVarPath = `/api/v1/server/access-keys`;
+            const localVarPath = `/api/v1/server/access-keys/{endpointDomain}/{accessKeyId}`
+                .replace(`{${"endpointDomain"}}`, encodeURIComponent(String(endpointDomain)))
+                .replace(`{${"accessKeyId"}}`, encodeURIComponent(String(accessKeyId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -4299,6 +4555,17 @@ export const ServerAccessKeysApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @param {string} endpointDomain 
+         * @param {string} accessKeyId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getServerAccessKey(endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getServerAccessKey(endpointDomain, accessKeyId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
          * @param {number} [offset] 
          * @param {number} [limit] 
          * @param {*} [options] Override http request option.
@@ -4310,12 +4577,14 @@ export const ServerAccessKeysApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {string} endpointDomain 
+         * @param {string} accessKeyId 
          * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async rotateAccessKey(rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.rotateAccessKey(rotateAccessKeyInputDTO, options);
+        async rotateAccessKey(endpointDomain: string, accessKeyId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.rotateAccessKey(endpointDomain, accessKeyId, rotateAccessKeyInputDTO, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -4328,6 +4597,15 @@ export const ServerAccessKeysApiFp = function(configuration?: Configuration) {
 export const ServerAccessKeysApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
     const localVarFp = ServerAccessKeysApiFp(configuration)
     return {
+        /**
+         * 
+         * @param {ServerAccessKeysApiGetServerAccessKeyRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyGetResponse> {
+            return localVarFp.getServerAccessKey(requestParameters.endpointDomain, requestParameters.accessKeyId, options).then((request) => request(axios, basePath));
+        },
         /**
          * 
          * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
@@ -4344,10 +4622,31 @@ export const ServerAccessKeysApiFactory = function (configuration?: Configuratio
          * @throws {RequiredError}
          */
         rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.rotateAccessKey(requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(axios, basePath));
+            return localVarFp.rotateAccessKey(requestParameters.endpointDomain, requestParameters.accessKeyId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(axios, basePath));
         },
     };
 };
+
+/**
+ * Request parameters for getServerAccessKey operation in ServerAccessKeysApi.
+ * @export
+ * @interface ServerAccessKeysApiGetServerAccessKeyRequest
+ */
+export interface ServerAccessKeysApiGetServerAccessKeyRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerAccessKeysApiGetServerAccessKey
+     */
+    readonly endpointDomain: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerAccessKeysApiGetServerAccessKey
+     */
+    readonly accessKeyId: string
+}
 
 /**
  * Request parameters for listServerAccessKeys operation in ServerAccessKeysApi.
@@ -4378,6 +4677,20 @@ export interface ServerAccessKeysApiListServerAccessKeysRequest {
 export interface ServerAccessKeysApiRotateAccessKeyRequest {
     /**
      * 
+     * @type {string}
+     * @memberof ServerAccessKeysApiRotateAccessKey
+     */
+    readonly endpointDomain: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerAccessKeysApiRotateAccessKey
+     */
+    readonly accessKeyId: string
+
+    /**
+     * 
      * @type {RotateAccessKeyInputDTO}
      * @memberof ServerAccessKeysApiRotateAccessKey
      */
@@ -4391,6 +4704,17 @@ export interface ServerAccessKeysApiRotateAccessKeyRequest {
  * @extends {BaseAPI}
  */
 export class ServerAccessKeysApi extends BaseAPI {
+    /**
+     * 
+     * @param {ServerAccessKeysApiGetServerAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerAccessKeysApi
+     */
+    public getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: AxiosRequestConfig) {
+        return ServerAccessKeysApiFp(this.configuration).getServerAccessKey(requestParameters.endpointDomain, requestParameters.accessKeyId, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
@@ -4410,7 +4734,7 @@ export class ServerAccessKeysApi extends BaseAPI {
      * @memberof ServerAccessKeysApi
      */
     public rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig) {
-        return ServerAccessKeysApiFp(this.configuration).rotateAccessKey(requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(this.axios, this.basePath));
+        return ServerAccessKeysApiFp(this.configuration).rotateAccessKey(requestParameters.endpointDomain, requestParameters.accessKeyId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -4715,6 +5039,43 @@ export const StorageProvisionsApiAxiosParamCreator = function (configuration?: C
         },
         /**
          * 
+         * @param {string} storageProvisionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getStorageProvision: async (storageProvisionId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'storageProvisionId' is not null or undefined
+            assertParamExists('getStorageProvision', 'storageProvisionId', storageProvisionId)
+            const localVarPath = `/api/v1/server/storage-provisions/{storageProvisionId}`
+                .replace(`{${"storageProvisionId"}}`, encodeURIComponent(String(storageProvisionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -4826,6 +5187,16 @@ export const StorageProvisionsApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {string} storageProvisionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getStorageProvision(storageProvisionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getStorageProvision(storageProvisionId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
          * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -4875,6 +5246,15 @@ export const StorageProvisionsApiFactory = function (configuration?: Configurati
         },
         /**
          * 
+         * @param {StorageProvisionsApiGetStorageProvisionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getStorageProvision(requestParameters: StorageProvisionsApiGetStorageProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionGetResponse> {
+            return localVarFp.getStorageProvision(requestParameters.storageProvisionId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {StorageProvisionsApiListStorageProvisionsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -4918,6 +5298,20 @@ export interface StorageProvisionsApiDeleteStorageProvisionRequest {
      * 
      * @type {string}
      * @memberof StorageProvisionsApiDeleteStorageProvision
+     */
+    readonly storageProvisionId: string
+}
+
+/**
+ * Request parameters for getStorageProvision operation in StorageProvisionsApi.
+ * @export
+ * @interface StorageProvisionsApiGetStorageProvisionRequest
+ */
+export interface StorageProvisionsApiGetStorageProvisionRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionsApiGetStorageProvision
      */
     readonly storageProvisionId: string
 }
@@ -4984,6 +5378,17 @@ export class StorageProvisionsApi extends BaseAPI {
      */
     public deleteStorageProvision(requestParameters: StorageProvisionsApiDeleteStorageProvisionRequest, options?: AxiosRequestConfig) {
         return StorageProvisionsApiFp(this.configuration).deleteStorageProvision(requestParameters.storageProvisionId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {StorageProvisionsApiGetStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof StorageProvisionsApi
+     */
+    public getStorageProvision(requestParameters: StorageProvisionsApiGetStorageProvisionRequest, options?: AxiosRequestConfig) {
+        return StorageProvisionsApiFp(this.configuration).getStorageProvision(requestParameters.storageProvisionId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

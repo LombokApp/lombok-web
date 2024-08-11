@@ -2,10 +2,10 @@ import { removeDuplicates } from '@stellariscloud/utils'
 import clsx from 'clsx'
 import React from 'react'
 
-import { ServerSettingsForm } from '../../../components/server-settings-form/server-settings-form'
-import { apiClient } from '../../../services/api'
+import { ServerSettingsForm } from '../../../../components/server-settings-form/server-settings-form'
+import { apiClient } from '../../../../services/api'
 import { SettingsGetResponse } from '@stellariscloud/api-client'
-import { PageHeading } from '../../../design-system/page-heading/page-heading'
+import { PageHeading } from '../../../../design-system/page-heading/page-heading'
 import { Cog6ToothIcon } from '@heroicons/react/24/outline'
 
 export function ServerSettingsScreen() {

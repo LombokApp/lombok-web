@@ -1,7 +1,7 @@
 import { useAuthContext } from '@stellariscloud/auth-utils'
 import type { NextPage } from 'next'
 import React from 'react'
-import { ServerOverview } from '../../views/server/server-overview-screen/server-overview-screen.view'
+import { ServerOverview } from '../../views/server/overview/server-overview-screen/server-overview-screen.view'
 
 const ServerOverviewPage: NextPage = () => {
   const authContext = useAuthContext()

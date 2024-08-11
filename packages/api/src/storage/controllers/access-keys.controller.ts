@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   Req,
@@ -16,6 +17,7 @@ import { AuthGuard } from 'src/auth/guards/auth.guard'
 
 import { AccessKeyDTO } from '../dto/access-key.dto'
 import { AccessKeyListQueryParamsDTO } from '../dto/access-key-list-query-params.dto'
+import { AccessKeyGetResponse } from '../dto/responses/access-key-get-response.dto'
 import { AccessKeyListResponse } from '../dto/responses/access-key-list-response.dto'
 import { RotateAccessKeyInputDTO } from '../dto/rotate-access-key-input.dto'
 import { StorageLocationService } from '../storage-location.service'
@@ -50,16 +52,41 @@ export class AccessKeysController {
   }
 
   /**
+   * Get an access key by id.
+   */
+  @Get('/:endpointDomain/:accessKeyId')
+  async getAccessKey(
+    @Req() req: express.Request,
+    @Param('endpointDomain') endpointDomain: string,
+    @Param('accessKeyId') accessKeyId: string,
+  ): Promise<AccessKeyGetResponse> {
+    if (!req.user?.isAdmin) {
+      throw new UnauthorizedException()
+    }
+    const result = await this.storageLocationService.getAccessKeyAsUser(
+      req.user,
+      { endpointDomain, accessKeyId },
+    )
+    return { accessKey: result }
+  }
+
+  /**
    * Rotate an access key.
    */
-  @Post()
+  @Post('/:endpointDomain/:accessKeyId')
   async rotateAccessKey(
     @Req() req: express.Request,
+    @Param('endpointDomain') endpointDomain: string,
+    @Param('accessKeyId') accessKeyId: string,
     @Body() body: RotateAccessKeyInputDTO,
   ): Promise<void> {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    await this.storageLocationService.rotateAccessKeyAsUser(req.user, body)
+    await this.storageLocationService.rotateAccessKeyAsUser(req.user, {
+      accessKeyId,
+      endpointDomain,
+      newAccessKey: body,
+    })
   }
 }

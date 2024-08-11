@@ -78,7 +78,7 @@ async function main(): Promise<void> {
       ...S3_CREDENTIALS,
       bucket: process.env.DEV_S3_BUCKET_NAME ?? '',
       endpoint: 'https://m8.wasteofpaper.com',
-      endpointHost: 'm8.wasteofpaper.com',
+      endpointDomain: 'm8.wasteofpaper.com',
       label: 'https://m8.wasteofpaper.com utrecht-1 2ZpHPnybEUM0GtzD',
       providerType: 'USER',
       region: 'utrecht-1',

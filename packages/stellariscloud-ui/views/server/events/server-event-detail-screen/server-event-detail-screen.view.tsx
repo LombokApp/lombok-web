@@ -3,15 +3,15 @@ import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import { PageHeading } from '../../../design-system/page-heading/page-heading'
-import { apiClient } from '../../../services/api'
+import { PageHeading } from '../../../../design-system/page-heading/page-heading'
+import { apiClient } from '../../../../services/api'
 
 export function ServerEventDetailScreen() {
   const router = useRouter()
   const [event, setEvent] = React.useState<EventDTO>()
   React.useEffect(() => {
     if (typeof router.query.eventId === 'string') {
-      void apiClient.eventsApi
+      void apiClient.serverEventsApi
         .getEvent({ eventId: router.query.eventId })
         .then((u) => setEvent(u.data.event))
     }

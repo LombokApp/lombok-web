@@ -30,13 +30,26 @@ export interface AccessKeyDTO {
      * @type {string}
      * @memberof AccessKeyDTO
      */
-    'endpointHost': string;
+    'endpointDomain': string;
     /**
      *
      * @type {number}
      * @memberof AccessKeyDTO
      */
     'folderCount': number;
+}
+/**
+ *
+ * @export
+ * @interface AccessKeyGetResponse
+ */
+export interface AccessKeyGetResponse {
+    /**
+     *
+     * @type {AccessKeyListResponseResultInner}
+     * @memberof AccessKeyGetResponse
+     */
+    'accessKey': AccessKeyListResponseResultInner;
 }
 /**
  *
@@ -74,7 +87,7 @@ export interface AccessKeyListResponseResultInner {
      * @type {string}
      * @memberof AccessKeyListResponseResultInner
      */
-    'endpointHost': string;
+    'endpointDomain': string;
     /**
      *
      * @type {number}
@@ -1314,13 +1327,7 @@ export interface RotateAccessKeyInputDTO {
      * @type {string}
      * @memberof RotateAccessKeyInputDTO
      */
-    'newAccessKeyId': string;
-    /**
-     *
-     * @type {string}
-     * @memberof RotateAccessKeyInputDTO
-     */
-    'newSecretAccessKey': string;
+    'secretAccessKey': string;
 }
 /**
  *
@@ -1625,6 +1632,86 @@ export declare const StorageProvisionDTOProvisionTypesEnum: {
     readonly Backup: "BACKUP";
 };
 export type StorageProvisionDTOProvisionTypesEnum = typeof StorageProvisionDTOProvisionTypesEnum[keyof typeof StorageProvisionDTOProvisionTypesEnum];
+/**
+ *
+ * @export
+ * @interface StorageProvisionGetResponse
+ */
+export interface StorageProvisionGetResponse {
+    /**
+     *
+     * @type {StorageProvisionGetResponseStorageProvision}
+     * @memberof StorageProvisionGetResponse
+     */
+    'storageProvision': StorageProvisionGetResponseStorageProvision;
+}
+/**
+ *
+ * @export
+ * @interface StorageProvisionGetResponseStorageProvision
+ */
+export interface StorageProvisionGetResponseStorageProvision {
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'bucket': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'region': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'prefix'?: string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'provisionTypes': Array<StorageProvisionGetResponseStorageProvisionProvisionTypesEnum>;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'label': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'description': string;
+}
+export declare const StorageProvisionGetResponseStorageProvisionProvisionTypesEnum: {
+    readonly Content: "CONTENT";
+    readonly Metadata: "METADATA";
+    readonly Backup: "BACKUP";
+};
+export type StorageProvisionGetResponseStorageProvisionProvisionTypesEnum = typeof StorageProvisionGetResponseStorageProvisionProvisionTypesEnum[keyof typeof StorageProvisionGetResponseStorageProvisionProvisionTypesEnum];
 /**
  *
  * @export
@@ -2022,6 +2109,14 @@ export interface ViewerGetResponse {
 export declare const AccessKeysApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
+     * @param {string} endpointDomain
+     * @param {string} accessKeyId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAccessKey: (endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {*} [options] Override http request option.
@@ -2030,17 +2125,27 @@ export declare const AccessKeysApiAxiosParamCreator: (configuration?: Configurat
     listAccessKeys: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @param {string} endpointDomain
+     * @param {string} accessKeyId
      * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rotateAccessKey: (rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    rotateAccessKey: (endpointDomain: string, accessKeyId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * AccessKeysApi - functional programming interface
  * @export
  */
 export declare const AccessKeysApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {string} endpointDomain
+     * @param {string} accessKeyId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAccessKey(endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>>;
     /**
      *
      * @param {number} [offset]
@@ -2051,17 +2156,26 @@ export declare const AccessKeysApiFp: (configuration?: Configuration) => {
     listAccessKeys(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
     /**
      *
+     * @param {string} endpointDomain
+     * @param {string} accessKeyId
      * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rotateAccessKey(rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    rotateAccessKey(endpointDomain: string, accessKeyId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
 };
 /**
  * AccessKeysApi - factory interface
  * @export
  */
 export declare const AccessKeysApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {AccessKeysApiGetAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyGetResponse>;
     /**
      *
      * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
@@ -2077,6 +2191,25 @@ export declare const AccessKeysApiFactory: (configuration?: Configuration, baseP
      */
     rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
 };
+/**
+ * Request parameters for getAccessKey operation in AccessKeysApi.
+ * @export
+ * @interface AccessKeysApiGetAccessKeyRequest
+ */
+export interface AccessKeysApiGetAccessKeyRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeysApiGetAccessKey
+     */
+    readonly endpointDomain: string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeysApiGetAccessKey
+     */
+    readonly accessKeyId: string;
+}
 /**
  * Request parameters for listAccessKeys operation in AccessKeysApi.
  * @export
@@ -2104,6 +2237,18 @@ export interface AccessKeysApiListAccessKeysRequest {
 export interface AccessKeysApiRotateAccessKeyRequest {
     /**
      *
+     * @type {string}
+     * @memberof AccessKeysApiRotateAccessKey
+     */
+    readonly endpointDomain: string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeysApiRotateAccessKey
+     */
+    readonly accessKeyId: string;
+    /**
+     *
      * @type {RotateAccessKeyInputDTO}
      * @memberof AccessKeysApiRotateAccessKey
      */
@@ -2116,6 +2261,14 @@ export interface AccessKeysApiRotateAccessKeyRequest {
  * @extends {BaseAPI}
  */
 export declare class AccessKeysApi extends BaseAPI {
+    /**
+     *
+     * @param {AccessKeysApiGetAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessKeysApi
+     */
+    getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyGetResponse, any>>;
     /**
      *
      * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
@@ -3171,6 +3324,14 @@ export declare class ServerApi extends BaseAPI {
 export declare const ServerAccessKeysApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
+     * @param {string} endpointDomain
+     * @param {string} accessKeyId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getServerAccessKey: (endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {*} [options] Override http request option.
@@ -3179,17 +3340,27 @@ export declare const ServerAccessKeysApiAxiosParamCreator: (configuration?: Conf
     listServerAccessKeys: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @param {string} endpointDomain
+     * @param {string} accessKeyId
      * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rotateAccessKey: (rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    rotateAccessKey: (endpointDomain: string, accessKeyId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * ServerAccessKeysApi - functional programming interface
  * @export
  */
 export declare const ServerAccessKeysApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {string} endpointDomain
+     * @param {string} accessKeyId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getServerAccessKey(endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>>;
     /**
      *
      * @param {number} [offset]
@@ -3200,17 +3371,26 @@ export declare const ServerAccessKeysApiFp: (configuration?: Configuration) => {
     listServerAccessKeys(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
     /**
      *
+     * @param {string} endpointDomain
+     * @param {string} accessKeyId
      * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rotateAccessKey(rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    rotateAccessKey(endpointDomain: string, accessKeyId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
 };
 /**
  * ServerAccessKeysApi - factory interface
  * @export
  */
 export declare const ServerAccessKeysApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {ServerAccessKeysApiGetServerAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyGetResponse>;
     /**
      *
      * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
@@ -3226,6 +3406,25 @@ export declare const ServerAccessKeysApiFactory: (configuration?: Configuration,
      */
     rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
 };
+/**
+ * Request parameters for getServerAccessKey operation in ServerAccessKeysApi.
+ * @export
+ * @interface ServerAccessKeysApiGetServerAccessKeyRequest
+ */
+export interface ServerAccessKeysApiGetServerAccessKeyRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerAccessKeysApiGetServerAccessKey
+     */
+    readonly endpointDomain: string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerAccessKeysApiGetServerAccessKey
+     */
+    readonly accessKeyId: string;
+}
 /**
  * Request parameters for listServerAccessKeys operation in ServerAccessKeysApi.
  * @export
@@ -3253,6 +3452,18 @@ export interface ServerAccessKeysApiListServerAccessKeysRequest {
 export interface ServerAccessKeysApiRotateAccessKeyRequest {
     /**
      *
+     * @type {string}
+     * @memberof ServerAccessKeysApiRotateAccessKey
+     */
+    readonly endpointDomain: string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerAccessKeysApiRotateAccessKey
+     */
+    readonly accessKeyId: string;
+    /**
+     *
      * @type {RotateAccessKeyInputDTO}
      * @memberof ServerAccessKeysApiRotateAccessKey
      */
@@ -3265,6 +3476,14 @@ export interface ServerAccessKeysApiRotateAccessKeyRequest {
  * @extends {BaseAPI}
  */
 export declare class ServerAccessKeysApi extends BaseAPI {
+    /**
+     *
+     * @param {ServerAccessKeysApiGetServerAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerAccessKeysApi
+     */
+    getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyGetResponse, any>>;
     /**
      *
      * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
@@ -3421,6 +3640,13 @@ export declare const StorageProvisionsApiAxiosParamCreator: (configuration?: Con
     deleteStorageProvision: (storageProvisionId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @param {string} storageProvisionId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getStorageProvision: (storageProvisionId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
      * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3456,6 +3682,13 @@ export declare const StorageProvisionsApiFp: (configuration?: Configuration) => 
     deleteStorageProvision(storageProvisionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionListResponse>>;
     /**
      *
+     * @param {string} storageProvisionId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getStorageProvision(storageProvisionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionGetResponse>>;
+    /**
+     *
      * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3489,6 +3722,13 @@ export declare const StorageProvisionsApiFactory: (configuration?: Configuration
      * @throws {RequiredError}
      */
     deleteStorageProvision(requestParameters: StorageProvisionsApiDeleteStorageProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionListResponse>;
+    /**
+     *
+     * @param {StorageProvisionsApiGetStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getStorageProvision(requestParameters: StorageProvisionsApiGetStorageProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionGetResponse>;
     /**
      *
      * @param {StorageProvisionsApiListStorageProvisionsRequest} requestParameters Request parameters.
@@ -3527,6 +3767,19 @@ export interface StorageProvisionsApiDeleteStorageProvisionRequest {
      *
      * @type {string}
      * @memberof StorageProvisionsApiDeleteStorageProvision
+     */
+    readonly storageProvisionId: string;
+}
+/**
+ * Request parameters for getStorageProvision operation in StorageProvisionsApi.
+ * @export
+ * @interface StorageProvisionsApiGetStorageProvisionRequest
+ */
+export interface StorageProvisionsApiGetStorageProvisionRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionsApiGetStorageProvision
      */
     readonly storageProvisionId: string;
 }
@@ -3585,6 +3838,14 @@ export declare class StorageProvisionsApi extends BaseAPI {
      * @memberof StorageProvisionsApi
      */
     deleteStorageProvision(requestParameters: StorageProvisionsApiDeleteStorageProvisionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<StorageProvisionListResponse, any>>;
+    /**
+     *
+     * @param {StorageProvisionsApiGetStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof StorageProvisionsApi
+     */
+    getStorageProvision(requestParameters: StorageProvisionsApiGetStorageProvisionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<StorageProvisionGetResponse, any>>;
     /**
      *
      * @param {StorageProvisionsApiListStorageProvisionsRequest} requestParameters Request parameters.

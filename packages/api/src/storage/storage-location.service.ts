@@ -9,6 +9,7 @@ import { OrmService } from 'src/orm/orm.service'
 import { S3Service } from 'src/storage/s3.service'
 import { User } from 'src/users/entities/user.entity'
 
+import { AccessKeyDTO } from './dto/access-key.dto'
 import { RotateAccessKeyInputDTO } from './dto/rotate-access-key-input.dto'
 import { storageLocationsTable } from './entities/storage-location.entity'
 
@@ -46,11 +47,11 @@ export class StorageLocationService {
     },
   ) {
     const accessKeys: {
-      endpointHost: string
+      endpointDomain: string
       accessKeyId: string
     }[] = await this.ormService.db
       .selectDistinct({
-        endpointHost: storageLocationsTable.endpointHost,
+        endpointDomain: storageLocationsTable.endpointDomain,
         accessKeyId: storageLocationsTable.accessKeyId,
       })
       .from(storageLocationsTable)
@@ -70,7 +71,7 @@ export class StorageLocationService {
     const accessKeysCountResult: { count: number }[] = await this.ormService.db
       .select({
         count: countDistinct([
-          storageLocationsTable.endpointHost,
+          storageLocationsTable.endpointDomain,
           storageLocationsTable.accessKeyId,
         ] as unknown as SQLWrapper), // TODO: not sure why this type hack is necessary
       })
@@ -83,12 +84,12 @@ export class StorageLocationService {
       )
 
     const folderCounts: {
-      endpointHost: string
+      endpointDomain: string
       accessKeyId: string
       count: number
     }[] = await this.ormService.db
       .select({
-        endpointHost: storageLocationsTable.endpointHost,
+        endpointDomain: storageLocationsTable.endpointDomain,
         accessKeyId: storageLocationsTable.accessKeyId,
         count: countDistinct(foldersTable),
       })
@@ -101,7 +102,7 @@ export class StorageLocationService {
         ),
       )
       .groupBy(
-        storageLocationsTable.endpointHost,
+        storageLocationsTable.endpointDomain,
         storageLocationsTable.accessKeyId,
       )
       .where(
@@ -114,7 +115,7 @@ export class StorageLocationService {
     const mappedFolderCounts = folderCounts.reduce(
       (acc, next) => ({
         ...acc,
-        [`${next.endpointHost}_${next.accessKeyId}`]: next.count,
+        [`${next.endpointDomain}_${next.accessKeyId}`]: next.count,
       }),
       {},
     )
@@ -123,17 +124,25 @@ export class StorageLocationService {
         ...accessKey,
         folderCount:
           mappedFolderCounts[
-            `${accessKey.endpointHost}_${accessKey.accessKeyId}`
+            `${accessKey.endpointDomain}_${accessKey.accessKeyId}`
           ] ?? 0,
       })),
       meta: { totalCount: accessKeysCountResult[0].count },
     }
   }
 
-  async rotateAccessKeyAsUser(actor: User, input: RotateAccessKeyInputDTO) {
-    // the where clause for all storage locations owned by this user and matching the given accessKeyId
+  async rotateAccessKeyAsUser(
+    actor: User,
+    input: {
+      accessKeyId: string
+      endpointDomain: string
+      newAccessKey: RotateAccessKeyInputDTO
+    },
+  ) {
+    // the where clause for all storage locations owned by this user and matching the given input
     const where = and(
       eq(storageLocationsTable.accessKeyId, input.accessKeyId),
+      eq(storageLocationsTable.endpointDomain, input.endpointDomain),
       eq(storageLocationsTable.userId, actor.id),
       eq(storageLocationsTable.providerType, 'USER'),
     )
@@ -144,17 +153,70 @@ export class StorageLocationService {
       })
 
     if (!accessKeyLocation) {
-      // no storage locations exist matching the given accessKeyId
+      // no storage locations exist matching the given input
       throw new NotFoundException()
     }
 
     await this.ormService.db
       .update(storageLocationsTable)
       .set({
-        accessKeyId: input.newAccessKeyId,
-        secretAccessKey: input.newSecretAccessKey,
+        accessKeyId: input.newAccessKey.accessKeyId,
+        secretAccessKey: input.newAccessKey.secretAccessKey,
       })
       .where(where)
+  }
+
+  async getAccessKeyAsUser(
+    actor: User,
+    input: { endpointDomain: string; accessKeyId: string },
+  ): Promise<AccessKeyDTO> {
+    const accessKeyLocation =
+      await this.ormService.db.query.storageLocationsTable.findFirst({
+        where: and(
+          eq(storageLocationsTable.accessKeyId, input.accessKeyId),
+          eq(storageLocationsTable.endpointDomain, input.endpointDomain),
+          eq(storageLocationsTable.userId, actor.id),
+          eq(storageLocationsTable.providerType, 'USER'),
+        ),
+      })
+
+    if (!accessKeyLocation) {
+      // no storage locations exist matching the given input
+      throw new NotFoundException()
+    }
+    return {
+      accessKeyId: accessKeyLocation.accessKeyId,
+      endpointDomain: accessKeyLocation.endpointDomain,
+      folderCount: 1,
+    }
+  }
+
+  async getServerAccessKeyAsAdmin(
+    actor: User,
+    input: { endpointDomain: string; accessKeyId: string },
+  ): Promise<AccessKeyDTO> {
+    if (!actor.isAdmin) {
+      throw new UnauthorizedException()
+    }
+
+    const accessKeyLocation =
+      await this.ormService.db.query.storageLocationsTable.findFirst({
+        where: and(
+          eq(storageLocationsTable.accessKeyId, input.accessKeyId),
+          eq(storageLocationsTable.endpointDomain, input.endpointDomain),
+          eq(storageLocationsTable.providerType, 'SERVER'),
+        ),
+      })
+
+    if (!accessKeyLocation) {
+      // no storage locations exist matching the given input
+      throw new NotFoundException()
+    }
+    return {
+      accessKeyId: accessKeyLocation.accessKeyId,
+      endpointDomain: accessKeyLocation.endpointDomain,
+      folderCount: 1,
+    }
   }
 
   async listServerAccessKeysAsAdmin(
@@ -171,11 +233,11 @@ export class StorageLocationService {
       throw new UnauthorizedException()
     }
     const accessKeys: {
-      endpointHost: string
+      endpointDomain: string
       accessKeyId: string
     }[] = await this.ormService.db
       .selectDistinct({
-        endpointHost: storageLocationsTable.endpointHost,
+        endpointDomain: storageLocationsTable.endpointDomain,
         accessKeyId: storageLocationsTable.accessKeyId,
       })
       .from(storageLocationsTable)
@@ -190,7 +252,7 @@ export class StorageLocationService {
     const accessKeysCountResult: { count: number }[] = await this.ormService.db
       .select({
         count: countDistinct([
-          storageLocationsTable.endpointHost,
+          storageLocationsTable.endpointDomain,
           storageLocationsTable.accessKeyId,
         ] as unknown as SQLWrapper), // TODO: not sure why this type hack is necessary
       })
@@ -198,12 +260,12 @@ export class StorageLocationService {
       .where(and(eq(storageLocationsTable.providerType, 'SERVER')))
 
     const folderCounts: {
-      endpointHost: string
+      endpointDomain: string
       accessKeyId: string
       count: number
     }[] = await this.ormService.db
       .select({
-        endpointHost: storageLocationsTable.endpointHost,
+        endpointDomain: storageLocationsTable.endpointDomain,
         accessKeyId: storageLocationsTable.accessKeyId,
         count: countDistinct(foldersTable),
       })
@@ -216,7 +278,7 @@ export class StorageLocationService {
         ),
       )
       .groupBy(
-        storageLocationsTable.endpointHost,
+        storageLocationsTable.endpointDomain,
         storageLocationsTable.accessKeyId,
       )
       .where(
@@ -229,7 +291,7 @@ export class StorageLocationService {
     const mappedFolderCounts = folderCounts.reduce(
       (acc, next) => ({
         ...acc,
-        [`${next.endpointHost}_${next.accessKeyId}`]: next.count,
+        [`${next.endpointDomain}_${next.accessKeyId}`]: next.count,
       }),
       {},
     )
@@ -238,21 +300,29 @@ export class StorageLocationService {
         ...accessKey,
         folderCount:
           mappedFolderCounts[
-            `${accessKey.endpointHost}_${accessKey.accessKeyId}`
+            `${accessKey.endpointDomain}_${accessKey.accessKeyId}`
           ] ?? 0,
       })),
       meta: { totalCount: accessKeysCountResult[0].count },
     }
   }
 
-  async rotateAccessKeyAsAdmin(actor: User, input: RotateAccessKeyInputDTO) {
+  async rotateAccessKeyAsAdmin(
+    actor: User,
+    input: {
+      accessKeyId: string
+      endpointDomain: string
+      newAccessKey: RotateAccessKeyInputDTO
+    },
+  ) {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
 
-    // the where clause for all storage locations owned by the server and matching the given accessKeyId
+    // the where clause for all storage locations owned by the server and matching the given input
     const where = and(
       eq(storageLocationsTable.accessKeyId, input.accessKeyId),
+      eq(storageLocationsTable.endpointDomain, input.endpointDomain),
       eq(storageLocationsTable.providerType, 'SERVER'),
     )
 
@@ -262,15 +332,15 @@ export class StorageLocationService {
       })
 
     if (!accessKeyLocation) {
-      // no storage locations exist matching the given accessKeyId
+      // no storage locations exist matching the given input
       throw new NotFoundException()
     }
 
     await this.ormService.db
       .update(storageLocationsTable)
       .set({
-        accessKeyId: input.newAccessKeyId,
-        secretAccessKey: input.newSecretAccessKey,
+        accessKeyId: input.newAccessKey.accessKeyId,
+        secretAccessKey: input.newAccessKey.secretAccessKey,
       })
       .where(where)
   }
