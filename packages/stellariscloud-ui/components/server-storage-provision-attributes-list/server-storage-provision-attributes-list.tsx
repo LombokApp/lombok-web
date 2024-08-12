@@ -6,7 +6,7 @@ const ROW_SPACING = 'px-4 py-3'
 const LABEL_TEXT_COLOR = 'text-gray-500 dark:text-white'
 const VALUE_TEXT_COLOR = 'text-black dark:text-white'
 
-export function ServerStorageProvisionAttributeList({
+export function ServerStorageProvisionAttributesList({
   storageProvision,
 }: {
   storageProvision?: StorageProvisionDTO

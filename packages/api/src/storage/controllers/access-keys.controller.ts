@@ -17,6 +17,7 @@ import { AuthGuard } from 'src/auth/guards/auth.guard'
 
 import { AccessKeyDTO } from '../dto/access-key.dto'
 import { AccessKeyListQueryParamsDTO } from '../dto/access-key-list-query-params.dto'
+import { AccessKeyBucketsListResponse } from '../dto/responses/access-key-buckets-list-response.dto'
 import { AccessKeyGetResponse } from '../dto/responses/access-key-get-response.dto'
 import { AccessKeyListResponse } from '../dto/responses/access-key-list-response.dto'
 import { RotateAccessKeyInputDTO } from '../dto/rotate-access-key-input.dto'
@@ -88,5 +89,30 @@ export class AccessKeysController {
       endpointDomain,
       newAccessKey: body,
     })
+  }
+
+  /**
+   * List buckets for an access key.
+   */
+  @Get('/:endpointDomain/:accessKeyId/buckets')
+  async listAccessKeyBuckets(
+    @Req() req: express.Request,
+    @Param('endpointDomain') endpointDomain: string,
+    @Param('accessKeyId') accessKeyId: string,
+  ): Promise<AccessKeyBucketsListResponse> {
+    if (!req.user?.isAdmin) {
+      throw new UnauthorizedException()
+    }
+    const result = await this.storageLocationService.listAccessKeyBucketAsUser(
+      req.user,
+      { endpointDomain, accessKeyId },
+    )
+    return {
+      result:
+        result.Buckets?.map((bucket) => ({
+          name: bucket.Name ?? '',
+          createdDate: bucket.CreationDate,
+        })) ?? [],
+    }
   }
 }

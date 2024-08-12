@@ -63,6 +63,28 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
           <dt
             className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
           >
+            Public Key
+          </dt>
+          <dd
+            className={clsx(
+              'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
+              VALUE_TEXT_COLOR,
+            )}
+          >
+            <pre className="bg-gray-100 dark:bg-black/20 p-4 py-2 rounded-md">
+              {app?.config.publicKey}
+            </pre>
+          </dd>
+        </div>
+        <div
+          className={clsx(
+            'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
+            ROW_SPACING,
+          )}
+        >
+          <dt
+            className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
+          >
             Emit Events
           </dt>
           <dd

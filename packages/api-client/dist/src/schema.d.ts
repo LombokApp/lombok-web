@@ -841,6 +841,42 @@ export declare const schema: {
                 }];
             };
         };
+        readonly "/api/v1/access-keys/{endpointDomain}/{accessKeyId}/buckets": {
+            readonly get: {
+                readonly operationId: "listAccessKeyBuckets";
+                readonly parameters: readonly [{
+                    readonly name: "endpointDomain";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "accessKeyId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "List buckets for an access key.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/AccessKeyBucketsListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["AccessKeys"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
         readonly "/api/v1/server/access-keys": {
             readonly get: {
                 readonly operationId: "listServerAccessKeys";
@@ -2643,6 +2679,28 @@ export declare const schema: {
                     };
                 };
                 readonly required: readonly ["accessKeyId", "secretAccessKey"];
+            };
+            readonly AccessKeyBucketsListResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly result: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "object";
+                            readonly properties: {
+                                readonly name: {
+                                    readonly type: "string";
+                                };
+                                readonly createdDate: {
+                                    readonly type: "string";
+                                    readonly format: "date-time";
+                                };
+                            };
+                            readonly required: readonly ["name"];
+                        };
+                    };
+                };
+                readonly required: readonly ["result"];
             };
             readonly SettingsGetResponse: {
                 readonly type: "object";

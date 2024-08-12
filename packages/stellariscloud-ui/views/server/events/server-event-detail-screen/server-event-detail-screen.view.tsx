@@ -5,6 +5,7 @@ import React from 'react'
 
 import { PageHeading } from '../../../../design-system/page-heading/page-heading'
 import { apiClient } from '../../../../services/api'
+import { ServerEventAttributesList } from '../../../../components/server-event-attributes-list/server-event-attributes-list'
 
 export function ServerEventDetailScreen() {
   const router = useRouter()
@@ -30,11 +31,7 @@ export function ServerEventDetailScreen() {
             avatarKey={event?.id}
             title={[`Server Event ID: ${event?.id}`]}
           />
-          <div className="text-gray-800 dark:text-white">
-            <div className="inline-block min-w-full py-2 align-middle">
-              <pre>{JSON.stringify(event, null, 2)}</pre>
-            </div>
-          </div>
+          <ServerEventAttributesList event={event} />
         </div>
       </div>
     </>

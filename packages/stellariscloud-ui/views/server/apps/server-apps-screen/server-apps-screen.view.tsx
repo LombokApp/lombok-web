@@ -43,7 +43,7 @@ export function ServerAppsScreen() {
               installedApps?.map((app) => (
                 <Link
                   href={`/server/apps/${app.identifier}`}
-                  className="w-full flex-1"
+                  className="w-full flex-1 p-4 py-2"
                 >
                   <div className="flex justify-between flex-1 items-center gap-x-4 text-gray-700 dark:text-gray-100">
                     <Avatar

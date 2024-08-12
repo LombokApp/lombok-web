@@ -16,6 +16,38 @@ import { BaseAPI } from './base';
 /**
  *
  * @export
+ * @interface AccessKeyBucketsListResponse
+ */
+export interface AccessKeyBucketsListResponse {
+    /**
+     *
+     * @type {Array<AccessKeyBucketsListResponseResultInner>}
+     * @memberof AccessKeyBucketsListResponse
+     */
+    'result': Array<AccessKeyBucketsListResponseResultInner>;
+}
+/**
+ *
+ * @export
+ * @interface AccessKeyBucketsListResponseResultInner
+ */
+export interface AccessKeyBucketsListResponseResultInner {
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyBucketsListResponseResultInner
+     */
+    'name': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyBucketsListResponseResultInner
+     */
+    'createdDate'?: string;
+}
+/**
+ *
+ * @export
  * @interface AccessKeyDTO
  */
 export interface AccessKeyDTO {
@@ -2117,6 +2149,14 @@ export declare const AccessKeysApiAxiosParamCreator: (configuration?: Configurat
     getAccessKey: (endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @param {string} endpointDomain
+     * @param {string} accessKeyId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAccessKeyBuckets: (endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {*} [options] Override http request option.
@@ -2146,6 +2186,14 @@ export declare const AccessKeysApiFp: (configuration?: Configuration) => {
      * @throws {RequiredError}
      */
     getAccessKey(endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>>;
+    /**
+     *
+     * @param {string} endpointDomain
+     * @param {string} accessKeyId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAccessKeyBuckets(endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyBucketsListResponse>>;
     /**
      *
      * @param {number} [offset]
@@ -2178,6 +2226,13 @@ export declare const AccessKeysApiFactory: (configuration?: Configuration, baseP
     getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyGetResponse>;
     /**
      *
+     * @param {AccessKeysApiListAccessKeyBucketsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyBucketsListResponse>;
+    /**
+     *
      * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2207,6 +2262,25 @@ export interface AccessKeysApiGetAccessKeyRequest {
      *
      * @type {string}
      * @memberof AccessKeysApiGetAccessKey
+     */
+    readonly accessKeyId: string;
+}
+/**
+ * Request parameters for listAccessKeyBuckets operation in AccessKeysApi.
+ * @export
+ * @interface AccessKeysApiListAccessKeyBucketsRequest
+ */
+export interface AccessKeysApiListAccessKeyBucketsRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeysApiListAccessKeyBuckets
+     */
+    readonly endpointDomain: string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeysApiListAccessKeyBuckets
      */
     readonly accessKeyId: string;
 }
@@ -2269,6 +2343,14 @@ export declare class AccessKeysApi extends BaseAPI {
      * @memberof AccessKeysApi
      */
     getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyGetResponse, any>>;
+    /**
+     *
+     * @param {AccessKeysApiListAccessKeyBucketsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessKeysApi
+     */
+    listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyBucketsListResponse, any>>;
     /**
      *
      * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.

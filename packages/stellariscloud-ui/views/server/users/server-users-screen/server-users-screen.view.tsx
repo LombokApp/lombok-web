@@ -43,8 +43,11 @@ export function ServerUsersScreen() {
           <div className="inline-block min-w-full py-2 align-middle">
             <StackedList
               items={users.map((u, i) => (
-                <Link href={`/server/users/${u.id}`} className="w-full">
-                  <div className="flex min-w-0 gap-x-4">
+                <Link
+                  href={`/server/users/${u.id}`}
+                  className="w-full p-4 py-2"
+                >
+                  <div className="flex min-w-0 gap-x-4 items-center">
                     <Avatar
                       uniqueKey={u.id}
                       size="sm"

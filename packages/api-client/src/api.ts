@@ -26,6 +26,38 @@ import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError } from './base';
 /**
  * 
  * @export
+ * @interface AccessKeyBucketsListResponse
+ */
+export interface AccessKeyBucketsListResponse {
+    /**
+     * 
+     * @type {Array<AccessKeyBucketsListResponseResultInner>}
+     * @memberof AccessKeyBucketsListResponse
+     */
+    'result': Array<AccessKeyBucketsListResponseResultInner>;
+}
+/**
+ * 
+ * @export
+ * @interface AccessKeyBucketsListResponseResultInner
+ */
+export interface AccessKeyBucketsListResponseResultInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyBucketsListResponseResultInner
+     */
+    'name': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyBucketsListResponseResultInner
+     */
+    'createdDate'?: string;
+}
+/**
+ * 
+ * @export
  * @interface AccessKeyDTO
  */
 export interface AccessKeyDTO {
@@ -2178,6 +2210,47 @@ export const AccessKeysApiAxiosParamCreator = function (configuration?: Configur
         },
         /**
          * 
+         * @param {string} endpointDomain 
+         * @param {string} accessKeyId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listAccessKeyBuckets: async (endpointDomain: string, accessKeyId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'endpointDomain' is not null or undefined
+            assertParamExists('listAccessKeyBuckets', 'endpointDomain', endpointDomain)
+            // verify required parameter 'accessKeyId' is not null or undefined
+            assertParamExists('listAccessKeyBuckets', 'accessKeyId', accessKeyId)
+            const localVarPath = `/api/v1/access-keys/{endpointDomain}/{accessKeyId}/buckets`
+                .replace(`{${"endpointDomain"}}`, encodeURIComponent(String(endpointDomain)))
+                .replace(`{${"accessKeyId"}}`, encodeURIComponent(String(accessKeyId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {number} [offset] 
          * @param {number} [limit] 
          * @param {*} [options] Override http request option.
@@ -2289,6 +2362,17 @@ export const AccessKeysApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {string} endpointDomain 
+         * @param {string} accessKeyId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listAccessKeyBuckets(endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyBucketsListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listAccessKeyBuckets(endpointDomain, accessKeyId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
          * @param {number} [offset] 
          * @param {number} [limit] 
          * @param {*} [options] Override http request option.
@@ -2331,6 +2415,15 @@ export const AccessKeysApiFactory = function (configuration?: Configuration, bas
         },
         /**
          * 
+         * @param {AccessKeysApiListAccessKeyBucketsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyBucketsListResponse> {
+            return localVarFp.listAccessKeyBuckets(requestParameters.endpointDomain, requestParameters.accessKeyId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2367,6 +2460,27 @@ export interface AccessKeysApiGetAccessKeyRequest {
      * 
      * @type {string}
      * @memberof AccessKeysApiGetAccessKey
+     */
+    readonly accessKeyId: string
+}
+
+/**
+ * Request parameters for listAccessKeyBuckets operation in AccessKeysApi.
+ * @export
+ * @interface AccessKeysApiListAccessKeyBucketsRequest
+ */
+export interface AccessKeysApiListAccessKeyBucketsRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeysApiListAccessKeyBuckets
+     */
+    readonly endpointDomain: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeysApiListAccessKeyBuckets
      */
     readonly accessKeyId: string
 }
@@ -2436,6 +2550,17 @@ export class AccessKeysApi extends BaseAPI {
      */
     public getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: AxiosRequestConfig) {
         return AccessKeysApiFp(this.configuration).getAccessKey(requestParameters.endpointDomain, requestParameters.accessKeyId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {AccessKeysApiListAccessKeyBucketsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessKeysApi
+     */
+    public listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: AxiosRequestConfig) {
+        return AccessKeysApiFp(this.configuration).listAccessKeyBuckets(requestParameters.endpointDomain, requestParameters.accessKeyId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

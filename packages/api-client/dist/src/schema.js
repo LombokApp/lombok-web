@@ -1005,6 +1005,49 @@ export const schema = {
                 ]
             }
         },
+        "/api/v1/access-keys/{endpointDomain}/{accessKeyId}/buckets": {
+            "get": {
+                "operationId": "listAccessKeyBuckets",
+                "parameters": [
+                    {
+                        "name": "endpointDomain",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "accessKeyId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List buckets for an access key.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessKeyBucketsListResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "AccessKeys"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
         "/api/v1/server/access-keys": {
             "get": {
                 "operationId": "listServerAccessKeys",
@@ -3324,6 +3367,32 @@ export const schema = {
                 "required": [
                     "accessKeyId",
                     "secretAccessKey"
+                ]
+            },
+            "AccessKeyBucketsListResponse": {
+                "type": "object",
+                "properties": {
+                    "result": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "createdDate": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                }
+                            },
+                            "required": [
+                                "name"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "result"
                 ]
             },
             "SettingsGetResponse": {

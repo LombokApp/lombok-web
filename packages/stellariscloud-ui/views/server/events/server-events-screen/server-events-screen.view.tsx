@@ -43,7 +43,7 @@ export function ServerEventsScreen() {
             items={events.map((event, i) => (
               <Link
                 href={`/server/events/${event.id}`}
-                className="w-full flex-1"
+                className="w-full flex-1 p-2"
               >
                 <div className="flex justify-between flex-1 items-center gap-x-4">
                   <div key={i} className="flex items-center gap-4">

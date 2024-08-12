@@ -169,17 +169,6 @@ export class S3Service {
     bucket: string
     objectKey: string
   }) {
-    console.log('START createS3PresignedUrls')
-    console.log({
-      accessKeyId,
-      secretAccessKey,
-      region,
-      endpoint,
-      bucket,
-      objectKey,
-      method: SignedURLsRequestMethod.GET,
-      expirySeconds: 3600,
-    })
     const url = this.createS3PresignedUrls([
       {
         accessKeyId,
@@ -192,7 +181,6 @@ export class S3Service {
         expirySeconds: 3600,
       },
     ])[0]
-    console.log('createS3PresignedUrls:', { url })
 
     const getObjectResponse = await axios.get(url).catch((e) => {
       console.log('Error getting object:', e)

@@ -6,7 +6,7 @@ import {
 import { and, countDistinct, eq, or, SQLWrapper } from 'drizzle-orm'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { OrmService } from 'src/orm/orm.service'
-import { S3Service } from 'src/storage/s3.service'
+import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { User } from 'src/users/entities/user.entity'
 
 import { AccessKeyDTO } from './dto/access-key.dto'
@@ -164,6 +164,38 @@ export class StorageLocationService {
         secretAccessKey: input.newAccessKey.secretAccessKey,
       })
       .where(where)
+  }
+
+  async listAccessKeyBucketAsUser(
+    actor: User,
+    input: {
+      endpointDomain: string
+      accessKeyId: string
+    },
+  ) {
+    const accessKey = await this.getAccessKeyAsUser(actor, input)
+    const location =
+      await this.ormService.db.query.storageLocationsTable.findFirst({
+        where: and(
+          eq(storageLocationsTable.accessKeyId, input.accessKeyId),
+          eq(storageLocationsTable.endpointDomain, input.endpointDomain),
+          eq(storageLocationsTable.userId, actor.id),
+          eq(storageLocationsTable.providerType, 'USER'),
+        ),
+      })
+    if (!location) {
+      throw new NotFoundException()
+    }
+    const buckets = await this.s3Service.s3ListBuckets({
+      s3Client: configureS3Client({
+        accessKeyId: accessKey.accessKeyId,
+        secretAccessKey: location.secretAccessKey,
+        endpoint: location.endpoint,
+        region: location.region,
+      }),
+    })
+
+    return buckets
   }
 
   async getAccessKeyAsUser(

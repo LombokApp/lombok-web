@@ -18,7 +18,7 @@ export function AccessKeysList({
           className="w-full"
           href={`${urlPrefix}/${encodeURIComponent(accessKey.endpointDomain)}/${encodeURIComponent(accessKey.accessKeyId)}`}
         >
-          <div className="flex justify-between flex-1 items-center gap-x-4">
+          <div className="flex justify-between flex-1 items-center gap-x-4 p-4 py-2">
             <div className="flex min-w-0 gap-x-4 items-center">
               <Avatar
                 uniqueKey={accessKey.accessKeyId}

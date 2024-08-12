@@ -129,7 +129,7 @@ export const NavSidebar = ({
                 ))}
               </ul>
             </div>
-            {menuItems.length && (
+            {menuItems.length > 0 && (
               <div className="">
                 <div className="pl-2 text-xs font-semibold leading-6 text-gray-400">
                   Apps

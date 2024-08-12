@@ -5,7 +5,7 @@ import React from 'react'
 import { PageHeading } from '../../../../design-system/page-heading/page-heading'
 import { apiClient } from '../../../../services/api'
 import { StorageProvisionDTO } from '@stellariscloud/api-client'
-import { ServerStorageProvisionAttributeList } from '../../../../components/server-storage-provision-attributes-list/server-storage-provision-attributes-list'
+import { ServerStorageProvisionAttributesList } from '../../../../components/server-storage-provision-attributes-list/server-storage-provision-attributes-list'
 
 export function ServerStorageProvisionDetailScreen() {
   const router = useRouter()
@@ -74,7 +74,7 @@ export function ServerStorageProvisionDetailScreen() {
             title={[`Storage Provision: ${storageProvision?.label}`]}
             subtitle={storageProvision?.description}
           />
-          <ServerStorageProvisionAttributeList
+          <ServerStorageProvisionAttributesList
             storageProvision={storageProvision}
           />
         </div>

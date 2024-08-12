@@ -30,7 +30,7 @@ export function StorageProvisionsList({
           className="w-full"
           href={`/server/storage/provisions/${storageProvision.id}`}
         >
-          <div className="flex justify-between flex-1 items-center gap-x-4">
+          <div className="flex justify-between flex-1 items-center gap-x-4 p-4 py-2">
             <div className="min-w-0 flex-auto">
               <p className="text-sm font-semibold leading-6 text-gray-900 dark:text-white">
                 {storageProvision.label}{' '}

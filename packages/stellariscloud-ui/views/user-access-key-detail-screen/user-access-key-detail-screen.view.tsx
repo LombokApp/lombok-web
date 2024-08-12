@@ -10,6 +10,8 @@ import { AccessKeyRotateForm } from '../../components/access-key-rotate-form/acc
 export function UserAccessKeyDetailScreen() {
   const router = useRouter()
   const [accessKey, setAccessKey] = React.useState<AccessKeyDTO>()
+  const [accessKeyBuckets, setAccessKeyBuckets] =
+    React.useState<{ name?: string; creationDate?: Date }[]>()
 
   const fetchAccessKey = React.useCallback(
     ({
@@ -26,6 +28,21 @@ export function UserAccessKeyDetailScreen() {
     [],
   )
 
+  const fetchAccessKeyBuckets = React.useCallback(
+    ({
+      accessKeyId,
+      endpointDomain,
+    }: {
+      accessKeyId: string
+      endpointDomain: string
+    }) => {
+      void apiClient.accessKeysApi
+        .listAccessKeyBuckets({ accessKeyId, endpointDomain })
+        .then((resp) => setAccessKeyBuckets(resp.data.result))
+    },
+    [],
+  )
+
   React.useEffect(() => {
     if (
       typeof router.query.accessKeyId === 'string' &&
@@ -33,6 +50,10 @@ export function UserAccessKeyDetailScreen() {
       !accessKey
     ) {
       void fetchAccessKey({
+        accessKeyId: router.query.accessKeyId,
+        endpointDomain: router.query.endpointDomain,
+      })
+      void fetchAccessKeyBuckets({
         accessKeyId: router.query.accessKeyId,
         endpointDomain: router.query.endpointDomain,
       })
@@ -87,6 +108,11 @@ export function UserAccessKeyDetailScreen() {
           {accessKey && (
             <AccessKeyRotateForm onSubmit={(input) => handleRotate(input)} />
           )}
+          <div className="flex flex-col">
+            {accessKeyBuckets?.map(({ name, creationDate }) => (
+              <div>{name}</div>
+            ))}
+          </div>
         </div>
       </div>
     </>
