@@ -1,5 +1,5 @@
 {
-  "id": "0562e044-a3fd-4a64-86ba-f606b9200e9a",
+  "id": "69820727-3242-4b59-a872-0f978fa11226",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -420,6 +420,12 @@
           "name": "id",
           "type": "uuid",
           "primaryKey": true,
+          "notNull": true
+        },
+        "accessKeyHashId": {
+          "name": "accessKeyHashId",
+          "type": "text",
+          "primaryKey": false,
           "notNull": true
         },
         "providerType": {

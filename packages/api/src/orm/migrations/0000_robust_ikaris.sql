@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS "server_settings" (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "storage_locations" (
 	"id" uuid PRIMARY KEY NOT NULL,
+	"accessKeyHashId" text NOT NULL,
 	"providerType" "providerType" NOT NULL,
 	"label" text NOT NULL,
 	"endpoint" text NOT NULL,

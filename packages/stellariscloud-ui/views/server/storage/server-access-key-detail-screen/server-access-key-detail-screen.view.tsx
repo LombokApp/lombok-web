@@ -13,15 +13,9 @@ export function ServerAccessKeyDetailScreen() {
   const [accessKey, setAccessKey] = React.useState<AccessKeyDTO>()
 
   const fetchAccessKey = React.useCallback(
-    ({
-      accessKeyId,
-      endpointDomain,
-    }: {
-      accessKeyId: string
-      endpointDomain: string
-    }) => {
+    ({ accessKeyHashId }: { accessKeyHashId: string }) => {
       void apiClient.serverAccessKeysApi
-        .getServerAccessKey({ accessKeyId, endpointDomain })
+        .getServerAccessKey({ accessKeyHashId })
         .then((resp) => {
           setAccessKey(resp.data.accessKey)
         })
@@ -30,40 +24,31 @@ export function ServerAccessKeyDetailScreen() {
   )
 
   React.useEffect(() => {
-    if (
-      typeof router.query.accessKeyId === 'string' &&
-      typeof router.query.endpointDomain === 'string' &&
-      !accessKey
-    ) {
+    if (typeof router.query.accessKeyHashId === 'string' && !accessKey) {
       void fetchAccessKey({
-        accessKeyId: router.query.accessKeyId,
-        endpointDomain: router.query.endpointDomain,
+        accessKeyHashId: router.query.accessKeyHashId,
       })
     }
-  }, [router.query.accessKeyId, router.query.endpointDomain])
+  }, [router.query.accessKeyHashId])
 
   const handleRotate = React.useCallback(
     async (input: { accessKeyId: string; secretAccessKey: string }) => {
-      if (!accessKey) {
-        return Promise.reject('No Access Key.')
-      }
-      await apiClient.serverAccessKeysApi.rotateAccessKey({
-        accessKeyId: accessKey.accessKeyId,
-        endpointDomain: accessKey.endpointDomain,
-        rotateAccessKeyInputDTO: {
-          accessKeyId: input.accessKeyId,
-          secretAccessKey: input.secretAccessKey,
-        },
-      })
+      const updatedAccessKey =
+        await apiClient.serverAccessKeysApi.rotateAccessKey({
+          accessKeyHashId: router.query.accessKeyHashId as string,
+          rotateAccessKeyInputDTO: {
+            accessKeyId: input.accessKeyId,
+            secretAccessKey: input.secretAccessKey,
+          },
+        })
       await router.push(
-        `/server/storage/keys/${encodeURIComponent(accessKey.endpointDomain)}/${input.accessKeyId}`,
+        `/server/storage/keys/${updatedAccessKey.data.accessKeyHashId}`,
       )
-      void fetchAccessKey({
-        accessKeyId: input.accessKeyId,
-        endpointDomain: accessKey.endpointDomain,
+      fetchAccessKey({
+        accessKeyHashId: updatedAccessKey.data.accessKeyHashId,
       })
     },
-    [accessKey, router.query.accessKeyId, router.query.endpointDomain],
+    [accessKey, router.query.accessKeyHashId],
   )
 
   return (
@@ -75,8 +60,8 @@ export function ServerAccessKeyDetailScreen() {
       >
         <div className="container flex-1 flex flex-col">
           <PageHeading
-            titleIconBg={'bg-rose-500'}
-            avatarKey={`${accessKey?.accessKeyId}_${accessKey?.endpointDomain}`}
+            titleIconBg={'bg-blue-500'}
+            avatarKey={accessKey?.accessKeyHashId}
             title={[
               `Server Access Key: ${accessKey?.accessKeyId} (${accessKey?.endpointDomain})`,
             ]}

@@ -5,6 +5,8 @@ import {
   createTestUser,
 } from 'src/test/test.util'
 
+import { buildAccessKeyHashId } from './access-key.utils'
+
 const TEST_MODULE_KEY = 'access_keys'
 
 describe('Access Keys', () => {
@@ -46,6 +48,14 @@ describe('Access Keys', () => {
 
     expect(accessKeysListResponse.status).toEqual(200)
     expect(accessKeysListResponse.data.result.length).toEqual(1)
+    expect(accessKeysListResponse.data.result[0].accessKeyHashId).toEqual(
+      buildAccessKeyHashId({
+        accessKeyId: 'testaccesskeyid',
+        secretAccessKey: 'testsecretaccesskey',
+        region: 'auto',
+        endpoint: 'http://miniotest:9000',
+      }),
+    )
     expect(accessKeysListResponse.data.result[0].accessKeyId).toEqual(
       'testaccesskeyid',
     )

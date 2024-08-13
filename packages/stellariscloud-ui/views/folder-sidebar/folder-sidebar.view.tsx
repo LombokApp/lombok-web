@@ -17,6 +17,7 @@ import React from 'react'
 import { Button } from '../../design-system/button/button'
 import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
+import Link from 'next/link'
 
 const MAIN_TEXT_COLOR = 'text-gray-500 dark:text-gray-400'
 const MAIN_ICON_COLOR = 'text-gray-500'
@@ -108,23 +109,6 @@ export const FolderSidebar = ({
               </div>
               <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
                 <dt className="flex-none flex">
-                  <span className="sr-only">Path</span>
-                  <Icon
-                    icon={GlobeAltIcon}
-                    size="md"
-                    className={clsx(MAIN_ICON_COLOR)}
-                  />
-                </dt>
-                <dd className={clsx('text-sm leading-6', MAIN_TEXT_COLOR)}>
-                  {folder.contentLocation.endpoint}
-                  {folder.contentLocation.endpoint.endsWith('/') ? '' : '/'}
-                  {folder.contentLocation.bucket}
-                  {folder.contentLocation.bucket.endsWith('/') ? '' : '/'}
-                  {folder.contentLocation.prefix}
-                </dd>
-              </div>
-              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
-                <dt className="flex-none flex">
                   <span className="sr-only">Access Key</span>
                   <Icon
                     icon={KeyIcon}
@@ -139,7 +123,36 @@ export const FolderSidebar = ({
                     // 'dark:text-amber-200',
                   )}
                 >
-                  {folder.contentLocation.label}
+                  {folder.contentLocation.providerType === 'USER' ? (
+                    <Link
+                      className="underline"
+                      href={`/access-keys/${folder.contentLocation.accessKeyHashId}`}
+                    >
+                      {folder.contentLocation.label}
+                    </Link>
+                  ) : (
+                    folder.contentLocation.label
+                  )}
+                </dd>
+              </div>
+              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
+                <dt className="flex-none flex">
+                  <span className="sr-only">Bucket</span>
+                  <Icon
+                    icon={GlobeAltIcon}
+                    size="md"
+                    className={clsx(MAIN_ICON_COLOR)}
+                  />
+                </dt>
+                <dd className={clsx('text-sm leading-6', MAIN_TEXT_COLOR)}>
+                  <span className="opacity-50">Bucket: </span>
+                  <span className="italic">
+                    {folder.contentLocation.bucket}
+                  </span>{' '}
+                  - <span className="opacity-50">Prefix: </span>
+                  <span className="italic">
+                    {folder.contentLocation.prefix}
+                  </span>
                 </dd>
               </div>
             </>

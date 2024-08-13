@@ -1,6 +1,8 @@
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
 
+import { buildAccessKeyHashId } from './access-key.utils'
+
 const TEST_MODULE_KEY = 'server_access_keys'
 
 describe('Server Access Keys', () => {
@@ -62,6 +64,14 @@ describe('Server Access Keys', () => {
     const serverAccessKeysListResponse = await apiClient
       .serverAccessKeysApi({ accessToken })
       .listServerAccessKeys()
+    expect(serverAccessKeysListResponse.data.result[0].accessKeyHashId).toEqual(
+      buildAccessKeyHashId({
+        accessKeyId: '__dummyak__',
+        secretAccessKey: '__dummysecret__',
+        region: '__dummyregion__',
+        endpoint: 'http://dummyendpoint.com',
+      }),
+    )
 
     expect(serverAccessKeysListResponse.status).toEqual(200)
     expect(serverAccessKeysListResponse.data.result.length).toEqual(1)

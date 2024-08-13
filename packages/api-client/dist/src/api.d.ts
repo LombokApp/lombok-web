@@ -62,7 +62,25 @@ export interface AccessKeyDTO {
      * @type {string}
      * @memberof AccessKeyDTO
      */
+    'accessKeyHashId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyDTO
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyDTO
+     */
     'endpointDomain': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyDTO
+     */
+    'region': string;
     /**
      *
      * @type {number}
@@ -119,13 +137,44 @@ export interface AccessKeyListResponseResultInner {
      * @type {string}
      * @memberof AccessKeyListResponseResultInner
      */
+    'accessKeyHashId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyListResponseResultInner
+     */
     'endpointDomain': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'region': string;
     /**
      *
      * @type {number}
      * @memberof AccessKeyListResponseResultInner
      */
     'folderCount': number;
+}
+/**
+ *
+ * @export
+ * @interface AccessKeyRotateResponse
+ */
+export interface AccessKeyRotateResponse {
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyRotateResponse
+     */
+    'accessKeyHashId': string;
 }
 /**
  *
@@ -794,6 +843,12 @@ export interface FolderDTOMetadataLocation {
      * @memberof FolderDTOMetadataLocation
      */
     'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof FolderDTOMetadataLocation
+     */
+    'accessKeyHashId': string;
 }
 export declare const FolderDTOMetadataLocationProviderTypeEnum: {
     readonly Server: "SERVER";
@@ -2141,20 +2196,18 @@ export interface ViewerGetResponse {
 export declare const AccessKeysApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
-     * @param {string} endpointDomain
-     * @param {string} accessKeyId
+     * @param {string} accessKeyHashId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getAccessKey: (endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    getAccessKey: (accessKeyHashId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
-     * @param {string} endpointDomain
-     * @param {string} accessKeyId
+     * @param {string} accessKeyHashId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listAccessKeyBuckets: (endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listAccessKeyBuckets: (accessKeyHashId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {number} [offset]
@@ -2165,13 +2218,12 @@ export declare const AccessKeysApiAxiosParamCreator: (configuration?: Configurat
     listAccessKeys: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
-     * @param {string} endpointDomain
-     * @param {string} accessKeyId
+     * @param {string} accessKeyHashId
      * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rotateAccessKey: (endpointDomain: string, accessKeyId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    rotateAccessKey: (accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * AccessKeysApi - functional programming interface
@@ -2180,20 +2232,18 @@ export declare const AccessKeysApiAxiosParamCreator: (configuration?: Configurat
 export declare const AccessKeysApiFp: (configuration?: Configuration) => {
     /**
      *
-     * @param {string} endpointDomain
-     * @param {string} accessKeyId
+     * @param {string} accessKeyHashId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getAccessKey(endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>>;
+    getAccessKey(accessKeyHashId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>>;
     /**
      *
-     * @param {string} endpointDomain
-     * @param {string} accessKeyId
+     * @param {string} accessKeyHashId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listAccessKeyBuckets(endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyBucketsListResponse>>;
+    listAccessKeyBuckets(accessKeyHashId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyBucketsListResponse>>;
     /**
      *
      * @param {number} [offset]
@@ -2204,13 +2254,12 @@ export declare const AccessKeysApiFp: (configuration?: Configuration) => {
     listAccessKeys(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
     /**
      *
-     * @param {string} endpointDomain
-     * @param {string} accessKeyId
+     * @param {string} accessKeyHashId
      * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rotateAccessKey(endpointDomain: string, accessKeyId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    rotateAccessKey(accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyRotateResponse>>;
 };
 /**
  * AccessKeysApi - factory interface
@@ -2244,7 +2293,7 @@ export declare const AccessKeysApiFactory: (configuration?: Configuration, baseP
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
+    rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyRotateResponse>;
 };
 /**
  * Request parameters for getAccessKey operation in AccessKeysApi.
@@ -2257,13 +2306,7 @@ export interface AccessKeysApiGetAccessKeyRequest {
      * @type {string}
      * @memberof AccessKeysApiGetAccessKey
      */
-    readonly endpointDomain: string;
-    /**
-     *
-     * @type {string}
-     * @memberof AccessKeysApiGetAccessKey
-     */
-    readonly accessKeyId: string;
+    readonly accessKeyHashId: string;
 }
 /**
  * Request parameters for listAccessKeyBuckets operation in AccessKeysApi.
@@ -2276,13 +2319,7 @@ export interface AccessKeysApiListAccessKeyBucketsRequest {
      * @type {string}
      * @memberof AccessKeysApiListAccessKeyBuckets
      */
-    readonly endpointDomain: string;
-    /**
-     *
-     * @type {string}
-     * @memberof AccessKeysApiListAccessKeyBuckets
-     */
-    readonly accessKeyId: string;
+    readonly accessKeyHashId: string;
 }
 /**
  * Request parameters for listAccessKeys operation in AccessKeysApi.
@@ -2314,13 +2351,7 @@ export interface AccessKeysApiRotateAccessKeyRequest {
      * @type {string}
      * @memberof AccessKeysApiRotateAccessKey
      */
-    readonly endpointDomain: string;
-    /**
-     *
-     * @type {string}
-     * @memberof AccessKeysApiRotateAccessKey
-     */
-    readonly accessKeyId: string;
+    readonly accessKeyHashId: string;
     /**
      *
      * @type {RotateAccessKeyInputDTO}
@@ -2366,7 +2397,7 @@ export declare class AccessKeysApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof AccessKeysApi
      */
-    rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+    rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyRotateResponse, any>>;
 }
 /**
  * AppsApi - axios parameter creator
@@ -3406,12 +3437,11 @@ export declare class ServerApi extends BaseAPI {
 export declare const ServerAccessKeysApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
-     * @param {string} endpointDomain
-     * @param {string} accessKeyId
+     * @param {string} accessKeyHashId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getServerAccessKey: (endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    getServerAccessKey: (accessKeyHashId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {number} [offset]
@@ -3422,13 +3452,12 @@ export declare const ServerAccessKeysApiAxiosParamCreator: (configuration?: Conf
     listServerAccessKeys: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
-     * @param {string} endpointDomain
-     * @param {string} accessKeyId
+     * @param {string} accessKeyHashId
      * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rotateAccessKey: (endpointDomain: string, accessKeyId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    rotateAccessKey: (accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * ServerAccessKeysApi - functional programming interface
@@ -3437,12 +3466,11 @@ export declare const ServerAccessKeysApiAxiosParamCreator: (configuration?: Conf
 export declare const ServerAccessKeysApiFp: (configuration?: Configuration) => {
     /**
      *
-     * @param {string} endpointDomain
-     * @param {string} accessKeyId
+     * @param {string} accessKeyHashId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getServerAccessKey(endpointDomain: string, accessKeyId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>>;
+    getServerAccessKey(accessKeyHashId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>>;
     /**
      *
      * @param {number} [offset]
@@ -3453,13 +3481,12 @@ export declare const ServerAccessKeysApiFp: (configuration?: Configuration) => {
     listServerAccessKeys(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
     /**
      *
-     * @param {string} endpointDomain
-     * @param {string} accessKeyId
+     * @param {string} accessKeyHashId
      * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rotateAccessKey(endpointDomain: string, accessKeyId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    rotateAccessKey(accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyRotateResponse>>;
 };
 /**
  * ServerAccessKeysApi - factory interface
@@ -3486,7 +3513,7 @@ export declare const ServerAccessKeysApiFactory: (configuration?: Configuration,
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
+    rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyRotateResponse>;
 };
 /**
  * Request parameters for getServerAccessKey operation in ServerAccessKeysApi.
@@ -3499,13 +3526,7 @@ export interface ServerAccessKeysApiGetServerAccessKeyRequest {
      * @type {string}
      * @memberof ServerAccessKeysApiGetServerAccessKey
      */
-    readonly endpointDomain: string;
-    /**
-     *
-     * @type {string}
-     * @memberof ServerAccessKeysApiGetServerAccessKey
-     */
-    readonly accessKeyId: string;
+    readonly accessKeyHashId: string;
 }
 /**
  * Request parameters for listServerAccessKeys operation in ServerAccessKeysApi.
@@ -3537,13 +3558,7 @@ export interface ServerAccessKeysApiRotateAccessKeyRequest {
      * @type {string}
      * @memberof ServerAccessKeysApiRotateAccessKey
      */
-    readonly endpointDomain: string;
-    /**
-     *
-     * @type {string}
-     * @memberof ServerAccessKeysApiRotateAccessKey
-     */
-    readonly accessKeyId: string;
+    readonly accessKeyHashId: string;
     /**
      *
      * @type {RotateAccessKeyInputDTO}
@@ -3581,7 +3596,7 @@ export declare class ServerAccessKeysApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof ServerAccessKeysApi
      */
-    rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+    rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyRotateResponse, any>>;
 }
 /**
  * ServerEventsApi - axios parameter creator

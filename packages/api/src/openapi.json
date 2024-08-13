@@ -918,20 +918,12 @@
         ]
       }
     },
-    "/api/v1/access-keys/{endpointDomain}/{accessKeyId}": {
+    "/api/v1/access-keys/{accessKeyHashId}": {
       "get": {
         "operationId": "getAccessKey",
         "parameters": [
           {
-            "name": "endpointDomain",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "accessKeyId",
+            "name": "accessKeyHashId",
             "required": true,
             "in": "path",
             "schema": {
@@ -964,15 +956,7 @@
         "operationId": "rotateAccessKey",
         "parameters": [
           {
-            "name": "endpointDomain",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "accessKeyId",
+            "name": "accessKeyHashId",
             "required": true,
             "in": "path",
             "schema": {
@@ -992,7 +976,14 @@
         },
         "responses": {
           "201": {
-            "description": "Rotate an access key."
+            "description": "Rotate an access key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessKeyRotateResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1005,20 +996,12 @@
         ]
       }
     },
-    "/api/v1/access-keys/{endpointDomain}/{accessKeyId}/buckets": {
+    "/api/v1/access-keys/{accessKeyHashId}/buckets": {
       "get": {
         "operationId": "listAccessKeyBuckets",
         "parameters": [
           {
-            "name": "endpointDomain",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "accessKeyId",
+            "name": "accessKeyHashId",
             "required": true,
             "in": "path",
             "schema": {
@@ -1093,20 +1076,12 @@
         ]
       }
     },
-    "/api/v1/server/access-keys/{endpointDomain}/{accessKeyId}": {
+    "/api/v1/server/access-keys/{accessKeyHashId}": {
       "get": {
         "operationId": "getServerAccessKey",
         "parameters": [
           {
-            "name": "endpointDomain",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "accessKeyId",
+            "name": "accessKeyHashId",
             "required": true,
             "in": "path",
             "schema": {
@@ -1139,15 +1114,7 @@
         "operationId": "rotateAccessKey",
         "parameters": [
           {
-            "name": "endpointDomain",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "accessKeyId",
+            "name": "accessKeyHashId",
             "required": true,
             "in": "path",
             "schema": {
@@ -1167,7 +1134,14 @@
         },
         "responses": {
           "201": {
-            "description": "Rotate a server access key."
+            "description": "Rotate a server access key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessKeyRotateResponse"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2148,6 +2122,9 @@
               },
               "accessKeyId": {
                 "type": "string"
+              },
+              "accessKeyHashId": {
+                "type": "string"
               }
             },
             "required": [
@@ -2157,7 +2134,8 @@
               "endpoint",
               "region",
               "bucket",
-              "accessKeyId"
+              "accessKeyId",
+              "accessKeyHashId"
             ]
           },
           "contentLocation": {
@@ -2193,6 +2171,9 @@
               },
               "accessKeyId": {
                 "type": "string"
+              },
+              "accessKeyHashId": {
+                "type": "string"
               }
             },
             "required": [
@@ -2202,7 +2183,8 @@
               "endpoint",
               "region",
               "bucket",
-              "accessKeyId"
+              "accessKeyId",
+              "accessKeyHashId"
             ]
           }
         },
@@ -2485,6 +2467,9 @@
                   },
                   "accessKeyId": {
                     "type": "string"
+                  },
+                  "accessKeyHashId": {
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -2494,7 +2479,8 @@
                   "endpoint",
                   "region",
                   "bucket",
-                  "accessKeyId"
+                  "accessKeyId",
+                  "accessKeyHashId"
                 ]
               },
               "contentLocation": {
@@ -2530,6 +2516,9 @@
                   },
                   "accessKeyId": {
                     "type": "string"
+                  },
+                  "accessKeyHashId": {
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -2539,7 +2528,8 @@
                   "endpoint",
                   "region",
                   "bucket",
-                  "accessKeyId"
+                  "accessKeyId",
+                  "accessKeyHashId"
                 ]
               }
             },
@@ -2660,6 +2650,9 @@
                         },
                         "accessKeyId": {
                           "type": "string"
+                        },
+                        "accessKeyHashId": {
+                          "type": "string"
                         }
                       },
                       "required": [
@@ -2669,7 +2662,8 @@
                         "endpoint",
                         "region",
                         "bucket",
-                        "accessKeyId"
+                        "accessKeyId",
+                        "accessKeyHashId"
                       ]
                     },
                     "contentLocation": {
@@ -2705,6 +2699,9 @@
                         },
                         "accessKeyId": {
                           "type": "string"
+                        },
+                        "accessKeyHashId": {
+                          "type": "string"
                         }
                       },
                       "required": [
@@ -2714,7 +2711,8 @@
                         "endpoint",
                         "region",
                         "bucket",
-                        "accessKeyId"
+                        "accessKeyId",
+                        "accessKeyHashId"
                       ]
                     }
                   },
@@ -2870,6 +2868,9 @@
                   },
                   "accessKeyId": {
                     "type": "string"
+                  },
+                  "accessKeyHashId": {
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -2879,7 +2880,8 @@
                   "endpoint",
                   "region",
                   "bucket",
-                  "accessKeyId"
+                  "accessKeyId",
+                  "accessKeyHashId"
                 ]
               },
               "contentLocation": {
@@ -2915,6 +2917,9 @@
                   },
                   "accessKeyId": {
                     "type": "string"
+                  },
+                  "accessKeyHashId": {
+                    "type": "string"
                   }
                 },
                 "required": [
@@ -2924,7 +2929,8 @@
                   "endpoint",
                   "region",
                   "bucket",
-                  "accessKeyId"
+                  "accessKeyId",
+                  "accessKeyHashId"
                 ]
               }
             },
@@ -3272,7 +3278,16 @@
           "accessKeyId": {
             "type": "string"
           },
+          "accessKeyHashId": {
+            "type": "string"
+          },
+          "endpoint": {
+            "type": "string"
+          },
           "endpointDomain": {
+            "type": "string"
+          },
+          "region": {
             "type": "string"
           },
           "folderCount": {
@@ -3281,7 +3296,10 @@
         },
         "required": [
           "accessKeyId",
+          "accessKeyHashId",
+          "endpoint",
           "endpointDomain",
+          "region",
           "folderCount"
         ]
       },
@@ -3307,7 +3325,16 @@
                 "accessKeyId": {
                   "type": "string"
                 },
+                "accessKeyHashId": {
+                  "type": "string"
+                },
+                "endpoint": {
+                  "type": "string"
+                },
                 "endpointDomain": {
+                  "type": "string"
+                },
+                "region": {
                   "type": "string"
                 },
                 "folderCount": {
@@ -3316,7 +3343,10 @@
               },
               "required": [
                 "accessKeyId",
+                "accessKeyHashId",
+                "endpoint",
                 "endpointDomain",
+                "region",
                 "folderCount"
               ]
             }
@@ -3336,7 +3366,16 @@
               "accessKeyId": {
                 "type": "string"
               },
+              "accessKeyHashId": {
+                "type": "string"
+              },
+              "endpoint": {
+                "type": "string"
+              },
               "endpointDomain": {
+                "type": "string"
+              },
+              "region": {
                 "type": "string"
               },
               "folderCount": {
@@ -3345,7 +3384,10 @@
             },
             "required": [
               "accessKeyId",
+              "accessKeyHashId",
+              "endpoint",
               "endpointDomain",
+              "region",
               "folderCount"
             ]
           }
@@ -3367,6 +3409,17 @@
         "required": [
           "accessKeyId",
           "secretAccessKey"
+        ]
+      },
+      "AccessKeyRotateResponse": {
+        "type": "object",
+        "properties": {
+          "accessKeyHashId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "accessKeyHashId"
         ]
       },
       "AccessKeyBucketsListResponse": {

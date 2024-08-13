@@ -1,5 +1,6 @@
 import {
   ChevronRightIcon,
+  PlusIcon,
   UserPlusIcon,
   UsersIcon,
 } from '@heroicons/react/24/outline'
@@ -97,7 +98,13 @@ export function ServerUsersScreen() {
               </div>
             ) : (
               <div className="pt-4">
-                <Button onClick={() => setAddingUser(true)}>Add User</Button>
+                <Button
+                  primary
+                  icon={PlusIcon}
+                  onClick={() => setAddingUser(true)}
+                >
+                  Add User
+                </Button>
               </div>
             )}
           </div>

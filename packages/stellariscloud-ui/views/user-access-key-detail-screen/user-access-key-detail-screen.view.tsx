@@ -14,79 +14,56 @@ export function UserAccessKeyDetailScreen() {
     React.useState<{ name?: string; creationDate?: Date }[]>()
 
   const fetchAccessKey = React.useCallback(
-    ({
-      accessKeyId,
-      endpointDomain,
-    }: {
-      accessKeyId: string
-      endpointDomain: string
-    }) => {
+    ({ accessKeyHashId }: { accessKeyHashId: string }) => {
       void apiClient.accessKeysApi
-        .getAccessKey({ accessKeyId, endpointDomain })
+        .getAccessKey({ accessKeyHashId })
         .then((resp) => setAccessKey(resp.data.accessKey))
     },
     [],
   )
 
   const fetchAccessKeyBuckets = React.useCallback(
-    ({
-      accessKeyId,
-      endpointDomain,
-    }: {
-      accessKeyId: string
-      endpointDomain: string
-    }) => {
+    ({ accessKeyHashId }: { accessKeyHashId: string }) => {
       void apiClient.accessKeysApi
-        .listAccessKeyBuckets({ accessKeyId, endpointDomain })
+        .listAccessKeyBuckets({ accessKeyHashId })
         .then((resp) => setAccessKeyBuckets(resp.data.result))
     },
     [],
   )
 
   React.useEffect(() => {
-    if (
-      typeof router.query.accessKeyId === 'string' &&
-      typeof router.query.endpointDomain === 'string' &&
-      !accessKey
-    ) {
+    if (typeof router.query.accessKeyHashId === 'string' && !accessKey) {
       void fetchAccessKey({
-        accessKeyId: router.query.accessKeyId,
-        endpointDomain: router.query.endpointDomain,
+        accessKeyHashId: router.query.accessKeyHashId,
       })
       void fetchAccessKeyBuckets({
-        accessKeyId: router.query.accessKeyId,
-        endpointDomain: router.query.endpointDomain,
+        accessKeyHashId: router.query.accessKeyHashId,
       })
     }
-  }, [router.query.accessKeyId, router.query.endpointDomain])
+  }, [router.query.accessKeyHashId])
 
   const handleRotate = React.useCallback(
     async (input: { accessKeyId: string; secretAccessKey: string }) => {
       if (!accessKey) {
         return Promise.reject('No Access Key.')
       }
-      await apiClient.accessKeysApi.rotateAccessKey({
-        accessKeyId: accessKey.accessKeyId,
-        endpointDomain: accessKey.endpointDomain,
+      const updatedAccessKey = await apiClient.accessKeysApi.rotateAccessKey({
+        accessKeyHashId: accessKey.accessKeyHashId,
         rotateAccessKeyInputDTO: {
           accessKeyId: input.accessKeyId,
           secretAccessKey: input.secretAccessKey,
         },
       })
-      if (
-        typeof router.query.accessKeyId === 'string' &&
-        typeof router.query.endpointDomain === 'string'
-      ) {
+      if (typeof router.query.accessKeyHashId === 'string') {
         await router.push(
-          `/access-keys/${encodeURIComponent(accessKey.endpointDomain)}/${input.accessKeyId}`,
+          `/access-keys/${updatedAccessKey.data.accessKeyHashId}`,
         )
-        void fetchAccessKey({
-          accessKeyId: input.accessKeyId,
-          endpointDomain: router.query.endpointDomain,
+        fetchAccessKey({
+          accessKeyHashId: updatedAccessKey.data.accessKeyHashId,
         })
       }
     },
-    [accessKey, router.query.accessKeyId, router.query.endpointDomain],
+    [accessKey, router.query.accessKeyHashId],
   )
 
   return (
@@ -109,8 +86,8 @@ export function UserAccessKeyDetailScreen() {
             <AccessKeyRotateForm onSubmit={(input) => handleRotate(input)} />
           )}
           <div className="flex flex-col">
-            {accessKeyBuckets?.map(({ name, creationDate }) => (
-              <div>{name}</div>
+            {accessKeyBuckets?.map(({ name, creationDate }, i) => (
+              <div key={i}>{name}</div>
             ))}
           </div>
         </div>

@@ -16,7 +16,7 @@ export function AccessKeysList({
       items={accessKeys.map((accessKey, i) => (
         <Link
           className="w-full"
-          href={`${urlPrefix}/${encodeURIComponent(accessKey.endpointDomain)}/${encodeURIComponent(accessKey.accessKeyId)}`}
+          href={`${urlPrefix}/${accessKey.accessKeyHashId}`}
         >
           <div className="flex justify-between flex-1 items-center gap-x-4 p-4 py-2">
             <div className="flex min-w-0 gap-x-4 items-center">
@@ -28,10 +28,8 @@ export function AccessKeysList({
               <div className="min-w-0 flex-auto">
                 <p className="text-sm font-semibold leading-6 text-gray-900 dark:text-white">
                   <span className="absolute inset-x-0 -top-px bottom-0" />
+                  <span>{accessKey.accessKeyHashId} - </span>
                   {accessKey.endpointDomain} - {accessKey.accessKeyId}
-                </p>
-                <p className="mt-1 flex text-xs leading-5 text-gray-500 dark:text-white">
-                  {accessKey.folderCount} folders
                 </p>
               </div>
             </div>

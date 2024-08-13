@@ -36,6 +36,7 @@ import { OrmService } from 'src/orm/orm.service'
 import { QueueName } from 'src/queue/queue.constants'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
+import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
 import type { UserLocationInputDTO } from 'src/storage/dto/user-location-input.dto'
 import type { StorageLocation } from 'src/storage/entities/storage-location.entity'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
@@ -213,6 +214,13 @@ export class FolderService implements OnModuleInit {
               endpointDomain: new URL(
                 withNewUserLocationConnection.value.endpoint,
               ).host,
+              accessKeyHashId: buildAccessKeyHashId({
+                accessKeyId: withNewUserLocationConnection.value.accessKeyId,
+                secretAccessKey:
+                  withNewUserLocationConnection.value.secretAccessKey,
+                region: withNewUserLocationConnection.value.region,
+                endpoint: withNewUserLocationConnection.value.endpoint,
+              }),
               id: uuidV4(),
               label: `${withNewUserLocationConnection.value.endpoint} - ${withNewUserLocationConnection.value.accessKeyId}`,
               providerType: 'USER',
@@ -246,6 +254,12 @@ export class FolderService implements OnModuleInit {
                 userId,
                 endpoint: existingLocation.endpoint,
                 endpointDomain: new URL(existingLocation.endpoint).host,
+                accessKeyHashId: buildAccessKeyHashId({
+                  accessKeyId: existingLocation.accessKeyId,
+                  secretAccessKey: existingLocation.secretAccessKey,
+                  region: existingLocation.region,
+                  endpoint: existingLocation.endpoint,
+                }),
                 accessKeyId: existingLocation.accessKeyId,
                 secretAccessKey: existingLocation.secretAccessKey,
                 region: existingLocation.region,
@@ -291,6 +305,12 @@ export class FolderService implements OnModuleInit {
               endpointDomain: new URL(existingServerLocation.endpoint).host,
               accessKeyId: existingServerLocation.accessKeyId,
               secretAccessKey: existingServerLocation.secretAccessKey,
+              accessKeyHashId: buildAccessKeyHashId({
+                accessKeyId: existingServerLocation.accessKeyId,
+                secretAccessKey: existingServerLocation.secretAccessKey,
+                region: existingServerLocation.region,
+                endpoint: existingServerLocation.endpoint,
+              }),
               region: existingServerLocation.region,
               bucket: existingServerLocation.bucket,
               prefix: `${

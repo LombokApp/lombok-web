@@ -20,6 +20,7 @@ import { AccessKeyListQueryParamsDTO } from '../dto/access-key-list-query-params
 import { AccessKeyBucketsListResponse } from '../dto/responses/access-key-buckets-list-response.dto'
 import { AccessKeyGetResponse } from '../dto/responses/access-key-get-response.dto'
 import { AccessKeyListResponse } from '../dto/responses/access-key-list-response.dto'
+import { AccessKeyRotateResponse } from '../dto/responses/access-key-rotate-response.dto'
 import { RotateAccessKeyInputDTO } from '../dto/rotate-access-key-input.dto'
 import { StorageLocationService } from '../storage-location.service'
 
@@ -55,18 +56,17 @@ export class AccessKeysController {
   /**
    * Get an access key by id.
    */
-  @Get('/:endpointDomain/:accessKeyId')
+  @Get('/:accessKeyHashId')
   async getAccessKey(
     @Req() req: express.Request,
-    @Param('endpointDomain') endpointDomain: string,
-    @Param('accessKeyId') accessKeyId: string,
+    @Param('accessKeyHashId') accessKeyHashId: string,
   ): Promise<AccessKeyGetResponse> {
-    if (!req.user?.isAdmin) {
+    if (!req.user) {
       throw new UnauthorizedException()
     }
     const result = await this.storageLocationService.getAccessKeyAsUser(
       req.user,
-      { endpointDomain, accessKeyId },
+      accessKeyHashId,
     )
     return { accessKey: result }
   }
@@ -74,38 +74,40 @@ export class AccessKeysController {
   /**
    * Rotate an access key.
    */
-  @Post('/:endpointDomain/:accessKeyId')
+  @Post('/:accessKeyHashId')
   async rotateAccessKey(
     @Req() req: express.Request,
-    @Param('endpointDomain') endpointDomain: string,
-    @Param('accessKeyId') accessKeyId: string,
+    @Param('accessKeyHashId') accessKeyHashId: string,
     @Body() body: RotateAccessKeyInputDTO,
-  ): Promise<void> {
+  ): Promise<AccessKeyRotateResponse> {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    await this.storageLocationService.rotateAccessKeyAsUser(req.user, {
-      accessKeyId,
-      endpointDomain,
-      newAccessKey: body,
-    })
+    return {
+      accessKeyHashId: await this.storageLocationService.rotateAccessKeyAsUser(
+        req.user,
+        {
+          accessKeyHashId,
+          newAccessKey: body,
+        },
+      ),
+    }
   }
 
   /**
    * List buckets for an access key.
    */
-  @Get('/:endpointDomain/:accessKeyId/buckets')
+  @Get('/:accessKeyHashId/buckets')
   async listAccessKeyBuckets(
     @Req() req: express.Request,
-    @Param('endpointDomain') endpointDomain: string,
-    @Param('accessKeyId') accessKeyId: string,
+    @Param('accessKeyHashId') accessKeyHashId: string,
   ): Promise<AccessKeyBucketsListResponse> {
-    if (!req.user?.isAdmin) {
+    if (!req.user) {
       throw new UnauthorizedException()
     }
     const result = await this.storageLocationService.listAccessKeyBucketAsUser(
       req.user,
-      { endpointDomain, accessKeyId },
+      accessKeyHashId,
     )
     return {
       result:

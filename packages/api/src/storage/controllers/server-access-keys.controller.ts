@@ -19,6 +19,7 @@ import { AccessKeyDTO } from '../dto/access-key.dto'
 import { AccessKeyListQueryParamsDTO } from '../dto/access-key-list-query-params.dto'
 import { AccessKeyGetResponse } from '../dto/responses/access-key-get-response.dto'
 import { AccessKeyListResponse } from '../dto/responses/access-key-list-response.dto'
+import { AccessKeyRotateResponse } from '../dto/responses/access-key-rotate-response.dto'
 import { RotateAccessKeyInputDTO } from '../dto/rotate-access-key-input.dto'
 import { StorageLocationService } from '../storage-location.service'
 
@@ -55,18 +56,17 @@ export class ServerAccessKeysController {
   /**
    * Get server access key by id.
    */
-  @Get('/:endpointDomain/:accessKeyId')
+  @Get('/:accessKeyHashId')
   async getServerAccessKey(
     @Req() req: express.Request,
-    @Param('endpointDomain') endpointDomain: string,
-    @Param('accessKeyId') accessKeyId: string,
+    @Param('accessKeyHashId') accessKeyHashId: string,
   ): Promise<AccessKeyGetResponse> {
     if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
     const result = await this.storageLocationService.getServerAccessKeyAsAdmin(
       req.user,
-      { endpointDomain, accessKeyId },
+      accessKeyHashId,
     )
     return { accessKey: result }
   }
@@ -74,20 +74,24 @@ export class ServerAccessKeysController {
   /**
    * Rotate a server access key.
    */
-  @Post('/:endpointDomain/:accessKeyId')
+  @Post('/:accessKeyHashId')
   async rotateAccessKey(
     @Req() req: express.Request,
-    @Param('endpointDomain') endpointDomain: string,
-    @Param('accessKeyId') accessKeyId: string,
+    @Param('accessKeyHashId') accessKeyHashId: string,
     @Body() body: RotateAccessKeyInputDTO,
-  ): Promise<void> {
+  ): Promise<AccessKeyRotateResponse> {
     if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
-    await this.storageLocationService.rotateAccessKeyAsAdmin(req.user, {
-      accessKeyId,
-      endpointDomain,
-      newAccessKey: body,
-    })
+
+    return {
+      accessKeyHashId: await this.storageLocationService.rotateAccessKeyAsAdmin(
+        req.user,
+        {
+          accessKeyHashId,
+          newAccessKey: body,
+        },
+      ),
+    }
   }
 }

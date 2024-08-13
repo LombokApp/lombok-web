@@ -4,6 +4,7 @@ import { foldersTable } from 'src/folders/entities/folder.entity'
 import { STORAGE_PROVISIONS_KEY } from 'src/server/constants/server.constants'
 import type { StorageProvisionDTO } from 'src/server/dto/storage-provision.dto'
 import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
+import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
 import type { NewStorageLocation } from 'src/storage/entities/storage-location.entity'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import type { NewUser } from 'src/users/entities/user.entity'
@@ -77,11 +78,16 @@ async function main(): Promise<void> {
       id: uuidV4(),
       ...S3_CREDENTIALS,
       bucket: process.env.DEV_S3_BUCKET_NAME ?? '',
-      endpoint: 'https://m8.wasteofpaper.com',
-      endpointDomain: 'm8.wasteofpaper.com',
-      label: 'https://m8.wasteofpaper.com utrecht-1 2ZpHPnybEUM0GtzD',
+      endpoint: process.env.DEV_S3_ENDPOINT ?? '',
+      endpointDomain: new URL(process.env.DEV_S3_ENDPOINT ?? '').host,
+      accessKeyHashId: buildAccessKeyHashId({
+        ...S3_CREDENTIALS,
+        endpoint: process.env.DEV_S3_ENDPOINT ?? '',
+        region: process.env.DEV_S3_REGION ?? '',
+      }),
+      label: `${process.env.DEV_S3_ENDPOINT} ${process.env.DEV_S3_REGION} ${process.env.DEV_S3_ACCESS_KEY_ID}`,
       providerType: 'USER',
-      region: 'utrecht-1',
+      region: process.env.DEV_S3_REGION ?? '',
       userId,
       createdAt: new Date('2023-11-01 22:49:00.93'),
       updatedAt: new Date('2023-11-01 22:49:00.93'),

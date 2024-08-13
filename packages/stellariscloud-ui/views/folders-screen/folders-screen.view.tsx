@@ -109,7 +109,7 @@ export const FoldersScreen = () => {
               title={'Your Folders'}
               titleIcon={FolderIcon}
               titleIconBg="bg-rose-500"
-              subtitle="Create and manage users on this server."
+              subtitle="All folders to which you have access."
             >
               {!folderFormKey && (
                 <Button size="lg" primary={true} onClick={handleStartCreate}>

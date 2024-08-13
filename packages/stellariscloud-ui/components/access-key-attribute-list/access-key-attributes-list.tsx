@@ -86,7 +86,7 @@ export function AccessKeyAttributeList({
           <dt
             className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
           >
-            Fikder Count
+            Folder Count
           </dt>
           <dd
             className={clsx(
