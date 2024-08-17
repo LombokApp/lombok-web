@@ -11,6 +11,7 @@ export const storageLocationSchema = z.object({
   bucket: z.string(),
   prefix: z.string().optional(),
   accessKeyId: z.string(),
+  accessKeyHashId: z.string(),
 })
 
 export class StorageLocationDTO extends createZodDto(storageLocationSchema) {}

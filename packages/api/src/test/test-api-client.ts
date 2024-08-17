@@ -1,9 +1,11 @@
 import type { INestApplication } from '@nestjs/common'
 import {
+  AccessKeysApi,
   AppsApi,
   AuthApi,
   Configuration,
   FoldersApi,
+  ServerAccessKeysApi,
   ServerApi,
   StorageProvisionsApi,
   UsersApi,
@@ -67,6 +69,20 @@ export function buildSupertestApiClient(app: INestApplication) {
       ),
     serverApi: (configParams: SupertestApiClientConfigParams = {}) =>
       new ServerApi(
+        new Configuration(configParams),
+        '',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        buildMockAxios(configParams.accessToken) as any,
+      ),
+    accessKeysApi: (configParams: SupertestApiClientConfigParams = {}) =>
+      new AccessKeysApi(
+        new Configuration(configParams),
+        '',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        buildMockAxios(configParams.accessToken) as any,
+      ),
+    serverAccessKeysApi: (configParams: SupertestApiClientConfigParams = {}) =>
+      new ServerAccessKeysApi(
         new Configuration(configParams),
         '',
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument

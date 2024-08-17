@@ -36,6 +36,7 @@ import { OrmService } from 'src/orm/orm.service'
 import { QueueName } from 'src/queue/queue.constants'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
+import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
 import type { UserLocationInputDTO } from 'src/storage/dto/user-location-input.dto'
 import type { StorageLocation } from 'src/storage/entities/storage-location.entity'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
@@ -120,7 +121,10 @@ export interface FolderObjectUpdate {
 const NewUserLocationPayloadRunType = r.Record({
   accessKeyId: r.String,
   secretAccessKey: r.String,
-  endpoint: r.String,
+  endpoint: r.String.withConstraint((endpoint) => {
+    new URL(endpoint)
+    return true
+  }),
   bucket: r.String,
   region: r.String,
   prefix: r.String,
@@ -177,7 +181,7 @@ export class FolderService implements OnModuleInit {
       //  - A reference to a server storage provision (in which case no overrides are allowed)
       name: string
       contentLocation: UserLocationInputDTO
-      metadataLocation?: UserLocationInputDTO
+      metadataLocation: UserLocationInputDTO
     }
     userId: string
   }): Promise<Folder> {
@@ -207,6 +211,16 @@ export class FolderService implements OnModuleInit {
             .insert(storageLocationsTable)
             .values({
               ...withNewUserLocationConnection.value,
+              endpointDomain: new URL(
+                withNewUserLocationConnection.value.endpoint,
+              ).host,
+              accessKeyHashId: buildAccessKeyHashId({
+                accessKeyId: withNewUserLocationConnection.value.accessKeyId,
+                secretAccessKey:
+                  withNewUserLocationConnection.value.secretAccessKey,
+                region: withNewUserLocationConnection.value.region,
+                endpoint: withNewUserLocationConnection.value.endpoint,
+              }),
               id: uuidV4(),
               label: `${withNewUserLocationConnection.value.endpoint} - ${withNewUserLocationConnection.value.accessKeyId}`,
               providerType: 'USER',
@@ -239,6 +253,13 @@ export class FolderService implements OnModuleInit {
                 providerType: 'USER',
                 userId,
                 endpoint: existingLocation.endpoint,
+                endpointDomain: new URL(existingLocation.endpoint).host,
+                accessKeyHashId: buildAccessKeyHashId({
+                  accessKeyId: existingLocation.accessKeyId,
+                  secretAccessKey: existingLocation.secretAccessKey,
+                  region: existingLocation.region,
+                  endpoint: existingLocation.endpoint,
+                }),
                 accessKeyId: existingLocation.accessKeyId,
                 secretAccessKey: existingLocation.secretAccessKey,
                 region: existingLocation.region,
@@ -265,6 +286,13 @@ export class FolderService implements OnModuleInit {
           throw new StorageLocationNotFoundException()
         }
 
+        const prefixSuffix =
+          storageProvisionType === StorageProvisionTypeEnum.METADATA
+            ? `.stellaris_folder_metadata_${prospectiveFolderId}/`
+            : storageProvisionType === StorageProvisionTypeEnum.CONTENT
+              ? `.stellaris_folder_content_${prospectiveFolderId}/`
+              : `.stellaris_folder_backup_${prospectiveFolderId}/`
+
         location = (
           await this.ormService.db
             .insert(storageLocationsTable)
@@ -274,15 +302,22 @@ export class FolderService implements OnModuleInit {
               providerType: 'SERVER',
               userId,
               endpoint: existingServerLocation.endpoint,
+              endpointDomain: new URL(existingServerLocation.endpoint).host,
               accessKeyId: existingServerLocation.accessKeyId,
               secretAccessKey: existingServerLocation.secretAccessKey,
+              accessKeyHashId: buildAccessKeyHashId({
+                accessKeyId: existingServerLocation.accessKeyId,
+                secretAccessKey: existingServerLocation.secretAccessKey,
+                region: existingServerLocation.region,
+                endpoint: existingServerLocation.endpoint,
+              }),
               region: existingServerLocation.region,
               bucket: existingServerLocation.bucket,
               prefix: `${
                 existingServerLocation.prefix
                   ? existingServerLocation.prefix
                   : ''
-              }${existingServerLocation.prefix?.endsWith('/') ? '' : '/'}${prospectiveFolderId}/${storageProvisionType === StorageProvisionTypeEnum.CONTENT ? '.content/' : storageProvisionType === StorageProvisionTypeEnum.METADATA ? '.metadata/' : '.backup/'}`,
+              }${!existingServerLocation.prefix || existingServerLocation.prefix.endsWith('/') ? '' : '/'}${prefixSuffix}`,
               createdAt: now,
               updatedAt: now,
             })
@@ -300,31 +335,10 @@ export class FolderService implements OnModuleInit {
       body.contentLocation,
     )
 
-    const defaultMetadataPrefix = `.stellaris_folder_metadata_${prospectiveFolderId}/`
-    const metadataLocation = body.metadataLocation
-      ? await buildLocation(
-          StorageProvisionTypeEnum.METADATA,
-          body.metadataLocation,
-        )
-      : // if no metadata location is provided it defaults to a special
-        // prefixed location at the root of the content location
-        // e.g. .stellaris_folder_metadata_${prospectiveFolderId}/
-
-        (
-          await this.ormService.db
-            .insert(storageLocationsTable)
-            .values({
-              ...contentLocation,
-              id: uuidV4(),
-              prefix: `${contentLocation.prefix}${
-                contentLocation.prefix.length > 0 &&
-                !contentLocation.prefix.endsWith('/')
-                  ? '/'
-                  : ''
-              }${defaultMetadataPrefix}`,
-            })
-            .returning()
-        )[0]
+    const metadataLocation = await buildLocation(
+      StorageProvisionTypeEnum.METADATA,
+      body.metadataLocation,
+    )
 
     const folder = (
       await this.ormService.db
@@ -663,11 +677,9 @@ export class FolderService implements OnModuleInit {
     await this.ormService.db
       .delete(folderObjectsTable)
       .where(eq(folderObjectsTable.folderId, folder.id))
-    // TODO: implement folder object refreshing from bucket
 
     // consume the objects in the bucket, 1000 at a time, turning them into FolderObject entities
     let _contentCount = 0
-    let _metadataCount = 0
     let continuationToken: string | undefined = ''
     while (typeof continuationToken === 'string') {
       // list objects in the bucket, with the given prefix
@@ -684,21 +696,11 @@ export class FolderService implements OnModuleInit {
         prefix: contentStorageLocation.prefix,
       })
       for (const obj of response.result) {
-        const objectKey = obj.key
-        if (
-          objectKey.startsWith(
-            `${contentStorageLocation.prefix}${
-              !contentStorageLocation.prefix ||
-              contentStorageLocation.prefix.endsWith('/')
-                ? ''
-                : '/'
-            }.stellaris_folder_metadata`,
-          )
-        ) {
-          _metadataCount++
-        } else if (obj.size > 0) {
+        const objectKey = folder.contentLocation.prefix.length
+          ? obj.key.slice(folder.contentLocation.prefix.length)
+          : obj.key
+        if (obj.size > 0) {
           _contentCount++
-          // this is a user file
           // console.log('Trying to update key metadata [%s]:', objectKey, obj)
           await this.updateFolderObjectInDB(folder.id, objectKey, obj)
         }

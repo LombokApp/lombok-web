@@ -301,6 +301,9 @@ describe('Folders', () => {
           contentLocation: {
             storageProvisionId: _storageProvision.data.result[0].id,
           },
+          metadataLocation: {
+            storageProvisionId: _storageProvision.data.result[0].id,
+          },
         },
       })
     expect(folderCreateResponse.status).toBe(201)
@@ -321,7 +324,7 @@ describe('Folders', () => {
       storageProvisionInput.accessKeyId,
     )
     expect(folderCreateResponse.data.folder.contentLocation.prefix).toBe(
-      `${storageProvisionInput.prefix}${folderCreateResponse.data.folder.id}/.content/`,
+      `${storageProvisionInput.prefix}.stellaris_folder_content_${folderCreateResponse.data.folder.id}/`,
     )
 
     // validate metadata location
@@ -341,7 +344,7 @@ describe('Folders', () => {
       storageProvisionInput.accessKeyId,
     )
     expect(folderCreateResponse.data.folder.metadataLocation.prefix).toBe(
-      `${storageProvisionInput.prefix}${folderCreateResponse.data.folder.id}/.content/.stellaris_folder_metadata_${folderCreateResponse.data.folder.id}/`,
+      `${storageProvisionInput.prefix}.stellaris_folder_metadata_${folderCreateResponse.data.folder.id}/`,
     )
   })
 
@@ -369,12 +372,11 @@ describe('Folders', () => {
         folderCreateInputDTO: {
           name: 'My Folder',
           contentLocation: {
-            accessKeyId: 'testakid',
-            secretAccessKey: 'testsak',
-            bucket: 'somebucket',
-            prefix: 'someserverprefix/',
-            endpoint: 'https://endpointexample.com',
-            region: 'auto',
+            ...storageLocationInput,
+          },
+          metadataLocation: {
+            ...storageLocationInput,
+            prefix: 'someserverprefixmetadata/',
           },
         },
       })
@@ -415,7 +417,7 @@ describe('Folders', () => {
       storageLocationInput.accessKeyId,
     )
     expect(folderCreateResponse.data.folder.metadataLocation.prefix).toBe(
-      `${storageLocationInput.prefix}.stellaris_folder_metadata_${folderCreateResponse.data.folder.id}/`,
+      `someserverprefixmetadata/`,
     )
   })
 
@@ -454,6 +456,9 @@ describe('Folders', () => {
           contentLocation: {
             storageProvisionId: _storageProvision.data.result[0].id,
           },
+          metadataLocation: {
+            storageProvisionId: _storageProvision.data.result[0].id,
+          },
         },
       })
     expect(folderCreateResponse.status).toBe(201)
@@ -476,12 +481,12 @@ describe('Folders', () => {
 
     expect(presignedUrls.status).toBe(201)
 
-    const expectedContentUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}${folderCreateResponse.data.folder.id}/.content/someobjectkey?`
+    const expectedContentUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}.stellaris_folder_content_${folderCreateResponse.data.folder.id}/someobjectkey?`
     expect(
       presignedUrls.data.urls[0].slice(0, expectedContentUrlPrefix.length),
     ).toBe(expectedContentUrlPrefix)
 
-    const expectedMetadataUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}${folderCreateResponse.data.folder.id}/.content/.stellaris_folder_metadata_${folderCreateResponse.data.folder.id}/someobjectkey/somehash`
+    const expectedMetadataUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}.stellaris_folder_metadata_${folderCreateResponse.data.folder.id}/someobjectkey/somehash`
     expect(
       presignedUrls.data.urls[1].slice(0, expectedMetadataUrlPrefix.length),
     ).toBe(expectedMetadataUrlPrefix)
@@ -502,7 +507,15 @@ describe('Folders', () => {
         folderCreateInputDTO: {
           name: 'My Folder',
           contentLocation: {
-            prefix: '',
+            prefix: 'content_prefix',
+            accessKeyId: 'testakid',
+            secretAccessKey: 'testsak',
+            bucket: 'somebucket',
+            endpoint: 'https://endpointexample.com',
+            region: 'auto',
+          },
+          metadataLocation: {
+            prefix: 'metadata_prefix',
             accessKeyId: 'testakid',
             secretAccessKey: 'testsak',
             bucket: 'somebucket',
@@ -531,12 +544,12 @@ describe('Folders', () => {
 
     expect(presignedUrls.status).toBe(201)
 
-    const expectedContentUrlPrefix = `https://endpointexample.com/somebucket/someobjectkey`
+    const expectedContentUrlPrefix = `https://endpointexample.com/somebucket/content_prefix/someobjectkey`
     expect(
       presignedUrls.data.urls[0].slice(0, expectedContentUrlPrefix.length),
     ).toBe(expectedContentUrlPrefix)
 
-    const expectedMetadataUrlPrefix = `https://endpointexample.com/somebucket/.stellaris_folder_metadata_${folderCreateResponse.data.folder.id}/someobjectkey/somehash?`
+    const expectedMetadataUrlPrefix = `https://endpointexample.com/somebucket/metadata_prefix/someobjectkey/somehash?`
     expect(
       presignedUrls.data.urls[1].slice(0, expectedMetadataUrlPrefix.length),
     ).toBe(expectedMetadataUrlPrefix)
@@ -677,6 +690,86 @@ describe('Folders', () => {
       })
 
     expect(presignedUrls2.status).toBe(401)
+  })
+
+  it(`should 401 on create folder without token`, async () => {
+    const response = await apiClient.foldersApi().createFolder({
+      folderCreateInputDTO: {
+        name: '__dummy__',
+        contentLocation: {
+          accessKeyId: '__dummy__',
+          secretAccessKey: '__dummy__',
+          endpoint: '__dummy__',
+          bucket: '__dummy__',
+          region: '__dummy__',
+          prefix: '__dummy__',
+        },
+        metadataLocation: {
+          accessKeyId: '__dummy__',
+          secretAccessKey: '__dummy__',
+          endpoint: '__dummy__',
+          bucket: '__dummy__',
+          region: '__dummy__',
+          prefix: '__dummy__',
+        },
+      },
+    })
+
+    expect(response.status).toEqual(401)
+  })
+
+  it(`should 401 on list folders without token`, async () => {
+    const response = await apiClient.foldersApi().listFolders()
+
+    expect(response.status).toEqual(401)
+  })
+
+  it(`should 401 on rescan folder without token`, async () => {
+    const response = await apiClient
+      .foldersApi()
+      .rescanFolder({ folderId: '__dummy__' })
+
+    expect(response.status).toEqual(401)
+  })
+
+  it(`should 401 on get folder metadata without token`, async () => {
+    const response = await apiClient
+      .foldersApi()
+      .getFolderMetadata({ folderId: '__dummy__' })
+
+    expect(response.status).toEqual(401)
+  })
+
+  it(`should 401 on delete folder without token`, async () => {
+    const response = await apiClient
+      .foldersApi()
+      .deleteFolder({ folderId: '__dummy__' })
+
+    expect(response.status).toEqual(401)
+  })
+
+  it(`should 401 on createPresignedUrls without token`, async () => {
+    const response = await apiClient.foldersApi().createPresignedUrls({
+      folderCreateSignedUrlInputDTOInner: [
+        { method: 'GET', objectIdentifier: '__dummy__' },
+      ],
+      folderId: '__dummy__',
+    })
+
+    expect(response.status).toEqual(401)
+  })
+
+  it(`should 401 on handleFolderAction without token`, async () => {
+    const response = await apiClient.foldersApi().handleFolderAction({
+      actionKey: '__dummy__',
+      appIdentifier: '__dummy__',
+      folderHandleActionInputDTO: {
+        actionParams: {},
+      },
+      folderId: '__dummy__',
+    })
+
+    expect(response.status).toEqual(401)
   })
 
   afterAll(async () => {

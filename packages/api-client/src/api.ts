@@ -26,6 +26,357 @@ import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError } from './base';
 /**
  * 
  * @export
+ * @interface AccessKeyBucketsListResponse
+ */
+export interface AccessKeyBucketsListResponse {
+    /**
+     * 
+     * @type {Array<AccessKeyBucketsListResponseResultInner>}
+     * @memberof AccessKeyBucketsListResponse
+     */
+    'result': Array<AccessKeyBucketsListResponseResultInner>;
+}
+/**
+ * 
+ * @export
+ * @interface AccessKeyBucketsListResponseResultInner
+ */
+export interface AccessKeyBucketsListResponseResultInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyBucketsListResponseResultInner
+     */
+    'name': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyBucketsListResponseResultInner
+     */
+    'createdDate'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface AccessKeyDTO
+ */
+export interface AccessKeyDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyDTO
+     */
+    'accessKeyId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyDTO
+     */
+    'accessKeyHashId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyDTO
+     */
+    'endpoint': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyDTO
+     */
+    'endpointDomain': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyDTO
+     */
+    'region': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof AccessKeyDTO
+     */
+    'folderCount': number;
+}
+/**
+ * 
+ * @export
+ * @interface AccessKeyGetResponse
+ */
+export interface AccessKeyGetResponse {
+    /**
+     * 
+     * @type {AccessKeyListResponseResultInner}
+     * @memberof AccessKeyGetResponse
+     */
+    'accessKey': AccessKeyListResponseResultInner;
+}
+/**
+ * 
+ * @export
+ * @interface AccessKeyListResponse
+ */
+export interface AccessKeyListResponse {
+    /**
+     * 
+     * @type {UserListResponseMeta}
+     * @memberof AccessKeyListResponse
+     */
+    'meta': UserListResponseMeta;
+    /**
+     * 
+     * @type {Array<AccessKeyListResponseResultInner>}
+     * @memberof AccessKeyListResponse
+     */
+    'result': Array<AccessKeyListResponseResultInner>;
+}
+/**
+ * 
+ * @export
+ * @interface AccessKeyListResponseResultInner
+ */
+export interface AccessKeyListResponseResultInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'accessKeyId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'accessKeyHashId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'endpoint': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'endpointDomain': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'region': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'folderCount': number;
+}
+/**
+ * 
+ * @export
+ * @interface AccessKeyRotateResponse
+ */
+export interface AccessKeyRotateResponse {
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyRotateResponse
+     */
+    'accessKeyHashId': string;
+}
+/**
+ * 
+ * @export
+ * @interface AppDTO
+ */
+export interface AppDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTO
+     */
+    'identifier': string;
+    /**
+     * 
+     * @type {AppDTOConfig}
+     * @memberof AppDTO
+     */
+    'config': AppDTOConfig;
+    /**
+     * 
+     * @type {{ [key: string]: AppDTOUiValue | undefined; }}
+     * @memberof AppDTO
+     */
+    'ui': { [key: string]: AppDTOUiValue | undefined; };
+}
+/**
+ * 
+ * @export
+ * @interface AppDTOConfig
+ */
+export interface AppDTOConfig {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfig
+     */
+    'publicKey': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfig
+     */
+    'description': string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof AppDTOConfig
+     */
+    'subscribedEvents': Array<string>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof AppDTOConfig
+     */
+    'emitEvents': Array<string>;
+    /**
+     * 
+     * @type {AppDTOConfigActions}
+     * @memberof AppDTOConfig
+     */
+    'actions': AppDTOConfigActions;
+    /**
+     * 
+     * @type {Array<AppDTOConfigMenuItemsInner>}
+     * @memberof AppDTOConfig
+     */
+    'menuItems': Array<AppDTOConfigMenuItemsInner>;
+}
+/**
+ * 
+ * @export
+ * @interface AppDTOConfigActions
+ */
+export interface AppDTOConfigActions {
+    /**
+     * 
+     * @type {Array<AppDTOConfigActionsFolderInner>}
+     * @memberof AppDTOConfigActions
+     */
+    'folder': Array<AppDTOConfigActionsFolderInner>;
+    /**
+     * 
+     * @type {Array<AppDTOConfigActionsFolderInner>}
+     * @memberof AppDTOConfigActions
+     */
+    'object': Array<AppDTOConfigActionsFolderInner>;
+}
+/**
+ * 
+ * @export
+ * @interface AppDTOConfigActionsFolderInner
+ */
+export interface AppDTOConfigActionsFolderInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigActionsFolderInner
+     */
+    'key': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigActionsFolderInner
+     */
+    'description': string;
+}
+/**
+ * 
+ * @export
+ * @interface AppDTOConfigMenuItemsInner
+ */
+export interface AppDTOConfigMenuItemsInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigMenuItemsInner
+     */
+    'label': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigMenuItemsInner
+     */
+    'iconPath'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigMenuItemsInner
+     */
+    'uiName': string;
+}
+/**
+ * 
+ * @export
+ * @interface AppDTOUiValue
+ */
+export interface AppDTOUiValue {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOUiValue
+     */
+    'path': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOUiValue
+     */
+    'name': string;
+    /**
+     * 
+     * @type {{ [key: string]: AppDTOUiValueFilesValue | undefined; }}
+     * @memberof AppDTOUiValue
+     */
+    'files': { [key: string]: AppDTOUiValueFilesValue | undefined; };
+}
+/**
+ * 
+ * @export
+ * @interface AppDTOUiValueFilesValue
+ */
+export interface AppDTOUiValueFilesValue {
+    /**
+     * 
+     * @type {number}
+     * @memberof AppDTOUiValueFilesValue
+     */
+    'size': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOUiValueFilesValue
+     */
+    'hash': string;
+}
+/**
+ * 
+ * @export
+ * @interface AppGetResponse
+ */
+export interface AppGetResponse {
+    /**
+     * 
+     * @type {AppListResponseInstalledResultInner}
+     * @memberof AppGetResponse
+     */
+    'app': AppListResponseInstalledResultInner;
+}
+/**
+ * 
+ * @export
  * @interface AppListResponse
  */
 export interface AppListResponse {
@@ -106,166 +457,16 @@ export interface AppListResponseInstalledResultInner {
     'identifier': string;
     /**
      * 
-     * @type {AppListResponseInstalledResultInnerConfig}
+     * @type {AppDTOConfig}
      * @memberof AppListResponseInstalledResultInner
      */
-    'config': AppListResponseInstalledResultInnerConfig;
+    'config': AppDTOConfig;
     /**
      * 
-     * @type {{ [key: string]: AppListResponseInstalledResultInnerUiValue | undefined; }}
+     * @type {{ [key: string]: AppDTOUiValue | undefined; }}
      * @memberof AppListResponseInstalledResultInner
      */
-    'ui': { [key: string]: AppListResponseInstalledResultInnerUiValue | undefined; };
-}
-/**
- * 
- * @export
- * @interface AppListResponseInstalledResultInnerConfig
- */
-export interface AppListResponseInstalledResultInnerConfig {
-    /**
-     * 
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerConfig
-     */
-    'publicKey': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerConfig
-     */
-    'description': string;
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof AppListResponseInstalledResultInnerConfig
-     */
-    'subscribedEvents': Array<string>;
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof AppListResponseInstalledResultInnerConfig
-     */
-    'emitEvents': Array<string>;
-    /**
-     * 
-     * @type {AppListResponseInstalledResultInnerConfigActions}
-     * @memberof AppListResponseInstalledResultInnerConfig
-     */
-    'actions': AppListResponseInstalledResultInnerConfigActions;
-    /**
-     * 
-     * @type {Array<AppListResponseInstalledResultInnerConfigMenuItemsInner>}
-     * @memberof AppListResponseInstalledResultInnerConfig
-     */
-    'menuItems': Array<AppListResponseInstalledResultInnerConfigMenuItemsInner>;
-}
-/**
- * 
- * @export
- * @interface AppListResponseInstalledResultInnerConfigActions
- */
-export interface AppListResponseInstalledResultInnerConfigActions {
-    /**
-     * 
-     * @type {Array<AppListResponseInstalledResultInnerConfigActionsFolderInner>}
-     * @memberof AppListResponseInstalledResultInnerConfigActions
-     */
-    'folder': Array<AppListResponseInstalledResultInnerConfigActionsFolderInner>;
-    /**
-     * 
-     * @type {Array<AppListResponseInstalledResultInnerConfigActionsFolderInner>}
-     * @memberof AppListResponseInstalledResultInnerConfigActions
-     */
-    'object': Array<AppListResponseInstalledResultInnerConfigActionsFolderInner>;
-}
-/**
- * 
- * @export
- * @interface AppListResponseInstalledResultInnerConfigActionsFolderInner
- */
-export interface AppListResponseInstalledResultInnerConfigActionsFolderInner {
-    /**
-     * 
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerConfigActionsFolderInner
-     */
-    'key': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerConfigActionsFolderInner
-     */
-    'description': string;
-}
-/**
- * 
- * @export
- * @interface AppListResponseInstalledResultInnerConfigMenuItemsInner
- */
-export interface AppListResponseInstalledResultInnerConfigMenuItemsInner {
-    /**
-     * 
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerConfigMenuItemsInner
-     */
-    'label': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerConfigMenuItemsInner
-     */
-    'iconPath'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerConfigMenuItemsInner
-     */
-    'uiName': string;
-}
-/**
- * 
- * @export
- * @interface AppListResponseInstalledResultInnerUiValue
- */
-export interface AppListResponseInstalledResultInnerUiValue {
-    /**
-     * 
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerUiValue
-     */
-    'path': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerUiValue
-     */
-    'name': string;
-    /**
-     * 
-     * @type {{ [key: string]: AppListResponseInstalledResultInnerUiValueFilesValue | undefined; }}
-     * @memberof AppListResponseInstalledResultInnerUiValue
-     */
-    'files': { [key: string]: AppListResponseInstalledResultInnerUiValueFilesValue | undefined; };
-}
-/**
- * 
- * @export
- * @interface AppListResponseInstalledResultInnerUiValueFilesValue
- */
-export interface AppListResponseInstalledResultInnerUiValueFilesValue {
-    /**
-     * 
-     * @type {number}
-     * @memberof AppListResponseInstalledResultInnerUiValueFilesValue
-     */
-    'size': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerUiValueFilesValue
-     */
-    'hash': string;
+    'ui': { [key: string]: AppDTOUiValue | undefined; };
 }
 /**
  * 
@@ -421,7 +622,7 @@ export interface FolderCreateInputDTO {
      * @type {FolderCreateInputDTOMetadataLocation}
      * @memberof FolderCreateInputDTO
      */
-    'metadataLocation'?: FolderCreateInputDTOMetadataLocation;
+    'metadataLocation': FolderCreateInputDTOMetadataLocation;
     /**
      * 
      * @type {FolderCreateInputDTOMetadataLocation}
@@ -647,6 +848,12 @@ export interface FolderDTOMetadataLocation {
      * @memberof FolderDTOMetadataLocation
      */
     'accessKeyId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderDTOMetadataLocation
+     */
+    'accessKeyHashId': string;
 }
 
 export const FolderDTOMetadataLocationProviderTypeEnum = {
@@ -1207,6 +1414,25 @@ export interface LoginResponseSession {
 /**
  * 
  * @export
+ * @interface RotateAccessKeyInputDTO
+ */
+export interface RotateAccessKeyInputDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof RotateAccessKeyInputDTO
+     */
+    'accessKeyId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RotateAccessKeyInputDTO
+     */
+    'secretAccessKey': string;
+}
+/**
+ * 
+ * @export
  * @interface SetSettingInputDTO
  */
 export interface SetSettingInputDTO {
@@ -1376,6 +1602,73 @@ export interface SignupResponseUser {
 /**
  * 
  * @export
+ * @interface StorageLocationInputDTO
+ */
+export interface StorageLocationInputDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'storageProvisionId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'userLocationId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'userLocationBucketOverride'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'userLocationPrefixOverride'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'accessKeyId'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'secretAccessKey'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'endpoint'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'bucket'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'region'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'prefix'?: string;
+}
+/**
+ * 
+ * @export
  * @interface StorageProvisionDTO
  */
 export interface StorageProvisionDTO {
@@ -1442,6 +1735,89 @@ export const StorageProvisionDTOProvisionTypesEnum = {
 } as const;
 
 export type StorageProvisionDTOProvisionTypesEnum = typeof StorageProvisionDTOProvisionTypesEnum[keyof typeof StorageProvisionDTOProvisionTypesEnum];
+
+/**
+ * 
+ * @export
+ * @interface StorageProvisionGetResponse
+ */
+export interface StorageProvisionGetResponse {
+    /**
+     * 
+     * @type {StorageProvisionGetResponseStorageProvision}
+     * @memberof StorageProvisionGetResponse
+     */
+    'storageProvision': StorageProvisionGetResponseStorageProvision;
+}
+/**
+ * 
+ * @export
+ * @interface StorageProvisionGetResponseStorageProvision
+ */
+export interface StorageProvisionGetResponseStorageProvision {
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'endpoint': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'bucket': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'region': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'accessKeyId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'prefix'?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'provisionTypes': Array<StorageProvisionGetResponseStorageProvisionProvisionTypesEnum>;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'label': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'description': string;
+}
+
+export const StorageProvisionGetResponseStorageProvisionProvisionTypesEnum = {
+    Content: 'CONTENT',
+    Metadata: 'METADATA',
+    Backup: 'BACKUP'
+} as const;
+
+export type StorageProvisionGetResponseStorageProvisionProvisionTypesEnum = typeof StorageProvisionGetResponseStorageProvisionProvisionTypesEnum[keyof typeof StorageProvisionGetResponseStorageProvisionProvisionTypesEnum];
 
 /**
  * 
@@ -1841,11 +2217,439 @@ export interface ViewerGetResponse {
 }
 
 /**
+ * AccessKeysApi - axios parameter creator
+ * @export
+ */
+export const AccessKeysApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {string} accessKeyHashId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAccessKey: async (accessKeyHashId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'accessKeyHashId' is not null or undefined
+            assertParamExists('getAccessKey', 'accessKeyHashId', accessKeyHashId)
+            const localVarPath = `/api/v1/access-keys/{accessKeyHashId}`
+                .replace(`{${"accessKeyHashId"}}`, encodeURIComponent(String(accessKeyHashId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} accessKeyHashId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listAccessKeyBuckets: async (accessKeyHashId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'accessKeyHashId' is not null or undefined
+            assertParamExists('listAccessKeyBuckets', 'accessKeyHashId', accessKeyHashId)
+            const localVarPath = `/api/v1/access-keys/{accessKeyHashId}/buckets`
+                .replace(`{${"accessKeyHashId"}}`, encodeURIComponent(String(accessKeyHashId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listAccessKeys: async (offset?: number, limit?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/access-keys`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} accessKeyHashId 
+         * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        rotateAccessKey: async (accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'accessKeyHashId' is not null or undefined
+            assertParamExists('rotateAccessKey', 'accessKeyHashId', accessKeyHashId)
+            // verify required parameter 'rotateAccessKeyInputDTO' is not null or undefined
+            assertParamExists('rotateAccessKey', 'rotateAccessKeyInputDTO', rotateAccessKeyInputDTO)
+            const localVarPath = `/api/v1/access-keys/{accessKeyHashId}`
+                .replace(`{${"accessKeyHashId"}}`, encodeURIComponent(String(accessKeyHashId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(rotateAccessKeyInputDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * AccessKeysApi - functional programming interface
+ * @export
+ */
+export const AccessKeysApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = AccessKeysApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {string} accessKeyHashId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getAccessKey(accessKeyHashId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getAccessKey(accessKeyHashId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {string} accessKeyHashId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listAccessKeyBuckets(accessKeyHashId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyBucketsListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listAccessKeyBuckets(accessKeyHashId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listAccessKeys(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listAccessKeys(offset, limit, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {string} accessKeyHashId 
+         * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async rotateAccessKey(accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyRotateResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.rotateAccessKey(accessKeyHashId, rotateAccessKeyInputDTO, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * AccessKeysApi - factory interface
+ * @export
+ */
+export const AccessKeysApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = AccessKeysApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {AccessKeysApiGetAccessKeyRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyGetResponse> {
+            return localVarFp.getAccessKey(requestParameters.accessKeyHashId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {AccessKeysApiListAccessKeyBucketsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyBucketsListResponse> {
+            return localVarFp.listAccessKeyBuckets(requestParameters.accessKeyHashId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listAccessKeys(requestParameters: AccessKeysApiListAccessKeysRequest = {}, options?: AxiosRequestConfig): AxiosPromise<AccessKeyListResponse> {
+            return localVarFp.listAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {AccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyRotateResponse> {
+            return localVarFp.rotateAccessKey(requestParameters.accessKeyHashId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for getAccessKey operation in AccessKeysApi.
+ * @export
+ * @interface AccessKeysApiGetAccessKeyRequest
+ */
+export interface AccessKeysApiGetAccessKeyRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeysApiGetAccessKey
+     */
+    readonly accessKeyHashId: string
+}
+
+/**
+ * Request parameters for listAccessKeyBuckets operation in AccessKeysApi.
+ * @export
+ * @interface AccessKeysApiListAccessKeyBucketsRequest
+ */
+export interface AccessKeysApiListAccessKeyBucketsRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeysApiListAccessKeyBuckets
+     */
+    readonly accessKeyHashId: string
+}
+
+/**
+ * Request parameters for listAccessKeys operation in AccessKeysApi.
+ * @export
+ * @interface AccessKeysApiListAccessKeysRequest
+ */
+export interface AccessKeysApiListAccessKeysRequest {
+    /**
+     * 
+     * @type {number}
+     * @memberof AccessKeysApiListAccessKeys
+     */
+    readonly offset?: number
+
+    /**
+     * 
+     * @type {number}
+     * @memberof AccessKeysApiListAccessKeys
+     */
+    readonly limit?: number
+}
+
+/**
+ * Request parameters for rotateAccessKey operation in AccessKeysApi.
+ * @export
+ * @interface AccessKeysApiRotateAccessKeyRequest
+ */
+export interface AccessKeysApiRotateAccessKeyRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeysApiRotateAccessKey
+     */
+    readonly accessKeyHashId: string
+
+    /**
+     * 
+     * @type {RotateAccessKeyInputDTO}
+     * @memberof AccessKeysApiRotateAccessKey
+     */
+    readonly rotateAccessKeyInputDTO: RotateAccessKeyInputDTO
+}
+
+/**
+ * AccessKeysApi - object-oriented interface
+ * @export
+ * @class AccessKeysApi
+ * @extends {BaseAPI}
+ */
+export class AccessKeysApi extends BaseAPI {
+    /**
+     * 
+     * @param {AccessKeysApiGetAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessKeysApi
+     */
+    public getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: AxiosRequestConfig) {
+        return AccessKeysApiFp(this.configuration).getAccessKey(requestParameters.accessKeyHashId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {AccessKeysApiListAccessKeyBucketsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessKeysApi
+     */
+    public listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: AxiosRequestConfig) {
+        return AccessKeysApiFp(this.configuration).listAccessKeyBuckets(requestParameters.accessKeyHashId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessKeysApi
+     */
+    public listAccessKeys(requestParameters: AccessKeysApiListAccessKeysRequest = {}, options?: AxiosRequestConfig) {
+        return AccessKeysApiFp(this.configuration).listAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {AccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessKeysApi
+     */
+    public rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig) {
+        return AccessKeysApiFp(this.configuration).rotateAccessKey(requestParameters.accessKeyHashId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
  * AppsApi - axios parameter creator
  * @export
  */
 export const AppsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * 
+         * @param {string} appIdentifier 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getApp: async (appIdentifier: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'appIdentifier' is not null or undefined
+            assertParamExists('getApp', 'appIdentifier', appIdentifier)
+            const localVarPath = `/api/v1/server/apps/{appIdentifier}`
+                .replace(`{${"appIdentifier"}}`, encodeURIComponent(String(appIdentifier)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * 
          * @param {*} [options] Override http request option.
@@ -1891,6 +2695,16 @@ export const AppsApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @param {string} appIdentifier 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getApp(appIdentifier: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getApp(appIdentifier, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1910,6 +2724,15 @@ export const AppsApiFactory = function (configuration?: Configuration, basePath?
     return {
         /**
          * 
+         * @param {AppsApiGetAppRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getApp(requestParameters: AppsApiGetAppRequest, options?: AxiosRequestConfig): AxiosPromise<AppGetResponse> {
+            return localVarFp.getApp(requestParameters.appIdentifier, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1920,12 +2743,37 @@ export const AppsApiFactory = function (configuration?: Configuration, basePath?
 };
 
 /**
+ * Request parameters for getApp operation in AppsApi.
+ * @export
+ * @interface AppsApiGetAppRequest
+ */
+export interface AppsApiGetAppRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppsApiGetApp
+     */
+    readonly appIdentifier: string
+}
+
+/**
  * AppsApi - object-oriented interface
  * @export
  * @class AppsApi
  * @extends {BaseAPI}
  */
 export class AppsApi extends BaseAPI {
+    /**
+     * 
+     * @param {AppsApiGetAppRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AppsApi
+     */
+    public getApp(requestParameters: AppsApiGetAppRequest, options?: AxiosRequestConfig) {
+        return AppsApiFp(this.configuration).getApp(requestParameters.appIdentifier, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @param {*} [options] Override http request option.
@@ -2015,15 +2863,15 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
         },
         /**
          * 
-         * @param {string} refeshToken 
+         * @param {string} refreshToken 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        refreshToken: async (refeshToken: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'refeshToken' is not null or undefined
-            assertParamExists('refreshToken', 'refeshToken', refeshToken)
-            const localVarPath = `/api/v1/auth/refresh-token`
-                .replace(`{${"refeshToken"}}`, encodeURIComponent(String(refeshToken)));
+        refreshToken: async (refreshToken: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'refreshToken' is not null or undefined
+            assertParamExists('refreshToken', 'refreshToken', refreshToken)
+            const localVarPath = `/api/v1/auth/{refreshToken}`
+                .replace(`{${"refreshToken"}}`, encodeURIComponent(String(refreshToken)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -2112,12 +2960,12 @@ export const AuthApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @param {string} refeshToken 
+         * @param {string} refreshToken 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async refreshToken(refeshToken: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TokenRefreshResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.refreshToken(refeshToken, options);
+        async refreshToken(refreshToken: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TokenRefreshResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.refreshToken(refreshToken, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -2164,7 +3012,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          * @throws {RequiredError}
          */
         refreshToken(requestParameters: AuthApiRefreshTokenRequest, options?: AxiosRequestConfig): AxiosPromise<TokenRefreshResponse> {
-            return localVarFp.refreshToken(requestParameters.refeshToken, options).then((request) => request(axios, basePath));
+            return localVarFp.refreshToken(requestParameters.refreshToken, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -2203,7 +3051,7 @@ export interface AuthApiRefreshTokenRequest {
      * @type {string}
      * @memberof AuthApiRefreshToken
      */
-    readonly refeshToken: string
+    readonly refreshToken: string
 }
 
 /**
@@ -2256,7 +3104,7 @@ export class AuthApi extends BaseAPI {
      * @memberof AuthApi
      */
     public refreshToken(requestParameters: AuthApiRefreshTokenRequest, options?: AxiosRequestConfig) {
-        return AuthApiFp(this.configuration).refreshToken(requestParameters.refeshToken, options).then((request) => request(this.axios, this.basePath));
+        return AuthApiFp(this.configuration).refreshToken(requestParameters.refreshToken, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -2268,200 +3116,6 @@ export class AuthApi extends BaseAPI {
      */
     public signup(requestParameters: AuthApiSignupRequest, options?: AxiosRequestConfig) {
         return AuthApiFp(this.configuration).signup(requestParameters.signupCredentialsDTO, options).then((request) => request(this.axios, this.basePath));
-    }
-}
-
-
-
-/**
- * EventsApi - axios parameter creator
- * @export
- */
-export const EventsApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getEvent: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/events/{eventId}`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {number} [offset] 
-         * @param {number} [limit] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        listEvents: async (offset?: number, limit?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/events`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-            if (offset !== undefined) {
-                localVarQueryParameter['offset'] = offset;
-            }
-
-            if (limit !== undefined) {
-                localVarQueryParameter['limit'] = limit;
-            }
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
-};
-
-/**
- * EventsApi - functional programming interface
- * @export
- */
-export const EventsApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = EventsApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getEvent(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventGetResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getEvent(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * 
-         * @param {number} [offset] 
-         * @param {number} [limit] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async listEvents(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listEvents(offset, limit, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-    }
-};
-
-/**
- * EventsApi - factory interface
- * @export
- */
-export const EventsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = EventsApiFp(configuration)
-    return {
-        /**
-         * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getEvent(options?: AxiosRequestConfig): AxiosPromise<EventGetResponse> {
-            return localVarFp.getEvent(options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @param {EventsApiListEventsRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        listEvents(requestParameters: EventsApiListEventsRequest = {}, options?: AxiosRequestConfig): AxiosPromise<EventListResponse> {
-            return localVarFp.listEvents(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
-        },
-    };
-};
-
-/**
- * Request parameters for listEvents operation in EventsApi.
- * @export
- * @interface EventsApiListEventsRequest
- */
-export interface EventsApiListEventsRequest {
-    /**
-     * 
-     * @type {number}
-     * @memberof EventsApiListEvents
-     */
-    readonly offset?: number
-
-    /**
-     * 
-     * @type {number}
-     * @memberof EventsApiListEvents
-     */
-    readonly limit?: number
-}
-
-/**
- * EventsApi - object-oriented interface
- * @export
- * @class EventsApi
- * @extends {BaseAPI}
- */
-export class EventsApi extends BaseAPI {
-    /**
-     * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof EventsApi
-     */
-    public getEvent(options?: AxiosRequestConfig) {
-        return EventsApiFp(this.configuration).getEvent(options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @param {EventsApiListEventsRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof EventsApi
-     */
-    public listEvents(requestParameters: EventsApiListEventsRequest = {}, options?: AxiosRequestConfig) {
-        return EventsApiFp(this.configuration).listEvents(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -3897,6 +4551,531 @@ export class ServerApi extends BaseAPI {
 
 
 /**
+ * ServerAccessKeysApi - axios parameter creator
+ * @export
+ */
+export const ServerAccessKeysApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {string} accessKeyHashId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getServerAccessKey: async (accessKeyHashId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'accessKeyHashId' is not null or undefined
+            assertParamExists('getServerAccessKey', 'accessKeyHashId', accessKeyHashId)
+            const localVarPath = `/api/v1/server/access-keys/{accessKeyHashId}`
+                .replace(`{${"accessKeyHashId"}}`, encodeURIComponent(String(accessKeyHashId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerAccessKeys: async (offset?: number, limit?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/server/access-keys`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} accessKeyHashId 
+         * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        rotateAccessKey: async (accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'accessKeyHashId' is not null or undefined
+            assertParamExists('rotateAccessKey', 'accessKeyHashId', accessKeyHashId)
+            // verify required parameter 'rotateAccessKeyInputDTO' is not null or undefined
+            assertParamExists('rotateAccessKey', 'rotateAccessKeyInputDTO', rotateAccessKeyInputDTO)
+            const localVarPath = `/api/v1/server/access-keys/{accessKeyHashId}`
+                .replace(`{${"accessKeyHashId"}}`, encodeURIComponent(String(accessKeyHashId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(rotateAccessKeyInputDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ServerAccessKeysApi - functional programming interface
+ * @export
+ */
+export const ServerAccessKeysApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ServerAccessKeysApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {string} accessKeyHashId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getServerAccessKey(accessKeyHashId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getServerAccessKey(accessKeyHashId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listServerAccessKeys(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listServerAccessKeys(offset, limit, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {string} accessKeyHashId 
+         * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async rotateAccessKey(accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyRotateResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.rotateAccessKey(accessKeyHashId, rotateAccessKeyInputDTO, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * ServerAccessKeysApi - factory interface
+ * @export
+ */
+export const ServerAccessKeysApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ServerAccessKeysApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {ServerAccessKeysApiGetServerAccessKeyRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyGetResponse> {
+            return localVarFp.getServerAccessKey(requestParameters.accessKeyHashId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerAccessKeys(requestParameters: ServerAccessKeysApiListServerAccessKeysRequest = {}, options?: AxiosRequestConfig): AxiosPromise<AccessKeyListResponse> {
+            return localVarFp.listServerAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {ServerAccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyRotateResponse> {
+            return localVarFp.rotateAccessKey(requestParameters.accessKeyHashId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for getServerAccessKey operation in ServerAccessKeysApi.
+ * @export
+ * @interface ServerAccessKeysApiGetServerAccessKeyRequest
+ */
+export interface ServerAccessKeysApiGetServerAccessKeyRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerAccessKeysApiGetServerAccessKey
+     */
+    readonly accessKeyHashId: string
+}
+
+/**
+ * Request parameters for listServerAccessKeys operation in ServerAccessKeysApi.
+ * @export
+ * @interface ServerAccessKeysApiListServerAccessKeysRequest
+ */
+export interface ServerAccessKeysApiListServerAccessKeysRequest {
+    /**
+     * 
+     * @type {number}
+     * @memberof ServerAccessKeysApiListServerAccessKeys
+     */
+    readonly offset?: number
+
+    /**
+     * 
+     * @type {number}
+     * @memberof ServerAccessKeysApiListServerAccessKeys
+     */
+    readonly limit?: number
+}
+
+/**
+ * Request parameters for rotateAccessKey operation in ServerAccessKeysApi.
+ * @export
+ * @interface ServerAccessKeysApiRotateAccessKeyRequest
+ */
+export interface ServerAccessKeysApiRotateAccessKeyRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerAccessKeysApiRotateAccessKey
+     */
+    readonly accessKeyHashId: string
+
+    /**
+     * 
+     * @type {RotateAccessKeyInputDTO}
+     * @memberof ServerAccessKeysApiRotateAccessKey
+     */
+    readonly rotateAccessKeyInputDTO: RotateAccessKeyInputDTO
+}
+
+/**
+ * ServerAccessKeysApi - object-oriented interface
+ * @export
+ * @class ServerAccessKeysApi
+ * @extends {BaseAPI}
+ */
+export class ServerAccessKeysApi extends BaseAPI {
+    /**
+     * 
+     * @param {ServerAccessKeysApiGetServerAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerAccessKeysApi
+     */
+    public getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: AxiosRequestConfig) {
+        return ServerAccessKeysApiFp(this.configuration).getServerAccessKey(requestParameters.accessKeyHashId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerAccessKeysApi
+     */
+    public listServerAccessKeys(requestParameters: ServerAccessKeysApiListServerAccessKeysRequest = {}, options?: AxiosRequestConfig) {
+        return ServerAccessKeysApiFp(this.configuration).listServerAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {ServerAccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerAccessKeysApi
+     */
+    public rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig) {
+        return ServerAccessKeysApiFp(this.configuration).rotateAccessKey(requestParameters.accessKeyHashId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * ServerEventsApi - axios parameter creator
+ * @export
+ */
+export const ServerEventsApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {string} eventId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEvent: async (eventId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'eventId' is not null or undefined
+            assertParamExists('getEvent', 'eventId', eventId)
+            const localVarPath = `/api/v1/server/events/{eventId}`
+                .replace(`{${"eventId"}}`, encodeURIComponent(String(eventId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listEvents: async (offset?: number, limit?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/server/events`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ServerEventsApi - functional programming interface
+ * @export
+ */
+export const ServerEventsApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ServerEventsApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {string} eventId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getEvent(eventId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getEvent(eventId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listEvents(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listEvents(offset, limit, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    }
+};
+
+/**
+ * ServerEventsApi - factory interface
+ * @export
+ */
+export const ServerEventsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ServerEventsApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {ServerEventsApiGetEventRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getEvent(requestParameters: ServerEventsApiGetEventRequest, options?: AxiosRequestConfig): AxiosPromise<EventGetResponse> {
+            return localVarFp.getEvent(requestParameters.eventId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {ServerEventsApiListEventsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listEvents(requestParameters: ServerEventsApiListEventsRequest = {}, options?: AxiosRequestConfig): AxiosPromise<EventListResponse> {
+            return localVarFp.listEvents(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for getEvent operation in ServerEventsApi.
+ * @export
+ * @interface ServerEventsApiGetEventRequest
+ */
+export interface ServerEventsApiGetEventRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerEventsApiGetEvent
+     */
+    readonly eventId: string
+}
+
+/**
+ * Request parameters for listEvents operation in ServerEventsApi.
+ * @export
+ * @interface ServerEventsApiListEventsRequest
+ */
+export interface ServerEventsApiListEventsRequest {
+    /**
+     * 
+     * @type {number}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly offset?: number
+
+    /**
+     * 
+     * @type {number}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly limit?: number
+}
+
+/**
+ * ServerEventsApi - object-oriented interface
+ * @export
+ * @class ServerEventsApi
+ * @extends {BaseAPI}
+ */
+export class ServerEventsApi extends BaseAPI {
+    /**
+     * 
+     * @param {ServerEventsApiGetEventRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerEventsApi
+     */
+    public getEvent(requestParameters: ServerEventsApiGetEventRequest, options?: AxiosRequestConfig) {
+        return ServerEventsApiFp(this.configuration).getEvent(requestParameters.eventId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {ServerEventsApiListEventsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerEventsApi
+     */
+    public listEvents(requestParameters: ServerEventsApiListEventsRequest = {}, options?: AxiosRequestConfig) {
+        return ServerEventsApiFp(this.configuration).listEvents(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
  * StorageProvisionsApi - axios parameter creator
  * @export
  */
@@ -3960,6 +5139,43 @@ export const StorageProvisionsApiAxiosParamCreator = function (configuration?: C
             }
 
             const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} storageProvisionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getStorageProvision: async (storageProvisionId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'storageProvisionId' is not null or undefined
+            assertParamExists('getStorageProvision', 'storageProvisionId', storageProvisionId)
+            const localVarPath = `/api/v1/server/storage-provisions/{storageProvisionId}`
+                .replace(`{${"storageProvisionId"}}`, encodeURIComponent(String(storageProvisionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -4091,6 +5307,16 @@ export const StorageProvisionsApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {string} storageProvisionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getStorageProvision(storageProvisionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getStorageProvision(storageProvisionId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * 
          * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -4140,6 +5366,15 @@ export const StorageProvisionsApiFactory = function (configuration?: Configurati
         },
         /**
          * 
+         * @param {StorageProvisionsApiGetStorageProvisionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getStorageProvision(requestParameters: StorageProvisionsApiGetStorageProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionGetResponse> {
+            return localVarFp.getStorageProvision(requestParameters.storageProvisionId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {StorageProvisionsApiListStorageProvisionsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -4183,6 +5418,20 @@ export interface StorageProvisionsApiDeleteStorageProvisionRequest {
      * 
      * @type {string}
      * @memberof StorageProvisionsApiDeleteStorageProvision
+     */
+    readonly storageProvisionId: string
+}
+
+/**
+ * Request parameters for getStorageProvision operation in StorageProvisionsApi.
+ * @export
+ * @interface StorageProvisionsApiGetStorageProvisionRequest
+ */
+export interface StorageProvisionsApiGetStorageProvisionRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageProvisionsApiGetStorageProvision
      */
     readonly storageProvisionId: string
 }
@@ -4249,6 +5498,17 @@ export class StorageProvisionsApi extends BaseAPI {
      */
     public deleteStorageProvision(requestParameters: StorageProvisionsApiDeleteStorageProvisionRequest, options?: AxiosRequestConfig) {
         return StorageProvisionsApiFp(this.configuration).deleteStorageProvision(requestParameters.storageProvisionId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {StorageProvisionsApiGetStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof StorageProvisionsApi
+     */
+    public getStorageProvision(requestParameters: StorageProvisionsApiGetStorageProvisionRequest, options?: AxiosRequestConfig) {
+        return StorageProvisionsApiFp(this.configuration).getStorageProvision(requestParameters.storageProvisionId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

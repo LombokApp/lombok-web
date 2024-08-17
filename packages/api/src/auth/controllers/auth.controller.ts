@@ -59,9 +59,9 @@ export class AuthController {
   /**
    * Refresh a session with a refresh token.
    */
-  @Post('/refresh-token')
+  @Post('/:refreshToken')
   async refreshToken(
-    @Param('refeshToken') token: string,
+    @Param('refreshToken') token: string,
   ): Promise<TokenRefreshResponse> {
     const { accessToken, refreshToken } =
       await this.authService.verifySessionWithRefreshToken(token)

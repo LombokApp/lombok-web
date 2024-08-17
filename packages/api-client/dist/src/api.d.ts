@@ -16,6 +16,361 @@ import { BaseAPI } from './base';
 /**
  *
  * @export
+ * @interface AccessKeyBucketsListResponse
+ */
+export interface AccessKeyBucketsListResponse {
+    /**
+     *
+     * @type {Array<AccessKeyBucketsListResponseResultInner>}
+     * @memberof AccessKeyBucketsListResponse
+     */
+    'result': Array<AccessKeyBucketsListResponseResultInner>;
+}
+/**
+ *
+ * @export
+ * @interface AccessKeyBucketsListResponseResultInner
+ */
+export interface AccessKeyBucketsListResponseResultInner {
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyBucketsListResponseResultInner
+     */
+    'name': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyBucketsListResponseResultInner
+     */
+    'createdDate'?: string;
+}
+/**
+ *
+ * @export
+ * @interface AccessKeyDTO
+ */
+export interface AccessKeyDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyDTO
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyDTO
+     */
+    'accessKeyHashId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyDTO
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyDTO
+     */
+    'endpointDomain': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyDTO
+     */
+    'region': string;
+    /**
+     *
+     * @type {number}
+     * @memberof AccessKeyDTO
+     */
+    'folderCount': number;
+}
+/**
+ *
+ * @export
+ * @interface AccessKeyGetResponse
+ */
+export interface AccessKeyGetResponse {
+    /**
+     *
+     * @type {AccessKeyListResponseResultInner}
+     * @memberof AccessKeyGetResponse
+     */
+    'accessKey': AccessKeyListResponseResultInner;
+}
+/**
+ *
+ * @export
+ * @interface AccessKeyListResponse
+ */
+export interface AccessKeyListResponse {
+    /**
+     *
+     * @type {UserListResponseMeta}
+     * @memberof AccessKeyListResponse
+     */
+    'meta': UserListResponseMeta;
+    /**
+     *
+     * @type {Array<AccessKeyListResponseResultInner>}
+     * @memberof AccessKeyListResponse
+     */
+    'result': Array<AccessKeyListResponseResultInner>;
+}
+/**
+ *
+ * @export
+ * @interface AccessKeyListResponseResultInner
+ */
+export interface AccessKeyListResponseResultInner {
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'accessKeyHashId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'endpointDomain': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'region': string;
+    /**
+     *
+     * @type {number}
+     * @memberof AccessKeyListResponseResultInner
+     */
+    'folderCount': number;
+}
+/**
+ *
+ * @export
+ * @interface AccessKeyRotateResponse
+ */
+export interface AccessKeyRotateResponse {
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeyRotateResponse
+     */
+    'accessKeyHashId': string;
+}
+/**
+ *
+ * @export
+ * @interface AppDTO
+ */
+export interface AppDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTO
+     */
+    'identifier': string;
+    /**
+     *
+     * @type {AppDTOConfig}
+     * @memberof AppDTO
+     */
+    'config': AppDTOConfig;
+    /**
+     *
+     * @type {{ [key: string]: AppDTOUiValue | undefined; }}
+     * @memberof AppDTO
+     */
+    'ui': {
+        [key: string]: AppDTOUiValue | undefined;
+    };
+}
+/**
+ *
+ * @export
+ * @interface AppDTOConfig
+ */
+export interface AppDTOConfig {
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOConfig
+     */
+    'publicKey': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOConfig
+     */
+    'description': string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof AppDTOConfig
+     */
+    'subscribedEvents': Array<string>;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof AppDTOConfig
+     */
+    'emitEvents': Array<string>;
+    /**
+     *
+     * @type {AppDTOConfigActions}
+     * @memberof AppDTOConfig
+     */
+    'actions': AppDTOConfigActions;
+    /**
+     *
+     * @type {Array<AppDTOConfigMenuItemsInner>}
+     * @memberof AppDTOConfig
+     */
+    'menuItems': Array<AppDTOConfigMenuItemsInner>;
+}
+/**
+ *
+ * @export
+ * @interface AppDTOConfigActions
+ */
+export interface AppDTOConfigActions {
+    /**
+     *
+     * @type {Array<AppDTOConfigActionsFolderInner>}
+     * @memberof AppDTOConfigActions
+     */
+    'folder': Array<AppDTOConfigActionsFolderInner>;
+    /**
+     *
+     * @type {Array<AppDTOConfigActionsFolderInner>}
+     * @memberof AppDTOConfigActions
+     */
+    'object': Array<AppDTOConfigActionsFolderInner>;
+}
+/**
+ *
+ * @export
+ * @interface AppDTOConfigActionsFolderInner
+ */
+export interface AppDTOConfigActionsFolderInner {
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOConfigActionsFolderInner
+     */
+    'key': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOConfigActionsFolderInner
+     */
+    'description': string;
+}
+/**
+ *
+ * @export
+ * @interface AppDTOConfigMenuItemsInner
+ */
+export interface AppDTOConfigMenuItemsInner {
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOConfigMenuItemsInner
+     */
+    'label': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOConfigMenuItemsInner
+     */
+    'iconPath'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOConfigMenuItemsInner
+     */
+    'uiName': string;
+}
+/**
+ *
+ * @export
+ * @interface AppDTOUiValue
+ */
+export interface AppDTOUiValue {
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOUiValue
+     */
+    'path': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOUiValue
+     */
+    'name': string;
+    /**
+     *
+     * @type {{ [key: string]: AppDTOUiValueFilesValue | undefined; }}
+     * @memberof AppDTOUiValue
+     */
+    'files': {
+        [key: string]: AppDTOUiValueFilesValue | undefined;
+    };
+}
+/**
+ *
+ * @export
+ * @interface AppDTOUiValueFilesValue
+ */
+export interface AppDTOUiValueFilesValue {
+    /**
+     *
+     * @type {number}
+     * @memberof AppDTOUiValueFilesValue
+     */
+    'size': number;
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOUiValueFilesValue
+     */
+    'hash': string;
+}
+/**
+ *
+ * @export
+ * @interface AppGetResponse
+ */
+export interface AppGetResponse {
+    /**
+     *
+     * @type {AppListResponseInstalledResultInner}
+     * @memberof AppGetResponse
+     */
+    'app': AppListResponseInstalledResultInner;
+}
+/**
+ *
+ * @export
  * @interface AppListResponse
  */
 export interface AppListResponse {
@@ -98,170 +453,18 @@ export interface AppListResponseInstalledResultInner {
     'identifier': string;
     /**
      *
-     * @type {AppListResponseInstalledResultInnerConfig}
+     * @type {AppDTOConfig}
      * @memberof AppListResponseInstalledResultInner
      */
-    'config': AppListResponseInstalledResultInnerConfig;
+    'config': AppDTOConfig;
     /**
      *
-     * @type {{ [key: string]: AppListResponseInstalledResultInnerUiValue | undefined; }}
+     * @type {{ [key: string]: AppDTOUiValue | undefined; }}
      * @memberof AppListResponseInstalledResultInner
      */
     'ui': {
-        [key: string]: AppListResponseInstalledResultInnerUiValue | undefined;
+        [key: string]: AppDTOUiValue | undefined;
     };
-}
-/**
- *
- * @export
- * @interface AppListResponseInstalledResultInnerConfig
- */
-export interface AppListResponseInstalledResultInnerConfig {
-    /**
-     *
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerConfig
-     */
-    'publicKey': string;
-    /**
-     *
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerConfig
-     */
-    'description': string;
-    /**
-     *
-     * @type {Array<string>}
-     * @memberof AppListResponseInstalledResultInnerConfig
-     */
-    'subscribedEvents': Array<string>;
-    /**
-     *
-     * @type {Array<string>}
-     * @memberof AppListResponseInstalledResultInnerConfig
-     */
-    'emitEvents': Array<string>;
-    /**
-     *
-     * @type {AppListResponseInstalledResultInnerConfigActions}
-     * @memberof AppListResponseInstalledResultInnerConfig
-     */
-    'actions': AppListResponseInstalledResultInnerConfigActions;
-    /**
-     *
-     * @type {Array<AppListResponseInstalledResultInnerConfigMenuItemsInner>}
-     * @memberof AppListResponseInstalledResultInnerConfig
-     */
-    'menuItems': Array<AppListResponseInstalledResultInnerConfigMenuItemsInner>;
-}
-/**
- *
- * @export
- * @interface AppListResponseInstalledResultInnerConfigActions
- */
-export interface AppListResponseInstalledResultInnerConfigActions {
-    /**
-     *
-     * @type {Array<AppListResponseInstalledResultInnerConfigActionsFolderInner>}
-     * @memberof AppListResponseInstalledResultInnerConfigActions
-     */
-    'folder': Array<AppListResponseInstalledResultInnerConfigActionsFolderInner>;
-    /**
-     *
-     * @type {Array<AppListResponseInstalledResultInnerConfigActionsFolderInner>}
-     * @memberof AppListResponseInstalledResultInnerConfigActions
-     */
-    'object': Array<AppListResponseInstalledResultInnerConfigActionsFolderInner>;
-}
-/**
- *
- * @export
- * @interface AppListResponseInstalledResultInnerConfigActionsFolderInner
- */
-export interface AppListResponseInstalledResultInnerConfigActionsFolderInner {
-    /**
-     *
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerConfigActionsFolderInner
-     */
-    'key': string;
-    /**
-     *
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerConfigActionsFolderInner
-     */
-    'description': string;
-}
-/**
- *
- * @export
- * @interface AppListResponseInstalledResultInnerConfigMenuItemsInner
- */
-export interface AppListResponseInstalledResultInnerConfigMenuItemsInner {
-    /**
-     *
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerConfigMenuItemsInner
-     */
-    'label': string;
-    /**
-     *
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerConfigMenuItemsInner
-     */
-    'iconPath'?: string;
-    /**
-     *
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerConfigMenuItemsInner
-     */
-    'uiName': string;
-}
-/**
- *
- * @export
- * @interface AppListResponseInstalledResultInnerUiValue
- */
-export interface AppListResponseInstalledResultInnerUiValue {
-    /**
-     *
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerUiValue
-     */
-    'path': string;
-    /**
-     *
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerUiValue
-     */
-    'name': string;
-    /**
-     *
-     * @type {{ [key: string]: AppListResponseInstalledResultInnerUiValueFilesValue | undefined; }}
-     * @memberof AppListResponseInstalledResultInnerUiValue
-     */
-    'files': {
-        [key: string]: AppListResponseInstalledResultInnerUiValueFilesValue | undefined;
-    };
-}
-/**
- *
- * @export
- * @interface AppListResponseInstalledResultInnerUiValueFilesValue
- */
-export interface AppListResponseInstalledResultInnerUiValueFilesValue {
-    /**
-     *
-     * @type {number}
-     * @memberof AppListResponseInstalledResultInnerUiValueFilesValue
-     */
-    'size': number;
-    /**
-     *
-     * @type {string}
-     * @memberof AppListResponseInstalledResultInnerUiValueFilesValue
-     */
-    'hash': string;
 }
 /**
  *
@@ -417,7 +620,7 @@ export interface FolderCreateInputDTO {
      * @type {FolderCreateInputDTOMetadataLocation}
      * @memberof FolderCreateInputDTO
      */
-    'metadataLocation'?: FolderCreateInputDTOMetadataLocation;
+    'metadataLocation': FolderCreateInputDTOMetadataLocation;
     /**
      *
      * @type {FolderCreateInputDTOMetadataLocation}
@@ -640,6 +843,12 @@ export interface FolderDTOMetadataLocation {
      * @memberof FolderDTOMetadataLocation
      */
     'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof FolderDTOMetadataLocation
+     */
+    'accessKeyHashId': string;
 }
 export declare const FolderDTOMetadataLocationProviderTypeEnum: {
     readonly Server: "SERVER";
@@ -1191,6 +1400,25 @@ export interface LoginResponseSession {
 /**
  *
  * @export
+ * @interface RotateAccessKeyInputDTO
+ */
+export interface RotateAccessKeyInputDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof RotateAccessKeyInputDTO
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof RotateAccessKeyInputDTO
+     */
+    'secretAccessKey': string;
+}
+/**
+ *
+ * @export
  * @interface SetSettingInputDTO
  */
 export interface SetSettingInputDTO {
@@ -1360,6 +1588,73 @@ export interface SignupResponseUser {
 /**
  *
  * @export
+ * @interface StorageLocationInputDTO
+ */
+export interface StorageLocationInputDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'storageProvisionId'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'userLocationId'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'userLocationBucketOverride'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'userLocationPrefixOverride'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'accessKeyId'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'secretAccessKey'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'endpoint'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'bucket'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'region'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageLocationInputDTO
+     */
+    'prefix'?: string;
+}
+/**
+ *
+ * @export
  * @interface StorageProvisionDTO
  */
 export interface StorageProvisionDTO {
@@ -1424,6 +1719,86 @@ export declare const StorageProvisionDTOProvisionTypesEnum: {
     readonly Backup: "BACKUP";
 };
 export type StorageProvisionDTOProvisionTypesEnum = typeof StorageProvisionDTOProvisionTypesEnum[keyof typeof StorageProvisionDTOProvisionTypesEnum];
+/**
+ *
+ * @export
+ * @interface StorageProvisionGetResponse
+ */
+export interface StorageProvisionGetResponse {
+    /**
+     *
+     * @type {StorageProvisionGetResponseStorageProvision}
+     * @memberof StorageProvisionGetResponse
+     */
+    'storageProvision': StorageProvisionGetResponseStorageProvision;
+}
+/**
+ *
+ * @export
+ * @interface StorageProvisionGetResponseStorageProvision
+ */
+export interface StorageProvisionGetResponseStorageProvision {
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'bucket': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'region': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'prefix'?: string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'provisionTypes': Array<StorageProvisionGetResponseStorageProvisionProvisionTypesEnum>;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'label': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionGetResponseStorageProvision
+     */
+    'description': string;
+}
+export declare const StorageProvisionGetResponseStorageProvisionProvisionTypesEnum: {
+    readonly Content: "CONTENT";
+    readonly Metadata: "METADATA";
+    readonly Backup: "BACKUP";
+};
+export type StorageProvisionGetResponseStorageProvisionProvisionTypesEnum = typeof StorageProvisionGetResponseStorageProvisionProvisionTypesEnum[keyof typeof StorageProvisionGetResponseStorageProvisionProvisionTypesEnum];
 /**
  *
  * @export
@@ -1815,10 +2190,227 @@ export interface ViewerGetResponse {
     'user': SignupResponseUser;
 }
 /**
+ * AccessKeysApi - axios parameter creator
+ * @export
+ */
+export declare const AccessKeysApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {string} accessKeyHashId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAccessKey: (accessKeyHashId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} accessKeyHashId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAccessKeyBuckets: (accessKeyHashId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAccessKeys: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} accessKeyHashId
+     * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    rotateAccessKey: (accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * AccessKeysApi - functional programming interface
+ * @export
+ */
+export declare const AccessKeysApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {string} accessKeyHashId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAccessKey(accessKeyHashId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>>;
+    /**
+     *
+     * @param {string} accessKeyHashId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAccessKeyBuckets(accessKeyHashId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyBucketsListResponse>>;
+    /**
+     *
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAccessKeys(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
+    /**
+     *
+     * @param {string} accessKeyHashId
+     * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    rotateAccessKey(accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyRotateResponse>>;
+};
+/**
+ * AccessKeysApi - factory interface
+ * @export
+ */
+export declare const AccessKeysApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {AccessKeysApiGetAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyGetResponse>;
+    /**
+     *
+     * @param {AccessKeysApiListAccessKeyBucketsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyBucketsListResponse>;
+    /**
+     *
+     * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAccessKeys(requestParameters?: AccessKeysApiListAccessKeysRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyListResponse>;
+    /**
+     *
+     * @param {AccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyRotateResponse>;
+};
+/**
+ * Request parameters for getAccessKey operation in AccessKeysApi.
+ * @export
+ * @interface AccessKeysApiGetAccessKeyRequest
+ */
+export interface AccessKeysApiGetAccessKeyRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeysApiGetAccessKey
+     */
+    readonly accessKeyHashId: string;
+}
+/**
+ * Request parameters for listAccessKeyBuckets operation in AccessKeysApi.
+ * @export
+ * @interface AccessKeysApiListAccessKeyBucketsRequest
+ */
+export interface AccessKeysApiListAccessKeyBucketsRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeysApiListAccessKeyBuckets
+     */
+    readonly accessKeyHashId: string;
+}
+/**
+ * Request parameters for listAccessKeys operation in AccessKeysApi.
+ * @export
+ * @interface AccessKeysApiListAccessKeysRequest
+ */
+export interface AccessKeysApiListAccessKeysRequest {
+    /**
+     *
+     * @type {number}
+     * @memberof AccessKeysApiListAccessKeys
+     */
+    readonly offset?: number;
+    /**
+     *
+     * @type {number}
+     * @memberof AccessKeysApiListAccessKeys
+     */
+    readonly limit?: number;
+}
+/**
+ * Request parameters for rotateAccessKey operation in AccessKeysApi.
+ * @export
+ * @interface AccessKeysApiRotateAccessKeyRequest
+ */
+export interface AccessKeysApiRotateAccessKeyRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof AccessKeysApiRotateAccessKey
+     */
+    readonly accessKeyHashId: string;
+    /**
+     *
+     * @type {RotateAccessKeyInputDTO}
+     * @memberof AccessKeysApiRotateAccessKey
+     */
+    readonly rotateAccessKeyInputDTO: RotateAccessKeyInputDTO;
+}
+/**
+ * AccessKeysApi - object-oriented interface
+ * @export
+ * @class AccessKeysApi
+ * @extends {BaseAPI}
+ */
+export declare class AccessKeysApi extends BaseAPI {
+    /**
+     *
+     * @param {AccessKeysApiGetAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessKeysApi
+     */
+    getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyGetResponse, any>>;
+    /**
+     *
+     * @param {AccessKeysApiListAccessKeyBucketsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessKeysApi
+     */
+    listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyBucketsListResponse, any>>;
+    /**
+     *
+     * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessKeysApi
+     */
+    listAccessKeys(requestParameters?: AccessKeysApiListAccessKeysRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyListResponse, any>>;
+    /**
+     *
+     * @param {AccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AccessKeysApi
+     */
+    rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyRotateResponse, any>>;
+}
+/**
  * AppsApi - axios parameter creator
  * @export
  */
 export declare const AppsApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {string} appIdentifier
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getApp: (appIdentifier: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {*} [options] Override http request option.
@@ -1833,6 +2425,13 @@ export declare const AppsApiAxiosParamCreator: (configuration?: Configuration) =
 export declare const AppsApiFp: (configuration?: Configuration) => {
     /**
      *
+     * @param {string} appIdentifier
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getApp(appIdentifier: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppGetResponse>>;
+    /**
+     *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -1845,11 +2444,31 @@ export declare const AppsApiFp: (configuration?: Configuration) => {
 export declare const AppsApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
     /**
      *
+     * @param {AppsApiGetAppRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getApp(requestParameters: AppsApiGetAppRequest, options?: AxiosRequestConfig): AxiosPromise<AppGetResponse>;
+    /**
+     *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     listApps(options?: AxiosRequestConfig): AxiosPromise<AppListResponse>;
 };
+/**
+ * Request parameters for getApp operation in AppsApi.
+ * @export
+ * @interface AppsApiGetAppRequest
+ */
+export interface AppsApiGetAppRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof AppsApiGetApp
+     */
+    readonly appIdentifier: string;
+}
 /**
  * AppsApi - object-oriented interface
  * @export
@@ -1857,6 +2476,14 @@ export declare const AppsApiFactory: (configuration?: Configuration, basePath?: 
  * @extends {BaseAPI}
  */
 export declare class AppsApi extends BaseAPI {
+    /**
+     *
+     * @param {AppsApiGetAppRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AppsApi
+     */
+    getApp(requestParameters: AppsApiGetAppRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AppGetResponse, any>>;
     /**
      *
      * @param {*} [options] Override http request option.
@@ -1885,11 +2512,11 @@ export declare const AuthApiAxiosParamCreator: (configuration?: Configuration) =
     logout: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
-     * @param {string} refeshToken
+     * @param {string} refreshToken
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    refreshToken: (refeshToken: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    refreshToken: (refreshToken: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {SignupCredentialsDTO} signupCredentialsDTO
@@ -1918,11 +2545,11 @@ export declare const AuthApiFp: (configuration?: Configuration) => {
     logout(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>>;
     /**
      *
-     * @param {string} refeshToken
+     * @param {string} refreshToken
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    refreshToken(refeshToken: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TokenRefreshResponse>>;
+    refreshToken(refreshToken: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TokenRefreshResponse>>;
     /**
      *
      * @param {SignupCredentialsDTO} signupCredentialsDTO
@@ -1988,7 +2615,7 @@ export interface AuthApiRefreshTokenRequest {
      * @type {string}
      * @memberof AuthApiRefreshToken
      */
-    readonly refeshToken: string;
+    readonly refreshToken: string;
 }
 /**
  * Request parameters for signup operation in AuthApi.
@@ -2041,107 +2668,6 @@ export declare class AuthApi extends BaseAPI {
      * @memberof AuthApi
      */
     signup(requestParameters: AuthApiSignupRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SignupResponse, any>>;
-}
-/**
- * EventsApi - axios parameter creator
- * @export
- */
-export declare const EventsApiAxiosParamCreator: (configuration?: Configuration) => {
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getEvent: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {number} [offset]
-     * @param {number} [limit]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listEvents: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-};
-/**
- * EventsApi - functional programming interface
- * @export
- */
-export declare const EventsApiFp: (configuration?: Configuration) => {
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getEvent(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventGetResponse>>;
-    /**
-     *
-     * @param {number} [offset]
-     * @param {number} [limit]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listEvents(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventListResponse>>;
-};
-/**
- * EventsApi - factory interface
- * @export
- */
-export declare const EventsApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getEvent(options?: AxiosRequestConfig): AxiosPromise<EventGetResponse>;
-    /**
-     *
-     * @param {EventsApiListEventsRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listEvents(requestParameters?: EventsApiListEventsRequest, options?: AxiosRequestConfig): AxiosPromise<EventListResponse>;
-};
-/**
- * Request parameters for listEvents operation in EventsApi.
- * @export
- * @interface EventsApiListEventsRequest
- */
-export interface EventsApiListEventsRequest {
-    /**
-     *
-     * @type {number}
-     * @memberof EventsApiListEvents
-     */
-    readonly offset?: number;
-    /**
-     *
-     * @type {number}
-     * @memberof EventsApiListEvents
-     */
-    readonly limit?: number;
-}
-/**
- * EventsApi - object-oriented interface
- * @export
- * @class EventsApi
- * @extends {BaseAPI}
- */
-export declare class EventsApi extends BaseAPI {
-    /**
-     *
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof EventsApi
-     */
-    getEvent(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<EventGetResponse, any>>;
-    /**
-     *
-     * @param {EventsApiListEventsRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof EventsApi
-     */
-    listEvents(requestParameters?: EventsApiListEventsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<EventListResponse, any>>;
 }
 /**
  * FoldersApi - axios parameter creator
@@ -2905,6 +3431,292 @@ export declare class ServerApi extends BaseAPI {
     setServerSetting(requestParameters: ServerApiSetServerSettingRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SettingSetResponse, any>>;
 }
 /**
+ * ServerAccessKeysApi - axios parameter creator
+ * @export
+ */
+export declare const ServerAccessKeysApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {string} accessKeyHashId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getServerAccessKey: (accessKeyHashId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listServerAccessKeys: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} accessKeyHashId
+     * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    rotateAccessKey: (accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * ServerAccessKeysApi - functional programming interface
+ * @export
+ */
+export declare const ServerAccessKeysApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {string} accessKeyHashId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getServerAccessKey(accessKeyHashId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>>;
+    /**
+     *
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listServerAccessKeys(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
+    /**
+     *
+     * @param {string} accessKeyHashId
+     * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    rotateAccessKey(accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyRotateResponse>>;
+};
+/**
+ * ServerAccessKeysApi - factory interface
+ * @export
+ */
+export declare const ServerAccessKeysApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {ServerAccessKeysApiGetServerAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyGetResponse>;
+    /**
+     *
+     * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listServerAccessKeys(requestParameters?: ServerAccessKeysApiListServerAccessKeysRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyListResponse>;
+    /**
+     *
+     * @param {ServerAccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyRotateResponse>;
+};
+/**
+ * Request parameters for getServerAccessKey operation in ServerAccessKeysApi.
+ * @export
+ * @interface ServerAccessKeysApiGetServerAccessKeyRequest
+ */
+export interface ServerAccessKeysApiGetServerAccessKeyRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerAccessKeysApiGetServerAccessKey
+     */
+    readonly accessKeyHashId: string;
+}
+/**
+ * Request parameters for listServerAccessKeys operation in ServerAccessKeysApi.
+ * @export
+ * @interface ServerAccessKeysApiListServerAccessKeysRequest
+ */
+export interface ServerAccessKeysApiListServerAccessKeysRequest {
+    /**
+     *
+     * @type {number}
+     * @memberof ServerAccessKeysApiListServerAccessKeys
+     */
+    readonly offset?: number;
+    /**
+     *
+     * @type {number}
+     * @memberof ServerAccessKeysApiListServerAccessKeys
+     */
+    readonly limit?: number;
+}
+/**
+ * Request parameters for rotateAccessKey operation in ServerAccessKeysApi.
+ * @export
+ * @interface ServerAccessKeysApiRotateAccessKeyRequest
+ */
+export interface ServerAccessKeysApiRotateAccessKeyRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerAccessKeysApiRotateAccessKey
+     */
+    readonly accessKeyHashId: string;
+    /**
+     *
+     * @type {RotateAccessKeyInputDTO}
+     * @memberof ServerAccessKeysApiRotateAccessKey
+     */
+    readonly rotateAccessKeyInputDTO: RotateAccessKeyInputDTO;
+}
+/**
+ * ServerAccessKeysApi - object-oriented interface
+ * @export
+ * @class ServerAccessKeysApi
+ * @extends {BaseAPI}
+ */
+export declare class ServerAccessKeysApi extends BaseAPI {
+    /**
+     *
+     * @param {ServerAccessKeysApiGetServerAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerAccessKeysApi
+     */
+    getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyGetResponse, any>>;
+    /**
+     *
+     * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerAccessKeysApi
+     */
+    listServerAccessKeys(requestParameters?: ServerAccessKeysApiListServerAccessKeysRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyListResponse, any>>;
+    /**
+     *
+     * @param {ServerAccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerAccessKeysApi
+     */
+    rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyRotateResponse, any>>;
+}
+/**
+ * ServerEventsApi - axios parameter creator
+ * @export
+ */
+export declare const ServerEventsApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {string} eventId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getEvent: (eventId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listEvents: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * ServerEventsApi - functional programming interface
+ * @export
+ */
+export declare const ServerEventsApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {string} eventId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getEvent(eventId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventGetResponse>>;
+    /**
+     *
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listEvents(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventListResponse>>;
+};
+/**
+ * ServerEventsApi - factory interface
+ * @export
+ */
+export declare const ServerEventsApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {ServerEventsApiGetEventRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getEvent(requestParameters: ServerEventsApiGetEventRequest, options?: AxiosRequestConfig): AxiosPromise<EventGetResponse>;
+    /**
+     *
+     * @param {ServerEventsApiListEventsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listEvents(requestParameters?: ServerEventsApiListEventsRequest, options?: AxiosRequestConfig): AxiosPromise<EventListResponse>;
+};
+/**
+ * Request parameters for getEvent operation in ServerEventsApi.
+ * @export
+ * @interface ServerEventsApiGetEventRequest
+ */
+export interface ServerEventsApiGetEventRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerEventsApiGetEvent
+     */
+    readonly eventId: string;
+}
+/**
+ * Request parameters for listEvents operation in ServerEventsApi.
+ * @export
+ * @interface ServerEventsApiListEventsRequest
+ */
+export interface ServerEventsApiListEventsRequest {
+    /**
+     *
+     * @type {number}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly offset?: number;
+    /**
+     *
+     * @type {number}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly limit?: number;
+}
+/**
+ * ServerEventsApi - object-oriented interface
+ * @export
+ * @class ServerEventsApi
+ * @extends {BaseAPI}
+ */
+export declare class ServerEventsApi extends BaseAPI {
+    /**
+     *
+     * @param {ServerEventsApiGetEventRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerEventsApi
+     */
+    getEvent(requestParameters: ServerEventsApiGetEventRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<EventGetResponse, any>>;
+    /**
+     *
+     * @param {ServerEventsApiListEventsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerEventsApi
+     */
+    listEvents(requestParameters?: ServerEventsApiListEventsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<EventListResponse, any>>;
+}
+/**
  * StorageProvisionsApi - axios parameter creator
  * @export
  */
@@ -2923,6 +3735,13 @@ export declare const StorageProvisionsApiAxiosParamCreator: (configuration?: Con
      * @throws {RequiredError}
      */
     deleteStorageProvision: (storageProvisionId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} storageProvisionId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getStorageProvision: (storageProvisionId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType]
@@ -2960,6 +3779,13 @@ export declare const StorageProvisionsApiFp: (configuration?: Configuration) => 
     deleteStorageProvision(storageProvisionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionListResponse>>;
     /**
      *
+     * @param {string} storageProvisionId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getStorageProvision(storageProvisionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionGetResponse>>;
+    /**
+     *
      * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2993,6 +3819,13 @@ export declare const StorageProvisionsApiFactory: (configuration?: Configuration
      * @throws {RequiredError}
      */
     deleteStorageProvision(requestParameters: StorageProvisionsApiDeleteStorageProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionListResponse>;
+    /**
+     *
+     * @param {StorageProvisionsApiGetStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getStorageProvision(requestParameters: StorageProvisionsApiGetStorageProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionGetResponse>;
     /**
      *
      * @param {StorageProvisionsApiListStorageProvisionsRequest} requestParameters Request parameters.
@@ -3031,6 +3864,19 @@ export interface StorageProvisionsApiDeleteStorageProvisionRequest {
      *
      * @type {string}
      * @memberof StorageProvisionsApiDeleteStorageProvision
+     */
+    readonly storageProvisionId: string;
+}
+/**
+ * Request parameters for getStorageProvision operation in StorageProvisionsApi.
+ * @export
+ * @interface StorageProvisionsApiGetStorageProvisionRequest
+ */
+export interface StorageProvisionsApiGetStorageProvisionRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionsApiGetStorageProvision
      */
     readonly storageProvisionId: string;
 }
@@ -3089,6 +3935,14 @@ export declare class StorageProvisionsApi extends BaseAPI {
      * @memberof StorageProvisionsApi
      */
     deleteStorageProvision(requestParameters: StorageProvisionsApiDeleteStorageProvisionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<StorageProvisionListResponse, any>>;
+    /**
+     *
+     * @param {StorageProvisionsApiGetStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof StorageProvisionsApi
+     */
+    getStorageProvision(requestParameters: StorageProvisionsApiGetStorageProvisionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<StorageProvisionGetResponse, any>>;
     /**
      *
      * @param {StorageProvisionsApiListStorageProvisionsRequest} requestParameters Request parameters.

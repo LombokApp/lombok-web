@@ -197,7 +197,7 @@ const renderFolderObjectPreview = (
       contentWrapperDiv.setAttribute('x-data-preview-rendered', '1')
       const image = new Image()
       linkElement.append(image)
-      image.style.objectFit = 'cover'
+      image.className = 'object-cover'
       image.style.position = 'absolute'
       image.style.height = '100%'
       image.style.width = '100%'
@@ -215,7 +215,7 @@ const renderFolderObjectPreview = (
       contentWrapperDiv.setAttribute('x-data-preview-rendered', '1')
       const video = document.createElement('video')
       linkElement.append(video)
-      video.style.objectFit = 'cover'
+      video.className = 'object-cover'
       video.style.position = 'absolute'
       video.style.height = '100%'
       video.style.width = '100%'
@@ -1236,28 +1236,6 @@ export const FolderDetailScreen = () => {
                 title={folderContext.folder?.name ?? ''}
                 titleIconBg={'bg-blue-100'}
                 avatarKey={folderContext.folder?.id}
-                properties={[
-                  {
-                    icon: FolderIcon,
-                    value: formatBytes(
-                      folderContext.folderMetadata?.totalSizeBytes ?? 0,
-                    ),
-                  },
-                  {
-                    icon: DocumentTextIcon,
-                    value: `${folderContext.folderMetadata?.totalCount} files`,
-                  },
-                  {
-                    icon: MapPinIcon,
-                    value: `${folderContext.folder?.contentLocation.endpoint}${
-                      folderContext.folder?.contentLocation.endpoint.endsWith(
-                        '/',
-                      )
-                        ? ''
-                        : '/'
-                    }${folderContext.folder?.contentLocation.bucket}`,
-                  },
-                ]}
               >
                 <div className="pt-2 flex gap-2">
                   {folderContext.folderPermissions?.includes(

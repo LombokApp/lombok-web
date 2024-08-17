@@ -2,25 +2,16 @@ import '../styles/common-base-styles.css'
 import '../styles/globals.css'
 import '../fonts/inter/inter.css'
 
-import { Menu } from '@headlessui/react'
-import {
-  ArrowRightOnRectangleIcon,
-  CubeIcon,
-  FolderOpenIcon,
-  ServerStackIcon,
-} from '@heroicons/react/24/outline'
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { AuthContextProvider, useAuthContext } from '@stellariscloud/auth-utils'
 import clsx from 'clsx'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
-import Image from 'next/image'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import React from 'react'
 import { QueryClient, QueryClientProvider } from 'react-query'
 
 import { Header } from '../components/header'
-import { ThemeSwitch } from '../components/theme-switch/theme-switch'
 import { LocalFileCacheContextProvider } from '../contexts/local-file-cache.context'
 import { LoggingContextProvider } from '../contexts/logging.context'
 import {
@@ -28,55 +19,23 @@ import {
   useServerContext,
 } from '../contexts/server.context'
 import { ThemeContextProvider } from '../contexts/theme.context'
-import { Avatar } from '../design-system/avatar'
-import { Icon } from '../design-system/icon'
 import { sdkInstance } from '../services/api'
+import { NavSidebar } from '../components/nav-sidebar/nav-sidebar'
+import {
+  Dialog,
+  DialogBackdrop,
+  DialogPanel,
+  TransitionChild,
+} from '@headlessui/react'
+import Link from 'next/link'
 
 const queryClient = new QueryClient()
 
 const UNAUTHENTICATED_PAGES = ['/', '/faq', '/login', '/signup']
 const SHOW_HEADER_ROUTES = ['/', '/sponsor', '/how-it-works', '/contact']
-const SIDEBAR_COLOR =
-  // 'lg:bg-indigo-600 dark:lg:bg-indigo-800 transition duration-100'
-  'bg-gradient-to-l from-indigo-900 to-indigo-950 dark:bg-gradient-to-r dark:from-blue-950 dark:to-indigo-950 transition duration-100'
+
 const BODY_GRADIENT =
   'bg-gray-100 transition duration-100 dark:bg-gradient-to-r dark:from-blue-950 dark:to-indigo-950'
-
-export function ProfileMenu({
-  profileImgSrc,
-  profileAvatarUniqueKey,
-  // profileMenuItems,
-  onProfileClick,
-}: {
-  profileAvatarUniqueKey?: string
-  profileImgSrc?: string
-  profileMenuItems: { name: string; href: string; onClick?: () => void }[]
-  profileName: string
-  onProfileClick: () => void
-}) {
-  return (
-    <Menu as="div" className="relative">
-      <Menu.Button
-        className="-m-1.5 flex items-center p-1.5"
-        onClick={onProfileClick}
-      >
-        <span className="sr-only">Open user menu</span>
-        {profileImgSrc && (
-          <img
-            className="h-8 w-8 rounded-full bg-gray-50"
-            src={profileImgSrc}
-            alt=""
-          />
-        )}
-        {profileAvatarUniqueKey && (
-          <div className="flex rounded-full overflow-hidden bg-pink-500">
-            <Avatar size="sm" uniqueKey={profileAvatarUniqueKey} />
-          </div>
-        )}
-      </Menu.Button>
-    </Menu>
-  )
-}
 
 const UnauthenticatedContent = ({ Component, pageProps }: AppProps) => {
   return (
@@ -98,181 +57,104 @@ const UnauthenticatedContent = ({ Component, pageProps }: AppProps) => {
 }
 
 const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
-  const { authState, viewer, logout } = useAuthContext()
-  const handleLogoutPress = (
-    e?:
-      | React.MouseEvent<HTMLButtonElement>
-      | React.MouseEvent<HTMLAnchorElement>
-      | React.MouseEvent<HTMLLabelElement>,
-  ) => {
-    e?.preventDefault()
-    void logout()
-  }
+  const authContext = useAuthContext()
   const router = useRouter()
   const { menuItems } = useServerContext()
 
   React.useEffect(() => {
     if (
-      'isAuthenticated' in authState &&
-      !authState.isAuthenticated &&
+      'isAuthenticated' in authContext.authState &&
+      !authContext.authState.isAuthenticated &&
       !UNAUTHENTICATED_PAGES.includes(router.pathname)
     ) {
       void router.push('/')
     }
-  }, [authState.isAuthenticated, authState, router])
+  }, [authContext.authState.isAuthenticated, authContext.authState, router])
 
-  const navigation = [
-    {
-      name: 'Folders',
-      href: '/folders',
-      icon: FolderOpenIcon,
-      current: router.pathname.startsWith('/folders'),
-    },
-    ...(viewer?.isAdmin
-      ? [
-          {
-            name: 'Server',
-            href: '/server',
-            icon: ServerStackIcon,
-            current: router.pathname.startsWith('/server'),
-          },
-        ]
-      : []),
-  ]
-
-  const userNavigation = [{ name: 'Your profile', href: '/profile' }]
   const hideHeader = !SHOW_HEADER_ROUTES.includes(router.pathname)
   const hideSidebar = !hideHeader
-  const scheme = 'http' //TODO: Fix!
+  const [sidebarOpen, setSidebarOpen] = React.useState(false)
 
-  // console.log('appUIs:', appUIs)
   return (
-    <div className="h-full overflow-hidden">
-      <div
-        className={clsx(
-          hideSidebar && 'max-w-0 overflow-hidden opacity-0',
-          'hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-20 lg:overflow-y-auto lg:pb-4',
-          SIDEBAR_COLOR,
-        )}
+    <div className="flex h-full">
+      <Dialog
+        open={sidebarOpen}
+        onClose={setSidebarOpen}
+        className="relative z-50 lg:hidden"
       >
-        <div className="flex flex-col h-full">
-          <div className="flex h-16 shrink-0 items-center justify-center">
-            <Link href={'/'} passHref>
-              <Image
-                className="rounded-full"
-                priority
-                src="/stellariscloud.png"
-                width={32}
-                height={32}
-                alt="Stellaris cloud logo"
-              />
-            </Link>
-          </div>
-          {viewer && (
-            <div className="flex flex-col flex-1">
-              <nav className="mt-8">
-                <ul className="flex flex-col items-center space-y-1">
-                  {navigation.map((item) => (
-                    <li key={item.name}>
-                      <Link
-                        href={item.href}
-                        className={clsx(
-                          item.current
-                            ? 'bg-white/10 text-white'
-                            : 'text-gray-400 hover:text-white hover:bg-white/10',
-                          'group flex gap-x-3 rounded-md p-3 text-sm leading-6 font-semibold',
-                        )}
-                      >
-                        <item.icon
-                          className="h-6 w-6 shrink-0"
-                          aria-hidden="true"
-                        />
-                        <span className="sr-only">{item.name}</span>
-                      </Link>
-                    </li>
-                  ))}
-                  {menuItems.map((item, i) => (
-                    <li key={i}>
-                      <Link
-                        href={item.href}
-                        className={clsx(
-                          router.pathname.startsWith(item.href)
-                            ? 'bg-white/10 text-white'
-                            : 'text-gray-400 hover:text-white hover:bg-white/10',
-                          'group flex gap-x-3 rounded-md p-1 text-sm leading-6 font-semibold',
-                        )}
-                      >
-                        {item.iconPath ? (
-                          <img
-                            className="rounded-lg bg-black/50"
-                            width={40}
-                            height={40}
-                            alt={item.label}
-                            src={`${scheme}://${item.uiName}.${item.appIdentifier}.apps.${process.env.NEXT_PUBLIC_API_HOST}${item.iconPath}`}
-                            aria-hidden="true"
-                          />
-                        ) : (
-                          <>
-                            <Icon size="md" icon={CubeIcon} />
-                          </>
-                        )}
-                        <span className="sr-only">{item.label}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-              <div className="flex-1 flex flex-col items-center justify-end">
-                <ul className="flex flex-col gap-6 pb-4">
-                  <li>
-                    <ProfileMenu
-                      onProfileClick={() => void router.push('/profile')}
-                      profileAvatarUniqueKey={'asdfsadf'}
-                      profileMenuItems={userNavigation}
-                      profileName="Tom Kek"
-                    />
-                  </li>
-                  <li>
-                    <div className="flex flex-col items-center">
-                      <ThemeSwitch />
-                    </div>
-                  </li>
-                  {authState.isAuthenticated && (
-                    <li>
-                      <div className="flex justify-center">
-                        <button onClick={handleLogoutPress}>
-                          <Icon
-                            size="md"
-                            icon={ArrowRightOnRectangleIcon}
-                            className="text-gray-100 dark:text-gray-400 hover:text-gray-500"
-                          />
-                        </button>
-                      </div>
-                    </li>
-                  )}
-                </ul>
+        <DialogBackdrop
+          transition
+          className="fixed inset-0 bg-gray-900/80 transition-opacity duration-300 ease-linear data-[closed]:opacity-0"
+        />
+
+        <div className="fixed inset-0 flex">
+          <DialogPanel
+            transition
+            className="relative mr-16 flex w-full max-w-xs flex-1 transform transition duration-300 ease-in-out data-[closed]:-translate-x-full"
+          >
+            <TransitionChild>
+              <div className="absolute left-full top-0 flex w-16 justify-center pt-5 duration-300 ease-in-out data-[closed]:opacity-0">
+                <button
+                  type="button"
+                  onClick={() => setSidebarOpen(false)}
+                  className="-m-2.5 p-2.5"
+                >
+                  <span className="sr-only">Close sidebar</span>
+                  <XMarkIcon
+                    aria-hidden="true"
+                    className="h-6 w-6 text-white"
+                  />
+                </button>
               </div>
-            </div>
-          )}
+            </TransitionChild>
+            <NavSidebar
+              authContext={authContext}
+              hideSidebar={hideSidebar}
+              menuItems={menuItems}
+              router={router}
+            />
+          </DialogPanel>
         </div>
+      </Dialog>
+
+      {/* Static sidebar for desktop */}
+      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+        <NavSidebar
+          authContext={authContext}
+          hideSidebar={hideSidebar}
+          menuItems={menuItems}
+          router={router}
+        />
       </div>
 
-      <div
+      <div className="sticky top-0 z-40 flex flex-col justify-between items-center gap-x-6 bg-gray-900 px-4 py-4 shadow-sm sm:px-6 lg:hidden">
+        <button
+          type="button"
+          onClick={() => setSidebarOpen(true)}
+          className="-m-2.5 p-2.5 text-gray-400 lg:hidden"
+        >
+          <span className="sr-only">Open sidebar</span>
+          <Bars3Icon aria-hidden="true" className="h-6 w-6" />
+        </button>
+        <Link href="/profile">
+          <span className="sr-only">Your profile</span>
+          <img
+            alt=""
+            src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+            className="h-8 w-8 rounded-full bg-gray-800"
+          />
+        </Link>
+      </div>
+
+      <main
         className={clsx(
-          'flex flex-col h-full justify-stretch',
-          !hideSidebar && 'lg:pl-20',
+          'overflow-hidden flex-1',
+          BODY_GRADIENT,
+          !hideSidebar && 'lg:pl-72',
         )}
       >
-        {!hideHeader && (
-          <div className="w-full flex shrink-0 grow-0 absolute right-0 top-0 overflow-visible">
-            <Header />
-          </div>
-        )}
-
-        <main className={clsx('overflow-hidden flex-1', BODY_GRADIENT)}>
-          <Component {...pageProps} />
-        </main>
-      </div>
+        <Component {...pageProps} />
+      </main>
     </div>
   )
 }

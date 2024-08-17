@@ -5,9 +5,11 @@ export const providerTypeEnum = pgEnum('providerType', ['SERVER', 'USER'])
 
 export const storageLocationsTable = pgTable('storage_locations', {
   id: uuid('id').primaryKey(),
+  accessKeyHashId: text('accessKeyHashId').notNull(),
   providerType: providerTypeEnum('providerType').notNull(),
   label: text('label').notNull(),
   endpoint: text('endpoint').notNull(),
+  endpointDomain: text('endpointDomain').notNull(),
   region: text('region').notNull(),
   accessKeyId: text('accessKeyId').notNull(),
   secretAccessKey: text('secretAccessKey').notNull(),

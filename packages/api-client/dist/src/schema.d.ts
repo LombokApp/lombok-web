@@ -81,11 +81,11 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/api/v1/auth/refresh-token": {
+        readonly "/api/v1/auth/{refreshToken}": {
             readonly post: {
                 readonly operationId: "refreshToken";
                 readonly parameters: readonly [{
-                    readonly name: "refeshToken";
+                    readonly name: "refreshToken";
                     readonly required: true;
                     readonly in: "path";
                     readonly schema: {
@@ -730,6 +730,243 @@ export declare const schema: {
                 }];
             };
         };
+        readonly "/api/v1/access-keys": {
+            readonly get: {
+                readonly operationId: "listAccessKeys";
+                readonly parameters: readonly [{
+                    readonly name: "offset";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly name: "limit";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly minimum: 0;
+                        readonly exclusiveMinimum: true;
+                        readonly type: "number";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "List access keys.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/AccessKeyListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["AccessKeys"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/access-keys/{accessKeyHashId}": {
+            readonly get: {
+                readonly operationId: "getAccessKey";
+                readonly parameters: readonly [{
+                    readonly name: "accessKeyHashId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Get an access key by id.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/AccessKeyGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["AccessKeys"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+            readonly post: {
+                readonly operationId: "rotateAccessKey";
+                readonly parameters: readonly [{
+                    readonly name: "accessKeyHashId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/RotateAccessKeyInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Rotate an access key.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/AccessKeyRotateResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["AccessKeys"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/access-keys/{accessKeyHashId}/buckets": {
+            readonly get: {
+                readonly operationId: "listAccessKeyBuckets";
+                readonly parameters: readonly [{
+                    readonly name: "accessKeyHashId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "List buckets for an access key.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/AccessKeyBucketsListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["AccessKeys"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/server/access-keys": {
+            readonly get: {
+                readonly operationId: "listServerAccessKeys";
+                readonly parameters: readonly [{
+                    readonly name: "offset";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly name: "limit";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly minimum: 0;
+                        readonly exclusiveMinimum: true;
+                        readonly type: "number";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "List server access keys.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/AccessKeyListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["ServerAccessKeys"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/server/access-keys/{accessKeyHashId}": {
+            readonly get: {
+                readonly operationId: "getServerAccessKey";
+                readonly parameters: readonly [{
+                    readonly name: "accessKeyHashId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Get server access key by id.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/AccessKeyGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["ServerAccessKeys"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+            readonly post: {
+                readonly operationId: "rotateAccessKey";
+                readonly parameters: readonly [{
+                    readonly name: "accessKeyHashId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/RotateAccessKeyInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "Rotate a server access key.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/AccessKeyRotateResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["ServerAccessKeys"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
         readonly "/api/v1/server/settings": {
             readonly get: {
                 readonly operationId: "getServerSettings";
@@ -879,6 +1116,33 @@ export declare const schema: {
             };
         };
         readonly "/api/v1/server/storage-provisions/{storageProvisionId}": {
+            readonly get: {
+                readonly operationId: "getStorageProvision";
+                readonly parameters: readonly [{
+                    readonly name: "storageProvisionId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "List the server provisions.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/StorageProvisionGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["StorageProvisions"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
             readonly put: {
                 readonly operationId: "updateStorageProvision";
                 readonly parameters: readonly [{
@@ -944,10 +1208,17 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/api/v1/events/{eventId}": {
+        readonly "/api/v1/server/events/{eventId}": {
             readonly get: {
                 readonly operationId: "getEvent";
-                readonly parameters: readonly [];
+                readonly parameters: readonly [{
+                    readonly name: "eventId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
                 readonly responses: {
                     readonly "200": {
                         readonly description: "Get an event by id.";
@@ -960,13 +1231,13 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Events"];
+                readonly tags: readonly ["ServerEvents"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
             };
         };
-        readonly "/api/v1/events": {
+        readonly "/api/v1/server/events": {
             readonly get: {
                 readonly operationId: "listEvents";
                 readonly parameters: readonly [{
@@ -998,7 +1269,7 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Events"];
+                readonly tags: readonly ["ServerEvents"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
@@ -1015,6 +1286,35 @@ export declare const schema: {
                             readonly "application/json": {
                                 readonly schema: {
                                     readonly $ref: "#/components/schemas/AppListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Apps"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/server/apps/{appIdentifier}": {
+            readonly get: {
+                readonly operationId: "getApp";
+                readonly parameters: readonly [{
+                    readonly name: "appIdentifier";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/AppGetResponse";
                                 };
                             };
                         };
@@ -1448,8 +1748,11 @@ export declare const schema: {
                             readonly accessKeyId: {
                                 readonly type: "string";
                             };
+                            readonly accessKeyHashId: {
+                                readonly type: "string";
+                            };
                         };
-                        readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                        readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId", "accessKeyHashId"];
                     };
                     readonly contentLocation: {
                         readonly type: "object";
@@ -1482,8 +1785,11 @@ export declare const schema: {
                             readonly accessKeyId: {
                                 readonly type: "string";
                             };
+                            readonly accessKeyHashId: {
+                                readonly type: "string";
+                            };
                         };
-                        readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                        readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId", "accessKeyHashId"];
                     };
                 };
                 readonly required: readonly ["id", "ownerId", "name", "metadataLocation", "contentLocation"];
@@ -1620,6 +1926,41 @@ export declare const schema: {
                 };
                 readonly required: readonly ["mediaType", "mimeType", "height", "width", "orientation", "lengthMs", "bitrate"];
             };
+            readonly StorageLocationInputDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly storageProvisionId: {
+                        readonly type: "string";
+                    };
+                    readonly userLocationId: {
+                        readonly type: "string";
+                    };
+                    readonly userLocationBucketOverride: {
+                        readonly type: "string";
+                    };
+                    readonly userLocationPrefixOverride: {
+                        readonly type: "string";
+                    };
+                    readonly accessKeyId: {
+                        readonly type: "string";
+                    };
+                    readonly secretAccessKey: {
+                        readonly type: "string";
+                    };
+                    readonly endpoint: {
+                        readonly type: "string";
+                    };
+                    readonly bucket: {
+                        readonly type: "string";
+                    };
+                    readonly region: {
+                        readonly type: "string";
+                    };
+                    readonly prefix: {
+                        readonly type: "string";
+                    };
+                };
+            };
             readonly FolderGetResponse: {
                 readonly type: "object";
                 readonly properties: {
@@ -1666,8 +2007,11 @@ export declare const schema: {
                                     readonly accessKeyId: {
                                         readonly type: "string";
                                     };
+                                    readonly accessKeyHashId: {
+                                        readonly type: "string";
+                                    };
                                 };
-                                readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                                readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId", "accessKeyHashId"];
                             };
                             readonly contentLocation: {
                                 readonly type: "object";
@@ -1700,8 +2044,11 @@ export declare const schema: {
                                     readonly accessKeyId: {
                                         readonly type: "string";
                                     };
+                                    readonly accessKeyHashId: {
+                                        readonly type: "string";
+                                    };
                                 };
-                                readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                                readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId", "accessKeyHashId"];
                             };
                         };
                         readonly required: readonly ["id", "ownerId", "name", "metadataLocation", "contentLocation"];
@@ -1795,8 +2142,11 @@ export declare const schema: {
                                                 readonly accessKeyId: {
                                                     readonly type: "string";
                                                 };
+                                                readonly accessKeyHashId: {
+                                                    readonly type: "string";
+                                                };
                                             };
-                                            readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                                            readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId", "accessKeyHashId"];
                                         };
                                         readonly contentLocation: {
                                             readonly type: "object";
@@ -1829,8 +2179,11 @@ export declare const schema: {
                                                 readonly accessKeyId: {
                                                     readonly type: "string";
                                                 };
+                                                readonly accessKeyHashId: {
+                                                    readonly type: "string";
+                                                };
                                             };
-                                            readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                                            readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId", "accessKeyHashId"];
                                         };
                                     };
                                     readonly required: readonly ["id", "ownerId", "name", "metadataLocation", "contentLocation"];
@@ -1919,7 +2272,7 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly required: readonly ["name", "contentLocation"];
+                readonly required: readonly ["name", "metadataLocation", "contentLocation"];
             };
             readonly FolderCreateResponse: {
                 readonly type: "object";
@@ -1967,8 +2320,11 @@ export declare const schema: {
                                     readonly accessKeyId: {
                                         readonly type: "string";
                                     };
+                                    readonly accessKeyHashId: {
+                                        readonly type: "string";
+                                    };
                                 };
-                                readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                                readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId", "accessKeyHashId"];
                             };
                             readonly contentLocation: {
                                 readonly type: "object";
@@ -2001,8 +2357,11 @@ export declare const schema: {
                                     readonly accessKeyId: {
                                         readonly type: "string";
                                     };
+                                    readonly accessKeyHashId: {
+                                        readonly type: "string";
+                                    };
                                 };
-                                readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId"];
+                                readonly required: readonly ["id", "providerType", "label", "endpoint", "region", "bucket", "accessKeyId", "accessKeyHashId"];
                             };
                         };
                         readonly required: readonly ["id", "ownerId", "name", "metadataLocation", "contentLocation"];
@@ -2243,6 +2602,145 @@ export declare const schema: {
                     readonly actionParams: {};
                 };
             };
+            readonly AccessKeyDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly accessKeyId: {
+                        readonly type: "string";
+                    };
+                    readonly accessKeyHashId: {
+                        readonly type: "string";
+                    };
+                    readonly endpoint: {
+                        readonly type: "string";
+                    };
+                    readonly endpointDomain: {
+                        readonly type: "string";
+                    };
+                    readonly region: {
+                        readonly type: "string";
+                    };
+                    readonly folderCount: {
+                        readonly type: "number";
+                    };
+                };
+                readonly required: readonly ["accessKeyId", "accessKeyHashId", "endpoint", "endpointDomain", "region", "folderCount"];
+            };
+            readonly AccessKeyListResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly meta: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly totalCount: {
+                                readonly type: "number";
+                            };
+                        };
+                        readonly required: readonly ["totalCount"];
+                    };
+                    readonly result: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "object";
+                            readonly properties: {
+                                readonly accessKeyId: {
+                                    readonly type: "string";
+                                };
+                                readonly accessKeyHashId: {
+                                    readonly type: "string";
+                                };
+                                readonly endpoint: {
+                                    readonly type: "string";
+                                };
+                                readonly endpointDomain: {
+                                    readonly type: "string";
+                                };
+                                readonly region: {
+                                    readonly type: "string";
+                                };
+                                readonly folderCount: {
+                                    readonly type: "number";
+                                };
+                            };
+                            readonly required: readonly ["accessKeyId", "accessKeyHashId", "endpoint", "endpointDomain", "region", "folderCount"];
+                        };
+                    };
+                };
+                readonly required: readonly ["meta", "result"];
+            };
+            readonly AccessKeyGetResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly accessKey: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly accessKeyId: {
+                                readonly type: "string";
+                            };
+                            readonly accessKeyHashId: {
+                                readonly type: "string";
+                            };
+                            readonly endpoint: {
+                                readonly type: "string";
+                            };
+                            readonly endpointDomain: {
+                                readonly type: "string";
+                            };
+                            readonly region: {
+                                readonly type: "string";
+                            };
+                            readonly folderCount: {
+                                readonly type: "number";
+                            };
+                        };
+                        readonly required: readonly ["accessKeyId", "accessKeyHashId", "endpoint", "endpointDomain", "region", "folderCount"];
+                    };
+                };
+                readonly required: readonly ["accessKey"];
+            };
+            readonly RotateAccessKeyInputDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly accessKeyId: {
+                        readonly type: "string";
+                    };
+                    readonly secretAccessKey: {
+                        readonly type: "string";
+                    };
+                };
+                readonly required: readonly ["accessKeyId", "secretAccessKey"];
+            };
+            readonly AccessKeyRotateResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly accessKeyHashId: {
+                        readonly type: "string";
+                    };
+                };
+                readonly required: readonly ["accessKeyHashId"];
+            };
+            readonly AccessKeyBucketsListResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly result: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "object";
+                            readonly properties: {
+                                readonly name: {
+                                    readonly type: "string";
+                                };
+                                readonly createdDate: {
+                                    readonly type: "string";
+                                    readonly format: "date-time";
+                                };
+                            };
+                            readonly required: readonly ["name"];
+                        };
+                    };
+                };
+                readonly required: readonly ["result"];
+            };
             readonly SettingsGetResponse: {
                 readonly type: "object";
                 readonly properties: {
@@ -2369,6 +2867,52 @@ export declare const schema: {
                     };
                 };
                 readonly required: readonly ["result"];
+            };
+            readonly StorageProvisionGetResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly storageProvision: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
+                            readonly endpoint: {
+                                readonly type: "string";
+                            };
+                            readonly bucket: {
+                                readonly type: "string";
+                            };
+                            readonly region: {
+                                readonly type: "string";
+                            };
+                            readonly accessKeyId: {
+                                readonly type: "string";
+                            };
+                            readonly prefix: {
+                                readonly type: "string";
+                            };
+                            readonly provisionTypes: {
+                                readonly type: "array";
+                                readonly items: {
+                                    readonly type: "string";
+                                    readonly enum: readonly ["CONTENT", "METADATA", "BACKUP"];
+                                };
+                                readonly minItems: 1;
+                            };
+                            readonly label: {
+                                readonly type: "string";
+                                readonly maxLength: 32;
+                            };
+                            readonly description: {
+                                readonly type: "string";
+                                readonly maxLength: 128;
+                            };
+                        };
+                        readonly required: readonly ["id", "endpoint", "bucket", "region", "accessKeyId", "provisionTypes", "label", "description"];
+                    };
+                };
+                readonly required: readonly ["storageProvision"];
             };
             readonly StorageProvisionInputDTO: {
                 readonly type: "object";
@@ -2529,6 +3073,123 @@ export declare const schema: {
                     };
                 };
                 readonly required: readonly ["meta", "result"];
+            };
+            readonly AppDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly identifier: {
+                        readonly type: "string";
+                    };
+                    readonly config: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly publicKey: {
+                                readonly type: "string";
+                            };
+                            readonly description: {
+                                readonly type: "string";
+                            };
+                            readonly subscribedEvents: {
+                                readonly type: "array";
+                                readonly items: {
+                                    readonly type: "string";
+                                };
+                            };
+                            readonly emitEvents: {
+                                readonly type: "array";
+                                readonly items: {
+                                    readonly type: "string";
+                                };
+                            };
+                            readonly actions: {
+                                readonly type: "object";
+                                readonly properties: {
+                                    readonly folder: {
+                                        readonly type: "array";
+                                        readonly items: {
+                                            readonly type: "object";
+                                            readonly properties: {
+                                                readonly key: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly description: {
+                                                    readonly type: "string";
+                                                };
+                                            };
+                                            readonly required: readonly ["key", "description"];
+                                        };
+                                    };
+                                    readonly object: {
+                                        readonly type: "array";
+                                        readonly items: {
+                                            readonly type: "object";
+                                            readonly properties: {
+                                                readonly key: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly description: {
+                                                    readonly type: "string";
+                                                };
+                                            };
+                                            readonly required: readonly ["key", "description"];
+                                        };
+                                    };
+                                };
+                                readonly required: readonly ["folder", "object"];
+                            };
+                            readonly menuItems: {
+                                readonly type: "array";
+                                readonly items: {
+                                    readonly type: "object";
+                                    readonly properties: {
+                                        readonly label: {
+                                            readonly type: "string";
+                                        };
+                                        readonly iconPath: {
+                                            readonly type: "string";
+                                        };
+                                        readonly uiName: {
+                                            readonly type: "string";
+                                        };
+                                    };
+                                    readonly required: readonly ["label", "uiName"];
+                                };
+                            };
+                        };
+                        readonly required: readonly ["publicKey", "description", "subscribedEvents", "emitEvents", "actions", "menuItems"];
+                    };
+                    readonly ui: {
+                        readonly type: "object";
+                        readonly additionalProperties: {
+                            readonly type: "object";
+                            readonly properties: {
+                                readonly path: {
+                                    readonly type: "string";
+                                };
+                                readonly name: {
+                                    readonly type: "string";
+                                };
+                                readonly files: {
+                                    readonly type: "object";
+                                    readonly additionalProperties: {
+                                        readonly type: "object";
+                                        readonly properties: {
+                                            readonly size: {
+                                                readonly type: "number";
+                                            };
+                                            readonly hash: {
+                                                readonly type: "string";
+                                            };
+                                        };
+                                        readonly required: readonly ["size", "hash"];
+                                    };
+                                };
+                            };
+                            readonly required: readonly ["path", "name", "files"];
+                        };
+                    };
+                };
+                readonly required: readonly ["identifier", "config", "ui"];
             };
             readonly AppListResponse: {
                 readonly type: "object";
@@ -2694,6 +3355,129 @@ export declare const schema: {
                     };
                 };
                 readonly required: readonly ["installed", "connected"];
+            };
+            readonly AppGetResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly app: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly identifier: {
+                                readonly type: "string";
+                            };
+                            readonly config: {
+                                readonly type: "object";
+                                readonly properties: {
+                                    readonly publicKey: {
+                                        readonly type: "string";
+                                    };
+                                    readonly description: {
+                                        readonly type: "string";
+                                    };
+                                    readonly subscribedEvents: {
+                                        readonly type: "array";
+                                        readonly items: {
+                                            readonly type: "string";
+                                        };
+                                    };
+                                    readonly emitEvents: {
+                                        readonly type: "array";
+                                        readonly items: {
+                                            readonly type: "string";
+                                        };
+                                    };
+                                    readonly actions: {
+                                        readonly type: "object";
+                                        readonly properties: {
+                                            readonly folder: {
+                                                readonly type: "array";
+                                                readonly items: {
+                                                    readonly type: "object";
+                                                    readonly properties: {
+                                                        readonly key: {
+                                                            readonly type: "string";
+                                                        };
+                                                        readonly description: {
+                                                            readonly type: "string";
+                                                        };
+                                                    };
+                                                    readonly required: readonly ["key", "description"];
+                                                };
+                                            };
+                                            readonly object: {
+                                                readonly type: "array";
+                                                readonly items: {
+                                                    readonly type: "object";
+                                                    readonly properties: {
+                                                        readonly key: {
+                                                            readonly type: "string";
+                                                        };
+                                                        readonly description: {
+                                                            readonly type: "string";
+                                                        };
+                                                    };
+                                                    readonly required: readonly ["key", "description"];
+                                                };
+                                            };
+                                        };
+                                        readonly required: readonly ["folder", "object"];
+                                    };
+                                    readonly menuItems: {
+                                        readonly type: "array";
+                                        readonly items: {
+                                            readonly type: "object";
+                                            readonly properties: {
+                                                readonly label: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly iconPath: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly uiName: {
+                                                    readonly type: "string";
+                                                };
+                                            };
+                                            readonly required: readonly ["label", "uiName"];
+                                        };
+                                    };
+                                };
+                                readonly required: readonly ["publicKey", "description", "subscribedEvents", "emitEvents", "actions", "menuItems"];
+                            };
+                            readonly ui: {
+                                readonly type: "object";
+                                readonly additionalProperties: {
+                                    readonly type: "object";
+                                    readonly properties: {
+                                        readonly path: {
+                                            readonly type: "string";
+                                        };
+                                        readonly name: {
+                                            readonly type: "string";
+                                        };
+                                        readonly files: {
+                                            readonly type: "object";
+                                            readonly additionalProperties: {
+                                                readonly type: "object";
+                                                readonly properties: {
+                                                    readonly size: {
+                                                        readonly type: "number";
+                                                    };
+                                                    readonly hash: {
+                                                        readonly type: "string";
+                                                    };
+                                                };
+                                                readonly required: readonly ["size", "hash"];
+                                            };
+                                        };
+                                    };
+                                    readonly required: readonly ["path", "name", "files"];
+                                };
+                            };
+                        };
+                        readonly required: readonly ["identifier", "config", "ui"];
+                    };
+                };
+                readonly required: readonly ["app"];
             };
         };
     };

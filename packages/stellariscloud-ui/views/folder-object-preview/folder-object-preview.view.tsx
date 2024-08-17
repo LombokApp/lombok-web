@@ -90,9 +90,9 @@ export const FolderObjectPreview = ({
       />
     </div>
   ) : file && dataURL && mediaType === MediaType.Video ? (
-    <div className="flex justify-center">
+    <div className="flex justify-center h-full">
       <VideoPlayer
-        className="object-cover"
+        className={displayMode}
         width="100%"
         height="100%"
         controls

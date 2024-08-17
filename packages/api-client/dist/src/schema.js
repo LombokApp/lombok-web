@@ -89,12 +89,12 @@ export const schema = {
                 ]
             }
         },
-        "/api/v1/auth/refresh-token": {
+        "/api/v1/auth/{refreshToken}": {
             "post": {
                 "operationId": "refreshToken",
                 "parameters": [
                     {
-                        "name": "refeshToken",
+                        "name": "refreshToken",
                         "required": true,
                         "in": "path",
                         "schema": {
@@ -873,6 +873,287 @@ export const schema = {
                 ]
             }
         },
+        "/api/v1/access-keys": {
+            "get": {
+                "operationId": "listAccessKeys",
+                "parameters": [
+                    {
+                        "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "minimum": 0,
+                            "exclusiveMinimum": true,
+                            "type": "number"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List access keys.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessKeyListResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "AccessKeys"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/access-keys/{accessKeyHashId}": {
+            "get": {
+                "operationId": "getAccessKey",
+                "parameters": [
+                    {
+                        "name": "accessKeyHashId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Get an access key by id.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessKeyGetResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "AccessKeys"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            },
+            "post": {
+                "operationId": "rotateAccessKey",
+                "parameters": [
+                    {
+                        "name": "accessKeyHashId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RotateAccessKeyInputDTO"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Rotate an access key.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessKeyRotateResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "AccessKeys"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/access-keys/{accessKeyHashId}/buckets": {
+            "get": {
+                "operationId": "listAccessKeyBuckets",
+                "parameters": [
+                    {
+                        "name": "accessKeyHashId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List buckets for an access key.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessKeyBucketsListResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "AccessKeys"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/server/access-keys": {
+            "get": {
+                "operationId": "listServerAccessKeys",
+                "parameters": [
+                    {
+                        "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "minimum": 0,
+                            "exclusiveMinimum": true,
+                            "type": "number"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List server access keys.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessKeyListResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "ServerAccessKeys"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/server/access-keys/{accessKeyHashId}": {
+            "get": {
+                "operationId": "getServerAccessKey",
+                "parameters": [
+                    {
+                        "name": "accessKeyHashId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Get server access key by id.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessKeyGetResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "ServerAccessKeys"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            },
+            "post": {
+                "operationId": "rotateAccessKey",
+                "parameters": [
+                    {
+                        "name": "accessKeyHashId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RotateAccessKeyInputDTO"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Rotate a server access key.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AccessKeyRotateResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "ServerAccessKeys"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
         "/api/v1/server/settings": {
             "get": {
                 "operationId": "getServerSettings",
@@ -1052,6 +1333,39 @@ export const schema = {
             }
         },
         "/api/v1/server/storage-provisions/{storageProvisionId}": {
+            "get": {
+                "operationId": "getStorageProvision",
+                "parameters": [
+                    {
+                        "name": "storageProvisionId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List the server provisions.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StorageProvisionGetResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "StorageProvisions"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            },
             "put": {
                 "operationId": "updateStorageProvision",
                 "parameters": [
@@ -1129,10 +1443,19 @@ export const schema = {
                 ]
             }
         },
-        "/api/v1/events/{eventId}": {
+        "/api/v1/server/events/{eventId}": {
             "get": {
                 "operationId": "getEvent",
-                "parameters": [],
+                "parameters": [
+                    {
+                        "name": "eventId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Get an event by id.",
@@ -1146,7 +1469,7 @@ export const schema = {
                     }
                 },
                 "tags": [
-                    "Events"
+                    "ServerEvents"
                 ],
                 "security": [
                     {
@@ -1155,7 +1478,7 @@ export const schema = {
                 ]
             }
         },
-        "/api/v1/events": {
+        "/api/v1/server/events": {
             "get": {
                 "operationId": "listEvents",
                 "parameters": [
@@ -1191,7 +1514,7 @@ export const schema = {
                     }
                 },
                 "tags": [
-                    "Events"
+                    "ServerEvents"
                 ],
                 "security": [
                     {
@@ -1211,6 +1534,41 @@ export const schema = {
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/AppListResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Apps"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/server/apps/{appIdentifier}": {
+            "get": {
+                "operationId": "getApp",
+                "parameters": [
+                    {
+                        "name": "appIdentifier",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AppGetResponse"
                                 }
                             }
                         }
@@ -1764,6 +2122,9 @@ export const schema = {
                             },
                             "accessKeyId": {
                                 "type": "string"
+                            },
+                            "accessKeyHashId": {
+                                "type": "string"
                             }
                         },
                         "required": [
@@ -1773,7 +2134,8 @@ export const schema = {
                             "endpoint",
                             "region",
                             "bucket",
-                            "accessKeyId"
+                            "accessKeyId",
+                            "accessKeyHashId"
                         ]
                     },
                     "contentLocation": {
@@ -1809,6 +2171,9 @@ export const schema = {
                             },
                             "accessKeyId": {
                                 "type": "string"
+                            },
+                            "accessKeyHashId": {
+                                "type": "string"
                             }
                         },
                         "required": [
@@ -1818,7 +2183,8 @@ export const schema = {
                             "endpoint",
                             "region",
                             "bucket",
-                            "accessKeyId"
+                            "accessKeyId",
+                            "accessKeyHashId"
                         ]
                     }
                 },
@@ -2018,6 +2384,41 @@ export const schema = {
                     "bitrate"
                 ]
             },
+            "StorageLocationInputDTO": {
+                "type": "object",
+                "properties": {
+                    "storageProvisionId": {
+                        "type": "string"
+                    },
+                    "userLocationId": {
+                        "type": "string"
+                    },
+                    "userLocationBucketOverride": {
+                        "type": "string"
+                    },
+                    "userLocationPrefixOverride": {
+                        "type": "string"
+                    },
+                    "accessKeyId": {
+                        "type": "string"
+                    },
+                    "secretAccessKey": {
+                        "type": "string"
+                    },
+                    "endpoint": {
+                        "type": "string"
+                    },
+                    "bucket": {
+                        "type": "string"
+                    },
+                    "region": {
+                        "type": "string"
+                    },
+                    "prefix": {
+                        "type": "string"
+                    }
+                }
+            },
             "FolderGetResponse": {
                 "type": "object",
                 "properties": {
@@ -2066,6 +2467,9 @@ export const schema = {
                                     },
                                     "accessKeyId": {
                                         "type": "string"
+                                    },
+                                    "accessKeyHashId": {
+                                        "type": "string"
                                     }
                                 },
                                 "required": [
@@ -2075,7 +2479,8 @@ export const schema = {
                                     "endpoint",
                                     "region",
                                     "bucket",
-                                    "accessKeyId"
+                                    "accessKeyId",
+                                    "accessKeyHashId"
                                 ]
                             },
                             "contentLocation": {
@@ -2111,6 +2516,9 @@ export const schema = {
                                     },
                                     "accessKeyId": {
                                         "type": "string"
+                                    },
+                                    "accessKeyHashId": {
+                                        "type": "string"
                                     }
                                 },
                                 "required": [
@@ -2120,7 +2528,8 @@ export const schema = {
                                     "endpoint",
                                     "region",
                                     "bucket",
-                                    "accessKeyId"
+                                    "accessKeyId",
+                                    "accessKeyHashId"
                                 ]
                             }
                         },
@@ -2241,6 +2650,9 @@ export const schema = {
                                                 },
                                                 "accessKeyId": {
                                                     "type": "string"
+                                                },
+                                                "accessKeyHashId": {
+                                                    "type": "string"
                                                 }
                                             },
                                             "required": [
@@ -2250,7 +2662,8 @@ export const schema = {
                                                 "endpoint",
                                                 "region",
                                                 "bucket",
-                                                "accessKeyId"
+                                                "accessKeyId",
+                                                "accessKeyHashId"
                                             ]
                                         },
                                         "contentLocation": {
@@ -2286,6 +2699,9 @@ export const schema = {
                                                 },
                                                 "accessKeyId": {
                                                     "type": "string"
+                                                },
+                                                "accessKeyHashId": {
+                                                    "type": "string"
                                                 }
                                             },
                                             "required": [
@@ -2295,7 +2711,8 @@ export const schema = {
                                                 "endpoint",
                                                 "region",
                                                 "bucket",
-                                                "accessKeyId"
+                                                "accessKeyId",
+                                                "accessKeyHashId"
                                             ]
                                         }
                                     },
@@ -2399,6 +2816,7 @@ export const schema = {
                 },
                 "required": [
                     "name",
+                    "metadataLocation",
                     "contentLocation"
                 ]
             },
@@ -2450,6 +2868,9 @@ export const schema = {
                                     },
                                     "accessKeyId": {
                                         "type": "string"
+                                    },
+                                    "accessKeyHashId": {
+                                        "type": "string"
                                     }
                                 },
                                 "required": [
@@ -2459,7 +2880,8 @@ export const schema = {
                                     "endpoint",
                                     "region",
                                     "bucket",
-                                    "accessKeyId"
+                                    "accessKeyId",
+                                    "accessKeyHashId"
                                 ]
                             },
                             "contentLocation": {
@@ -2495,6 +2917,9 @@ export const schema = {
                                     },
                                     "accessKeyId": {
                                         "type": "string"
+                                    },
+                                    "accessKeyHashId": {
+                                        "type": "string"
                                     }
                                 },
                                 "required": [
@@ -2504,7 +2929,8 @@ export const schema = {
                                     "endpoint",
                                     "region",
                                     "bucket",
-                                    "accessKeyId"
+                                    "accessKeyId",
+                                    "accessKeyHashId"
                                 ]
                             }
                         },
@@ -2846,6 +3272,182 @@ export const schema = {
                     "actionParams": {}
                 }
             },
+            "AccessKeyDTO": {
+                "type": "object",
+                "properties": {
+                    "accessKeyId": {
+                        "type": "string"
+                    },
+                    "accessKeyHashId": {
+                        "type": "string"
+                    },
+                    "endpoint": {
+                        "type": "string"
+                    },
+                    "endpointDomain": {
+                        "type": "string"
+                    },
+                    "region": {
+                        "type": "string"
+                    },
+                    "folderCount": {
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "accessKeyId",
+                    "accessKeyHashId",
+                    "endpoint",
+                    "endpointDomain",
+                    "region",
+                    "folderCount"
+                ]
+            },
+            "AccessKeyListResponse": {
+                "type": "object",
+                "properties": {
+                    "meta": {
+                        "type": "object",
+                        "properties": {
+                            "totalCount": {
+                                "type": "number"
+                            }
+                        },
+                        "required": [
+                            "totalCount"
+                        ]
+                    },
+                    "result": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "accessKeyId": {
+                                    "type": "string"
+                                },
+                                "accessKeyHashId": {
+                                    "type": "string"
+                                },
+                                "endpoint": {
+                                    "type": "string"
+                                },
+                                "endpointDomain": {
+                                    "type": "string"
+                                },
+                                "region": {
+                                    "type": "string"
+                                },
+                                "folderCount": {
+                                    "type": "number"
+                                }
+                            },
+                            "required": [
+                                "accessKeyId",
+                                "accessKeyHashId",
+                                "endpoint",
+                                "endpointDomain",
+                                "region",
+                                "folderCount"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "meta",
+                    "result"
+                ]
+            },
+            "AccessKeyGetResponse": {
+                "type": "object",
+                "properties": {
+                    "accessKey": {
+                        "type": "object",
+                        "properties": {
+                            "accessKeyId": {
+                                "type": "string"
+                            },
+                            "accessKeyHashId": {
+                                "type": "string"
+                            },
+                            "endpoint": {
+                                "type": "string"
+                            },
+                            "endpointDomain": {
+                                "type": "string"
+                            },
+                            "region": {
+                                "type": "string"
+                            },
+                            "folderCount": {
+                                "type": "number"
+                            }
+                        },
+                        "required": [
+                            "accessKeyId",
+                            "accessKeyHashId",
+                            "endpoint",
+                            "endpointDomain",
+                            "region",
+                            "folderCount"
+                        ]
+                    }
+                },
+                "required": [
+                    "accessKey"
+                ]
+            },
+            "RotateAccessKeyInputDTO": {
+                "type": "object",
+                "properties": {
+                    "accessKeyId": {
+                        "type": "string"
+                    },
+                    "secretAccessKey": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "accessKeyId",
+                    "secretAccessKey"
+                ]
+            },
+            "AccessKeyRotateResponse": {
+                "type": "object",
+                "properties": {
+                    "accessKeyHashId": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "accessKeyHashId"
+                ]
+            },
+            "AccessKeyBucketsListResponse": {
+                "type": "object",
+                "properties": {
+                    "result": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "createdDate": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                }
+                            },
+                            "required": [
+                                "name"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "result"
+                ]
+            },
             "SettingsGetResponse": {
                 "type": "object",
                 "properties": {
@@ -3003,6 +3605,67 @@ export const schema = {
                 },
                 "required": [
                     "result"
+                ]
+            },
+            "StorageProvisionGetResponse": {
+                "type": "object",
+                "properties": {
+                    "storageProvision": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "endpoint": {
+                                "type": "string"
+                            },
+                            "bucket": {
+                                "type": "string"
+                            },
+                            "region": {
+                                "type": "string"
+                            },
+                            "accessKeyId": {
+                                "type": "string"
+                            },
+                            "prefix": {
+                                "type": "string"
+                            },
+                            "provisionTypes": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "enum": [
+                                        "CONTENT",
+                                        "METADATA",
+                                        "BACKUP"
+                                    ]
+                                },
+                                "minItems": 1
+                            },
+                            "label": {
+                                "type": "string",
+                                "maxLength": 32
+                            },
+                            "description": {
+                                "type": "string",
+                                "maxLength": 128
+                            }
+                        },
+                        "required": [
+                            "id",
+                            "endpoint",
+                            "bucket",
+                            "region",
+                            "accessKeyId",
+                            "provisionTypes",
+                            "label",
+                            "description"
+                        ]
+                    }
+                },
+                "required": [
+                    "storageProvision"
                 ]
             },
             "StorageProvisionInputDTO": {
@@ -3215,6 +3878,153 @@ export const schema = {
                     "result"
                 ]
             },
+            "AppDTO": {
+                "type": "object",
+                "properties": {
+                    "identifier": {
+                        "type": "string"
+                    },
+                    "config": {
+                        "type": "object",
+                        "properties": {
+                            "publicKey": {
+                                "type": "string"
+                            },
+                            "description": {
+                                "type": "string"
+                            },
+                            "subscribedEvents": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "emitEvents": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "actions": {
+                                "type": "object",
+                                "properties": {
+                                    "folder": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "key": {
+                                                    "type": "string"
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "key",
+                                                "description"
+                                            ]
+                                        }
+                                    },
+                                    "object": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "key": {
+                                                    "type": "string"
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "key",
+                                                "description"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "folder",
+                                    "object"
+                                ]
+                            },
+                            "menuItems": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "label": {
+                                            "type": "string"
+                                        },
+                                        "iconPath": {
+                                            "type": "string"
+                                        },
+                                        "uiName": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "label",
+                                        "uiName"
+                                    ]
+                                }
+                            }
+                        },
+                        "required": [
+                            "publicKey",
+                            "description",
+                            "subscribedEvents",
+                            "emitEvents",
+                            "actions",
+                            "menuItems"
+                        ]
+                    },
+                    "ui": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                                "path": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "files": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "object",
+                                        "properties": {
+                                            "size": {
+                                                "type": "number"
+                                            },
+                                            "hash": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "required": [
+                                            "size",
+                                            "hash"
+                                        ]
+                                    }
+                                }
+                            },
+                            "required": [
+                                "path",
+                                "name",
+                                "files"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "identifier",
+                    "config",
+                    "ui"
+                ]
+            },
             "AppListResponse": {
                 "type": "object",
                 "properties": {
@@ -3421,6 +4231,161 @@ export const schema = {
                 "required": [
                     "installed",
                     "connected"
+                ]
+            },
+            "AppGetResponse": {
+                "type": "object",
+                "properties": {
+                    "app": {
+                        "type": "object",
+                        "properties": {
+                            "identifier": {
+                                "type": "string"
+                            },
+                            "config": {
+                                "type": "object",
+                                "properties": {
+                                    "publicKey": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "subscribedEvents": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "emitEvents": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "actions": {
+                                        "type": "object",
+                                        "properties": {
+                                            "folder": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "key": {
+                                                            "type": "string"
+                                                        },
+                                                        "description": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "key",
+                                                        "description"
+                                                    ]
+                                                }
+                                            },
+                                            "object": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "key": {
+                                                            "type": "string"
+                                                        },
+                                                        "description": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "key",
+                                                        "description"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "required": [
+                                            "folder",
+                                            "object"
+                                        ]
+                                    },
+                                    "menuItems": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "label": {
+                                                    "type": "string"
+                                                },
+                                                "iconPath": {
+                                                    "type": "string"
+                                                },
+                                                "uiName": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required": [
+                                                "label",
+                                                "uiName"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "required": [
+                                    "publicKey",
+                                    "description",
+                                    "subscribedEvents",
+                                    "emitEvents",
+                                    "actions",
+                                    "menuItems"
+                                ]
+                            },
+                            "ui": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "object",
+                                    "properties": {
+                                        "path": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "files": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "size": {
+                                                        "type": "number"
+                                                    },
+                                                    "hash": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "size",
+                                                    "hash"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": [
+                                        "path",
+                                        "name",
+                                        "files"
+                                    ]
+                                }
+                            }
+                        },
+                        "required": [
+                            "identifier",
+                            "config",
+                            "ui"
+                        ]
+                    }
+                },
+                "required": [
+                    "app"
                 ]
             }
         }

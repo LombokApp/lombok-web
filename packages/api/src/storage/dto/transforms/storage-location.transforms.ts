@@ -15,5 +15,6 @@ export function transformStorageLocationToDTO(
     region: storageLocation.region,
     userId: storageLocation.userId,
     accessKeyId: storageLocation.accessKeyId,
+    accessKeyHashId: storageLocation.accessKeyHashId,
   }
 }

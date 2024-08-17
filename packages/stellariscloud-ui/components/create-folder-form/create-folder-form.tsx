@@ -1,6 +1,6 @@
 import type {
   StorageProvisionDTO,
-  StorageProvisionInputDTO,
+  StorageLocationInputDTO,
 } from '@stellariscloud/api-client'
 import { FOLDER_NAME_VALIDATORS_COMBINED } from '@stellariscloud/utils'
 import React from 'react'
@@ -10,13 +10,13 @@ import { Button } from '../../design-system/button/button'
 import { ButtonDropdown } from '../../design-system/button-dropdown/button-dropdown'
 import { Input } from '../../design-system/input/input'
 import { useFormState } from '../../utils/forms'
-import type { StorageProvisionFormValues } from '../../views/server/server-storage-config-screen/storage-provision-form-fields'
-import { StorageProvisionFormFields } from '../../views/server/server-storage-config-screen/storage-provision-form-fields'
+import { FolderLocationFormFields } from './folder-location-form-fields'
+import type { FolderLocationFormValues } from './folder-location-form-fields'
 
 interface CreateFolderFormValues {
   name: string
-  contentLocation: StorageProvisionInputDTO
-  metadataLocation?: StorageProvisionInputDTO
+  contentLocation: StorageLocationInputDTO
+  metadataLocation: StorageLocationInputDTO
 }
 
 const StorageProvisionRecord = r.Record({
@@ -51,14 +51,10 @@ export const CreateFolderForm = ({
   const form = useFormState({
     name: { validator: FOLDER_NAME_VALIDATORS_COMBINED },
     contentLocation: {
-      validator: UserLocationRecord.Or(StorageProvisionRecord).Or(
-        CustomLocationRecord,
-      ),
+      validator: StorageProvisionRecord.Or(CustomLocationRecord),
     },
     metadataLocation: {
-      validator: UserLocationRecord.Or(StorageProvisionRecord)
-        .Or(CustomLocationRecord)
-        .optional(),
+      validator: StorageProvisionRecord.Or(CustomLocationRecord).optional(),
     },
   })
 
@@ -109,11 +105,11 @@ export const CreateFolderForm = ({
         </h3>
         {newContentLocation ? (
           <>
-            <StorageProvisionFormFields
+            <FolderLocationFormFields
               onChange={({ value }) =>
                 form.setValue(
                   'contentLocation',
-                  value as StorageProvisionFormValues,
+                  value as FolderLocationFormValues,
                 )
               }
             />
@@ -150,11 +146,11 @@ export const CreateFolderForm = ({
 
         {newMetadataLocation ? (
           <>
-            <StorageProvisionFormFields
+            <FolderLocationFormFields
               onChange={({ value }) =>
                 form.setValue(
                   'metadataLocation',
-                  value as StorageProvisionFormValues,
+                  value as FolderLocationFormValues,
                 )
               }
             />

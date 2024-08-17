@@ -4,6 +4,7 @@ import {
   CubeIcon,
   FolderIcon,
   GlobeAltIcon,
+  KeyIcon,
   MagnifyingGlassIcon,
   WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline'
@@ -16,6 +17,7 @@ import React from 'react'
 import { Button } from '../../design-system/button/button'
 import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
+import Link from 'next/link'
 
 const MAIN_TEXT_COLOR = 'text-gray-500 dark:text-gray-400'
 const MAIN_ICON_COLOR = 'text-gray-500'
@@ -62,8 +64,8 @@ export const FolderSidebar = ({
   }[] = [
     {
       id: 'rescan',
-      label: 'Rescan content',
-      description: 'Rescan the underlying storage for content changes',
+      label: 'Rescan folder content',
+      description: 'Scan the underlying storage for content changes',
       icon: ArrowPathIcon,
       onExecute: onRescan,
     },
@@ -78,78 +80,20 @@ export const FolderSidebar = ({
 
   return (
     <div className="py-2 bg-gray-50 dark:bg-gray-600/5 h-full overflow-y-auto">
-      <div className="sm:hidden">
-        <label htmlFor="tabs" className="sr-only">
-          Select a tab
-        </label>
-        {/* Use an "onChange" listener to redirect the user to the selected tab URL. */}
-        <select
-          id="tabs"
-          name="tabs"
-          className="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-        >
-          {tabs.map((t) => (
-            <option key={t.name}>{t.name}</option>
-          ))}
-        </select>
-      </div>
-      <div className="hidden sm:block px-2">
-        <nav
-          className="isolate flex divide-x divide-gray-200 dark:divide-gray-200/10 rounded-lg shadow"
-          aria-label="Tabs"
-        >
-          {tabs.map((t, tabIdx) => (
-            <button
-              key={t.id}
-              onClick={() => handleSetTab(t.id as FolderSidebarTab)}
-              className={clsx(
-                tab === t.id
-                  ? 'text-gray-900 dark:text-gray-300'
-                  : `text-gray-400 hover:text-gray-500`,
-                tabIdx === 0 ? 'rounded-l-lg' : '',
-                tabIdx === tabs.length - 1 ? 'rounded-r-lg' : '',
-                'group relative min-w-0 flex-1 overflow-hidden bg-white dark:bg-white/5 py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10',
-              )}
-              aria-current={t.id === tab ? 'page' : undefined}
-            >
-              <div className="flex items-center gap-2">
-                {t.icon && <Icon size="sm" icon={t.icon} />}
-                {t.name && <span>{t.name}</span>}
-              </div>
-              <span
-                aria-hidden="true"
-                className={clsx(
-                  t.id === tab ? 'bg-indigo-500' : 'bg-transparent',
-                  'absolute inset-x-0 bottom-0 h-0.5',
-                )}
-              />
-            </button>
-          ))}
-        </nav>
-      </div>
-      {tab === 'overview' && (
-        <>
-          <dl className="border-b border-gray-900/5 pb-6 pt-2">
-            {folder && (
-              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
-                <dt className="flex-none flex">
-                  <span className="sr-only">Path</span>
-                  <Icon
-                    icon={GlobeAltIcon}
-                    size="md"
-                    className={clsx(MAIN_ICON_COLOR)}
-                  />
-                </dt>
-                <dd className={clsx('text-sm leading-6', MAIN_TEXT_COLOR)}>
-                  {folder.contentLocation.endpoint}
-                  {folder.contentLocation.endpoint.endsWith('/') ? '' : '/'}
-                  {folder.contentLocation.bucket}
-                  {folder.contentLocation.bucket.endsWith('/') ? '' : '/'}
-                  {folder.contentLocation.prefix}
-                </dd>
-              </div>
-            )}
-            {folder && (
+      <>
+        <div className="flex flex-col text-gray-700 dark:text-gray-300 flex-1 gap-1 bg-gray-50/5 p-2 mx-2 rounded-md">
+          <div className="flex items-center gap-2">
+            <Icon
+              icon={MagnifyingGlassIcon}
+              size="md"
+              className="text-gray-700 dark:text-gray-400"
+            />
+            <div className="text-lg font-bold">Overview</div>
+          </div>
+        </div>
+        <dl className="border-b border-gray-900/5 pb-6 pt-2">
+          {folder && (
+            <>
               <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
                 <dt className="flex-none flex">
                   <span className="sr-only">Folder</span>
@@ -163,61 +107,129 @@ export const FolderSidebar = ({
                   {folder.name}
                 </dd>
               </div>
-            )}
-            <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
-              <dt className="flex-none flex">
-                <span className="sr-only">Size</span>
-                <Icon icon={CubeIcon} size="md" className={MAIN_ICON_COLOR} />
-              </dt>
-              <dd className={clsx('text-sm leading-6', MAIN_TEXT_COLOR)}>
-                {`${
-                  folderMetadata
-                    ? formatBytes(folderMetadata.totalSizeBytes)
-                    : 'unknown'
-                }`}{' '}
-                <span className="font-mono">{`(${
-                  folderMetadata?.totalSizeBytes.toLocaleString() ?? 'unknown'
-                } bytes)`}</span>
-              </dd>
-            </div>
-          </dl>
-          <ul className="space-y-3 mt-4 px-2">
-            {actionItems.map((actionItem) => (
-              <li
-                key={actionItem.id}
-                className="overflow-hidden rounded-md bg-white dark:bg-white/5 p-4 shadow"
-              >
-                <div className="flex items-start gap-2">
-                  <div className="flex flex-col text-gray-700 dark:text-gray-300 flex-1 gap-1">
-                    <div className="flex items-center gap-2">
-                      <Icon
-                        icon={actionItem.icon}
-                        size="md"
-                        className="text-gray-700 dark:text-gray-400"
-                      />
-                      <div className="text-lg font-bold">
-                        {actionItem.label}
-                      </div>
-                    </div>
-                    <div className="text-sm text-gray-700 dark:text-gray-400">
-                      {actionItem.description}
-                    </div>
-                  </div>
-                  <div className="shrink-0">
-                    <Button
-                      primary
-                      onClick={actionItem.onExecute}
-                      className="dark:text-gray-200"
+              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
+                <dt className="flex-none flex">
+                  <span className="sr-only">Access Key</span>
+                  <Icon
+                    icon={KeyIcon}
+                    size="md"
+                    className={'dark:text-amber-200'}
+                  />
+                </dt>
+                <dd
+                  className={clsx(
+                    'text-sm leading-6',
+                    MAIN_TEXT_COLOR,
+                    // 'dark:text-amber-200',
+                  )}
+                >
+                  {folder.contentLocation.providerType === 'USER' ? (
+                    <Link
+                      className="underline"
+                      href={`/access-keys/${folder.contentLocation.accessKeyHashId}`}
                     >
-                      Run
-                    </Button>
+                      {folder.contentLocation.label}
+                    </Link>
+                  ) : (
+                    folder.contentLocation.label
+                  )}
+                </dd>
+              </div>
+              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
+                <dt className="flex-none flex">
+                  <span className="sr-only">Bucket</span>
+                  <Icon
+                    icon={GlobeAltIcon}
+                    size="md"
+                    className={clsx(MAIN_ICON_COLOR)}
+                  />
+                </dt>
+                <dd className={clsx('text-sm leading-6', MAIN_TEXT_COLOR)}>
+                  <span className="opacity-50">Bucket: </span>
+                  <span className="italic">
+                    {folder.contentLocation.bucket}
+                  </span>{' '}
+                  - <span className="opacity-50">Prefix: </span>
+                  <span className="italic">
+                    {folder.contentLocation.prefix}
+                  </span>
+                </dd>
+              </div>
+            </>
+          )}
+          <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-6">
+            <dt className="flex-none flex">
+              <span className="sr-only">Size</span>
+              <Icon icon={CubeIcon} size="md" className={MAIN_ICON_COLOR} />
+            </dt>
+            <dd className={clsx('text-sm leading-6', MAIN_TEXT_COLOR)}>
+              {`${folderMetadata ? folderMetadata.totalCount : 'unknown'}`}{' '}
+              objects -{' '}
+              {`${
+                folderMetadata
+                  ? formatBytes(folderMetadata.totalSizeBytes)
+                  : 'unknown'
+              }`}{' '}
+              <span className="font-mono">{`(${
+                folderMetadata?.totalSizeBytes.toLocaleString() ?? 'unknown'
+              } bytes)`}</span>
+            </dd>
+          </div>
+        </dl>
+        <div className="flex flex-col text-gray-700 dark:text-gray-300 flex-1 gap-1 bg-gray-50/5 p-2 mx-2 rounded-md">
+          <div className="flex items-center gap-2">
+            <Icon
+              icon={MagnifyingGlassIcon}
+              size="md"
+              className="text-gray-700 dark:text-gray-400"
+            />
+            <div className="text-lg font-bold">Actions</div>
+          </div>
+        </div>
+        <ul className="space-y-3 my-4 px-2">
+          {actionItems.map((actionItem) => (
+            <li
+              key={actionItem.id}
+              className="overflow-hidden rounded-md bg-white dark:bg-black/20 p-4 shadow"
+            >
+              <div className="flex items-start gap-2">
+                <div className="flex flex-col text-gray-700 dark:text-gray-300 flex-1 gap-1">
+                  <div className="flex items-center gap-2">
+                    <Icon
+                      icon={actionItem.icon}
+                      size="md"
+                      className="text-gray-700 dark:text-gray-400"
+                    />
+                    <div className="text-lg font-bold">{actionItem.label}</div>
+                  </div>
+                  <div className="text-sm text-gray-700 dark:text-gray-400">
+                    {actionItem.description}
                   </div>
                 </div>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
+                <div className="shrink-0">
+                  <Button
+                    primary
+                    onClick={actionItem.onExecute}
+                    className="dark:text-gray-200"
+                  >
+                    Run
+                  </Button>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <div className="flex flex-col text-gray-700 dark:text-gray-300 flex-1 gap-1 bg-gray-50/5 p-2 mx-2 rounded-md">
+          <div className="flex items-center gap-2">
+            <Icon
+              icon={MagnifyingGlassIcon}
+              size="md"
+              className="text-gray-700 dark:text-gray-400"
+            />
+            <div className="text-lg font-bold">Events</div>
+          </div>
+        </div>
+      </>
     </div>
   )
 }
