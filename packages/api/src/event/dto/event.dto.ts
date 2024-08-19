@@ -4,7 +4,7 @@ import { z } from 'zod'
 export const eventSchema = z.object({
   id: z.string(),
   eventKey: z.string(),
-  appIdentifier: z.string().nullable(),
+  emitterIdentifier: z.string(),
   locationContext: z
     .object({
       folderId: z.string(),

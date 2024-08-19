@@ -29,3 +29,7 @@ export async function withRetry<R>(
 }
 
 export type Awaited<T> = T extends PromiseLike<infer U> ? U : T
+
+export type Promisify<T> = T extends (...args: infer A) => infer R
+  ? (...args: A) => Promise<R>
+  : T

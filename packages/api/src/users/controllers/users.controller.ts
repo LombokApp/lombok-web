@@ -92,7 +92,7 @@ export class UsersController {
       { ...queryParams },
     )
     return {
-      result: results,
+      result: results.map((user) => transformUserToDTO(user)),
       meta: { totalCount },
     }
   }
@@ -109,7 +109,7 @@ export class UsersController {
       throw new UnauthorizedException()
     }
     const user = await this.userService.getUserByIdAsAdmin(req.user, userId)
-    return { user }
+    return { user: transformUserToDTO(user) }
   }
 
   /**

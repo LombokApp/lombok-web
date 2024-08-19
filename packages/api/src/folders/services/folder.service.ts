@@ -1,4 +1,3 @@
-import { InjectQueue } from '@nestjs/bullmq'
 import type { OnModuleInit } from '@nestjs/common'
 import {
   BadRequestException,
@@ -7,6 +6,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common'
+import { ModuleRef } from '@nestjs/core'
 import type {
   ContentAttributesType,
   ContentMetadataType,
@@ -25,7 +25,6 @@ import {
   mediaTypeFromExtension,
   objectIdentifierToObjectKey,
 } from '@stellariscloud/utils'
-import { Queue } from 'bullmq'
 import { and, eq, like, sql } from 'drizzle-orm'
 import mime from 'mime'
 import * as r from 'runtypes'
@@ -33,7 +32,6 @@ import { AppService } from 'src/app/services/app.service'
 import { parseSort } from 'src/core/utils/sort.util'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
-import { QueueName } from 'src/queue/queue.constants'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
@@ -43,6 +41,8 @@ import { storageLocationsTable } from 'src/storage/entities/storage-location.ent
 import { StorageLocationNotFoundException } from 'src/storage/exceptions/storage-location-not-found.exceptions'
 import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
+import { CoreTaskService } from 'src/task/services/core-task.service'
+import { CoreTaskName } from 'src/task/task.constants'
 import type { User } from 'src/users/entities/user.entity'
 import { UserService } from 'src/users/services/users.service'
 import { v4 as uuidV4 } from 'uuid'
@@ -144,31 +144,29 @@ const ServerLocationPayloadRunType = r.Record({
 export class FolderService implements OnModuleInit {
   eventService: EventService
   appService: AppService
-  constructor(
-    @Inject(forwardRef(() => AppService))
-    private readonly _appService,
-    private readonly folderSocketService: FolderSocketService,
-    private readonly s3Service: S3Service,
-    @Inject(forwardRef(() => EventService))
-    _eventService,
-    private readonly ormService: OrmService,
-    private readonly serverConfigurationService: ServerConfigurationService,
-    @InjectQueue(QueueName.RescanFolder)
-    private readonly rescanFolderQueue: Queue<
-      { folderId: string; userId: string },
-      void,
-      QueueName.RescanFolder
-    >,
-    private readonly userService: UserService,
-  ) {
-    this.eventService = _eventService
-    this.appService = _appService
+  get folderSocketService(): FolderSocketService {
+    return this._folderSocketService
+  }
+  get coreTaskService(): CoreTaskService {
+    return this._coreTaskService
   }
 
-  onModuleInit() {
-    // this.socketService = this.moduleRef.get(SocketService)
-    // this.eventService = this.moduleRef.get(EventService)
+  constructor(
+    private readonly moduleRef: ModuleRef,
+    private readonly s3Service: S3Service,
+    @Inject(forwardRef(() => FolderSocketService))
+    private readonly _folderSocketService,
+    @Inject(forwardRef(() => CoreTaskService))
+    private readonly _coreTaskService,
+    private readonly ormService: OrmService,
+    private readonly serverConfigurationService: ServerConfigurationService,
+    private readonly userService: UserService,
+  ) {
+    this.eventService = this.moduleRef.get(EventService)
+    this.appService = this.moduleRef.get(AppService)
   }
+
+  onModuleInit() {}
 
   async createFolder({
     userId,
@@ -639,7 +637,7 @@ export class FolderService implements OnModuleInit {
             objectKey: absoluteObjectKey,
             expirySeconds: 3600,
           }
-        } catch (e) {
+        } catch (e: any) {
           if (e.constructor.name === 'BadObjectIdentifierError') {
             throw new FolderLocationNotFoundException()
           }
@@ -650,15 +648,23 @@ export class FolderService implements OnModuleInit {
   }
 
   queueRescanFolder(folderId: string, userId: string) {
-    return this.rescanFolderQueue.add(
-      QueueName.RescanFolder,
-      { folderId, userId },
-      { jobId: uuidV4() },
+    return this.coreTaskService.addAsyncTask(
+      CoreTaskName.RescanFolder,
+      {
+        folderId,
+        userId,
+      },
+      { folderId },
     )
   }
 
-  async rescanFolder(folderId: string, userId: string) {
-    // console.log('rescanFolder:', { folderId, userId })
+  async rescanFolder({
+    folderId,
+    userId,
+  }: {
+    folderId: string
+    userId: string
+  }) {
     const actor = await this.userService.getUserById({ id: userId })
     const { folder, permissions } = await this.getFolderAsUser(actor, folderId)
     const contentStorageLocation = folder.contentLocation
@@ -732,7 +738,7 @@ export class FolderService implements OnModuleInit {
       objectKey: string
       eTag?: string
     },
-  ): Promise<FolderObjectDTO> {
+  ): Promise<FolderObject> {
     const { folder } = await this.getFolderAsUser(actor, folderId)
 
     const contentStorageLocation =
@@ -768,13 +774,13 @@ export class FolderService implements OnModuleInit {
     actor: User,
     {
       folderId,
-      appIdentifier,
+      emitterIdentifier,
       actionKey,
       actionParams,
       objectKey,
     }: {
       folderId: string
-      appIdentifier: string
+      emitterIdentifier: string
       actionKey: string
       actionParams: any
       objectKey?: string
@@ -789,7 +795,7 @@ export class FolderService implements OnModuleInit {
     //   objectKey,
     // })
     await this.eventService.emitEvent({
-      appIdentifier,
+      emitterIdentifier,
       locationContext: folderId ? { folderId, objectKey } : undefined,
       userId: actor.id,
       data: { params: actionParams },
@@ -860,7 +866,7 @@ export class FolderService implements OnModuleInit {
     )
 
     await this.eventService.emitEvent({
-      appIdentifier: 'core',
+      emitterIdentifier: 'CORE',
       eventKey: previousRecord ? 'CORE:OBJECT_UPDATED' : 'CORE:OBJECT_ADDED',
       locationContext: {
         folderId: record.folderId,

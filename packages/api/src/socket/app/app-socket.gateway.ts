@@ -19,7 +19,7 @@ import { AppSocketService } from './app-socket.service'
 })
 export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
   @WebSocketServer()
-  public readonly namespace: Namespace
+  public readonly namespace: Namespace | undefined
 
   constructor(private readonly appSocketService: AppSocketService) {}
 

@@ -1,5 +1,5 @@
 {
-  "id": "08915eec-1b6b-41cd-b2f1-d10c935f2ce9",
+  "id": "1f7225e0-986f-4e0b-ab17-274d3dd5f2c6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -50,102 +50,6 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "public.event_receipts": {
-      "name": "event_receipts",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "appIdentifier": {
-          "name": "appIdentifier",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "eventId": {
-          "name": "eventId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "eventKey": {
-          "name": "eventKey",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "handlerId": {
-          "name": "handlerId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "startedAt": {
-          "name": "startedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "completedAt": {
-          "name": "completedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "errorAt": {
-          "name": "errorAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "errorCode": {
-          "name": "errorCode",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "errorMessage": {
-          "name": "errorMessage",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "event_receipts_eventId_events_id_fk": {
-          "name": "event_receipts_eventId_events_id_fk",
-          "tableFrom": "event_receipts",
-          "tableTo": "events",
-          "columnsFrom": [
-            "eventId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
     "public.events": {
       "name": "events",
       "schema": "",
@@ -162,11 +66,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "appIdentifier": {
-          "name": "appIdentifier",
+        "emitterIdentifier": {
+          "name": "emitterIdentifier",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "userId": {
           "name": "userId",
@@ -176,6 +80,12 @@
         },
         "folderId": {
           "name": "folderId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "level": {
+          "name": "level",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -527,6 +437,146 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
+    "public.tasks": {
+      "name": "tasks",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "ownerIdentifier": {
+          "name": "ownerIdentifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "taskKey": {
+          "name": "taskKey",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "taskDescription": {
+          "name": "taskDescription",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "inputData": {
+          "name": "inputData",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updates": {
+          "name": "updates",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "triggeringEventId": {
+          "name": "triggeringEventId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "handlerId": {
+          "name": "handlerId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "subjectFolderId": {
+          "name": "subjectFolderId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "subjectObjectKey": {
+          "name": "subjectObjectKey",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "startedAt": {
+          "name": "startedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "completedAt": {
+          "name": "completedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "errorAt": {
+          "name": "errorAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "errorCode": {
+          "name": "errorCode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "errorMessage": {
+          "name": "errorMessage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "tasks_triggeringEventId_events_id_fk": {
+          "name": "tasks_triggeringEventId_events_id_fk",
+          "tableFrom": "tasks",
+          "tableTo": "events",
+          "columnsFrom": [
+            "triggeringEventId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "tasks_subjectFolderId_folders_id_fk": {
+          "name": "tasks_subjectFolderId_folders_id_fk",
+          "tableFrom": "tasks",
+          "tableTo": "folders",
+          "columnsFrom": [
+            "subjectFolderId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
     "public.users": {
       "name": "users",
       "schema": "",
@@ -633,6 +683,7 @@
     }
   },
   "schemas": {},
+  "sequences": {},
   "_meta": {
     "columns": {},
     "schemas": {},

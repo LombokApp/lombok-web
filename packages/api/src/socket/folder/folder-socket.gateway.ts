@@ -19,7 +19,7 @@ import { FolderSocketService } from './folder-socket.service'
 })
 export class FolderSocketGateway implements OnGatewayConnection, OnGatewayInit {
   @WebSocketServer()
-  public readonly namespace: Namespace
+  public readonly namespace: Namespace | undefined
 
   constructor(private readonly folderSocketService: FolderSocketService) {}
 

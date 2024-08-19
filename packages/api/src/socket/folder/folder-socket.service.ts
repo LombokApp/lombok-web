@@ -17,7 +17,7 @@ const UserAuthPayload = r.Record({
 @Injectable()
 export class FolderSocketService implements OnModuleInit {
   private readonly connectedClients: Map<string, Socket> = new Map()
-  private namespace: Namespace
+  private namespace: Namespace | undefined
   setNamespace(namespace: Namespace) {
     this.namespace = namespace
   }
@@ -27,7 +27,9 @@ export class FolderSocketService implements OnModuleInit {
     private readonly moduleRef: ModuleRef,
     private readonly jwtService: JWTService,
     private readonly userService: UserService,
-  ) {}
+  ) {
+    this.folderService = this.moduleRef.get(FolderService)
+  }
 
   async handleConnection(socket: Socket): Promise<void> {
     // const folderId = socket.nsp.name.slice('/folders/'.length)
@@ -86,7 +88,7 @@ export class FolderSocketService implements OnModuleInit {
   }
 
   onModuleInit() {
-    this.folderService = this.moduleRef.get(FolderService)
+    // this.folderService = this.moduleRef.get(FolderService)
   }
 
   sendToFolderRoom(folderId: string, name: FolderPushMessage, msg: any) {
@@ -97,6 +99,10 @@ export class FolderSocketService implements OnModuleInit {
     //   this.folderSocketGateway.namespace.server,
     // )
 
-    this.namespace.to(this.getRoomId(folderId)).emit(name, msg)
+    if (this.namespace) {
+      this.namespace.to(this.getRoomId(folderId)).emit(name, msg)
+    } else {
+      console.log('Namespace not yet set when sending folder room message.')
+    }
   }
 }

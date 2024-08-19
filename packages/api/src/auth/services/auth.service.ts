@@ -107,7 +107,7 @@ export class AuthService {
       user && this.verifyPassword(user, password)
 
     if (!passwordVerificationSuccess) {
-      throw new LoginInvalidException(login)
+      throw new LoginInvalidException()
     }
 
     const { session, accessToken, refreshToken } =

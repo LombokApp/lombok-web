@@ -13,27 +13,13 @@ CREATE TABLE IF NOT EXISTS "session" (
 	"updatedAt" timestamp NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "event_receipts" (
-	"id" uuid PRIMARY KEY NOT NULL,
-	"appIdentifier" text NOT NULL,
-	"eventId" uuid NOT NULL,
-	"eventKey" text NOT NULL,
-	"handlerId" text,
-	"startedAt" timestamp,
-	"completedAt" timestamp,
-	"errorAt" timestamp,
-	"errorCode" text,
-	"errorMessage" text,
-	"createdAt" timestamp NOT NULL,
-	"updatedAt" timestamp NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "events" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"eventKey" text NOT NULL,
-	"appIdentifier" text,
+	"emitterIdentifier" text NOT NULL,
 	"userId" text,
 	"folderId" text,
+	"level" text,
 	"objectKey" text,
 	"data" jsonb,
 	"createdAt" timestamp NOT NULL
@@ -89,6 +75,26 @@ CREATE TABLE IF NOT EXISTS "storage_locations" (
 	"updatedAt" timestamp NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "tasks" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"ownerIdentifier" text NOT NULL,
+	"taskKey" text NOT NULL,
+	"taskDescription" jsonb NOT NULL,
+	"inputData" jsonb NOT NULL,
+	"updates" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"triggeringEventId" uuid NOT NULL,
+	"handlerId" text,
+	"subjectFolderId" uuid,
+	"subjectObjectKey" text,
+	"startedAt" timestamp,
+	"completedAt" timestamp,
+	"errorAt" timestamp,
+	"errorCode" text,
+	"errorMessage" text,
+	"createdAt" timestamp NOT NULL,
+	"updatedAt" timestamp NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "users" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"isAdmin" boolean DEFAULT false NOT NULL,
@@ -104,12 +110,6 @@ CREATE TABLE IF NOT EXISTS "users" (
 	CONSTRAINT "users_username_unique" UNIQUE("username"),
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "event_receipts" ADD CONSTRAINT "event_receipts_eventId_events_id_fk" FOREIGN KEY ("eventId") REFERENCES "public"."events"("id") ON DELETE no action ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "folders" ADD CONSTRAINT "folders_contentLocationId_storage_locations_id_fk" FOREIGN KEY ("contentLocationId") REFERENCES "public"."storage_locations"("id") ON DELETE no action ON UPDATE no action;
@@ -131,6 +131,18 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "storage_locations" ADD CONSTRAINT "storage_locations_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "tasks" ADD CONSTRAINT "tasks_triggeringEventId_events_id_fk" FOREIGN KEY ("triggeringEventId") REFERENCES "public"."events"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "tasks" ADD CONSTRAINT "tasks_subjectFolderId_folders_id_fk" FOREIGN KEY ("subjectFolderId") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

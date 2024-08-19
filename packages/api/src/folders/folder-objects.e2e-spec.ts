@@ -1,6 +1,6 @@
 import { getQueueToken } from '@nestjs/bullmq'
 import type { InMemoryQueue } from 'src/queue/InMemoryQueue'
-import { QueueName } from 'src/queue/queue.constants'
+import { CoreTaskName } from 'src/task/task.constants'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
@@ -88,7 +88,7 @@ describe('Folder Objects', () => {
 
     expect(testFolder.folder.id).toBeTruthy()
     const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
-      getQueueToken(QueueName.RescanFolder),
+      getQueueToken(CoreTaskName.RescanFolder),
     )
 
     const jobsCompletedBefore = queue?.stats.completedJobs ?? 0
@@ -148,7 +148,7 @@ describe('Folder Objects', () => {
     expect(folderGetResponse.data.folder.id).toEqual(testFolder.folder.id)
 
     const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
-      getQueueToken(QueueName.RescanFolder),
+      getQueueToken(CoreTaskName.RescanFolder),
     )
     const jobsCompletedBefore = queue?.stats.completedJobs ?? 0
 
@@ -200,7 +200,7 @@ describe('Folder Objects', () => {
     expect(folderGetResponse.data.folder.id).toEqual(testFolder.folder.id)
 
     const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
-      getQueueToken(QueueName.RescanFolder),
+      getQueueToken(CoreTaskName.RescanFolder),
     )
     const jobsCompletedBefore = queue?.stats.completedJobs ?? 0
 

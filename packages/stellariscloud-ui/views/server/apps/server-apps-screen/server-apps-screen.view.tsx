@@ -12,10 +12,11 @@ import { Avatar } from '../../../../design-system/avatar'
 import Link from 'next/link'
 import { Button } from '@stellariscloud/ui-toolkit'
 import { AppData } from '@stellariscloud/types'
+import { AppDTO } from '@stellariscloud/api-client'
 
 export function ServerAppsScreen() {
   const [coreAppResetKey, _setCoreAppResetKey] = React.useState('__')
-  const [installedApps, setInstalledApps] = React.useState<AppData[]>()
+  const [installedApps, setInstalledApps] = React.useState<AppDTO[]>()
 
   React.useEffect(() => {
     void apiClient.appsApi.listApps().then((apps) => {

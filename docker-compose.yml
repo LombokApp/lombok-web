@@ -11,19 +11,12 @@ services:
       - ./:/usr/src/app:cached
     env_file: packages/api/.env
     environment:
-      WAIT_HOSTS: db:${DB_PORT:-0}, redis:${REDIS_PORT:-0}
+      WAIT_HOSTS: db:${DB_PORT:-0}
     deploy:
       replicas: 1
     command: ['bun', 'api:dev']
     ports:
       - 3001:3001
-  redis:
-    image: redis:alpine
-    command: redis-server
-    ports:
-      - 6379:${REDIS_PORT:-0}
-    volumes:
-      - ./.docker/redis/:/data
   # minio:
   #   image: minio/minio
   #   command: server /data --address "minio:9000" --console-address ":9001"
@@ -74,12 +67,6 @@ services:
       - POSTGRES_DB=${DB_NAME}
     volumes:
       - ./.docker/postgres/:/var/lib/postgresql/data
-  arena:
-    image: mixmaxhq/arena
-    ports:
-      - 4567:${ARENA_PORT:-0}
-    volumes:
-      - ./arena-queues.json:/opt/arena/index.json
   swagger:
     image: swaggerapi/swagger-ui
     ports:

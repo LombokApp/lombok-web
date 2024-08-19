@@ -272,7 +272,7 @@ export class FoldersController {
       })
 
     return {
-      folderObject,
+      folderObject: transformFolderObjectToDTO(folderObject),
     }
   }
 
@@ -283,7 +283,7 @@ export class FoldersController {
   async handleFolderAction(
     @Req() req: express.Request,
     @Param('folderId') folderId: string,
-    @Param('appIdentifier') appIdentifier: string,
+    @Param('emitterIdentifier') emitterIdentifier: string,
     @Param('actionKey') actionKey: string,
     @Body() body: FolderHandleActionInputDTO,
   ): Promise<void> {
@@ -294,7 +294,7 @@ export class FoldersController {
       folderId,
       actionKey,
       actionParams: body.actionParams,
-      appIdentifier,
+      emitterIdentifier,
       objectKey: body.objectKey,
     })
   }

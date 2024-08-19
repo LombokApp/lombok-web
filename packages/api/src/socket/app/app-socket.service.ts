@@ -1,13 +1,10 @@
 import type { OnModuleInit } from '@nestjs/common'
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common'
-import nestJsConfig from '@nestjs/config'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
-import type { ConnectedAppInstance } from '@stellariscloud/types'
 import * as r from 'runtypes'
-import { Namespace, Socket } from 'socket.io'
+import type { Namespace, Socket } from 'socket.io'
 import { AppService } from 'src/app/services/app.service'
-import { redisConfig } from 'src/cache/redis.config'
-import { RedisService } from 'src/cache/redis.service'
+import { KVService } from 'src/cache/kv.service'
 
 import { JWTService } from '../../auth/services/jwt.service'
 
@@ -17,7 +14,7 @@ const AppAuthPayload = r.Record({
   eventSubscriptionKeys: r.Array(r.String),
 })
 
-const REDIS_APP_WORKER_INFO_PREFIX = 'APP_WORKER'
+const APP_WORKER_INFO_CACHE_KEY_PREFIX = 'APP_WORKER'
 
 @Injectable()
 export class AppSocketService implements OnModuleInit {
@@ -32,20 +29,20 @@ export class AppSocketService implements OnModuleInit {
     }
   > = new Map()
 
-  private namespace: Namespace
+  private namespace: Namespace | undefined
   setNamespace(namespace: Namespace) {
     this.namespace = namespace
   }
 
-  private appService: AppService
+  private readonly appService: AppService
 
   constructor(
     private readonly moduleRef: ModuleRef,
     private readonly jwtService: JWTService,
-    private readonly redisService: RedisService,
-    @Inject(redisConfig.KEY)
-    private readonly _redisConfig: nestJsConfig.ConfigType<typeof redisConfig>,
-  ) {}
+    private readonly kvService: KVService,
+  ) {
+    this.appService = this.moduleRef.get(AppService)
+  }
 
   async handleConnection(socket: Socket): Promise<void> {
     console.log(
@@ -100,15 +97,11 @@ export class AppSocketService implements OnModuleInit {
         ip: socket.handshake.address,
       }
       const workerCacheKey = `${appIdentifier}:${auth.appWorkerId}`
-      if (this._redisConfig.enabled) {
-        // persist worker state to redis
-        void this.redisService.client.SET(
-          `${REDIS_APP_WORKER_INFO_PREFIX}:${workerCacheKey}`,
-          JSON.stringify(workerInfo),
-        )
-      } else {
-        this.connectedAppWorkers.set(workerCacheKey, workerInfo)
-      }
+      // persist worker state in memory
+      void this.kvService.ops.set(
+        `${APP_WORKER_INFO_CACHE_KEY_PREFIX}:${workerCacheKey}`,
+        JSON.stringify(workerInfo),
+      )
 
       // register listener for requests from the app
       socket.on('APP_API', async (message, ack) => {
@@ -134,13 +127,9 @@ export class AppSocketService implements OnModuleInit {
       })
 
       socket.on('disconnect', () => {
-        if (this._redisConfig.enabled) {
-          void this.redisService.client.del(
-            `${REDIS_APP_WORKER_INFO_PREFIX}:${workerCacheKey}`,
-          )
-        } else {
-          this.connectedAppWorkers.delete(workerCacheKey)
-        }
+        void this.kvService.ops.del(
+          `${APP_WORKER_INFO_CACHE_KEY_PREFIX}:${workerCacheKey}`,
+        )
       })
       // add the clients to the rooms corresponding to their subscriptions
       await Promise.all(
@@ -159,7 +148,17 @@ export class AppSocketService implements OnModuleInit {
   }
 
   onModuleInit() {
-    this.appService = this.moduleRef.get(AppService)
+    // this.asyncTaskService.registerProcessor(
+    //   CoreTaskName.NotifyAppOfPendingEvents,
+    //   async (task) => {
+    //     console.log('Doing NotifyAllAppsOfPendingEvents task:', task)
+    //     this.notifyAppWorkersOfPendingEvents(
+    //       task.data.appIdentifier,
+    //       task.data.eventKey,
+    //       task.data.eventCount,
+    //     )
+    //   },
+    // )
   }
 
   getRoomKeyForAppAndEvent(appIdentifier: string, eventKey: string) {
@@ -172,46 +171,14 @@ export class AppSocketService implements OnModuleInit {
     eventKey: string,
     count: number,
   ) {
-    this.namespace
-      .to(this.getRoomKeyForAppAndEvent(appIdentifier, eventKey))
-      .emit('PENDING_EVENTS_NOTIFICATION', { eventKey, count })
-  }
-
-  async getAppConnections(): Promise<{
-    [key: string]: ConnectedAppInstance[]
-  }> {
-    let cursor = 0
-    let started = false
-    let keys: string[] = []
-    while (!started || cursor !== 0) {
-      started = true
-      const scanResult = await this.redisService.client.scan(cursor, {
-        MATCH: `${REDIS_APP_WORKER_INFO_PREFIX}:*`,
-        TYPE: 'string',
-        COUNT: 10000,
-      })
-      keys = keys.concat(scanResult.keys)
-      cursor = scanResult.cursor
+    if (this.namespace) {
+      this.namespace
+        .to(this.getRoomKeyForAppAndEvent(appIdentifier, eventKey))
+        .emit('PENDING_EVENTS_NOTIFICATION', { eventKey, count })
+    } else {
+      console.log(
+        'Namespace not yet set when emitting PENDING_EVENTS_NOTIFICATION.',
+      )
     }
-
-    return keys.length
-      ? (await this.redisService.client.mGet(keys))
-          .filter((_r) => _r)
-          .reduce<{ [k: string]: ConnectedAppInstance[] }>((acc, _r) => {
-            const parsedRecord: ConnectedAppInstance | undefined = _r
-              ? JSON.parse(_r)
-              : undefined
-            if (!parsedRecord) {
-              return acc
-            }
-            return {
-              ...acc,
-              [parsedRecord.appIdentifier]: (parsedRecord.appIdentifier in acc
-                ? acc[parsedRecord.appIdentifier]
-                : []
-              ).concat([parsedRecord]),
-            }
-          }, {})
-      : {}
   }
 }

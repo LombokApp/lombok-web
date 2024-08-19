@@ -14,7 +14,7 @@ export function transformFolderObjectToDTO(
     lastModified: folderObject.lastModified,
     mediaType: folderObject.mediaType,
     mimeType: folderObject.mimeType,
-    hash: folderObject.hash,
+    hash: folderObject.hash ?? undefined,
     contentAttributes: folderObject.contentAttributes,
     contentMetadata: folderObject.contentMetadata,
   }

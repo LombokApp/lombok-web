@@ -1,7 +1,6 @@
 import { AccessKeyDTO } from '@stellariscloud/api-client'
 import { ChevronRightIcon, KeyIcon } from '@heroicons/react/24/outline'
 import { StackedList } from '../../design-system/stacked-list/stacked-list'
-import { Avatar } from '../../design-system/avatar'
 import Link from 'next/link'
 
 export function AccessKeysList({
@@ -18,7 +17,7 @@ export function AccessKeysList({
           className="w-full"
           href={`${urlPrefix}/${accessKey.accessKeyHashId}`}
         >
-          <div className="flex justify-between flex-1 items-center gap-x-4 p-4 py-2">
+          <div className="flex justify-between flex-1 items-center gap-x-4 p-5 py-4">
             <div className="flex min-w-0 gap-x-4 items-center">
               <div className="w-12 h-12 p-2 border-yellow-500 border-2 rounded-full">
                 <KeyIcon />

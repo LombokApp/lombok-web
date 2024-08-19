@@ -14,5 +14,3 @@ export const AppSocketAPIRequest = r.Record({
   name: AppSocketMessage,
   data: r.Unknown.optional(),
 })
-
-export type AppSocketMessageType = r.Static<typeof AppSocketMessage>

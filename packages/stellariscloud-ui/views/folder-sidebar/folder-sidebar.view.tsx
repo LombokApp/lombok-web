@@ -4,7 +4,7 @@ import {
   KeyIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline'
-import type { FolderGetResponse } from '@stellariscloud/api-client'
+import type { FolderGetResponse, TaskDTO } from '@stellariscloud/api-client'
 import type { FolderMetadata } from '@stellariscloud/types'
 import { formatBytes } from '@stellariscloud/utils'
 import clsx from 'clsx'
@@ -13,10 +13,11 @@ import React from 'react'
 import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
 import Link from 'next/link'
-
 import { ActionsList } from '../../components/actions-list/actions-list.component'
 import { Card, Label } from '@stellariscloud/ui-toolkit'
 import { Calculator } from 'lucide-react'
+import { apiClient } from '../../services/api'
+import { TasksList } from '../../components/tasks-list/tasks-list.component'
 
 export type FolderSidebarTab = 'overview' | 'settings' | 'workers'
 
@@ -36,7 +37,7 @@ export const FolderSidebar = ({
   folderMetadata?: FolderMetadata
 }) => {
   const { folder } = folderAndPermission ?? {}
-
+  const [tasks, setTasks] = React.useState<TaskDTO[]>()
   const actionItems: {
     id: string
     key: string
@@ -47,21 +48,27 @@ export const FolderSidebar = ({
   }[] = [
     {
       id: 'rescan',
-      key: 'rescan',
-      label: 'Rescan folder content',
+      key: 'RESCAN_FOLDER',
+      label: 'Refresh folder',
       description: 'Scan the underlying storage for content changes',
       icon: ArrowPathIcon,
       onExecute: onRescan,
     },
-    {
-      id: 'index_all',
-      key: 'index_all',
-      label: 'Index all unindexed',
-      description: 'Enqueue indexing jobs for all unindexed objects',
-      icon: MagnifyingGlassIcon,
-      onExecute: onIndexAll,
-    },
   ]
+
+  const fetchTasks = React.useCallback(() => {
+    if (folder?.id) {
+      void apiClient.tasksApi
+        .listTasks({ folderId: folder?.id })
+        .then((resp) => setTasks(resp.data.result))
+    }
+  }, [folder?.id])
+
+  React.useEffect(() => {
+    if (folder?.id) {
+      void fetchTasks()
+    }
+  }, [folder?.id])
 
   return (
     <div className="h-full flex flex-col overflow-y-auto">
@@ -132,6 +139,7 @@ export const FolderSidebar = ({
             </div>
           </dl>
           <div>{actionItems && <ActionsList actionItems={actionItems} />}</div>
+          <div>{tasks && <TasksList tasks={tasks} />}</div>
         </Card>
       </div>
     </div>

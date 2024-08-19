@@ -17,6 +17,11 @@ import globalAxios from 'axios';
 import { DUMMY_BASE_URL, assertParamExists, setBearerAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from './common';
 // @ts-ignore
 import { BASE_PATH, BaseAPI } from './base';
+export const AppDTOConfigFolderTaskTriggersInnerParamsValueTypeEnum = {
+    Boolean: 'boolean',
+    String: 'string',
+    Number: 'number'
+};
 export const FolderCreateSignedUrlInputDTOInnerMethodEnum = {
     Delete: 'DELETE',
     Put: 'PUT',
@@ -1018,24 +1023,24 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         /**
          *
          * @param {string} folderId
-         * @param {string} appIdentifier
+         * @param {string} emitterIdentifier
          * @param {string} actionKey
          * @param {FolderHandleActionInputDTO} folderHandleActionInputDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        handleFolderAction: async (folderId, appIdentifier, actionKey, folderHandleActionInputDTO, options = {}) => {
+        handleFolderAction: async (folderId, emitterIdentifier, actionKey, folderHandleActionInputDTO, options = {}) => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('handleFolderAction', 'folderId', folderId);
-            // verify required parameter 'appIdentifier' is not null or undefined
-            assertParamExists('handleFolderAction', 'appIdentifier', appIdentifier);
+            // verify required parameter 'emitterIdentifier' is not null or undefined
+            assertParamExists('handleFolderAction', 'emitterIdentifier', emitterIdentifier);
             // verify required parameter 'actionKey' is not null or undefined
             assertParamExists('handleFolderAction', 'actionKey', actionKey);
             // verify required parameter 'folderHandleActionInputDTO' is not null or undefined
             assertParamExists('handleFolderAction', 'folderHandleActionInputDTO', folderHandleActionInputDTO);
             const localVarPath = `/api/v1/folders/{folderId}/apps/{appIdentifier}/actions/{actionKey}`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
-                .replace(`{${"appIdentifier"}}`, encodeURIComponent(String(appIdentifier)))
+                .replace(`{${"emitterIdentifier"}}`, encodeURIComponent(String(emitterIdentifier)))
                 .replace(`{${"actionKey"}}`, encodeURIComponent(String(actionKey)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1288,14 +1293,14 @@ export const FoldersApiFp = function (configuration) {
         /**
          *
          * @param {string} folderId
-         * @param {string} appIdentifier
+         * @param {string} emitterIdentifier
          * @param {string} actionKey
          * @param {FolderHandleActionInputDTO} folderHandleActionInputDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async handleFolderAction(folderId, appIdentifier, actionKey, folderHandleActionInputDTO, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.handleFolderAction(folderId, appIdentifier, actionKey, folderHandleActionInputDTO, options);
+        async handleFolderAction(folderId, emitterIdentifier, actionKey, folderHandleActionInputDTO, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.handleFolderAction(folderId, emitterIdentifier, actionKey, folderHandleActionInputDTO, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -1422,7 +1427,7 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
          * @throws {RequiredError}
          */
         handleFolderAction(requestParameters, options) {
-            return localVarFp.handleFolderAction(requestParameters.folderId, requestParameters.appIdentifier, requestParameters.actionKey, requestParameters.folderHandleActionInputDTO, options).then((request) => request(axios, basePath));
+            return localVarFp.handleFolderAction(requestParameters.folderId, requestParameters.emitterIdentifier, requestParameters.actionKey, requestParameters.folderHandleActionInputDTO, options).then((request) => request(axios, basePath));
         },
         /**
          *
@@ -1547,7 +1552,7 @@ export class FoldersApi extends BaseAPI {
      * @memberof FoldersApi
      */
     handleFolderAction(requestParameters, options) {
-        return FoldersApiFp(this.configuration).handleFolderAction(requestParameters.folderId, requestParameters.appIdentifier, requestParameters.actionKey, requestParameters.folderHandleActionInputDTO, options).then((request) => request(this.axios, this.basePath));
+        return FoldersApiFp(this.configuration).handleFolderAction(requestParameters.folderId, requestParameters.emitterIdentifier, requestParameters.actionKey, requestParameters.folderHandleActionInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
@@ -2537,6 +2542,180 @@ export const ListStorageProvisionsProvisionTypeEnum = {
     Backup: 'BACKUP'
 };
 /**
+ * TasksApi - axios parameter creator
+ * @export
+ */
+export const TasksApiAxiosParamCreator = function (configuration) {
+    return {
+        /**
+         *
+         * @param {string} folderId
+         * @param {string} taskId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTask: async (folderId, taskId, options = {}) => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('getTask', 'folderId', folderId);
+            // verify required parameter 'taskId' is not null or undefined
+            assertParamExists('getTask', 'taskId', taskId);
+            const localVarPath = `/api/v1/{folderId}/tasks/{taskId}`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
+                .replace(`{${"taskId"}}`, encodeURIComponent(String(taskId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} folderId
+         * @param {string} [objectKey]
+         * @param {number} [offset]
+         * @param {number} [limit]
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listTasks: async (folderId, objectKey, offset, limit, options = {}) => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('listTasks', 'folderId', folderId);
+            const localVarPath = `/api/v1/{folderId}/tasks`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            if (objectKey !== undefined) {
+                localVarQueryParameter['objectKey'] = objectKey;
+            }
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    };
+};
+/**
+ * TasksApi - functional programming interface
+ * @export
+ */
+export const TasksApiFp = function (configuration) {
+    const localVarAxiosParamCreator = TasksApiAxiosParamCreator(configuration);
+    return {
+        /**
+         *
+         * @param {string} folderId
+         * @param {string} taskId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTask(folderId, taskId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTask(folderId, taskId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} folderId
+         * @param {string} [objectKey]
+         * @param {number} [offset]
+         * @param {number} [limit]
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listTasks(folderId, objectKey, offset, limit, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listTasks(folderId, objectKey, offset, limit, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    };
+};
+/**
+ * TasksApi - factory interface
+ * @export
+ */
+export const TasksApiFactory = function (configuration, basePath, axios) {
+    const localVarFp = TasksApiFp(configuration);
+    return {
+        /**
+         *
+         * @param {TasksApiGetTaskRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTask(requestParameters, options) {
+            return localVarFp.getTask(requestParameters.folderId, requestParameters.taskId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {TasksApiListTasksRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listTasks(requestParameters, options) {
+            return localVarFp.listTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+/**
+ * TasksApi - object-oriented interface
+ * @export
+ * @class TasksApi
+ * @extends {BaseAPI}
+ */
+export class TasksApi extends BaseAPI {
+    /**
+     *
+     * @param {TasksApiGetTaskRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TasksApi
+     */
+    getTask(requestParameters, options) {
+        return TasksApiFp(this.configuration).getTask(requestParameters.folderId, requestParameters.taskId, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {TasksApiListTasksRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TasksApi
+     */
+    listTasks(requestParameters, options) {
+        return TasksApiFp(this.configuration).listTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+/**
  * UsersApi - axios parameter creator
  * @export
  */
@@ -2944,13 +3123,13 @@ export const ViewerApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
-         * @param {UpdateViewerInputDTO} updateViewerInputDTO
+         * @param {ViewerUpdateInputDTO} viewerUpdateInputDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateViewer: async (updateViewerInputDTO, options = {}) => {
-            // verify required parameter 'updateViewerInputDTO' is not null or undefined
-            assertParamExists('updateViewer', 'updateViewerInputDTO', updateViewerInputDTO);
+        updateViewer: async (viewerUpdateInputDTO, options = {}) => {
+            // verify required parameter 'viewerUpdateInputDTO' is not null or undefined
+            assertParamExists('updateViewer', 'viewerUpdateInputDTO', viewerUpdateInputDTO);
             const localVarPath = `/api/v1/viewer`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2968,7 +3147,7 @@ export const ViewerApiAxiosParamCreator = function (configuration) {
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            localVarRequestOptions.data = serializeDataIfNeeded(updateViewerInputDTO, localVarRequestOptions, configuration);
+            localVarRequestOptions.data = serializeDataIfNeeded(viewerUpdateInputDTO, localVarRequestOptions, configuration);
             return {
                 url: toPathString(localVarUrlObj),
                 options: localVarRequestOptions,
@@ -2994,12 +3173,12 @@ export const ViewerApiFp = function (configuration) {
         },
         /**
          *
-         * @param {UpdateViewerInputDTO} updateViewerInputDTO
+         * @param {ViewerUpdateInputDTO} viewerUpdateInputDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateViewer(updateViewerInputDTO, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateViewer(updateViewerInputDTO, options);
+        async updateViewer(viewerUpdateInputDTO, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateViewer(viewerUpdateInputDTO, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     };
@@ -3026,7 +3205,7 @@ export const ViewerApiFactory = function (configuration, basePath, axios) {
          * @throws {RequiredError}
          */
         updateViewer(requestParameters, options) {
-            return localVarFp.updateViewer(requestParameters.updateViewerInputDTO, options).then((request) => request(axios, basePath));
+            return localVarFp.updateViewer(requestParameters.viewerUpdateInputDTO, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -3054,6 +3233,6 @@ export class ViewerApi extends BaseAPI {
      * @memberof ViewerApi
      */
     updateViewer(requestParameters, options) {
-        return ViewerApiFp(this.configuration).updateViewer(requestParameters.updateViewerInputDTO, options).then((request) => request(this.axios, this.basePath));
+        return ViewerApiFp(this.configuration).updateViewer(requestParameters.viewerUpdateInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }

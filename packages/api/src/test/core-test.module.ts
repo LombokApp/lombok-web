@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 import { CacheModule } from 'src/cache/cache.module'
-import { QueueModule } from 'src/queue/queue.module'
+import { TaskModule } from 'src/task/task.module'
 import { SocketModule } from 'src/socket/socket.module'
 import { StorageModule } from 'src/storage/storage.module'
 
@@ -23,7 +23,7 @@ import { UsersModule } from '../users/users.module'
     FoldersModule,
     EventModule,
     AppModule,
-    QueueModule,
+    TaskModule,
     ServerModule,
     SocketModule,
     CacheModule,

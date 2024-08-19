@@ -7,10 +7,7 @@ import postgres from 'postgres'
 
 import { sessionsTable } from '../auth/entities/session.entity'
 import { eventsTable } from '../event/entities/event.entity'
-import {
-  eventReceiptRelations,
-  eventReceiptsTable,
-} from '../event/entities/event-receipt.entity'
+import { tasksTable } from '../task/entities/task.entity'
 import {
   foldersRelations,
   foldersTable,
@@ -30,8 +27,7 @@ export const dbSchema = {
   foldersRelations,
   folderObjectsTable,
   eventsTable,
-  eventReceiptsTable,
-  eventReceiptRelations,
+  tasksTable,
 }
 
 export const TEST_DB_PREFIX = 'stellaris_test__'

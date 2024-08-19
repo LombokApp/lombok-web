@@ -5,7 +5,7 @@ import { ServerDashboard } from '../../views/server/overview/server-dashboard-sc
 import { ContentLayout } from '../../components/sidebar/components/content-layout'
 import { LayoutGrid } from 'lucide-react'
 
-const ServerOverviewPage: NextPage = () => {
+const ServerDashboardPage: NextPage = () => {
   const authContext = useAuthContext()
   return (
     authContext.authState.isAuthenticated &&
@@ -21,4 +21,4 @@ const ServerOverviewPage: NextPage = () => {
   )
 }
 
-export default ServerOverviewPage
+export default ServerDashboardPage

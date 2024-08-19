@@ -37,10 +37,7 @@ export function UserAccessKeysScreen() {
               />
             </div>
           ) : (
-            <EmptyState
-              icon={KeyIcon}
-              text="No access keys have been created"
-            />
+            <EmptyState icon={KeyIcon} text="No access keys are in use" />
           )}
         </div>
       </div>

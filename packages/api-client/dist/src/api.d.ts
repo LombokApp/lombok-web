@@ -226,19 +226,25 @@ export interface AppDTOConfig {
      * @type {Array<string>}
      * @memberof AppDTOConfig
      */
-    'subscribedEvents': Array<string>;
+    'emittableEvents': Array<string>;
     /**
      *
-     * @type {Array<string>}
+     * @type {Array<AppDTOConfigFolderTaskTriggersInner>}
      * @memberof AppDTOConfig
      */
-    'emitEvents': Array<string>;
+    'folderTaskTriggers': Array<AppDTOConfigFolderTaskTriggersInner>;
     /**
      *
-     * @type {AppDTOConfigActions}
+     * @type {Array<AppDTOConfigFolderTaskTriggersInner>}
      * @memberof AppDTOConfig
      */
-    'actions': AppDTOConfigActions;
+    'objectTaskTriggers': Array<AppDTOConfigFolderTaskTriggersInner>;
+    /**
+     *
+     * @type {Array<AppDTOConfigTasksInner>}
+     * @memberof AppDTOConfig
+     */
+    'tasks': Array<AppDTOConfigTasksInner>;
     /**
      *
      * @type {Array<AppDTOConfigMenuItemsInner>}
@@ -249,41 +255,54 @@ export interface AppDTOConfig {
 /**
  *
  * @export
- * @interface AppDTOConfigActions
+ * @interface AppDTOConfigFolderTaskTriggersInner
  */
-export interface AppDTOConfigActions {
+export interface AppDTOConfigFolderTaskTriggersInner {
     /**
      *
-     * @type {Array<AppDTOConfigActionsFolderInner>}
-     * @memberof AppDTOConfigActions
+     * @type {string}
+     * @memberof AppDTOConfigFolderTaskTriggersInner
      */
-    'folder': Array<AppDTOConfigActionsFolderInner>;
+    'taskTriggerKey': string;
     /**
      *
-     * @type {Array<AppDTOConfigActionsFolderInner>}
-     * @memberof AppDTOConfigActions
+     * @type {{ [key: string]: AppDTOConfigFolderTaskTriggersInnerParamsValue | undefined; }}
+     * @memberof AppDTOConfigFolderTaskTriggersInner
      */
-    'object': Array<AppDTOConfigActionsFolderInner>;
+    'params': {
+        [key: string]: AppDTOConfigFolderTaskTriggersInnerParamsValue | undefined;
+    };
 }
 /**
  *
  * @export
- * @interface AppDTOConfigActionsFolderInner
+ * @interface AppDTOConfigFolderTaskTriggersInnerParamsValue
  */
-export interface AppDTOConfigActionsFolderInner {
+export interface AppDTOConfigFolderTaskTriggersInnerParamsValue {
     /**
      *
      * @type {string}
-     * @memberof AppDTOConfigActionsFolderInner
+     * @memberof AppDTOConfigFolderTaskTriggersInnerParamsValue
      */
-    'key': string;
+    'type': AppDTOConfigFolderTaskTriggersInnerParamsValueTypeEnum;
     /**
      *
-     * @type {string}
-     * @memberof AppDTOConfigActionsFolderInner
+     * @type {AppDTOConfigFolderTaskTriggersInnerParamsValueDefault}
+     * @memberof AppDTOConfigFolderTaskTriggersInnerParamsValue
      */
-    'description': string;
+    'default'?: AppDTOConfigFolderTaskTriggersInnerParamsValueDefault;
 }
+export declare const AppDTOConfigFolderTaskTriggersInnerParamsValueTypeEnum: {
+    readonly Boolean: "boolean";
+    readonly String: "string";
+    readonly Number: "number";
+};
+export type AppDTOConfigFolderTaskTriggersInnerParamsValueTypeEnum = typeof AppDTOConfigFolderTaskTriggersInnerParamsValueTypeEnum[keyof typeof AppDTOConfigFolderTaskTriggersInnerParamsValueTypeEnum];
+/**
+ * @type AppDTOConfigFolderTaskTriggersInnerParamsValueDefault
+ * @export
+ */
+export type AppDTOConfigFolderTaskTriggersInnerParamsValueDefault = boolean | number | string;
 /**
  *
  * @export
@@ -308,6 +327,39 @@ export interface AppDTOConfigMenuItemsInner {
      * @memberof AppDTOConfigMenuItemsInner
      */
     'uiName': string;
+}
+/**
+ *
+ * @export
+ * @interface AppDTOConfigTasksInner
+ */
+export interface AppDTOConfigTasksInner {
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOConfigTasksInner
+     */
+    'key': string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof AppDTOConfigTasksInner
+     */
+    'eventTriggers': Array<string>;
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOConfigTasksInner
+     */
+    'description': string;
+    /**
+     *
+     * @type {{ [key: string]: AppDTOConfigFolderTaskTriggersInnerParamsValue | undefined; }}
+     * @memberof AppDTOConfigTasksInner
+     */
+    'inputParams': {
+        [key: string]: AppDTOConfigFolderTaskTriggersInnerParamsValue | undefined;
+    };
 }
 /**
  *
@@ -486,10 +538,10 @@ export interface EventDTO {
     'eventKey': string;
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof EventDTO
      */
-    'appIdentifier': any;
+    'emitterIdentifier': string;
     /**
      *
      * @type {EventDTOLocationContext}
@@ -561,10 +613,10 @@ export interface EventGetResponseEvent {
     'eventKey': string;
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof EventGetResponseEvent
      */
-    'appIdentifier': any;
+    'emitterIdentifier': string;
     /**
      *
      * @type {EventDTOLocationContext}
@@ -1084,10 +1136,10 @@ export interface FolderObjectDTO {
     'folderId': string;
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof FolderObjectDTO
      */
-    'hash'?: any;
+    'hash'?: string;
     /**
      *
      * @type {number}
@@ -1285,10 +1337,10 @@ export interface FolderObjectListResponseResultInner {
     'folderId': string;
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof FolderObjectListResponseResultInner
      */
-    'hash'?: any;
+    'hash'?: string;
     /**
      *
      * @type {number}
@@ -1503,7 +1555,7 @@ export interface SignupCredentialsDTO {
      * @type {string}
      * @memberof SignupCredentialsDTO
      */
-    'email'?: string;
+    'email': string;
     /**
      *
      * @type {string}
@@ -1538,16 +1590,16 @@ export interface SignupResponseUser {
     'id': string;
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof SignupResponseUser
      */
-    'name'?: any;
+    'name'?: string;
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof SignupResponseUser
      */
-    'email'?: any;
+    'email'?: string;
     /**
      *
      * @type {boolean}
@@ -1949,6 +2001,286 @@ export type StorageProvisionListResponseResultInnerProvisionTypesEnum = typeof S
 /**
  *
  * @export
+ * @interface TaskDTO
+ */
+export interface TaskDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof TaskDTO
+     */
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskDTO
+     */
+    'taskKey': string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskDTO
+     */
+    'ownerIdentifier': string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskDTO
+     */
+    'triggeringEventId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskDTO
+     */
+    'subjectFolderId'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskDTO
+     */
+    'subjectObjectKey'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskDTO
+     */
+    'handlerId'?: string;
+    /**
+     *
+     * @type {{ [key: string]: TaskDTOInputDataValue | undefined; }}
+     * @memberof TaskDTO
+     */
+    'inputData': {
+        [key: string]: TaskDTOInputDataValue | undefined;
+    };
+    /**
+     *
+     * @type {string}
+     * @memberof TaskDTO
+     */
+    'errorAt'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskDTO
+     */
+    'errorCode'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskDTO
+     */
+    'errorMessage'?: string;
+    /**
+     *
+     * @type {TaskDTOTaskDescription}
+     * @memberof TaskDTO
+     */
+    'taskDescription': TaskDTOTaskDescription;
+    /**
+     *
+     * @type {Array<any>}
+     * @memberof TaskDTO
+     */
+    'updates': Array<any>;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskDTO
+     */
+    'startedAt'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskDTO
+     */
+    'completedAt'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskDTO
+     */
+    'createdAt': string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskDTO
+     */
+    'updatedAt': string;
+}
+/**
+ * @type TaskDTOInputDataValue
+ * @export
+ */
+export type TaskDTOInputDataValue = number | string;
+/**
+ *
+ * @export
+ * @interface TaskDTOTaskDescription
+ */
+export interface TaskDTOTaskDescription {
+    /**
+     *
+     * @type {string}
+     * @memberof TaskDTOTaskDescription
+     */
+    'textKey': string;
+    /**
+     *
+     * @type {{ [key: string]: string | undefined; }}
+     * @memberof TaskDTOTaskDescription
+     */
+    'variables': {
+        [key: string]: string | undefined;
+    };
+}
+/**
+ *
+ * @export
+ * @interface TaskGetResponse
+ */
+export interface TaskGetResponse {
+    /**
+     *
+     * @type {TaskGetResponseTask}
+     * @memberof TaskGetResponse
+     */
+    'task': TaskGetResponseTask;
+}
+/**
+ *
+ * @export
+ * @interface TaskGetResponseTask
+ */
+export interface TaskGetResponseTask {
+    /**
+     *
+     * @type {string}
+     * @memberof TaskGetResponseTask
+     */
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskGetResponseTask
+     */
+    'taskKey': string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskGetResponseTask
+     */
+    'ownerIdentifier': string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskGetResponseTask
+     */
+    'triggeringEventId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskGetResponseTask
+     */
+    'subjectFolderId'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskGetResponseTask
+     */
+    'subjectObjectKey'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskGetResponseTask
+     */
+    'handlerId'?: string;
+    /**
+     *
+     * @type {{ [key: string]: TaskDTOInputDataValue | undefined; }}
+     * @memberof TaskGetResponseTask
+     */
+    'inputData': {
+        [key: string]: TaskDTOInputDataValue | undefined;
+    };
+    /**
+     *
+     * @type {string}
+     * @memberof TaskGetResponseTask
+     */
+    'errorAt'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskGetResponseTask
+     */
+    'errorCode'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskGetResponseTask
+     */
+    'errorMessage'?: string;
+    /**
+     *
+     * @type {TaskDTOTaskDescription}
+     * @memberof TaskGetResponseTask
+     */
+    'taskDescription': TaskDTOTaskDescription;
+    /**
+     *
+     * @type {Array<any>}
+     * @memberof TaskGetResponseTask
+     */
+    'updates': Array<any>;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskGetResponseTask
+     */
+    'startedAt'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskGetResponseTask
+     */
+    'completedAt'?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskGetResponseTask
+     */
+    'createdAt': string;
+    /**
+     *
+     * @type {string}
+     * @memberof TaskGetResponseTask
+     */
+    'updatedAt': string;
+}
+/**
+ *
+ * @export
+ * @interface TaskListResponse
+ */
+export interface TaskListResponse {
+    /**
+     *
+     * @type {UserListResponseMeta}
+     * @memberof TaskListResponse
+     */
+    'meta': UserListResponseMeta;
+    /**
+     *
+     * @type {Array<TaskGetResponseTask>}
+     * @memberof TaskListResponse
+     */
+    'result': Array<TaskGetResponseTask>;
+}
+/**
+ *
+ * @export
  * @interface TokenRefreshResponse
  */
 export interface TokenRefreshResponse {
@@ -1962,34 +2294,21 @@ export interface TokenRefreshResponse {
 /**
  *
  * @export
- * @interface UpdateViewerInputDTO
- */
-export interface UpdateViewerInputDTO {
-    /**
-     *
-     * @type {string}
-     * @memberof UpdateViewerInputDTO
-     */
-    'name': string;
-}
-/**
- *
- * @export
  * @interface UserCreateInputDTO
  */
 export interface UserCreateInputDTO {
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof UserCreateInputDTO
      */
-    'name'?: any;
+    'name'?: string;
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof UserCreateInputDTO
      */
-    'email'?: any;
+    'email'?: string;
     /**
      *
      * @type {boolean}
@@ -2035,16 +2354,16 @@ export interface UserDTO {
     'id': string;
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof UserDTO
      */
-    'name'?: any;
+    'name'?: string;
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof UserDTO
      */
-    'email'?: any;
+    'email'?: string;
     /**
      *
      * @type {boolean}
@@ -2135,16 +2454,16 @@ export interface UserListResponseMeta {
 export interface UserUpdateInputDTO {
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof UserUpdateInputDTO
      */
-    'name'?: any;
+    'name'?: string;
     /**
      *
-     * @type {any}
+     * @type {string}
      * @memberof UserUpdateInputDTO
      */
-    'email'?: any;
+    'email'?: string;
     /**
      *
      * @type {boolean}
@@ -2188,6 +2507,19 @@ export interface ViewerGetResponse {
      * @memberof ViewerGetResponse
      */
     'user': SignupResponseUser;
+}
+/**
+ *
+ * @export
+ * @interface ViewerUpdateInputDTO
+ */
+export interface ViewerUpdateInputDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof ViewerUpdateInputDTO
+     */
+    'name': string;
 }
 /**
  * AccessKeysApi - axios parameter creator
@@ -2729,13 +3061,13 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
     /**
      *
      * @param {string} folderId
-     * @param {string} appIdentifier
+     * @param {string} emitterIdentifier
      * @param {string} actionKey
      * @param {FolderHandleActionInputDTO} folderHandleActionInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    handleFolderAction: (folderId: string, appIdentifier: string, actionKey: string, folderHandleActionInputDTO: FolderHandleActionInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    handleFolderAction: (folderId: string, emitterIdentifier: string, actionKey: string, folderHandleActionInputDTO: FolderHandleActionInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {string} folderId
@@ -2830,13 +3162,13 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
     /**
      *
      * @param {string} folderId
-     * @param {string} appIdentifier
+     * @param {string} emitterIdentifier
      * @param {string} actionKey
      * @param {FolderHandleActionInputDTO} folderHandleActionInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    handleFolderAction(folderId: string, appIdentifier: string, actionKey: string, folderHandleActionInputDTO: FolderHandleActionInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    handleFolderAction(folderId: string, emitterIdentifier: string, actionKey: string, folderHandleActionInputDTO: FolderHandleActionInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
     /**
      *
      * @param {string} folderId
@@ -3087,7 +3419,7 @@ export interface FoldersApiHandleFolderActionRequest {
      * @type {string}
      * @memberof FoldersApiHandleFolderAction
      */
-    readonly appIdentifier: string;
+    readonly emitterIdentifier: string;
     /**
      *
      * @type {string}
@@ -3970,6 +4302,148 @@ export declare const ListStorageProvisionsProvisionTypeEnum: {
 };
 export type ListStorageProvisionsProvisionTypeEnum = typeof ListStorageProvisionsProvisionTypeEnum[keyof typeof ListStorageProvisionsProvisionTypeEnum];
 /**
+ * TasksApi - axios parameter creator
+ * @export
+ */
+export declare const TasksApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {string} folderId
+     * @param {string} taskId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getTask: (folderId: string, taskId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} folderId
+     * @param {string} [objectKey]
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listTasks: (folderId: string, objectKey?: string, offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * TasksApi - functional programming interface
+ * @export
+ */
+export declare const TasksApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {string} folderId
+     * @param {string} taskId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getTask(folderId: string, taskId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskGetResponse>>;
+    /**
+     *
+     * @param {string} folderId
+     * @param {string} [objectKey]
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listTasks(folderId: string, objectKey?: string, offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>>;
+};
+/**
+ * TasksApi - factory interface
+ * @export
+ */
+export declare const TasksApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {TasksApiGetTaskRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getTask(requestParameters: TasksApiGetTaskRequest, options?: AxiosRequestConfig): AxiosPromise<TaskGetResponse>;
+    /**
+     *
+     * @param {TasksApiListTasksRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listTasks(requestParameters: TasksApiListTasksRequest, options?: AxiosRequestConfig): AxiosPromise<TaskListResponse>;
+};
+/**
+ * Request parameters for getTask operation in TasksApi.
+ * @export
+ * @interface TasksApiGetTaskRequest
+ */
+export interface TasksApiGetTaskRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof TasksApiGetTask
+     */
+    readonly folderId: string;
+    /**
+     *
+     * @type {string}
+     * @memberof TasksApiGetTask
+     */
+    readonly taskId: string;
+}
+/**
+ * Request parameters for listTasks operation in TasksApi.
+ * @export
+ * @interface TasksApiListTasksRequest
+ */
+export interface TasksApiListTasksRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof TasksApiListTasks
+     */
+    readonly folderId: string;
+    /**
+     *
+     * @type {string}
+     * @memberof TasksApiListTasks
+     */
+    readonly objectKey?: string;
+    /**
+     *
+     * @type {number}
+     * @memberof TasksApiListTasks
+     */
+    readonly offset?: number;
+    /**
+     *
+     * @type {number}
+     * @memberof TasksApiListTasks
+     */
+    readonly limit?: number;
+}
+/**
+ * TasksApi - object-oriented interface
+ * @export
+ * @class TasksApi
+ * @extends {BaseAPI}
+ */
+export declare class TasksApi extends BaseAPI {
+    /**
+     *
+     * @param {TasksApiGetTaskRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TasksApi
+     */
+    getTask(requestParameters: TasksApiGetTaskRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskGetResponse, any>>;
+    /**
+     *
+     * @param {TasksApiListTasksRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof TasksApi
+     */
+    listTasks(requestParameters: TasksApiListTasksRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskListResponse, any>>;
+}
+/**
  * UsersApi - axios parameter creator
  * @export
  */
@@ -4268,11 +4742,11 @@ export declare const ViewerApiAxiosParamCreator: (configuration?: Configuration)
     getViewer: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
-     * @param {UpdateViewerInputDTO} updateViewerInputDTO
+     * @param {ViewerUpdateInputDTO} viewerUpdateInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    updateViewer: (updateViewerInputDTO: UpdateViewerInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    updateViewer: (viewerUpdateInputDTO: ViewerUpdateInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * ViewerApi - functional programming interface
@@ -4287,11 +4761,11 @@ export declare const ViewerApiFp: (configuration?: Configuration) => {
     getViewer(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ViewerGetResponse>>;
     /**
      *
-     * @param {UpdateViewerInputDTO} updateViewerInputDTO
+     * @param {ViewerUpdateInputDTO} viewerUpdateInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    updateViewer(updateViewerInputDTO: UpdateViewerInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ViewerGetResponse>>;
+    updateViewer(viewerUpdateInputDTO: ViewerUpdateInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ViewerGetResponse>>;
 };
 /**
  * ViewerApi - factory interface
@@ -4320,10 +4794,10 @@ export declare const ViewerApiFactory: (configuration?: Configuration, basePath?
 export interface ViewerApiUpdateViewerRequest {
     /**
      *
-     * @type {UpdateViewerInputDTO}
+     * @type {ViewerUpdateInputDTO}
      * @memberof ViewerApiUpdateViewer
      */
-    readonly updateViewerInputDTO: UpdateViewerInputDTO;
+    readonly viewerUpdateInputDTO: ViewerUpdateInputDTO;
 }
 /**
  * ViewerApi - object-oriented interface

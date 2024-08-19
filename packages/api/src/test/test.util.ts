@@ -5,7 +5,6 @@ import { eq } from 'drizzle-orm'
 import fs from 'fs'
 import path from 'path'
 import type { LoginResponse } from 'src/auth/dto/responses/login-response.dto'
-import { RedisService } from 'src/cache/redis.service'
 import type { FolderDTO } from 'src/folders/dto/folder.dto'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { configureS3Client } from 'src/storage/s3.service'
@@ -13,7 +12,7 @@ import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { CoreTestModule } from 'src/test/core-test.module'
 import { usersTable } from 'src/users/entities/user.entity'
 
-import { setApp, setAppInitializing } from '../core/app-helper'
+import { setApp, setAppInitializing } from '../shared/app-helper'
 import { ormConfig } from '../orm/config'
 import type { TestApiClient, TestModule } from './test.types'
 import { buildSupertestApiClient } from './test-api-client'
@@ -31,14 +30,6 @@ export async function buildTestModule({
 }) {
   const dbName = `test_db_${testModuleKey}`
   const bucketPathsToRemove: string[] = []
-  const redisService = {
-    getAll: jest.fn(),
-    get: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    markAsInActive: jest.fn(),
-  }
 
   const appPromise = Test.createTestingModule({
     imports: [CoreTestModule],
@@ -46,8 +37,6 @@ export async function buildTestModule({
   })
     .overrideProvider(ormConfig.KEY)
     .useValue({ ...ormConfig(), dbName: `${TEST_DB_PREFIX}${dbName}` })
-    .overrideProvider(RedisService)
-    .useValue(redisService)
     .compile()
     .then((moduleRef) => moduleRef.createNestApplication())
 

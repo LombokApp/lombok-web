@@ -152,7 +152,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateViewerInputDTO"
+                "$ref": "#/components/schemas/ViewerUpdateInputDTO"
               }
             }
           }
@@ -832,7 +832,7 @@
             }
           },
           {
-            "name": "appIdentifier",
+            "name": "emitterIdentifier",
             "required": true,
             "in": "path",
             "schema": {
@@ -1443,6 +1443,110 @@
         ]
       }
     },
+    "/api/v1/{folderId}/tasks/{taskId}": {
+      "get": {
+        "operationId": "getTask",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get a folder task by id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Tasks"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/{folderId}/tasks": {
+      "get": {
+        "operationId": "listTasks",
+        "parameters": [
+          {
+            "name": "objectKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "type": "number"
+            }
+          },
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List tasks.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskListResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Tasks"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/server/events/{eventId}": {
       "get": {
         "operationId": "getEvent",
@@ -1650,7 +1754,8 @@
           },
           "email": {
             "type": "string",
-            "maxLength": 255
+            "minLength": 1,
+            "format": "email"
           },
           "password": {
             "type": "string",
@@ -1659,6 +1764,7 @@
         },
         "required": [
           "username",
+          "email",
           "password"
         ]
       },
@@ -1672,16 +1778,10 @@
                 "type": "string"
               },
               "name": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": "string"
               },
               "email": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": "string"
               },
               "emailVerified": {
                 "type": "boolean"
@@ -1755,16 +1855,10 @@
                 "type": "string"
               },
               "name": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": "string"
               },
               "email": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": "string"
               },
               "emailVerified": {
                 "type": "boolean"
@@ -1805,7 +1899,7 @@
           "user"
         ]
       },
-      "UpdateViewerInputDTO": {
+      "ViewerUpdateInputDTO": {
         "type": "object",
         "properties": {
           "name": {
@@ -1823,16 +1917,10 @@
             "type": "string"
           },
           "name": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string"
           },
           "email": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string"
           },
           "emailVerified": {
             "type": "boolean"
@@ -1872,16 +1960,10 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string"
           },
           "email": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string"
           },
           "emailVerified": {
             "type": "boolean"
@@ -1917,16 +1999,10 @@
                 "type": "string"
               },
               "name": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": "string"
               },
               "email": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": "string"
               },
               "emailVerified": {
                 "type": "boolean"
@@ -1971,16 +2047,10 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string"
           },
           "email": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string"
           },
           "emailVerified": {
             "type": "boolean"
@@ -2025,16 +2095,10 @@
                   "type": "string"
                 },
                 "name": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string"
                 },
                 "email": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string"
                 },
                 "emailVerified": {
                   "type": "boolean"
@@ -2209,10 +2273,7 @@
             "type": "string"
           },
           "hash": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string"
           },
           "lastModified": {
             "type": "number"
@@ -2976,10 +3037,7 @@
                   "type": "string"
                 },
                 "hash": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string"
                 },
                 "lastModified": {
                   "type": "number"
@@ -3110,10 +3168,7 @@
                 "type": "string"
               },
               "hash": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": "string"
               },
               "lastModified": {
                 "type": "number"
@@ -3721,6 +3776,331 @@
           "provisionTypes"
         ]
       },
+      "TaskDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "taskKey": {
+            "type": "string"
+          },
+          "ownerIdentifier": {
+            "type": "string"
+          },
+          "triggeringEventId": {
+            "type": "string"
+          },
+          "subjectFolderId": {
+            "type": "string"
+          },
+          "subjectObjectKey": {
+            "type": "string"
+          },
+          "handlerId": {
+            "type": "string"
+          },
+          "inputData": {
+            "type": "object",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          },
+          "errorAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "errorCode": {
+            "type": "string"
+          },
+          "errorMessage": {
+            "type": "string"
+          },
+          "taskDescription": {
+            "type": "object",
+            "properties": {
+              "textKey": {
+                "type": "string"
+              },
+              "variables": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "textKey",
+              "variables"
+            ]
+          },
+          "updates": {
+            "type": "array",
+            "items": {}
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "taskKey",
+          "ownerIdentifier",
+          "triggeringEventId",
+          "inputData",
+          "taskDescription",
+          "updates",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "TaskGetResponse": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "taskKey": {
+                "type": "string"
+              },
+              "ownerIdentifier": {
+                "type": "string"
+              },
+              "triggeringEventId": {
+                "type": "string"
+              },
+              "subjectFolderId": {
+                "type": "string"
+              },
+              "subjectObjectKey": {
+                "type": "string"
+              },
+              "handlerId": {
+                "type": "string"
+              },
+              "inputData": {
+                "type": "object",
+                "additionalProperties": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              "errorAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "errorCode": {
+                "type": "string"
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "taskDescription": {
+                "type": "object",
+                "properties": {
+                  "textKey": {
+                    "type": "string"
+                  },
+                  "variables": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "textKey",
+                  "variables"
+                ]
+              },
+              "updates": {
+                "type": "array",
+                "items": {}
+              },
+              "startedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "completedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "taskKey",
+              "ownerIdentifier",
+              "triggeringEventId",
+              "inputData",
+              "taskDescription",
+              "updates",
+              "createdAt",
+              "updatedAt"
+            ]
+          }
+        },
+        "required": [
+          "task"
+        ]
+      },
+      "TaskListResponse": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalCount"
+            ]
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "taskKey": {
+                  "type": "string"
+                },
+                "ownerIdentifier": {
+                  "type": "string"
+                },
+                "triggeringEventId": {
+                  "type": "string"
+                },
+                "subjectFolderId": {
+                  "type": "string"
+                },
+                "subjectObjectKey": {
+                  "type": "string"
+                },
+                "handlerId": {
+                  "type": "string"
+                },
+                "inputData": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                },
+                "errorAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "errorCode": {
+                  "type": "string"
+                },
+                "errorMessage": {
+                  "type": "string"
+                },
+                "taskDescription": {
+                  "type": "object",
+                  "properties": {
+                    "textKey": {
+                      "type": "string"
+                    },
+                    "variables": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "textKey",
+                    "variables"
+                  ]
+                },
+                "updates": {
+                  "type": "array",
+                  "items": {}
+                },
+                "startedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "completedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "id",
+                "taskKey",
+                "ownerIdentifier",
+                "triggeringEventId",
+                "inputData",
+                "taskDescription",
+                "updates",
+                "createdAt",
+                "updatedAt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "result"
+        ]
+      },
       "EventDTO": {
         "type": "object",
         "properties": {
@@ -3730,11 +4110,8 @@
           "eventKey": {
             "type": "string"
           },
-          "appIdentifier": {
-            "type": [
-              "string",
-              "null"
-            ]
+          "emitterIdentifier": {
+            "type": "string"
           },
           "locationContext": {
             "type": "object",
@@ -3759,7 +4136,7 @@
         "required": [
           "id",
           "eventKey",
-          "appIdentifier",
+          "emitterIdentifier",
           "createdAt"
         ]
       },
@@ -3775,11 +4152,8 @@
               "eventKey": {
                 "type": "string"
               },
-              "appIdentifier": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+              "emitterIdentifier": {
+                "type": "string"
               },
               "locationContext": {
                 "type": "object",
@@ -3804,7 +4178,7 @@
             "required": [
               "id",
               "eventKey",
-              "appIdentifier",
+              "emitterIdentifier",
               "createdAt"
             ]
           }
@@ -3838,11 +4212,8 @@
                 "eventKey": {
                   "type": "string"
                 },
-                "appIdentifier": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                "emitterIdentifier": {
+                  "type": "string"
                 },
                 "locationContext": {
                   "type": "object",
@@ -3867,7 +4238,7 @@
               "required": [
                 "id",
                 "eventKey",
-                "appIdentifier",
+                "emitterIdentifier",
                 "createdAt"
               ]
             }
@@ -3893,62 +4264,166 @@
               "description": {
                 "type": "string"
               },
-              "subscribedEvents": {
+              "emittableEvents": {
                 "type": "array",
                 "items": {
                   "type": "string"
                 }
               },
-              "emitEvents": {
+              "folderTaskTriggers": {
                 "type": "array",
                 "items": {
-                  "type": "string"
-                }
-              },
-              "actions": {
-                "type": "object",
-                "properties": {
-                  "folder": {
-                    "type": "array",
-                    "items": {
+                  "type": "object",
+                  "properties": {
+                    "taskTriggerKey": {
+                      "type": "string"
+                    },
+                    "params": {
                       "type": "object",
-                      "properties": {
-                        "key": {
-                          "type": "string"
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "boolean",
+                              "string",
+                              "number"
+                            ]
+                          },
+                          "default": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "boolean"
+                              }
+                            ],
+                            "type": "null"
+                          }
                         },
-                        "description": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "key",
-                        "description"
-                      ]
+                        "required": [
+                          "type"
+                        ]
+                      }
                     }
                   },
-                  "object": {
-                    "type": "array",
-                    "items": {
+                  "required": [
+                    "taskTriggerKey",
+                    "params"
+                  ]
+                }
+              },
+              "objectTaskTriggers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "taskTriggerKey": {
+                      "type": "string"
+                    },
+                    "params": {
                       "type": "object",
-                      "properties": {
-                        "key": {
-                          "type": "string"
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "boolean",
+                              "string",
+                              "number"
+                            ]
+                          },
+                          "default": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "boolean"
+                              }
+                            ],
+                            "type": "null"
+                          }
                         },
-                        "description": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "key",
-                        "description"
-                      ]
+                        "required": [
+                          "type"
+                        ]
+                      }
                     }
-                  }
-                },
-                "required": [
-                  "folder",
-                  "object"
-                ]
+                  },
+                  "required": [
+                    "taskTriggerKey",
+                    "params"
+                  ]
+                }
+              },
+              "tasks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    },
+                    "eventTriggers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "inputParams": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "boolean",
+                              "string",
+                              "number"
+                            ]
+                          },
+                          "default": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "boolean"
+                              }
+                            ],
+                            "type": "null"
+                          }
+                        },
+                        "required": [
+                          "type"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "eventTriggers",
+                    "description",
+                    "inputParams"
+                  ]
+                }
               },
               "menuItems": {
                 "type": "array",
@@ -3975,9 +4450,10 @@
             "required": [
               "publicKey",
               "description",
-              "subscribedEvents",
-              "emitEvents",
-              "actions",
+              "emittableEvents",
+              "folderTaskTriggers",
+              "objectTaskTriggers",
+              "tasks",
               "menuItems"
             ]
           },
@@ -4059,62 +4535,166 @@
                         "description": {
                           "type": "string"
                         },
-                        "subscribedEvents": {
+                        "emittableEvents": {
                           "type": "array",
                           "items": {
                             "type": "string"
                           }
                         },
-                        "emitEvents": {
+                        "folderTaskTriggers": {
                           "type": "array",
                           "items": {
-                            "type": "string"
-                          }
-                        },
-                        "actions": {
-                          "type": "object",
-                          "properties": {
-                            "folder": {
-                              "type": "array",
-                              "items": {
+                            "type": "object",
+                            "properties": {
+                              "taskTriggerKey": {
+                                "type": "string"
+                              },
+                              "params": {
                                 "type": "object",
-                                "properties": {
-                                  "key": {
-                                    "type": "string"
+                                "additionalProperties": {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "boolean",
+                                        "string",
+                                        "number"
+                                      ]
+                                    },
+                                    "default": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "number"
+                                        },
+                                        {
+                                          "type": "boolean"
+                                        }
+                                      ],
+                                      "type": "null"
+                                    }
                                   },
-                                  "description": {
-                                    "type": "string"
-                                  }
-                                },
-                                "required": [
-                                  "key",
-                                  "description"
-                                ]
+                                  "required": [
+                                    "type"
+                                  ]
+                                }
                               }
                             },
-                            "object": {
-                              "type": "array",
-                              "items": {
+                            "required": [
+                              "taskTriggerKey",
+                              "params"
+                            ]
+                          }
+                        },
+                        "objectTaskTriggers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "taskTriggerKey": {
+                                "type": "string"
+                              },
+                              "params": {
                                 "type": "object",
-                                "properties": {
-                                  "key": {
-                                    "type": "string"
+                                "additionalProperties": {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "boolean",
+                                        "string",
+                                        "number"
+                                      ]
+                                    },
+                                    "default": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "number"
+                                        },
+                                        {
+                                          "type": "boolean"
+                                        }
+                                      ],
+                                      "type": "null"
+                                    }
                                   },
-                                  "description": {
-                                    "type": "string"
-                                  }
-                                },
-                                "required": [
-                                  "key",
-                                  "description"
-                                ]
+                                  "required": [
+                                    "type"
+                                  ]
+                                }
                               }
-                            }
-                          },
-                          "required": [
-                            "folder",
-                            "object"
-                          ]
+                            },
+                            "required": [
+                              "taskTriggerKey",
+                              "params"
+                            ]
+                          }
+                        },
+                        "tasks": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "key": {
+                                "type": "string"
+                              },
+                              "eventTriggers": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "inputParams": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "boolean",
+                                        "string",
+                                        "number"
+                                      ]
+                                    },
+                                    "default": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "number"
+                                        },
+                                        {
+                                          "type": "boolean"
+                                        }
+                                      ],
+                                      "type": "null"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "key",
+                              "eventTriggers",
+                              "description",
+                              "inputParams"
+                            ]
+                          }
                         },
                         "menuItems": {
                           "type": "array",
@@ -4141,9 +4721,10 @@
                       "required": [
                         "publicKey",
                         "description",
-                        "subscribedEvents",
-                        "emitEvents",
-                        "actions",
+                        "emittableEvents",
+                        "folderTaskTriggers",
+                        "objectTaskTriggers",
+                        "tasks",
                         "menuItems"
                       ]
                     },
@@ -4251,62 +4832,166 @@
                   "description": {
                     "type": "string"
                   },
-                  "subscribedEvents": {
+                  "emittableEvents": {
                     "type": "array",
                     "items": {
                       "type": "string"
                     }
                   },
-                  "emitEvents": {
+                  "folderTaskTriggers": {
                     "type": "array",
                     "items": {
-                      "type": "string"
-                    }
-                  },
-                  "actions": {
-                    "type": "object",
-                    "properties": {
-                      "folder": {
-                        "type": "array",
-                        "items": {
+                      "type": "object",
+                      "properties": {
+                        "taskTriggerKey": {
+                          "type": "string"
+                        },
+                        "params": {
                           "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string"
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "boolean",
+                                  "string",
+                                  "number"
+                                ]
+                              },
+                              "default": {
+                                "oneOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "boolean"
+                                  }
+                                ],
+                                "type": "null"
+                              }
                             },
-                            "description": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "description"
-                          ]
+                            "required": [
+                              "type"
+                            ]
+                          }
                         }
                       },
-                      "object": {
-                        "type": "array",
-                        "items": {
+                      "required": [
+                        "taskTriggerKey",
+                        "params"
+                      ]
+                    }
+                  },
+                  "objectTaskTriggers": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "taskTriggerKey": {
+                          "type": "string"
+                        },
+                        "params": {
                           "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string"
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "boolean",
+                                  "string",
+                                  "number"
+                                ]
+                              },
+                              "default": {
+                                "oneOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "boolean"
+                                  }
+                                ],
+                                "type": "null"
+                              }
                             },
-                            "description": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "description"
-                          ]
+                            "required": [
+                              "type"
+                            ]
+                          }
                         }
-                      }
-                    },
-                    "required": [
-                      "folder",
-                      "object"
-                    ]
+                      },
+                      "required": [
+                        "taskTriggerKey",
+                        "params"
+                      ]
+                    }
+                  },
+                  "tasks": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "key": {
+                          "type": "string"
+                        },
+                        "eventTriggers": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "inputParams": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "boolean",
+                                  "string",
+                                  "number"
+                                ]
+                              },
+                              "default": {
+                                "oneOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "boolean"
+                                  }
+                                ],
+                                "type": "null"
+                              }
+                            },
+                            "required": [
+                              "type"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "key",
+                        "eventTriggers",
+                        "description",
+                        "inputParams"
+                      ]
+                    }
                   },
                   "menuItems": {
                     "type": "array",
@@ -4333,9 +5018,10 @@
                 "required": [
                   "publicKey",
                   "description",
-                  "subscribedEvents",
-                  "emitEvents",
-                  "actions",
+                  "emittableEvents",
+                  "folderTaskTriggers",
+                  "objectTaskTriggers",
+                  "tasks",
                   "menuItems"
                 ]
               },

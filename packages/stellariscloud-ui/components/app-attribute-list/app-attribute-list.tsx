@@ -96,10 +96,10 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
             <div className="flex flex-wrap gap-2">
               {typeof app === 'undefined' ? (
                 <span className="italic opacity-50">Unknown</span>
-              ) : !app.config.emitEvents.length ? (
+              ) : !app.config.emittableEvents.length ? (
                 <span className="italic opacity-50">None</span>
               ) : (
-                app.config.emitEvents.map((emitEvent, i) => (
+                app.config.emittableEvents.map((emitEvent, i) => (
                   <Badge variant={'outline'} key={i}>
                     {emitEvent}
                   </Badge>
@@ -117,7 +117,7 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
           <dt
             className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
           >
-            Subscribed Events
+            Tasks
           </dt>
           <dd
             className={clsx(
@@ -128,12 +128,12 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
             <div className="flex flex-wrap gap-2">
               {typeof app === 'undefined' ? (
                 <span className="italic opacity-50">Unknown</span>
-              ) : !app.config.subscribedEvents.length ? (
+              ) : !app.config.tasks.length ? (
                 <span className="italic opacity-50">None</span>
               ) : (
-                app.config.subscribedEvents.map((subscribedEvent, i) => (
+                app.config.tasks.map((task, i) => (
                   <Badge variant={'outline'} key={i}>
-                    {subscribedEvent}
+                    {task.key}
                   </Badge>
                 ))
               )}

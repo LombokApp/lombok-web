@@ -22,6 +22,7 @@ export interface IServerContext {
   refreshSettings: () => Promise<void>
   menuItems: AppMenuItemAndHref[]
   appFolderActions: { action: AppAction; appIdentifier: string }[]
+  appFolderObjectActions: { action: AppAction; appIdentifier: string }[]
   settings?: SettingsGetResponseSettings
   apps?: AppListResponse
   subscribeToMessages: (handler: SocketMessageHandler) => void
@@ -56,12 +57,12 @@ export const ServerContextProvider = ({
 }: {
   children: React.ReactNode
 }) => {
-  const _localFileCacheContext = useLocalFileCacheContext()
-  //   const loggingContext = useLoggingContext()
   const [serverSettings, setServerSettings] =
     React.useState<SettingsGetResponseSettings>()
   const [menuItems, setMenuItems] = React.useState<AppMenuItemAndHref[]>()
   const [appFolderActions, setAppFolderActions] =
+    React.useState<{ action: AppAction; appIdentifier: string }[]>()
+  const [appFolderObjectActions, setAppFolderObjectActions] =
     React.useState<{ action: AppAction; appIdentifier: string }[]>()
   const [serverApps, setServerApps] = React.useState<AppListResponse>()
   const authContext = useAuthContext()
@@ -99,8 +100,26 @@ export const ServerContextProvider = ({
             { action: AppAction; appIdentifier: string }[]
           >((acc, next) => {
             return acc.concat(
-              next.config.actions.object.map((item) => ({
-                action: item,
+              next.config.folderTaskTriggers.map((item) => ({
+                action: {
+                  description: '__some_folder_task__',
+                  key: item.taskTriggerKey,
+                },
+                appIdentifier: next.identifier,
+              })),
+            )
+          }, []),
+        )
+        setAppFolderObjectActions(
+          response.data.installed.result.reduce<
+            { action: AppAction; appIdentifier: string }[]
+          >((acc, next) => {
+            return acc.concat(
+              next.config.objectTaskTriggers.map((item) => ({
+                action: {
+                  description: '__some_object_task__',
+                  key: item.taskTriggerKey,
+                },
                 appIdentifier: next.identifier,
               })),
             )
@@ -147,6 +166,7 @@ export const ServerContextProvider = ({
         socketConnected,
         menuItems: menuItems ?? [],
         appFolderActions: appFolderActions ?? [],
+        appFolderObjectActions: appFolderObjectActions ?? [],
         settings: serverSettings,
         apps: serverApps,
         subscribeToMessages,

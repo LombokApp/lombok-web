@@ -5,7 +5,6 @@ import type {
 } from '@nestjs/common'
 import { forwardRef, Inject, Module, RequestMethod } from '@nestjs/common'
 import nestJSConfig, { ConfigModule } from '@nestjs/config'
-import { redisConfig } from 'src/cache/redis.config'
 import { coreConfig } from 'src/core/config'
 import { EventModule } from 'src/event/event.module'
 import { FoldersModule } from 'src/folders/folders.module'
@@ -20,7 +19,6 @@ import { AppService } from './services/app.service'
 
 @Module({
   imports: [
-    ConfigModule.forFeature(redisConfig),
     ConfigModule.forFeature(appConfig),
     ConfigModule.forFeature(coreConfig),
     EventModule,

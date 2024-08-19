@@ -1,8 +1,8 @@
 import type { OnModuleInit } from '@nestjs/common'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { UserPushMessage } from '@stellariscloud/types'
+import type { UserPushMessage } from '@stellariscloud/types'
 import * as r from 'runtypes'
-import { Namespace, Socket } from 'socket.io'
+import type { Namespace, Socket } from 'socket.io'
 
 import { AccessTokenJWT, JWTService } from '../../auth/services/jwt.service'
 
@@ -14,7 +14,7 @@ const UserAuthPayload = r.Record({
 export class UserSocketService implements OnModuleInit {
   private readonly connectedClients: Map<string, Socket> = new Map()
 
-  private namespace: Namespace
+  private namespace: Namespace | undefined
   setNamespace(namespace: Namespace) {
     this.namespace = namespace
   }
@@ -63,6 +63,10 @@ export class UserSocketService implements OnModuleInit {
   onModuleInit() {}
 
   sendToUserRoom(userId: string, name: UserPushMessage, msg: any) {
-    this.namespace.to(`user:${userId}`).emit(name, msg)
+    if (this.namespace) {
+      this.namespace.to(`user:${userId}`).emit(name, msg)
+    } else {
+      console.log('Namespace not yet set when sending user room message.')
+    }
   }
 }

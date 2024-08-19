@@ -4,7 +4,7 @@ import type { Event } from '../entities/event.entity'
 export function transformEventToDTO(event: Event): EventDTO {
   return {
     id: event.id,
-    appIdentifier: event.appIdentifier,
+    emitterIdentifier: event.emitterIdentifier,
     eventKey: event.eventKey,
     locationContext: event.folderId
       ? {

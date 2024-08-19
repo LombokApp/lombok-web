@@ -136,7 +136,7 @@ export declare const schema: {
                     readonly content: {
                         readonly "application/json": {
                             readonly schema: {
-                                readonly $ref: "#/components/schemas/UpdateViewerInputDTO";
+                                readonly $ref: "#/components/schemas/ViewerUpdateInputDTO";
                             };
                         };
                     };
@@ -695,7 +695,7 @@ export declare const schema: {
                         readonly type: "string";
                     };
                 }, {
-                    readonly name: "appIdentifier";
+                    readonly name: "emitterIdentifier";
                     readonly required: true;
                     readonly in: "path";
                     readonly schema: {
@@ -1208,6 +1208,94 @@ export declare const schema: {
                 }];
             };
         };
+        readonly "/api/v1/{folderId}/tasks/{taskId}": {
+            readonly get: {
+                readonly operationId: "getTask";
+                readonly parameters: readonly [{
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "taskId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "Get a folder task by id.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/TaskGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Tasks"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
+        readonly "/api/v1/{folderId}/tasks": {
+            readonly get: {
+                readonly operationId: "listTasks";
+                readonly parameters: readonly [{
+                    readonly name: "objectKey";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "offset";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly name: "limit";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly minimum: 0;
+                        readonly exclusiveMinimum: true;
+                        readonly type: "number";
+                    };
+                }, {
+                    readonly name: "folderId";
+                    readonly required: true;
+                    readonly in: "path";
+                    readonly schema: {
+                        readonly type: "string";
+                    };
+                }];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "List tasks.";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/TaskListResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly tags: readonly ["Tasks"];
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+            };
+        };
         readonly "/api/v1/server/events/{eventId}": {
             readonly get: {
                 readonly operationId: "getEvent";
@@ -1384,14 +1472,15 @@ export declare const schema: {
                     };
                     readonly email: {
                         readonly type: "string";
-                        readonly maxLength: 255;
+                        readonly minLength: 1;
+                        readonly format: "email";
                     };
                     readonly password: {
                         readonly type: "string";
                         readonly maxLength: 255;
                     };
                 };
-                readonly required: readonly ["username", "password"];
+                readonly required: readonly ["username", "email", "password"];
             };
             readonly SignupResponse: {
                 readonly type: "object";
@@ -1403,10 +1492,10 @@ export declare const schema: {
                                 readonly type: "string";
                             };
                             readonly name: {
-                                readonly type: readonly ["string", "null"];
+                                readonly type: "string";
                             };
                             readonly email: {
-                                readonly type: readonly ["string", "null"];
+                                readonly type: "string";
                             };
                             readonly emailVerified: {
                                 readonly type: "boolean";
@@ -1465,10 +1554,10 @@ export declare const schema: {
                                 readonly type: "string";
                             };
                             readonly name: {
-                                readonly type: readonly ["string", "null"];
+                                readonly type: "string";
                             };
                             readonly email: {
-                                readonly type: readonly ["string", "null"];
+                                readonly type: "string";
                             };
                             readonly emailVerified: {
                                 readonly type: "boolean";
@@ -1499,7 +1588,7 @@ export declare const schema: {
                 };
                 readonly required: readonly ["user"];
             };
-            readonly UpdateViewerInputDTO: {
+            readonly ViewerUpdateInputDTO: {
                 readonly type: "object";
                 readonly properties: {
                     readonly name: {
@@ -1515,10 +1604,10 @@ export declare const schema: {
                         readonly type: "string";
                     };
                     readonly name: {
-                        readonly type: readonly ["string", "null"];
+                        readonly type: "string";
                     };
                     readonly email: {
-                        readonly type: readonly ["string", "null"];
+                        readonly type: "string";
                     };
                     readonly emailVerified: {
                         readonly type: "boolean";
@@ -1550,10 +1639,10 @@ export declare const schema: {
                 readonly type: "object";
                 readonly properties: {
                     readonly name: {
-                        readonly type: readonly ["string", "null"];
+                        readonly type: "string";
                     };
                     readonly email: {
-                        readonly type: readonly ["string", "null"];
+                        readonly type: "string";
                     };
                     readonly emailVerified: {
                         readonly type: "boolean";
@@ -1586,10 +1675,10 @@ export declare const schema: {
                                 readonly type: "string";
                             };
                             readonly name: {
-                                readonly type: readonly ["string", "null"];
+                                readonly type: "string";
                             };
                             readonly email: {
-                                readonly type: readonly ["string", "null"];
+                                readonly type: "string";
                             };
                             readonly emailVerified: {
                                 readonly type: "boolean";
@@ -1624,10 +1713,10 @@ export declare const schema: {
                 readonly type: "object";
                 readonly properties: {
                     readonly name: {
-                        readonly type: readonly ["string", "null"];
+                        readonly type: "string";
                     };
                     readonly email: {
-                        readonly type: readonly ["string", "null"];
+                        readonly type: "string";
                     };
                     readonly emailVerified: {
                         readonly type: "boolean";
@@ -1670,10 +1759,10 @@ export declare const schema: {
                                     readonly type: "string";
                                 };
                                 readonly name: {
-                                    readonly type: readonly ["string", "null"];
+                                    readonly type: "string";
                                 };
                                 readonly email: {
-                                    readonly type: readonly ["string", "null"];
+                                    readonly type: "string";
                                 };
                                 readonly emailVerified: {
                                     readonly type: "boolean";
@@ -1807,7 +1896,7 @@ export declare const schema: {
                         readonly type: "string";
                     };
                     readonly hash: {
-                        readonly type: readonly ["string", "null"];
+                        readonly type: "string";
                     };
                     readonly lastModified: {
                         readonly type: "number";
@@ -2396,7 +2485,7 @@ export declare const schema: {
                                     readonly type: "string";
                                 };
                                 readonly hash: {
-                                    readonly type: readonly ["string", "null"];
+                                    readonly type: "string";
                                 };
                                 readonly lastModified: {
                                     readonly type: "number";
@@ -2489,7 +2578,7 @@ export declare const schema: {
                                 readonly type: "string";
                             };
                             readonly hash: {
-                                readonly type: readonly ["string", "null"];
+                                readonly type: "string";
                             };
                             readonly lastModified: {
                                 readonly type: "number";
@@ -2954,6 +3043,276 @@ export declare const schema: {
                 };
                 readonly required: readonly ["label", "description", "endpoint", "bucket", "region", "accessKeyId", "secretAccessKey", "provisionTypes"];
             };
+            readonly TaskDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly id: {
+                        readonly type: "string";
+                    };
+                    readonly taskKey: {
+                        readonly type: "string";
+                    };
+                    readonly ownerIdentifier: {
+                        readonly type: "string";
+                    };
+                    readonly triggeringEventId: {
+                        readonly type: "string";
+                    };
+                    readonly subjectFolderId: {
+                        readonly type: "string";
+                    };
+                    readonly subjectObjectKey: {
+                        readonly type: "string";
+                    };
+                    readonly handlerId: {
+                        readonly type: "string";
+                    };
+                    readonly inputData: {
+                        readonly type: "object";
+                        readonly additionalProperties: {
+                            readonly oneOf: readonly [{
+                                readonly type: "string";
+                            }, {
+                                readonly type: "number";
+                            }];
+                        };
+                    };
+                    readonly errorAt: {
+                        readonly type: "string";
+                        readonly format: "date-time";
+                    };
+                    readonly errorCode: {
+                        readonly type: "string";
+                    };
+                    readonly errorMessage: {
+                        readonly type: "string";
+                    };
+                    readonly taskDescription: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly textKey: {
+                                readonly type: "string";
+                            };
+                            readonly variables: {
+                                readonly type: "object";
+                                readonly additionalProperties: {
+                                    readonly type: "string";
+                                };
+                            };
+                        };
+                        readonly required: readonly ["textKey", "variables"];
+                    };
+                    readonly updates: {
+                        readonly type: "array";
+                        readonly items: {};
+                    };
+                    readonly startedAt: {
+                        readonly type: "string";
+                        readonly format: "date-time";
+                    };
+                    readonly completedAt: {
+                        readonly type: "string";
+                        readonly format: "date-time";
+                    };
+                    readonly createdAt: {
+                        readonly type: "string";
+                        readonly format: "date-time";
+                    };
+                    readonly updatedAt: {
+                        readonly type: "string";
+                        readonly format: "date-time";
+                    };
+                };
+                readonly required: readonly ["id", "taskKey", "ownerIdentifier", "triggeringEventId", "inputData", "taskDescription", "updates", "createdAt", "updatedAt"];
+            };
+            readonly TaskGetResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly task: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly id: {
+                                readonly type: "string";
+                            };
+                            readonly taskKey: {
+                                readonly type: "string";
+                            };
+                            readonly ownerIdentifier: {
+                                readonly type: "string";
+                            };
+                            readonly triggeringEventId: {
+                                readonly type: "string";
+                            };
+                            readonly subjectFolderId: {
+                                readonly type: "string";
+                            };
+                            readonly subjectObjectKey: {
+                                readonly type: "string";
+                            };
+                            readonly handlerId: {
+                                readonly type: "string";
+                            };
+                            readonly inputData: {
+                                readonly type: "object";
+                                readonly additionalProperties: {
+                                    readonly oneOf: readonly [{
+                                        readonly type: "string";
+                                    }, {
+                                        readonly type: "number";
+                                    }];
+                                };
+                            };
+                            readonly errorAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                            readonly errorCode: {
+                                readonly type: "string";
+                            };
+                            readonly errorMessage: {
+                                readonly type: "string";
+                            };
+                            readonly taskDescription: {
+                                readonly type: "object";
+                                readonly properties: {
+                                    readonly textKey: {
+                                        readonly type: "string";
+                                    };
+                                    readonly variables: {
+                                        readonly type: "object";
+                                        readonly additionalProperties: {
+                                            readonly type: "string";
+                                        };
+                                    };
+                                };
+                                readonly required: readonly ["textKey", "variables"];
+                            };
+                            readonly updates: {
+                                readonly type: "array";
+                                readonly items: {};
+                            };
+                            readonly startedAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                            readonly completedAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                            readonly createdAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                            readonly updatedAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
+                        };
+                        readonly required: readonly ["id", "taskKey", "ownerIdentifier", "triggeringEventId", "inputData", "taskDescription", "updates", "createdAt", "updatedAt"];
+                    };
+                };
+                readonly required: readonly ["task"];
+            };
+            readonly TaskListResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly meta: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly totalCount: {
+                                readonly type: "number";
+                            };
+                        };
+                        readonly required: readonly ["totalCount"];
+                    };
+                    readonly result: {
+                        readonly type: "array";
+                        readonly items: {
+                            readonly type: "object";
+                            readonly properties: {
+                                readonly id: {
+                                    readonly type: "string";
+                                };
+                                readonly taskKey: {
+                                    readonly type: "string";
+                                };
+                                readonly ownerIdentifier: {
+                                    readonly type: "string";
+                                };
+                                readonly triggeringEventId: {
+                                    readonly type: "string";
+                                };
+                                readonly subjectFolderId: {
+                                    readonly type: "string";
+                                };
+                                readonly subjectObjectKey: {
+                                    readonly type: "string";
+                                };
+                                readonly handlerId: {
+                                    readonly type: "string";
+                                };
+                                readonly inputData: {
+                                    readonly type: "object";
+                                    readonly additionalProperties: {
+                                        readonly oneOf: readonly [{
+                                            readonly type: "string";
+                                        }, {
+                                            readonly type: "number";
+                                        }];
+                                    };
+                                };
+                                readonly errorAt: {
+                                    readonly type: "string";
+                                    readonly format: "date-time";
+                                };
+                                readonly errorCode: {
+                                    readonly type: "string";
+                                };
+                                readonly errorMessage: {
+                                    readonly type: "string";
+                                };
+                                readonly taskDescription: {
+                                    readonly type: "object";
+                                    readonly properties: {
+                                        readonly textKey: {
+                                            readonly type: "string";
+                                        };
+                                        readonly variables: {
+                                            readonly type: "object";
+                                            readonly additionalProperties: {
+                                                readonly type: "string";
+                                            };
+                                        };
+                                    };
+                                    readonly required: readonly ["textKey", "variables"];
+                                };
+                                readonly updates: {
+                                    readonly type: "array";
+                                    readonly items: {};
+                                };
+                                readonly startedAt: {
+                                    readonly type: "string";
+                                    readonly format: "date-time";
+                                };
+                                readonly completedAt: {
+                                    readonly type: "string";
+                                    readonly format: "date-time";
+                                };
+                                readonly createdAt: {
+                                    readonly type: "string";
+                                    readonly format: "date-time";
+                                };
+                                readonly updatedAt: {
+                                    readonly type: "string";
+                                    readonly format: "date-time";
+                                };
+                            };
+                            readonly required: readonly ["id", "taskKey", "ownerIdentifier", "triggeringEventId", "inputData", "taskDescription", "updates", "createdAt", "updatedAt"];
+                        };
+                    };
+                };
+                readonly required: readonly ["meta", "result"];
+            };
             readonly EventDTO: {
                 readonly type: "object";
                 readonly properties: {
@@ -2963,8 +3322,8 @@ export declare const schema: {
                     readonly eventKey: {
                         readonly type: "string";
                     };
-                    readonly appIdentifier: {
-                        readonly type: readonly ["string", "null"];
+                    readonly emitterIdentifier: {
+                        readonly type: "string";
                     };
                     readonly locationContext: {
                         readonly type: "object";
@@ -2984,7 +3343,7 @@ export declare const schema: {
                         readonly format: "date-time";
                     };
                 };
-                readonly required: readonly ["id", "eventKey", "appIdentifier", "createdAt"];
+                readonly required: readonly ["id", "eventKey", "emitterIdentifier", "createdAt"];
             };
             readonly EventGetResponse: {
                 readonly type: "object";
@@ -2998,8 +3357,8 @@ export declare const schema: {
                             readonly eventKey: {
                                 readonly type: "string";
                             };
-                            readonly appIdentifier: {
-                                readonly type: readonly ["string", "null"];
+                            readonly emitterIdentifier: {
+                                readonly type: "string";
                             };
                             readonly locationContext: {
                                 readonly type: "object";
@@ -3019,7 +3378,7 @@ export declare const schema: {
                                 readonly format: "date-time";
                             };
                         };
-                        readonly required: readonly ["id", "eventKey", "appIdentifier", "createdAt"];
+                        readonly required: readonly ["id", "eventKey", "emitterIdentifier", "createdAt"];
                     };
                 };
                 readonly required: readonly ["event"];
@@ -3047,8 +3406,8 @@ export declare const schema: {
                                 readonly eventKey: {
                                     readonly type: "string";
                                 };
-                                readonly appIdentifier: {
-                                    readonly type: readonly ["string", "null"];
+                                readonly emitterIdentifier: {
+                                    readonly type: "string";
                                 };
                                 readonly locationContext: {
                                     readonly type: "object";
@@ -3068,7 +3427,7 @@ export declare const schema: {
                                     readonly format: "date-time";
                                 };
                             };
-                            readonly required: readonly ["id", "eventKey", "appIdentifier", "createdAt"];
+                            readonly required: readonly ["id", "eventKey", "emitterIdentifier", "createdAt"];
                         };
                     };
                 };
@@ -3089,53 +3448,125 @@ export declare const schema: {
                             readonly description: {
                                 readonly type: "string";
                             };
-                            readonly subscribedEvents: {
+                            readonly emittableEvents: {
                                 readonly type: "array";
                                 readonly items: {
                                     readonly type: "string";
                                 };
                             };
-                            readonly emitEvents: {
+                            readonly folderTaskTriggers: {
                                 readonly type: "array";
                                 readonly items: {
-                                    readonly type: "string";
+                                    readonly type: "object";
+                                    readonly properties: {
+                                        readonly taskTriggerKey: {
+                                            readonly type: "string";
+                                        };
+                                        readonly params: {
+                                            readonly type: "object";
+                                            readonly additionalProperties: {
+                                                readonly type: "object";
+                                                readonly properties: {
+                                                    readonly type: {
+                                                        readonly type: "string";
+                                                        readonly enum: readonly ["boolean", "string", "number"];
+                                                    };
+                                                    readonly default: {
+                                                        readonly oneOf: readonly [{
+                                                            readonly type: "string";
+                                                        }, {
+                                                            readonly type: "number";
+                                                        }, {
+                                                            readonly type: "boolean";
+                                                        }];
+                                                        readonly type: "null";
+                                                    };
+                                                };
+                                                readonly required: readonly ["type"];
+                                            };
+                                        };
+                                    };
+                                    readonly required: readonly ["taskTriggerKey", "params"];
                                 };
                             };
-                            readonly actions: {
-                                readonly type: "object";
-                                readonly properties: {
-                                    readonly folder: {
-                                        readonly type: "array";
-                                        readonly items: {
+                            readonly objectTaskTriggers: {
+                                readonly type: "array";
+                                readonly items: {
+                                    readonly type: "object";
+                                    readonly properties: {
+                                        readonly taskTriggerKey: {
+                                            readonly type: "string";
+                                        };
+                                        readonly params: {
                                             readonly type: "object";
-                                            readonly properties: {
-                                                readonly key: {
-                                                    readonly type: "string";
+                                            readonly additionalProperties: {
+                                                readonly type: "object";
+                                                readonly properties: {
+                                                    readonly type: {
+                                                        readonly type: "string";
+                                                        readonly enum: readonly ["boolean", "string", "number"];
+                                                    };
+                                                    readonly default: {
+                                                        readonly oneOf: readonly [{
+                                                            readonly type: "string";
+                                                        }, {
+                                                            readonly type: "number";
+                                                        }, {
+                                                            readonly type: "boolean";
+                                                        }];
+                                                        readonly type: "null";
+                                                    };
                                                 };
-                                                readonly description: {
-                                                    readonly type: "string";
-                                                };
+                                                readonly required: readonly ["type"];
                                             };
-                                            readonly required: readonly ["key", "description"];
                                         };
                                     };
-                                    readonly object: {
-                                        readonly type: "array";
-                                        readonly items: {
-                                            readonly type: "object";
-                                            readonly properties: {
-                                                readonly key: {
-                                                    readonly type: "string";
-                                                };
-                                                readonly description: {
-                                                    readonly type: "string";
-                                                };
-                                            };
-                                            readonly required: readonly ["key", "description"];
-                                        };
-                                    };
+                                    readonly required: readonly ["taskTriggerKey", "params"];
                                 };
-                                readonly required: readonly ["folder", "object"];
+                            };
+                            readonly tasks: {
+                                readonly type: "array";
+                                readonly items: {
+                                    readonly type: "object";
+                                    readonly properties: {
+                                        readonly key: {
+                                            readonly type: "string";
+                                        };
+                                        readonly eventTriggers: {
+                                            readonly type: "array";
+                                            readonly items: {
+                                                readonly type: "string";
+                                            };
+                                        };
+                                        readonly description: {
+                                            readonly type: "string";
+                                        };
+                                        readonly inputParams: {
+                                            readonly type: "object";
+                                            readonly additionalProperties: {
+                                                readonly type: "object";
+                                                readonly properties: {
+                                                    readonly type: {
+                                                        readonly type: "string";
+                                                        readonly enum: readonly ["boolean", "string", "number"];
+                                                    };
+                                                    readonly default: {
+                                                        readonly oneOf: readonly [{
+                                                            readonly type: "string";
+                                                        }, {
+                                                            readonly type: "number";
+                                                        }, {
+                                                            readonly type: "boolean";
+                                                        }];
+                                                        readonly type: "null";
+                                                    };
+                                                };
+                                                readonly required: readonly ["type"];
+                                            };
+                                        };
+                                    };
+                                    readonly required: readonly ["key", "eventTriggers", "description", "inputParams"];
+                                };
                             };
                             readonly menuItems: {
                                 readonly type: "array";
@@ -3156,7 +3587,7 @@ export declare const schema: {
                                 };
                             };
                         };
-                        readonly required: readonly ["publicKey", "description", "subscribedEvents", "emitEvents", "actions", "menuItems"];
+                        readonly required: readonly ["publicKey", "description", "emittableEvents", "folderTaskTriggers", "objectTaskTriggers", "tasks", "menuItems"];
                     };
                     readonly ui: {
                         readonly type: "object";
@@ -3223,53 +3654,125 @@ export declare const schema: {
                                                 readonly description: {
                                                     readonly type: "string";
                                                 };
-                                                readonly subscribedEvents: {
+                                                readonly emittableEvents: {
                                                     readonly type: "array";
                                                     readonly items: {
                                                         readonly type: "string";
                                                     };
                                                 };
-                                                readonly emitEvents: {
+                                                readonly folderTaskTriggers: {
                                                     readonly type: "array";
                                                     readonly items: {
-                                                        readonly type: "string";
+                                                        readonly type: "object";
+                                                        readonly properties: {
+                                                            readonly taskTriggerKey: {
+                                                                readonly type: "string";
+                                                            };
+                                                            readonly params: {
+                                                                readonly type: "object";
+                                                                readonly additionalProperties: {
+                                                                    readonly type: "object";
+                                                                    readonly properties: {
+                                                                        readonly type: {
+                                                                            readonly type: "string";
+                                                                            readonly enum: readonly ["boolean", "string", "number"];
+                                                                        };
+                                                                        readonly default: {
+                                                                            readonly oneOf: readonly [{
+                                                                                readonly type: "string";
+                                                                            }, {
+                                                                                readonly type: "number";
+                                                                            }, {
+                                                                                readonly type: "boolean";
+                                                                            }];
+                                                                            readonly type: "null";
+                                                                        };
+                                                                    };
+                                                                    readonly required: readonly ["type"];
+                                                                };
+                                                            };
+                                                        };
+                                                        readonly required: readonly ["taskTriggerKey", "params"];
                                                     };
                                                 };
-                                                readonly actions: {
-                                                    readonly type: "object";
-                                                    readonly properties: {
-                                                        readonly folder: {
-                                                            readonly type: "array";
-                                                            readonly items: {
+                                                readonly objectTaskTriggers: {
+                                                    readonly type: "array";
+                                                    readonly items: {
+                                                        readonly type: "object";
+                                                        readonly properties: {
+                                                            readonly taskTriggerKey: {
+                                                                readonly type: "string";
+                                                            };
+                                                            readonly params: {
                                                                 readonly type: "object";
-                                                                readonly properties: {
-                                                                    readonly key: {
-                                                                        readonly type: "string";
+                                                                readonly additionalProperties: {
+                                                                    readonly type: "object";
+                                                                    readonly properties: {
+                                                                        readonly type: {
+                                                                            readonly type: "string";
+                                                                            readonly enum: readonly ["boolean", "string", "number"];
+                                                                        };
+                                                                        readonly default: {
+                                                                            readonly oneOf: readonly [{
+                                                                                readonly type: "string";
+                                                                            }, {
+                                                                                readonly type: "number";
+                                                                            }, {
+                                                                                readonly type: "boolean";
+                                                                            }];
+                                                                            readonly type: "null";
+                                                                        };
                                                                     };
-                                                                    readonly description: {
-                                                                        readonly type: "string";
-                                                                    };
+                                                                    readonly required: readonly ["type"];
                                                                 };
-                                                                readonly required: readonly ["key", "description"];
                                                             };
                                                         };
-                                                        readonly object: {
-                                                            readonly type: "array";
-                                                            readonly items: {
-                                                                readonly type: "object";
-                                                                readonly properties: {
-                                                                    readonly key: {
-                                                                        readonly type: "string";
-                                                                    };
-                                                                    readonly description: {
-                                                                        readonly type: "string";
-                                                                    };
-                                                                };
-                                                                readonly required: readonly ["key", "description"];
-                                                            };
-                                                        };
+                                                        readonly required: readonly ["taskTriggerKey", "params"];
                                                     };
-                                                    readonly required: readonly ["folder", "object"];
+                                                };
+                                                readonly tasks: {
+                                                    readonly type: "array";
+                                                    readonly items: {
+                                                        readonly type: "object";
+                                                        readonly properties: {
+                                                            readonly key: {
+                                                                readonly type: "string";
+                                                            };
+                                                            readonly eventTriggers: {
+                                                                readonly type: "array";
+                                                                readonly items: {
+                                                                    readonly type: "string";
+                                                                };
+                                                            };
+                                                            readonly description: {
+                                                                readonly type: "string";
+                                                            };
+                                                            readonly inputParams: {
+                                                                readonly type: "object";
+                                                                readonly additionalProperties: {
+                                                                    readonly type: "object";
+                                                                    readonly properties: {
+                                                                        readonly type: {
+                                                                            readonly type: "string";
+                                                                            readonly enum: readonly ["boolean", "string", "number"];
+                                                                        };
+                                                                        readonly default: {
+                                                                            readonly oneOf: readonly [{
+                                                                                readonly type: "string";
+                                                                            }, {
+                                                                                readonly type: "number";
+                                                                            }, {
+                                                                                readonly type: "boolean";
+                                                                            }];
+                                                                            readonly type: "null";
+                                                                        };
+                                                                    };
+                                                                    readonly required: readonly ["type"];
+                                                                };
+                                                            };
+                                                        };
+                                                        readonly required: readonly ["key", "eventTriggers", "description", "inputParams"];
+                                                    };
                                                 };
                                                 readonly menuItems: {
                                                     readonly type: "array";
@@ -3290,7 +3793,7 @@ export declare const schema: {
                                                     };
                                                 };
                                             };
-                                            readonly required: readonly ["publicKey", "description", "subscribedEvents", "emitEvents", "actions", "menuItems"];
+                                            readonly required: readonly ["publicKey", "description", "emittableEvents", "folderTaskTriggers", "objectTaskTriggers", "tasks", "menuItems"];
                                         };
                                         readonly ui: {
                                             readonly type: "object";
@@ -3374,53 +3877,125 @@ export declare const schema: {
                                     readonly description: {
                                         readonly type: "string";
                                     };
-                                    readonly subscribedEvents: {
+                                    readonly emittableEvents: {
                                         readonly type: "array";
                                         readonly items: {
                                             readonly type: "string";
                                         };
                                     };
-                                    readonly emitEvents: {
+                                    readonly folderTaskTriggers: {
                                         readonly type: "array";
                                         readonly items: {
-                                            readonly type: "string";
+                                            readonly type: "object";
+                                            readonly properties: {
+                                                readonly taskTriggerKey: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly params: {
+                                                    readonly type: "object";
+                                                    readonly additionalProperties: {
+                                                        readonly type: "object";
+                                                        readonly properties: {
+                                                            readonly type: {
+                                                                readonly type: "string";
+                                                                readonly enum: readonly ["boolean", "string", "number"];
+                                                            };
+                                                            readonly default: {
+                                                                readonly oneOf: readonly [{
+                                                                    readonly type: "string";
+                                                                }, {
+                                                                    readonly type: "number";
+                                                                }, {
+                                                                    readonly type: "boolean";
+                                                                }];
+                                                                readonly type: "null";
+                                                            };
+                                                        };
+                                                        readonly required: readonly ["type"];
+                                                    };
+                                                };
+                                            };
+                                            readonly required: readonly ["taskTriggerKey", "params"];
                                         };
                                     };
-                                    readonly actions: {
-                                        readonly type: "object";
-                                        readonly properties: {
-                                            readonly folder: {
-                                                readonly type: "array";
-                                                readonly items: {
+                                    readonly objectTaskTriggers: {
+                                        readonly type: "array";
+                                        readonly items: {
+                                            readonly type: "object";
+                                            readonly properties: {
+                                                readonly taskTriggerKey: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly params: {
                                                     readonly type: "object";
-                                                    readonly properties: {
-                                                        readonly key: {
-                                                            readonly type: "string";
+                                                    readonly additionalProperties: {
+                                                        readonly type: "object";
+                                                        readonly properties: {
+                                                            readonly type: {
+                                                                readonly type: "string";
+                                                                readonly enum: readonly ["boolean", "string", "number"];
+                                                            };
+                                                            readonly default: {
+                                                                readonly oneOf: readonly [{
+                                                                    readonly type: "string";
+                                                                }, {
+                                                                    readonly type: "number";
+                                                                }, {
+                                                                    readonly type: "boolean";
+                                                                }];
+                                                                readonly type: "null";
+                                                            };
                                                         };
-                                                        readonly description: {
-                                                            readonly type: "string";
-                                                        };
+                                                        readonly required: readonly ["type"];
                                                     };
-                                                    readonly required: readonly ["key", "description"];
                                                 };
                                             };
-                                            readonly object: {
-                                                readonly type: "array";
-                                                readonly items: {
-                                                    readonly type: "object";
-                                                    readonly properties: {
-                                                        readonly key: {
-                                                            readonly type: "string";
-                                                        };
-                                                        readonly description: {
-                                                            readonly type: "string";
-                                                        };
-                                                    };
-                                                    readonly required: readonly ["key", "description"];
-                                                };
-                                            };
+                                            readonly required: readonly ["taskTriggerKey", "params"];
                                         };
-                                        readonly required: readonly ["folder", "object"];
+                                    };
+                                    readonly tasks: {
+                                        readonly type: "array";
+                                        readonly items: {
+                                            readonly type: "object";
+                                            readonly properties: {
+                                                readonly key: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly eventTriggers: {
+                                                    readonly type: "array";
+                                                    readonly items: {
+                                                        readonly type: "string";
+                                                    };
+                                                };
+                                                readonly description: {
+                                                    readonly type: "string";
+                                                };
+                                                readonly inputParams: {
+                                                    readonly type: "object";
+                                                    readonly additionalProperties: {
+                                                        readonly type: "object";
+                                                        readonly properties: {
+                                                            readonly type: {
+                                                                readonly type: "string";
+                                                                readonly enum: readonly ["boolean", "string", "number"];
+                                                            };
+                                                            readonly default: {
+                                                                readonly oneOf: readonly [{
+                                                                    readonly type: "string";
+                                                                }, {
+                                                                    readonly type: "number";
+                                                                }, {
+                                                                    readonly type: "boolean";
+                                                                }];
+                                                                readonly type: "null";
+                                                            };
+                                                        };
+                                                        readonly required: readonly ["type"];
+                                                    };
+                                                };
+                                            };
+                                            readonly required: readonly ["key", "eventTriggers", "description", "inputParams"];
+                                        };
                                     };
                                     readonly menuItems: {
                                         readonly type: "array";
@@ -3441,7 +4016,7 @@ export declare const schema: {
                                         };
                                     };
                                 };
-                                readonly required: readonly ["publicKey", "description", "subscribedEvents", "emitEvents", "actions", "menuItems"];
+                                readonly required: readonly ["publicKey", "description", "emittableEvents", "folderTaskTriggers", "objectTaskTriggers", "tasks", "menuItems"];
                             };
                             readonly ui: {
                                 readonly type: "object";

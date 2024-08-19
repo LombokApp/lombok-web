@@ -1,5 +1,7 @@
-import { StellarisCloudAppBrowserSdk } from '@stellariscloud/app-browser-sdk'
-import { StellarisCloudAPI } from '@stellariscloud/app-browser-sdk/src/app-browser-sdk'
+import {
+  StellarisCloudAPI,
+  StellarisCloudAppBrowserSdk,
+} from '@stellariscloud/app-browser-sdk'
 import type { ApiQueryHooks } from '@stellariscloud/auth-utils'
 import { capitalize } from '@stellariscloud/utils'
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'

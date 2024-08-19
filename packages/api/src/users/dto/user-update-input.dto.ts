@@ -2,8 +2,8 @@ import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
 export const userUpdateInputSchema = z.object({
-  name: z.string().nullish(),
-  email: z.string().nullish(),
+  name: z.string().optional(),
+  email: z.string().optional(),
   emailVerified: z.boolean().optional(),
   isAdmin: z.boolean().optional(),
   username: z.string().optional(),

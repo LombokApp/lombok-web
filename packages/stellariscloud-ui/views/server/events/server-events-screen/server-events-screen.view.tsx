@@ -45,7 +45,7 @@ export function ServerEventsScreen() {
                       <div className="text-xs">
                         ID: {event.id.slice(0, 8)} -{' '}
                         <span className="uppercase opacity-80">
-                          {event.appIdentifier}
+                          {event.emitterIdentifier}
                         </span>
                       </div>
                       <div>{event.eventKey}</div>
