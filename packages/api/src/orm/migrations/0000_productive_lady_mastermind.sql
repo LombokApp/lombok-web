@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS "event_receipts" (
 	"startedAt" timestamp,
 	"completedAt" timestamp,
 	"errorAt" timestamp,
-	"error" text,
+	"errorCode" text,
+	"errorMessage" text,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL
 );

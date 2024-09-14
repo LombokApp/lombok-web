@@ -112,7 +112,6 @@ const maybeSendBatch = (folderId: string) => {
 const requestDownloadUrlAndMaybeSendBatch = (
   folderId: string,
   objectIdentifier: string,
-  _metadataHash?: string,
 ) => {
   const folderObjectKey = `${folderId}:${objectIdentifier}`
   const folderBatch =

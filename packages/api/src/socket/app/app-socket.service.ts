@@ -117,6 +117,19 @@ export class AppSocketService implements OnModuleInit {
           appIdentifier,
           message,
         )
+        if (response?.error) {
+          console.log('APP Message Error:', {
+            message,
+            appIdentifier,
+            error: response.error,
+          })
+        } else {
+          console.log('APP Message Response:', {
+            message,
+            appIdentifier,
+            response,
+          })
+        }
         return ack(response)
       })
 
