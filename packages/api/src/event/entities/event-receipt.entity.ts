@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm'
-import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { pgTable, smallint, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 
 import type { Event } from './event.entity'
 import { eventsTable } from './event.entity'
@@ -15,7 +15,8 @@ export const eventReceiptsTable = pgTable('event_receipts', {
   startedAt: timestamp('startedAt'),
   completedAt: timestamp('completedAt'),
   errorAt: timestamp('errorAt'),
-  error: text('error'),
+  errorCode: text('errorCode'),
+  errorMessage: text('errorMessage'),
   createdAt: timestamp('createdAt').notNull(),
   updatedAt: timestamp('updatedAt').notNull(),
 })

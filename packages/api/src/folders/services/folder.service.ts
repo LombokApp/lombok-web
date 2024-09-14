@@ -697,7 +697,7 @@ export class FolderService implements OnModuleInit {
       })
       for (const obj of response.result) {
         const objectKey = folder.contentLocation.prefix.length
-          ? obj.key.slice(folder.contentLocation.prefix.length)
+          ? obj.key.slice(folder.contentLocation.prefix.length + 1)
           : obj.key
         if (obj.size > 0) {
           _contentCount++

@@ -54,7 +54,10 @@ export const objectAddedEventHandler = async (
     path.join(os.tmpdir(), `stellaris_event_${event.id}_`),
   )
 
-  const inFilepath = path.join(tempDir, event.data.objectKey as string)
+  const inFilepath = path.join(
+    tempDir,
+    encodeURIComponent(event.data.objectKey),
+  )
 
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir)
@@ -62,7 +65,7 @@ export const objectAddedEventHandler = async (
   const { mimeType } = await downloadFileToDisk(
     response.result.urls[0].url,
     inFilepath,
-    event.data.objectKey as string,
+    encodeURIComponent(event.data.objectKey),
   )
 
   if (!mimeType) {

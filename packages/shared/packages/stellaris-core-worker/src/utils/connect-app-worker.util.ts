@@ -61,10 +61,10 @@ export const buildAppClient = (socket: Socket): CoreServerMessageInterface => {
         data: { eventKeys },
       })
     },
-    failHandleEvent(eventId) {
+    failHandleEvent(eventId, error) {
       return socket.emitWithAck('APP_API', {
         name: 'FAIL_HANDLE_EVENT',
-        data: eventId,
+        data: { eventReceiptId: eventId, error },
       })
     },
   }
@@ -157,6 +157,7 @@ export const connectAndPerformWork = (
   },
   _log: (entry: Partial<AppLogEntry>) => void,
 ) => {
+  // TODO: send internal state back to the core via a message
   const eventSubscriptionKeys = Object.keys(eventHandlers)
   const socket = io(`${socketBaseUrl}/apps`, {
     auth: {
@@ -208,11 +209,11 @@ export const connectAndPerformWork = (
             await eventHandlers[event.eventKey](event, serverClient)
               .then(() => serverClient.completeHandleEvent(event.id))
               .catch((e) => {
-                console.log(
-                  'APP_WORKER_EXECUTION_ERROR: %s - %s',
-                  e.name,
-                  e.message,
-                )
+                console.log('APP_WORKER_EXECUTION_ERROR:', {
+                  name: e.name,
+                  message: e.message,
+                  stack: e.stack,
+                })
                 return serverClient.failHandleEvent(event.id, {
                   code:
                     e instanceof AppAPIError
@@ -222,6 +223,12 @@ export const connectAndPerformWork = (
                 })
               })
           }
+        } catch (error: any) {
+          console.log('Unexpected error during app worker execution', {
+            name: error?.name ?? '',
+            message: error?.message ?? '',
+            stack: error?.stack ?? '',
+          })
         } finally {
           concurrentTasks--
         }

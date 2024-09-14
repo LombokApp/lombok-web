@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import {
   forwardRef,
   Inject,
@@ -29,7 +30,10 @@ import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { v4 as uuidV4 } from 'uuid'
 
 import { appConfig } from '../config'
-import { AppSocketAPIRequest } from '../constants/app-api-messages'
+import {
+  AppSocketAPIRequest,
+  AppSocketMessageType,
+} from '../constants/app-api-messages'
 
 const FROM_DISK_APP_TREE_REDIS_KEY = '__STELLARIS_FROM_DISK_APP_TREE'
 
@@ -118,9 +122,12 @@ const UpdateMetadataValidator = r.Record({
   eventId: r.String.optional(),
 })
 
-const FailHandleEventValidator = r.Record({
-  eventReceiptId: r.String,
-  error: r.String,
+const FailHandleEventValidator = z.object({
+  eventReceiptId: z.string(),
+  error: z.object({
+    message: z.string(),
+    code: z.string(),
+  }),
 })
 
 interface InstalledAppDefinitions {
@@ -177,29 +184,7 @@ export class AppService {
     const now = new Date()
     if (AppSocketAPIRequest.guard(message)) {
       const requestData = message.data
-      switch (message.name) {
-        case 'SAVE_LOG_ENTRY':
-          if (LogEntryValidator.guard(requestData)) {
-            await this.ormService.db.insert(eventsTable).values([
-              {
-                ...requestData,
-                createdAt: now,
-                appIdentifier,
-                eventKey: `${appIdentifier.toUpperCase()}:LOG_ENTRY`,
-                // folderId: '',
-                // objectKey: '',
-                id: uuidV4(),
-              },
-            ])
-          } else {
-            return {
-              error: {
-                code: 400,
-                message: 'Invalid request.',
-              },
-            }
-          }
-          break
+      switch (message.name as AppSocketMessageType) {
         case 'GET_CONTENT_SIGNED_URLS': {
           if (GetContentSignedURLsValidator.guard(requestData)) {
             return { result: await this.createSignedContentUrls(requestData) }
@@ -338,11 +323,16 @@ export class AppService {
           break
         }
         case 'FAIL_HANDLE_EVENT': {
-          if (FailHandleEventValidator.guard(requestData)) {
+          if (FailHandleEventValidator.safeParse(requestData).success) {
+            const parsedFailHandleEventMessage =
+              FailHandleEventValidator.parse(requestData)
             const eventReceipt =
               await this.ormService.db.query.eventReceiptsTable.findFirst({
                 where: and(
-                  eq(eventReceiptsTable.id, requestData.eventReceiptId),
+                  eq(
+                    eventReceiptsTable.id,
+                    parsedFailHandleEventMessage.eventReceiptId,
+                  ),
                   eq(eventReceiptsTable.appIdentifier, appIdentifier),
                 ),
               })
@@ -363,13 +353,29 @@ export class AppService {
             return {
               result: await this.ormService.db
                 .update(eventReceiptsTable)
-                .set({ error: requestData.error, errorAt: new Date() })
+                .set({
+                  errorCode: parsedFailHandleEventMessage.error.code,
+                  errorMessage: parsedFailHandleEventMessage.error.message,
+                  errorAt: new Date(),
+                })
                 .where(
                   and(
                     eq(eventReceiptsTable.id, eventReceipt.id),
                     eq(eventReceiptsTable.appIdentifier, appIdentifier),
                   ),
                 ),
+            }
+          } else {
+            console.log(
+              'FAIL_HANDLE_EVENT error:',
+              FailHandleEventValidator.safeParse(requestData).error,
+            )
+            return {
+              result: undefined,
+              error: {
+                code: 400,
+                message: 'Malformed FAIL_HANDLE_EVENT request.',
+              },
             }
           }
           break
@@ -378,8 +384,8 @@ export class AppService {
       return {
         result: undefined,
         error: {
-          code: 404,
-          message: 'Request not recognised.',
+          code: 400,
+          message: 'Request unrecognized or malformed.',
         },
       }
     }
