@@ -16,18 +16,24 @@
     "rootDir": ".",
     "incremental": true,
     "noEmit": false,
-    "outDir": "dist"
+    "outDir": "dist",
+    "paths": {
+      "@/utils": ["../ui-toolkit/src/utils"],
+      "@/components": ["../ui-toolkit/src/components"],
+      "@/components/*": ["../ui-toolkit/src/components/*"]
+    }
   },
+
   "include": [
     "**/*.ts",
     "**/*.tsx",
     "next-env.d.ts",
     "./worker.ts",
     ".eslintrc.js",
-    "postcss.config.js",
+    "postcss.config.mjs",
     "lint-staged.config.js",
     "tailwind.config.js",
-    "jest.config.mjs",
+    "tailwind.config.ts",
     "next.config.mjs",
     "sentry.client.config.ts"
   ],

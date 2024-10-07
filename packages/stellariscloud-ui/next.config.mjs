@@ -2,7 +2,6 @@
 
 const APP_ENV = process.env.NEXT_PUBLIC_BACKEND_ENV || 'live'
 
-import { withSentryConfig } from '@sentry/nextjs'
 import dotenv from 'dotenv'
 
 dotenv.config({
@@ -57,16 +56,13 @@ const securityHeaders = [
   // },
 ]
 
-export default withSentryConfig({
+export default {
   transpilePackages: [
     '@stellariscloud/types',
     '@stellariscloud/utils',
+    '@stellariscloud/ui-toolkit',
     '@stellariscloud/auth-utils',
   ],
-  sentry: {
-    disableServerWebpackPlugin: true,
-    disableClientWebpackPlugin: true,
-  },
   reactStrictMode: false,
   experimental: {
     externalDir: false,
@@ -89,4 +85,4 @@ export default withSentryConfig({
       },
     ]
   },
-})
+}

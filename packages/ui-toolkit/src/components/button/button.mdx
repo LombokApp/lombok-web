@@ -1,0 +1,34 @@
+import {
+  Canvas,
+  Controls,
+  Description,
+  Meta,
+  Source,
+  Title,
+} from '@storybook/blocks'
+
+import { Button } from '..'
+
+import * as Stories from './button.stories'
+
+<Meta of={Stories} />
+
+<Title />
+<Description />
+
+#### Displays a button or a component that looks like a button.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { Button } from '@stellariscloud/ui-toolkit'
+
+<Button>Click me</Button>
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />
