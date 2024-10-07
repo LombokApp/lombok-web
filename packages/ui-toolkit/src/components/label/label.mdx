@@ -1,0 +1,27 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import * as Stories from './label.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### A label associated with controls.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { Checkbox, Label } from '@stellariscloud/ui-toolkit'
+
+<div className="flex items-center space-x-2">
+  <Checkbox id="terms" />
+  <Label htmlFor="terms">Accept terms and conditions</Label>
+</div>
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

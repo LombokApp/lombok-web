@@ -1,0 +1,15 @@
+plop-templates/
+.storybook/
+.husky/
+.yarn/
+node_modules/
+src/
+.prettierignore
+.prettierrc
+eslint.config.mjs
+plopfile.mjs
+postcss.config.ts
+tailwind.config.js
+tsconfig.json
+*storybook.log
+*.tsbuildinfo

@@ -1,0 +1,41 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Alert } from '..'
+
+import * as Stories from './alert.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### Displays a callout for user attention.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { Alert } from '@stellariscloud/ui-toolkit'
+
+<Alert>
+  <Terminal className="h-4 w-4" />
+  <AlertTitle>Important Information</AlertTitle>
+  <AlertDescription>
+    This is an important informational message
+  </AlertDescription>
+</Alert>
+
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.DefaultVariantNoIcon} sourceState="none" />
+
+### With Icon
+
+<Canvas of={Stories.DefaultVariantWithIcon} sourceState="none" />
+
+### Destructive
+
+<Canvas of={Stories.DestructiveVariant} sourceState="none" />

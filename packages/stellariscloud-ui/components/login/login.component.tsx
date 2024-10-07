@@ -4,7 +4,7 @@ import React from 'react'
 import * as r from 'runtypes'
 
 import { Banner } from '../../design-system/banner/banner'
-import { Button } from '../../design-system/button/button'
+import { Button } from '@stellariscloud/ui-toolkit'
 import { Icon } from '../../design-system/icon'
 import { Input } from '../../design-system/input/input'
 import { useFormState } from '../../utils/forms'
@@ -136,7 +136,11 @@ export const LoginComponent = ({
             </div>
 
             <div className="pt-4">
-              <Button className="w-full py-1.5" onClick={handleSubmit} primary>
+              <Button
+                className="w-full py-1.5"
+                onClick={handleSubmit}
+                variant={'default'}
+              >
                 Sign in
               </Button>
             </div>
