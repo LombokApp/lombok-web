@@ -3,7 +3,14 @@ import clsx from 'clsx'
 import React from 'react'
 import * as r from 'runtypes'
 
-import { Alert, Button, Card, Label } from '@stellariscloud/ui-toolkit'
+import {
+  Alert,
+  Button,
+  Card,
+  Label,
+  TypographyH2,
+  TypographyH3,
+} from '@stellariscloud/ui-toolkit'
 import { Icon } from '../../design-system/icon'
 import { Input } from '../../design-system/input/input'
 import { useFormState } from '../../utils/forms'
@@ -52,22 +59,13 @@ export const LoginComponent = ({
               src="/stellariscloud.png"
               alt="StellarisCloud"
             />
-            <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900 dark:text-white">
-              Sign in to your account
-            </h2>
-            <button
-              className="group font-semibold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
-              onClick={onSignup}
-            >
-              <div className="flex items-center gap-1">
-                <div>Create an account</div>
-                <Icon
-                  icon={ArrowRightIcon}
-                  size="sm"
-                  className="text-indigo-600 group-hover:text-indigo-500 dark:text-indigo-400 dark:group-hover:text-indigo-300"
-                />
+            <TypographyH2>Sign in to your account</TypographyH2>
+            <Button variant={'link'} onClick={onSignup}>
+              <div className="flex items-center gap-2">
+                <TypographyH3>Create an account</TypographyH3>
+                <Icon icon={ArrowRightIcon} size="sm" />
               </div>
-            </button>
+            </Button>
           </div>
           <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
             {error && (

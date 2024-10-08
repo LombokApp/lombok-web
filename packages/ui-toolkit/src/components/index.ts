@@ -13,3 +13,9 @@ export * from './label'
 export * from './checkbox'
 
 export * from './dropdown-menu'
+
+export * from './typography-h1'
+
+export * from './typography-h2'
+
+export * from './typography-h3'

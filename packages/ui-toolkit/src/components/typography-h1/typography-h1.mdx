@@ -1,0 +1,27 @@
+
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { TypographyH1 } from '..'
+
+import * as Stories from './typography-h1.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### This is a description of the component.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { TypographyH1 } from '@stellariscloud/ui-toolkit'
+
+<TypographyH1>Click me</TypographyH1>
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />
