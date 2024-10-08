@@ -2,7 +2,7 @@ import { themePlugin } from './styles'
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: 'class',
+  darkMode: ['[data-mode="dark"]'],
   mode: 'jit',
   content: [
     './pages/**/*.{js,ts,jsx,tsx}',

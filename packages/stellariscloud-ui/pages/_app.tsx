@@ -1,4 +1,3 @@
-import '../styles/common-base-styles.css'
 import '../styles/globals.css'
 import '../fonts/inter/inter.css'
 
@@ -18,7 +17,7 @@ import {
   ServerContextProvider,
   useServerContext,
 } from '../contexts/server.context'
-import { ThemeContextProvider } from '../contexts/theme.context'
+import { ThemeProvider } from '../contexts/theme.context'
 import { sdkInstance } from '../services/api'
 import { NavSidebar } from '../components/nav-sidebar/nav-sidebar'
 import {
@@ -34,18 +33,13 @@ const queryClient = new QueryClient()
 const UNAUTHENTICATED_PAGES = ['/', '/faq', '/login', '/signup']
 const SHOW_HEADER_ROUTES = ['/', '/sponsor', '/how-it-works', '/contact']
 
-const BODY_GRADIENT =
-  'bg-gray-100 transition duration-100 dark:bg-gradient-to-r dark:from-blue-950 dark:to-indigo-950'
-
 const UnauthenticatedContent = ({ Component, pageProps }: AppProps) => {
   return (
     <div className="h-full flex flex-col">
       <div className="w-full flex shrink-0 grow-0 absolute right-0 top-0 overflow-visible">
         <Header />
       </div>
-      <main
-        className={clsx('flex-1 justify-center overflow-hidden', BODY_GRADIENT)}
-      >
+      <main className={clsx('flex-1 justify-center overflow-hidden')}>
         <div className={clsx('relative h-full w-full flex')}>
           <div className="relative w-full">
             <Component {...pageProps} />
@@ -147,11 +141,7 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
       </div>
 
       <main
-        className={clsx(
-          'overflow-hidden flex-1',
-          BODY_GRADIENT,
-          !hideSidebar && 'lg:pl-72',
-        )}
+        className={clsx('overflow-hidden flex-1', !hideSidebar && 'lg:pl-72')}
       >
         <Component {...pageProps} />
       </main>
@@ -177,7 +167,12 @@ const Layout = (appProps: AppProps) => {
     <LoggingContextProvider>
       <QueryClientProvider client={queryClient}>
         <AuthContextProvider authenticator={sdkInstance.authenticator}>
-          <ThemeContextProvider>
+          <ThemeProvider
+            attribute="data-mode"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
             <Head>
               <meta
                 name="viewport"
@@ -196,7 +191,7 @@ const Layout = (appProps: AppProps) => {
                 <UnauthenticatedContent {...appProps} />
               )}
             </div>
-          </ThemeContextProvider>
+          </ThemeProvider>
         </AuthContextProvider>
       </QueryClientProvider>
     </LoggingContextProvider>

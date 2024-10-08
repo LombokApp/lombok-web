@@ -11,3 +11,5 @@ export * from './card'
 export * from './label'
 
 export * from './checkbox'
+
+export * from './dropdown-menu'
