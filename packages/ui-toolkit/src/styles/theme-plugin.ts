@@ -5,6 +5,14 @@ import { baseTheme } from './themes'
 
 export const themePlugin = plugin(
   ({ addBase }) => {
+    // Add html base styles
+    addBase({
+      html: {
+        color: 'var(--foreground)',
+        backgroundColor: 'var(--background)',
+      },
+    })
+    // Add light theme
     addBase({
       ':root': {
         '--background': baseTheme.light.background,
@@ -34,6 +42,7 @@ export const themePlugin = plugin(
         '--chart-5': baseTheme.light.chart5,
       },
     })
+    // Add dark theme
     addBase({
       '[data-mode="dark"]': {
         '--background': baseTheme.dark.background,
@@ -63,6 +72,7 @@ export const themePlugin = plugin(
       },
     })
   },
+  // Add theme extension
   {
     theme: {
       extend: {
