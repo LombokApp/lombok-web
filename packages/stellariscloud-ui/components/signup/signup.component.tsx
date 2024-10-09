@@ -11,14 +11,7 @@ import {
   TypographyH2,
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
-import { SignupForm } from './signup-form.component'
-
-interface SignupFormValues {
-  username: string
-  password: string
-  confirmPassword: string
-  email: string
-}
+import { SignupForm, SignupFormValues } from './signup-form.component'
 
 export const SignupComponent = ({
   onSubmit,

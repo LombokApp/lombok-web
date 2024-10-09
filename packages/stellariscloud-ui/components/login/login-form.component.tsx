@@ -8,46 +8,38 @@ import { z } from 'zod'
 import {
   cn,
   Button,
-  Label,
   Input,
   Form,
   FormItem,
   FormField,
   FormLabel,
   FormControl,
-  FormDescription,
   FormMessage,
   Icons,
 } from '@stellariscloud/ui-toolkit'
 
 const formSchema = z.object({
-  username: z.string().min(2, {
-    message: 'Username must be at least 2 characters.',
+  login: z.string().min(2, {
+    message: 'Login must be at least 2 characters.',
   }),
   password: z.string().min(2, {
     message: 'Password must be at least 2 characters.',
   }),
-  confirmPassword: z.string().min(2, {
-    message: 'Password must be at least 2 characters.',
-  }),
-  email: z.string().min(2, {
-    message: 'Email must be at least 2 characters.',
-  }),
 })
-export type SignupFormValues = z.infer<typeof formSchema>
 
-export function SignupForm({
+export type LoginFormValues = z.infer<typeof formSchema>
+
+export function LoginForm({
   className,
   onSubmit,
 }: {
   className?: string
-  onSubmit: (values: SignupFormValues) => Promise<void>
+  onSubmit: (values: LoginFormValues) => Promise<void>
 }) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
 
-  async function handleSubmit(values: SignupFormValues) {
+  async function handleSubmit(values: LoginFormValues) {
     setIsLoading(true)
-    console.log({ values })
     onSubmit(values).then(() => {
       setIsLoading(false)
     })
@@ -56,13 +48,11 @@ export function SignupForm({
     }, 3000)
   }
 
-  const form = useForm<SignupFormValues>({
+  const form = useForm<LoginFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: '',
-      email: '',
+      login: '',
       password: '',
-      confirmPassword: '',
     },
   })
 
@@ -78,27 +68,10 @@ export function SignupForm({
         >
           <FormField
             control={form.control}
-            name="username"
+            name="login"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormDescription>
-                  This is your public display name.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Username / Email</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -106,27 +79,12 @@ export function SignupForm({
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="password"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Password</FormLabel>
-                <FormControl>
-                  <Input {...field} type="password" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="confirmPassword"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
                 <FormControl>
                   <Input {...field} type="password" />
                 </FormControl>
@@ -144,7 +102,7 @@ export function SignupForm({
               {isLoading && (
                 <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Create your account
+              Login
             </Button>
           </div>
         </form>
