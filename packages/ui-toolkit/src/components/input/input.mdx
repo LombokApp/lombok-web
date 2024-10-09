@@ -1,0 +1,27 @@
+
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Input } from '..'
+
+import * as Stories from './input.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### This is a description of the component.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { Input } from '@stellariscloud/ui-toolkit'
+
+<Input>Click me</Input>
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

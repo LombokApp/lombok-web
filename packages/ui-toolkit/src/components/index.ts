@@ -19,3 +19,7 @@ export * from './typography-h1'
 export * from './typography-h2'
 
 export * from './typography-h3'
+
+export * from "./input"
+export * from "./form"
+export * from "./icons"

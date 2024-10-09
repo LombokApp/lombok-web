@@ -1,14 +1,12 @@
 import clsx from 'clsx'
 import { AppMenuItemAndHref } from '../../contexts/server.context'
 import { IAuthContext } from '@stellariscloud/auth-utils'
-import { ThemeSwitch } from '../theme-switch/theme-switch'
 import {
   ArrowRightEndOnRectangleIcon,
   CircleStackIcon,
   Cog6ToothIcon,
   CubeIcon,
   FolderIcon,
-  HomeIcon,
   KeyIcon,
   SignalIcon,
   Square3Stack3DIcon,
@@ -20,6 +18,7 @@ import { NextRouter } from 'next/router'
 import { Icon } from '../../design-system/icon'
 import { Avatar } from '../../design-system/avatar'
 import { Button } from '../../design-system/button/button'
+import { ModeToggle } from '../mode-toggle/mode-toggle'
 
 const protocol =
   typeof window === 'undefined'
@@ -92,7 +91,7 @@ export const NavSidebar = ({
             alt="Stellaris cloud logo"
           />
         </Link>
-        <ThemeSwitch isVertical={false} />
+        <ModeToggle />
       </div>
       <nav className="flex flex-1 flex-col overflow-hidden">
         <div className="overflow-y-auto px-2 flex flex-col gap-4">
