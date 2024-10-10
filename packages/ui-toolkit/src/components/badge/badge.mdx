@@ -1,23 +1,22 @@
-
 import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
 
-import { TypographyH1 } from '..'
+import { Badge } from '..'
 
-import * as Stories from './typography-h1.stories'
+import * as Stories from './badge.stories'
 
 <Meta of={Stories} />
 
 <Title />
 
-#### This is a description of the component.
+#### A component that looks like a badge.
 
 <Source
   dark
   language="tsx"
   code={`
-import { TypographyH1 } from '@stellariscloud/ui-toolkit'
+import { Badge } from '@stellariscloud/ui-toolkit'
 
-<TypographyH1>Click me</TypographyH1>
+<Badge variant='destructive'>destructive</Badge>
 `} />
 
 ## Properties

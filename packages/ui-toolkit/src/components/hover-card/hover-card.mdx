@@ -1,0 +1,27 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Button, HoverCard } from '..'
+
+import * as Stories from './hover-card.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### For sighted users to preview content available behind a link.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@stellariscloud/ui-toolkit'
+
+<HoverCard>
+  <HoverCardTrigger>Hover</HoverCardTrigger>
+  <HoverCardContent>
+    The React Framework – created and maintained by @vercel.
+  </HoverCardContent>
+</HoverCard>
+`} />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

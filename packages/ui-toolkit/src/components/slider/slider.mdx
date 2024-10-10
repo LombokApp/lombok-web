@@ -1,0 +1,26 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Button, Slider } from '..'
+
+import * as Stories from './slider.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### An input where the user selects a value from within a given range.
+
+<Button variant="outline" size="sm" onClick={() => {
+  window.open('https://www.radix-ui.com/primitives/docs/components/slider#api-reference', '_blank')
+}}>API Reference</Button>
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { Slider } from '@stellariscloud/ui-toolkit'
+
+<Slider defaultValue={[50]} max={100} step={1} className="w-[500px]" />
+`} />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

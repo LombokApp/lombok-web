@@ -1,22 +1,24 @@
 import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
 
-import { TypographyH3 } from '..'
+import { Calendar } from '..'
 
-import * as Stories from './typography-h3.stories'
+import * as Stories from './calendar.stories'
 
 <Meta of={Stories} />
 
 <Title />
 
-#### This is a description of the component.
+#### A date field component that allows users to enter and edit date.
 
 <Source
   dark
   language="tsx"
   code={`
-import { TypographyH3 } from '@stellariscloud/ui-toolkit'
+import { Card, Calendar } from '@stellariscloud/ui-toolkit'
 
-<TypographyH3>My H3 Title</TypographyH3>
+<Card>
+  <Calendar />
+</Card>
 `} />
 
 ## Properties

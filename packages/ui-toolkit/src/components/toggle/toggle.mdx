@@ -1,0 +1,33 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Button, Toggle } from '..'
+
+import * as Stories from './toggle.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### A two-state button that can be either on or off.
+
+<Button variant="outline" size="sm" onClick={() => {
+  window.open('https://www.radix-ui.com/primitives/docs/components/toggle#api-reference', '_blank')
+}}>API Reference</Button>
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { Bold } from 'lucide-react'
+import { Toggle } from '@stellariscloud/ui-toolkit'
+
+<Toggle aria-label="Toggle bold">
+  <Bold className="h-4 w-4" />
+</Toggle>
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

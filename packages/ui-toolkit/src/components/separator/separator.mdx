@@ -1,0 +1,45 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Button, Separator } from '..'
+
+import * as Stories from './separator.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### Visually or semantically separates content.
+
+<Button variant="outline" size="sm" onClick={() => {
+  window.open('https://www.radix-ui.com/primitives/docs/components/separator#api-reference', '_blank')
+}}>API Reference</Button>
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { Separator } from '@stellariscloud/ui-toolkit'
+
+<div>
+  <div className="space-y-1">
+    <h4 className="text-sm font-medium leading-none">Radix Primitives</h4>
+    <p className="text-sm text-muted-foreground">
+      An open-source UI component library.
+    </p>
+  </div>
+  <Separator className="my-4" />
+  <div className="flex h-5 items-center space-x-4 text-sm">
+    <div>Blog</div>
+    <Separator orientation="vertical" />
+    <div>Docs</div>
+    <Separator orientation="vertical" />
+    <div>Source</div>
+  </div>
+</div>
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

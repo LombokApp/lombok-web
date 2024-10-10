@@ -1,9 +1,8 @@
 import React from 'react'
 
-import { Button } from '@/components/button'
-import { Label } from '@/components/label'
 import type { Meta, StoryObj } from '@storybook/react'
 
+import { Button, Label } from '..'
 import {
   Card,
   CardContent,

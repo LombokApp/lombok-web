@@ -1,0 +1,48 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Breadcrumb } from '..'
+
+import * as Stories from './breadcrumb.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### Displays the path to the current resource using a hierarchy of links.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@stellariscloud/ui-toolkit'
+
+<Breadcrumb>
+  <BreadcrumbList>
+    <BreadcrumbItem>
+      <BreadcrumbLink href="/">Home</BreadcrumbLink>
+    </BreadcrumbItem>
+    <BreadcrumbSeparator />
+    <BreadcrumbItem>
+      <BreadcrumbLink href="/components">Components</BreadcrumbLink>
+    </BreadcrumbItem>
+    <BreadcrumbSeparator />
+    <BreadcrumbItem>
+      <BreadcrumbPage>Breadcrumb</BreadcrumbPage>
+    </BreadcrumbItem>
+  </BreadcrumbList>
+</Breadcrumb>
+
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

@@ -17,20 +17,7 @@ import * as Stories from './checkbox.stories'
 import { Checkbox, Label } from '@stellariscloud/ui-toolkit'
 
 <div className="flex items-center space-x-2">
-  <Checkbox id="terms" />
-  <Label htmlFor="terms">Accept terms and conditions</Label>
-</div>
-
-`} />
-
-<Source
-  dark
-  language="tsx"
-  code={`
-import { Checkbox, Label } from '@stellariscloud/ui-toolkit'
-
-<div className="flex items-center space-x-2">
-  <Checkbox id="terms" checked />
+  <Checkbox id="terms" checked={checked} />
   <Label htmlFor="terms">Accept terms and conditions</Label>
 </div>
 
@@ -40,5 +27,4 @@ import { Checkbox, Label } from '@stellariscloud/ui-toolkit'
 
 <Controls />
 
-<Canvas of={Stories.Checked} sourceState="none" />
-<Canvas of={Stories.Unchecked} sourceState="none" />
+<Canvas of={Stories.BasicUsage} sourceState="none" />

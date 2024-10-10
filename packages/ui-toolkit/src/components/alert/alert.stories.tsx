@@ -16,7 +16,7 @@ type Story = StoryObj<typeof Alert>
 
 export const DefaultVariantNoIcon: Story = {
   args: {},
-  render: () => <Alert>Click me</Alert>,
+  render: () => <Alert>This is an alert</Alert>,
 }
 
 export const DefaultVariantWithIcon: Story = {

@@ -79,7 +79,7 @@ export const NavSidebar = ({
   ]
 
   return (
-    <div className="flex grow flex-col justify-between gap-y-5 overflow-hidden bg-gray-900 h-full flex-1">
+    <div className="flex grow flex-col justify-between gap-y-5 overflow-hidden bg-background h-full flex-1">
       <div className="flex justify-between h-14 shrink-0 items-center px-2">
         <Link href={'/'} passHref>
           <Image

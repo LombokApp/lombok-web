@@ -5,6 +5,7 @@ import React from 'react'
 
 import { Avatar } from '../../design-system/avatar'
 import { Badge } from '../../design-system/badge/badge'
+import { Card, cn } from '@stellariscloud/ui-toolkit'
 
 export const FolderCard = ({
   className,
@@ -23,12 +24,7 @@ export const FolderCard = ({
   )
 
   return (
-    <div
-      className={clsx(
-        'col-span-1 bg-white rounded-xl dark:bg-black/25 dark:hover:bg-indigo-200/5 dark:hover:border-transparent shadow transition duration-200 w-full',
-        className,
-      )}
-    >
+    <Card className={className}>
       <div className="flex p-6 gap-4">
         <div className="h-16 w-16 flex items-center justify-center flex-shrink-0 rounded-full bg-blue-100 dark:bg-blue-700">
           <Avatar uniqueKey={folder.id} />
@@ -54,6 +50,6 @@ export const FolderCard = ({
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   )
 }

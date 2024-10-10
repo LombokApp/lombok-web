@@ -1,0 +1,61 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Button, Resizable } from '..'
+
+import * as Stories from './resizable.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### Accessible resizable panel groups and layouts with keyboard support.
+
+<Button variant="outline" size="sm" onClick={() => {
+  window.open('https://github.com/bvaughn/react-resizable-panels/tree/main/packages/react-resizable-panels', '_blank')
+}}>API Reference</Button>
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@stellariscloud/ui-toolkit'
+
+<ResizablePanelGroup
+  direction="horizontal"
+  className="max-w-md rounded-lg border md:min-w-[450px]"
+>
+  <ResizablePanel defaultSize={50}>
+    <div className="flex h-[200px] items-center justify-center p-6">
+      <span className="font-semibold">One</span>
+    </div>
+  </ResizablePanel>
+  <ResizableHandle />
+  <ResizablePanel defaultSize={50}>
+    <ResizablePanelGroup direction="vertical">
+      <ResizablePanel defaultSize={25}>
+        <div className="flex h-full items-center justify-center p-6">
+          <span className="font-semibold">Two</span>
+        </div>
+      </ResizablePanel>
+      <ResizableHandle />
+      <ResizablePanel defaultSize={75}>
+        <div className="flex h-full items-center justify-center p-6">
+          <span className="font-semibold">Three</span>
+        </div>
+      </ResizablePanel>
+    </ResizablePanelGroup>
+  </ResizablePanel>
+</ResizablePanelGroup>
+`} />
+
+### Basic Usage
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />
+
+### Vertical
+
+<Canvas of={Stories.Vertical} sourceState="none" />
+
+### Handle
+
+<Canvas of={Stories.Handle} sourceState="none" />

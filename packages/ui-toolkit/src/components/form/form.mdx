@@ -14,8 +14,7 @@ import * as Stories from './form.stories'
   dark
   language="tsx"
   code={`
-import { Button } from '../button'
-import { Input } from '../input'
+
 import {
   Button,
   Form,
@@ -101,9 +100,5 @@ const form = useForm<z.infer<typeof formSchema>>({
   </form>
 </Form>
 `} />
-
-## Properties
-
-<Controls />
 
 <Canvas of={Stories.BasicUsage} sourceState="none" />

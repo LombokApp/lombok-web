@@ -37,7 +37,7 @@ export const baseTheme = {
     popoverForeground: palette.neutral[50],
     primary: palette.neutral[50],
     primaryForeground: palette.neutral[950],
-    secondary: palette.neutral[50],
+    secondary: palette.neutral[300],
     secondaryForeground: palette.neutral[950],
     muted: palette.neutral[800],
     mutedForeground: palette.neutral[400],

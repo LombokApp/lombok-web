@@ -1,0 +1,33 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Button, Progress } from '..'
+
+import * as Stories from './progress.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### Displays an indicator showing the completion progress of a task, typically displayed as a progress bar.
+
+<Button variant="outline" size="sm" onClick={() => {
+  window.open('https://www.radix-ui.com/primitives/docs/components/progress#api-reference', '_blank')
+}}>API Reference</Button>
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { Progress } from '@stellariscloud/ui-toolkit'
+
+const [progress, setProgress] = React.useState(13)
+
+React.useEffect(() => {
+const timer = setTimeout(() => setProgress(66), 500)
+return () => clearTimeout(timer)
+}, [])
+
+return <Progress value={progress} className="w-[400px]" />
+`} />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />
