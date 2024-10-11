@@ -1,0 +1,26 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Badge } from '..'
+
+import * as Stories from './badge.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### A component that looks like a badge.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { Badge } from '@stellariscloud/ui-toolkit'
+
+<Badge variant='destructive'>destructive</Badge>
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

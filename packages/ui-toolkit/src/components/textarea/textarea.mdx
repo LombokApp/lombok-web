@@ -1,0 +1,29 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Textarea } from '..'
+
+import * as Stories from './textarea.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### Displays a form textarea or a component that looks like a textarea.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { Label, Textarea } from '@stellariscloud/ui-toolkit'
+
+<div className="grid w-[400px] gap-1.5">
+  <Label htmlFor="message">Your message</Label>
+  <Textarea {...props} id="message" />
+</div>
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

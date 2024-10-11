@@ -1,0 +1,41 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Button, ToggleGroup } from '..'
+
+import * as Stories from './toggle-group.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### A set of two-state buttons that can be toggled on or off.
+
+<Button variant="outline" size="sm" onClick={() => {
+  window.open('https://www.radix-ui.com/primitives/docs/components/toggle-group#api-reference', '_blank')
+}}>API Reference</Button>
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { Bold, Italic, Underline } from 'lucide-react'
+import { ToggleGroup, ToggleGroupItem } from '@stellariscloud/ui-toolkit'
+
+<ToggleGroup type="multiple">
+  <ToggleGroupItem value="bold" aria-label="Toggle bold">
+    <Bold className="h-4 w-4" />
+  </ToggleGroupItem>
+  <ToggleGroupItem value="italic" aria-label="Toggle italic">
+    <Italic className="h-4 w-4" />
+  </ToggleGroupItem>
+  <ToggleGroupItem value="underline" aria-label="Toggle underline">
+    <Underline className="h-4 w-4" />
+  </ToggleGroupItem>
+</ToggleGroup>
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

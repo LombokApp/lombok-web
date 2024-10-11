@@ -1,0 +1,30 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Avatar } from '..'
+
+import * as Stories from './avatar.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### This is a description of the component.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+
+import { Avatar, AvatarFallback, AvatarImage } from '@stellariscloud/ui-toolkit'
+
+<Avatar>
+  <AvatarImage src="https://github.com/shadcn.png" />
+  <AvatarFallback>CN</AvatarFallback>
+</Avatar>
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

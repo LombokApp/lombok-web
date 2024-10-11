@@ -1,14 +1,14 @@
 import clsx from 'clsx'
-import { Badge } from '../../design-system/badge/badge'
 import { AppDTO } from '@stellariscloud/api-client'
+import { Badge } from '@stellariscloud/ui-toolkit'
 
-const LABEL_TEXT_COLOR = 'text-gray-500 dark:text-white'
-const VALUE_TEXT_COLOR = 'text-black dark:text-white'
+const LABEL_TEXT_COLOR = 'opacity-50'
+const VALUE_TEXT_COLOR = ''
 const ROW_SPACING = 'px-4 py-3'
 
 export function AppAttributeList({ app }: { app?: AppDTO }) {
   return (
-    <div className="bg-gray-200 dark:bg-transparent rounded-lg dark:rounded-none px-4">
+    <div className="rounded-lg px-4">
       <dl className="divide-y divide-white/10">
         <div
           className={clsx(
@@ -71,7 +71,7 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
               VALUE_TEXT_COLOR,
             )}
           >
-            <pre className="bg-gray-100 dark:bg-black/20 p-4 py-2 rounded-md">
+            <pre className="bg-foreground/5 p-4 py-2 rounded-md">
               {app?.config.publicKey}
             </pre>
           </dd>
@@ -100,7 +100,7 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
                 <span className="italic opacity-50">None</span>
               ) : (
                 app.config.emitEvents.map((emitEvent, i) => (
-                  <Badge style="info" key={i} size="sm">
+                  <Badge variant={'outline'} key={i}>
                     {emitEvent}
                   </Badge>
                 ))
@@ -132,7 +132,7 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
                 <span className="italic opacity-50">None</span>
               ) : (
                 app.config.subscribedEvents.map((subscribedEvent, i) => (
-                  <Badge style="info" key={i} size="sm">
+                  <Badge variant={'outline'} key={i}>
                     {subscribedEvent}
                   </Badge>
                 ))

@@ -1,0 +1,104 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Form } from '..'
+
+import * as Stories from './form.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### Form and form field components.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+
+import {
+  Button,
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Input,
+} from '@stellariscloud/ui-toolkit'
+
+const formSchema = z.object({
+  email: z.string().min(2, {
+    message: 'Email must be at least 2 characters.',
+  }),
+  password: z.string().min(2, {
+    message: 'Password must be at least 2 characters.',
+  }),
+  confirmPassword: z.string().min(2, {
+    message: 'Password must be at least 2 characters.',
+  }),
+})
+
+const form = useForm<z.infer<typeof formSchema>>({
+  defaultValues: {
+    email: '',
+    password: '',
+    confirmPassword: '',
+  },
+})
+
+<Form {...form}>
+  <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 min-w-[20rem]">
+    <FormField
+      control={form.control}
+      name="email"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Email</FormLabel>
+          <FormControl>
+            <Input {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+
+    <FormField
+      control={form.control}
+      name="password"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Password</FormLabel>
+          <FormControl>
+            <Input {...field} type="password" />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+
+    <FormField
+      control={form.control}
+      name="confirmPassword"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Confirm Password</FormLabel>
+          <FormControl>
+            <Input {...field} type="password" />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+
+    <div>
+      <Button className="w-full py-1.5" type="submit">
+        Create your account
+      </Button>
+    </div>
+
+  </form>
+</Form>
+`} />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

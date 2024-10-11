@@ -32,7 +32,6 @@ import { FolderScroll } from '../../components/folder-scroll/folder-scroll'
 import { UploadModal } from '../../components/upload-modal/upload-modal'
 import { useFolderContext } from '../../contexts/folder.context'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
-import { Button } from '../../design-system/button/button'
 import { Icon } from '../../design-system/icon'
 import { PageHeading } from '../../design-system/page-heading/page-heading'
 import { useWindowDimensions } from '../../hooks/use-window-dimensions'
@@ -40,6 +39,7 @@ import { apiClient } from '../../services/api'
 import { FolderObjectDetailScreen } from '../folder-object-detail-screen/folder-object-detail-screen.view'
 import type { FolderSidebarTab } from '../folder-sidebar/folder-sidebar.view'
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
+import { Button } from '@stellariscloud/ui-toolkit'
 
 const SCROLL_JUMP_ROWS_CUTTOFF = 10
 const ROW_BUFFER_SIZE = 3

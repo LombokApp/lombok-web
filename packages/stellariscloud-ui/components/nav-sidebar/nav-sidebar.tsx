@@ -1,7 +1,6 @@
 import clsx from 'clsx'
 import { AppMenuItemAndHref } from '../../contexts/server.context'
 import { IAuthContext } from '@stellariscloud/auth-utils'
-import { ThemeSwitch } from '../theme-switch/theme-switch'
 import {
   ArrowRightEndOnRectangleIcon,
   CircleStackIcon,
@@ -19,7 +18,8 @@ import Image from 'next/image'
 import { NextRouter } from 'next/router'
 import { Icon } from '../../design-system/icon'
 import { Avatar } from '../../design-system/avatar'
-import { Button } from '../../design-system/button/button'
+import { Button } from '@stellariscloud/ui-toolkit'
+import { ModeToggle } from '../mode-toggle/mode-toggle'
 
 const protocol =
   typeof window === 'undefined'
@@ -80,7 +80,7 @@ export const NavSidebar = ({
   ]
 
   return (
-    <div className="flex grow flex-col justify-between gap-y-5 overflow-hidden bg-gray-900 h-full flex-1">
+    <div className="flex grow flex-col justify-between gap-y-5 overflow-hidden h-full flex-1 bg-foreground/5">
       <div className="flex justify-between h-14 shrink-0 items-center px-2">
         <Link href={'/'} passHref>
           <Image
@@ -92,53 +92,42 @@ export const NavSidebar = ({
             alt="Stellaris cloud logo"
           />
         </Link>
-        <ThemeSwitch isVertical={false} />
+        <ModeToggle />
       </div>
       <nav className="flex flex-1 flex-col overflow-hidden">
         <div className="overflow-y-auto px-2 flex flex-col gap-4">
           <div className="flex flex-col">
-            <div className="pl-2 text-xs font-semibold leading-6 text-gray-400 opacity-50">
-              Folders
-            </div>
-            <div className="flex flex-1 flex-col gap-y-7 overflow-hidden">
-              <div>
-                <ul role="list" className="space-y-1">
-                  <li>
-                    <Link
-                      href={'/folders'}
-                      className={clsx(
-                        router.asPath === '/folders'
-                          ? 'bg-gray-800 text-white'
-                          : 'text-gray-400 hover:bg-gray-800 hover:text-white',
-                        'group flex gap-x-3 p-2 text-sm font-semibold leading-6 rounded-md overflow-hidden',
-                      )}
-                    >
-                      <Icon
-                        icon={FolderIcon}
-                        aria-hidden="true"
-                        className="h-6 w-6 shrink-0"
-                      />
-                      All Folders
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col">
-            <div className="pl-2 text-xs font-semibold leading-6 text-gray-400 opacity-50">
+            <div className="pl-2 text-xs font-semibold leading-6 opacity-50">
               Account
             </div>
             <div className="flex flex-1 flex-col gap-y-7 overflow-hidden">
               <ul role="list" className="space-y-1">
+                <li>
+                  <Link
+                    href={'/folders'}
+                    className={clsx(
+                      router.asPath === '/folders'
+                        ? ''
+                        : 'text-gray-400 hover:bg-foreground/10 hover:text-white',
+                      'group flex gap-x-3 p-2 text-sm font-semibold leading-6 rounded-md overflow-hidden',
+                    )}
+                  >
+                    <Icon
+                      icon={FolderIcon}
+                      aria-hidden="true"
+                      className="h-6 w-6 shrink-0"
+                    />
+                    Folders
+                  </Link>
+                </li>
                 {navigation.map((item) => (
                   <li key={item.name} className="">
                     <Link
                       href={item.href}
                       className={clsx(
                         item.current
-                          ? 'bg-gray-800 text-white'
-                          : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                          ? ''
+                          : 'text-gray-400 hover:bg-foreground/10 hover:text-white',
                         'group flex gap-x-3 p-2 text-sm font-semibold leading-6 rounded-md overflow-hidden',
                       )}
                     >
@@ -155,7 +144,7 @@ export const NavSidebar = ({
           </div>
           {menuItems.length > 0 && (
             <div className="flex flex-col">
-              <div className="pl-2 text-xs font-semibold leading-6 text-gray-400 opacity-50">
+              <div className="pl-2 text-xs font-semibold leading-6 opacity-50">
                 Apps
               </div>
               <ul role="list" className="space-y-1">
@@ -165,8 +154,8 @@ export const NavSidebar = ({
                       href={item.href}
                       className={clsx(
                         router.asPath.startsWith(item.href)
-                          ? 'bg-gray-800 text-white'
-                          : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                          ? ''
+                          : 'text-gray-400 hover:bg-foreground/10 hover:text-white',
                         'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6',
                       )}
                     >
@@ -195,7 +184,7 @@ export const NavSidebar = ({
           )}
           {authContext.viewer?.isAdmin && (
             <div className="flex flex-col">
-              <div className="pl-2 text-xs font-semibold leading-6 text-gray-400 opacity-50">
+              <div className="pl-2 text-xs font-semibold leading-6 opacity-50">
                 Server
               </div>
               <ul role="list" className="space-y-1">
@@ -205,8 +194,8 @@ export const NavSidebar = ({
                       href={item.href}
                       className={clsx(
                         item.current
-                          ? 'bg-gray-800 text-white'
-                          : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                          ? ''
+                          : 'text-gray-400 hover:bg-foreground/10 hover:text-white',
                         'group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6',
                       )}
                     >
@@ -239,7 +228,7 @@ export const NavSidebar = ({
                   <span aria-hidden="true">{authContext.viewer.username}</span>
                 </div>
               </Link>
-              <Button link onClick={() => authContext.logout()}>
+              <Button variant={'link'} onClick={() => authContext.logout()}>
                 <Icon
                   className="text-gray-50"
                   size="md"

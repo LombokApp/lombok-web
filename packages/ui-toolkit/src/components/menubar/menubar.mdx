@@ -1,0 +1,50 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Button, Menubar } from '..'
+
+import * as Stories from './menubar.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### This is a description of the component.
+
+<Button variant="outline" size="sm" onClick={() => {
+  window.open('https://www.radix-ui.com/primitives/docs/components/menubar#api-reference', '_blank')
+}}>API Reference</Button>
+
+<Source
+  dark
+  language="tsx"
+  code={`
+
+import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarTrigger,
+} from '@stellariscloud/ui-toolkit'
+
+<Menubar>
+  <MenubarMenu>
+    <MenubarTrigger>File</MenubarTrigger>
+    <MenubarContent>
+      <MenubarItem>
+        New Tab <MenubarShortcut>⌘T</MenubarShortcut>
+      </MenubarItem>
+      <MenubarItem>New Window</MenubarItem>
+      <MenubarSeparator />
+      <MenubarItem>Share</MenubarItem>
+      <MenubarSeparator />
+      <MenubarItem>Print</MenubarItem>
+    </MenubarContent>
+  </MenubarMenu>
+</Menubar>
+
+`} />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

@@ -1,0 +1,30 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { AspectRatio } from '..'
+
+import * as Stories from './aspect-ratio.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### Displays content within a desired ratio.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+
+import { AspectRatio } from '@stellariscloud/ui-toolkit'
+
+<div className="w-[450px]">
+  <AspectRatio ratio={ratio} className="bg-red-500" />
+</div>
+
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

@@ -20,16 +20,16 @@ export function ServerAccessKeys() {
 
   return (
     <div className="w-full">
-      <dl className="divide-y divide-gray-100 dark:divide-gray-700">
+      <dl>
         <div className="px-4 py-6 flex flex-col sm:gap-4 sm:px-0">
-          <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 sm:col-span-3">
+          <dt className="text-sm font-medium leading-6 sm:col-span-3">
             <span className="text-xl">Access Keys In Use</span>
-            <div className="mt-1 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:mt-0">
+            <div className="mt-1 mr-4 font-normal text-sm leading-6 sm:mt-0">
               Distinct server provisioned S3 credentials in use by all users
               across the server.
             </div>
           </dt>
-          <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-5 sm:mt-0">
+          <dd className="mt-1 text-sm leading-6 sm:col-span-5 sm:mt-0">
             {(accessKeys?.length ?? 0) > 0 ? (
               <div className="flex flex-col gap-4 items-start">
                 <AccessKeysList

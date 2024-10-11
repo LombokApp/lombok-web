@@ -1,0 +1,44 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Button, Dialog } from '..'
+
+import * as Stories from './dialog.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### A window overlaid on either the primary window or another dialog window, rendering the content underneath inert.
+
+<Button variant="outline" size="sm" onClick={() => {
+  window.open('https://www.radix-ui.com/primitives/docs/components/dialog#api-reference', '_blank')
+}}>API Reference</Button>
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@stellariscloud/ui-toolkit'
+
+<Dialog>
+  <DialogTrigger>Open</DialogTrigger>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Are you absolutely sure?</DialogTitle>
+      <DialogDescription>
+        This action cannot be undone. This will permanently delete your
+        account and remove your data from our servers.
+      </DialogDescription>
+    </DialogHeader>
+  </DialogContent>
+</Dialog>
+`} />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

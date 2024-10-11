@@ -1,0 +1,39 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Button, RadioGroup } from '..'
+
+import * as Stories from './radio-group.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### A set of checkable buttons—known as radio buttons—where no more than one of the buttons can be checked at a time.
+
+<Button variant="outline" size="sm" onClick={() => {
+  window.open('https://www.radix-ui.com/primitives/docs/components/radio-group#api-reference', '_blank')
+}}>API Reference</Button>
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { Label, RadioGroup, RadioGroupItem } from '@stellariscloud/ui-toolkit'
+
+<RadioGroup defaultValue="comfortable">
+  <div className="flex items-center space-x-2">
+    <RadioGroupItem value="default" id="r1" />
+    <Label htmlFor="r1">Default</Label>
+  </div>
+  <div className="flex items-center space-x-2">
+    <RadioGroupItem value="comfortable" id="r2" />
+    <Label htmlFor="r2">Comfortable</Label>
+  </div>
+  <div className="flex items-center space-x-2">
+    <RadioGroupItem value="compact" id="r3" />
+    <Label htmlFor="r3">Compact</Label>
+  </div>
+</RadioGroup>
+`} />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

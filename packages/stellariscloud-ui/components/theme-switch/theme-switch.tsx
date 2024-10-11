@@ -104,7 +104,7 @@ const isDarkSaved = () => {
 }
 
 export const ThemeSwitch = ({ isVertical }: { isVertical?: boolean }) => {
-  const themeContext = useThemeContext()
+  // const themeContext = useThemeContext()
 
   const [darkMode, setDarkMode] = React.useState({
     darkModeRequested: typeof localStorage !== 'undefined' && isDarkSaved(),
@@ -143,14 +143,14 @@ export const ThemeSwitch = ({ isVertical }: { isVertical?: boolean }) => {
     })
   }, [])
 
-  React.useEffect(() => {
-    if (
-      (themeContext.theme === 'dark' && !darkMode.darkModeRequested) ||
-      (themeContext.theme !== 'dark' && darkMode.darkModeRequested)
-    ) {
-      themeContext.updateTheme(darkMode.darkModeRequested ? 'dark' : 'light')
-    }
-  }, [darkMode, themeContext])
+  // React.useEffect(() => {
+  //   if (
+  //     (themeContext.theme === 'dark' && !darkMode.darkModeRequested) ||
+  //     (themeContext.theme !== 'dark' && darkMode.darkModeRequested)
+  //   ) {
+  //     themeContext.updateTheme(darkMode.darkModeRequested ? 'dark' : 'light')
+  //   }
+  // }, [darkMode, themeContext])
 
   return (
     <ThemeToggle

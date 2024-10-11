@@ -6,6 +6,7 @@ import { Avatar, AvatarSize } from '../avatar'
 import { Button } from '../button/button'
 import type { IconProps } from '../icon'
 import { Icon } from '../icon'
+import { TypographyH2 } from '@stellariscloud/ui-toolkit'
 
 export function PageHeading({
   title,
@@ -42,7 +43,7 @@ export function PageHeading({
 }) {
   return (
     <div className="flex flex-col items-start lg:flex-row w-full">
-      <div className="min-w-0 flex flex-col gap-1 flex-1 py-3 text-gray-900 dark:text-white">
+      <div className="min-w-0 flex flex-col gap-1 flex-1 py-3">
         <div className="flex flex-col items-start gap-6">
           <div className="flex items-start gap-4">
             {titleIcon && (
@@ -75,16 +76,16 @@ export function PageHeading({
               <div className="flex items-center gap-4">
                 <h2 className="text-xl font-bold leading-7 sm:truncate sm:text-2xl sm:tracking-tight">
                   <div className="flex gap-2">
-                    {typeof title === 'string'
-                      ? title
-                      : title.map((t, i) => (
-                          <div key={i} className="flex items-center gap-2">
-                            {i > 0 && (
-                              <Icon size="sm" icon={ChevronRightIcon} />
-                            )}
-                            <div className="">{t}</div>
-                          </div>
-                        ))}
+                    {typeof title === 'string' ? (
+                      <TypographyH2>{title}</TypographyH2>
+                    ) : (
+                      title.map((t, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          {i > 0 && <Icon size="sm" icon={ChevronRightIcon} />}
+                          <div className="">{t}</div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </h2>
                 {ancestorTitle && ancestorTitleIcon && ancestorTitleIconBg && (

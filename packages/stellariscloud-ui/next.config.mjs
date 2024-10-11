@@ -60,7 +60,6 @@ export default {
   transpilePackages: [
     '@stellariscloud/types',
     '@stellariscloud/utils',
-    '@stellariscloud/ui-toolkit',
     '@stellariscloud/auth-utils',
   ],
   reactStrictMode: false,

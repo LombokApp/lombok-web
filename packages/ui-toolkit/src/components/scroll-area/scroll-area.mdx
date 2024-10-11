@@ -1,0 +1,55 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Button, ScrollArea } from '..'
+
+import * as Stories from './scroll-area.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### Augments native scroll functionality for custom, cross-browser styling.
+
+<Button variant="outline" size="sm" onClick={() => {
+  window.open('https://www.radix-ui.com/primitives/docs/components/scroll-area#api-reference', '_blank')
+}}>API Reference</Button>
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { ScrollArea, Separator } from '@stellariscloud/ui-toolkit'
+
+const tags = [
+'v1.2.0-beta.1',
+'v1.2.0-beta.2',
+'v1.2.0-beta.3',
+'v1.2.0-beta.4',
+'v1.2.0-beta.5',
+'v1.2.0-beta.6',
+'v1.2.0-beta.7',
+'v1.2.0-beta.8',
+'v1.2.0-beta.9',
+'v1.2.0-beta.10',
+]
+
+<ScrollArea className="h-72 w-48 rounded-md border">
+  <div className="p-4">
+    <h4 className="mb-4 text-sm font-medium leading-none">Tags</h4>
+    {tags.map((tag) => (
+      <>
+        <div key={tag} className="text-sm">
+          {tag}
+        </div>
+        <Separator className="my-2" />
+      </>
+    ))}
+  </div>
+</ScrollArea>
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

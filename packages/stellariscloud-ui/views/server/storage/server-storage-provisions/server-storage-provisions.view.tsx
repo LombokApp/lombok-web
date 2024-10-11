@@ -1,7 +1,7 @@
 import { FolderIcon, PlusIcon } from '@heroicons/react/24/outline'
 import React from 'react'
 
-import { Button } from '../../../../design-system/button/button'
+import { Button } from '@stellariscloud/ui-toolkit'
 import { EmptyState } from '../../../../design-system/empty-state/empty-state'
 import { apiClient } from '../../../../services/api'
 import type { StorageProvisionFormValues } from './storage-provision-form/storage-provision-form'
@@ -72,17 +72,17 @@ export function ServerStorageProvisions() {
     <div className="w-full">
       <dl className="divide-y divide-gray-100 dark:divide-gray-700">
         <div className="px-4 py-6 flex flex-col sm:gap-4 sm:px-0">
-          <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200 sm:col-span-3">
+          <dt className="text-sm font-medium leading-6 sm:col-span-3">
             <span className="text-xl">Storage Provisions</span>
-            <div className="mt-1 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:mt-0">
+            <div className="mt-1 mr-4 font-normal text-sm leading-6 sm:mt-0">
               Designate S3 locations that a user can nominate as storage for new
               folders. Without entries here your users can only create folders
               by providing their own credentials to a working S3-compatible
               service.
             </div>
-            <div className="pt-2 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:mt-0"></div>
+            <div className="pt-2 mr-4 font-normal text-sm leading-6 sm:mt-0"></div>
           </dt>
-          <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-5 sm:mt-0">
+          <dd className="mt-1 text-sm leading-6 sm:col-span-5 sm:mt-0">
             {editingStorageProvision ? (
               <StorageProvisionForm
                 value={editingStorageProvision.storageProvision}
@@ -122,8 +122,6 @@ export function ServerStorageProvisions() {
                   }
                 />
                 <Button
-                  primary
-                  icon={PlusIcon}
                   onClick={() =>
                     setEditingStorageProvision({
                       storageProvision: undefined,
@@ -131,6 +129,7 @@ export function ServerStorageProvisions() {
                     })
                   }
                 >
+                  <PlusIcon className="w-5 h-5" />
                   Add Storage Provision
                 </Button>
               </div>

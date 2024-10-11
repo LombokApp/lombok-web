@@ -1,0 +1,43 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Button, DropdownMenu } from '..'
+
+import * as Stories from './dropdown-menu.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### Displays a menu to the user — such as a set of actions or functions — triggered by a button.
+
+<Button variant="outline" size="sm" onClick={() => {
+  window.open('https://www.radix-ui.com/primitives/docs/components/dropdown-menu#api-reference', '_blank')
+}}>API Reference</Button>
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@stellariscloud/ui-toolkit'
+
+<DropdownMenu>
+  <DropdownMenuTrigger>Open Dropdown</DropdownMenuTrigger>
+  <DropdownMenuContent>
+    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+    <DropdownMenuSeparator />
+    <DropdownMenuItem>Profile</DropdownMenuItem>
+    <DropdownMenuItem>Billing</DropdownMenuItem>
+    <DropdownMenuItem>Team</DropdownMenuItem>
+    <DropdownMenuItem>Subscription</DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>
+`} />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

@@ -1,0 +1,39 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Input } from '..'
+
+import * as Stories from './input.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### A form input field or a component that looks like an input field.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { Card, CardContent, CardHeader, CardTitle, Input, Label } from '@stellariscloud/ui-toolkit'
+
+<Card>
+  <CardHeader>
+    <CardTitle>
+      <Label htmlFor="myfield">Your Input</Label>
+    </CardTitle>
+  </CardHeader>
+  <CardContent>
+    <Input
+      id="myfield"
+      value={props.value}
+      placeholder={props.placeholder}
+    />
+  </CardContent>
+</Card>
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

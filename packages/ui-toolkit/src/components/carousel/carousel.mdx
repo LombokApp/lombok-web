@@ -1,0 +1,40 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Carousel } from '..'
+
+import * as Stories from './carousel.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### A carousel with motion and swipe built using Embla.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@stellariscloud/ui-toolkit"
+
+<Carousel>
+  <CarouselContent>
+    <CarouselItem>...</CarouselItem>
+    <CarouselItem>...</CarouselItem>
+    <CarouselItem>...</CarouselItem>
+  </CarouselContent>
+  <CarouselPrevious />
+  <CarouselNext />
+</Carousel>
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

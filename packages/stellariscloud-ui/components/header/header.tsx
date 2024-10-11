@@ -7,10 +7,10 @@ import Link from 'next/link'
 import type { MouseEvent } from 'react'
 import React from 'react'
 
-import { Button } from '../../design-system/button/button'
 import { Icon } from '../../design-system/icon'
 import { useBreakPoints } from '../../utils/hooks'
-import { ThemeSwitch } from '../theme-switch/theme-switch'
+import { ModeToggle } from '../mode-toggle/mode-toggle'
+import { Button } from '@stellariscloud/ui-toolkit'
 
 export const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false)
@@ -62,7 +62,7 @@ export const Header = () => {
             />
             <div
               className={clsx(
-                'font-bold text-gray-800 dark:text-white',
+                'font-bold',
                 router.pathname === '/' && 'text-white',
               )}
             >
@@ -72,15 +72,11 @@ export const Header = () => {
         </Link>
       </div>
       <div className="flex items-center self-end align-end content-end gap-3">
-        <ThemeSwitch isVertical={false} />
+        <ModeToggle />
         {authState.isAuthenticated && (
           <Link href="/folders">
-            <Button
-              icon={FolderOpenIcon}
-              primary
-              size="sm"
-              className={clsx('text-left')}
-            >
+            <Button size="sm" className={clsx('text-left')}>
+              <FolderOpenIcon />
               Folders
             </Button>
           </Link>
@@ -88,36 +84,32 @@ export const Header = () => {
         {!authState.isAuthenticated && (
           <div className="flex items-center gap-6">
             <div className="flex gap-2">
-              {router.pathname !== '/signup' && (
+              {!['/signup', '/'].includes(router.pathname) && (
                 <Button
                   size="sm"
-                  primary
                   className={clsx('text-left')}
                   onClick={(e) => handleLoginSignupClick(e, true)}
                 >
                   <div className="flex items-center gap-2">
                     <div className="shrink-0">Signup</div>
+                    <Icon
+                      icon={ArrowRightIcon}
+                      className="dark:text-white"
+                      size="sm"
+                    />
                   </div>
                 </Button>
               )}
               {router.pathname !== '/login' && (
-                <Button
-                  link
-                  size="sm"
-                  className={clsx(
-                    'dark:text-left dark:text-white',
-                    router.pathname !== '/' ? 'text-gray-700' : 'text-white',
-                  )}
-                  onClick={handleLoginSignupClick}
-                >
+                <Button size="sm" onClick={handleLoginSignupClick}>
                   <div className="flex items-center gap-2">
                     <div className="shrink-0">Login</div>
+                    <Icon
+                      icon={ArrowRightIcon}
+                      className="dark:text-white"
+                      size="sm"
+                    />
                   </div>
-                  <Icon
-                    icon={ArrowRightIcon}
-                    className="dark:text-white"
-                    size="sm"
-                  />
                 </Button>
               )}
             </div>

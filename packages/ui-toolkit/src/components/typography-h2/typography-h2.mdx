@@ -1,0 +1,31 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { TypographyH2 } from '..'
+
+import * as Stories from './typography-h2.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### This is a description of the component.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { Card, CardContent, TypographyH2 } from '@stellariscloud/ui-toolkit'
+
+<Card>
+  <CardContent className="p-10">
+    <TypographyH2>My H2 Title</TypographyH2>
+  </CardContent>
+</Card>
+
+`} />
+
+## Properties
+
+<Controls />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />
