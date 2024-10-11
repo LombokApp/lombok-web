@@ -1,9 +1,8 @@
-import { ArrowPathIcon, TrashIcon, UsersIcon } from '@heroicons/react/20/solid'
 import {
   ArrowUpOnSquareIcon,
-  DocumentTextIcon,
+  ArrowPathIcon,
+  TrashIcon,
   FolderIcon,
-  MapPinIcon,
 } from '@heroicons/react/24/outline'
 import { FolderObjectDTO } from '@stellariscloud/api-client'
 import { FolderPermissionEnum } from '@stellariscloud/types'
@@ -27,19 +26,17 @@ import useDebounce from 'react-use/lib/useDebounce'
 
 import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
 import { ConfirmRefreshFolderModal } from '../../components/confirm-refresh-folder-modal/confirm-refresh-folder-modal'
-import { FolderEmptyState } from '../../components/folder-empty-state/folder-empty-state'
 import { FolderScroll } from '../../components/folder-scroll/folder-scroll'
 import { UploadModal } from '../../components/upload-modal/upload-modal'
 import { useFolderContext } from '../../contexts/folder.context'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
-import { Icon } from '../../design-system/icon'
-import { PageHeading } from '../../design-system/page-heading/page-heading'
 import { useWindowDimensions } from '../../hooks/use-window-dimensions'
 import { apiClient } from '../../services/api'
 import { FolderObjectDetailScreen } from '../folder-object-detail-screen/folder-object-detail-screen.view'
 import type { FolderSidebarTab } from '../folder-sidebar/folder-sidebar.view'
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
-import { Button } from '@stellariscloud/ui-toolkit'
+import { Button, cn } from '@stellariscloud/ui-toolkit'
+import { EmptyState } from '../../design-system/empty-state/empty-state'
 
 const SCROLL_JUMP_ROWS_CUTTOFF = 10
 const ROW_BUFFER_SIZE = 3
@@ -238,6 +235,7 @@ const renderFolderObjectPreview = (
       }
 
       const icon = iconForMimeType(folderObject.mimeType)
+      icon.setAttribute('class', 'stroke-foreground/70')
       const iconDiv = document.createElement('div')
       iconDiv.setAttribute('class', 'absolute h-full w-full')
 
@@ -312,7 +310,7 @@ const renderFolderObjectPreview = (
   infoOverlay.style.position = 'absolute'
   infoOverlay.setAttribute(
     'class',
-    'w-full h-full flex flex-col p-2 px-4 text-[1rem] font-bold shadow-md text-white justify-end top-0 left-0 right-0 bottom-0',
+    'w-full h-full flex flex-col p-2 px-4 text-[.8rem] font-bold shadow-md text-foreground/90 justify-end top-0 left-0 right-0 bottom-0',
   )
   const infoContent = document.createElement('div')
   const titleWrapper = document.createElement('div')
@@ -362,7 +360,7 @@ const renderTile = (
   itemContainerDiv.style.marginBottom = `${CARD_PADDING_SIZE}px`
   itemContainerDiv.style.fontSize = `6rem`
   itemContainerDiv.style.position = `relative`
-  itemContainerDiv.className = `bg-black/[15%] dark:bg-white/[2%]`
+  itemContainerDiv.className = `bg-foreground/10`
 
   const folderObject = getFolderObjectForPosition(position)
 
@@ -428,7 +426,7 @@ const renderTileSequence = (
   },
 ) => {
   // console.log('add tiles from %d to %d', start, end)
-  const indexArray: number[] = new Array(end - start + 1)
+  const indexArray: number[] = new Array(Math.max(0, end - start + 1))
     .fill(0)
     .map((i, positionIndex) => start + positionIndex)
 
@@ -1165,7 +1163,11 @@ export const FolderDetailScreen = () => {
         ref={mainContainerRef}
       >
         {focusedObjectKeyRef.current && (
-          <div className="absolute top-0 right-0 bottom-0 left-0 z-20">
+          <div
+            className={cn(
+              'absolute top-0 right-0 bottom-0 left-0 z-20 opacity-100',
+            )}
+          >
             <FolderObjectDetailScreen
               folderId={folderContext.folderId}
               objectKey={focusedObjectKeyRef.current}
@@ -1229,48 +1231,47 @@ export const FolderDetailScreen = () => {
             />
           </div>
         )}
-        <div className="flex flex-1 h-full w-full z-10">
-          <div className="flex-1 flex flex-col w-full h-full ">
+        <div
+          className={cn(
+            'flex flex-1 h-full w-full z-10 pl-4',
+            focusedObjectKeyRef.current && 'opacity-0',
+          )}
+        >
+          <div className="flex-1 flex flex-col w-full h-full">
             <div className="px-4 py-2">
-              <PageHeading
-                title={folderContext.folder?.name ?? ''}
-                titleIconBg={'bg-blue-100'}
-                avatarKey={folderContext.folder?.id}
-              >
-                <div className="pt-2 flex gap-2">
-                  {folderContext.folderPermissions?.includes(
-                    FolderPermissionEnum.OBJECT_EDIT,
-                  ) && (
-                    <Button size="sm" onClick={handleUploadStart}>
-                      <Icon size="sm" icon={ArrowUpOnSquareIcon} />
+              <div className="pt-2 flex gap-2">
+                {folderContext.folderPermissions?.includes(
+                  FolderPermissionEnum.OBJECT_EDIT,
+                ) && (
+                  <Button size="sm" onClick={handleUploadStart}>
+                    <div className="flex gap-1 items-center">
+                      <ArrowUpOnSquareIcon className="w-5 h-5" />
                       Upload
-                    </Button>
-                  )}
-                  {folderContext.folderPermissions?.includes(
-                    FolderPermissionEnum.FOLDER_RESCAN,
-                  ) && (
-                    <Button size="sm" onClick={handleRefreshFolder}>
-                      <Icon size="sm" icon={ArrowPathIcon} />
+                    </div>
+                  </Button>
+                )}
+                {folderContext.folderPermissions?.includes(
+                  FolderPermissionEnum.FOLDER_RESCAN,
+                ) && (
+                  <Button size="sm" onClick={handleRefreshFolder}>
+                    <div className="flex gap-1 items-center">
+                      <ArrowPathIcon className="w-5 h-5" />
                       Refresh
-                    </Button>
-                  )}
-                  {folderContext.folderPermissions?.includes(
-                    FolderPermissionEnum.FOLDER_FORGET,
-                  ) && (
-                    <Button size="sm" onClick={handleForgetFolder}>
-                      <Icon size="sm" icon={TrashIcon} />
-                    </Button>
-                  )}
-                  {/* {folderContext.folderPermissions?.includes(
-                    FolderPermissionsEnum.FolderManageShares,
-                  ) && (
-                    <Button primary size="sm" onClick={handleShareClick}>
-                      <Icon size="sm" className="text-white" icon={UsersIcon} />
-                      Share
-                    </Button>
-                  )} */}
-                </div>
-              </PageHeading>
+                    </div>
+                  </Button>
+                )}
+                {folderContext.folderPermissions?.includes(
+                  FolderPermissionEnum.FOLDER_FORGET,
+                ) && (
+                  <Button
+                    variant={'destructive'}
+                    size="sm"
+                    onClick={handleForgetFolder}
+                  >
+                    <TrashIcon className="w-5 h-5" />
+                  </Button>
+                )}
+              </div>
             </div>
             <div className="flex flex-1 overflow-hidden">
               <div className="flex-1 flex overflow-hidden">
@@ -1279,8 +1280,15 @@ export const FolderDetailScreen = () => {
                   className="flex-1 h-full overflow-hidden"
                 >
                   {folderContext.folderMetadata?.totalCount === 0 ? (
-                    <div className="h-full w-full flex flex-col justify-around">
-                      <FolderEmptyState onRefresh={handleRefreshFolder} />
+                    <div className="h-full w-full flex flex-col justify-around items-center">
+                      <div className="max-w-[30rem] min-w-[30rem]">
+                        <EmptyState
+                          icon={FolderIcon}
+                          text={'No objects. Try refreshing the folder.'}
+                          onButtonPress={handleRefreshFolder}
+                          buttonText="Refresh folder"
+                        />
+                      </div>
                     </div>
                   ) : (
                     <div
@@ -1300,7 +1308,7 @@ export const FolderDetailScreen = () => {
                 </div>
                 <div
                   className={clsx(
-                    'flex',
+                    'flex pb-2',
                     folderContext.folderMetadata?.totalCount === 0
                       ? 'opacity-0'
                       : 'opacity-100',

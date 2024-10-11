@@ -47,7 +47,6 @@ export function SignupForm({
 
   async function handleSubmit(values: SignupFormValues) {
     setIsLoading(true)
-    console.log({ values })
     onSubmit(values).then(() => {
       setIsLoading(false)
     })

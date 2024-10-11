@@ -1,7 +1,7 @@
 import type { StorageProvisionInputDTO } from '@stellariscloud/api-client'
 import React from 'react'
 
-import { Button } from '../../../../../design-system/button/button'
+import { Button } from '../../../../../../design-system/button/button'
 import { StorageProvisionFormFields } from './storage-provision-form-fields'
 import { StorageProvisionType } from '@stellariscloud/types'
 

@@ -1,15 +1,34 @@
 import React from 'react'
-import * as r from 'runtypes'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
-import { Button } from '@stellariscloud/ui-toolkit'
-import { Toggle } from '../../design-system/toggle/toggle'
-import { useFormState } from '../../utils/forms'
+import {
+  Button,
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Switch,
+} from '@stellariscloud/ui-toolkit'
 import { UserPermissions } from '../server-user-form/user-permissions'
 
 export interface ServerSettingsFormValues {
   SIGNUP_PERMISSIONS: string[]
   SIGNUP_ENABLED: boolean
 }
+
+const formSchema = z.object({
+  SIGNUP_PERMISSIONS: z.array(
+    z.string().min(2, {
+      message: 'Username must be at least 2 characters.',
+    }),
+  ),
+  SIGNUP_ENABLED: z.boolean(),
+})
 
 export const ServerSettingsForm = ({
   onChange,
@@ -25,23 +44,33 @@ export const ServerSettingsForm = ({
   onSubmit: (updatedFormValue: {
     valid: boolean
     values: ServerSettingsFormValues
-  }) => void
+  }) => Promise<void>
   formValue: Partial<ServerSettingsFormValues>
 }) => {
-  const [fieldConfigs, _setFieldConfigs] = React.useState({
-    SIGNUP_PERMISSIONS: {
-      validator: r.Array(r.String),
-      currentValue: formValue.SIGNUP_PERMISSIONS,
-      defaultValue: [],
-    },
-    SIGNUP_ENABLED: {
-      validator: r.Boolean,
-      currentValue: formValue.SIGNUP_ENABLED,
-      defaultValue: false,
+  // const [fieldConfigs, _setFieldConfigs] = React.useState({
+  //   SIGNUP_PERMISSIONS: {
+  //     validator: r.Array(r.String),
+  //     currentValue: formValue.SIGNUP_PERMISSIONS,
+  //     defaultValue: [],
+  //   },
+  //   SIGNUP_ENABLED: {
+  //     validator: r.Boolean,
+  //     currentValue: formValue.SIGNUP_ENABLED,
+  //     defaultValue: false,
+  //   },
+  // })
+
+  // const form = useFormState(fieldConfigs, formValue, onChange)
+  const form = useForm<ServerSettingsFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      // security_emails: true,
     },
   })
 
-  const form = useFormState(fieldConfigs, formValue, onChange)
+  async function handleSubmit(values: ServerSettingsFormValues) {
+    onSubmit({ valid: true, values })
+  }
 
   const SETTINGS_SECTIONS = [
     {
@@ -49,72 +78,79 @@ export const ServerSettingsForm = ({
       description:
         'Disabling this prevents users from signing up on this server.',
       component: () => (
-        <div>
-          <Toggle
-            name={'SIGNUP_ENABLED'}
-            onChange={(newValue) => form.setValue('SIGNUP_ENABLED', newValue)}
-            value={form.values.SIGNUP_ENABLED ?? false}
-          />
-        </div>
-      ),
-    },
-    {
-      title: 'Signup Permissions',
-      description:
-        'These permissions are assigned by default to a user when the signup.',
-      component: () => (
-        <div>
-          <UserPermissions
-            onChange={(newValues) =>
-              form.setValue('SIGNUP_PERMISSIONS', newValues.values)
-            }
-            values={form.values.SIGNUP_PERMISSIONS}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="SIGNUP_ENABLED"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>SignupEnabled</FormLabel>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <FormDescription>
+                Disabling this prevents users from signing up on this server.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       ),
     },
   ]
 
   return (
     <div className="">
-      <dl>
-        {SETTINGS_SECTIONS.map(
-          ({ component: Component, title, description }, i) => (
-            <div
-              key={i}
-              className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"
-            >
-              <dt className="text-sm font-medium leading-6">
-                {title}
-                <div className="mt-1 mr-4 font-normal text-sm leading-6 sm:col-span-2 sm:mt-0 opacity-50">
-                  {description}
+      <Form {...form}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            void form.handleSubmit(handleSubmit)(e)
+          }}
+          className="space-y-4"
+        >
+          <dl>
+            {SETTINGS_SECTIONS.map(
+              ({ component: Component, title, description }, i) => (
+                <div
+                  key={i}
+                  className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"
+                >
+                  <dt className="text-sm font-medium leading-6">
+                    {title}
+                    <div className="mt-1 mr-4 font-normal text-sm leading-6 sm:col-span-2 sm:mt-0 opacity-50">
+                      {description}
+                    </div>
+                  </dt>
+                  <dd className="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0">
+                    <Component key={i} />
+                  </dd>
                 </div>
-              </dt>
-              <dd className="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0">
-                <Component key={i} />
-              </dd>
+              ),
+            )}
+          </dl>
+          <div>
+            <div className="flex gap-2">
+              <Button onClick={onReset} variant={'outline'}>
+                <span className="capitalize">Reset</span>
+              </Button>
+              <Button
+                onClick={() =>
+                  onSubmit({
+                    valid: true,
+                    values: form.getValues() as ServerSettingsFormValues,
+                  })
+                }
+                disabled={!false}
+              >
+                <span className="capitalize">Save</span>
+              </Button>
             </div>
-          ),
-        )}
-      </dl>
-      <div>
-        <div className="flex gap-2">
-          <Button onClick={onReset} variant={'outline'}>
-            <span className="capitalize">Reset</span>
-          </Button>
-          <Button
-            onClick={() =>
-              onSubmit({
-                valid: form.state.valid,
-                values: form.values as ServerSettingsFormValues,
-              })
-            }
-            disabled={!form.state.valid}
-          >
-            <span className="capitalize">Save</span>
-          </Button>
-        </div>
-      </div>
+          </div>
+        </form>
+      </Form>
     </div>
   )
 }

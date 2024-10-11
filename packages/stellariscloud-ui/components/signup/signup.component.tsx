@@ -8,10 +8,14 @@ import React from 'react'
 import {
   Card,
   CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
   TypographyH2,
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
 import { SignupForm, SignupFormValues } from './signup-form.component'
+import Link from 'next/link'
 
 export const SignupComponent = ({
   onSubmit,
@@ -37,17 +41,20 @@ export const SignupComponent = ({
   return (
     <div className="flex min-h-full flex-1 flex-col items-center justify-center">
       <Card className="w-content min-w-[30rem]">
-        <CardContent className="px-6 py-12 lg:px-8">
-          <div className="flex flex-col gap-6 mb-6 items-center">
-            <img
-              className="mx-auto h-24 w-auto"
-              src="/stellariscloud.png"
-              alt="StellarisCloud"
-            />
-            <TypographyH2>Stellaris Cloud</TypographyH2>
-            <TypographyH3>Create an Account</TypographyH3>
-          </div>
+        <CardHeader>
+          <CardTitle className="text-xl">Sign Up</CardTitle>
+          <CardDescription>
+            Enter your information to create an account
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="px-6 lg:px-8">
           <SignupForm onSubmit={handleSubmit} />
+          <div className="mt-4 text-center text-sm">
+            Already have an account?{' '}
+            <Link href="/login" className="underline">
+              Sign in
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>

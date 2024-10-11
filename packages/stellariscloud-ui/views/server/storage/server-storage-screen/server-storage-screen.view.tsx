@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { ServerStorageProvisions } from '../server-storage-provisions/server-storage-provisions.view'
+import { ServerStorageProvisions } from '../../settings/server-settings-screen/server-storage-provisions/server-storage-provisions.view'
 import { ServerAccessKeys } from '../server-access-keys/server-access-keys.view'
 import { PageHeading } from '../../../../design-system/page-heading/page-heading'
 import clsx from 'clsx'

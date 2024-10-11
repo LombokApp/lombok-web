@@ -1,20 +1,17 @@
 import {
   ChevronRightIcon,
   ComputerDesktopIcon,
-  Square3Stack3DIcon,
 } from '@heroicons/react/24/outline'
-import type { AppData } from '@stellariscloud/types'
 import React from 'react'
 
 import { EmptyState } from '../../../../design-system/empty-state/empty-state'
 import { apiClient } from '../../../../services/api'
-import { PageHeading } from '../../../../design-system/page-heading/page-heading'
 import clsx from 'clsx'
 import { StackedList } from '../../../../design-system/stacked-list/stacked-list'
 import { Avatar } from '../../../../design-system/avatar'
 import Link from 'next/link'
-import { AppDTO } from '@stellariscloud/api-client'
 import { Button } from '@stellariscloud/ui-toolkit'
+import { AppData } from '@stellariscloud/types'
 
 export function ServerAppsScreen() {
   const [coreAppResetKey, _setCoreAppResetKey] = React.useState('__')
@@ -29,16 +26,11 @@ export function ServerAppsScreen() {
   return (
     <div
       className={clsx(
-        'p-4 items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
+        'items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
       )}
     >
       <div className="container flex-1 flex flex-col">
-        <PageHeading
-          titleIcon={Square3Stack3DIcon}
-          title={'Apps'}
-          subtitle="Review and manage apps installed on this server."
-        />
-        <dl className="divide-y divide-gray-100 dark:divide-gray-700">
+        <dl className="dark:divide-gray-700">
           <StackedList
             items={
               installedApps?.map((app) => (

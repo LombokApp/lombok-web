@@ -2,12 +2,6 @@ import {
   ArrowDownTrayIcon,
   ArrowLeftIcon,
   ArrowRightIcon,
-  CubeIcon,
-  DocumentIcon,
-  FolderIcon,
-  HashtagIcon,
-  MapPinIcon,
-  QuestionMarkCircleIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline'
 import type { FolderObjectDTO } from '@stellariscloud/api-client'
@@ -16,7 +10,7 @@ import {
   FolderPushMessage,
   MediaType,
 } from '@stellariscloud/types'
-import { formatBytes, toMetadataObjectIdentifier } from '@stellariscloud/utils'
+import { toMetadataObjectIdentifier } from '@stellariscloud/utils'
 import { useRouter } from 'next/router'
 import React from 'react'
 
@@ -24,13 +18,12 @@ import { ConfirmDeleteModal } from '../../components/confirm-delete-modal/confir
 import { useFolderContext } from '../../contexts/folder.context'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { LogLevel, useLoggingContext } from '../../contexts/logging.context'
-import { Button } from '../../design-system/button/button'
 import { ButtonGroup } from '../../design-system/button-group/button-group'
 import { Icon } from '../../design-system/icon'
-import { PageHeading } from '../../design-system/page-heading/page-heading'
 import { apiClient } from '../../services/api'
 import { FolderObjectPreview } from '../folder-object-preview/folder-object-preview.view'
 import { FolderObjectSidebar } from '../folder-object-sidebar/folder-object-sidebar.view'
+import { Button } from '@stellariscloud/ui-toolkit'
 
 export const FolderObjectDetailScreen = ({
   folderId,
@@ -185,123 +178,72 @@ export const FolderObjectDetailScreen = ({
           onCancel={() => setShowDeleteModal(false)}
         />
       )}
-      <div className="w-full h-screen flex flex-1 justify-end bg-gray-50 dark:bg-gray-900">
+      <div className="w-full h-full flex flex-1 justify-end">
         <div
           className="relative w-full h-full flex flex-col items-center"
           key={displayObjectKey}
         >
-          {folderObject && (
+          {folderObject?.objectKey && (
             <div className="w-full px-4 py-2">
-              <PageHeading
-                title={[
-                  folderContext.folder?.name ?? '',
-                  folderObject.objectKey,
-                ]}
-                titleIcon={DocumentIcon}
-                titleIconBg={'bg-purple-500 dark:bg-purple-700'}
-                titleIconSrc={objectThumbnailData}
-                ancestorTitle={folderContext.folder?.name}
-                ancestorHref={`/folders/${folderObject.folderId}`}
-                ancestorTitleIcon={FolderIcon}
-                ancestorTitleIconBg="bg-blue-500"
-                onAncestorPress={(href) => void router.push(href)}
-                properties={[
-                  {
-                    icon: CubeIcon,
-                    value: formatBytes(folderObject.sizeBytes),
-                  },
-                  {
-                    icon: QuestionMarkCircleIcon,
-                    value: folderObject.mimeType,
-                  },
-                  ...(folderObject.hash
-                    ? [
-                        {
-                          icon: HashtagIcon,
-                          value: folderObject.hash.slice(0, 8),
-                          monospace: true,
-                        },
-                      ]
-                    : []),
-                  ...(folderContext.folder
-                    ? [
-                        {
-                          icon: MapPinIcon,
-                          value: `${folderContext.folder.contentLocation.endpoint}/${folderContext.folder.contentLocation.bucket}/${folderObject.objectKey}`,
-                        },
-                      ]
-                    : []),
-                ]}
-              >
-                <div className="pt-2 flex gap-2">
-                  {folderContext.folderPermissions?.includes(
-                    FolderPermissionEnum.OBJECT_EDIT,
-                  ) && (
-                    <Button
-                      size="sm"
-                      onClick={handleDelete}
-                      danger
-                      icon={TrashIcon}
-                    >
-                      Delete
-                    </Button>
-                  )}
+              <div className="pt-2 flex gap-2">
+                {folderContext.folderPermissions?.includes(
+                  FolderPermissionEnum.OBJECT_EDIT,
+                ) && (
                   <Button
                     size="sm"
-                    primary
-                    onClick={() =>
-                      downloadToFile(
-                        folderId,
-                        `content:${folderObject.objectKey}`,
-                        objectKey.split('/').at(-1) ?? folderObject.objectKey,
-                      )
-                    }
+                    onClick={handleDelete}
+                    variant={'destructive'}
                   >
-                    <Icon
-                      size="sm"
-                      icon={ArrowDownTrayIcon}
-                      className="text-white"
-                    />
-                    Download
+                    <TrashIcon className="w-5 h-5" />
+                    Delete
                   </Button>
-                  <ButtonGroup
-                    size="lg"
-                    buttons={
-                      onNextClick && onPreviousClick
-                        ? [
-                            {
-                              name: '',
-                              icon: ArrowLeftIcon,
-                              disabled: false,
-                              onClick: () => {
-                                onNextClick()
-                                setDisplayObjectKey(undefined)
-                              },
+                )}
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    downloadToFile(
+                      folderId,
+                      `content:${objectKey}`,
+                      objectKey.split('/').at(-1) ?? objectKey,
+                    )
+                  }
+                >
+                  <ArrowDownTrayIcon className="w-5 h-5" />
+                  Download
+                </Button>
+                <ButtonGroup
+                  size="lg"
+                  buttons={
+                    onNextClick && onPreviousClick
+                      ? [
+                          {
+                            name: '',
+                            icon: ArrowLeftIcon,
+                            disabled: false,
+                            onClick: () => {
+                              onNextClick()
+                              setDisplayObjectKey(undefined)
                             },
-                            {
-                              name: '',
-                              icon: ArrowRightIcon,
-                              disabled: false,
-                              onClick: () => {
-                                onPreviousClick()
-                                setDisplayObjectKey(undefined)
-                              },
+                          },
+                          {
+                            name: '',
+                            icon: ArrowRightIcon,
+                            disabled: false,
+                            onClick: () => {
+                              onPreviousClick()
+                              setDisplayObjectKey(undefined)
                             },
-                          ]
-                        : []
-                    }
-                  />
-                </div>
-              </PageHeading>
+                          },
+                        ]
+                      : []
+                  }
+                />
+              </div>
             </div>
           )}
           <div className="w-full flex-1 flex overflow-hidden">
             {folderObject && (
-              <div
-                className={
-                  'h-full flex-1 bg-gray-100 dark:bg-black/[20%] flex flex-col justify-around'
-                }
-              >
+              <div className={'flex-1 flex flex-col justify-around'}>
                 {folderObject.hash ? (
                   <FolderObjectPreview
                     folderId={folderId}
@@ -311,8 +253,8 @@ export const FolderObjectDetailScreen = ({
                   />
                 ) : (
                   <div className="flex flex-1 items-center justify-around">
-                    <Button onClick={handleIndexFolderObject} primary>
-                      Reindex content
+                    <Button onClick={handleIndexFolderObject}>
+                      Analyze content
                     </Button>
                   </div>
                 )}

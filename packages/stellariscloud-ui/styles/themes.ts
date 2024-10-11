@@ -2,7 +2,7 @@ import { palette } from './palette'
 
 export const baseTheme = {
   light: {
-    background: palette.neutral[50],
+    background: palette.neutral[100],
     foreground: palette.neutral[950],
     card: palette.neutral[50],
     cardForeground: palette.neutral[950],
@@ -31,7 +31,7 @@ export const baseTheme = {
   dark: {
     background: palette.neutral[900],
     foreground: palette.neutral[50],
-    card: palette.neutral[950],
+    card: palette.neutral[800],
     cardForeground: palette.neutral[50],
     popover: palette.neutral[950],
     popoverForeground: palette.neutral[50],
@@ -45,7 +45,7 @@ export const baseTheme = {
     accentForeground: palette.neutral[50],
     destructive: palette.red[900],
     destructiveForeground: palette.red[50],
-    border: palette.neutral[800],
+    border: palette.neutral[700],
     input: palette.neutral[800],
     ring: palette.neutral[50],
     chart1: palette.amber[50],
