@@ -79,8 +79,10 @@ export const themePlugin = plugin(
   {
     theme: {
       extend: {
+        borderColor: {
+          DEFAULT: colorMix('border'),
+        },
         colors: {
-          border: colorMix('border'),
           input: colorMix('input'),
           ring: colorMix('ring'),
           background: colorMix('background'),

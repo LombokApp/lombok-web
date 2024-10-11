@@ -9,7 +9,7 @@ import clsx from 'clsx'
 import React from 'react'
 
 import { Avatar } from '../../../../design-system/avatar'
-import { Button } from '../../../../design-system/button/button'
+import { Button } from '@stellariscloud/ui-toolkit'
 import { apiClient } from '../../../../services/api'
 import { StackedList } from '../../../../design-system/stacked-list/stacked-list'
 import { PageHeading } from '../../../../design-system/page-heading/page-heading'
@@ -55,10 +55,10 @@ export function ServerUsersScreen() {
                       className="bg-indigo-100"
                     />
                     <div className="min-w-0 flex-auto">
-                      <p className="text-sm font-semibold leading-6 text-gray-900 dark:text-white">
+                      <p className="text-sm font-semibold leading-6">
                         {u.username} - {u.id}
                       </p>
-                      <div className="mt-1 flex items-center gap-x-2 text-xs leading-5 text-gray-500 dark:text-gray-100">
+                      <div className="mt-1 flex items-center gap-x-2 text-xs leading-5">
                         <p className="whitespace-nowrap">{u.email}</p>
                         <svg
                           viewBox="0 0 2 2"
@@ -83,7 +83,7 @@ export function ServerUsersScreen() {
                       </div>
                     </div>
                     <div className="ml-auto">
-                      <Button key={i} link icon={ChevronRightIcon} />
+                      <ChevronRightIcon className="w-5 h-5" />
                     </div>
                   </div>
                 </Link>
@@ -98,11 +98,8 @@ export function ServerUsersScreen() {
               </div>
             ) : (
               <div className="pt-4">
-                <Button
-                  primary
-                  icon={PlusIcon}
-                  onClick={() => setAddingUser(true)}
-                >
+                <Button onClick={() => setAddingUser(true)}>
+                  <PlusIcon className="w-5 h-5" />
                   Add User
                 </Button>
               </div>

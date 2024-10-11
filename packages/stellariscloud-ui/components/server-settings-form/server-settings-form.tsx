@@ -1,7 +1,7 @@
 import React from 'react'
 import * as r from 'runtypes'
 
-import { Button } from '../../design-system/button/button'
+import { Button } from '@stellariscloud/ui-toolkit'
 import { Toggle } from '../../design-system/toggle/toggle'
 import { useFormState } from '../../utils/forms'
 import { UserPermissions } from '../server-user-form/user-permissions'
@@ -77,20 +77,20 @@ export const ServerSettingsForm = ({
 
   return (
     <div className="">
-      <dl className="divide-y divide-gray-100 dark:divide-gray-700">
+      <dl>
         {SETTINGS_SECTIONS.map(
           ({ component: Component, title, description }, i) => (
             <div
               key={i}
               className="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0"
             >
-              <dt className="text-sm font-medium leading-6 text-gray-900 dark:text-gray-200">
+              <dt className="text-sm font-medium leading-6">
                 {title}
-                <div className="mt-1 mr-4 font-normal text-sm leading-6 text-gray-500 dark:text-gray-400 sm:col-span-2 sm:mt-0">
+                <div className="mt-1 mr-4 font-normal text-sm leading-6 sm:col-span-2 sm:mt-0 opacity-50">
                   {description}
                 </div>
               </dt>
-              <dd className="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">
+              <dd className="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0">
                 <Component key={i} />
               </dd>
             </div>
@@ -99,11 +99,10 @@ export const ServerSettingsForm = ({
       </dl>
       <div>
         <div className="flex gap-2">
-          <Button onClick={onReset}>
+          <Button onClick={onReset} variant={'outline'}>
             <span className="capitalize">Reset</span>
           </Button>
           <Button
-            primary
             onClick={() =>
               onSubmit({
                 valid: form.state.valid,

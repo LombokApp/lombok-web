@@ -15,10 +15,7 @@ export function Toggle({
   const enabled = !!value
   return (
     <div className="flex flex-col gap-2">
-      <label
-        htmlFor={name}
-        className="block text-sm leading-6 font-semibold text-gray-900 dark:text-white"
-      >
+      <label htmlFor={name} className="block text-sm leading-6 font-semibold">
         {label}
       </label>
 
@@ -47,11 +44,7 @@ export function Toggle({
             )}
             aria-hidden="true"
           >
-            <svg
-              className="h-3 w-3 text-gray-400 dark:text-gray-600"
-              fill="none"
-              viewBox="0 0 12 12"
-            >
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 12 12">
               <path
                 d="M4 8l2-2m0 0l2-2M6 6L4 4m2 2l2 2"
                 stroke="currentColor"

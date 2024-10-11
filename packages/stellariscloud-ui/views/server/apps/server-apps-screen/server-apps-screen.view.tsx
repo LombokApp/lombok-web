@@ -12,8 +12,9 @@ import { PageHeading } from '../../../../design-system/page-heading/page-heading
 import clsx from 'clsx'
 import { StackedList } from '../../../../design-system/stacked-list/stacked-list'
 import { Avatar } from '../../../../design-system/avatar'
-import { Button } from '../../../../design-system/button/button'
 import Link from 'next/link'
+import { AppDTO } from '@stellariscloud/api-client'
+import { Button } from '@stellariscloud/ui-toolkit'
 
 export function ServerAppsScreen() {
   const [coreAppResetKey, _setCoreAppResetKey] = React.useState('__')
@@ -45,7 +46,7 @@ export function ServerAppsScreen() {
                   href={`/server/apps/${app.identifier}`}
                   className="w-full flex-1 p-4 py-2"
                 >
-                  <div className="flex justify-between flex-1 items-center gap-x-4 text-gray-700 dark:text-gray-100">
+                  <div className="flex justify-between flex-1 items-center gap-x-4">
                     <Avatar
                       uniqueKey={app.identifier}
                       size="sm"
@@ -61,7 +62,9 @@ export function ServerAppsScreen() {
                       </div>
                     </div>
                     <div className="self-end">
-                      <Button link icon={ChevronRightIcon} />
+                      <Button variant={'link'}>
+                        <ChevronRightIcon className="w-5 h-3" />
+                      </Button>
                     </div>
                   </div>
                 </Link>

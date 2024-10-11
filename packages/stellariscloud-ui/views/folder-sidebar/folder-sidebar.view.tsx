@@ -5,7 +5,6 @@ import {
   GlobeAltIcon,
   KeyIcon,
   MagnifyingGlassIcon,
-  WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline'
 import type { FolderGetResponse } from '@stellariscloud/api-client'
 import type { FolderMetadata } from '@stellariscloud/types'
@@ -17,10 +16,6 @@ import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
 import Link from 'next/link'
 
-const MAIN_TEXT_COLOR = 'text-gray-500 dark:text-gray-400'
-const MAIN_ICON_COLOR = 'text-gray-500'
-import { apiClient } from '../../services/api'
-import { TasksList } from '../../components/tasks-list/tasks-list.component'
 import { ActionsList } from '../../components/actions-list/actions-list.component'
 import { Card, Label } from '@stellariscloud/ui-toolkit'
 
@@ -42,23 +37,10 @@ export const FolderSidebar = ({
   folderMetadata?: FolderMetadata
 }) => {
   const { folder } = folderAndPermission ?? {}
-  const [tab, setTab] = React.useState(activeTab)
-  const tabs: { id: string; name: string; icon?: IconProps['icon'] }[] = [
-    { id: 'overview', name: 'Overview', icon: BookOpenIcon },
-    { id: 'workers', name: 'Workers', icon: WrenchScrewdriverIcon },
-    // { id: 'settings', name: 'Settings', icon: Cog6ToothIcon },
-  ]
-
-  const handleSetTab = React.useCallback(
-    (newTab: FolderSidebarTab) => {
-      setTab(newTab)
-      onTabChange(newTab)
-    },
-    [onTabChange],
-  )
 
   const actionItems: {
     id: string
+    key: string
     label: string
     description: string
     icon: IconProps['icon']
@@ -66,6 +48,7 @@ export const FolderSidebar = ({
   }[] = [
     {
       id: 'rescan',
+      key: 'rescan',
       label: 'Rescan folder content',
       description: 'Scan the underlying storage for content changes',
       icon: ArrowPathIcon,
@@ -73,6 +56,7 @@ export const FolderSidebar = ({
     },
     {
       id: 'index_all',
+      key: 'index_all',
       label: 'Index all unindexed',
       description: 'Enqueue indexing jobs for all unindexed objects',
       icon: MagnifyingGlassIcon,
@@ -90,7 +74,7 @@ export const FolderSidebar = ({
               <div className="text-lg font-bold">Overview</div>
             </div>
           </div>
-          <dl className="pb-6 pt-2">
+          <dl className="pb-6 pt-2 text-foreground/80">
             {folder && (
               <>
                 <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
@@ -157,8 +141,7 @@ export const FolderSidebar = ({
               </dd>
             </div>
           </dl>
-          <div>{tasks && <ActionsList actionItems={actionItems} />}</div>
-          <div>{tasks && <TasksList tasks={tasks} />}</div>
+          <div>{actionItems && <ActionsList actionItems={actionItems} />}</div>
         </Card>
       </div>
     </div>

@@ -2,13 +2,13 @@ import clsx from 'clsx'
 import { Badge } from '../../design-system/badge/badge'
 import { UserDTO } from '@stellariscloud/api-client'
 
-const LABEL_TEXT_COLOR = 'text-gray-500 dark:text-white'
-const VALUE_TEXT_COLOR = 'text-black dark:text-white'
+const LABEL_TEXT_COLOR = 'opacity-50'
+const VALUE_TEXT_COLOR = ''
 const ROW_SPACING = 'px-4 py-3'
 
 export function UserAttributeList({ user }: { user?: UserDTO }) {
   return (
-    <div className="bg-gray-200 dark:bg-transparent rounded-lg dark:rounded-none pl-4">
+    <div className="rounded-lg dark:rounded-none pl-4">
       <dl className="divide-y divide-white/10">
         <div
           className={clsx(

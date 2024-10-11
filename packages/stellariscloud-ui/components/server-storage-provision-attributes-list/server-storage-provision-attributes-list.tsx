@@ -1,10 +1,10 @@
 import { StorageProvisionDTO } from '@stellariscloud/api-client'
 import clsx from 'clsx'
-import { Badge } from '../../design-system/badge/badge'
+import { Badge } from '@stellariscloud/ui-toolkit'
 
 const ROW_SPACING = 'px-4 py-3'
-const LABEL_TEXT_COLOR = 'text-gray-500 dark:text-white'
-const VALUE_TEXT_COLOR = 'text-black dark:text-white'
+const LABEL_TEXT_COLOR = 'opacity-50'
+const VALUE_TEXT_COLOR = ''
 
 export function ServerStorageProvisionAttributesList({
   storageProvision,
@@ -12,7 +12,7 @@ export function ServerStorageProvisionAttributesList({
   storageProvision?: StorageProvisionDTO
 }) {
   return (
-    <div className="bg-gray-200 dark:bg-transparent rounded-lg dark:rounded-none pl-4">
+    <div className="rounded-lg dark:rounded-none pl-4">
       <dl className="divide-y divide-white/10">
         <div
           className={clsx(
@@ -198,9 +198,7 @@ export function ServerStorageProvisionAttributesList({
                 <span className="italic opacity-50">None</span>
               ) : (
                 storageProvision.provisionTypes.map((provisionType, i) => (
-                  <Badge style="info" key={i}>
-                    {provisionType}
-                  </Badge>
+                  <Badge key={i}>{provisionType}</Badge>
                 ))
               )}
             </div>

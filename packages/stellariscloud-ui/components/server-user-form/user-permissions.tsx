@@ -28,7 +28,7 @@ export const UserPermissions = ({
                 })
               }}
             />
-            <div className="text-gray-800 dark:text-gray-200">{perm}</div>
+            <div>{perm}</div>
           </div>
         ))}
       </div>

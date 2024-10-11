@@ -23,12 +23,17 @@ export function ActionsList({ actionItems }: { actionItems: ActionItem[] }) {
       <ul className="space-y-3 my-4">
         {actionItems.map((actionItem) => (
           <li key={actionItem.id} className="overflow-hidden border rounded-lg">
-            <button onClick={actionItem.onExecute} className="p-2 px-4">
+            <button
+              onClick={actionItem.onExecute}
+              className="p-2 px-4 text-foreground/60"
+            >
               <div className="flex items-start gap-2">
                 <div className="flex flex-col flex-1 gap-1">
                   <div className="flex items-center gap-2">
                     <Icon icon={actionItem.icon} size="sm" className="" />
-                    <div className="text-md font-bold">{actionItem.label}</div>
+                    <div className="text-md font-bold text-foreground/80">
+                      {actionItem.label}
+                    </div>
                   </div>
                   <div className="text-sm">{actionItem.description}</div>
                 </div>

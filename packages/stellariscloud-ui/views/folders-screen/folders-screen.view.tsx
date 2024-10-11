@@ -13,8 +13,7 @@ import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder
 import { CreateFolderForm } from '../../components/create-folder-form/create-folder-form'
 import { CreateFolderStartPanel } from '../../components/create-folder-start-panel/create-folder-start-panel'
 import { FolderCard } from '../../components/folder-card/folder-card'
-import { Button } from '../../design-system/button/button'
-import { Icon } from '../../design-system/icon/icon'
+import { Button } from '@stellariscloud/ui-toolkit'
 import { PageHeading } from '../../design-system/page-heading/page-heading'
 import { apiClient, foldersApiHooks } from '../../services/api'
 import { FolderIcon } from '@heroicons/react/24/outline'
@@ -112,8 +111,8 @@ export const FoldersScreen = () => {
               subtitle="All folders to which you have access."
             >
               {!folderFormKey && (
-                <Button size="lg" primary={true} onClick={handleStartCreate}>
-                  <Icon size="sm" icon={PlusIcon} className="text-white" />
+                <Button onClick={handleStartCreate}>
+                  <PlusIcon className="w-6 h-6" />
                   New Folder
                 </Button>
               )}

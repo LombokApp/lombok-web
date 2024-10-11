@@ -29,7 +29,7 @@ export const baseTheme = {
     chart5: palette.amber[400],
   },
   dark: {
-    background: palette.neutral[950],
+    background: palette.neutral[900],
     foreground: palette.neutral[50],
     card: palette.neutral[950],
     cardForeground: palette.neutral[50],

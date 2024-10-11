@@ -62,7 +62,7 @@ export const Header = () => {
             />
             <div
               className={clsx(
-                'font-bold text-gray-800 dark:text-white',
+                'font-bold',
                 router.pathname === '/' && 'text-white',
               )}
             >
