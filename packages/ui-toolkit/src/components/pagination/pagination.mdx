@@ -1,0 +1,49 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { Button, Pagination } from '..'
+
+import * as Stories from './pagination.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### Pagination with page navigation, next and previous links.
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@stellariscloud/ui-toolkit'
+
+<Pagination>
+  <PaginationContent>
+    <PaginationItem>
+      <PaginationPrevious onClick={() => console.log('previous clicked')} />
+    </PaginationItem>
+    <PaginationItem>
+      <PaginationLink
+        onClick={() => console.log('pagination jump link clicked')}
+      >
+        1
+      </PaginationLink>
+    </PaginationItem>
+    <PaginationItem>
+      <PaginationEllipsis />
+    </PaginationItem>
+    <PaginationItem>
+      <PaginationNext onClick={() => console.log('next clicked')} />
+    </PaginationItem>
+  </PaginationContent>
+</Pagination>
+`} />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />
