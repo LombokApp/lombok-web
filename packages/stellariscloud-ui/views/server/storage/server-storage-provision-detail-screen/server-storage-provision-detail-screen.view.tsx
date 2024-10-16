@@ -34,14 +34,12 @@ export function ServerStorageProvisionDetailScreen() {
 
   const handleRotate = React.useCallback(
     (
-      accessKeyId: string,
-      endpointDomain: string,
+      accessKeyHashId: string,
       newAccessKey: { accessKeyId: string; secretAccessKey: string },
     ) => {
       void apiClient.serverAccessKeysApi
         .rotateAccessKey({
-          accessKeyId,
-          endpointDomain,
+          accessKeyHashId,
           rotateAccessKeyInputDTO: {
             accessKeyId: newAccessKey.accessKeyId,
             secretAccessKey: newAccessKey.secretAccessKey,

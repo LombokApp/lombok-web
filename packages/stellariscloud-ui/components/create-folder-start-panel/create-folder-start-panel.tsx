@@ -9,11 +9,7 @@ export function CreateFolderStartPanel({ onCreate }: { onCreate: () => void }) {
       <Card className="h-full w-full">
         <div className="rounded-lg h-full">
           <div className="text-center flex flex-col justify-around items-center p-6 h-full">
-            <Icon
-              size="lg"
-              icon={FolderIcon}
-              className="text-gray-700 dark:text-white"
-            />
+            <Icon size="lg" icon={FolderIcon} />
             <p className="mt-1 text-sm">Create a new folder</p>
           </div>
         </div>

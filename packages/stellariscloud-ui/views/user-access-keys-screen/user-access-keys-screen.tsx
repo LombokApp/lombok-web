@@ -28,14 +28,6 @@ export function UserAccessKeysScreen() {
       )}
     >
       <div className="container flex-1 flex flex-col">
-        <div className="flex items-start gap-10">
-          <PageHeading
-            title={['Your Access Keys']}
-            titleIcon={KeyIcon}
-            titleIconBg="bg-rose-500"
-            subtitle="Manage and review access keys used by your current and recent folders."
-          />
-        </div>
         <div className="pt-8">
           {(accessKeys?.length ?? 0) > 0 ? (
             <div className="flex flex-col gap-4 items-start">

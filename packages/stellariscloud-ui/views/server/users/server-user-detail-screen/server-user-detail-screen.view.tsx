@@ -3,7 +3,6 @@ import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import { PageHeading } from '../../../../design-system/page-heading/page-heading'
 import { UserAccountStats } from '../../../../components/user-account-stats/user-account-stats'
 import { formatBytes, timeSinceOrUntil } from '@stellariscloud/utils'
 import { UserAttributeList } from '../../../../components/user-attribute-list/user-attribute-list'
@@ -36,40 +35,31 @@ export function ServerUserDetailScreen() {
     <>
       <div
         className={clsx(
-          'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto px-4',
+          'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
         )}
       >
         <div className="container flex-1 flex flex-col">
-          <div className="py-4 flex items-start gap-10">
-            <PageHeading
-              titleIconBg={'bg-amber-100'}
-              avatarKey={user?.id ?? 'Loading...'}
-              title={[`User: ${user?.email ?? user?.id ?? 'loading...'}`]}
-            />
-          </div>
-          <div className="flex flex-col gap-4">
-            <div className="flex gap-4 justify-between items-start">
-              <div className="flex-1">
-                <UserAttributeList user={user} />
-              </div>
-              <UserAccountStats
-                stats={{
-                  folderCount: { value: '103', label: 'Folders' },
-                  totalData: {
-                    value: formatBytes(685746167465),
-                    label: 'Total Data',
-                  },
-                  lastLogin: {
-                    value: timeSinceOrUntil(new Date(1723242258000)),
-                    label: 'Last Login',
-                  },
-                  created: {
-                    value: timeSinceOrUntil(new Date(1713242258000)),
-                    label: 'Created',
-                  },
-                }}
-              />
+          <div className="flex min-w-full items-start gap-4 p-8">
+            <div className="flex-1">
+              <UserAttributeList user={user} />
             </div>
+            <UserAccountStats
+              stats={{
+                folderCount: { value: '103', label: 'Folders' },
+                totalData: {
+                  value: formatBytes(685746167465),
+                  label: 'Total Data',
+                },
+                lastLogin: {
+                  value: timeSinceOrUntil(new Date(1723242258000)),
+                  label: 'Last Login',
+                },
+                created: {
+                  value: timeSinceOrUntil(new Date(1713242258000)),
+                  label: 'Created',
+                },
+              }}
+            />
           </div>
         </div>
       </div>

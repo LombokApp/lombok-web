@@ -1,7 +1,5 @@
 import {
   ArrowPathIcon,
-  CubeIcon,
-  FolderIcon,
   GlobeAltIcon,
   KeyIcon,
   MagnifyingGlassIcon,
@@ -18,6 +16,7 @@ import Link from 'next/link'
 
 import { ActionsList } from '../../components/actions-list/actions-list.component'
 import { Card, Label } from '@stellariscloud/ui-toolkit'
+import { Calculator } from 'lucide-react'
 
 export type FolderSidebarTab = 'overview' | 'settings' | 'workers'
 
@@ -66,26 +65,17 @@ export const FolderSidebar = ({
 
   return (
     <div className="h-full flex flex-col overflow-y-auto">
-      <div className="h-full flex pb-2 pr-2">
+      <div className="h-full flex pb-2 px-2">
         <Card className="p-3 flex-1">
           <div className="flex flex-col flex-1 gap-1 bg-foreground/5 p-2 rounded-md">
             <div className="flex items-center gap-2">
               <Icon icon={MagnifyingGlassIcon} size="md" />
-              <div className="text-lg font-bold">Overview</div>
+              <div className="text-lg font-bold">Folder Details</div>
             </div>
           </div>
           <dl className="pb-6 pt-2 text-foreground/80">
             {folder && (
               <>
-                <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
-                  <dt className="flex-none flex">
-                    <span className="sr-only">Folder</span>
-                    <Icon icon={FolderIcon} size="md" />
-                  </dt>
-                  <dd className={clsx('text-sm leading-6')}>
-                    <Label>{folder.name}</Label>
-                  </dd>
-                </div>
                 <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
                   <dt className="flex-none flex">
                     <span className="sr-only">Access Key</span>
@@ -125,7 +115,7 @@ export const FolderSidebar = ({
             <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
               <dt className="flex-none flex">
                 <span className="sr-only">Size</span>
-                <Icon icon={CubeIcon} size="md" />
+                <Calculator />
               </dt>
               <dd className={clsx('text-sm leading-6')}>
                 {`${folderMetadata ? folderMetadata.totalCount : 'unknown'}`}{' '}

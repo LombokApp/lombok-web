@@ -3,9 +3,14 @@ import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import React from 'react'
 import { apiClient } from '../../services/api'
-import { PageHeading } from '../../design-system/page-heading/page-heading'
 import { AccessKeyAttributeList } from '../../components/access-key-attribute-list/access-key-attributes-list'
 import { AccessKeyRotateForm } from '../../components/access-key-rotate-form/access-key-rotate-form'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  TypographyH3,
+} from '@stellariscloud/ui-toolkit'
 
 export function UserAccessKeyDetailScreen() {
   const router = useRouter()
@@ -70,25 +75,38 @@ export function UserAccessKeyDetailScreen() {
     <>
       <div
         className={clsx(
-          'p-4 items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
+          'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
         )}
       >
-        <div className="container flex-1 flex flex-col">
-          <PageHeading
-            titleIconBg={'bg-rose-500'}
-            avatarKey={`${accessKey?.accessKeyId}_${accessKey?.endpointDomain}`}
-            title={[
-              `User Access Key: ${accessKey?.accessKeyId} (${accessKey?.endpointDomain})`,
-            ]}
-          />
+        <div className="container flex-1 flex flex-col gap-4 p-8">
           <AccessKeyAttributeList accessKey={accessKey} />
-          {accessKey && (
-            <AccessKeyRotateForm onSubmit={(input) => handleRotate(input)} />
-          )}
-          <div className="flex flex-col">
-            {accessKeyBuckets?.map(({ name, creationDate }, i) => (
-              <div key={i}>{name}</div>
-            ))}
+          <Card>
+            <CardHeader>
+              <TypographyH3>Rotate Key</TypographyH3>
+            </CardHeader>
+            <CardContent>
+              {accessKey && (
+                <AccessKeyRotateForm
+                  onSubmit={(input) => handleRotate(input)}
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="flex flex-col gap-2">
+            <Card>
+              <CardHeader>
+                <TypographyH3>Buckets</TypographyH3>
+              </CardHeader>
+
+              <CardContent>
+                {accessKeyBuckets?.map(({ name, creationDate }, i) => (
+                  <div key={i} className="italic opacity-50">
+                    {name}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

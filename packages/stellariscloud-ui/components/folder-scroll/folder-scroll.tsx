@@ -8,16 +8,16 @@ export function FolderScroll({
   marginTop: number
 }) {
   return (
-    <div className={clsx('h-full', 'bg-gray-100 dark:bg-white/5 rounded-full')}>
-      <div className={clsx('px-1.5 w-6 h-full rounded-full')}>
+    <div className={clsx('h-full', 'bg-foreground/20 rounded-full')}>
+      <div className={clsx('w-4 h-full rounded-full')}>
         <div
           style={{
             height: `${viewHeight ?? 0}%`,
             marginTop: `${marginTop}px`,
           }}
-          className="py-2"
+          className=""
         >
-          <div className="h-full w-full bg-black/[.5] dark:bg-white/[.1] rounded-full"></div>
+          <div className="h-full w-full bg-background/70 rounded-full"></div>
         </div>
       </div>
     </div>

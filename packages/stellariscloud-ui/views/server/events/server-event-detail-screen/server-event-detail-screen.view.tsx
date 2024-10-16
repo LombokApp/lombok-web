@@ -3,7 +3,6 @@ import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import { PageHeading } from '../../../../design-system/page-heading/page-heading'
 import { apiClient } from '../../../../services/api'
 import { ServerEventAttributesList } from '../../../../components/server-event-attributes-list/server-event-attributes-list'
 
@@ -22,15 +21,10 @@ export function ServerEventDetailScreen() {
     <>
       <div
         className={clsx(
-          'p-4 items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
+          'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
         )}
       >
-        <div className="container flex-1 flex flex-col">
-          <PageHeading
-            titleIconBg={'bg-amber-100'}
-            avatarKey={event?.id}
-            title={[`Server Event ID: ${event?.id}`]}
-          />
+        <div className="container flex-1 flex flex-col gap-4 p-8">
           <ServerEventAttributesList event={event} />
         </div>
       </div>

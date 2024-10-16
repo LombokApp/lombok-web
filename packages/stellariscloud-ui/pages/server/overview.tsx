@@ -1,16 +1,23 @@
 import { useAuthContext } from '@stellariscloud/auth-utils'
 import type { NextPage } from 'next'
 import React from 'react'
-import { ServerOverview } from '../../views/server/overview/server-overview-screen/server-overview-screen.view'
+import { ServerDashboard } from '../../views/server/overview/server-dashboard-screen/server-dashboard-screen.view'
+import { ContentLayout } from '../../components/sidebar/components/content-layout'
+import { LayoutGrid } from 'lucide-react'
 
 const ServerOverviewPage: NextPage = () => {
   const authContext = useAuthContext()
   return (
-    <div className="h-full w-full">
-      {authContext.authState.isAuthenticated && authContext.viewer?.isAdmin && (
-        <ServerOverview />
-      )}
-    </div>
+    authContext.authState.isAuthenticated &&
+    authContext.viewer?.isAdmin && (
+      <ContentLayout
+        titleIcon={LayoutGrid}
+        breadcrumbs={[{ label: 'Server' }, { label: 'Dashboard' }]}
+        description="An overview of the server"
+      >
+        <ServerDashboard />
+      </ContentLayout>
+    )
   )
 }
 

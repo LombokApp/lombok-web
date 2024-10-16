@@ -10,5 +10,24 @@
   "typescript.format.enable": false,
   "javascript.format.enable": false,
   "prettier.requireConfig": true,
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#6c38f0",
+    "activityBar.background": "#d322ff",
+    "activityBar.foreground": "#e7e7e7",
+    "activityBar.inactiveForeground": "#ffffff99",
+    "activityBarBadge.background": "#4d4d4d",
+    "activityBarBadge.foreground": "#e7e7e7",
+    "commandCenter.border": "#e7e7e799",
+    "sash.hoverBorder": "#f0ce38",
+    "statusBar.background": "#e41159",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#4738f0",
+    "statusBarItem.remoteBackground": "#e41159",
+    "statusBarItem.remoteForeground": "#e7e7e7",
+    "titleBar.activeBackground": "#6211e4",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveBackground": "#e4115999",
+    "titleBar.inactiveForeground": "#e7e7e799"
+  },
 }

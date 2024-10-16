@@ -2,12 +2,12 @@ import { FolderIcon, PlusIcon } from '@heroicons/react/24/outline'
 import React from 'react'
 
 import { Button } from '@stellariscloud/ui-toolkit'
-import { EmptyState } from '../../../../design-system/empty-state/empty-state'
-import { apiClient } from '../../../../services/api'
+import { EmptyState } from '../../../../../design-system/empty-state/empty-state'
+import { apiClient } from '../../../../../services/api'
 import type { StorageProvisionFormValues } from './storage-provision-form/storage-provision-form'
 import { StorageProvisionForm } from './storage-provision-form/storage-provision-form'
 import { StorageProvisionDTO } from '@stellariscloud/api-client'
-import { StorageProvisionsList } from '../../../../components/storage-provisions-list/storage-provisions-list'
+import { StorageProvisionsList } from '../../../../../components/storage-provisions-list/storage-provisions-list'
 
 export function ServerStorageProvisions() {
   const [storageProvisions, setStorageProvisions] =
@@ -71,17 +71,7 @@ export function ServerStorageProvisions() {
   return (
     <div className="w-full">
       <dl className="divide-y divide-gray-100 dark:divide-gray-700">
-        <div className="px-4 py-6 flex flex-col sm:gap-4 sm:px-0">
-          <dt className="text-sm font-medium leading-6 sm:col-span-3">
-            <span className="text-xl">Storage Provisions</span>
-            <div className="mt-1 mr-4 font-normal text-sm leading-6 sm:mt-0">
-              Designate S3 locations that a user can nominate as storage for new
-              folders. Without entries here your users can only create folders
-              by providing their own credentials to a working S3-compatible
-              service.
-            </div>
-            <div className="pt-2 mr-4 font-normal text-sm leading-6 sm:mt-0"></div>
-          </dt>
+        <div className="flex flex-col sm:gap-4">
           <dd className="mt-1 text-sm leading-6 sm:col-span-5 sm:mt-0">
             {editingStorageProvision ? (
               <StorageProvisionForm

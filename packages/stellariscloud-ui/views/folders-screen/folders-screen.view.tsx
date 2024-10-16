@@ -13,10 +13,7 @@ import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder
 import { CreateFolderForm } from '../../components/create-folder-form/create-folder-form'
 import { CreateFolderStartPanel } from '../../components/create-folder-start-panel/create-folder-start-panel'
 import { FolderCard } from '../../components/folder-card/folder-card'
-import { Button } from '@stellariscloud/ui-toolkit'
-import { PageHeading } from '../../design-system/page-heading/page-heading'
 import { apiClient, foldersApiHooks } from '../../services/api'
-import { FolderIcon } from '@heroicons/react/24/outline'
 
 export const FoldersScreen = () => {
   const router = useRouter()
@@ -99,44 +96,32 @@ export const FoldersScreen = () => {
 
       <div
         className={clsx(
-          'p-4 items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
+          'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
         )}
       >
-        <div className="container flex-1 flex flex-col">
-          <div className={clsx(folderFormKey && 'opacity-0')}>
-            <PageHeading
-              title={'Your Folders'}
-              titleIcon={FolderIcon}
-              titleIconBg="bg-rose-500"
-              subtitle="All folders to which you have access."
-            >
-              {!folderFormKey && (
-                <Button onClick={handleStartCreate}>
-                  <PlusIcon className="w-6 h-6" />
-                  New Folder
-                </Button>
+        <div className="container flex-1 flex flex-col gap-4 p-8">
+          {folderFormKey && (
+            <div
+              className={clsx(
+                'overflow-hidden flex flex-col items-center flex-1',
               )}
-            </PageHeading>
-          </div>
-          <div
-            className={clsx(
-              'overflow-hidden flex flex-col justify-around duration-200 items-center',
-              !folderFormKey ? 'h-0' : 'flex-1',
-            )}
-          >
-            <div className="p-10 rounded-xl w-fit border border-gray-200 bg-white dark:border-0 dark:bg-white/5">
-              <CreateFolderForm
-                onCancel={() => void router.push({ pathname: router.pathname })}
-                storageProvisions={storageProvisions}
-                key={folderFormKey}
-                onSubmit={handleCreateFolder}
-              />
+            >
+              <div className="p-10 rounded-xl w-fit border border-gray-200 bg-white">
+                <CreateFolderForm
+                  onCancel={() =>
+                    void router.push({ pathname: router.pathname })
+                  }
+                  storageProvisions={storageProvisions}
+                  key={folderFormKey}
+                  onSubmit={handleCreateFolder}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <ul
             className={clsx(
-              'grid grid-cols-1 py-4 gap-6 sm:grid-cols-2 lg:grid-cols-3 w-full duration-200',
+              'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 w-full duration-200',
               folderFormKey && 'opacity-0',
             )}
           >

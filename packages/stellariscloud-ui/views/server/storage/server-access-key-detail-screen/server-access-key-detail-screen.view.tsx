@@ -55,17 +55,10 @@ export function ServerAccessKeyDetailScreen() {
     <>
       <div
         className={clsx(
-          'p-4 items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
+          'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto px-4',
         )}
       >
-        <div className="container flex-1 flex flex-col">
-          <PageHeading
-            titleIconBg={'bg-blue-500'}
-            avatarKey={accessKey?.accessKeyHashId}
-            title={[
-              `Server Access Key: ${accessKey?.accessKeyId} (${accessKey?.endpointDomain})`,
-            ]}
-          />
+        <div className="container flex-1 flex flex-col pt-12">
           <AccessKeyAttributeList accessKey={accessKey} />
           {accessKey && (
             <AccessKeyRotateForm onSubmit={(input) => handleRotate(input)} />

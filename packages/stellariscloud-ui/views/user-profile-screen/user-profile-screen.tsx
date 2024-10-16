@@ -29,7 +29,7 @@ export function UserProfileScreen() {
 
   const handleSubmitClick = React.useCallback(() => {
     void apiClient.viewerApi.updateViewer({
-      updateViewerInputDTO: {
+      viewerUpdateInputDTO: {
         name: userFormState?.name ?? '',
       },
     })
@@ -38,7 +38,7 @@ export function UserProfileScreen() {
   return (
     <div
       className={clsx(
-        'p-4 items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
+        'items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
       )}
     >
       <div className="container flex-1 flex flex-col">

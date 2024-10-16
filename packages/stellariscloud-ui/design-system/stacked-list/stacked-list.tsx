@@ -1,3 +1,4 @@
+import { Card, CardContent, CardHeader } from '@stellariscloud/ui-toolkit'
 import clsx from 'clsx'
 import React from 'react'
 
@@ -10,14 +11,11 @@ export function StackedList({
 }) {
   return (
     <div className={clsx('w-full', className)}>
-      <div className={clsx('overflow-hidden shadow-sm', 'flex flex-col gap-2')}>
+      <div className={clsx('overflow-hidden', 'flex flex-col gap-4')}>
         {items.map((item, i) => (
-          <div
-            key={i}
-            className="relative flex items-center bg-foreground/5 rounded-lg"
-          >
-            {item}
-          </div>
+          <Card key={i}>
+            <div className="p-4">{item}</div>
+          </Card>
         ))}
       </div>
     </div>

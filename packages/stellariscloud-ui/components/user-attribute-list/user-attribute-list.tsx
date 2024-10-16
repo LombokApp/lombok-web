@@ -1,6 +1,7 @@
 import clsx from 'clsx'
-import { Badge } from '../../design-system/badge/badge'
+import { Badge, CardContent } from '@stellariscloud/ui-toolkit'
 import { UserDTO } from '@stellariscloud/api-client'
+import { Card } from '@stellariscloud/ui-toolkit'
 
 const LABEL_TEXT_COLOR = 'opacity-50'
 const VALUE_TEXT_COLOR = ''
@@ -8,154 +9,172 @@ const ROW_SPACING = 'px-4 py-3'
 
 export function UserAttributeList({ user }: { user?: UserDTO }) {
   return (
-    <div className="rounded-lg dark:rounded-none pl-4">
-      <dl className="divide-y divide-white/10">
-        <div
-          className={clsx(
-            'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
-            ROW_SPACING,
-          )}
-        >
-          <dt
-            className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
-          >
-            Name
-          </dt>
-          <dd
+    <Card>
+      <CardContent>
+        <dl className="divide-y divide-white/10">
+          <div
             className={clsx(
-              'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
-              VALUE_TEXT_COLOR,
+              'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
+              ROW_SPACING,
             )}
           >
-            {user?.name ? (
-              user.name
-            ) : (
-              <span className="italic opacity-50">None</span>
-            )}
-          </dd>
-        </div>
-        <div
-          className={clsx(
-            'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
-            ROW_SPACING,
-          )}
-        >
-          <dt
-            className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
-          >
-            Username
-          </dt>
-          <dd
+            <dt
+              className={clsx(
+                'text-sm font-medium leading-6',
+                LABEL_TEXT_COLOR,
+              )}
+            >
+              Name
+            </dt>
+            <dd
+              className={clsx(
+                'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
+                VALUE_TEXT_COLOR,
+              )}
+            >
+              {user?.name ? (
+                user.name
+              ) : (
+                <span className="italic opacity-50">None</span>
+              )}
+            </dd>
+          </div>
+          <div
             className={clsx(
-              'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
-              VALUE_TEXT_COLOR,
+              'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
+              ROW_SPACING,
             )}
           >
-            {user?.username}
-          </dd>
-        </div>
-        <div
-          className={clsx(
-            'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
-            ROW_SPACING,
-          )}
-        >
-          <dt
-            className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
-          >
-            Admin
-          </dt>
-          <dd className="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0">
-            {typeof user === 'undefined' ? (
-              <span className="italic opacity-50">Unknown</span>
-            ) : user.isAdmin ? (
-              <div className="flex gap-2 items-start">
-                <Badge style="warn" size="sm">
-                  True
-                </Badge>
-              </div>
-            ) : (
-              <Badge>False</Badge>
-            )}
-          </dd>
-        </div>
-        <div
-          className={clsx(
-            'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
-            ROW_SPACING,
-          )}
-        >
-          <dt
-            className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
-          >
-            Email
-          </dt>
-          <dd
+            <dt
+              className={clsx(
+                'text-sm font-medium leading-6',
+                LABEL_TEXT_COLOR,
+              )}
+            >
+              Username
+            </dt>
+            <dd
+              className={clsx(
+                'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
+                VALUE_TEXT_COLOR,
+              )}
+            >
+              {user?.username}
+            </dd>
+          </div>
+          <div
             className={clsx(
-              'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
-              VALUE_TEXT_COLOR,
+              'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
+              ROW_SPACING,
             )}
           >
-            {typeof user === 'undefined' ? (
-              <span className="italic opacity-50">Unknown</span>
-            ) : (
-              user.email
-            )}
-          </dd>
-        </div>
-        <div
-          className={clsx(
-            'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
-            ROW_SPACING,
-          )}
-        >
-          <dt
-            className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
-          >
-            Permissions
-          </dt>
-          <dd
-            className={clsx(
-              'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
-              VALUE_TEXT_COLOR,
-            )}
-          >
-            <div className="flex gap-2">
+            <dt
+              className={clsx(
+                'text-sm font-medium leading-6',
+                LABEL_TEXT_COLOR,
+              )}
+            >
+              Admin
+            </dt>
+            <dd className="mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0">
               {typeof user === 'undefined' ? (
                 <span className="italic opacity-50">Unknown</span>
-              ) : !user.permissions.length ? (
-                <span className="italic opacity-50">None</span>
+              ) : user.isAdmin ? (
+                <div className="flex gap-2 items-start">
+                  <Badge variant={'outline'}>True</Badge>
+                </div>
               ) : (
-                user.permissions.map((permission, i) => (
-                  <Badge style="info" key={i}>
-                    {permission}
-                  </Badge>
-                ))
+                <Badge>False</Badge>
               )}
-            </div>
-          </dd>
-        </div>
-        <div
-          className={clsx(
-            'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
-            ROW_SPACING,
-          )}
-        >
-          <dt
-            className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
-          >
-            Password
-          </dt>
-          <dd
+            </dd>
+          </div>
+          <div
             className={clsx(
-              'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
-              VALUE_TEXT_COLOR,
+              'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
+              ROW_SPACING,
             )}
           >
-            **********
-          </dd>
-        </div>
-      </dl>
-    </div>
+            <dt
+              className={clsx(
+                'text-sm font-medium leading-6',
+                LABEL_TEXT_COLOR,
+              )}
+            >
+              Email
+            </dt>
+            <dd
+              className={clsx(
+                'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
+                VALUE_TEXT_COLOR,
+              )}
+            >
+              {typeof user === 'undefined' ? (
+                <span className="italic opacity-50">Unknown</span>
+              ) : (
+                user.email
+              )}
+            </dd>
+          </div>
+          <div
+            className={clsx(
+              'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
+              ROW_SPACING,
+            )}
+          >
+            <dt
+              className={clsx(
+                'text-sm font-medium leading-6',
+                LABEL_TEXT_COLOR,
+              )}
+            >
+              Permissions
+            </dt>
+            <dd
+              className={clsx(
+                'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
+                VALUE_TEXT_COLOR,
+              )}
+            >
+              <div className="flex gap-2">
+                {typeof user === 'undefined' ? (
+                  <span className="italic opacity-50">Unknown</span>
+                ) : !user.permissions.length ? (
+                  <span className="italic opacity-50">None</span>
+                ) : (
+                  user.permissions.map((permission, i) => (
+                    <Badge variant={'outline'} key={i}>
+                      {permission}
+                    </Badge>
+                  ))
+                )}
+              </div>
+            </dd>
+          </div>
+          <div
+            className={clsx(
+              'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
+              ROW_SPACING,
+            )}
+          >
+            <dt
+              className={clsx(
+                'text-sm font-medium leading-6',
+                LABEL_TEXT_COLOR,
+              )}
+            >
+              Password
+            </dt>
+            <dd
+              className={clsx(
+                'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
+                VALUE_TEXT_COLOR,
+              )}
+            >
+              **********
+            </dd>
+          </div>
+        </dl>
+      </CardContent>
+    </Card>
   )
 }

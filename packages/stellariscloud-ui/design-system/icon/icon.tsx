@@ -22,6 +22,7 @@ export function Icon({ icon, size = 'text', className }: IconProps) {
     <IconComponent
       aria-hidden="true"
       className={clsx(
+        'text-foreground',
         size === 'xs'
           ? 'w-3 h-3'
           : size === 'sm'

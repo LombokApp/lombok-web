@@ -62,7 +62,7 @@ export function PageHeading({
                       fill
                     />
                   ) : (
-                    <Icon size="md" className="text-white" icon={titleIcon} />
+                    <Icon size="md" icon={titleIcon} />
                   )}
                 </div>
               </div>
@@ -100,11 +100,7 @@ export function PageHeading({
                   >
                     <Button size="xs">
                       <div className={clsx('flex items-center gap-2')}>
-                        <Icon
-                          size="xs"
-                          className="text-gray-800 dark:text-gray-300"
-                          icon={ancestorTitleIcon}
-                        />
+                        <Icon size="xs" icon={ancestorTitleIcon} />
                         <div>{ancestorTitle}</div>
                       </div>
                     </Button>
@@ -120,14 +116,10 @@ export function PageHeading({
               <div className="flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap gap-x-4">
                 {properties.map((property, i) => (
                   <div
-                    className="mt-2 flex items-center gap-1 text-sm text-gray-700 dark:text-white/70"
+                    className="mt-2 flex items-center gap-1 text-sm"
                     key={`${i}_${property.value}`}
                   >
-                    <Icon
-                      icon={property.icon}
-                      size="sm"
-                      className="text-gray-700 dark:text-white/70"
-                    />
+                    <Icon icon={property.icon} size="sm" />
                     <span
                       className={clsx(
                         'truncate overflow-hidden',
