@@ -1,16 +1,27 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
-import { and, count, eq } from 'drizzle-orm'
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common'
+import { and, count, eq, isNull, sql } from 'drizzle-orm'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import type { User } from 'src/users/entities/user.entity'
 
 import type { Task } from '../entities/task.entity'
 import { tasksTable } from '../entities/task.entity'
+import { AppSocketService } from 'src/socket/app/app-socket.service'
 
 @Injectable()
 export class TaskService {
+  get appSocketService(): AppSocketService {
+    return this._appSocketService
+  }
   constructor(
     private readonly ormService: OrmService,
+    @Inject(forwardRef(() => AppSocketService))
+    private readonly _appSocketService,
     private readonly folderService: FolderService,
   ) {}
 
@@ -73,6 +84,40 @@ export class TaskService {
     return {
       result: tasks,
       meta: { totalCount: tasksCountResult[0].count },
+    }
+  }
+
+  async notifyAllAppsOfPendingTasks() {
+    const pendingTasks = await this.ormService.db
+      .select({
+        taskKey: tasksTable.taskKey,
+        ownerIdentifier: tasksTable.ownerIdentifier,
+        count: sql<number>`cast(count(${tasksTable.id}) as int)`,
+      })
+      .from(tasksTable)
+      .where(isNull(tasksTable.startedAt))
+      .groupBy(tasksTable.taskKey, tasksTable.ownerIdentifier)
+    const pendingTasksByApp = pendingTasks.reduce<{
+      [emitterIdentifier: string]: { [key: string]: number }
+    }>(
+      (acc, next) => ({
+        ...acc,
+        [next.ownerIdentifier]: {
+          ...(next.ownerIdentifier in acc ? acc[next.ownerIdentifier] : {}),
+          [next.taskKey]: next.count,
+        },
+      }),
+      {},
+    )
+    for (const appIdentifier of Object.keys(pendingTasksByApp)) {
+      for (const taskKey of Object.keys(pendingTasksByApp[appIdentifier])) {
+        const pendingTaskCount = pendingTasksByApp[appIdentifier][taskKey]
+        this.appSocketService.notifyAppWorkersOfPendingTasks(
+          appIdentifier,
+          taskKey,
+          pendingTaskCount,
+        )
+      }
     }
   }
 }

@@ -72,8 +72,8 @@ const UpdateAttributesValidator = r.Record({
   eventId: r.String.optional(),
 })
 
-const AttemptStartHandleEventValidator = r.Record({
-  eventKeys: r.Array(r.String),
+const AttemptStartHandleTaskValidator = r.Record({
+  taskKeys: r.Array(r.String),
 })
 
 const GetContentSignedURLsValidator = r.Record({
@@ -118,7 +118,7 @@ const UpdateMetadataValidator = r.Record({
   eventId: r.String.optional(),
 })
 
-const FailHandleEventValidator = z.object({
+const FailHandleTaskValidator = z.object({
   eventReceiptId: z.string(),
   error: z.object({
     message: z.string(),
@@ -252,7 +252,7 @@ export class AppService {
             }
           }
         }
-        case 'COMPLETE_HANDLE_EVENT': {
+        case 'COMPLETE_HANDLE_TASK': {
           // TODO: switch in tasks here
           if (r.String.guard(requestData)) {
             const eventReceipt =
@@ -284,12 +284,12 @@ export class AppService {
           }
           break
         }
-        case 'ATTEMPT_START_HANDLE_EVENT': {
-          if (AttemptStartHandleEventValidator.guard(requestData)) {
+        case 'ATTEMPT_START_HANDLE_TASK': {
+          if (AttemptStartHandleTaskValidator.guard(requestData)) {
             const task = await this.ormService.db.query.tasksTable.findFirst({
               where: and(
                 eq(tasksTable.ownerIdentifier, appIdentifier),
-                inArray(tasksTable.taskKey, requestData.eventKeys),
+                inArray(tasksTable.taskKey, requestData.taskKeys),
                 isNull(tasksTable.startedAt),
               ),
               with: {
@@ -324,17 +324,14 @@ export class AppService {
           }
           break
         }
-        case 'FAIL_HANDLE_EVENT': {
-          if (FailHandleEventValidator.safeParse(requestData).success) {
-            const parsedFailHandleEventMessage =
-              FailHandleEventValidator.parse(requestData)
+        case 'FAIL_HANDLE_TASK': {
+          if (FailHandleTaskValidator.safeParse(requestData).success) {
+            const parsedFailHandleTaskMessage =
+              FailHandleTaskValidator.parse(requestData)
             const eventReceipt =
               await this.ormService.db.query.tasksTable.findFirst({
                 where: and(
-                  eq(
-                    tasksTable.id,
-                    parsedFailHandleEventMessage.eventReceiptId,
-                  ),
+                  eq(tasksTable.id, parsedFailHandleTaskMessage.eventReceiptId),
                   eq(tasksTable.ownerIdentifier, appIdentifier),
                 ),
               })
@@ -356,8 +353,8 @@ export class AppService {
               result: await this.ormService.db
                 .update(tasksTable)
                 .set({
-                  errorCode: parsedFailHandleEventMessage.error.code,
-                  errorMessage: parsedFailHandleEventMessage.error.message,
+                  errorCode: parsedFailHandleTaskMessage.error.code,
+                  errorMessage: parsedFailHandleTaskMessage.error.message,
                   errorAt: new Date(),
                 })
                 .where(
@@ -369,14 +366,14 @@ export class AppService {
             }
           } else {
             console.log(
-              'FAIL_HANDLE_EVENT error:',
-              FailHandleEventValidator.safeParse(requestData).error,
+              'FAIL_HANDLE_TASK error:',
+              FailHandleTaskValidator.safeParse(requestData).error,
             )
             return {
               result: undefined,
               error: {
                 code: 400,
-                message: 'Malformed FAIL_HANDLE_EVENT request.',
+                message: 'Malformed FAIL_HANDLE_TASK request.',
               },
             }
           }
@@ -394,7 +391,6 @@ export class AppService {
   }
 
   async createSignedContentUrls(payload: {
-    eventId?: string
     requests: {
       folderId: string
       objectKey: string
@@ -409,7 +405,6 @@ export class AppService {
   }
 
   async createSignedMetadataUrls(payload: {
-    eventId?: string
     requests: {
       folderId: string
       objectKey: string
@@ -646,8 +641,6 @@ export class AppService {
   public updateAppsFromDisk(appsDirectory: string) {
     // load the apps from disk
     const appsFromDisk = this.loadAppsFromDisk(appsDirectory)
-    // console.log('Loaded apps from disk:', JSON.stringify(appsFromDisk, null, 2))
-    console.log('appFromDisk:', appsFromDisk)
     // push all app UI file content into the cache
     for (const appIdentifier of Object.keys(appsFromDisk)) {
       if (appIdentifier in appsFromDisk) {

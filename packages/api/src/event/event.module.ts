@@ -17,33 +17,11 @@ import { SocketModule } from 'src/socket/socket.module'
     forwardRef(() => SocketModule),
     AuthModule,
     nestjsConfig.ConfigModule.forFeature(coreConfig),
-    forwardRef(() => TaskModule),
   ],
   controllers: [ServerEventsController],
   providers: [EventService],
   exports: [EventService],
 })
-export class EventModule implements OnModuleInit {
-  constructor(
-    @Inject(coreConfig.KEY)
-    private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
-    private readonly asyncTaskService: CoreTaskService,
-    private readonly eventService: EventService,
-  ) {}
-
-  onModuleInit() {
-    if (this._coreConfig.initEventJobs) {
-      // this.asyncTaskService.registerProcessor(
-      //   AsyncTaskName.NotifyAllAppsOfPendingEvents,
-      //   async () => {
-      //     console.log('running notifyAllAppsOfPendingEvents!!!!')
-      //     await this.eventService.notifyAllAppsOfPendingEvents()
-      //   },
-      // )
-      // this.asyncTaskService.addAsyncTask(
-      //   AsyncTaskName.NotifyAllAppsOfPendingEvents,
-      //   undefined,
-      // )
-    }
-  }
+export class EventModule {
+  constructor() {}
 }

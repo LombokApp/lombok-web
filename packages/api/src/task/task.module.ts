@@ -15,13 +15,24 @@ import { SocketModule } from 'src/socket/socket.module'
   exports: [CoreTaskService, TaskService],
 })
 export class TaskModule implements OnModuleInit {
-  constructor(private readonly coreTaskService: CoreTaskService) {}
+  constructor(
+    private readonly coreTaskService: CoreTaskService,
+    private readonly taskService: TaskService,
+  ) {}
 
   onModuleInit() {
     // every 5 seconds, attempt to drain any pending core tasks
     new CronJob(
       '0,4,9,14,19,24,29,34,39,44,49,54,59 * * * * *',
       () => void this.coreTaskService.drainCoreTasks(),
+      null,
+      true,
+    )
+
+    // every 5 seconds, broadcast to apps about pendng app tasks
+    new CronJob(
+      '0,4,9,14,19,24,29,34,39,44,49,54,59 * * * * *',
+      () => this.taskService.notifyAllAppsOfPendingTasks(),
       null,
       true,
     )

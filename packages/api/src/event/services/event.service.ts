@@ -23,19 +23,20 @@ import { AppDTO } from 'src/app/dto/app.dto'
 
 @Injectable()
 export class EventService {
-  private readonly appService: AppService
   get folderSocketService(): FolderSocketService {
     return this._folderSocketService
+  }
+
+  get appService(): AppService {
+    return this._appService
   }
 
   constructor(
     @Inject(forwardRef(() => FolderSocketService))
     private readonly _folderSocketService,
     private readonly ormService: OrmService,
-    @Inject(forwardRef(() => AppService)) _appService,
-  ) {
-    this.appService = _appService
-  }
+    @Inject(forwardRef(() => AppService)) private readonly _appService,
+  ) {}
 
   async emitEvent({
     emitterIdentifier,
@@ -140,48 +141,6 @@ export class EventService {
         }
       })
     })
-  }
-
-  async notifyAllAppsOfPendingTasks() {
-    // const pendingEventReceipts = await this.ormService.db
-    //   .select({
-    //     eventKey: eventReceiptsTable.eventKey,
-    //     emitterIdentifier: eventReceiptsTable.emitterIdentifier,
-    //     count: sql<number>`cast(count(${eventReceiptsTable.id}) as int)`,
-    //   })
-    //   .from(eventReceiptsTable)
-    //   .where(isNull(eventReceiptsTable.startedAt))
-    //   .groupBy(
-    //     eventReceiptsTable.eventKey,
-    //     eventReceiptsTable.emitterIdentifier,
-    //   )
-    // const pendingEventsByApp = pendingEventReceipts.reduce<{
-    //   [emitterIdentifier: string]: { [key: string]: number }
-    // }>(
-    //   (acc, next) => ({
-    //     ...acc,
-    //     [next.emitterIdentifier]: {
-    //       ...(next.emitterIdentifier in acc ? acc[next.emitterIdentifier] : {}),
-    //       [next.eventKey]: next.count,
-    //     },
-    //   }),
-    //   {},
-    // )
-    // for (const emitterIdentifier of Object.keys(pendingEventsByApp)) {
-    //   for (const eventKey of Object.keys(
-    //     pendingEventsByApp[emitterIdentifier],
-    //   )) {
-    //     const jobPayload = {
-    //       emitterIdentifier,
-    //       eventKey,
-    //       eventCount: pendingEventsByApp[emitterIdentifier][eventKey],
-    //     }
-    //     // await this.queueService.addJob(
-    //     //   AsyncTaskName.NotifyAppOfPendingEvents,
-    //     //   jobPayload,
-    //     // )
-    //   }
-    // }
   }
 
   async getEventAsAdmin(actor: User, eventId: string): Promise<Event> {

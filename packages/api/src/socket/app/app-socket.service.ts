@@ -1,4 +1,3 @@
-import type { OnModuleInit } from '@nestjs/common'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
 import * as r from 'runtypes'
@@ -11,13 +10,13 @@ import { JWTService } from '../../auth/services/jwt.service'
 const AppAuthPayload = r.Record({
   appWorkerId: r.String,
   token: r.String,
-  eventSubscriptionKeys: r.Array(r.String),
+  handledTaskKeys: r.Array(r.String),
 })
 
 const APP_WORKER_INFO_CACHE_KEY_PREFIX = 'APP_WORKER'
 
 @Injectable()
-export class AppSocketService implements OnModuleInit {
+export class AppSocketService {
   private readonly connectedClients: Map<string, Socket> = new Map()
   private readonly connectedAppWorkers: Map<
     string,
@@ -56,7 +55,7 @@ export class AppSocketService implements OnModuleInit {
       this.connectedClients.delete(clientId)
     })
 
-    // Handle other events and messages from the client
+    // Handle other messages from the client
     const auth = socket.handshake.auth
     if (AppAuthPayload.guard(auth)) {
       const jwt = this.jwtService.decodeJWT(auth.token)
@@ -133,8 +132,8 @@ export class AppSocketService implements OnModuleInit {
       })
       // add the clients to the rooms corresponding to their subscriptions
       await Promise.all(
-        auth.eventSubscriptionKeys.map((eventKey) => {
-          const roomKey = this.getRoomKeyForAppAndEvent(appIdentifier, eventKey)
+        auth.handledTaskKeys.map((taskKey) => {
+          const roomKey = this.getRoomKeyForAppAndTask(appIdentifier, taskKey)
           console.log('App worker joining room:', roomKey)
           return socket.join(roomKey)
         }),
@@ -147,34 +146,19 @@ export class AppSocketService implements OnModuleInit {
     }
   }
 
-  onModuleInit() {
-    // this.asyncTaskService.registerProcessor(
-    //   CoreTaskName.NotifyAppOfPendingEvents,
-    //   async (task) => {
-    //     console.log('Doing NotifyAllAppsOfPendingEvents task:', task)
-    //     this.notifyAppWorkersOfPendingEvents(
-    //       task.data.appIdentifier,
-    //       task.data.eventKey,
-    //       task.data.eventCount,
-    //     )
-    //   },
-    // )
+  getRoomKeyForAppAndTask(appIdentifier: string, taskKey: string) {
+    return `app:${appIdentifier}__task:${taskKey}`
   }
 
-  getRoomKeyForAppAndEvent(appIdentifier: string, eventKey: string) {
-    const roomKey = `app:${appIdentifier}__event:${eventKey}`
-    return roomKey
-  }
-
-  notifyAppWorkersOfPendingEvents(
+  notifyAppWorkersOfPendingTasks(
     appIdentifier: string,
-    eventKey: string,
+    taskKey: string,
     count: number,
   ) {
     if (this.namespace) {
       this.namespace
-        .to(this.getRoomKeyForAppAndEvent(appIdentifier, eventKey))
-        .emit('PENDING_EVENTS_NOTIFICATION', { eventKey, count })
+        .to(this.getRoomKeyForAppAndTask(appIdentifier, taskKey))
+        .emit('PENDING_EVENTS_NOTIFICATION', { taskKey, count })
     } else {
       console.log(
         'Namespace not yet set when emitting PENDING_EVENTS_NOTIFICATION.',
