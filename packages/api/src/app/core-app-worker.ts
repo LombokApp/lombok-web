@@ -1,6 +1,6 @@
 import {
   connectAndPerformWork,
-  objectAddedEventHandler,
+  analyzeObjectTaskHandler,
 } from '@stellariscloud/core-worker'
 import type { AppLogEntry } from '@stellariscloud/types'
 import * as r from 'runtypes'
@@ -46,8 +46,7 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
       workerData.appWorkerId,
       workerData.appToken,
       {
-        ['CORE:OBJECT_ADDED']: objectAddedEventHandler,
-        ['CORE:TRIGGER_ANALYZE_OBJECT']: objectAddedEventHandler,
+        ['CORE:ANALYZE_OBJECT']: analyzeObjectTaskHandler,
       },
       sendLogEntry,
     )

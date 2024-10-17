@@ -120,9 +120,9 @@ export class EventService {
                 textKey: taskDefinition.key, // TODO: Determine task description based on app configs
                 variables: {},
               },
-              taskKey: taskDefinition.key, // TODO: determine task type based on app configs,
+              taskKey: taskDefinition.key,
               inputData: {},
-              ownerIdentifier: `APP:${appIdentifier}`,
+              ownerIdentifier: `APP:${appIdentifier.toUpperCase()}`,
               createdAt: now,
               updatedAt: now,
             }),

@@ -147,7 +147,7 @@ export class AppSocketService {
   }
 
   getRoomKeyForAppAndTask(appIdentifier: string, taskKey: string) {
-    return `app:${appIdentifier}__task:${taskKey}`
+    return `app:${appIdentifier.toLowerCase()}__task:${taskKey}`
   }
 
   notifyAppWorkersOfPendingTasks(

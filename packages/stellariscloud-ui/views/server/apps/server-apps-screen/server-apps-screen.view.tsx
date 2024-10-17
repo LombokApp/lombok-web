@@ -31,7 +31,7 @@ export function ServerAppsScreen() {
       )}
     >
       <div className="container flex-1 flex flex-col">
-        <dl className="dark:divide-gray-700">
+        <dl className="p-8">
           <StackedList
             items={
               installedApps?.map((app) => (

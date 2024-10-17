@@ -7,7 +7,7 @@ import path from 'path'
 
 import type {
   CoreServerMessageInterface,
-  AppEvent,
+  AppTask,
 } from '../utils/connect-app-worker.util'
 import { AppAPIError } from '../utils/connect-app-worker.util'
 import type { FFMpegOutput } from '../utils/ffmpeg.util'
@@ -18,32 +18,32 @@ import {
   streamUploadFile,
 } from '../utils/file.util'
 
-export const objectAddedEventHandler = async (
-  event: AppEvent,
+export const analyzeObjectTaskHandler = async (
+  task: AppTask,
   server: CoreServerMessageInterface,
 ) => {
-  console.log('Starting work for event:', event)
-  if (!event.id) {
-    throw new AppAPIError('INVALID_EVENT', 'Missing event id.')
+  console.log('Starting work for task:', task)
+  if (!task.id) {
+    throw new AppAPIError('INVALID_TASK', 'Missing task id.')
   }
 
-  if (!event.data.folderId) {
-    throw new AppAPIError('INVALID_EVENT', 'Missing folderId.')
+  if (!task.data.folderId) {
+    throw new AppAPIError('INVALID_TASK', 'Missing folderId.')
   }
 
-  if (!event.data.objectKey) {
-    throw new AppAPIError('INVALID_EVENT', 'Missing objectKey.')
+  if (!task.data.objectKey) {
+    throw new AppAPIError('INVALID_TASK', 'Missing objectKey.')
   }
 
   const response = await server.getContentSignedUrls(
     [
       {
-        folderId: event.data.folderId,
-        objectKey: event.data.objectKey,
+        folderId: task.data.folderId,
+        objectKey: task.data.objectKey,
         method: 'GET',
       },
     ],
-    event.id,
+    task.id,
   )
 
   if (response.error) {
@@ -51,13 +51,10 @@ export const objectAddedEventHandler = async (
   }
 
   const tempDir = fs.mkdtempSync(
-    path.join(os.tmpdir(), `stellaris_event_${event.id}_`),
+    path.join(os.tmpdir(), `stellaris_task_${task.id}_`),
   )
 
-  const inFilepath = path.join(
-    tempDir,
-    encodeURIComponent(event.data.objectKey),
-  )
+  const inFilepath = path.join(tempDir, encodeURIComponent(task.data.objectKey))
 
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir)
@@ -65,13 +62,13 @@ export const objectAddedEventHandler = async (
   const { mimeType } = await downloadFileToDisk(
     response.result.urls[0].url,
     inFilepath,
-    encodeURIComponent(event.data.objectKey),
+    encodeURIComponent(task.data.objectKey),
   )
 
   if (!mimeType) {
     throw new AppAPIError(
       'UNRECOGNIZED_MIME_TYPE',
-      `Cannot resolve mimeType for objectKey ${event.data.objectKey}`,
+      `Cannot resolve mimeType for objectKey ${task.data.objectKey}`,
     )
   }
   const mediaType = mediaTypeFromMimeType(mimeType)
@@ -107,14 +104,13 @@ export const objectAddedEventHandler = async (
     const metadtaSignedUrlsResponse = await server
       .getMetadataSignedUrls(
         metadataKeys.map((k) => ({
-          folderId: event.data.folderId,
+          folderId: task.data.folderId,
           contentHash,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          objectKey: event.data.objectKey!,
+          objectKey: task.data.objectKey!,
           method: 'PUT',
           metadataHash: metadataHashes[k as keyof typeof metadataHashes],
         })),
-        event.id,
       )
       .then(({ result, error }) => {
         if (error) {
@@ -175,8 +171,8 @@ export const objectAddedEventHandler = async (
   const updateContentAttributesResponse = await server.updateContentAttributes(
     [
       {
-        folderId: event.data.folderId,
-        objectKey: event.data.objectKey,
+        folderId: task.data.folderId,
+        objectKey: task.data.objectKey,
         hash: contentHash,
         attributes: {
           mimeType,
@@ -189,7 +185,7 @@ export const objectAddedEventHandler = async (
         },
       },
     ],
-    event.id,
+    task.id,
   )
 
   if (updateContentAttributesResponse.error) {
@@ -199,13 +195,13 @@ export const objectAddedEventHandler = async (
   const metadataUpdateResponse = await server.updateContentMetadata(
     [
       {
-        folderId: event.data.folderId,
-        objectKey: event.data.objectKey,
+        folderId: task.data.folderId,
+        objectKey: task.data.objectKey,
         hash: contentHash,
         metadata: metadataDescription,
       },
     ],
-    event.id,
+    task.id,
   )
 
   if (metadataUpdateResponse.error) {

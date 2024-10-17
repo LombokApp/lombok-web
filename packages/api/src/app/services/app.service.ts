@@ -253,7 +253,6 @@ export class AppService {
           }
         }
         case 'COMPLETE_HANDLE_TASK': {
-          // TODO: switch in tasks here
           if (r.String.guard(requestData)) {
             const eventReceipt =
               await this.ormService.db.query.tasksTable.findFirst({

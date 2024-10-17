@@ -99,16 +99,16 @@ export class TaskService {
       .groupBy(tasksTable.taskKey, tasksTable.ownerIdentifier)
     const pendingTasksByApp = pendingTasks.reduce<{
       [emitterIdentifier: string]: { [key: string]: number }
-    }>(
-      (acc, next) => ({
+    }>((acc, next) => {
+      const appIdentifier = next.ownerIdentifier.slice('APP:'.length)
+      return {
         ...acc,
-        [next.ownerIdentifier]: {
-          ...(next.ownerIdentifier in acc ? acc[next.ownerIdentifier] : {}),
+        [appIdentifier]: {
+          ...(appIdentifier in acc ? acc[appIdentifier] : {}),
           [next.taskKey]: next.count,
         },
-      }),
-      {},
-    )
+      }
+    }, {})
     for (const appIdentifier of Object.keys(pendingTasksByApp)) {
       for (const taskKey of Object.keys(pendingTasksByApp[appIdentifier])) {
         const pendingTaskCount = pendingTasksByApp[appIdentifier][taskKey]

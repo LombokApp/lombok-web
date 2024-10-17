@@ -16,26 +16,24 @@ export const buildAppClient = (socket: Socket): CoreServerMessageInterface => {
         data: entry,
       })
     },
-    getContentSignedUrls(requests, taskId) {
+    getContentSignedUrls(requests) {
       return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
         name: 'GET_CONTENT_SIGNED_URLS',
-        data: { taskId, requests },
+        data: { requests },
       })
     },
-    getMetadataSignedUrls(requests, taskId) {
+    getMetadataSignedUrls(requests) {
       return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
         name: 'GET_METADATA_SIGNED_URLS',
         data: {
-          taskId,
           requests,
         },
       })
     },
-    updateContentAttributes(updates, taskId) {
+    updateContentAttributes(updates) {
       return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
         name: 'UPDATE_CONTENT_ATTRIBUTES',
         data: {
-          taskId,
           updates,
         },
       })
@@ -55,10 +53,10 @@ export const buildAppClient = (socket: Socket): CoreServerMessageInterface => {
         data: taskId,
       })
     },
-    attemptStartHandleTask(handledTaskKeys: string[]) {
+    attemptStartHandleTask(taskKeys: string[]) {
       return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
         name: 'ATTEMPT_START_HANDLE_TASK',
-        data: { taskKeys: handledTaskKeys },
+        data: { taskKeys },
       })
     },
     failHandleTask(taskId, error) {
@@ -77,7 +75,7 @@ interface AppAPIResponse<T> {
 export interface CoreServerMessageInterface {
   saveLogEntry: (entry: AppLogEntry) => Promise<boolean>
   attemptStartHandleTask: (
-    handledTaskKeys: string[],
+    taskKeys: string[],
   ) => Promise<AppAPIResponse<AppTask>>
   failHandleTask: (
     taskId: string,
@@ -92,7 +90,6 @@ export interface CoreServerMessageInterface {
       metadataHash: string
       method: 'GET' | 'PUT' | 'DELETE'
     }[],
-    eventId?: string,
   ) => Promise<
     AppAPIResponse<{
       urls: { url: string; folderId: string; objectKey: string }[]
@@ -158,12 +155,12 @@ export const connectAndPerformWork = (
   _log: (entry: Partial<AppLogEntry>) => void,
 ) => {
   // TODO: send internal state back to the core via a message
-  const handledTaskKeys = Object.keys(taskHandlers)
+  const taskKeys = Object.keys(taskHandlers)
   const socket = io(`${socketBaseUrl}/apps`, {
     auth: {
       appWorkerId,
       token: appToken,
-      handledTaskKeys,
+      handledTaskKeys: taskKeys,
     },
     reconnection: false,
   })
@@ -200,7 +197,7 @@ export const connectAndPerformWork = (
         try {
           concurrentTasks++
           const attemptStartHandleResponse =
-            await serverClient.attemptStartHandleTask(handledTaskKeys)
+            await serverClient.attemptStartHandleTask(taskKeys)
           const task = attemptStartHandleResponse.result
           if (attemptStartHandleResponse.error) {
             const errorMessage = `${attemptStartHandleResponse.error.code} - ${attemptStartHandleResponse.error.message}`
