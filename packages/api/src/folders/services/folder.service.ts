@@ -770,36 +770,36 @@ export class FolderService implements OnModuleInit {
     return this.updateFolderObjectInDB(folderId, objectKey, response)
   }
 
-  async handleFolderAction(
+  async handleAppTaskTrigger(
     actor: User,
     {
       folderId,
-      emitterIdentifier,
-      actionKey,
-      actionParams,
+      appIdentifier,
+      taskKey,
+      inputParams,
       objectKey,
     }: {
       folderId: string
-      emitterIdentifier: string
-      actionKey: string
-      actionParams: any
+      appIdentifier: string
+      taskKey: string
+      inputParams: any // TODO: improve
       objectKey?: string
     },
   ): Promise<void> {
     const _folderAndPermissions = await this.getFolderAsUser(actor, folderId)
     // console.log('Handling Action:', {
-    //   actionKey,
+    //   taskKey,
     //   folderId,
     //   appIdentifier,
     //   actionParams,
     //   objectKey,
     // })
     await this.eventService.emitEvent({
-      emitterIdentifier,
+      emitterIdentifier: `APP:${appIdentifier.toUpperCase()}`,
       locationContext: folderId ? { folderId, objectKey } : undefined,
       userId: actor.id,
-      data: { params: actionParams },
-      eventKey: actionKey,
+      data: { inputParams },
+      eventKey: `TRIGGER_TASK:${appIdentifier.toUpperCase()}:${taskKey}`,
     })
   }
 

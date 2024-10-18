@@ -115,20 +115,20 @@ export const FolderObjectSidebar = ({
     description: string
     icon: IconProps['icon']
     onExecute: () => void
-  }[] = serverContext.appFolderObjectActions.map(
-    ({ action, appIdentifier }) => ({
-      description: action.description,
+  }[] = serverContext.appFolderObjectTaskTriggers.map(
+    ({ taskTrigger, appIdentifier }) => ({
+      description: taskTrigger.description,
       icon: CheckIcon,
-      id: action.key,
-      key: action.key,
-      label: action.key,
+      id: taskTrigger.taskKey,
+      key: taskTrigger.taskKey,
+      label: taskTrigger.label,
       onExecute: () =>
-        apiClient.foldersApi.handleFolderAction({
+        apiClient.foldersApi.handleAppTaskTrigger({
           folderId,
-          actionKey: action.key,
-          emitterIdentifier: `CORE:${appIdentifier}`,
-          folderHandleActionInputDTO: {
-            actionParams: {},
+          taskKey: taskTrigger.taskKey,
+          appIdentifier,
+          triggerAppTaskInputDTO: {
+            inputParams: {},
             objectKey,
           },
         }),

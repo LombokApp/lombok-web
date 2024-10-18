@@ -17,7 +17,7 @@ import { v4 as uuidV4 } from 'uuid'
 
 import type { Event } from '../entities/event.entity'
 import { eventsTable } from '../entities/event.entity'
-import { FolderPushMessage } from '@stellariscloud/types'
+import { CoreEvent, FolderPushMessage } from '@stellariscloud/types'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { AppDTO } from 'src/app/dto/app.dto'
 
@@ -45,21 +45,41 @@ export class EventService {
     locationContext,
     userId,
   }: {
-    emitterIdentifier: string // id of the inserting app
-    eventKey: string
+    emitterIdentifier: string // "CORE" for internally emitted events, and "APP:<appIdentifier>" for app emitted events
+    eventKey: CoreEvent | string
     data: any
     locationContext?: { folderId: string; objectKey?: string }
     userId?: string
   }) {
     const now = new Date()
+    const triggeringTaskKey = eventKey.startsWith('TRIGGER_TASK:')
+      ? eventKey.split(':').at(-1)
+      : undefined
+    const isAppEmitter = emitterIdentifier.startsWith('APP:')
+    const isCoreEmitter = emitterIdentifier === 'CORE'
+    const appIdentifier = isAppEmitter
+      ? emitterIdentifier.slice('APP:'.length)
+      : undefined
+
+    const app = appIdentifier
+      ? await this.appService.getApp(appIdentifier.toLowerCase())
+      : undefined
+    const task = triggeringTaskKey
+      ? app?.tasks.find((t) => t.key === triggeringTaskKey)
+      : undefined
 
     const authorized =
-      (emitterIdentifier === 'CORE' ||
-        (emitterIdentifier.startsWith('APP:') &&
-          (
-            await this.appService.getApp(emitterIdentifier)
-          )?.emittableEvents.includes(eventKey))) ??
+      (isCoreEmitter ||
+        (appIdentifier &&
+          (triggeringTaskKey || app?.emittableEvents.includes(eventKey)))) ??
       false
+
+    if (triggeringTaskKey && !task) {
+      throw new HttpException(
+        `No task in app "${appIdentifier}" by key "${triggeringTaskKey}"`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      )
+    }
 
     // console.log('emitEvent:', {
     //   eventKey,
@@ -89,57 +109,79 @@ export class EventService {
         ])
         .returning()
 
-      const tasks: NewTask[] = await this.appService.getApps().then((apps) =>
-        Object.keys(apps)
-          .reduce<
-            {
-              appIdentifier: string
-              taskDefinition: AppDTO['config']['tasks'][0]
-            }[]
-          >((acc, appIdentifier) => {
-            return acc.concat(
-              appIdentifier in apps
-                ? apps[appIdentifier]?.config.tasks
-                    .filter((taskDefinition) =>
-                      taskDefinition.eventTriggers.includes(event.eventKey),
-                    )
-                    .map((taskDefinition) => ({
-                      appIdentifier,
-                      taskDefinition,
-                    })) ?? []
-                : [],
-            )
-          }, [])
-          .map(
-            ({ appIdentifier, taskDefinition }): NewTask => ({
-              id: uuidV4(),
-              triggeringEventId: event.id,
-              subjectFolderId: locationContext?.folderId,
-              subjectObjectKey: locationContext?.objectKey,
-              taskDescription: {
-                textKey: taskDefinition.key, // TODO: Determine task description based on app configs
-                variables: {},
-              },
-              taskKey: taskDefinition.key,
-              inputData: {},
-              ownerIdentifier: `APP:${appIdentifier.toUpperCase()}`,
-              createdAt: now,
-              updatedAt: now,
-            }),
-          ),
-      )
-      await db.insert(tasksTable).values(tasks)
-
-      // notify folder rooms of new tasks
-      tasks.map((task) => {
-        if (task.subjectFolderId) {
-          void this.folderSocketService.sendToFolderRoom(
-            task.subjectFolderId,
-            FolderPushMessage.TASK_ADDED,
-            { task },
-          )
+      if (triggeringTaskKey) {
+        const triggeredTask: NewTask = {
+          id: uuidV4(),
+          triggeringEventId: event.id,
+          subjectFolderId: locationContext?.folderId,
+          subjectObjectKey: locationContext?.objectKey,
+          taskDescription: {
+            textKey: triggeringTaskKey, // TODO: Determine task description based on app configs
+            variables: {},
+          },
+          taskKey: triggeringTaskKey,
+          inputData: {},
+          ownerIdentifier: `APP:${(appIdentifier as string).toUpperCase()}`,
+          createdAt: now,
+          updatedAt: now,
         }
-      })
+        await db.insert(tasksTable).values([triggeredTask])
+      } else {
+        // regular event, so we should lookup apps that have subscribed to this event
+        const tasks: NewTask[] = await this.appService.getApps().then((apps) =>
+          Object.keys(apps)
+            .reduce<
+              {
+                appIdentifier: string
+                taskDefinition: AppDTO['config']['tasks'][0]
+              }[]
+            >((acc, appIdentifier) => {
+              return acc.concat(
+                appIdentifier in apps
+                  ? apps[appIdentifier]?.config.tasks
+                      .filter((taskDefinition) =>
+                        taskDefinition.eventTriggers.includes(event.eventKey),
+                      )
+                      .map((taskDefinition) => ({
+                        appIdentifier,
+                        taskDefinition,
+                      })) ?? []
+                  : [],
+              )
+            }, [])
+            .map(
+              ({ appIdentifier, taskDefinition }): NewTask => ({
+                id: uuidV4(),
+                triggeringEventId: event.id,
+                subjectFolderId: locationContext?.folderId,
+                subjectObjectKey: locationContext?.objectKey,
+                taskDescription: {
+                  textKey: taskDefinition.key, // TODO: Determine task description based on app configs
+                  variables: {},
+                },
+                taskKey: taskDefinition.key,
+                inputData: {},
+                ownerIdentifier: `APP:${appIdentifier.toUpperCase()}`,
+                createdAt: now,
+                updatedAt: now,
+              }),
+            ),
+        )
+        if (tasks.length) {
+          await db.insert(tasksTable).values(tasks)
+        }
+
+        // notify folder rooms of new tasks
+        tasks.map((task) => {
+          if (task.subjectFolderId) {
+            void this.folderSocketService.sendToFolderRoom(
+              task.subjectFolderId,
+              FolderPushMessage.TASK_ADDED,
+              { task },
+            )
+          }
+        })
+      }
     })
   }
 

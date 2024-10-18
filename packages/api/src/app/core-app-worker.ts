@@ -46,7 +46,7 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
       workerData.appWorkerId,
       workerData.appToken,
       {
-        ['CORE:ANALYZE_OBJECT']: analyzeObjectTaskHandler,
+        ['ANALYZE_OBJECT']: analyzeObjectTaskHandler,
       },
       sendLogEntry,
     )

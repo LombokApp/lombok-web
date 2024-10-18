@@ -119,7 +119,7 @@ const UpdateMetadataValidator = r.Record({
 })
 
 const FailHandleTaskValidator = z.object({
-  eventReceiptId: z.string(),
+  taskId: z.string(),
   error: z.object({
     message: z.string(),
     code: z.string(),
@@ -254,18 +254,20 @@ export class AppService {
         }
         case 'COMPLETE_HANDLE_TASK': {
           if (r.String.guard(requestData)) {
-            const eventReceipt =
-              await this.ormService.db.query.tasksTable.findFirst({
-                where: and(
-                  eq(tasksTable.id, requestData),
-                  eq(tasksTable.ownerIdentifier, appIdentifier),
+            const task = await this.ormService.db.query.tasksTable.findFirst({
+              where: and(
+                eq(tasksTable.id, requestData),
+                eq(
+                  tasksTable.ownerIdentifier,
+                  `APP:${appIdentifier.toUpperCase()}`,
                 ),
-              })
+              ),
+            })
             if (
-              !eventReceipt ||
-              eventReceipt.completedAt ||
-              eventReceipt.handlerId !== handlerId ||
-              !eventReceipt.startedAt
+              !task ||
+              task.completedAt ||
+              task.handlerId !== handlerId ||
+              !task.startedAt
             ) {
               return {
                 error: {
@@ -278,7 +280,7 @@ export class AppService {
               result: await this.ormService.db
                 .update(tasksTable)
                 .set({ completedAt: new Date() })
-                .where(eq(tasksTable.id, eventReceipt.id)),
+                .where(eq(tasksTable.id, task.id)),
             }
           }
           break
@@ -287,13 +289,13 @@ export class AppService {
           if (AttemptStartHandleTaskValidator.guard(requestData)) {
             const task = await this.ormService.db.query.tasksTable.findFirst({
               where: and(
-                eq(tasksTable.ownerIdentifier, appIdentifier),
+                eq(
+                  tasksTable.ownerIdentifier,
+                  `APP:${appIdentifier.toUpperCase()}`,
+                ),
                 inArray(tasksTable.taskKey, requestData.taskKeys),
                 isNull(tasksTable.startedAt),
               ),
-              with: {
-                event: true,
-              },
             })
             if (!task || task.completedAt || task.handlerId || task.startedAt) {
               return {
@@ -327,17 +329,16 @@ export class AppService {
           if (FailHandleTaskValidator.safeParse(requestData).success) {
             const parsedFailHandleTaskMessage =
               FailHandleTaskValidator.parse(requestData)
-            const eventReceipt =
-              await this.ormService.db.query.tasksTable.findFirst({
-                where: and(
-                  eq(tasksTable.id, parsedFailHandleTaskMessage.eventReceiptId),
-                  eq(tasksTable.ownerIdentifier, appIdentifier),
-                ),
-              })
+            const task = await this.ormService.db.query.tasksTable.findFirst({
+              where: and(
+                eq(tasksTable.id, parsedFailHandleTaskMessage.taskId),
+                eq(tasksTable.ownerIdentifier, appIdentifier),
+              ),
+            })
             if (
-              !eventReceipt?.startedAt ||
-              eventReceipt.completedAt ||
-              eventReceipt.handlerId !== handlerId
+              !task?.startedAt ||
+              task.completedAt ||
+              task.handlerId !== handlerId
             ) {
               return {
                 result: undefined,
@@ -358,7 +359,7 @@ export class AppService {
                 })
                 .where(
                   and(
-                    eq(tasksTable.id, eventReceipt.id),
+                    eq(tasksTable.id, task.id),
                     eq(tasksTable.ownerIdentifier, appIdentifier),
                   ),
                 ),
@@ -774,7 +775,6 @@ export class AppService {
           )
       : {}
 
-    console.log('getAppConnections result', result)
     return result
   }
 }

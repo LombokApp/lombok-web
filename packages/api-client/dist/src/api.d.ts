@@ -229,18 +229,6 @@ export interface AppDTOConfig {
     'emittableEvents': Array<string>;
     /**
      *
-     * @type {Array<AppDTOConfigFolderTaskTriggersInner>}
-     * @memberof AppDTOConfig
-     */
-    'folderTaskTriggers': Array<AppDTOConfigFolderTaskTriggersInner>;
-    /**
-     *
-     * @type {Array<AppDTOConfigFolderTaskTriggersInner>}
-     * @memberof AppDTOConfig
-     */
-    'objectTaskTriggers': Array<AppDTOConfigFolderTaskTriggersInner>;
-    /**
-     *
      * @type {Array<AppDTOConfigTasksInner>}
      * @memberof AppDTOConfig
      */
@@ -252,57 +240,6 @@ export interface AppDTOConfig {
      */
     'menuItems': Array<AppDTOConfigMenuItemsInner>;
 }
-/**
- *
- * @export
- * @interface AppDTOConfigFolderTaskTriggersInner
- */
-export interface AppDTOConfigFolderTaskTriggersInner {
-    /**
-     *
-     * @type {string}
-     * @memberof AppDTOConfigFolderTaskTriggersInner
-     */
-    'taskTriggerKey': string;
-    /**
-     *
-     * @type {{ [key: string]: AppDTOConfigFolderTaskTriggersInnerParamsValue | undefined; }}
-     * @memberof AppDTOConfigFolderTaskTriggersInner
-     */
-    'params': {
-        [key: string]: AppDTOConfigFolderTaskTriggersInnerParamsValue | undefined;
-    };
-}
-/**
- *
- * @export
- * @interface AppDTOConfigFolderTaskTriggersInnerParamsValue
- */
-export interface AppDTOConfigFolderTaskTriggersInnerParamsValue {
-    /**
-     *
-     * @type {string}
-     * @memberof AppDTOConfigFolderTaskTriggersInnerParamsValue
-     */
-    'type': AppDTOConfigFolderTaskTriggersInnerParamsValueTypeEnum;
-    /**
-     *
-     * @type {AppDTOConfigFolderTaskTriggersInnerParamsValueDefault}
-     * @memberof AppDTOConfigFolderTaskTriggersInnerParamsValue
-     */
-    'default'?: AppDTOConfigFolderTaskTriggersInnerParamsValueDefault;
-}
-export declare const AppDTOConfigFolderTaskTriggersInnerParamsValueTypeEnum: {
-    readonly Boolean: "boolean";
-    readonly String: "string";
-    readonly Number: "number";
-};
-export type AppDTOConfigFolderTaskTriggersInnerParamsValueTypeEnum = typeof AppDTOConfigFolderTaskTriggersInnerParamsValueTypeEnum[keyof typeof AppDTOConfigFolderTaskTriggersInnerParamsValueTypeEnum];
-/**
- * @type AppDTOConfigFolderTaskTriggersInnerParamsValueDefault
- * @export
- */
-export type AppDTOConfigFolderTaskTriggersInnerParamsValueDefault = boolean | number | string;
 /**
  *
  * @export
@@ -342,10 +279,28 @@ export interface AppDTOConfigTasksInner {
     'key': string;
     /**
      *
+     * @type {string}
+     * @memberof AppDTOConfigTasksInner
+     */
+    'label': string;
+    /**
+     *
      * @type {Array<string>}
      * @memberof AppDTOConfigTasksInner
      */
     'eventTriggers': Array<string>;
+    /**
+     *
+     * @type {AppDTOConfigTasksInnerFolderAction}
+     * @memberof AppDTOConfigTasksInner
+     */
+    'folderAction'?: AppDTOConfigTasksInnerFolderAction;
+    /**
+     *
+     * @type {AppDTOConfigTasksInnerFolderAction}
+     * @memberof AppDTOConfigTasksInner
+     */
+    'objectAction'?: AppDTOConfigTasksInnerFolderAction;
     /**
      *
      * @type {string}
@@ -354,13 +309,56 @@ export interface AppDTOConfigTasksInner {
     'description': string;
     /**
      *
-     * @type {{ [key: string]: AppDTOConfigFolderTaskTriggersInnerParamsValue | undefined; }}
+     * @type {{ [key: string]: AppDTOConfigTasksInnerInputParamsValue | undefined; }}
      * @memberof AppDTOConfigTasksInner
      */
     'inputParams': {
-        [key: string]: AppDTOConfigFolderTaskTriggersInnerParamsValue | undefined;
+        [key: string]: AppDTOConfigTasksInnerInputParamsValue | undefined;
     };
 }
+/**
+ *
+ * @export
+ * @interface AppDTOConfigTasksInnerFolderAction
+ */
+export interface AppDTOConfigTasksInnerFolderAction {
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOConfigTasksInnerFolderAction
+     */
+    'description': string;
+}
+/**
+ *
+ * @export
+ * @interface AppDTOConfigTasksInnerInputParamsValue
+ */
+export interface AppDTOConfigTasksInnerInputParamsValue {
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOConfigTasksInnerInputParamsValue
+     */
+    'type': AppDTOConfigTasksInnerInputParamsValueTypeEnum;
+    /**
+     *
+     * @type {AppDTOConfigTasksInnerInputParamsValueDefault}
+     * @memberof AppDTOConfigTasksInnerInputParamsValue
+     */
+    'default'?: AppDTOConfigTasksInnerInputParamsValueDefault;
+}
+export declare const AppDTOConfigTasksInnerInputParamsValueTypeEnum: {
+    readonly Boolean: "boolean";
+    readonly String: "string";
+    readonly Number: "number";
+};
+export type AppDTOConfigTasksInnerInputParamsValueTypeEnum = typeof AppDTOConfigTasksInnerInputParamsValueTypeEnum[keyof typeof AppDTOConfigTasksInnerInputParamsValueTypeEnum];
+/**
+ * @type AppDTOConfigTasksInnerInputParamsValueDefault
+ * @export
+ */
+export type AppDTOConfigTasksInnerInputParamsValueDefault = boolean | number | string;
 /**
  *
  * @export
@@ -988,25 +986,6 @@ export interface FolderGetResponseFolder {
      * @memberof FolderGetResponseFolder
      */
     'contentLocation': FolderDTOMetadataLocation;
-}
-/**
- *
- * @export
- * @interface FolderHandleActionInputDTO
- */
-export interface FolderHandleActionInputDTO {
-    /**
-     *
-     * @type {string}
-     * @memberof FolderHandleActionInputDTO
-     */
-    'objectKey'?: string;
-    /**
-     *
-     * @type {any}
-     * @memberof FolderHandleActionInputDTO
-     */
-    'actionParams'?: any;
 }
 /**
  *
@@ -2294,6 +2273,25 @@ export interface TokenRefreshResponse {
 /**
  *
  * @export
+ * @interface TriggerAppTaskInputDTO
+ */
+export interface TriggerAppTaskInputDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof TriggerAppTaskInputDTO
+     */
+    'objectKey'?: string;
+    /**
+     *
+     * @type {any}
+     * @memberof TriggerAppTaskInputDTO
+     */
+    'inputParams'?: any;
+}
+/**
+ *
+ * @export
  * @interface UserCreateInputDTO
  */
 export interface UserCreateInputDTO {
@@ -3061,13 +3059,13 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
     /**
      *
      * @param {string} folderId
-     * @param {string} emitterIdentifier
-     * @param {string} actionKey
-     * @param {FolderHandleActionInputDTO} folderHandleActionInputDTO
+     * @param {string} appIdentifier
+     * @param {string} taskKey
+     * @param {TriggerAppTaskInputDTO} triggerAppTaskInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    handleFolderAction: (folderId: string, emitterIdentifier: string, actionKey: string, folderHandleActionInputDTO: FolderHandleActionInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    handleAppTaskTrigger: (folderId: string, appIdentifier: string, taskKey: string, triggerAppTaskInputDTO: TriggerAppTaskInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {string} folderId
@@ -3162,13 +3160,13 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
     /**
      *
      * @param {string} folderId
-     * @param {string} emitterIdentifier
-     * @param {string} actionKey
-     * @param {FolderHandleActionInputDTO} folderHandleActionInputDTO
+     * @param {string} appIdentifier
+     * @param {string} taskKey
+     * @param {TriggerAppTaskInputDTO} triggerAppTaskInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    handleFolderAction(folderId: string, emitterIdentifier: string, actionKey: string, folderHandleActionInputDTO: FolderHandleActionInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    handleAppTaskTrigger(folderId: string, appIdentifier: string, taskKey: string, triggerAppTaskInputDTO: TriggerAppTaskInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
     /**
      *
      * @param {string} folderId
@@ -3259,11 +3257,11 @@ export declare const FoldersApiFactory: (configuration?: Configuration, basePath
     getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: AxiosRequestConfig): AxiosPromise<FolderObjectGetResponse>;
     /**
      *
-     * @param {FoldersApiHandleFolderActionRequest} requestParameters Request parameters.
+     * @param {FoldersApiHandleAppTaskTriggerRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    handleFolderAction(requestParameters: FoldersApiHandleFolderActionRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
+    handleAppTaskTrigger(requestParameters: FoldersApiHandleAppTaskTriggerRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
     /**
      *
      * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
@@ -3403,35 +3401,35 @@ export interface FoldersApiGetFolderObjectRequest {
     readonly objectKey: string;
 }
 /**
- * Request parameters for handleFolderAction operation in FoldersApi.
+ * Request parameters for handleAppTaskTrigger operation in FoldersApi.
  * @export
- * @interface FoldersApiHandleFolderActionRequest
+ * @interface FoldersApiHandleAppTaskTriggerRequest
  */
-export interface FoldersApiHandleFolderActionRequest {
+export interface FoldersApiHandleAppTaskTriggerRequest {
     /**
      *
      * @type {string}
-     * @memberof FoldersApiHandleFolderAction
+     * @memberof FoldersApiHandleAppTaskTrigger
      */
     readonly folderId: string;
     /**
      *
      * @type {string}
-     * @memberof FoldersApiHandleFolderAction
+     * @memberof FoldersApiHandleAppTaskTrigger
      */
-    readonly emitterIdentifier: string;
+    readonly appIdentifier: string;
     /**
      *
      * @type {string}
-     * @memberof FoldersApiHandleFolderAction
+     * @memberof FoldersApiHandleAppTaskTrigger
      */
-    readonly actionKey: string;
+    readonly taskKey: string;
     /**
      *
-     * @type {FolderHandleActionInputDTO}
-     * @memberof FoldersApiHandleFolderAction
+     * @type {TriggerAppTaskInputDTO}
+     * @memberof FoldersApiHandleAppTaskTrigger
      */
-    readonly folderHandleActionInputDTO: FolderHandleActionInputDTO;
+    readonly triggerAppTaskInputDTO: TriggerAppTaskInputDTO;
 }
 /**
  * Request parameters for listFolderObjects operation in FoldersApi.
@@ -3580,12 +3578,12 @@ export declare class FoldersApi extends BaseAPI {
     getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderObjectGetResponse, any>>;
     /**
      *
-     * @param {FoldersApiHandleFolderActionRequest} requestParameters Request parameters.
+     * @param {FoldersApiHandleAppTaskTriggerRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    handleFolderAction(requestParameters: FoldersApiHandleFolderActionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+    handleAppTaskTrigger(requestParameters: FoldersApiHandleAppTaskTriggerRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
     /**
      *
      * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.

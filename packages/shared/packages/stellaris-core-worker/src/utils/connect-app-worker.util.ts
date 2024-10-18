@@ -191,8 +191,8 @@ export const connectAndPerformWork = (
       console.log('Got event in worker thread:', _data)
     })
 
-    socket.on('PENDING_EVENTS_NOTIFICATION', async (_data) => {
-      console.log('Worker for PENDING_EVENTS_NOTIFICATION!', _data)
+    socket.on('PENDING_TASKS_NOTIFICATION', async (_data) => {
+      console.log('Worker for PENDING_TASKS_NOTIFICATION!', _data)
       if (concurrentTasks < 10) {
         try {
           concurrentTasks++

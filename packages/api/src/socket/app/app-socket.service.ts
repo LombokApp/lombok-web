@@ -104,20 +104,36 @@ export class AppSocketService {
 
       // register listener for requests from the app
       socket.on('APP_API', async (message, ack) => {
-        const response = await this.appService.handleAppRequest(
-          auth.appWorkerId,
-          appIdentifier,
+        console.log('APP Message Request:', {
           message,
-        )
+          auth,
+          appIdentifier,
+        })
+        const response = await this.appService
+          .handleAppRequest(auth.appWorkerId, appIdentifier, message)
+          .catch((error) => {
+            console.log('Unexpected error during message handling:', {
+              message,
+              error,
+            })
+            return {
+              error: {
+                code: '500',
+                message: 'Unexpected error.',
+              },
+            }
+          })
         if (response?.error) {
           console.log('APP Message Error:', {
             message,
+            auth,
             appIdentifier,
             error: response.error,
           })
         } else {
           console.log('APP Message Response:', {
             message,
+            auth,
             appIdentifier,
             response,
           })
@@ -155,13 +171,18 @@ export class AppSocketService {
     taskKey: string,
     count: number,
   ) {
+    console.log('Broadcasting pending tasks message:', {
+      appIdentifier,
+      taskKey,
+      count,
+    })
     if (this.namespace) {
       this.namespace
         .to(this.getRoomKeyForAppAndTask(appIdentifier, taskKey))
-        .emit('PENDING_EVENTS_NOTIFICATION', { taskKey, count })
+        .emit('PENDING_TASKS_NOTIFICATION', { taskKey, count })
     } else {
       console.log(
-        'Namespace not yet set when emitting PENDING_EVENTS_NOTIFICATION.',
+        'Namespace not yet set when emitting PENDING_TASKS_NOTIFICATION.',
       )
     }
   }

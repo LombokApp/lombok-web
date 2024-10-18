@@ -684,9 +684,9 @@ export declare const schema: {
                 }];
             };
         };
-        readonly "/api/v1/folders/{folderId}/apps/{appIdentifier}/actions/{actionKey}": {
+        readonly "/api/v1/folders/{folderId}/apps/{appIdentifier}/trigger/{taskKey}": {
             readonly post: {
-                readonly operationId: "handleFolderAction";
+                readonly operationId: "handleAppTaskTrigger";
                 readonly parameters: readonly [{
                     readonly name: "folderId";
                     readonly required: true;
@@ -695,14 +695,14 @@ export declare const schema: {
                         readonly type: "string";
                     };
                 }, {
-                    readonly name: "emitterIdentifier";
+                    readonly name: "appIdentifier";
                     readonly required: true;
                     readonly in: "path";
                     readonly schema: {
                         readonly type: "string";
                     };
                 }, {
-                    readonly name: "actionKey";
+                    readonly name: "taskKey";
                     readonly required: true;
                     readonly in: "path";
                     readonly schema: {
@@ -714,14 +714,14 @@ export declare const schema: {
                     readonly content: {
                         readonly "application/json": {
                             readonly schema: {
-                                readonly $ref: "#/components/schemas/FolderHandleActionInputDTO";
+                                readonly $ref: "#/components/schemas/TriggerAppTaskInputDTO";
                             };
                         };
                     };
                 };
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "Handle folder action.";
+                        readonly description: "Handle app task trigger";
                     };
                 };
                 readonly tags: readonly ["Folders"];
@@ -2682,13 +2682,13 @@ export declare const schema: {
                 };
                 readonly required: readonly ["urls"];
             };
-            readonly FolderHandleActionInputDTO: {
+            readonly TriggerAppTaskInputDTO: {
                 readonly type: "object";
                 readonly properties: {
                     readonly objectKey: {
                         readonly type: "string";
                     };
-                    readonly actionParams: {};
+                    readonly inputParams: {};
                 };
             };
             readonly AccessKeyDTO: {
@@ -3454,76 +3454,6 @@ export declare const schema: {
                                     readonly type: "string";
                                 };
                             };
-                            readonly folderTaskTriggers: {
-                                readonly type: "array";
-                                readonly items: {
-                                    readonly type: "object";
-                                    readonly properties: {
-                                        readonly taskTriggerKey: {
-                                            readonly type: "string";
-                                        };
-                                        readonly params: {
-                                            readonly type: "object";
-                                            readonly additionalProperties: {
-                                                readonly type: "object";
-                                                readonly properties: {
-                                                    readonly type: {
-                                                        readonly type: "string";
-                                                        readonly enum: readonly ["boolean", "string", "number"];
-                                                    };
-                                                    readonly default: {
-                                                        readonly oneOf: readonly [{
-                                                            readonly type: "string";
-                                                        }, {
-                                                            readonly type: "number";
-                                                        }, {
-                                                            readonly type: "boolean";
-                                                        }];
-                                                        readonly type: "null";
-                                                    };
-                                                };
-                                                readonly required: readonly ["type"];
-                                            };
-                                        };
-                                    };
-                                    readonly required: readonly ["taskTriggerKey", "params"];
-                                };
-                            };
-                            readonly objectTaskTriggers: {
-                                readonly type: "array";
-                                readonly items: {
-                                    readonly type: "object";
-                                    readonly properties: {
-                                        readonly taskTriggerKey: {
-                                            readonly type: "string";
-                                        };
-                                        readonly params: {
-                                            readonly type: "object";
-                                            readonly additionalProperties: {
-                                                readonly type: "object";
-                                                readonly properties: {
-                                                    readonly type: {
-                                                        readonly type: "string";
-                                                        readonly enum: readonly ["boolean", "string", "number"];
-                                                    };
-                                                    readonly default: {
-                                                        readonly oneOf: readonly [{
-                                                            readonly type: "string";
-                                                        }, {
-                                                            readonly type: "number";
-                                                        }, {
-                                                            readonly type: "boolean";
-                                                        }];
-                                                        readonly type: "null";
-                                                    };
-                                                };
-                                                readonly required: readonly ["type"];
-                                            };
-                                        };
-                                    };
-                                    readonly required: readonly ["taskTriggerKey", "params"];
-                                };
-                            };
                             readonly tasks: {
                                 readonly type: "array";
                                 readonly items: {
@@ -3532,11 +3462,32 @@ export declare const schema: {
                                         readonly key: {
                                             readonly type: "string";
                                         };
+                                        readonly label: {
+                                            readonly type: "string";
+                                        };
                                         readonly eventTriggers: {
                                             readonly type: "array";
                                             readonly items: {
                                                 readonly type: "string";
                                             };
+                                        };
+                                        readonly folderAction: {
+                                            readonly type: "object";
+                                            readonly properties: {
+                                                readonly description: {
+                                                    readonly type: "string";
+                                                };
+                                            };
+                                            readonly required: readonly ["description"];
+                                        };
+                                        readonly objectAction: {
+                                            readonly type: "object";
+                                            readonly properties: {
+                                                readonly description: {
+                                                    readonly type: "string";
+                                                };
+                                            };
+                                            readonly required: readonly ["description"];
                                         };
                                         readonly description: {
                                             readonly type: "string";
@@ -3565,7 +3516,7 @@ export declare const schema: {
                                             };
                                         };
                                     };
-                                    readonly required: readonly ["key", "eventTriggers", "description", "inputParams"];
+                                    readonly required: readonly ["key", "label", "eventTriggers", "description", "inputParams"];
                                 };
                             };
                             readonly menuItems: {
@@ -3587,7 +3538,7 @@ export declare const schema: {
                                 };
                             };
                         };
-                        readonly required: readonly ["publicKey", "description", "emittableEvents", "folderTaskTriggers", "objectTaskTriggers", "tasks", "menuItems"];
+                        readonly required: readonly ["publicKey", "description", "emittableEvents", "tasks", "menuItems"];
                     };
                     readonly ui: {
                         readonly type: "object";
@@ -3660,76 +3611,6 @@ export declare const schema: {
                                                         readonly type: "string";
                                                     };
                                                 };
-                                                readonly folderTaskTriggers: {
-                                                    readonly type: "array";
-                                                    readonly items: {
-                                                        readonly type: "object";
-                                                        readonly properties: {
-                                                            readonly taskTriggerKey: {
-                                                                readonly type: "string";
-                                                            };
-                                                            readonly params: {
-                                                                readonly type: "object";
-                                                                readonly additionalProperties: {
-                                                                    readonly type: "object";
-                                                                    readonly properties: {
-                                                                        readonly type: {
-                                                                            readonly type: "string";
-                                                                            readonly enum: readonly ["boolean", "string", "number"];
-                                                                        };
-                                                                        readonly default: {
-                                                                            readonly oneOf: readonly [{
-                                                                                readonly type: "string";
-                                                                            }, {
-                                                                                readonly type: "number";
-                                                                            }, {
-                                                                                readonly type: "boolean";
-                                                                            }];
-                                                                            readonly type: "null";
-                                                                        };
-                                                                    };
-                                                                    readonly required: readonly ["type"];
-                                                                };
-                                                            };
-                                                        };
-                                                        readonly required: readonly ["taskTriggerKey", "params"];
-                                                    };
-                                                };
-                                                readonly objectTaskTriggers: {
-                                                    readonly type: "array";
-                                                    readonly items: {
-                                                        readonly type: "object";
-                                                        readonly properties: {
-                                                            readonly taskTriggerKey: {
-                                                                readonly type: "string";
-                                                            };
-                                                            readonly params: {
-                                                                readonly type: "object";
-                                                                readonly additionalProperties: {
-                                                                    readonly type: "object";
-                                                                    readonly properties: {
-                                                                        readonly type: {
-                                                                            readonly type: "string";
-                                                                            readonly enum: readonly ["boolean", "string", "number"];
-                                                                        };
-                                                                        readonly default: {
-                                                                            readonly oneOf: readonly [{
-                                                                                readonly type: "string";
-                                                                            }, {
-                                                                                readonly type: "number";
-                                                                            }, {
-                                                                                readonly type: "boolean";
-                                                                            }];
-                                                                            readonly type: "null";
-                                                                        };
-                                                                    };
-                                                                    readonly required: readonly ["type"];
-                                                                };
-                                                            };
-                                                        };
-                                                        readonly required: readonly ["taskTriggerKey", "params"];
-                                                    };
-                                                };
                                                 readonly tasks: {
                                                     readonly type: "array";
                                                     readonly items: {
@@ -3738,11 +3619,32 @@ export declare const schema: {
                                                             readonly key: {
                                                                 readonly type: "string";
                                                             };
+                                                            readonly label: {
+                                                                readonly type: "string";
+                                                            };
                                                             readonly eventTriggers: {
                                                                 readonly type: "array";
                                                                 readonly items: {
                                                                     readonly type: "string";
                                                                 };
+                                                            };
+                                                            readonly folderAction: {
+                                                                readonly type: "object";
+                                                                readonly properties: {
+                                                                    readonly description: {
+                                                                        readonly type: "string";
+                                                                    };
+                                                                };
+                                                                readonly required: readonly ["description"];
+                                                            };
+                                                            readonly objectAction: {
+                                                                readonly type: "object";
+                                                                readonly properties: {
+                                                                    readonly description: {
+                                                                        readonly type: "string";
+                                                                    };
+                                                                };
+                                                                readonly required: readonly ["description"];
                                                             };
                                                             readonly description: {
                                                                 readonly type: "string";
@@ -3771,7 +3673,7 @@ export declare const schema: {
                                                                 };
                                                             };
                                                         };
-                                                        readonly required: readonly ["key", "eventTriggers", "description", "inputParams"];
+                                                        readonly required: readonly ["key", "label", "eventTriggers", "description", "inputParams"];
                                                     };
                                                 };
                                                 readonly menuItems: {
@@ -3793,7 +3695,7 @@ export declare const schema: {
                                                     };
                                                 };
                                             };
-                                            readonly required: readonly ["publicKey", "description", "emittableEvents", "folderTaskTriggers", "objectTaskTriggers", "tasks", "menuItems"];
+                                            readonly required: readonly ["publicKey", "description", "emittableEvents", "tasks", "menuItems"];
                                         };
                                         readonly ui: {
                                             readonly type: "object";
@@ -3883,76 +3785,6 @@ export declare const schema: {
                                             readonly type: "string";
                                         };
                                     };
-                                    readonly folderTaskTriggers: {
-                                        readonly type: "array";
-                                        readonly items: {
-                                            readonly type: "object";
-                                            readonly properties: {
-                                                readonly taskTriggerKey: {
-                                                    readonly type: "string";
-                                                };
-                                                readonly params: {
-                                                    readonly type: "object";
-                                                    readonly additionalProperties: {
-                                                        readonly type: "object";
-                                                        readonly properties: {
-                                                            readonly type: {
-                                                                readonly type: "string";
-                                                                readonly enum: readonly ["boolean", "string", "number"];
-                                                            };
-                                                            readonly default: {
-                                                                readonly oneOf: readonly [{
-                                                                    readonly type: "string";
-                                                                }, {
-                                                                    readonly type: "number";
-                                                                }, {
-                                                                    readonly type: "boolean";
-                                                                }];
-                                                                readonly type: "null";
-                                                            };
-                                                        };
-                                                        readonly required: readonly ["type"];
-                                                    };
-                                                };
-                                            };
-                                            readonly required: readonly ["taskTriggerKey", "params"];
-                                        };
-                                    };
-                                    readonly objectTaskTriggers: {
-                                        readonly type: "array";
-                                        readonly items: {
-                                            readonly type: "object";
-                                            readonly properties: {
-                                                readonly taskTriggerKey: {
-                                                    readonly type: "string";
-                                                };
-                                                readonly params: {
-                                                    readonly type: "object";
-                                                    readonly additionalProperties: {
-                                                        readonly type: "object";
-                                                        readonly properties: {
-                                                            readonly type: {
-                                                                readonly type: "string";
-                                                                readonly enum: readonly ["boolean", "string", "number"];
-                                                            };
-                                                            readonly default: {
-                                                                readonly oneOf: readonly [{
-                                                                    readonly type: "string";
-                                                                }, {
-                                                                    readonly type: "number";
-                                                                }, {
-                                                                    readonly type: "boolean";
-                                                                }];
-                                                                readonly type: "null";
-                                                            };
-                                                        };
-                                                        readonly required: readonly ["type"];
-                                                    };
-                                                };
-                                            };
-                                            readonly required: readonly ["taskTriggerKey", "params"];
-                                        };
-                                    };
                                     readonly tasks: {
                                         readonly type: "array";
                                         readonly items: {
@@ -3961,11 +3793,32 @@ export declare const schema: {
                                                 readonly key: {
                                                     readonly type: "string";
                                                 };
+                                                readonly label: {
+                                                    readonly type: "string";
+                                                };
                                                 readonly eventTriggers: {
                                                     readonly type: "array";
                                                     readonly items: {
                                                         readonly type: "string";
                                                     };
+                                                };
+                                                readonly folderAction: {
+                                                    readonly type: "object";
+                                                    readonly properties: {
+                                                        readonly description: {
+                                                            readonly type: "string";
+                                                        };
+                                                    };
+                                                    readonly required: readonly ["description"];
+                                                };
+                                                readonly objectAction: {
+                                                    readonly type: "object";
+                                                    readonly properties: {
+                                                        readonly description: {
+                                                            readonly type: "string";
+                                                        };
+                                                    };
+                                                    readonly required: readonly ["description"];
                                                 };
                                                 readonly description: {
                                                     readonly type: "string";
@@ -3994,7 +3847,7 @@ export declare const schema: {
                                                     };
                                                 };
                                             };
-                                            readonly required: readonly ["key", "eventTriggers", "description", "inputParams"];
+                                            readonly required: readonly ["key", "label", "eventTriggers", "description", "inputParams"];
                                         };
                                     };
                                     readonly menuItems: {
@@ -4016,7 +3869,7 @@ export declare const schema: {
                                         };
                                     };
                                 };
-                                readonly required: readonly ["publicKey", "description", "emittableEvents", "folderTaskTriggers", "objectTaskTriggers", "tasks", "menuItems"];
+                                readonly required: readonly ["publicKey", "description", "emittableEvents", "tasks", "menuItems"];
                             };
                             readonly ui: {
                                 readonly type: "object";

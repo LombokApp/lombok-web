@@ -18,7 +18,10 @@ export const taskTriggerSchema = z.object({
 
 export const taskConfigSchema = z.object({
   key: z.string(),
+  label: z.string(),
   eventTriggers: z.array(z.string()),
+  folderAction: z.object({ description: z.string() }).optional(),
+  objectAction: z.object({ description: z.string() }).optional(),
   description: z.string(),
   inputParams: z.record(z.string(), paramConfigSchema),
 })
@@ -33,18 +36,6 @@ export const appConfigSchema = z.object({
   publicKey: z.string(),
   description: z.string(),
   emittableEvents: z.array(z.string()),
-  folderTaskTriggers: z.array(
-    z.object({
-      taskTriggerKey: z.string(),
-      params: z.record(z.string(), paramConfigSchema),
-    }),
-  ),
-  objectTaskTriggers: z.array(
-    z.object({
-      taskTriggerKey: z.string(),
-      params: z.record(z.string(), paramConfigSchema),
-    }),
-  ),
   tasks: z.array(taskConfigSchema),
   menuItems: z.array(appMenuItemConfigSchema),
 })

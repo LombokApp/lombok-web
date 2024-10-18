@@ -4,8 +4,9 @@ import {
   appMenuItemConfigSchema,
   taskConfigSchema,
 } from '../schemas'
-export interface AppAction {
-  key: string
+export interface AppTaskTrigger {
+  taskKey: string
+  label: string
   description: string
 }
 
