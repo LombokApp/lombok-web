@@ -4,6 +4,7 @@ import { mediaTypeFromMimeType } from '@stellariscloud/utils'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
+import { v4 as uuidV4 } from 'uuid'
 
 import type {
   CoreServerMessageInterface,
@@ -54,7 +55,10 @@ export const analyzeObjectTaskHandler = async (
     path.join(os.tmpdir(), `stellaris_task_${task.id}_`),
   )
 
-  const inFilepath = path.join(tempDir, encodeURIComponent(task.data.objectKey))
+  const fileUUID = uuidV4()
+  const inFilepath = path.join(tempDir, fileUUID)
+
+  throw new Error('This is a dummy error!')
 
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir)
@@ -62,7 +66,6 @@ export const analyzeObjectTaskHandler = async (
   const { mimeType } = await downloadFileToDisk(
     response.result.urls[0].url,
     inFilepath,
-    encodeURIComponent(task.data.objectKey),
   )
 
   if (!mimeType) {

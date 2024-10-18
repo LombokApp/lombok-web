@@ -88,7 +88,6 @@ const GetContentSignedURLsValidator = r.Record({
 })
 
 const GetMetadataSignedURLsValidator = r.Record({
-  eventId: r.String.optional(),
   requests: r.Array(
     r.Record({
       folderId: r.String,
@@ -170,6 +169,7 @@ export class AppService {
     const now = new Date()
     if (AppSocketAPIRequest.guard(message)) {
       const requestData = message.data
+      const appIdentifierPrefixed = `APP:${appIdentifier.toUpperCase()}`
       switch (message.name) {
         case 'SAVE_LOG_ENTRY':
           if (LogEntryValidator.guard(requestData)) {
@@ -178,7 +178,7 @@ export class AppService {
                 ...requestData,
                 createdAt: now,
                 emitterIdentifier: appIdentifier,
-                eventKey: `${appIdentifier.toUpperCase()}:LOG_ENTRY`,
+                eventKey: `${appIdentifierPrefixed}:LOG_ENTRY`,
                 id: uuidV4(),
               },
             ])
@@ -257,10 +257,7 @@ export class AppService {
             const task = await this.ormService.db.query.tasksTable.findFirst({
               where: and(
                 eq(tasksTable.id, requestData),
-                eq(
-                  tasksTable.ownerIdentifier,
-                  `APP:${appIdentifier.toUpperCase()}`,
-                ),
+                eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
               ),
             })
             if (
@@ -289,10 +286,7 @@ export class AppService {
           if (AttemptStartHandleTaskValidator.guard(requestData)) {
             const task = await this.ormService.db.query.tasksTable.findFirst({
               where: and(
-                eq(
-                  tasksTable.ownerIdentifier,
-                  `APP:${appIdentifier.toUpperCase()}`,
-                ),
+                eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
                 inArray(tasksTable.taskKey, requestData.taskKeys),
                 isNull(tasksTable.startedAt),
               ),
@@ -332,7 +326,7 @@ export class AppService {
             const task = await this.ormService.db.query.tasksTable.findFirst({
               where: and(
                 eq(tasksTable.id, parsedFailHandleTaskMessage.taskId),
-                eq(tasksTable.ownerIdentifier, appIdentifier),
+                eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
               ),
             })
             if (
@@ -360,7 +354,7 @@ export class AppService {
                 .where(
                   and(
                     eq(tasksTable.id, task.id),
-                    eq(tasksTable.ownerIdentifier, appIdentifier),
+                    eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
                   ),
                 ),
             }

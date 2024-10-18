@@ -9,9 +9,7 @@ import { BaseProcessor, ProcessorError } from '../base.processor'
 import { NewTask, tasksTable } from '../entities/task.entity'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { FolderPushMessage } from '@stellariscloud/types'
-import { ModuleRef } from '@nestjs/core'
 
-const CORE_TASK_KEY_PREFIX = 'CORE_TASK:'
 const MAX_CONCURRENT_CORE_TASKS = 10
 
 @Injectable()
@@ -25,7 +23,6 @@ export class CoreTaskService {
   }
   constructor(
     private readonly ormService: OrmService,
-    private readonly moduleRef: ModuleRef,
     @Inject(forwardRef(() => FolderSocketService))
     private readonly _folderSocketService,
   ) {}
@@ -111,7 +108,7 @@ export class CoreTaskService {
         }
         // console.log('Started core task!')
         // we have secured the task, so perform execution
-        const processorName = task.taskKey.slice(CORE_TASK_KEY_PREFIX.length)
+        const processorName = task.taskKey
         const processor = this.processors[processorName]
         this.runningTasksCount++
         await processor
@@ -172,7 +169,7 @@ export class CoreTaskService {
   }
 
   async addAsyncTask<K extends CoreTaskName>(
-    taskName: K,
+    taskKey: K,
     inputData: CoreTaskInputData<K>,
     context: { folderId?: string; objectKey?: string; userId?: string } = {},
   ) {
@@ -180,7 +177,7 @@ export class CoreTaskService {
 
     const event: NewEvent = {
       id: uuidV4(),
-      eventKey: `TRIGGER_CORE_TASK_${taskName}`,
+      eventKey: `TRIGGER_CORE_TASK_${taskKey}`,
       data: inputData,
       emitterIdentifier: 'CORE',
       folderId: context.folderId,
@@ -195,12 +192,12 @@ export class CoreTaskService {
       inputData,
       ownerIdentifier: 'CORE',
       taskDescription: {
-        textKey: `Task '${taskName}'`,
+        textKey: `Task '${taskKey}'`,
         variables: {},
       },
       subjectFolderId: context.folderId,
       subjectObjectKey: context.objectKey,
-      taskKey: `${CORE_TASK_KEY_PREFIX}${taskName}`,
+      taskKey,
       triggeringEventId: event.id,
       createdAt: now,
       updatedAt: now,
