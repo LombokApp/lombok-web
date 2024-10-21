@@ -649,7 +649,7 @@ export class FolderService implements OnModuleInit {
 
   queueRescanFolder(folderId: string, userId: string) {
     return this.coreTaskService.addAsyncTask(
-      CoreTaskName.RescanFolder,
+      CoreTaskName.RESCAN_FOLDER,
       {
         folderId,
         userId,

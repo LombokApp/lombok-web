@@ -58,8 +58,6 @@ export const analyzeObjectTaskHandler = async (
   const fileUUID = uuidV4()
   const inFilepath = path.join(tempDir, fileUUID)
 
-  throw new Error('This is a dummy error!')
-
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir)
   }

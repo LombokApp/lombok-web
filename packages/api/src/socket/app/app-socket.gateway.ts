@@ -28,6 +28,12 @@ export class AppSocketGateway implements OnGatewayConnection, OnGatewayInit {
   }
 
   async handleConnection(socket: Socket): Promise<void> {
-    await this.appSocketService.handleConnection(socket)
+    try {
+      await this.appSocketService.handleConnection(socket)
+    } catch (error: any) {
+      console.log('App socket connection error:', error)
+      // TODO: send some message to the client so they know what to do?
+      socket.disconnect()
+    }
   }
 }

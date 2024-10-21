@@ -1,4 +1,3 @@
 export enum CoreTaskName {
-  RescanFolder = 'RescanFolder',
-  DummyCoreTask = 'DummyCoreTask',
+  RESCAN_FOLDER = 'RESCAN_FOLDER',
 }

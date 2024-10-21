@@ -88,7 +88,7 @@ describe('Folder Objects', () => {
 
     expect(testFolder.folder.id).toBeTruthy()
     const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
-      getQueueToken(CoreTaskName.RescanFolder),
+      getQueueToken(CoreTaskName.RESCAN_FOLDER),
     )
 
     const jobsCompletedBefore = queue?.stats.completedJobs ?? 0
@@ -148,7 +148,7 @@ describe('Folder Objects', () => {
     expect(folderGetResponse.data.folder.id).toEqual(testFolder.folder.id)
 
     const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
-      getQueueToken(CoreTaskName.RescanFolder),
+      getQueueToken(CoreTaskName.RESCAN_FOLDER),
     )
     const jobsCompletedBefore = queue?.stats.completedJobs ?? 0
 
@@ -200,7 +200,7 @@ describe('Folder Objects', () => {
     expect(folderGetResponse.data.folder.id).toEqual(testFolder.folder.id)
 
     const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
-      getQueueToken(CoreTaskName.RescanFolder),
+      getQueueToken(CoreTaskName.RESCAN_FOLDER),
     )
     const jobsCompletedBefore = queue?.stats.completedJobs ?? 0
 

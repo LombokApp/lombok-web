@@ -233,8 +233,6 @@ export class CoreTaskService {
 }
 
 export type CoreTaskInputData<K extends CoreTaskName> =
-  K extends CoreTaskName.RescanFolder
+  K extends CoreTaskName.RESCAN_FOLDER
     ? { folderId: string; userId: string }
-    : K extends CoreTaskName.DummyCoreTask
-      ? { folderId: string }
-      : never
+    : never
