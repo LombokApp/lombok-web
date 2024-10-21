@@ -85,24 +85,24 @@ export const tasksTableColumns: ColumnDef<TaskDTO>[] = [
               className={cn(
                 'rounded-full w-2 h-2',
                 task.completedAt
-                  ? 'bg-green-500'
+                  ? 'bg-green-600'
                   : task.errorAt
-                    ? 'bg-red-500'
+                    ? 'bg-red-600'
                     : !task.startedAt
-                      ? 'bg-gray-500'
-                      : 'bg-yellow-500',
+                      ? 'bg-gray-600'
+                      : 'bg-yellow-600',
               )}
             />
           </div>
 
           <div className="flex gap-2 items-center font-normal text-muted-foreground text-xs">
             {task.completedAt
-              ? 'Done'
+              ? 'Complete'
               : task.errorAt
                 ? 'Failed'
                 : !task.startedAt
-                  ? 'Not Started'
-                  : 'Pending'}
+                  ? 'Pending'
+                  : 'Running'}
           </div>
         </div>
       )

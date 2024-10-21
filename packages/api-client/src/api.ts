@@ -5923,12 +5923,16 @@ export const TasksApiAxiosParamCreator = function (configuration?: Configuration
          * 
          * @param {string} folderId 
          * @param {string} [objectKey] 
+         * @param {ListTasksIncludeWaitingEnum} [includeWaiting] 
+         * @param {ListTasksIncludeRunningEnum} [includeRunning] 
+         * @param {ListTasksIncludeCompleteEnum} [includeComplete] 
+         * @param {ListTasksIncludeFailedEnum} [includeFailed] 
          * @param {number} [offset] 
          * @param {number} [limit] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listTasks: async (folderId: string, objectKey?: string, offset?: number, limit?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listTasks: async (folderId: string, objectKey?: string, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('listTasks', 'folderId', folderId)
             const localVarPath = `/api/v1/{folderId}/tasks`
@@ -5950,6 +5954,22 @@ export const TasksApiAxiosParamCreator = function (configuration?: Configuration
 
             if (objectKey !== undefined) {
                 localVarQueryParameter['objectKey'] = objectKey;
+            }
+
+            if (includeWaiting !== undefined) {
+                localVarQueryParameter['includeWaiting'] = includeWaiting;
+            }
+
+            if (includeRunning !== undefined) {
+                localVarQueryParameter['includeRunning'] = includeRunning;
+            }
+
+            if (includeComplete !== undefined) {
+                localVarQueryParameter['includeComplete'] = includeComplete;
+            }
+
+            if (includeFailed !== undefined) {
+                localVarQueryParameter['includeFailed'] = includeFailed;
             }
 
             if (offset !== undefined) {
@@ -5996,13 +6016,17 @@ export const TasksApiFp = function(configuration?: Configuration) {
          * 
          * @param {string} folderId 
          * @param {string} [objectKey] 
+         * @param {ListTasksIncludeWaitingEnum} [includeWaiting] 
+         * @param {ListTasksIncludeRunningEnum} [includeRunning] 
+         * @param {ListTasksIncludeCompleteEnum} [includeComplete] 
+         * @param {ListTasksIncludeFailedEnum} [includeFailed] 
          * @param {number} [offset] 
          * @param {number} [limit] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listTasks(folderId: string, objectKey?: string, offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listTasks(folderId, objectKey, offset, limit, options);
+        async listTasks(folderId: string, objectKey?: string, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listTasks(folderId, objectKey, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -6031,7 +6055,7 @@ export const TasksApiFactory = function (configuration?: Configuration, basePath
          * @throws {RequiredError}
          */
         listTasks(requestParameters: TasksApiListTasksRequest, options?: AxiosRequestConfig): AxiosPromise<TaskListResponse> {
-            return localVarFp.listTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+            return localVarFp.listTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -6079,6 +6103,34 @@ export interface TasksApiListTasksRequest {
 
     /**
      * 
+     * @type {'true'}
+     * @memberof TasksApiListTasks
+     */
+    readonly includeWaiting?: ListTasksIncludeWaitingEnum
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof TasksApiListTasks
+     */
+    readonly includeRunning?: ListTasksIncludeRunningEnum
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof TasksApiListTasks
+     */
+    readonly includeComplete?: ListTasksIncludeCompleteEnum
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof TasksApiListTasks
+     */
+    readonly includeFailed?: ListTasksIncludeFailedEnum
+
+    /**
+     * 
      * @type {number}
      * @memberof TasksApiListTasks
      */
@@ -6118,10 +6170,38 @@ export class TasksApi extends BaseAPI {
      * @memberof TasksApi
      */
     public listTasks(requestParameters: TasksApiListTasksRequest, options?: AxiosRequestConfig) {
-        return TasksApiFp(this.configuration).listTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+        return TasksApiFp(this.configuration).listTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
+/**
+ * @export
+ */
+export const ListTasksIncludeWaitingEnum = {
+    True: 'true'
+} as const;
+export type ListTasksIncludeWaitingEnum = typeof ListTasksIncludeWaitingEnum[keyof typeof ListTasksIncludeWaitingEnum];
+/**
+ * @export
+ */
+export const ListTasksIncludeRunningEnum = {
+    True: 'true'
+} as const;
+export type ListTasksIncludeRunningEnum = typeof ListTasksIncludeRunningEnum[keyof typeof ListTasksIncludeRunningEnum];
+/**
+ * @export
+ */
+export const ListTasksIncludeCompleteEnum = {
+    True: 'true'
+} as const;
+export type ListTasksIncludeCompleteEnum = typeof ListTasksIncludeCompleteEnum[keyof typeof ListTasksIncludeCompleteEnum];
+/**
+ * @export
+ */
+export const ListTasksIncludeFailedEnum = {
+    True: 'true'
+} as const;
+export type ListTasksIncludeFailedEnum = typeof ListTasksIncludeFailedEnum[keyof typeof ListTasksIncludeFailedEnum];
 
 
 /**

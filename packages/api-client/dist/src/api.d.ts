@@ -4316,12 +4316,16 @@ export declare const TasksApiAxiosParamCreator: (configuration?: Configuration) 
      *
      * @param {string} folderId
      * @param {string} [objectKey]
+     * @param {ListTasksIncludeWaitingEnum} [includeWaiting]
+     * @param {ListTasksIncludeRunningEnum} [includeRunning]
+     * @param {ListTasksIncludeCompleteEnum} [includeComplete]
+     * @param {ListTasksIncludeFailedEnum} [includeFailed]
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listTasks: (folderId: string, objectKey?: string, offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listTasks: (folderId: string, objectKey?: string, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * TasksApi - functional programming interface
@@ -4340,12 +4344,16 @@ export declare const TasksApiFp: (configuration?: Configuration) => {
      *
      * @param {string} folderId
      * @param {string} [objectKey]
+     * @param {ListTasksIncludeWaitingEnum} [includeWaiting]
+     * @param {ListTasksIncludeRunningEnum} [includeRunning]
+     * @param {ListTasksIncludeCompleteEnum} [includeComplete]
+     * @param {ListTasksIncludeFailedEnum} [includeFailed]
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listTasks(folderId: string, objectKey?: string, offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>>;
+    listTasks(folderId: string, objectKey?: string, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>>;
 };
 /**
  * TasksApi - factory interface
@@ -4406,6 +4414,30 @@ export interface TasksApiListTasksRequest {
     readonly objectKey?: string;
     /**
      *
+     * @type {'true'}
+     * @memberof TasksApiListTasks
+     */
+    readonly includeWaiting?: ListTasksIncludeWaitingEnum;
+    /**
+     *
+     * @type {'true'}
+     * @memberof TasksApiListTasks
+     */
+    readonly includeRunning?: ListTasksIncludeRunningEnum;
+    /**
+     *
+     * @type {'true'}
+     * @memberof TasksApiListTasks
+     */
+    readonly includeComplete?: ListTasksIncludeCompleteEnum;
+    /**
+     *
+     * @type {'true'}
+     * @memberof TasksApiListTasks
+     */
+    readonly includeFailed?: ListTasksIncludeFailedEnum;
+    /**
+     *
      * @type {number}
      * @memberof TasksApiListTasks
      */
@@ -4441,6 +4473,34 @@ export declare class TasksApi extends BaseAPI {
      */
     listTasks(requestParameters: TasksApiListTasksRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskListResponse, any>>;
 }
+/**
+ * @export
+ */
+export declare const ListTasksIncludeWaitingEnum: {
+    readonly True: "true";
+};
+export type ListTasksIncludeWaitingEnum = typeof ListTasksIncludeWaitingEnum[keyof typeof ListTasksIncludeWaitingEnum];
+/**
+ * @export
+ */
+export declare const ListTasksIncludeRunningEnum: {
+    readonly True: "true";
+};
+export type ListTasksIncludeRunningEnum = typeof ListTasksIncludeRunningEnum[keyof typeof ListTasksIncludeRunningEnum];
+/**
+ * @export
+ */
+export declare const ListTasksIncludeCompleteEnum: {
+    readonly True: "true";
+};
+export type ListTasksIncludeCompleteEnum = typeof ListTasksIncludeCompleteEnum[keyof typeof ListTasksIncludeCompleteEnum];
+/**
+ * @export
+ */
+export declare const ListTasksIncludeFailedEnum: {
+    readonly True: "true";
+};
+export type ListTasksIncludeFailedEnum = typeof ListTasksIncludeFailedEnum[keyof typeof ListTasksIncludeFailedEnum];
 /**
  * UsersApi - axios parameter creator
  * @export

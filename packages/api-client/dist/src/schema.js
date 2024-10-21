@@ -1499,6 +1499,50 @@ export const schema = {
                         }
                     },
                     {
+                        "name": "includeWaiting",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "true"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "includeRunning",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "true"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "includeComplete",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "true"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "includeFailed",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "true"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "offset",
                         "required": false,
                         "in": "query",

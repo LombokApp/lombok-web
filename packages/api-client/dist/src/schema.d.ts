@@ -1255,6 +1255,38 @@ export declare const schema: {
                         readonly type: "string";
                     };
                 }, {
+                    readonly name: "includeWaiting";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly enum: readonly ["true"];
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "includeRunning";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly enum: readonly ["true"];
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "includeComplete";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly enum: readonly ["true"];
+                        readonly type: "string";
+                    };
+                }, {
+                    readonly name: "includeFailed";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly enum: readonly ["true"];
+                        readonly type: "string";
+                    };
+                }, {
                     readonly name: "offset";
                     readonly required: false;
                     readonly in: "query";

@@ -3,6 +3,10 @@ import { z } from 'zod'
 
 export const tasksListQueryParamsSchema = z.object({
   objectKey: z.string().optional(),
+  includeWaiting: z.literal('true').optional(),
+  includeRunning: z.literal('true').optional(),
+  includeComplete: z.literal('true').optional(),
+  includeFailed: z.literal('true').optional(),
   offset: z
     .preprocess(
       (a) => parseInt(a as string, 10),

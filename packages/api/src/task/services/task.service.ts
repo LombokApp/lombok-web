@@ -4,7 +4,7 @@ import {
   NotFoundException,
   forwardRef,
 } from '@nestjs/common'
-import { and, count, eq, isNull, sql } from 'drizzle-orm'
+import { SQL, and, count, eq, isNotNull, isNull, or, sql } from 'drizzle-orm'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import type { User } from 'src/users/entities/user.entity'
@@ -12,6 +12,7 @@ import type { User } from 'src/users/entities/user.entity'
 import type { Task } from '../entities/task.entity'
 import { tasksTable } from '../entities/task.entity'
 import { AppSocketService } from 'src/socket/app/app-socket.service'
+import { TasksListQueryParamsDTO } from '../dto/tasks-list-query-params.dto'
 
 @Injectable()
 export class TaskService {
@@ -53,19 +54,41 @@ export class TaskService {
       offset,
       limit,
       objectKey,
-    }: {
-      offset?: number
-      limit?: number
-      objectKey?: string
-    },
+      includeComplete,
+      includeFailed,
+      includeRunning,
+      includeWaiting,
+    }: TasksListQueryParamsDTO,
   ) {
     const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
 
     const folderEqCondition = eq(tasksTable.subjectFolderId, folder.id)
+    const conditions: (SQL<unknown> | undefined)[] = [folderEqCondition]
+    const statusFilters = ([] as (SQL<unknown> | undefined)[])
+      .concat(includeComplete ? [isNotNull(tasksTable.completedAt)] : [])
+      .concat(includeFailed ? [isNotNull(tasksTable.errorAt)] : [])
+      .concat(includeWaiting ? [isNull(tasksTable.startedAt)] : [])
+      .concat(
+        includeRunning
+          ? [
+              and(
+                isNull(tasksTable.errorAt),
+                isNull(tasksTable.completedAt),
+                isNotNull(tasksTable.startedAt),
+              ),
+            ]
+          : [],
+      )
+    if (statusFilters.length) {
+      conditions.push(or(...statusFilters))
+    }
+
+    if (objectKey) {
+      conditions.push(eq(tasksTable.subjectObjectKey, objectKey))
+    }
+
     const tasks = await this.ormService.db.query.tasksTable.findMany({
-      where: objectKey
-        ? and(eq(tasksTable.subjectObjectKey, objectKey), folderEqCondition)
-        : folderEqCondition,
+      where: and(...conditions),
       offset: offset ?? 0,
       limit: limit ?? 25,
     })
@@ -75,11 +98,7 @@ export class TaskService {
         count: count(),
       })
       .from(tasksTable)
-      .where(
-        objectKey
-          ? and(eq(tasksTable.subjectObjectKey, objectKey), folderEqCondition)
-          : folderEqCondition,
-      )
+      .where(and(...conditions))
 
     return {
       result: tasks,

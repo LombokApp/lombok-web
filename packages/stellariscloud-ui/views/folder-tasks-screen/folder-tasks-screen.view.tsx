@@ -11,7 +11,13 @@ export function FolderTasksScreen() {
   const fetchTasks = React.useCallback(() => {
     if (folder?.id) {
       void apiClient.tasksApi
-        .listTasks({ folderId: folder?.id })
+        .listTasks({
+          folderId: folder?.id,
+          includeComplete: 'true',
+          includeFailed: 'true',
+          includeRunning: 'true',
+          includeWaiting: 'true',
+        })
         .then((resp) => setTasks(resp.data.result))
     }
   }, [folder?.id])
