@@ -1499,6 +1499,20 @@ export const schema = {
                         }
                     },
                     {
+                        "name": "sort",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "createdAt-asc",
+                                "createdAt-desc",
+                                "updatedAt-asc",
+                                "updatedAt-desc"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
                         "name": "includeWaiting",
                         "required": false,
                         "in": "query",

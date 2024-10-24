@@ -1255,6 +1255,14 @@ export declare const schema: {
                         readonly type: "string";
                     };
                 }, {
+                    readonly name: "sort";
+                    readonly required: false;
+                    readonly in: "query";
+                    readonly schema: {
+                        readonly enum: readonly ["createdAt-asc", "createdAt-desc", "updatedAt-asc", "updatedAt-desc"];
+                        readonly type: "string";
+                    };
+                }, {
                     readonly name: "includeWaiting";
                     readonly required: false;
                     readonly in: "query";

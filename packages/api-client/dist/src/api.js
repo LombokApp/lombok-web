@@ -2586,6 +2586,7 @@ export const TasksApiAxiosParamCreator = function (configuration) {
          *
          * @param {string} folderId
          * @param {string} [objectKey]
+         * @param {ListTasksSortEnum} [sort]
          * @param {ListTasksIncludeWaitingEnum} [includeWaiting]
          * @param {ListTasksIncludeRunningEnum} [includeRunning]
          * @param {ListTasksIncludeCompleteEnum} [includeComplete]
@@ -2595,7 +2596,7 @@ export const TasksApiAxiosParamCreator = function (configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listTasks: async (folderId, objectKey, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options = {}) => {
+        listTasks: async (folderId, objectKey, sort, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options = {}) => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('listTasks', 'folderId', folderId);
             const localVarPath = `/api/v1/{folderId}/tasks`
@@ -2614,6 +2615,9 @@ export const TasksApiAxiosParamCreator = function (configuration) {
             await setBearerAuthToObject(localVarHeaderParameter, configuration);
             if (objectKey !== undefined) {
                 localVarQueryParameter['objectKey'] = objectKey;
+            }
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
             }
             if (includeWaiting !== undefined) {
                 localVarQueryParameter['includeWaiting'] = includeWaiting;
@@ -2665,6 +2669,7 @@ export const TasksApiFp = function (configuration) {
          *
          * @param {string} folderId
          * @param {string} [objectKey]
+         * @param {ListTasksSortEnum} [sort]
          * @param {ListTasksIncludeWaitingEnum} [includeWaiting]
          * @param {ListTasksIncludeRunningEnum} [includeRunning]
          * @param {ListTasksIncludeCompleteEnum} [includeComplete]
@@ -2674,8 +2679,8 @@ export const TasksApiFp = function (configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listTasks(folderId, objectKey, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listTasks(folderId, objectKey, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options);
+        async listTasks(folderId, objectKey, sort, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listTasks(folderId, objectKey, sort, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     };
@@ -2703,7 +2708,7 @@ export const TasksApiFactory = function (configuration, basePath, axios) {
          * @throws {RequiredError}
          */
         listTasks(requestParameters, options) {
-            return localVarFp.listTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+            return localVarFp.listTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.sort, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -2732,9 +2737,18 @@ export class TasksApi extends BaseAPI {
      * @memberof TasksApi
      */
     listTasks(requestParameters, options) {
-        return TasksApiFp(this.configuration).listTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+        return TasksApiFp(this.configuration).listTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.sort, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
     }
 }
+/**
+ * @export
+ */
+export const ListTasksSortEnum = {
+    CreatedAtAsc: 'createdAt-asc',
+    CreatedAtDesc: 'createdAt-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
+};
 /**
  * @export
  */

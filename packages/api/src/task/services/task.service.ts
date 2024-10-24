@@ -13,6 +13,14 @@ import type { Task } from '../entities/task.entity'
 import { tasksTable } from '../entities/task.entity'
 import { AppSocketService } from 'src/socket/app/app-socket.service'
 import { TasksListQueryParamsDTO } from '../dto/tasks-list-query-params.dto'
+import { parseSort } from 'src/core/utils/sort.util'
+
+export enum TaskSort {
+  CreatedAtAsc = 'createdAt-asc',
+  CreatedAtDesc = 'createdAt-desc',
+  UpdatedAtAsc = 'updatedAt-asc',
+  UpdatedAtDesc = 'updatedAt-desc',
+}
 
 @Injectable()
 export class TaskService {
@@ -52,7 +60,8 @@ export class TaskService {
     { folderId }: { folderId: string },
     {
       offset,
-      limit,
+      limit = 25,
+      sort = TaskSort.CreatedAtAsc,
       objectKey,
       includeComplete,
       includeFailed,
@@ -89,8 +98,9 @@ export class TaskService {
 
     const tasks = await this.ormService.db.query.tasksTable.findMany({
       where: and(...conditions),
-      offset: offset ?? 0,
-      limit: limit ?? 25,
+      offset: Math.max(0, offset ?? 0),
+      limit: Math.min(100, limit ?? 25),
+      orderBy: parseSort(tasksTable, sort),
     })
 
     const tasksCountResult = await this.ormService.db

@@ -2,7 +2,6 @@
 
 import { ColumnDef } from '@tanstack/react-table'
 
-import { labels, statuses } from './folder-tasks-data'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { TaskDTO } from '@stellariscloud/api-client'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
@@ -14,7 +13,11 @@ export const tasksTableColumns: ColumnDef<TaskDTO>[] = [
   {
     id: 'owner',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Owner" />
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Owner"
+      />
     ),
     cell: ({ row: { original: task } }) => (
       <div
@@ -40,7 +43,11 @@ export const tasksTableColumns: ColumnDef<TaskDTO>[] = [
   {
     accessorKey: 'taskKey',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Task" />
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Task"
+      />
     ),
     cell: ({ row }) => (
       <div className="flex flex-col">
@@ -56,7 +63,11 @@ export const tasksTableColumns: ColumnDef<TaskDTO>[] = [
   {
     accessorKey: 'objectKey',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Object" />
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Object"
+      />
     ),
     cell: ({ row: { original: task } }) => {
       return (
@@ -75,8 +86,13 @@ export const tasksTableColumns: ColumnDef<TaskDTO>[] = [
   {
     accessorKey: 'status',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Status" />
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Status"
+      />
     ),
+    enableGlobalFilter: false,
     cell: ({ row: { original: task } }) => {
       return (
         <div className="flex gap-2 items-center">
@@ -113,7 +129,11 @@ export const tasksTableColumns: ColumnDef<TaskDTO>[] = [
   {
     accessorKey: 'createdAt',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Created" />
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Created"
+      />
     ),
     cell: ({ row }) => (
       <div className="flex flex-col text-xs w-[120px]">
@@ -123,13 +143,17 @@ export const tasksTableColumns: ColumnDef<TaskDTO>[] = [
         </div>
       </div>
     ),
-    enableSorting: false,
+    enableSorting: true,
     enableHiding: false,
   },
   {
     accessorKey: 'updatedAt',
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Updated" />
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Updated"
+      />
     ),
     cell: ({ row }) => (
       <div className="flex flex-col text-xs w-[120px]">
@@ -139,7 +163,7 @@ export const tasksTableColumns: ColumnDef<TaskDTO>[] = [
         </div>
       </div>
     ),
-    enableSorting: false,
+    enableSorting: true,
     enableHiding: false,
   },
 ]

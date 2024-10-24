@@ -5,6 +5,7 @@ import * as React from 'react'
 import {
   ColumnDef,
   ColumnFiltersState,
+  FilterFn,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -13,6 +14,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   SortingState,
+  TableOptions,
   useReactTable,
   VisibilityState,
 } from '@tanstack/react-table'
@@ -26,17 +28,35 @@ import {
   TableRow,
 } from '../table'
 import { DataTablePagination } from './data-table-pagination'
-import { DataTableToolbar } from './data-table-toolbar'
+import { ColumnFilterOptions, DataTableToolbar } from './data-table-toolbar'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  filterFns: Record<string, FilterFn<TValue>>
+  filterOptions: Record<string, ColumnFilterOptions>
+  manualFiltering?: boolean
+  manualSorting?: boolean
+}
+
+interface TableHandlerProps<TData> {
+  onColumnFiltersChange: TableOptions<TData>['onColumnFiltersChange']
+  onSortingChange: TableOptions<TData>['onSortingChange']
+  onPaginationChange: TableOptions<TData>['onPaginationChange']
+  rowCount: TableOptions<TData>['rowCount']
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-}: DataTableProps<TData, TValue>) {
+  filterFns,
+  filterOptions,
+  rowCount,
+  onColumnFiltersChange,
+  onSortingChange,
+  manualFiltering = true,
+  manualSorting = true,
+}: DataTableProps<TData, TValue> & TableHandlerProps<TData>) {
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
@@ -47,7 +67,11 @@ export function DataTable<TData, TValue>({
 
   const table = useReactTable({
     data,
+    rowCount,
+    manualFiltering,
+    manualSorting,
     columns,
+    filterFns,
     state: {
       sorting,
       columnVisibility,
@@ -56,8 +80,18 @@ export function DataTable<TData, TValue>({
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
+    onSortingChange: (...args) => {
+      if (onSortingChange) {
+        onSortingChange(...args)
+      }
+      setSorting(...args)
+    },
+    onColumnFiltersChange: (...args) => {
+      if (onColumnFiltersChange) {
+        onColumnFiltersChange(...args)
+      }
+      setColumnFilters(...args)
+    },
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -69,7 +103,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} />
+      <DataTableToolbar filterOptions={filterOptions} table={table} />
       <div className="rounded-md border">
         <Table>
           <TableHeader>

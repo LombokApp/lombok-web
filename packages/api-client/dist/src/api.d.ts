@@ -4316,6 +4316,7 @@ export declare const TasksApiAxiosParamCreator: (configuration?: Configuration) 
      *
      * @param {string} folderId
      * @param {string} [objectKey]
+     * @param {ListTasksSortEnum} [sort]
      * @param {ListTasksIncludeWaitingEnum} [includeWaiting]
      * @param {ListTasksIncludeRunningEnum} [includeRunning]
      * @param {ListTasksIncludeCompleteEnum} [includeComplete]
@@ -4325,7 +4326,7 @@ export declare const TasksApiAxiosParamCreator: (configuration?: Configuration) 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listTasks: (folderId: string, objectKey?: string, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listTasks: (folderId: string, objectKey?: string, sort?: ListTasksSortEnum, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * TasksApi - functional programming interface
@@ -4344,6 +4345,7 @@ export declare const TasksApiFp: (configuration?: Configuration) => {
      *
      * @param {string} folderId
      * @param {string} [objectKey]
+     * @param {ListTasksSortEnum} [sort]
      * @param {ListTasksIncludeWaitingEnum} [includeWaiting]
      * @param {ListTasksIncludeRunningEnum} [includeRunning]
      * @param {ListTasksIncludeCompleteEnum} [includeComplete]
@@ -4353,7 +4355,7 @@ export declare const TasksApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listTasks(folderId: string, objectKey?: string, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>>;
+    listTasks(folderId: string, objectKey?: string, sort?: ListTasksSortEnum, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>>;
 };
 /**
  * TasksApi - factory interface
@@ -4412,6 +4414,12 @@ export interface TasksApiListTasksRequest {
      * @memberof TasksApiListTasks
      */
     readonly objectKey?: string;
+    /**
+     *
+     * @type {'createdAt-asc' | 'createdAt-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @memberof TasksApiListTasks
+     */
+    readonly sort?: ListTasksSortEnum;
     /**
      *
      * @type {'true'}
@@ -4473,6 +4481,16 @@ export declare class TasksApi extends BaseAPI {
      */
     listTasks(requestParameters: TasksApiListTasksRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskListResponse, any>>;
 }
+/**
+ * @export
+ */
+export declare const ListTasksSortEnum: {
+    readonly CreatedAtAsc: "createdAt-asc";
+    readonly CreatedAtDesc: "createdAt-desc";
+    readonly UpdatedAtAsc: "updatedAt-asc";
+    readonly UpdatedAtDesc: "updatedAt-desc";
+};
+export type ListTasksSortEnum = typeof ListTasksSortEnum[keyof typeof ListTasksSortEnum];
 /**
  * @export
  */
