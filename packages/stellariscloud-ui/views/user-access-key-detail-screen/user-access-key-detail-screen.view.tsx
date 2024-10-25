@@ -78,7 +78,7 @@ export function UserAccessKeyDetailScreen() {
           'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
         )}
       >
-        <div className="container flex-1 flex flex-col gap-4 p-8">
+        <div className="container flex-1 flex flex-col gap-4">
           <AccessKeyAttributeList accessKey={accessKey} />
           <Card>
             <CardHeader>

@@ -1,7 +1,6 @@
 import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import React from 'react'
-import { Folder } from 'lucide-react'
 
 import {
   FolderContextProvider,
@@ -15,8 +14,6 @@ const FolderDetailInner = () => {
   const folderContext = useFolderContext()
   return (
     <ContentLayout
-      titleIcon={Folder}
-      description={`ID: ${router.query.folderId}`}
       breadcrumbs={(
         [
           { label: 'Folders', href: '/folders' },

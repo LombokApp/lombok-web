@@ -4,7 +4,7 @@ import type { FolderMetadata } from '@stellariscloud/types'
 import { formatBytes } from '@stellariscloud/utils'
 import React from 'react'
 
-import { Button } from '../../design-system/button/button'
+import { Button } from '@stellariscloud/ui-toolkit'
 
 export const FolderDetailSidePanel = ({
   folderAndPermissions,

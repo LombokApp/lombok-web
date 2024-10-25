@@ -2,7 +2,7 @@ import { NAME_VALIDATORS_COMBINED } from '@stellariscloud/utils'
 import React from 'react'
 import * as r from 'runtypes'
 
-import { Input } from '../../design-system/input/input'
+import { Input, Label } from '@stellariscloud/ui-toolkit'
 import { useFormState } from '../../utils/forms'
 
 export interface ProfileUserFormValues {
@@ -35,26 +35,26 @@ export const ProfileUserForm = ({
   return (
     <div className="flex flex-col gap-4">
       <div>
+        <Label>Name</Label>
         <Input
-          label="Name"
           value={form.values.name}
           onChange={(e) => form.setValue('name', e.target.value)}
-          error={form.state.fields.name.error}
         />
       </div>
       <div>
-        <Input label="Username" disabled value={value.username} />
+        <Label>Username</Label>
+        <Input disabled value={value.username} />
       </div>
       <div>
-        <Input label="Email" disabled value={value.email} />
+        <Label>Email</Label>
+        <Input disabled value={value.email} />
       </div>
       <div>
+        <Label>{value.id ? 'Reset password' : 'Password'}</Label>
         <Input
-          label={value.id ? 'Reset password' : 'Password'}
           type="password"
           value={form.values.password}
           onChange={(e) => form.setValue('password', e.target.value)}
-          error={form.state.fields.password.error}
         />
       </div>
     </div>

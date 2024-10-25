@@ -539,6 +539,12 @@ export interface EventDTO {
      * @type {string}
      * @memberof EventDTO
      */
+    'level': EventDTOLevelEnum;
+    /**
+     *
+     * @type {string}
+     * @memberof EventDTO
+     */
     'emitterIdentifier': string;
     /**
      *
@@ -559,6 +565,14 @@ export interface EventDTO {
      */
     'createdAt': string;
 }
+export declare const EventDTOLevelEnum: {
+    readonly Trace: "TRACE";
+    readonly Debug: "DEBUG";
+    readonly Info: "INFO";
+    readonly Warn: "WARN";
+    readonly Error: "ERROR";
+};
+export type EventDTOLevelEnum = typeof EventDTOLevelEnum[keyof typeof EventDTOLevelEnum];
 /**
  *
  * @export
@@ -614,6 +628,12 @@ export interface EventGetResponseEvent {
      * @type {string}
      * @memberof EventGetResponseEvent
      */
+    'level': EventGetResponseEventLevelEnum;
+    /**
+     *
+     * @type {string}
+     * @memberof EventGetResponseEvent
+     */
     'emitterIdentifier': string;
     /**
      *
@@ -634,6 +654,14 @@ export interface EventGetResponseEvent {
      */
     'createdAt': string;
 }
+export declare const EventGetResponseEventLevelEnum: {
+    readonly Trace: "TRACE";
+    readonly Debug: "DEBUG";
+    readonly Info: "INFO";
+    readonly Warn: "WARN";
+    readonly Error: "ERROR";
+};
+export type EventGetResponseEventLevelEnum = typeof EventGetResponseEventLevelEnum[keyof typeof EventGetResponseEventLevelEnum];
 /**
  *
  * @export
@@ -832,6 +860,18 @@ export interface FolderDTO {
      * @memberof FolderDTO
      */
     'contentLocation': FolderDTOMetadataLocation;
+    /**
+     *
+     * @type {string}
+     * @memberof FolderDTO
+     */
+    'createdAt': string;
+    /**
+     *
+     * @type {string}
+     * @memberof FolderDTO
+     */
+    'updatedAt': string;
 }
 /**
  *
@@ -986,6 +1026,18 @@ export interface FolderGetResponseFolder {
      * @memberof FolderGetResponseFolder
      */
     'contentLocation': FolderDTOMetadataLocation;
+    /**
+     *
+     * @type {string}
+     * @memberof FolderGetResponseFolder
+     */
+    'createdAt': string;
+    /**
+     *
+     * @type {string}
+     * @memberof FolderGetResponseFolder
+     */
+    'updatedAt': string;
 }
 /**
  *
@@ -1700,6 +1752,12 @@ export interface StorageProvisionDTO {
      * @type {string}
      * @memberof StorageProvisionDTO
      */
+    'accessKeyHashId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionDTO
+     */
     'endpoint': string;
     /**
      *
@@ -1758,78 +1816,11 @@ export type StorageProvisionDTOProvisionTypesEnum = typeof StorageProvisionDTOPr
 export interface StorageProvisionGetResponse {
     /**
      *
-     * @type {StorageProvisionGetResponseStorageProvision}
+     * @type {StorageProvisionListResponseResultInner}
      * @memberof StorageProvisionGetResponse
      */
-    'storageProvision': StorageProvisionGetResponseStorageProvision;
+    'storageProvision': StorageProvisionListResponseResultInner;
 }
-/**
- *
- * @export
- * @interface StorageProvisionGetResponseStorageProvision
- */
-export interface StorageProvisionGetResponseStorageProvision {
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'id': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'endpoint': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'bucket': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'region': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'accessKeyId': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'prefix'?: string;
-    /**
-     *
-     * @type {Array<string>}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'provisionTypes': Array<StorageProvisionGetResponseStorageProvisionProvisionTypesEnum>;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'label': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'description': string;
-}
-export declare const StorageProvisionGetResponseStorageProvisionProvisionTypesEnum: {
-    readonly Content: "CONTENT";
-    readonly Metadata: "METADATA";
-    readonly Backup: "BACKUP";
-};
-export type StorageProvisionGetResponseStorageProvisionProvisionTypesEnum = typeof StorageProvisionGetResponseStorageProvisionProvisionTypesEnum[keyof typeof StorageProvisionGetResponseStorageProvisionProvisionTypesEnum];
 /**
  *
  * @export
@@ -1927,13 +1918,7 @@ export interface StorageProvisionListResponseResultInner {
      * @type {string}
      * @memberof StorageProvisionListResponseResultInner
      */
-    'label': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'description': string;
+    'accessKeyHashId': string;
     /**
      *
      * @type {string}
@@ -1970,6 +1955,18 @@ export interface StorageProvisionListResponseResultInner {
      * @memberof StorageProvisionListResponseResultInner
      */
     'provisionTypes': Array<StorageProvisionListResponseResultInnerProvisionTypesEnum>;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionListResponseResultInner
+     */
+    'label': string;
+    /**
+     *
+     * @type {string}
+     * @memberof StorageProvisionListResponseResultInner
+     */
+    'description': string;
 }
 export declare const StorageProvisionListResponseResultInnerProvisionTypesEnum: {
     readonly Content: "CONTENT";
@@ -2027,11 +2024,11 @@ export interface TaskDTO {
     'handlerId'?: string;
     /**
      *
-     * @type {{ [key: string]: TaskDTOInputDataValue | undefined; }}
+     * @type {{ [key: string]: TaskGetResponseTaskInputDataValue | undefined; }}
      * @memberof TaskDTO
      */
     'inputData': {
-        [key: string]: TaskDTOInputDataValue | undefined;
+        [key: string]: TaskGetResponseTaskInputDataValue | undefined;
     };
     /**
      *
@@ -2053,10 +2050,10 @@ export interface TaskDTO {
     'errorMessage'?: string;
     /**
      *
-     * @type {TaskDTOTaskDescription}
+     * @type {TaskGetResponseTaskTaskDescription}
      * @memberof TaskDTO
      */
-    'taskDescription': TaskDTOTaskDescription;
+    'taskDescription': TaskGetResponseTaskTaskDescription;
     /**
      *
      * @type {Array<any>}
@@ -2087,32 +2084,6 @@ export interface TaskDTO {
      * @memberof TaskDTO
      */
     'updatedAt': string;
-}
-/**
- * @type TaskDTOInputDataValue
- * @export
- */
-export type TaskDTOInputDataValue = number | string;
-/**
- *
- * @export
- * @interface TaskDTOTaskDescription
- */
-export interface TaskDTOTaskDescription {
-    /**
-     *
-     * @type {string}
-     * @memberof TaskDTOTaskDescription
-     */
-    'textKey': string;
-    /**
-     *
-     * @type {{ [key: string]: string | undefined; }}
-     * @memberof TaskDTOTaskDescription
-     */
-    'variables': {
-        [key: string]: string | undefined;
-    };
 }
 /**
  *
@@ -2177,11 +2148,11 @@ export interface TaskGetResponseTask {
     'handlerId'?: string;
     /**
      *
-     * @type {{ [key: string]: TaskDTOInputDataValue | undefined; }}
+     * @type {{ [key: string]: TaskGetResponseTaskInputDataValue | undefined; }}
      * @memberof TaskGetResponseTask
      */
     'inputData': {
-        [key: string]: TaskDTOInputDataValue | undefined;
+        [key: string]: TaskGetResponseTaskInputDataValue | undefined;
     };
     /**
      *
@@ -2203,10 +2174,10 @@ export interface TaskGetResponseTask {
     'errorMessage'?: string;
     /**
      *
-     * @type {TaskDTOTaskDescription}
+     * @type {TaskGetResponseTaskTaskDescription}
      * @memberof TaskGetResponseTask
      */
-    'taskDescription': TaskDTOTaskDescription;
+    'taskDescription': TaskGetResponseTaskTaskDescription;
     /**
      *
      * @type {Array<any>}
@@ -2237,6 +2208,32 @@ export interface TaskGetResponseTask {
      * @memberof TaskGetResponseTask
      */
     'updatedAt': string;
+}
+/**
+ * @type TaskGetResponseTaskInputDataValue
+ * @export
+ */
+export type TaskGetResponseTaskInputDataValue = number | string;
+/**
+ *
+ * @export
+ * @interface TaskGetResponseTaskTaskDescription
+ */
+export interface TaskGetResponseTaskTaskDescription {
+    /**
+     *
+     * @type {string}
+     * @memberof TaskGetResponseTaskTaskDescription
+     */
+    'textKey': string;
+    /**
+     *
+     * @type {{ [key: string]: string | undefined; }}
+     * @memberof TaskGetResponseTaskTaskDescription
+     */
+    'variables': {
+        [key: string]: string | undefined;
+    };
 }
 /**
  *
@@ -2542,10 +2539,11 @@ export declare const AccessKeysApiAxiosParamCreator: (configuration?: Configurat
      *
      * @param {number} [offset]
      * @param {number} [limit]
+     * @param {ListAccessKeysSortEnum} [sort]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listAccessKeys: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listAccessKeys: (offset?: number, limit?: number, sort?: ListAccessKeysSortEnum, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {string} accessKeyHashId
@@ -2578,10 +2576,11 @@ export declare const AccessKeysApiFp: (configuration?: Configuration) => {
      *
      * @param {number} [offset]
      * @param {number} [limit]
+     * @param {ListAccessKeysSortEnum} [sort]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listAccessKeys(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
+    listAccessKeys(offset?: number, limit?: number, sort?: ListAccessKeysSortEnum, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
     /**
      *
      * @param {string} accessKeyHashId
@@ -2669,6 +2668,12 @@ export interface AccessKeysApiListAccessKeysRequest {
      * @memberof AccessKeysApiListAccessKeys
      */
     readonly limit?: number;
+    /**
+     *
+     * @type {'accessKeyId-asc' | 'accessKeyId-desc' | 'accessKeyHashId-asc' | 'accessKeyHashId-desc' | 'endpoint-asc' | 'endpoint-desc' | 'region-asc' | 'region-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @memberof AccessKeysApiListAccessKeys
+     */
+    readonly sort?: ListAccessKeysSortEnum;
 }
 /**
  * Request parameters for rotateAccessKey operation in AccessKeysApi.
@@ -2729,6 +2734,22 @@ export declare class AccessKeysApi extends BaseAPI {
      */
     rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyRotateResponse, any>>;
 }
+/**
+ * @export
+ */
+export declare const ListAccessKeysSortEnum: {
+    readonly AccessKeyIdAsc: "accessKeyId-asc";
+    readonly AccessKeyIdDesc: "accessKeyId-desc";
+    readonly AccessKeyHashIdAsc: "accessKeyHashId-asc";
+    readonly AccessKeyHashIdDesc: "accessKeyHashId-desc";
+    readonly EndpointAsc: "endpoint-asc";
+    readonly EndpointDesc: "endpoint-desc";
+    readonly RegionAsc: "region-asc";
+    readonly RegionDesc: "region-desc";
+    readonly UpdatedAtAsc: "updatedAt-asc";
+    readonly UpdatedAtDesc: "updatedAt-desc";
+};
+export type ListAccessKeysSortEnum = typeof ListAccessKeysSortEnum[keyof typeof ListAccessKeysSortEnum];
 /**
  * AppsApi - axios parameter creator
  * @export
@@ -3080,10 +3101,12 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
      *
      * @param {number} [offset]
      * @param {number} [limit]
+     * @param {ListFoldersSortEnum} [sort]
+     * @param {string} [search]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolders: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listFolders: (offset?: number, limit?: number, sort?: ListFoldersSortEnum, search?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {string} folderId
@@ -3181,10 +3204,12 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
      *
      * @param {number} [offset]
      * @param {number} [limit]
+     * @param {ListFoldersSortEnum} [sort]
+     * @param {string} [search]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolders(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderListResponse>>;
+    listFolders(offset?: number, limit?: number, sort?: ListFoldersSortEnum, search?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderListResponse>>;
     /**
      *
      * @param {string} folderId
@@ -3480,6 +3505,18 @@ export interface FoldersApiListFoldersRequest {
      * @memberof FoldersApiListFolders
      */
     readonly limit?: number;
+    /**
+     *
+     * @type {'name-asc' | 'name-desc' | 'createdAt-asc' | 'createdAt-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @memberof FoldersApiListFolders
+     */
+    readonly sort?: ListFoldersSortEnum;
+    /**
+     *
+     * @type {string}
+     * @memberof FoldersApiListFolders
+     */
+    readonly search?: string;
 }
 /**
  * Request parameters for refreshFolderObjectS3Metadata operation in FoldersApi.
@@ -3617,6 +3654,18 @@ export declare class FoldersApi extends BaseAPI {
      */
     rescanFolder(requestParameters: FoldersApiRescanFolderRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
 }
+/**
+ * @export
+ */
+export declare const ListFoldersSortEnum: {
+    readonly NameAsc: "name-asc";
+    readonly NameDesc: "name-desc";
+    readonly CreatedAtAsc: "createdAt-asc";
+    readonly CreatedAtDesc: "createdAt-desc";
+    readonly UpdatedAtAsc: "updatedAt-asc";
+    readonly UpdatedAtDesc: "updatedAt-desc";
+};
+export type ListFoldersSortEnum = typeof ListFoldersSortEnum[keyof typeof ListFoldersSortEnum];
 /**
  * ServerApi - axios parameter creator
  * @export
@@ -3776,10 +3825,11 @@ export declare const ServerAccessKeysApiAxiosParamCreator: (configuration?: Conf
      *
      * @param {number} [offset]
      * @param {number} [limit]
+     * @param {ListServerAccessKeysSortEnum} [sort]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listServerAccessKeys: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listServerAccessKeys: (offset?: number, limit?: number, sort?: ListServerAccessKeysSortEnum, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {string} accessKeyHashId
@@ -3805,10 +3855,11 @@ export declare const ServerAccessKeysApiFp: (configuration?: Configuration) => {
      *
      * @param {number} [offset]
      * @param {number} [limit]
+     * @param {ListServerAccessKeysSortEnum} [sort]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listServerAccessKeys(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
+    listServerAccessKeys(offset?: number, limit?: number, sort?: ListServerAccessKeysSortEnum, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
     /**
      *
      * @param {string} accessKeyHashId
@@ -3876,6 +3927,12 @@ export interface ServerAccessKeysApiListServerAccessKeysRequest {
      * @memberof ServerAccessKeysApiListServerAccessKeys
      */
     readonly limit?: number;
+    /**
+     *
+     * @type {'accessKeyId-asc' | 'accessKeyId-desc' | 'accessKeyHashId-asc' | 'accessKeyHashId-desc' | 'endpoint-asc' | 'endpoint-desc' | 'region-asc' | 'region-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @memberof ServerAccessKeysApiListServerAccessKeys
+     */
+    readonly sort?: ListServerAccessKeysSortEnum;
 }
 /**
  * Request parameters for rotateAccessKey operation in ServerAccessKeysApi.
@@ -3929,6 +3986,22 @@ export declare class ServerAccessKeysApi extends BaseAPI {
     rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyRotateResponse, any>>;
 }
 /**
+ * @export
+ */
+export declare const ListServerAccessKeysSortEnum: {
+    readonly AccessKeyIdAsc: "accessKeyId-asc";
+    readonly AccessKeyIdDesc: "accessKeyId-desc";
+    readonly AccessKeyHashIdAsc: "accessKeyHashId-asc";
+    readonly AccessKeyHashIdDesc: "accessKeyHashId-desc";
+    readonly EndpointAsc: "endpoint-asc";
+    readonly EndpointDesc: "endpoint-desc";
+    readonly RegionAsc: "region-asc";
+    readonly RegionDesc: "region-desc";
+    readonly UpdatedAtAsc: "updatedAt-asc";
+    readonly UpdatedAtDesc: "updatedAt-desc";
+};
+export type ListServerAccessKeysSortEnum = typeof ListServerAccessKeysSortEnum[keyof typeof ListServerAccessKeysSortEnum];
+/**
  * ServerEventsApi - axios parameter creator
  * @export
  */
@@ -3942,12 +4015,21 @@ export declare const ServerEventsApiAxiosParamCreator: (configuration?: Configur
     getEvent: (eventId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @param {ListEventsSortEnum} [sort]
+     * @param {string} [folderId]
+     * @param {string} [objectKey]
+     * @param {string} [search]
+     * @param {ListEventsIncludeTraceEnum} [includeTrace]
+     * @param {ListEventsIncludeDebugEnum} [includeDebug]
+     * @param {ListEventsIncludeInfoEnum} [includeInfo]
+     * @param {ListEventsIncludeWarningEnum} [includeWarning]
+     * @param {ListEventsIncludeErrorEnum} [includeError]
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listEvents: (offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listEvents: (sort?: ListEventsSortEnum, folderId?: string, objectKey?: string, search?: string, includeTrace?: ListEventsIncludeTraceEnum, includeDebug?: ListEventsIncludeDebugEnum, includeInfo?: ListEventsIncludeInfoEnum, includeWarning?: ListEventsIncludeWarningEnum, includeError?: ListEventsIncludeErrorEnum, offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * ServerEventsApi - functional programming interface
@@ -3963,12 +4045,21 @@ export declare const ServerEventsApiFp: (configuration?: Configuration) => {
     getEvent(eventId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventGetResponse>>;
     /**
      *
+     * @param {ListEventsSortEnum} [sort]
+     * @param {string} [folderId]
+     * @param {string} [objectKey]
+     * @param {string} [search]
+     * @param {ListEventsIncludeTraceEnum} [includeTrace]
+     * @param {ListEventsIncludeDebugEnum} [includeDebug]
+     * @param {ListEventsIncludeInfoEnum} [includeInfo]
+     * @param {ListEventsIncludeWarningEnum} [includeWarning]
+     * @param {ListEventsIncludeErrorEnum} [includeError]
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listEvents(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventListResponse>>;
+    listEvents(sort?: ListEventsSortEnum, folderId?: string, objectKey?: string, search?: string, includeTrace?: ListEventsIncludeTraceEnum, includeDebug?: ListEventsIncludeDebugEnum, includeInfo?: ListEventsIncludeInfoEnum, includeWarning?: ListEventsIncludeWarningEnum, includeError?: ListEventsIncludeErrorEnum, offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventListResponse>>;
 };
 /**
  * ServerEventsApi - factory interface
@@ -4011,6 +4102,60 @@ export interface ServerEventsApiGetEventRequest {
 export interface ServerEventsApiListEventsRequest {
     /**
      *
+     * @type {'createdAt-asc' | 'createdAt-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly sort?: ListEventsSortEnum;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly folderId?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly objectKey?: string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly search?: string;
+    /**
+     *
+     * @type {'true'}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly includeTrace?: ListEventsIncludeTraceEnum;
+    /**
+     *
+     * @type {'true'}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly includeDebug?: ListEventsIncludeDebugEnum;
+    /**
+     *
+     * @type {'true'}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly includeInfo?: ListEventsIncludeInfoEnum;
+    /**
+     *
+     * @type {'true'}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly includeWarning?: ListEventsIncludeWarningEnum;
+    /**
+     *
+     * @type {'true'}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly includeError?: ListEventsIncludeErrorEnum;
+    /**
+     *
      * @type {number}
      * @memberof ServerEventsApiListEvents
      */
@@ -4046,6 +4191,271 @@ export declare class ServerEventsApi extends BaseAPI {
      */
     listEvents(requestParameters?: ServerEventsApiListEventsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<EventListResponse, any>>;
 }
+/**
+ * @export
+ */
+export declare const ListEventsSortEnum: {
+    readonly CreatedAtAsc: "createdAt-asc";
+    readonly CreatedAtDesc: "createdAt-desc";
+    readonly UpdatedAtAsc: "updatedAt-asc";
+    readonly UpdatedAtDesc: "updatedAt-desc";
+};
+export type ListEventsSortEnum = typeof ListEventsSortEnum[keyof typeof ListEventsSortEnum];
+/**
+ * @export
+ */
+export declare const ListEventsIncludeTraceEnum: {
+    readonly True: "true";
+};
+export type ListEventsIncludeTraceEnum = typeof ListEventsIncludeTraceEnum[keyof typeof ListEventsIncludeTraceEnum];
+/**
+ * @export
+ */
+export declare const ListEventsIncludeDebugEnum: {
+    readonly True: "true";
+};
+export type ListEventsIncludeDebugEnum = typeof ListEventsIncludeDebugEnum[keyof typeof ListEventsIncludeDebugEnum];
+/**
+ * @export
+ */
+export declare const ListEventsIncludeInfoEnum: {
+    readonly True: "true";
+};
+export type ListEventsIncludeInfoEnum = typeof ListEventsIncludeInfoEnum[keyof typeof ListEventsIncludeInfoEnum];
+/**
+ * @export
+ */
+export declare const ListEventsIncludeWarningEnum: {
+    readonly True: "true";
+};
+export type ListEventsIncludeWarningEnum = typeof ListEventsIncludeWarningEnum[keyof typeof ListEventsIncludeWarningEnum];
+/**
+ * @export
+ */
+export declare const ListEventsIncludeErrorEnum: {
+    readonly True: "true";
+};
+export type ListEventsIncludeErrorEnum = typeof ListEventsIncludeErrorEnum[keyof typeof ListEventsIncludeErrorEnum];
+/**
+ * ServerTasksApi - axios parameter creator
+ * @export
+ */
+export declare const ServerTasksApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {string} taskId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getTask: (taskId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @param {string} [objectKey]
+     * @param {ListTasksSortEnum} [sort]
+     * @param {string} [search]
+     * @param {ListTasksIncludeWaitingEnum} [includeWaiting]
+     * @param {ListTasksIncludeRunningEnum} [includeRunning]
+     * @param {ListTasksIncludeCompleteEnum} [includeComplete]
+     * @param {ListTasksIncludeFailedEnum} [includeFailed]
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {string} [folderId]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listTasks: (objectKey?: string, sort?: ListTasksSortEnum, search?: string, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, folderId?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * ServerTasksApi - functional programming interface
+ * @export
+ */
+export declare const ServerTasksApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @param {string} taskId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getTask(taskId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskGetResponse>>;
+    /**
+     *
+     * @param {string} [objectKey]
+     * @param {ListTasksSortEnum} [sort]
+     * @param {string} [search]
+     * @param {ListTasksIncludeWaitingEnum} [includeWaiting]
+     * @param {ListTasksIncludeRunningEnum} [includeRunning]
+     * @param {ListTasksIncludeCompleteEnum} [includeComplete]
+     * @param {ListTasksIncludeFailedEnum} [includeFailed]
+     * @param {number} [offset]
+     * @param {number} [limit]
+     * @param {string} [folderId]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listTasks(objectKey?: string, sort?: ListTasksSortEnum, search?: string, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, folderId?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>>;
+};
+/**
+ * ServerTasksApi - factory interface
+ * @export
+ */
+export declare const ServerTasksApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @param {ServerTasksApiGetTaskRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getTask(requestParameters: ServerTasksApiGetTaskRequest, options?: AxiosRequestConfig): AxiosPromise<TaskGetResponse>;
+    /**
+     *
+     * @param {ServerTasksApiListTasksRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listTasks(requestParameters?: ServerTasksApiListTasksRequest, options?: AxiosRequestConfig): AxiosPromise<TaskListResponse>;
+};
+/**
+ * Request parameters for getTask operation in ServerTasksApi.
+ * @export
+ * @interface ServerTasksApiGetTaskRequest
+ */
+export interface ServerTasksApiGetTaskRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerTasksApiGetTask
+     */
+    readonly taskId: string;
+}
+/**
+ * Request parameters for listTasks operation in ServerTasksApi.
+ * @export
+ * @interface ServerTasksApiListTasksRequest
+ */
+export interface ServerTasksApiListTasksRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly objectKey?: string;
+    /**
+     *
+     * @type {'createdAt-asc' | 'createdAt-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly sort?: ListTasksSortEnum;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly search?: string;
+    /**
+     *
+     * @type {'true'}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly includeWaiting?: ListTasksIncludeWaitingEnum;
+    /**
+     *
+     * @type {'true'}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly includeRunning?: ListTasksIncludeRunningEnum;
+    /**
+     *
+     * @type {'true'}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly includeComplete?: ListTasksIncludeCompleteEnum;
+    /**
+     *
+     * @type {'true'}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly includeFailed?: ListTasksIncludeFailedEnum;
+    /**
+     *
+     * @type {number}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly offset?: number;
+    /**
+     *
+     * @type {number}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly limit?: number;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly folderId?: string;
+}
+/**
+ * ServerTasksApi - object-oriented interface
+ * @export
+ * @class ServerTasksApi
+ * @extends {BaseAPI}
+ */
+export declare class ServerTasksApi extends BaseAPI {
+    /**
+     *
+     * @param {ServerTasksApiGetTaskRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerTasksApi
+     */
+    getTask(requestParameters: ServerTasksApiGetTaskRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskGetResponse, any>>;
+    /**
+     *
+     * @param {ServerTasksApiListTasksRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerTasksApi
+     */
+    listTasks(requestParameters?: ServerTasksApiListTasksRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskListResponse, any>>;
+}
+/**
+ * @export
+ */
+export declare const ListTasksSortEnum: {
+    readonly CreatedAtAsc: "createdAt-asc";
+    readonly CreatedAtDesc: "createdAt-desc";
+    readonly UpdatedAtAsc: "updatedAt-asc";
+    readonly UpdatedAtDesc: "updatedAt-desc";
+};
+export type ListTasksSortEnum = typeof ListTasksSortEnum[keyof typeof ListTasksSortEnum];
+/**
+ * @export
+ */
+export declare const ListTasksIncludeWaitingEnum: {
+    readonly True: "true";
+};
+export type ListTasksIncludeWaitingEnum = typeof ListTasksIncludeWaitingEnum[keyof typeof ListTasksIncludeWaitingEnum];
+/**
+ * @export
+ */
+export declare const ListTasksIncludeRunningEnum: {
+    readonly True: "true";
+};
+export type ListTasksIncludeRunningEnum = typeof ListTasksIncludeRunningEnum[keyof typeof ListTasksIncludeRunningEnum];
+/**
+ * @export
+ */
+export declare const ListTasksIncludeCompleteEnum: {
+    readonly True: "true";
+};
+export type ListTasksIncludeCompleteEnum = typeof ListTasksIncludeCompleteEnum[keyof typeof ListTasksIncludeCompleteEnum];
+/**
+ * @export
+ */
+export declare const ListTasksIncludeFailedEnum: {
+    readonly True: "true";
+};
+export type ListTasksIncludeFailedEnum = typeof ListTasksIncludeFailedEnum[keyof typeof ListTasksIncludeFailedEnum];
 /**
  * StorageProvisionsApi - axios parameter creator
  * @export
@@ -4311,22 +4721,23 @@ export declare const TasksApiAxiosParamCreator: (configuration?: Configuration) 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getTask: (folderId: string, taskId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    getFolderTask: (folderId: string, taskId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {string} folderId
      * @param {string} [objectKey]
-     * @param {ListTasksSortEnum} [sort]
-     * @param {ListTasksIncludeWaitingEnum} [includeWaiting]
-     * @param {ListTasksIncludeRunningEnum} [includeRunning]
-     * @param {ListTasksIncludeCompleteEnum} [includeComplete]
-     * @param {ListTasksIncludeFailedEnum} [includeFailed]
+     * @param {ListFolderTasksSortEnum} [sort]
+     * @param {string} [search]
+     * @param {ListFolderTasksIncludeWaitingEnum} [includeWaiting]
+     * @param {ListFolderTasksIncludeRunningEnum} [includeRunning]
+     * @param {ListFolderTasksIncludeCompleteEnum} [includeComplete]
+     * @param {ListFolderTasksIncludeFailedEnum} [includeFailed]
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listTasks: (folderId: string, objectKey?: string, sort?: ListTasksSortEnum, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listFolderTasks: (folderId: string, objectKey?: string, sort?: ListFolderTasksSortEnum, search?: string, includeWaiting?: ListFolderTasksIncludeWaitingEnum, includeRunning?: ListFolderTasksIncludeRunningEnum, includeComplete?: ListFolderTasksIncludeCompleteEnum, includeFailed?: ListFolderTasksIncludeFailedEnum, offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * TasksApi - functional programming interface
@@ -4340,22 +4751,23 @@ export declare const TasksApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getTask(folderId: string, taskId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskGetResponse>>;
+    getFolderTask(folderId: string, taskId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskGetResponse>>;
     /**
      *
      * @param {string} folderId
      * @param {string} [objectKey]
-     * @param {ListTasksSortEnum} [sort]
-     * @param {ListTasksIncludeWaitingEnum} [includeWaiting]
-     * @param {ListTasksIncludeRunningEnum} [includeRunning]
-     * @param {ListTasksIncludeCompleteEnum} [includeComplete]
-     * @param {ListTasksIncludeFailedEnum} [includeFailed]
+     * @param {ListFolderTasksSortEnum} [sort]
+     * @param {string} [search]
+     * @param {ListFolderTasksIncludeWaitingEnum} [includeWaiting]
+     * @param {ListFolderTasksIncludeRunningEnum} [includeRunning]
+     * @param {ListFolderTasksIncludeCompleteEnum} [includeComplete]
+     * @param {ListFolderTasksIncludeFailedEnum} [includeFailed]
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listTasks(folderId: string, objectKey?: string, sort?: ListTasksSortEnum, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>>;
+    listFolderTasks(folderId: string, objectKey?: string, sort?: ListFolderTasksSortEnum, search?: string, includeWaiting?: ListFolderTasksIncludeWaitingEnum, includeRunning?: ListFolderTasksIncludeRunningEnum, includeComplete?: ListFolderTasksIncludeCompleteEnum, includeFailed?: ListFolderTasksIncludeFailedEnum, offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>>;
 };
 /**
  * TasksApi - factory interface
@@ -4364,96 +4776,102 @@ export declare const TasksApiFp: (configuration?: Configuration) => {
 export declare const TasksApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
     /**
      *
-     * @param {TasksApiGetTaskRequest} requestParameters Request parameters.
+     * @param {TasksApiGetFolderTaskRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getTask(requestParameters: TasksApiGetTaskRequest, options?: AxiosRequestConfig): AxiosPromise<TaskGetResponse>;
+    getFolderTask(requestParameters: TasksApiGetFolderTaskRequest, options?: AxiosRequestConfig): AxiosPromise<TaskGetResponse>;
     /**
      *
-     * @param {TasksApiListTasksRequest} requestParameters Request parameters.
+     * @param {TasksApiListFolderTasksRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listTasks(requestParameters: TasksApiListTasksRequest, options?: AxiosRequestConfig): AxiosPromise<TaskListResponse>;
+    listFolderTasks(requestParameters: TasksApiListFolderTasksRequest, options?: AxiosRequestConfig): AxiosPromise<TaskListResponse>;
 };
 /**
- * Request parameters for getTask operation in TasksApi.
+ * Request parameters for getFolderTask operation in TasksApi.
  * @export
- * @interface TasksApiGetTaskRequest
+ * @interface TasksApiGetFolderTaskRequest
  */
-export interface TasksApiGetTaskRequest {
+export interface TasksApiGetFolderTaskRequest {
     /**
      *
      * @type {string}
-     * @memberof TasksApiGetTask
+     * @memberof TasksApiGetFolderTask
      */
     readonly folderId: string;
     /**
      *
      * @type {string}
-     * @memberof TasksApiGetTask
+     * @memberof TasksApiGetFolderTask
      */
     readonly taskId: string;
 }
 /**
- * Request parameters for listTasks operation in TasksApi.
+ * Request parameters for listFolderTasks operation in TasksApi.
  * @export
- * @interface TasksApiListTasksRequest
+ * @interface TasksApiListFolderTasksRequest
  */
-export interface TasksApiListTasksRequest {
+export interface TasksApiListFolderTasksRequest {
     /**
      *
      * @type {string}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
     readonly folderId: string;
     /**
      *
      * @type {string}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
     readonly objectKey?: string;
     /**
      *
      * @type {'createdAt-asc' | 'createdAt-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
-    readonly sort?: ListTasksSortEnum;
+    readonly sort?: ListFolderTasksSortEnum;
+    /**
+     *
+     * @type {string}
+     * @memberof TasksApiListFolderTasks
+     */
+    readonly search?: string;
     /**
      *
      * @type {'true'}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
-    readonly includeWaiting?: ListTasksIncludeWaitingEnum;
+    readonly includeWaiting?: ListFolderTasksIncludeWaitingEnum;
     /**
      *
      * @type {'true'}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
-    readonly includeRunning?: ListTasksIncludeRunningEnum;
+    readonly includeRunning?: ListFolderTasksIncludeRunningEnum;
     /**
      *
      * @type {'true'}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
-    readonly includeComplete?: ListTasksIncludeCompleteEnum;
+    readonly includeComplete?: ListFolderTasksIncludeCompleteEnum;
     /**
      *
      * @type {'true'}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
-    readonly includeFailed?: ListTasksIncludeFailedEnum;
+    readonly includeFailed?: ListFolderTasksIncludeFailedEnum;
     /**
      *
      * @type {number}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
     readonly offset?: number;
     /**
      *
      * @type {number}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
     readonly limit?: number;
 }
@@ -4466,59 +4884,59 @@ export interface TasksApiListTasksRequest {
 export declare class TasksApi extends BaseAPI {
     /**
      *
-     * @param {TasksApiGetTaskRequest} requestParameters Request parameters.
+     * @param {TasksApiGetFolderTaskRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TasksApi
      */
-    getTask(requestParameters: TasksApiGetTaskRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskGetResponse, any>>;
+    getFolderTask(requestParameters: TasksApiGetFolderTaskRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskGetResponse, any>>;
     /**
      *
-     * @param {TasksApiListTasksRequest} requestParameters Request parameters.
+     * @param {TasksApiListFolderTasksRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TasksApi
      */
-    listTasks(requestParameters: TasksApiListTasksRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskListResponse, any>>;
+    listFolderTasks(requestParameters: TasksApiListFolderTasksRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskListResponse, any>>;
 }
 /**
  * @export
  */
-export declare const ListTasksSortEnum: {
+export declare const ListFolderTasksSortEnum: {
     readonly CreatedAtAsc: "createdAt-asc";
     readonly CreatedAtDesc: "createdAt-desc";
     readonly UpdatedAtAsc: "updatedAt-asc";
     readonly UpdatedAtDesc: "updatedAt-desc";
 };
-export type ListTasksSortEnum = typeof ListTasksSortEnum[keyof typeof ListTasksSortEnum];
+export type ListFolderTasksSortEnum = typeof ListFolderTasksSortEnum[keyof typeof ListFolderTasksSortEnum];
 /**
  * @export
  */
-export declare const ListTasksIncludeWaitingEnum: {
+export declare const ListFolderTasksIncludeWaitingEnum: {
     readonly True: "true";
 };
-export type ListTasksIncludeWaitingEnum = typeof ListTasksIncludeWaitingEnum[keyof typeof ListTasksIncludeWaitingEnum];
+export type ListFolderTasksIncludeWaitingEnum = typeof ListFolderTasksIncludeWaitingEnum[keyof typeof ListFolderTasksIncludeWaitingEnum];
 /**
  * @export
  */
-export declare const ListTasksIncludeRunningEnum: {
+export declare const ListFolderTasksIncludeRunningEnum: {
     readonly True: "true";
 };
-export type ListTasksIncludeRunningEnum = typeof ListTasksIncludeRunningEnum[keyof typeof ListTasksIncludeRunningEnum];
+export type ListFolderTasksIncludeRunningEnum = typeof ListFolderTasksIncludeRunningEnum[keyof typeof ListFolderTasksIncludeRunningEnum];
 /**
  * @export
  */
-export declare const ListTasksIncludeCompleteEnum: {
+export declare const ListFolderTasksIncludeCompleteEnum: {
     readonly True: "true";
 };
-export type ListTasksIncludeCompleteEnum = typeof ListTasksIncludeCompleteEnum[keyof typeof ListTasksIncludeCompleteEnum];
+export type ListFolderTasksIncludeCompleteEnum = typeof ListFolderTasksIncludeCompleteEnum[keyof typeof ListFolderTasksIncludeCompleteEnum];
 /**
  * @export
  */
-export declare const ListTasksIncludeFailedEnum: {
+export declare const ListFolderTasksIncludeFailedEnum: {
     readonly True: "true";
 };
-export type ListTasksIncludeFailedEnum = typeof ListTasksIncludeFailedEnum[keyof typeof ListTasksIncludeFailedEnum];
+export type ListFolderTasksIncludeFailedEnum = typeof ListFolderTasksIncludeFailedEnum[keyof typeof ListFolderTasksIncludeFailedEnum];
 /**
  * UsersApi - axios parameter creator
  * @export
@@ -4551,10 +4969,11 @@ export declare const UsersApiAxiosParamCreator: (configuration?: Configuration) 
      * @param {number} [limit]
      * @param {boolean} [isAdmin]
      * @param {ListUsersSortEnum} [sort]
+     * @param {string} [search]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listUsers: (offset?: number, limit?: number, isAdmin?: boolean, sort?: ListUsersSortEnum, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listUsers: (offset?: number, limit?: number, isAdmin?: boolean, sort?: ListUsersSortEnum, search?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {string} userId
@@ -4596,10 +5015,11 @@ export declare const UsersApiFp: (configuration?: Configuration) => {
      * @param {number} [limit]
      * @param {boolean} [isAdmin]
      * @param {ListUsersSortEnum} [sort]
+     * @param {string} [search]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listUsers(offset?: number, limit?: number, isAdmin?: boolean, sort?: ListUsersSortEnum, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserListResponse>>;
+    listUsers(offset?: number, limit?: number, isAdmin?: boolean, sort?: ListUsersSortEnum, search?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserListResponse>>;
     /**
      *
      * @param {string} userId
@@ -4715,10 +5135,16 @@ export interface UsersApiListUsersRequest {
     readonly isAdmin?: boolean;
     /**
      *
-     * @type {'createdAt-asc' | 'createdAt-desc' | 'email-asc' | 'email-desc' | 'name-asc' | 'name-desc' | 'role-asc' | 'role-desc' | 'status-asc' | 'status-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @type {'createdAt-asc' | 'createdAt-desc' | 'email-asc' | 'email-desc' | 'name-asc' | 'name-desc' | 'username-asc' | 'username-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
      * @memberof UsersApiListUsers
      */
     readonly sort?: ListUsersSortEnum;
+    /**
+     *
+     * @type {string}
+     * @memberof UsersApiListUsers
+     */
+    readonly search?: string;
 }
 /**
  * Request parameters for updateUser operation in UsersApi.
@@ -4797,10 +5223,8 @@ export declare const ListUsersSortEnum: {
     readonly EmailDesc: "email-desc";
     readonly NameAsc: "name-asc";
     readonly NameDesc: "name-desc";
-    readonly RoleAsc: "role-asc";
-    readonly RoleDesc: "role-desc";
-    readonly StatusAsc: "status-asc";
-    readonly StatusDesc: "status-desc";
+    readonly UsernameAsc: "username-asc";
+    readonly UsernameDesc: "username-desc";
     readonly UpdatedAtAsc: "updatedAt-asc";
     readonly UpdatedAtDesc: "updatedAt-desc";
 };

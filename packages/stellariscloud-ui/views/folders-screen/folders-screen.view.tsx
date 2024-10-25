@@ -1,7 +1,7 @@
-import { PlusIcon } from '@heroicons/react/20/solid'
 import type {
   FolderGetResponse,
   FoldersApiCreateFolderRequest,
+  FoldersApiListFoldersRequest,
   StorageProvisionDTO,
 } from '@stellariscloud/api-client'
 import clsx from 'clsx'
@@ -12,12 +12,27 @@ import React from 'react'
 import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
 import { CreateFolderForm } from '../../components/create-folder-form/create-folder-form'
 import { CreateFolderStartPanel } from '../../components/create-folder-start-panel/create-folder-start-panel'
-import { FolderCard } from '../../components/folder-card/folder-card'
 import { apiClient, foldersApiHooks } from '../../services/api'
+import { DataTable, cn } from '@stellariscloud/ui-toolkit'
+import { PaginationState, SortingState } from '@tanstack/react-table'
+import { foldersTableColumns } from './folders-table-columns'
 
 export const FoldersScreen = () => {
   const router = useRouter()
-  const [folders, setFolders] = React.useState<FolderGetResponse[]>()
+  const [filters, setFilters] = React.useState<
+    { id: string; value: unknown }[]
+  >([])
+
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  })
+  const searchFilter = filters.find((f) => f.id === 'name')
+  const [folders, setFolders] = React.useState<{
+    meta: { totalCount: number }
+    result: FolderGetResponse[]
+  }>()
   const [folderFormKey, setFolderFormKey] = React.useState<string>()
   const [forgetFolderConfirmationOpen, setForgetFolderConfirmationOpen] =
     React.useState<string | false>(false)
@@ -30,11 +45,15 @@ export const FoldersScreen = () => {
         setForgetFolderConfirmationOpen(folderId)
       } else {
         setForgetFolderConfirmationOpen(false)
-        void apiClient.foldersApi
-          .deleteFolder({ folderId })
-          .then(() =>
-            setFolders(folders?.filter((b) => b.folder.id !== folderId)),
-          )
+        void apiClient.foldersApi.deleteFolder({ folderId }).then(() =>
+          setFolders((state) => {
+            return {
+              result:
+                folders?.result?.filter((b) => b.folder.id !== folderId) ?? [],
+              meta: { totalCount: state?.meta.totalCount ?? 0 },
+            }
+          }),
+        )
       }
     },
     [setForgetFolderConfirmationOpen, forgetFolderConfirmationOpen /*folders*/],
@@ -51,13 +70,30 @@ export const FoldersScreen = () => {
     })
   }
 
-  const listFolders = foldersApiHooks.useListFolders({}, { retry: 0 })
+  const listFolders = foldersApiHooks.useListFolders(
+    {
+      limit: pagination.pageSize,
+      offset: pagination.pageSize * pagination.pageIndex,
+      ...(sorting[0]
+        ? {
+            sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as FoldersApiListFoldersRequest['sort'],
+          }
+        : {}),
+      ...(typeof searchFilter?.value === 'string'
+        ? {
+            search: searchFilter.value,
+          }
+        : {}),
+    },
+    { retry: 0 },
+  )
+
   const refreshFolders = React.useCallback(() => {
     void listFolders
       .refetch()
-      .then((response) => setFolders(response.data?.result))
+      .then((response) => setFolders(response.data ?? undefined))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listFolders.refetch])
+  }, [listFolders.refetch, pagination, filters, sorting])
 
   // reflect add query flag state
   React.useEffect(() => {
@@ -77,23 +113,39 @@ export const FoldersScreen = () => {
   ) => {
     void apiClient.foldersApi
       .createFolder({ folderCreateInputDTO: folder })
-      .then((response) => {
-        setFolders(
-          folders?.concat([{ folder: response.data.folder, permissions: [] }]),
-        )
+      .then(async (response) => {
+        await listFolders.refetch()
         void router.push({ pathname: router.pathname })
       })
   }
 
   return (
-    <>
-      {forgetFolderConfirmationOpen && (
-        <ConfirmForgetFolderModal
-          onConfirm={() => handleForgetFolder(forgetFolderConfirmationOpen)}
-          onCancel={() => setForgetFolderConfirmationOpen(false)}
+    <div className={cn('items-center flex flex-1 flex-col h-full')}>
+      <div className="flex flex-1 flex-col container">
+        <DataTable
+          enableSearch={true}
+          searchColumn="name"
+          onColumnFiltersChange={(updater) => {
+            setFilters((old) =>
+              updater instanceof Function ? updater(old) : updater,
+            )
+          }}
+          searchPlaceholder="Search Folders..."
+          rowCount={folders?.meta.totalCount}
+          data={folders?.result ?? []}
+          columns={foldersTableColumns}
+          onPaginationChange={(updater) => {
+            setPagination((old) =>
+              updater instanceof Function ? updater(old) : updater,
+            )
+          }}
+          onSortingChange={(updater) => {
+            setSorting((old) =>
+              updater instanceof Function ? updater(old) : updater,
+            )
+          }}
         />
-      )}
-
+      </div>
       <div
         className={clsx(
           'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
@@ -118,38 +170,9 @@ export const FoldersScreen = () => {
               </div>
             </div>
           )}
-
-          <ul
-            className={clsx(
-              'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 w-full duration-200',
-              folderFormKey && 'opacity-0',
-            )}
-          >
-            {folders?.map((folderAndPermission, i) => (
-              <li key={folderAndPermission.folder.id} className="col-span-1">
-                <Link
-                  href={`/folders/${folderAndPermission.folder.id}`}
-                  key={i}
-                  className="rounded-lg w-full"
-                >
-                  <FolderCard
-                    folderAndPermission={folderAndPermission}
-                    onForget={() =>
-                      handleForgetFolder(folderAndPermission.folder.id)
-                    }
-                  />
-                </Link>
-              </li>
-            ))}
-            {folders !== undefined && (
-              <li className="">
-                <CreateFolderStartPanel onCreate={handleStartCreate} />
-              </li>
-            )}
-          </ul>
           {!folders && <div className="animate-pulse">Loading folders...</div>}
         </div>
       </div>
-    </>
+    </div>
   )
 }

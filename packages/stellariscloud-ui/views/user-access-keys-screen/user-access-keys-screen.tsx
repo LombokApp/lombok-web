@@ -1,45 +1,83 @@
-import clsx from 'clsx'
 import React from 'react'
 
-import { PageHeading } from '../../design-system/page-heading/page-heading'
-import { AccessKeyDTO } from '@stellariscloud/api-client'
+import {
+  AccessKeyDTO,
+  AccessKeysApiListAccessKeysRequest,
+} from '@stellariscloud/api-client'
 import { apiClient } from '../../services/api'
-import { EmptyState } from '../../design-system/empty-state/empty-state'
-import { KeyIcon } from '@heroicons/react/24/outline'
-import { AccessKeysList } from '../../components/access-keys-list/access-keys-list'
+import { PaginationState, SortingState } from '@tanstack/react-table'
+import { DataTable, cn } from '@stellariscloud/ui-toolkit'
+import { userAccessKeysTableColumns } from './user-access-keys-table-columns'
 
 export function UserAccessKeysScreen() {
-  const [accessKeys, setAccessKeys] = React.useState<AccessKeyDTO[]>()
+  const [accessKeys, setAccessKeys] = React.useState<{
+    result: AccessKeyDTO[]
+    meta: { totalCount: number }
+  }>()
+  const [filters, setFilters] = React.useState<
+    { id: string; value: unknown }[]
+  >([])
+
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  })
 
   const fetchAccessKeys = React.useCallback(() => {
-    void apiClient.accessKeysApi.listAccessKeys().then((resp) => {
-      setAccessKeys(resp.data.result)
-    })
-  }, [])
+    void apiClient.accessKeysApi
+      .listAccessKeys({
+        limit: pagination.pageSize,
+        offset: pagination.pageSize * pagination.pageIndex,
+        ...(sorting[0]
+          ? {
+              sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as AccessKeysApiListAccessKeysRequest['sort'],
+            }
+          : {}),
+      })
+      .then((resp) => {
+        setAccessKeys(resp.data)
+      })
+  }, [sorting, pagination, filters])
 
   React.useEffect(() => {
     void fetchAccessKeys()
-  }, [])
+  }, [sorting, pagination, filters])
 
   return (
-    <div
-      className={clsx(
-        'p-4 items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
-      )}
-    >
+    <div className={cn('items-center flex flex-1 flex-col h-full')}>
       <div className="container flex-1 flex flex-col">
-        <div className="pt-8">
-          {(accessKeys?.length ?? 0) > 0 ? (
-            <div className="flex flex-col gap-4 items-start">
-              <AccessKeysList
-                accessKeys={accessKeys ?? []}
-                urlPrefix="/access-keys"
-              />
-            </div>
-          ) : (
-            <EmptyState icon={KeyIcon} text="No access keys are in use" />
-          )}
-        </div>
+        <DataTable
+          onColumnFiltersChange={(updater) => {
+            setFilters((old) =>
+              updater instanceof Function ? updater(old) : updater,
+            )
+          }}
+          rowCount={accessKeys?.meta.totalCount}
+          data={accessKeys?.result ?? []}
+          columns={userAccessKeysTableColumns}
+          onPaginationChange={(updater) => {
+            setPagination((old) =>
+              updater instanceof Function ? updater(old) : updater,
+            )
+          }}
+          onSortingChange={(updater) => {
+            setSorting((old) =>
+              updater instanceof Function ? updater(old) : updater,
+            )
+          }}
+          // filterOptions={{
+          //   status: {
+          //     label: 'Status',
+          //     options: [
+          //       { value: 'WAITING', label: 'Waiting', icon: Clock10Icon },
+          //       { value: 'RUNNING', label: 'Running', icon: Play },
+          //       { value: 'COMPLETE', label: 'Complete', icon: CircleCheck },
+          //       { value: 'FAILED', label: 'Failed', icon: CircleX },
+          //     ],
+          //   },
+          // }}
+        />
       </div>
     </div>
   )

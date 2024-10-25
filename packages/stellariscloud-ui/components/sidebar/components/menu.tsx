@@ -29,7 +29,7 @@ export function Menu({
 
   return (
     <ScrollArea className="h-full [&>div>div[style]]:!block">
-      <nav className="h-full w-full pt-10">
+      <nav className="h-full w-full pt-2">
         <ul className="flex flex-col h-full items-start space-y-1 px-0">
           {menuList.map(({ groupLabel, menus }, index) => (
             <li className={cn('w-full', groupLabel ? 'pt-5' : '')} key={index}>
@@ -65,10 +65,17 @@ export function Menu({
                                 (active === undefined &&
                                   pathname?.startsWith(href)) ||
                                 active
-                                  ? 'secondary'
+                                  ? 'outline'
                                   : 'ghost'
                               }
-                              className="w-full justify-start h-10 mb-1"
+                              className={cn(
+                                'w-full justify-start h-10 mb-1',
+                                (active === undefined &&
+                                  pathname?.startsWith(href)) ||
+                                  active
+                                  ? 'bg-foreground/5'
+                                  : undefined,
+                              )}
                               asChild
                             >
                               <Link href={href}>

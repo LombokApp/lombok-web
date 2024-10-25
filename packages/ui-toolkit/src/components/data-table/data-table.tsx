@@ -33,27 +33,35 @@ import { ColumnFilterOptions, DataTableToolbar } from './data-table-toolbar'
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  filterFns: Record<string, FilterFn<TValue>>
-  filterOptions: Record<string, ColumnFilterOptions>
+  filterFns?: Record<string, FilterFn<TValue>>
+  filterOptions?: Record<string, ColumnFilterOptions>
   manualFiltering?: boolean
   manualSorting?: boolean
+  enableRowSelection?: boolean
+  enableSearch?: boolean
+  searchColumn?: string
+  searchPlaceholder?: string
 }
 
 interface TableHandlerProps<TData> {
-  onColumnFiltersChange: TableOptions<TData>['onColumnFiltersChange']
-  onSortingChange: TableOptions<TData>['onSortingChange']
-  onPaginationChange: TableOptions<TData>['onPaginationChange']
-  rowCount: TableOptions<TData>['rowCount']
+  onColumnFiltersChange?: TableOptions<TData>['onColumnFiltersChange']
+  onSortingChange?: TableOptions<TData>['onSortingChange']
+  onPaginationChange?: TableOptions<TData>['onPaginationChange']
+  rowCount?: TableOptions<TData>['rowCount']
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   filterFns,
-  filterOptions,
-  rowCount,
+  filterOptions = {},
+  rowCount = data.length,
   onColumnFiltersChange,
   onSortingChange,
+  enableRowSelection = false,
+  enableSearch = false,
+  searchColumn,
+  searchPlaceholder,
   manualFiltering = true,
   manualSorting = true,
 }: DataTableProps<TData, TValue> & TableHandlerProps<TData>) {
@@ -72,13 +80,14 @@ export function DataTable<TData, TValue>({
     manualSorting,
     columns,
     filterFns,
+    enableGlobalFilter: false,
     state: {
       sorting,
       columnVisibility,
       rowSelection,
       columnFilters,
     },
-    enableRowSelection: true,
+    enableRowSelection,
     onRowSelectionChange: setRowSelection,
     onSortingChange: (...args) => {
       if (onSortingChange) {
@@ -101,10 +110,22 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
+  if (enableSearch && !searchColumn) {
+    throw new Error('Must set `searchColumn` if `enableSearch` is true.')
+  }
+
   return (
-    <div className="space-y-4">
-      <DataTableToolbar filterOptions={filterOptions} table={table} />
-      <div className="rounded-md border">
+    <div className="space-y-4 w-full">
+      {(Object.keys(filterOptions).length > 0 || enableSearch) && (
+        <DataTableToolbar
+          enableSearch={enableSearch}
+          searchColumn={searchColumn}
+          searchPlaceholder={searchPlaceholder}
+          filterOptions={filterOptions}
+          table={table}
+        />
+      )}
+      <div className="rounded-md border bg-card border-foreground/10">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -154,7 +175,7 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      {rowCount > data.length && <DataTablePagination table={table} />}
     </div>
   )
 }

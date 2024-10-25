@@ -27,7 +27,7 @@ export function Sidebar({
     <aside
       className={cn(
         'fixed top-0 left-0 z-20 h-screen -translate-x-full lg:translate-x-0 transition-[width] ease-in-out duration-300',
-        !getOpenState() ? 'w-[70px]' : 'w-72',
+        !getOpenState() ? 'w-[70px]' : 'w-64',
         settings.disabled && 'hidden',
       )}
     >
@@ -37,7 +37,7 @@ export function Sidebar({
         onMouseLeave={() => setIsHover(false)}
         className="relative h-screen flex flex-col overflow-y-auto border-r shadow-md dark:shadow-zinc-900 dark:border-foreground/5"
       >
-        <div className="bg-black/5 px-3 pt-3 pb-2 border-b">
+        <div className="bg-black/5 pl-4 pr-2 pt-1 pb-0 border-b">
           <Button
             className={cn(
               'transition-transform ease-in-out duration-300 mb-1 justify-start pl-2',
@@ -47,11 +47,11 @@ export function Sidebar({
           >
             <Link href="/folders" className="flex gap-4 py-0 px-0">
               <Image
-                className="rounded-full shrink-0"
+                className="rounded-full"
                 priority
                 src="/stellariscloud.png"
-                width={32}
-                height={32}
+                width={24}
+                height={24}
                 alt="Stellaris Cloud logo"
               />
               <h1

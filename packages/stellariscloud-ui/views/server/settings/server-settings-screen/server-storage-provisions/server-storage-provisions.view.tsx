@@ -7,7 +7,7 @@ import { apiClient } from '../../../../../services/api'
 import type { StorageProvisionFormValues } from './storage-provision-form/storage-provision-form'
 import { StorageProvisionForm } from './storage-provision-form/storage-provision-form'
 import { StorageProvisionDTO } from '@stellariscloud/api-client'
-import { StorageProvisionsList } from '../../../../../components/storage-provisions-list/storage-provisions-list'
+import { StorageProvisionsTable } from '../../../../../components/storage-provisions-table/storage-provisions-table'
 
 export function ServerStorageProvisions() {
   const [storageProvisions, setStorageProvisions] =
@@ -99,18 +99,20 @@ export function ServerStorageProvisions() {
               />
             ) : (storageProvisions?.length ?? 0) > 0 ? (
               <div className="flex flex-col gap-4 items-start">
-                <StorageProvisionsList
-                  storageProvisions={storageProvisions ?? []}
-                  onEdit={(storageProvision) =>
-                    setEditingStorageProvision({
-                      storageProvision,
-                      mutationType: 'UPDATE',
-                    })
-                  }
-                  onDelete={(storageProvision) =>
-                    handleDeleteStorageProvision(storageProvision.id)
-                  }
-                />
+                <div className="w-full">
+                  <StorageProvisionsTable
+                    storageProvisions={storageProvisions ?? []}
+                    onEdit={(storageProvision) =>
+                      setEditingStorageProvision({
+                        storageProvision,
+                        mutationType: 'UPDATE',
+                      })
+                    }
+                    onDelete={(storageProvision) =>
+                      handleDeleteStorageProvision(storageProvision.id)
+                    }
+                  />
+                </div>
                 <Button
                   onClick={() =>
                     setEditingStorageProvision({

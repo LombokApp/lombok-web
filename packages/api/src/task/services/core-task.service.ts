@@ -1,6 +1,10 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common'
 import { and, count, eq, isNull } from 'drizzle-orm'
-import { eventsTable, NewEvent } from 'src/event/entities/event.entity'
+import {
+  EventLevel,
+  eventsTable,
+  NewEvent,
+} from 'src/event/entities/event.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { CoreTaskName } from 'src/task/task.constants'
 import { v4 as uuidV4 } from 'uuid'
@@ -183,7 +187,7 @@ export class CoreTaskService {
       folderId: context.folderId,
       objectKey: context.objectKey,
       userId: context.userId,
-      level: 'INFO',
+      level: EventLevel.INFO,
       createdAt: now,
     }
 

@@ -10,6 +10,7 @@ import {
   UsersApi,
   ViewerApi,
   TasksApi,
+  ServerTasksApi,
 } from '@stellariscloud/api-client'
 import { Authenticator, bindApiConfig } from '@stellariscloud/auth-utils'
 
@@ -21,6 +22,7 @@ export type StellarisCloudAPI = {
   serverApi: ServerApi
   storageProvisionsApi: StorageProvisionsApi
   serverAccessKeysApi: ServerAccessKeysApi
+  serverTasksApi: ServerTasksApi
   tasksApi: TasksApi
   accessKeysApi: AccessKeysApi
   usersApi: UsersApi
@@ -58,6 +60,7 @@ export class AppBrowserSdk {
       accessKeysApi: bindApiConfig(defaultConfig, AccessKeysApi)(),
       tasksApi: bindApiConfig(defaultConfig, TasksApi)(),
       serverAccessKeysApi: bindApiConfig(defaultConfig, ServerAccessKeysApi)(),
+      serverTasksApi: bindApiConfig(defaultConfig, ServerTasksApi)(),
       storageProvisionsApi: bindApiConfig(
         defaultConfig,
         StorageProvisionsApi,

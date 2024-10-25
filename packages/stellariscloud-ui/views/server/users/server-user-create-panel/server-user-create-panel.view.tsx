@@ -5,7 +5,7 @@ import React from 'react'
 
 import type { UserInput } from '../../../../components/server-user-form/server-user-form'
 import { ServerUserForm } from '../../../../components/server-user-form/server-user-form'
-import { Button } from '../../../../design-system/button/button'
+import { Button } from '@stellariscloud/ui-toolkit'
 import { apiClient } from '../../../../services/api'
 
 const buildInitialUserObject = () => {
@@ -57,10 +57,10 @@ export function ServerUserCreatePanel({
           value={userObject}
         />
         <div className="flex gap-2 py-4">
-          <Button onClick={handleCancelClick}>Cancel</Button>
-          <Button primary onClick={handleSubmitClick}>
-            Create
+          <Button variant={'secondary'} onClick={handleCancelClick}>
+            Cancel
           </Button>
+          <Button onClick={handleSubmitClick}>Create</Button>
         </div>
       </div>
     </div>

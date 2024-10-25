@@ -1,16 +1,22 @@
 import React from 'react'
 import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
-import { tasksTableColumns } from './task-table-columns'
-import { DataTable, cn } from '@stellariscloud/ui-toolkit'
-import { TaskDTO, TasksApiListTasksRequest } from '@stellariscloud/api-client'
+import { folderTasksTableColumns } from './folder-tasks-table-columns'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  DataTable,
+  cn,
+} from '@stellariscloud/ui-toolkit'
+import {
+  ServerTasksApiListTasksRequest,
+  TaskDTO,
+} from '@stellariscloud/api-client'
 import { useFolderContext } from '../../contexts/folder.context'
 import { apiClient } from '../../services/api'
-import {
-  FilterMeta,
-  PaginationState,
-  Row,
-  SortingState,
-} from '@tanstack/react-table'
+import { PaginationState, SortingState } from '@tanstack/react-table'
 
 export function FolderTasksScreen() {
   const [tasks, setTasks] = React.useState<{
@@ -28,19 +34,24 @@ export function FolderTasksScreen() {
     pageSize: 10,
   })
 
+  const searchFilter = filters.find((f) => f.id === 'taskKey')
   const fetchTasks = React.useCallback(() => {
-    console.log({ filters, sorting })
     const statusFilterValue =
       filters.find((f) => f.id === 'status')?.value ?? []
     if (folder?.id) {
       void apiClient.tasksApi
-        .listTasks({
+        .listFolderTasks({
           folderId: folder?.id,
           limit: pagination.pageSize,
           offset: pagination.pageSize * pagination.pageIndex,
           ...(sorting[0]
             ? {
-                sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as TasksApiListTasksRequest['sort'],
+                sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ServerTasksApiListTasksRequest['sort'],
+              }
+            : {}),
+          ...(typeof searchFilter?.value === 'string'
+            ? {
+                search: searchFilter.value,
               }
             : {}),
           ...((statusFilterValue as any).includes('COMPLETE')
@@ -64,57 +75,52 @@ export function FolderTasksScreen() {
     if (folder?.id) {
       void fetchTasks()
     }
-  }, [folder?.id, filters, sorting])
+  }, [folder?.id, filters, sorting, pagination])
 
   return (
-    <div
-      className={cn(
-        'items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto p-8',
-      )}
-    >
+    <div className={cn('items-center flex flex-1 flex-col h-full')}>
       <div className="container flex-1 flex flex-col">
-        <DataTable
-          onColumnFiltersChange={(updater) => {
-            setFilters((old) =>
-              updater instanceof Function ? updater(old) : updater,
-            )
-          }}
-          rowCount={tasks?.meta.totalCount}
-          data={tasks?.result ?? []}
-          columns={tasksTableColumns}
-          onPaginationChange={(updater) => {
-            setPagination((old) =>
-              updater instanceof Function ? updater(old) : updater,
-            )
-          }}
-          onSortingChange={(updater) => {
-            setSorting((old) =>
-              updater instanceof Function ? updater(old) : updater,
-            )
-          }}
-          filterFns={{
-            status: (
-              row: Row<TaskDTO>,
-              columnId: string,
-              filterValue: any,
-              addMeta: (meta: FilterMeta) => void,
-            ) => {
-              console.log('filter:', { row, columnId, filterValue, addMeta })
-              return true
-            },
-          }}
-          filterOptions={{
-            status: {
-              label: 'Status',
-              options: [
-                { value: 'WAITING', label: 'Waiting', icon: Clock10Icon },
-                { value: 'RUNNING', label: 'Running', icon: Play },
-                { value: 'COMPLETE', label: 'Complete', icon: CircleCheck },
-                { value: 'FAILED', label: 'Failed', icon: CircleX },
-              ],
-            },
-          }}
-        />
+        <Card className="bg-transparent border-0">
+          <CardHeader className="p-0 pb-4">
+            <CardTitle>Folder Tasks</CardTitle>
+            <CardDescription>Folder: {folder?.name}</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <DataTable
+              enableSearch={true}
+              searchColumn={'taskKey'}
+              onColumnFiltersChange={(updater) => {
+                setFilters((old) =>
+                  updater instanceof Function ? updater(old) : updater,
+                )
+              }}
+              rowCount={tasks?.meta.totalCount}
+              data={tasks?.result ?? []}
+              columns={folderTasksTableColumns}
+              onPaginationChange={(updater) => {
+                setPagination((old) =>
+                  updater instanceof Function ? updater(old) : updater,
+                )
+              }}
+              onSortingChange={(updater) => {
+                setSorting((old) =>
+                  updater instanceof Function ? updater(old) : updater,
+                )
+              }}
+              filterOptions={{
+                status: {
+                  label: 'Status',
+                  options: [
+                    { value: 'WAITING', label: 'Waiting', icon: Clock10Icon },
+                    { value: 'RUNNING', label: 'Running', icon: Play },
+                    { value: 'COMPLETE', label: 'Complete', icon: CircleCheck },
+                    { value: 'FAILED', label: 'Failed', icon: CircleX },
+                  ],
+                },
+              }}
+            />
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

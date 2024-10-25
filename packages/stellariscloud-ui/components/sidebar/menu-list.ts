@@ -2,7 +2,8 @@ import {
   Users,
   Settings,
   KeySquare,
-  ChartArea,
+  ChartLine,
+  ListChecks,
   AppWindow,
   Folders,
   LayoutGrid,
@@ -49,8 +50,9 @@ export function getMenuList(pathname: string): Group[] {
       groupLabel: 'Server',
       menus: [
         {
-          href: '/server/dashboard',
-          label: 'Dashboard',
+          href: '/server',
+          active: pathname === '/server',
+          label: 'Overview',
           icon: LayoutGrid,
         },
         {
@@ -66,11 +68,16 @@ export function getMenuList(pathname: string): Group[] {
         {
           href: '/server/events',
           label: 'Events',
-          icon: ChartArea,
+          icon: ChartLine,
         },
         {
-          href: '/server/settings',
-          label: 'Settings',
+          href: '/server/tasks',
+          label: 'Tasks',
+          icon: ListChecks,
+        },
+        {
+          href: '/server/config',
+          label: 'Config',
           icon: Settings,
         },
       ],

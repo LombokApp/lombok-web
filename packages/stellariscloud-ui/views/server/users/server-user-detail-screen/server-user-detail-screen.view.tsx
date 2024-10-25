@@ -1,24 +1,34 @@
 import type { UserDTO } from '@stellariscloud/api-client'
 import clsx from 'clsx'
-import { useRouter } from 'next/router'
 import React from 'react'
-
-import { UserAccountStats } from '../../../../components/user-account-stats/user-account-stats'
-import { formatBytes, timeSinceOrUntil } from '@stellariscloud/utils'
+import { Edit, Folders, HandshakeIcon, HardDrive, KeyIcon } from 'lucide-react'
+import { v4 as uuidV4 } from 'uuid'
+import { timeSinceOrUntil } from '@stellariscloud/utils'
 import { UserAttributeList } from '../../../../components/user-attribute-list/user-attribute-list'
 import { apiClient } from '../../../../services/api'
+import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  DataTable,
+  DataTableColumnHeader,
+} from '@stellariscloud/ui-toolkit'
 
-export function ServerUserDetailScreen() {
-  const router = useRouter()
+const DUMMY_UUID = uuidV4()
 
+export function ServerUserDetailScreen({ userId }: { userId: string }) {
   const [user, setUser] = React.useState<UserDTO>()
   React.useEffect(() => {
-    if (typeof router.query.userId === 'string' && !user) {
+    if (userId && !user) {
       void apiClient.usersApi
-        .getUser({ userId: router.query.userId })
+        .getUser({ userId: userId })
         .then((u) => setUser(u.data.user))
     }
-  }, [user, router.query.userId])
+  }, [user])
 
   // const handleSubmitClick = React.useCallback(() => {
   //   void apiClient.usersApi
@@ -38,28 +48,114 @@ export function ServerUserDetailScreen() {
           'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
         )}
       >
-        <div className="container flex-1 flex flex-col">
-          <div className="flex min-w-full items-start gap-4 p-8">
+        <div className="container flex-1 flex flex-col gap-8">
+          <Card className="bg-transparent border-0">
+            <CardHeader className="p-0 pb-4">
+              <CardTitle>{user?.username}</CardTitle>
+              <CardDescription>ID: {user?.id}</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <StatCardGroup
+                stats={[
+                  {
+                    title: 'Last Login',
+                    label: timeSinceOrUntil(new Date(1727979480000)),
+                    subtitle: new Date(1727979480000).toLocaleString(),
+                    icon: KeyIcon,
+                  },
+                  {
+                    title: 'Total Folders',
+                    label: '5',
+                    subtitle: 'Work, Camera Roll, Client X, and 2 others',
+                    icon: Folders,
+                  },
+                  {
+                    title: 'Storage Used',
+                    label: '5.29TB',
+                    subtitle: '+108GB in the last week',
+                    icon: HardDrive,
+                  },
+                  {
+                    title: 'Joined',
+                    label: timeSinceOrUntil(new Date(1707979480000)),
+                    subtitle: new Date(1707979480000).toLocaleString(),
+                    icon: HandshakeIcon,
+                  },
+                ]}
+              />
+            </CardContent>
+          </Card>
+          <div className="flex min-w-full items-start gap-4">
             <div className="flex-1">
-              <UserAttributeList user={user} />
+              <Card className="bg-transparent border-0">
+                <CardHeader className="px-0 pt-2">
+                  <CardTitle>
+                    <div className="flex items-center gap-4 relative">
+                      Details
+                      <div className="text-muted-foreground absolute left-24 top-0">
+                        <Button
+                          variant={'outline'}
+                          size="xs"
+                          className="flex imtes-center gap-2"
+                        >
+                          Edit <Edit className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <UserAttributeList user={user} />
+                </CardContent>
+              </Card>
             </div>
-            <UserAccountStats
-              stats={{
-                folderCount: { value: '103', label: 'Folders' },
-                totalData: {
-                  value: formatBytes(685746167465),
-                  label: 'Total Data',
-                },
-                lastLogin: {
-                  value: timeSinceOrUntil(new Date(1723242258000)),
-                  label: 'Last Login',
-                },
-                created: {
-                  value: timeSinceOrUntil(new Date(1713242258000)),
-                  label: 'Created',
-                },
-              }}
-            />
+            <Card className="bg-transparent border-0">
+              <CardHeader className="px-0 pt-2">
+                <CardTitle>Sessions</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <DataTable
+                  data={[
+                    {
+                      id: DUMMY_UUID,
+                      createdAt: new Date(1727979480000),
+                    },
+                  ]}
+                  columns={[
+                    {
+                      cell: ({ row }) => <>{row.original.id}</>,
+                      accessorKey: 'id',
+                      enableSorting: false,
+                      header: ({ column }) => (
+                        <DataTableColumnHeader
+                          canHide={column.getCanHide()}
+                          column={column}
+                          title="Session ID"
+                        />
+                      ),
+                    },
+                    {
+                      cell: ({ row }) => (
+                        <div className="flex flex-col">
+                          {new Date(row.original.createdAt).toLocaleString()}
+                          <span className="text-muted-foreground">
+                            {timeSinceOrUntil(new Date(row.original.createdAt))}
+                          </span>
+                        </div>
+                      ),
+                      accessorKey: 'createdAt',
+                      header: ({ column }) => (
+                        <DataTableColumnHeader
+                          canHide={column.getCanHide()}
+                          column={column}
+                          title="Created At"
+                        />
+                      ),
+                    },
+                  ]}
+                />
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

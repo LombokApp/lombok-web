@@ -2,11 +2,11 @@ import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
 export const taskSchema = z.object({
-  id: z.string(),
+  id: z.string().uuid(),
   taskKey: z.string(),
   ownerIdentifier: z.string(),
-  triggeringEventId: z.string(),
-  subjectFolderId: z.string().optional(),
+  triggeringEventId: z.string().uuid(),
+  subjectFolderId: z.string().uuid().optional(),
   subjectObjectKey: z.string().optional(),
   handlerId: z.string().optional(),
   inputData: z.record(z.string(), z.string().or(z.number())),

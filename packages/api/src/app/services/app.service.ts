@@ -14,7 +14,7 @@ import path from 'path'
 import * as r from 'runtypes'
 import { KVService } from 'src/cache/kv.service'
 import { readDirRecursive } from 'src/core/utils/fs.util'
-import { eventsTable } from 'src/event/entities/event.entity'
+import { EventLevel, eventsTable } from 'src/event/entities/event.entity'
 import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
@@ -118,7 +118,7 @@ const UpdateMetadataValidator = r.Record({
 })
 
 const FailHandleTaskValidator = z.object({
-  taskId: z.string(),
+  taskId: z.string().uuid(),
   error: z.object({
     message: z.string(),
     code: z.string(),
@@ -177,6 +177,7 @@ export class AppService {
               {
                 ...requestData,
                 createdAt: now,
+                level: EventLevel.INFO, // TODO: translate app log level to event level
                 emitterIdentifier: appIdentifier,
                 eventKey: `${appIdentifierPrefixed}:LOG_ENTRY`,
                 id: uuidV4(),

@@ -10,5 +10,7 @@ export function transformFolderToDTO(folder: Folder): FolderDTO {
     ownerId: folder.ownerId,
     contentLocation: transformStorageLocationToDTO(folder.contentLocation),
     metadataLocation: transformStorageLocationToDTO(folder.metadataLocation),
+    createdAt: folder.createdAt,
+    updatedAt: folder.updatedAt,
   }
 }

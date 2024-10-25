@@ -1,7 +1,6 @@
 import type { NextPage } from 'next'
 import React from 'react'
 
-import { ListChecks } from 'lucide-react'
 import { ContentLayout } from '../../../../components/sidebar/components/content-layout'
 import {
   FolderContextProvider,
@@ -15,8 +14,6 @@ const FolderTaskDetailPageInner = () => {
   const folderContext = useFolderContext()
   return (
     <ContentLayout
-      titleIcon={ListChecks}
-      description={`Task ID: ${router.query.taskId}`}
       breadcrumbs={[
         { label: 'Folders', href: `/folders` },
         {

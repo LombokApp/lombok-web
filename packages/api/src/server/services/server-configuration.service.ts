@@ -25,6 +25,7 @@ import type { NewServerSetting } from '../entities/server-configuration.entity'
 import { serverSettingsTable } from '../entities/server-configuration.entity'
 import { ServerConfigurationInvalidException } from '../exceptions/server-configuration-invalid.exception'
 import { ServerConfigurationNotFoundException } from '../exceptions/server-configuration-not-found.exception'
+import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
 
 @Injectable()
 export class ServerConfigurationService {
@@ -137,7 +138,16 @@ export class ServerConfigurationService {
       }
     }
 
-    const locationWithId = { ...storageProvision, id: uuidV4() }
+    const locationWithId = {
+      ...storageProvision,
+      id: uuidV4(),
+      accessKeyHashId: buildAccessKeyHashId({
+        accessKeyId: storageProvision.accessKeyId,
+        secretAccessKey: storageProvision.secretAccessKey,
+        region: storageProvision.region,
+        endpoint: storageProvision.endpoint,
+      }),
+    }
 
     const existingRecord =
       await this.ormService.db.query.serverSettingsTable.findFirst({
@@ -169,15 +179,15 @@ export class ServerConfigurationService {
 
   async updateServerProvisionAsAdmin(
     actor: User,
-    serverProvisionId: string,
-    serverProvision: StorageProvisionInputDTO,
+    storageProvisionId: string,
+    storageProvision: StorageProvisionInputDTO,
   ) {
     const now = new Date()
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
 
-    for (const provisionType of serverProvision.provisionTypes) {
+    for (const provisionType of storageProvision.provisionTypes) {
       if (
         z.nativeEnum(StorageProvisionTypeEnum).parse(provisionType) !==
         provisionType
@@ -196,7 +206,7 @@ export class ServerConfigurationService {
     }
 
     const existingLocation = existingSettingRecord.value.find(
-      ({ id }) => id === serverProvisionId,
+      ({ id }) => id === storageProvisionId,
     )
     if (!existingLocation) {
       throw new NotFoundException()
@@ -205,8 +215,17 @@ export class ServerConfigurationService {
         .update(serverSettingsTable)
         .set({
           value: existingSettingRecord.value.map((sp: StorageProvisionDTO) =>
-            sp.id === serverProvisionId
-              ? { ...serverProvision, id: serverProvisionId }
+            sp.id === storageProvisionId
+              ? {
+                  ...storageProvision,
+                  id: storageProvisionId,
+                  accessKeyHashId: buildAccessKeyHashId({
+                    accessKeyId: storageProvision.accessKeyId,
+                    secretAccessKey: storageProvision.secretAccessKey,
+                    region: storageProvision.region,
+                    endpoint: storageProvision.endpoint,
+                  }),
+                }
               : sp,
           ),
           updatedAt: now,
@@ -214,7 +233,7 @@ export class ServerConfigurationService {
         .where(eq(serverSettingsTable.key, STORAGE_PROVISIONS_KEY.key))
     }
 
-    return serverProvision
+    return storageProvision
   }
 
   async deleteStorageProvisionAsAdmin(actor: User, storageProvisionId: string) {

@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import React from 'react'
 import type { FileRejection } from 'react-dropzone'
 
-import { Button } from '../../design-system/button/button'
+import { Button } from '@stellariscloud/ui-toolkit'
 import { Modal } from '../../design-system/modal/modal'
 import { FolderUploadDropzone } from '../../views/folder-upload-dropzone/folder-upload-dropzone.view'
 import { ProgressBar } from '../progress-bar/progress-bar'
@@ -48,7 +48,7 @@ export const UploadModal = ({
                 ))}
               </div>
             )}
-            <Button size="lg" preventDefaultOnClick onClick={onCancel}>
+            <Button size="lg" onClick={onCancel}>
               Done
             </Button>
           </div>

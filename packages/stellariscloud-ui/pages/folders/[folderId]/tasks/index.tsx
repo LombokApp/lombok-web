@@ -1,7 +1,6 @@
 import type { NextPage } from 'next'
 import React from 'react'
 
-import { ListChecks } from 'lucide-react'
 import { ContentLayout } from '../../../../components/sidebar/components/content-layout'
 import { FolderTasksScreen } from '../../../../views/folder-tasks-screen/folder-tasks-screen.view'
 import {
@@ -15,8 +14,6 @@ const FolderTasksPageInner = () => {
 
   return (
     <ContentLayout
-      titleIcon={ListChecks}
-      description={'All tasks for this folder'}
       breadcrumbs={[
         { label: 'Folders', href: `/folders` },
         {

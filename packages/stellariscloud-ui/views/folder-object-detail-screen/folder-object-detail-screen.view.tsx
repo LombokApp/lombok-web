@@ -1,9 +1,5 @@
-import {
-  ArrowDownTrayIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  TrashIcon,
-} from '@heroicons/react/24/outline'
+import { ArrowDownTrayIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import type { FolderObjectDTO } from '@stellariscloud/api-client'
 import {
   FolderPermissionEnum,
@@ -18,12 +14,10 @@ import { ConfirmDeleteModal } from '../../components/confirm-delete-modal/confir
 import { useFolderContext } from '../../contexts/folder.context'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { LogLevel, useLoggingContext } from '../../contexts/logging.context'
-import { ButtonGroup } from '../../design-system/button-group/button-group'
-import { Icon } from '../../design-system/icon'
 import { apiClient } from '../../services/api'
 import { FolderObjectPreview } from '../folder-object-preview/folder-object-preview.view'
 import { FolderObjectSidebar } from '../folder-object-sidebar/folder-object-sidebar.view'
-import { Button } from '@stellariscloud/ui-toolkit'
+import { Button, ButtonGroup } from '@stellariscloud/ui-toolkit'
 
 export const FolderObjectDetailScreen = ({
   folderId,
@@ -211,33 +205,24 @@ export const FolderObjectDetailScreen = ({
                   <ArrowDownTrayIcon className="w-5 h-5" />
                   Download
                 </Button>
-                <ButtonGroup
-                  size="lg"
-                  buttons={
-                    onNextClick && onPreviousClick
-                      ? [
-                          {
-                            name: '',
-                            icon: ArrowLeftIcon,
-                            disabled: false,
-                            onClick: () => {
-                              onNextClick()
-                              setDisplayObjectKey(undefined)
-                            },
-                          },
-                          {
-                            name: '',
-                            icon: ArrowRightIcon,
-                            disabled: false,
-                            onClick: () => {
-                              onPreviousClick()
-                              setDisplayObjectKey(undefined)
-                            },
-                          },
-                        ]
-                      : []
-                  }
-                />
+                <ButtonGroup>
+                  <Button
+                    onClick={() => {
+                      onNextClick?.()
+                      setDisplayObjectKey(undefined)
+                    }}
+                  >
+                    <ArrowLeft />
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      onPreviousClick?.()
+                      setDisplayObjectKey(undefined)
+                    }}
+                  >
+                    <ArrowRight />
+                  </Button>
+                </ButtonGroup>
               </div>
             </div>
           )}

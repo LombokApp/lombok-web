@@ -9,6 +9,7 @@ export function transformStorageProvisionToDTO(
     label: storageProvision.label,
     accessKeyId: storageProvision.accessKeyId,
     bucket: storageProvision.bucket,
+    accessKeyHashId: storageProvision.accessKeyHashId,
     description: storageProvision.description,
     endpoint: storageProvision.endpoint,
     provisionTypes: storageProvision.provisionTypes,

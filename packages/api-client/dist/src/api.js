@@ -22,6 +22,20 @@ export const AppDTOConfigTasksInnerInputParamsValueTypeEnum = {
     String: 'string',
     Number: 'number'
 };
+export const EventDTOLevelEnum = {
+    Trace: 'TRACE',
+    Debug: 'DEBUG',
+    Info: 'INFO',
+    Warn: 'WARN',
+    Error: 'ERROR'
+};
+export const EventGetResponseEventLevelEnum = {
+    Trace: 'TRACE',
+    Debug: 'DEBUG',
+    Info: 'INFO',
+    Warn: 'WARN',
+    Error: 'ERROR'
+};
 export const FolderCreateSignedUrlInputDTOInnerMethodEnum = {
     Delete: 'DELETE',
     Put: 'PUT',
@@ -72,11 +86,6 @@ export const FolderObjectListResponseResultInnerMediaTypeEnum = {
     Unknown: 'UNKNOWN'
 };
 export const StorageProvisionDTOProvisionTypesEnum = {
-    Content: 'CONTENT',
-    Metadata: 'METADATA',
-    Backup: 'BACKUP'
-};
-export const StorageProvisionGetResponseStorageProvisionProvisionTypesEnum = {
     Content: 'CONTENT',
     Metadata: 'METADATA',
     Backup: 'BACKUP'
@@ -163,10 +172,11 @@ export const AccessKeysApiAxiosParamCreator = function (configuration) {
          *
          * @param {number} [offset]
          * @param {number} [limit]
+         * @param {ListAccessKeysSortEnum} [sort]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listAccessKeys: async (offset, limit, options = {}) => {
+        listAccessKeys: async (offset, limit, sort, options = {}) => {
             const localVarPath = `/api/v1/access-keys`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -185,6 +195,9 @@ export const AccessKeysApiAxiosParamCreator = function (configuration) {
             }
             if (limit !== undefined) {
                 localVarQueryParameter['limit'] = limit;
+            }
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
             }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
@@ -263,11 +276,12 @@ export const AccessKeysApiFp = function (configuration) {
          *
          * @param {number} [offset]
          * @param {number} [limit]
+         * @param {ListAccessKeysSortEnum} [sort]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listAccessKeys(offset, limit, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listAccessKeys(offset, limit, options);
+        async listAccessKeys(offset, limit, sort, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listAccessKeys(offset, limit, sort, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -315,7 +329,7 @@ export const AccessKeysApiFactory = function (configuration, basePath, axios) {
          * @throws {RequiredError}
          */
         listAccessKeys(requestParameters = {}, options) {
-            return localVarFp.listAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+            return localVarFp.listAccessKeys(requestParameters.offset, requestParameters.limit, requestParameters.sort, options).then((request) => request(axios, basePath));
         },
         /**
          *
@@ -363,7 +377,7 @@ export class AccessKeysApi extends BaseAPI {
      * @memberof AccessKeysApi
      */
     listAccessKeys(requestParameters = {}, options) {
-        return AccessKeysApiFp(this.configuration).listAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+        return AccessKeysApiFp(this.configuration).listAccessKeys(requestParameters.offset, requestParameters.limit, requestParameters.sort, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
@@ -376,6 +390,21 @@ export class AccessKeysApi extends BaseAPI {
         return AccessKeysApiFp(this.configuration).rotateAccessKey(requestParameters.accessKeyHashId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
+/**
+ * @export
+ */
+export const ListAccessKeysSortEnum = {
+    AccessKeyIdAsc: 'accessKeyId-asc',
+    AccessKeyIdDesc: 'accessKeyId-desc',
+    AccessKeyHashIdAsc: 'accessKeyHashId-asc',
+    AccessKeyHashIdDesc: 'accessKeyHashId-desc',
+    EndpointAsc: 'endpoint-asc',
+    EndpointDesc: 'endpoint-desc',
+    RegionAsc: 'region-asc',
+    RegionDesc: 'region-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
+};
 /**
  * AppsApi - axios parameter creator
  * @export
@@ -1111,10 +1140,12 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
          *
          * @param {number} [offset]
          * @param {number} [limit]
+         * @param {ListFoldersSortEnum} [sort]
+         * @param {string} [search]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listFolders: async (offset, limit, options = {}) => {
+        listFolders: async (offset, limit, sort, search, options = {}) => {
             const localVarPath = `/api/v1/folders`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1133,6 +1164,12 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
             }
             if (limit !== undefined) {
                 localVarQueryParameter['limit'] = limit;
+            }
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
+            }
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
             }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
@@ -1320,11 +1357,13 @@ export const FoldersApiFp = function (configuration) {
          *
          * @param {number} [offset]
          * @param {number} [limit]
+         * @param {ListFoldersSortEnum} [sort]
+         * @param {string} [search]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listFolders(offset, limit, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolders(offset, limit, options);
+        async listFolders(offset, limit, sort, search, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolders(offset, limit, sort, search, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -1445,7 +1484,7 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
          * @throws {RequiredError}
          */
         listFolders(requestParameters = {}, options) {
-            return localVarFp.listFolders(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+            return localVarFp.listFolders(requestParameters.offset, requestParameters.limit, requestParameters.sort, requestParameters.search, options).then((request) => request(axios, basePath));
         },
         /**
          *
@@ -1572,7 +1611,7 @@ export class FoldersApi extends BaseAPI {
      * @memberof FoldersApi
      */
     listFolders(requestParameters = {}, options) {
-        return FoldersApiFp(this.configuration).listFolders(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+        return FoldersApiFp(this.configuration).listFolders(requestParameters.offset, requestParameters.limit, requestParameters.sort, requestParameters.search, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
@@ -1595,6 +1634,17 @@ export class FoldersApi extends BaseAPI {
         return FoldersApiFp(this.configuration).rescanFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
     }
 }
+/**
+ * @export
+ */
+export const ListFoldersSortEnum = {
+    NameAsc: 'name-asc',
+    NameDesc: 'name-desc',
+    CreatedAtAsc: 'createdAt-asc',
+    CreatedAtDesc: 'createdAt-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
+};
 /**
  * ServerApi - axios parameter creator
  * @export
@@ -1849,10 +1899,11 @@ export const ServerAccessKeysApiAxiosParamCreator = function (configuration) {
          *
          * @param {number} [offset]
          * @param {number} [limit]
+         * @param {ListServerAccessKeysSortEnum} [sort]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listServerAccessKeys: async (offset, limit, options = {}) => {
+        listServerAccessKeys: async (offset, limit, sort, options = {}) => {
             const localVarPath = `/api/v1/server/access-keys`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1871,6 +1922,9 @@ export const ServerAccessKeysApiAxiosParamCreator = function (configuration) {
             }
             if (limit !== undefined) {
                 localVarQueryParameter['limit'] = limit;
+            }
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
             }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
@@ -1939,11 +1993,12 @@ export const ServerAccessKeysApiFp = function (configuration) {
          *
          * @param {number} [offset]
          * @param {number} [limit]
+         * @param {ListServerAccessKeysSortEnum} [sort]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listServerAccessKeys(offset, limit, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listServerAccessKeys(offset, limit, options);
+        async listServerAccessKeys(offset, limit, sort, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listServerAccessKeys(offset, limit, sort, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -1982,7 +2037,7 @@ export const ServerAccessKeysApiFactory = function (configuration, basePath, axi
          * @throws {RequiredError}
          */
         listServerAccessKeys(requestParameters = {}, options) {
-            return localVarFp.listServerAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+            return localVarFp.listServerAccessKeys(requestParameters.offset, requestParameters.limit, requestParameters.sort, options).then((request) => request(axios, basePath));
         },
         /**
          *
@@ -2020,7 +2075,7 @@ export class ServerAccessKeysApi extends BaseAPI {
      * @memberof ServerAccessKeysApi
      */
     listServerAccessKeys(requestParameters = {}, options) {
-        return ServerAccessKeysApiFp(this.configuration).listServerAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+        return ServerAccessKeysApiFp(this.configuration).listServerAccessKeys(requestParameters.offset, requestParameters.limit, requestParameters.sort, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
@@ -2033,6 +2088,21 @@ export class ServerAccessKeysApi extends BaseAPI {
         return ServerAccessKeysApiFp(this.configuration).rotateAccessKey(requestParameters.accessKeyHashId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
+/**
+ * @export
+ */
+export const ListServerAccessKeysSortEnum = {
+    AccessKeyIdAsc: 'accessKeyId-asc',
+    AccessKeyIdDesc: 'accessKeyId-desc',
+    AccessKeyHashIdAsc: 'accessKeyHashId-asc',
+    AccessKeyHashIdDesc: 'accessKeyHashId-desc',
+    EndpointAsc: 'endpoint-asc',
+    EndpointDesc: 'endpoint-desc',
+    RegionAsc: 'region-asc',
+    RegionDesc: 'region-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
+};
 /**
  * ServerEventsApi - axios parameter creator
  * @export
@@ -2072,12 +2142,21 @@ export const ServerEventsApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @param {ListEventsSortEnum} [sort]
+         * @param {string} [folderId]
+         * @param {string} [objectKey]
+         * @param {string} [search]
+         * @param {ListEventsIncludeTraceEnum} [includeTrace]
+         * @param {ListEventsIncludeDebugEnum} [includeDebug]
+         * @param {ListEventsIncludeInfoEnum} [includeInfo]
+         * @param {ListEventsIncludeWarningEnum} [includeWarning]
+         * @param {ListEventsIncludeErrorEnum} [includeError]
          * @param {number} [offset]
          * @param {number} [limit]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listEvents: async (offset, limit, options = {}) => {
+        listEvents: async (sort, folderId, objectKey, search, includeTrace, includeDebug, includeInfo, includeWarning, includeError, offset, limit, options = {}) => {
             const localVarPath = `/api/v1/server/events`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2091,6 +2170,33 @@ export const ServerEventsApiAxiosParamCreator = function (configuration) {
             // authentication bearer required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
+            }
+            if (folderId !== undefined) {
+                localVarQueryParameter['folderId'] = folderId;
+            }
+            if (objectKey !== undefined) {
+                localVarQueryParameter['objectKey'] = objectKey;
+            }
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+            if (includeTrace !== undefined) {
+                localVarQueryParameter['includeTrace'] = includeTrace;
+            }
+            if (includeDebug !== undefined) {
+                localVarQueryParameter['includeDebug'] = includeDebug;
+            }
+            if (includeInfo !== undefined) {
+                localVarQueryParameter['includeInfo'] = includeInfo;
+            }
+            if (includeWarning !== undefined) {
+                localVarQueryParameter['includeWarning'] = includeWarning;
+            }
+            if (includeError !== undefined) {
+                localVarQueryParameter['includeError'] = includeError;
+            }
             if (offset !== undefined) {
                 localVarQueryParameter['offset'] = offset;
             }
@@ -2126,13 +2232,22 @@ export const ServerEventsApiFp = function (configuration) {
         },
         /**
          *
+         * @param {ListEventsSortEnum} [sort]
+         * @param {string} [folderId]
+         * @param {string} [objectKey]
+         * @param {string} [search]
+         * @param {ListEventsIncludeTraceEnum} [includeTrace]
+         * @param {ListEventsIncludeDebugEnum} [includeDebug]
+         * @param {ListEventsIncludeInfoEnum} [includeInfo]
+         * @param {ListEventsIncludeWarningEnum} [includeWarning]
+         * @param {ListEventsIncludeErrorEnum} [includeError]
          * @param {number} [offset]
          * @param {number} [limit]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listEvents(offset, limit, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listEvents(offset, limit, options);
+        async listEvents(sort, folderId, objectKey, search, includeTrace, includeDebug, includeInfo, includeWarning, includeError, offset, limit, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listEvents(sort, folderId, objectKey, search, includeTrace, includeDebug, includeInfo, includeWarning, includeError, offset, limit, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     };
@@ -2160,7 +2275,7 @@ export const ServerEventsApiFactory = function (configuration, basePath, axios) 
          * @throws {RequiredError}
          */
         listEvents(requestParameters = {}, options) {
-            return localVarFp.listEvents(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+            return localVarFp.listEvents(requestParameters.sort, requestParameters.folderId, requestParameters.objectKey, requestParameters.search, requestParameters.includeTrace, requestParameters.includeDebug, requestParameters.includeInfo, requestParameters.includeWarning, requestParameters.includeError, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -2189,9 +2304,280 @@ export class ServerEventsApi extends BaseAPI {
      * @memberof ServerEventsApi
      */
     listEvents(requestParameters = {}, options) {
-        return ServerEventsApiFp(this.configuration).listEvents(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+        return ServerEventsApiFp(this.configuration).listEvents(requestParameters.sort, requestParameters.folderId, requestParameters.objectKey, requestParameters.search, requestParameters.includeTrace, requestParameters.includeDebug, requestParameters.includeInfo, requestParameters.includeWarning, requestParameters.includeError, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
     }
 }
+/**
+ * @export
+ */
+export const ListEventsSortEnum = {
+    CreatedAtAsc: 'createdAt-asc',
+    CreatedAtDesc: 'createdAt-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
+};
+/**
+ * @export
+ */
+export const ListEventsIncludeTraceEnum = {
+    True: 'true'
+};
+/**
+ * @export
+ */
+export const ListEventsIncludeDebugEnum = {
+    True: 'true'
+};
+/**
+ * @export
+ */
+export const ListEventsIncludeInfoEnum = {
+    True: 'true'
+};
+/**
+ * @export
+ */
+export const ListEventsIncludeWarningEnum = {
+    True: 'true'
+};
+/**
+ * @export
+ */
+export const ListEventsIncludeErrorEnum = {
+    True: 'true'
+};
+/**
+ * ServerTasksApi - axios parameter creator
+ * @export
+ */
+export const ServerTasksApiAxiosParamCreator = function (configuration) {
+    return {
+        /**
+         *
+         * @param {string} taskId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTask: async (taskId, options = {}) => {
+            // verify required parameter 'taskId' is not null or undefined
+            assertParamExists('getTask', 'taskId', taskId);
+            const localVarPath = `/api/v1/server/tasks/{taskId}`
+                .replace(`{${"taskId"}}`, encodeURIComponent(String(taskId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @param {string} [objectKey]
+         * @param {ListTasksSortEnum} [sort]
+         * @param {string} [search]
+         * @param {ListTasksIncludeWaitingEnum} [includeWaiting]
+         * @param {ListTasksIncludeRunningEnum} [includeRunning]
+         * @param {ListTasksIncludeCompleteEnum} [includeComplete]
+         * @param {ListTasksIncludeFailedEnum} [includeFailed]
+         * @param {number} [offset]
+         * @param {number} [limit]
+         * @param {string} [folderId]
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listTasks: async (objectKey, sort, search, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, folderId, options = {}) => {
+            const localVarPath = `/api/v1/server/tasks`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            if (objectKey !== undefined) {
+                localVarQueryParameter['objectKey'] = objectKey;
+            }
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
+            }
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+            if (includeWaiting !== undefined) {
+                localVarQueryParameter['includeWaiting'] = includeWaiting;
+            }
+            if (includeRunning !== undefined) {
+                localVarQueryParameter['includeRunning'] = includeRunning;
+            }
+            if (includeComplete !== undefined) {
+                localVarQueryParameter['includeComplete'] = includeComplete;
+            }
+            if (includeFailed !== undefined) {
+                localVarQueryParameter['includeFailed'] = includeFailed;
+            }
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+            if (folderId !== undefined) {
+                localVarQueryParameter['folderId'] = folderId;
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    };
+};
+/**
+ * ServerTasksApi - functional programming interface
+ * @export
+ */
+export const ServerTasksApiFp = function (configuration) {
+    const localVarAxiosParamCreator = ServerTasksApiAxiosParamCreator(configuration);
+    return {
+        /**
+         *
+         * @param {string} taskId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTask(taskId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTask(taskId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         *
+         * @param {string} [objectKey]
+         * @param {ListTasksSortEnum} [sort]
+         * @param {string} [search]
+         * @param {ListTasksIncludeWaitingEnum} [includeWaiting]
+         * @param {ListTasksIncludeRunningEnum} [includeRunning]
+         * @param {ListTasksIncludeCompleteEnum} [includeComplete]
+         * @param {ListTasksIncludeFailedEnum} [includeFailed]
+         * @param {number} [offset]
+         * @param {number} [limit]
+         * @param {string} [folderId]
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listTasks(objectKey, sort, search, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, folderId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listTasks(objectKey, sort, search, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, folderId, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+    };
+};
+/**
+ * ServerTasksApi - factory interface
+ * @export
+ */
+export const ServerTasksApiFactory = function (configuration, basePath, axios) {
+    const localVarFp = ServerTasksApiFp(configuration);
+    return {
+        /**
+         *
+         * @param {ServerTasksApiGetTaskRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTask(requestParameters, options) {
+            return localVarFp.getTask(requestParameters.taskId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @param {ServerTasksApiListTasksRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listTasks(requestParameters = {}, options) {
+            return localVarFp.listTasks(requestParameters.objectKey, requestParameters.sort, requestParameters.search, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, requestParameters.folderId, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+/**
+ * ServerTasksApi - object-oriented interface
+ * @export
+ * @class ServerTasksApi
+ * @extends {BaseAPI}
+ */
+export class ServerTasksApi extends BaseAPI {
+    /**
+     *
+     * @param {ServerTasksApiGetTaskRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerTasksApi
+     */
+    getTask(requestParameters, options) {
+        return ServerTasksApiFp(this.configuration).getTask(requestParameters.taskId, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @param {ServerTasksApiListTasksRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerTasksApi
+     */
+    listTasks(requestParameters = {}, options) {
+        return ServerTasksApiFp(this.configuration).listTasks(requestParameters.objectKey, requestParameters.sort, requestParameters.search, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+/**
+ * @export
+ */
+export const ListTasksSortEnum = {
+    CreatedAtAsc: 'createdAt-asc',
+    CreatedAtDesc: 'createdAt-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
+};
+/**
+ * @export
+ */
+export const ListTasksIncludeWaitingEnum = {
+    True: 'true'
+};
+/**
+ * @export
+ */
+export const ListTasksIncludeRunningEnum = {
+    True: 'true'
+};
+/**
+ * @export
+ */
+export const ListTasksIncludeCompleteEnum = {
+    True: 'true'
+};
+/**
+ * @export
+ */
+export const ListTasksIncludeFailedEnum = {
+    True: 'true'
+};
 /**
  * StorageProvisionsApi - axios parameter creator
  * @export
@@ -2554,12 +2940,12 @@ export const TasksApiAxiosParamCreator = function (configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getTask: async (folderId, taskId, options = {}) => {
+        getFolderTask: async (folderId, taskId, options = {}) => {
             // verify required parameter 'folderId' is not null or undefined
-            assertParamExists('getTask', 'folderId', folderId);
+            assertParamExists('getFolderTask', 'folderId', folderId);
             // verify required parameter 'taskId' is not null or undefined
-            assertParamExists('getTask', 'taskId', taskId);
-            const localVarPath = `/api/v1/{folderId}/tasks/{taskId}`
+            assertParamExists('getFolderTask', 'taskId', taskId);
+            const localVarPath = `/api/v1/folders/{folderId}/tasks/{taskId}`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
                 .replace(`{${"taskId"}}`, encodeURIComponent(String(taskId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -2586,20 +2972,21 @@ export const TasksApiAxiosParamCreator = function (configuration) {
          *
          * @param {string} folderId
          * @param {string} [objectKey]
-         * @param {ListTasksSortEnum} [sort]
-         * @param {ListTasksIncludeWaitingEnum} [includeWaiting]
-         * @param {ListTasksIncludeRunningEnum} [includeRunning]
-         * @param {ListTasksIncludeCompleteEnum} [includeComplete]
-         * @param {ListTasksIncludeFailedEnum} [includeFailed]
+         * @param {ListFolderTasksSortEnum} [sort]
+         * @param {string} [search]
+         * @param {ListFolderTasksIncludeWaitingEnum} [includeWaiting]
+         * @param {ListFolderTasksIncludeRunningEnum} [includeRunning]
+         * @param {ListFolderTasksIncludeCompleteEnum} [includeComplete]
+         * @param {ListFolderTasksIncludeFailedEnum} [includeFailed]
          * @param {number} [offset]
          * @param {number} [limit]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listTasks: async (folderId, objectKey, sort, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options = {}) => {
+        listFolderTasks: async (folderId, objectKey, sort, search, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options = {}) => {
             // verify required parameter 'folderId' is not null or undefined
-            assertParamExists('listTasks', 'folderId', folderId);
-            const localVarPath = `/api/v1/{folderId}/tasks`
+            assertParamExists('listFolderTasks', 'folderId', folderId);
+            const localVarPath = `/api/v1/folders/{folderId}/tasks`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2618,6 +3005,9 @@ export const TasksApiAxiosParamCreator = function (configuration) {
             }
             if (sort !== undefined) {
                 localVarQueryParameter['sort'] = sort;
+            }
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
             }
             if (includeWaiting !== undefined) {
                 localVarQueryParameter['includeWaiting'] = includeWaiting;
@@ -2661,26 +3051,27 @@ export const TasksApiFp = function (configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getTask(folderId, taskId, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getTask(folderId, taskId, options);
+        async getFolderTask(folderId, taskId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getFolderTask(folderId, taskId, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
          *
          * @param {string} folderId
          * @param {string} [objectKey]
-         * @param {ListTasksSortEnum} [sort]
-         * @param {ListTasksIncludeWaitingEnum} [includeWaiting]
-         * @param {ListTasksIncludeRunningEnum} [includeRunning]
-         * @param {ListTasksIncludeCompleteEnum} [includeComplete]
-         * @param {ListTasksIncludeFailedEnum} [includeFailed]
+         * @param {ListFolderTasksSortEnum} [sort]
+         * @param {string} [search]
+         * @param {ListFolderTasksIncludeWaitingEnum} [includeWaiting]
+         * @param {ListFolderTasksIncludeRunningEnum} [includeRunning]
+         * @param {ListFolderTasksIncludeCompleteEnum} [includeComplete]
+         * @param {ListFolderTasksIncludeFailedEnum} [includeFailed]
          * @param {number} [offset]
          * @param {number} [limit]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listTasks(folderId, objectKey, sort, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listTasks(folderId, objectKey, sort, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options);
+        async listFolderTasks(folderId, objectKey, sort, search, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderTasks(folderId, objectKey, sort, search, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     };
@@ -2694,21 +3085,21 @@ export const TasksApiFactory = function (configuration, basePath, axios) {
     return {
         /**
          *
-         * @param {TasksApiGetTaskRequest} requestParameters Request parameters.
+         * @param {TasksApiGetFolderTaskRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getTask(requestParameters, options) {
-            return localVarFp.getTask(requestParameters.folderId, requestParameters.taskId, options).then((request) => request(axios, basePath));
+        getFolderTask(requestParameters, options) {
+            return localVarFp.getFolderTask(requestParameters.folderId, requestParameters.taskId, options).then((request) => request(axios, basePath));
         },
         /**
          *
-         * @param {TasksApiListTasksRequest} requestParameters Request parameters.
+         * @param {TasksApiListFolderTasksRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listTasks(requestParameters, options) {
-            return localVarFp.listTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.sort, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        listFolderTasks(requestParameters, options) {
+            return localVarFp.listFolderTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.sort, requestParameters.search, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -2721,29 +3112,29 @@ export const TasksApiFactory = function (configuration, basePath, axios) {
 export class TasksApi extends BaseAPI {
     /**
      *
-     * @param {TasksApiGetTaskRequest} requestParameters Request parameters.
+     * @param {TasksApiGetFolderTaskRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TasksApi
      */
-    getTask(requestParameters, options) {
-        return TasksApiFp(this.configuration).getTask(requestParameters.folderId, requestParameters.taskId, options).then((request) => request(this.axios, this.basePath));
+    getFolderTask(requestParameters, options) {
+        return TasksApiFp(this.configuration).getFolderTask(requestParameters.folderId, requestParameters.taskId, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
-     * @param {TasksApiListTasksRequest} requestParameters Request parameters.
+     * @param {TasksApiListFolderTasksRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TasksApi
      */
-    listTasks(requestParameters, options) {
-        return TasksApiFp(this.configuration).listTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.sort, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    listFolderTasks(requestParameters, options) {
+        return TasksApiFp(this.configuration).listFolderTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.sort, requestParameters.search, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
     }
 }
 /**
  * @export
  */
-export const ListTasksSortEnum = {
+export const ListFolderTasksSortEnum = {
     CreatedAtAsc: 'createdAt-asc',
     CreatedAtDesc: 'createdAt-desc',
     UpdatedAtAsc: 'updatedAt-asc',
@@ -2752,25 +3143,25 @@ export const ListTasksSortEnum = {
 /**
  * @export
  */
-export const ListTasksIncludeWaitingEnum = {
+export const ListFolderTasksIncludeWaitingEnum = {
     True: 'true'
 };
 /**
  * @export
  */
-export const ListTasksIncludeRunningEnum = {
+export const ListFolderTasksIncludeRunningEnum = {
     True: 'true'
 };
 /**
  * @export
  */
-export const ListTasksIncludeCompleteEnum = {
+export const ListFolderTasksIncludeCompleteEnum = {
     True: 'true'
 };
 /**
  * @export
  */
-export const ListTasksIncludeFailedEnum = {
+export const ListFolderTasksIncludeFailedEnum = {
     True: 'true'
 };
 /**
@@ -2879,10 +3270,11 @@ export const UsersApiAxiosParamCreator = function (configuration) {
          * @param {number} [limit]
          * @param {boolean} [isAdmin]
          * @param {ListUsersSortEnum} [sort]
+         * @param {string} [search]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listUsers: async (offset, limit, isAdmin, sort, options = {}) => {
+        listUsers: async (offset, limit, isAdmin, sort, search, options = {}) => {
             const localVarPath = `/api/v1/server/users`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2907,6 +3299,9 @@ export const UsersApiAxiosParamCreator = function (configuration) {
             }
             if (sort !== undefined) {
                 localVarQueryParameter['sort'] = sort;
+            }
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
             }
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
@@ -2997,11 +3392,12 @@ export const UsersApiFp = function (configuration) {
          * @param {number} [limit]
          * @param {boolean} [isAdmin]
          * @param {ListUsersSortEnum} [sort]
+         * @param {string} [search]
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listUsers(offset, limit, isAdmin, sort, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listUsers(offset, limit, isAdmin, sort, options);
+        async listUsers(offset, limit, isAdmin, sort, search, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listUsers(offset, limit, isAdmin, sort, search, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -3058,7 +3454,7 @@ export const UsersApiFactory = function (configuration, basePath, axios) {
          * @throws {RequiredError}
          */
         listUsers(requestParameters = {}, options) {
-            return localVarFp.listUsers(requestParameters.offset, requestParameters.limit, requestParameters.isAdmin, requestParameters.sort, options).then((request) => request(axios, basePath));
+            return localVarFp.listUsers(requestParameters.offset, requestParameters.limit, requestParameters.isAdmin, requestParameters.sort, requestParameters.search, options).then((request) => request(axios, basePath));
         },
         /**
          *
@@ -3116,7 +3512,7 @@ export class UsersApi extends BaseAPI {
      * @memberof UsersApi
      */
     listUsers(requestParameters = {}, options) {
-        return UsersApiFp(this.configuration).listUsers(requestParameters.offset, requestParameters.limit, requestParameters.isAdmin, requestParameters.sort, options).then((request) => request(this.axios, this.basePath));
+        return UsersApiFp(this.configuration).listUsers(requestParameters.offset, requestParameters.limit, requestParameters.isAdmin, requestParameters.sort, requestParameters.search, options).then((request) => request(this.axios, this.basePath));
     }
     /**
      *
@@ -3139,10 +3535,8 @@ export const ListUsersSortEnum = {
     EmailDesc: 'email-desc',
     NameAsc: 'name-asc',
     NameDesc: 'name-desc',
-    RoleAsc: 'role-asc',
-    RoleDesc: 'role-desc',
-    StatusAsc: 'status-asc',
-    StatusDesc: 'status-desc',
+    UsernameAsc: 'username-asc',
+    UsernameDesc: 'username-desc',
     UpdatedAtAsc: 'updatedAt-asc',
     UpdatedAtDesc: 'updatedAt-desc'
 };

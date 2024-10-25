@@ -2,7 +2,7 @@ import React from 'react'
 import * as r from 'runtypes'
 
 import { useFormState } from '../../utils/forms'
-import { Input } from '../../design-system/input/input'
+import { Input, Label } from '@stellariscloud/ui-toolkit'
 
 export interface FolderLocationFormValues {
   name: string
@@ -44,54 +44,71 @@ export const FolderLocationFormFields = ({
 
   return (
     <>
-      <Input
-        label="Name"
-        value={form.values.label}
-        onChange={(e: any) => form.setValue('label', e.target.value)}
-        error={form.state.fields.label.error}
-      />
-      <Input
-        label="Description"
-        value={form.values.description}
-        onChange={(e: any) => form.setValue('description', e.target.value)}
-      />
-      <Input
-        label="Access Key ID"
-        value={form.values.accessKeyId}
-        onChange={(e: any) => form.setValue('accessKeyId', e.target.value)}
-      />
-      <Input
-        label="Secret Access Key"
-        disabled={secretAccessKeyObfuscated}
-        value={
-          secretAccessKeyObfuscated
-            ? form.values.secretAccessKey ??
-              '_______________________________________'
-            : form.values.secretAccessKey
-        }
-        type={'password'}
-        onChange={(e: any) => form.setValue('secretAccessKey', e.target.value)}
-      />
-      <Input
-        label="Endpoint"
-        value={form.values.endpoint}
-        onChange={(e: any) => form.setValue('endpoint', e.target.value)}
-      />
-      <Input
-        label="Region"
-        value={form.values.region}
-        onChange={(e: any) => form.setValue('region', e.target.value)}
-      />
-      <Input
-        label="Bucket"
-        value={form.values.bucket}
-        onChange={(e: any) => form.setValue('bucket', e.target.value)}
-      />
-      <Input
-        label="Prefix"
-        value={form.values.prefix}
-        onChange={(e: any) => form.setValue('prefix', e.target.value)}
-      />
+      <div>
+        <Label>Name</Label>
+        <Input
+          value={form.values.label}
+          onChange={(e: any) => form.setValue('label', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Description</Label>
+        <Input
+          value={form.values.description}
+          onChange={(e: any) => form.setValue('description', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Access Key ID</Label>
+        <Input
+          value={form.values.accessKeyId}
+          onChange={(e: any) => form.setValue('accessKeyId', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Secret Access Key</Label>
+        <Input
+          disabled={secretAccessKeyObfuscated}
+          value={
+            secretAccessKeyObfuscated
+              ? form.values.secretAccessKey ??
+                '_______________________________________'
+              : form.values.secretAccessKey
+          }
+          type={'password'}
+          onChange={(e: any) =>
+            form.setValue('secretAccessKey', e.target.value)
+          }
+        />
+      </div>
+      <div>
+        <Label>Endpoint</Label>
+        <Input
+          value={form.values.endpoint}
+          onChange={(e: any) => form.setValue('endpoint', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Region</Label>
+        <Input
+          value={form.values.region}
+          onChange={(e: any) => form.setValue('region', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Bucket</Label>
+        <Input
+          value={form.values.bucket}
+          onChange={(e: any) => form.setValue('bucket', e.target.value)}
+        />
+      </div>
+      <div>
+        <Label>Prefix</Label>
+        <Input
+          value={form.values.prefix}
+          onChange={(e: any) => form.setValue('prefix', e.target.value)}
+        />
+      </div>
     </>
   )
 }

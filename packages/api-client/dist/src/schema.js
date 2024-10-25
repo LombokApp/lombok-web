@@ -255,13 +255,19 @@ export const schema = {
                                 "email-desc",
                                 "name-asc",
                                 "name-desc",
-                                "role-asc",
-                                "role-desc",
-                                "status-asc",
-                                "status-desc",
+                                "username-asc",
+                                "username-desc",
                                 "updatedAt-asc",
                                 "updatedAt-desc"
                             ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
                             "type": "string"
                         }
                     }
@@ -508,6 +514,30 @@ export const schema = {
                             "minimum": 0,
                             "exclusiveMinimum": true,
                             "type": "number"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "name-asc",
+                                "name-desc",
+                                "createdAt-asc",
+                                "createdAt-desc",
+                                "updatedAt-asc",
+                                "updatedAt-desc"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 ],
@@ -894,6 +924,26 @@ export const schema = {
                             "exclusiveMinimum": true,
                             "type": "number"
                         }
+                    },
+                    {
+                        "name": "sort",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "accessKeyId-asc",
+                                "accessKeyId-desc",
+                                "accessKeyHashId-asc",
+                                "accessKeyHashId-desc",
+                                "endpoint-asc",
+                                "endpoint-desc",
+                                "region-asc",
+                                "region-desc",
+                                "updatedAt-asc",
+                                "updatedAt-desc"
+                            ],
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -1051,6 +1101,26 @@ export const schema = {
                             "minimum": 0,
                             "exclusiveMinimum": true,
                             "type": "number"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "accessKeyId-asc",
+                                "accessKeyId-desc",
+                                "accessKeyHashId-asc",
+                                "accessKeyHashId-desc",
+                                "endpoint-asc",
+                                "endpoint-desc",
+                                "region-asc",
+                                "region-desc",
+                                "updatedAt-asc",
+                                "updatedAt-desc"
+                            ],
+                            "type": "string"
                         }
                     }
                 ],
@@ -1443,9 +1513,172 @@ export const schema = {
                 ]
             }
         },
-        "/api/v1/{folderId}/tasks/{taskId}": {
+        "/api/v1/server/tasks/{taskId}": {
             "get": {
                 "operationId": "getTask",
+                "parameters": [
+                    {
+                        "name": "taskId",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Get a task by id.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TaskGetResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "ServerTasks"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/server/tasks": {
+            "get": {
+                "operationId": "listTasks",
+                "parameters": [
+                    {
+                        "name": "objectKey",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "createdAt-asc",
+                                "createdAt-desc",
+                                "updatedAt-asc",
+                                "updatedAt-desc"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "includeWaiting",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "true"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "includeRunning",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "true"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "includeComplete",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "true"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "includeFailed",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "true"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "minimum": 0,
+                            "exclusiveMinimum": true,
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "folderId",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List tasks.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TaskListResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "ServerTasks"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/folders/{folderId}/tasks/{taskId}": {
+            "get": {
+                "operationId": "getFolderTask",
                 "parameters": [
                     {
                         "name": "folderId",
@@ -1486,9 +1719,9 @@ export const schema = {
                 ]
             }
         },
-        "/api/v1/{folderId}/tasks": {
+        "/api/v1/folders/{folderId}/tasks": {
             "get": {
-                "operationId": "listTasks",
+                "operationId": "listFolderTasks",
                 "parameters": [
                     {
                         "name": "objectKey",
@@ -1509,6 +1742,14 @@ export const schema = {
                                 "updatedAt-asc",
                                 "updatedAt-desc"
                             ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
                             "type": "string"
                         }
                     },
@@ -1644,6 +1885,100 @@ export const schema = {
             "get": {
                 "operationId": "listEvents",
                 "parameters": [
+                    {
+                        "name": "sort",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "createdAt-asc",
+                                "createdAt-desc",
+                                "updatedAt-asc",
+                                "updatedAt-desc"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "folderId",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "objectKey",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "includeTrace",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "true"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "includeDebug",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "true"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "includeInfo",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "true"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "includeWarning",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "true"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "includeError",
+                        "required": false,
+                        "in": "query",
+                        "schema": {
+                            "enum": [
+                                "true"
+                            ],
+                            "type": "string"
+                        }
+                    },
                     {
                         "name": "offset",
                         "required": false,
@@ -1833,7 +2168,8 @@ export const schema = {
                         "type": "object",
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "name": {
                                 "type": "string"
@@ -1910,7 +2246,8 @@ export const schema = {
                         "type": "object",
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "name": {
                                 "type": "string"
@@ -1972,7 +2309,8 @@ export const schema = {
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "uuid"
                     },
                     "name": {
                         "type": "string"
@@ -2054,7 +2392,8 @@ export const schema = {
                         "type": "object",
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "name": {
                                 "type": "string"
@@ -2150,7 +2489,8 @@ export const schema = {
                             "type": "object",
                             "properties": {
                                 "id": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "format": "uuid"
                                 },
                                 "name": {
                                     "type": "string"
@@ -2203,10 +2543,12 @@ export const schema = {
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "uuid"
                     },
                     "ownerId": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "uuid"
                     },
                     "name": {
                         "type": "string"
@@ -2215,10 +2557,12 @@ export const schema = {
                         "type": "object",
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "userId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "providerType": {
                                 "type": "string",
@@ -2264,10 +2608,12 @@ export const schema = {
                         "type": "object",
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "userId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "providerType": {
                                 "type": "string",
@@ -2308,6 +2654,14 @@ export const schema = {
                             "accessKeyId",
                             "accessKeyHashId"
                         ]
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
                     }
                 },
                 "required": [
@@ -2315,20 +2669,24 @@ export const schema = {
                     "ownerId",
                     "name",
                     "metadataLocation",
-                    "contentLocation"
+                    "contentLocation",
+                    "createdAt",
+                    "updatedAt"
                 ]
             },
             "FolderObjectDTO": {
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "uuid"
                     },
                     "objectKey": {
                         "type": "string"
                     },
                     "folderId": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "uuid"
                     },
                     "hash": {
                         "type": "string"
@@ -2507,10 +2865,12 @@ export const schema = {
                 "type": "object",
                 "properties": {
                     "storageProvisionId": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "uuid"
                     },
                     "userLocationId": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "uuid"
                     },
                     "userLocationBucketOverride": {
                         "type": "string"
@@ -2545,10 +2905,12 @@ export const schema = {
                         "type": "object",
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "ownerId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "name": {
                                 "type": "string"
@@ -2557,10 +2919,12 @@ export const schema = {
                                 "type": "object",
                                 "properties": {
                                     "id": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "uuid"
                                     },
                                     "userId": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "uuid"
                                     },
                                     "providerType": {
                                         "type": "string",
@@ -2606,10 +2970,12 @@ export const schema = {
                                 "type": "object",
                                 "properties": {
                                     "id": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "uuid"
                                     },
                                     "userId": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "uuid"
                                     },
                                     "providerType": {
                                         "type": "string",
@@ -2650,6 +3016,14 @@ export const schema = {
                                     "accessKeyId",
                                     "accessKeyHashId"
                                 ]
+                            },
+                            "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "updatedAt": {
+                                "type": "string",
+                                "format": "date-time"
                             }
                         },
                         "required": [
@@ -2657,7 +3031,9 @@ export const schema = {
                             "ownerId",
                             "name",
                             "metadataLocation",
-                            "contentLocation"
+                            "contentLocation",
+                            "createdAt",
+                            "updatedAt"
                         ]
                     },
                     "permissions": {
@@ -2728,10 +3104,12 @@ export const schema = {
                                     "type": "object",
                                     "properties": {
                                         "id": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "format": "uuid"
                                         },
                                         "ownerId": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "format": "uuid"
                                         },
                                         "name": {
                                             "type": "string"
@@ -2740,10 +3118,12 @@ export const schema = {
                                             "type": "object",
                                             "properties": {
                                                 "id": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "format": "uuid"
                                                 },
                                                 "userId": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "format": "uuid"
                                                 },
                                                 "providerType": {
                                                     "type": "string",
@@ -2789,10 +3169,12 @@ export const schema = {
                                             "type": "object",
                                             "properties": {
                                                 "id": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "format": "uuid"
                                                 },
                                                 "userId": {
-                                                    "type": "string"
+                                                    "type": "string",
+                                                    "format": "uuid"
                                                 },
                                                 "providerType": {
                                                     "type": "string",
@@ -2833,6 +3215,14 @@ export const schema = {
                                                 "accessKeyId",
                                                 "accessKeyHashId"
                                             ]
+                                        },
+                                        "createdAt": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "updatedAt": {
+                                            "type": "string",
+                                            "format": "date-time"
                                         }
                                     },
                                     "required": [
@@ -2840,7 +3230,9 @@ export const schema = {
                                         "ownerId",
                                         "name",
                                         "metadataLocation",
-                                        "contentLocation"
+                                        "contentLocation",
+                                        "createdAt",
+                                        "updatedAt"
                                     ]
                                 }
                             },
@@ -2866,10 +3258,12 @@ export const schema = {
                         "type": "object",
                         "properties": {
                             "storageProvisionId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "userLocationId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "userLocationBucketOverride": {
                                 "type": "string"
@@ -2901,10 +3295,12 @@ export const schema = {
                         "type": "object",
                         "properties": {
                             "storageProvisionId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "userLocationId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "userLocationBucketOverride": {
                                 "type": "string"
@@ -2946,10 +3342,12 @@ export const schema = {
                         "type": "object",
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "ownerId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "name": {
                                 "type": "string"
@@ -2958,10 +3356,12 @@ export const schema = {
                                 "type": "object",
                                 "properties": {
                                     "id": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "uuid"
                                     },
                                     "userId": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "uuid"
                                     },
                                     "providerType": {
                                         "type": "string",
@@ -3007,10 +3407,12 @@ export const schema = {
                                 "type": "object",
                                 "properties": {
                                     "id": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "uuid"
                                     },
                                     "userId": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "uuid"
                                     },
                                     "providerType": {
                                         "type": "string",
@@ -3051,6 +3453,14 @@ export const schema = {
                                     "accessKeyId",
                                     "accessKeyHashId"
                                 ]
+                            },
+                            "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "updatedAt": {
+                                "type": "string",
+                                "format": "date-time"
                             }
                         },
                         "required": [
@@ -3058,7 +3468,9 @@ export const schema = {
                             "ownerId",
                             "name",
                             "metadataLocation",
-                            "contentLocation"
+                            "contentLocation",
+                            "createdAt",
+                            "updatedAt"
                         ]
                     }
                 },
@@ -3086,13 +3498,15 @@ export const schema = {
                             "type": "object",
                             "properties": {
                                 "id": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "format": "uuid"
                                 },
                                 "objectKey": {
                                     "type": "string"
                                 },
                                 "folderId": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "format": "uuid"
                                 },
                                 "hash": {
                                     "type": "string"
@@ -3217,13 +3631,15 @@ export const schema = {
                         "type": "object",
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "objectKey": {
                                 "type": "string"
                             },
                             "folderId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "hash": {
                                 "type": "string"
@@ -3608,6 +4024,10 @@ export const schema = {
                 "type": "object",
                 "properties": {
                     "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "accessKeyHashId": {
                         "type": "string"
                     },
                     "endpoint": {
@@ -3648,6 +4068,7 @@ export const schema = {
                 },
                 "required": [
                     "id",
+                    "accessKeyHashId",
                     "endpoint",
                     "bucket",
                     "region",
@@ -3666,15 +4087,11 @@ export const schema = {
                             "type": "object",
                             "properties": {
                                 "id": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "accessKeyHashId": {
                                     "type": "string"
-                                },
-                                "label": {
-                                    "type": "string",
-                                    "maxLength": 32
-                                },
-                                "description": {
-                                    "type": "string",
-                                    "maxLength": 128
                                 },
                                 "endpoint": {
                                     "type": "string"
@@ -3700,18 +4117,28 @@ export const schema = {
                                             "METADATA",
                                             "BACKUP"
                                         ]
-                                    }
+                                    },
+                                    "minItems": 1
+                                },
+                                "label": {
+                                    "type": "string",
+                                    "maxLength": 32
+                                },
+                                "description": {
+                                    "type": "string",
+                                    "maxLength": 128
                                 }
                             },
                             "required": [
                                 "id",
-                                "label",
-                                "description",
+                                "accessKeyHashId",
                                 "endpoint",
                                 "bucket",
                                 "region",
                                 "accessKeyId",
-                                "provisionTypes"
+                                "provisionTypes",
+                                "label",
+                                "description"
                             ]
                         }
                     }
@@ -3727,6 +4154,10 @@ export const schema = {
                         "type": "object",
                         "properties": {
                             "id": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "accessKeyHashId": {
                                 "type": "string"
                             },
                             "endpoint": {
@@ -3767,6 +4198,7 @@ export const schema = {
                         },
                         "required": [
                             "id",
+                            "accessKeyHashId",
                             "endpoint",
                             "bucket",
                             "region",
@@ -3834,104 +4266,6 @@ export const schema = {
                     "provisionTypes"
                 ]
             },
-            "TaskDTO": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string"
-                    },
-                    "taskKey": {
-                        "type": "string"
-                    },
-                    "ownerIdentifier": {
-                        "type": "string"
-                    },
-                    "triggeringEventId": {
-                        "type": "string"
-                    },
-                    "subjectFolderId": {
-                        "type": "string"
-                    },
-                    "subjectObjectKey": {
-                        "type": "string"
-                    },
-                    "handlerId": {
-                        "type": "string"
-                    },
-                    "inputData": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "oneOf": [
-                                {
-                                    "type": "string"
-                                },
-                                {
-                                    "type": "number"
-                                }
-                            ]
-                        }
-                    },
-                    "errorAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "errorCode": {
-                        "type": "string"
-                    },
-                    "errorMessage": {
-                        "type": "string"
-                    },
-                    "taskDescription": {
-                        "type": "object",
-                        "properties": {
-                            "textKey": {
-                                "type": "string"
-                            },
-                            "variables": {
-                                "type": "object",
-                                "additionalProperties": {
-                                    "type": "string"
-                                }
-                            }
-                        },
-                        "required": [
-                            "textKey",
-                            "variables"
-                        ]
-                    },
-                    "updates": {
-                        "type": "array",
-                        "items": {}
-                    },
-                    "startedAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "completedAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "createdAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "updatedAt": {
-                        "type": "string",
-                        "format": "date-time"
-                    }
-                },
-                "required": [
-                    "id",
-                    "taskKey",
-                    "ownerIdentifier",
-                    "triggeringEventId",
-                    "inputData",
-                    "taskDescription",
-                    "updates",
-                    "createdAt",
-                    "updatedAt"
-                ]
-            },
             "TaskGetResponse": {
                 "type": "object",
                 "properties": {
@@ -3939,7 +4273,8 @@ export const schema = {
                         "type": "object",
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "taskKey": {
                                 "type": "string"
@@ -3948,10 +4283,12 @@ export const schema = {
                                 "type": "string"
                             },
                             "triggeringEventId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "subjectFolderId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "subjectObjectKey": {
                                 "type": "string"
@@ -4058,7 +4395,8 @@ export const schema = {
                             "type": "object",
                             "properties": {
                                 "id": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "format": "uuid"
                                 },
                                 "taskKey": {
                                     "type": "string"
@@ -4067,10 +4405,12 @@ export const schema = {
                                     "type": "string"
                                 },
                                 "triggeringEventId": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "format": "uuid"
                                 },
                                 "subjectFolderId": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "format": "uuid"
                                 },
                                 "subjectObjectKey": {
                                     "type": "string"
@@ -4159,14 +4499,126 @@ export const schema = {
                     "result"
                 ]
             },
+            "TaskDTO": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "taskKey": {
+                        "type": "string"
+                    },
+                    "ownerIdentifier": {
+                        "type": "string"
+                    },
+                    "triggeringEventId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "subjectFolderId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "subjectObjectKey": {
+                        "type": "string"
+                    },
+                    "handlerId": {
+                        "type": "string"
+                    },
+                    "inputData": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "oneOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "number"
+                                }
+                            ]
+                        }
+                    },
+                    "errorAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "errorCode": {
+                        "type": "string"
+                    },
+                    "errorMessage": {
+                        "type": "string"
+                    },
+                    "taskDescription": {
+                        "type": "object",
+                        "properties": {
+                            "textKey": {
+                                "type": "string"
+                            },
+                            "variables": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "required": [
+                            "textKey",
+                            "variables"
+                        ]
+                    },
+                    "updates": {
+                        "type": "array",
+                        "items": {}
+                    },
+                    "startedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "completedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "taskKey",
+                    "ownerIdentifier",
+                    "triggeringEventId",
+                    "inputData",
+                    "taskDescription",
+                    "updates",
+                    "createdAt",
+                    "updatedAt"
+                ]
+            },
             "EventDTO": {
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "uuid"
                     },
                     "eventKey": {
                         "type": "string"
+                    },
+                    "level": {
+                        "type": "string",
+                        "enum": [
+                            "TRACE",
+                            "DEBUG",
+                            "INFO",
+                            "WARN",
+                            "ERROR"
+                        ]
                     },
                     "emitterIdentifier": {
                         "type": "string"
@@ -4175,7 +4627,8 @@ export const schema = {
                         "type": "object",
                         "properties": {
                             "folderId": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "objectKey": {
                                 "type": "string"
@@ -4194,6 +4647,7 @@ export const schema = {
                 "required": [
                     "id",
                     "eventKey",
+                    "level",
                     "emitterIdentifier",
                     "createdAt"
                 ]
@@ -4205,10 +4659,21 @@ export const schema = {
                         "type": "object",
                         "properties": {
                             "id": {
-                                "type": "string"
+                                "type": "string",
+                                "format": "uuid"
                             },
                             "eventKey": {
                                 "type": "string"
+                            },
+                            "level": {
+                                "type": "string",
+                                "enum": [
+                                    "TRACE",
+                                    "DEBUG",
+                                    "INFO",
+                                    "WARN",
+                                    "ERROR"
+                                ]
                             },
                             "emitterIdentifier": {
                                 "type": "string"
@@ -4217,7 +4682,8 @@ export const schema = {
                                 "type": "object",
                                 "properties": {
                                     "folderId": {
-                                        "type": "string"
+                                        "type": "string",
+                                        "format": "uuid"
                                     },
                                     "objectKey": {
                                         "type": "string"
@@ -4236,6 +4702,7 @@ export const schema = {
                         "required": [
                             "id",
                             "eventKey",
+                            "level",
                             "emitterIdentifier",
                             "createdAt"
                         ]
@@ -4265,10 +4732,21 @@ export const schema = {
                             "type": "object",
                             "properties": {
                                 "id": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "format": "uuid"
                                 },
                                 "eventKey": {
                                     "type": "string"
+                                },
+                                "level": {
+                                    "type": "string",
+                                    "enum": [
+                                        "TRACE",
+                                        "DEBUG",
+                                        "INFO",
+                                        "WARN",
+                                        "ERROR"
+                                    ]
                                 },
                                 "emitterIdentifier": {
                                     "type": "string"
@@ -4277,7 +4755,8 @@ export const schema = {
                                     "type": "object",
                                     "properties": {
                                         "folderId": {
-                                            "type": "string"
+                                            "type": "string",
+                                            "format": "uuid"
                                         },
                                         "objectKey": {
                                             "type": "string"
@@ -4296,6 +4775,7 @@ export const schema = {
                             "required": [
                                 "id",
                                 "eventKey",
+                                "level",
                                 "emitterIdentifier",
                                 "createdAt"
                             ]

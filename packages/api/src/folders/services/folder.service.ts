@@ -25,7 +25,7 @@ import {
   mediaTypeFromExtension,
   objectIdentifierToObjectKey,
 } from '@stellariscloud/utils'
-import { and, eq, like, sql } from 'drizzle-orm'
+import { and, eq, ilike, SQL, sql } from 'drizzle-orm'
 import mime from 'mime'
 import * as r from 'runtypes'
 import { AppService } from 'src/app/services/app.service'
@@ -47,7 +47,6 @@ import type { User } from 'src/users/entities/user.entity'
 import { UserService } from 'src/users/services/users.service'
 import { v4 as uuidV4 } from 'uuid'
 
-import type { FolderObjectDTO } from '../dto/folder-object.dto'
 import type { Folder } from '../entities/folder.entity'
 import { foldersTable } from '../entities/folder.entity'
 import type { FolderObject } from '../entities/folder-object.entity'
@@ -57,6 +56,8 @@ import { FolderMetadataWriteUnauthorisedException } from '../exceptions/folder-m
 import { FolderNotFoundException } from '../exceptions/folder-not-found.exception'
 import { FolderObjectNotFoundException } from '../exceptions/folder-object-not-found.exception'
 import { FolderPermissionUnauthorizedException } from '../exceptions/folder-permission-unauthorized.exception'
+import { EventLevel } from 'src/event/entities/event.entity'
+import { FoldersListQueryParamsDTO } from '../dto/folders-list-query-params.dto'
 
 export interface OutputUploadUrlsResponse {
   folderId: string
@@ -374,16 +375,26 @@ export class FolderService implements OnModuleInit {
     {
       offset,
       limit,
-    }: {
-      offset?: number
-      limit?: number
-    },
+      search,
+      sort = FolderSort.CreatedAtDesc,
+    }: FoldersListQueryParamsDTO,
   ) {
+    const conditions: (SQL<unknown> | undefined)[] = [
+      eq(foldersTable.ownerId, actor.id),
+    ]
+
+    if (search) {
+      conditions.push(ilike(foldersTable.name, `%${search}%`))
+    }
+
+    const where = and(...conditions)
+
     const folders: Folder[] =
       await this.ormService.db.query.foldersTable.findMany({
-        where: eq(foldersTable.ownerId, actor.id),
+        where,
         offset: offset ?? 0,
         limit: limit ?? 25,
+        orderBy: parseSort(foldersTable, sort),
         with: {
           contentLocation: true,
           metadataLocation: true,
@@ -392,6 +403,7 @@ export class FolderService implements OnModuleInit {
     const [foldersCount] = await this.ormService.db
       .select({ count: sql<string | null>`count(*)` })
       .from(foldersTable)
+      .where(where)
 
     return {
       result: folders.map((folder) => ({ folder, permissions: [] })),
@@ -566,7 +578,7 @@ export class FolderService implements OnModuleInit {
       .where(
         and(
           ...[eq(folderObjectsTable.folderId, folder.id)].concat(
-            search ? [like(folderObjectsTable.objectKey, `%${search}%`)] : [],
+            search ? [ilike(folderObjectsTable.objectKey, `%${search}%`)] : [],
           ),
         ),
       )
@@ -705,6 +717,9 @@ export class FolderService implements OnModuleInit {
         const objectKey = folder.contentLocation.prefix.length
           ? obj.key.slice(folder.contentLocation.prefix.length + 1)
           : obj.key
+        if (objectKey.startsWith('.stellaris_')) {
+          continue
+        }
         if (obj.size > 0) {
           _contentCount++
           // console.log('Trying to update key metadata [%s]:', objectKey, obj)
@@ -798,6 +813,7 @@ export class FolderService implements OnModuleInit {
       emitterIdentifier: `APP:${appIdentifier.toUpperCase()}`,
       locationContext: folderId ? { folderId, objectKey } : undefined,
       userId: actor.id,
+      level: EventLevel.INFO,
       data: { inputParams },
       eventKey: `TRIGGER_TASK:${appIdentifier.toUpperCase()}:${taskKey}`,
     })
@@ -868,6 +884,7 @@ export class FolderService implements OnModuleInit {
     await this.eventService.emitEvent({
       emitterIdentifier: 'CORE',
       eventKey: previousRecord ? 'CORE:OBJECT_UPDATED' : 'CORE:OBJECT_ADDED',
+      level: EventLevel.INFO,
       locationContext: {
         folderId: record.folderId,
         objectKey: record.objectKey,

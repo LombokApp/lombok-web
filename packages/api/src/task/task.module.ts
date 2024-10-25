@@ -6,12 +6,13 @@ import { TasksController } from './controllers/tasks.controller'
 import { CoreTaskService } from './services/core-task.service'
 import { TaskService } from './services/task.service'
 import { SocketModule } from 'src/socket/socket.module'
+import { ServerTasksController } from './controllers/server-tasks.controller'
 
 @Global()
 @Module({
   imports: [forwardRef(() => SocketModule), forwardRef(() => FoldersModule)],
   providers: [CoreTaskService, TaskService],
-  controllers: [TasksController],
+  controllers: [ServerTasksController, TasksController],
   exports: [CoreTaskService, TaskService],
 })
 export class TaskModule implements OnModuleInit {

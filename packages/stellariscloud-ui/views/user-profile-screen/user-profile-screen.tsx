@@ -5,9 +5,8 @@ import React from 'react'
 
 import type { ProfileUserFormValues } from '../../components/profile-user-form/profile-user-form'
 import { ProfileUserForm } from '../../components/profile-user-form/profile-user-form'
-import { Button } from '../../design-system/button/button'
-import { PageHeading } from '../../design-system/page-heading/page-heading'
 import { apiClient } from '../../services/api'
+import { Button, TypographyH2 } from '@stellariscloud/ui-toolkit'
 
 export function UserProfileScreen() {
   const [user, setUser] = React.useState<UserDTO>()
@@ -36,32 +35,24 @@ export function UserProfileScreen() {
   }, [userFormState])
 
   return (
-    <div
-      className={clsx(
-        'items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
-      )}
-    >
+    <div className={clsx('items-center flex flex-1 flex-col h-full')}>
       <div className="container flex-1 flex flex-col">
-        <PageHeading
-          titleIconBg={'bg-amber-100'}
-          avatarKey={user?.id ?? undefined}
-          title={
-            user
+        <div className="p-4">
+          <TypographyH2>
+            {user
               ? [
                   `Server User: ${user.username ? user.username : user.email ? user.email : user.id}`,
                 ]
-              : ['Server User:']
-          }
-        />
+              : ['Server User:']}
+          </TypographyH2>
+        </div>
         <div className="inline-block min-w-full py-2 align-middle">
           <ProfileUserForm
             onChange={(changedUser) => setUserFormState(changedUser.value)}
             value={userFormState}
           />
           <div className="py-4">
-            <Button primary onClick={handleSubmitClick}>
-              Update
-            </Button>
+            <Button onClick={handleSubmitClick}>Update</Button>
           </div>
         </div>
       </div>

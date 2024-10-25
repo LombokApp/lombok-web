@@ -1,22 +1,21 @@
-import {
-  ChevronRightIcon,
-  ComputerDesktopIcon,
-} from '@heroicons/react/24/outline'
 import React from 'react'
 
-import { EmptyState } from '../../../../design-system/empty-state/empty-state'
 import { apiClient } from '../../../../services/api'
-import clsx from 'clsx'
-import { StackedList } from '../../../../design-system/stacked-list/stacked-list'
-import { Avatar } from '../../../../design-system/avatar'
-import Link from 'next/link'
-import { Button } from '@stellariscloud/ui-toolkit'
-import { AppData } from '@stellariscloud/types'
+import { DataTable, cn } from '@stellariscloud/ui-toolkit'
 import { AppDTO } from '@stellariscloud/api-client'
+import { serverAppsTableColumns } from './server-apps-table-columns'
+import {
+  ColumnFilter,
+  ColumnFiltersState,
+  Updater,
+} from '@tanstack/react-table'
 
 export function ServerAppsScreen() {
   const [coreAppResetKey, _setCoreAppResetKey] = React.useState('__')
   const [installedApps, setInstalledApps] = React.useState<AppDTO[]>()
+  const [filters, setFilters] = React.useState<
+    { id: string; value: unknown }[]
+  >([])
 
   React.useEffect(() => {
     void apiClient.appsApi.listApps().then((apps) => {
@@ -24,54 +23,35 @@ export function ServerAppsScreen() {
     })
   }, [coreAppResetKey])
 
-  return (
-    <div
-      className={clsx(
-        'items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
-      )}
-    >
-      <div className="container flex-1 flex flex-col">
-        <dl className="p-8">
-          <StackedList
-            items={
-              installedApps?.map((app) => (
-                <Link
-                  href={`/server/apps/${app.identifier}`}
-                  className="w-full flex-1 p-4 py-2"
-                >
-                  <div className="flex justify-between flex-1 items-center gap-x-4">
-                    <Avatar
-                      uniqueKey={app.identifier}
-                      size="sm"
-                      className="bg-indigo-100"
-                    />
-                    <div className="flex flex-col truncate">
-                      <span className="uppercase">{app.identifier}</span>
+  const handleColumnFiltersChange = React.useCallback(
+    (updater: Updater<ColumnFiltersState>) => {
+      setFilters((old) =>
+        updater instanceof Function ? updater(old) : updater,
+      )
+    },
+    [],
+  )
 
-                      <div className="mt-1 flex items-center gap-x-2 text-xs leading-5 truncate">
-                        <p className="truncate opacity-80 dark:opacity-50">
-                          Public Key {app.config.publicKey}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="self-end">
-                      <Button variant={'link'}>
-                        <ChevronRightIcon className="w-5 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                </Link>
-              )) ?? []
-            }
-          />
-          {installedApps?.length === 0 && (
-            <EmptyState
-              icon={ComputerDesktopIcon}
-              text="No apps are installed"
-            />
-          )}
-        </dl>
-      </div>
+  const searchFilterValue = filters.find((f) => f.id === 'identifier')
+    ?.value as string | undefined
+
+  return (
+    <div className={cn('items-center flex flex-1 flex-col h-full')}>
+      <DataTable
+        enableSearch={true}
+        searchColumn="identifier"
+        data={
+          installedApps
+            ? searchFilterValue
+              ? installedApps.filter((app) =>
+                  app.identifier.includes(searchFilterValue),
+                )
+              : installedApps
+            : []
+        }
+        onColumnFiltersChange={handleColumnFiltersChange}
+        columns={serverAppsTableColumns}
+      />
     </div>
   )
 }

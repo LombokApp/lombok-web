@@ -6,9 +6,9 @@ import {
 import React from 'react'
 import * as r from 'runtypes'
 
-import { Input } from '../../design-system/input/input'
 import { useFormState } from '../../utils/forms'
 import { UserPermissions } from './user-permissions'
+import { Input, Label } from '@stellariscloud/ui-toolkit'
 
 export interface UserInput {
   name?: string
@@ -70,36 +70,32 @@ export const ServerUserForm = ({
   return (
     <div className="flex flex-col gap-4">
       <div>
+        <Label>Name</Label>
         <Input
-          label="Name"
           value={form.values.name}
           onChange={(e) => form.setValue('name', e.target.value)}
-          error={form.state.fields.name.error}
         />
       </div>
       <div>
+        <Label>Username</Label>
         <Input
-          label="Username"
           value={form.values.username}
           onChange={(e) => form.setValue('username', e.target.value)}
-          error={form.state.fields.username.error}
         />
       </div>
       <div>
+        <Label>Email</Label>
         <Input
-          label="Email"
           value={form.values.email}
           onChange={(e) => form.setValue('email', e.target.value)}
-          error={form.state.fields.email.error}
         />
       </div>
       <div>
+        <Label>{value.id ? 'Reset password' : 'Password'}</Label>
         <Input
-          label={value.id ? 'Reset password' : 'Password'}
           type="password"
           value={form.values.password}
           onChange={(e) => form.setValue('password', e.target.value)}
-          error={form.state.fields.password.error}
         />
       </div>
       <div>

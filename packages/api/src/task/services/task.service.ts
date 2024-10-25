@@ -2,9 +2,20 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
   forwardRef,
 } from '@nestjs/common'
-import { SQL, and, count, eq, isNotNull, isNull, or, sql } from 'drizzle-orm'
+import {
+  SQL,
+  and,
+  count,
+  eq,
+  ilike,
+  isNotNull,
+  isNull,
+  or,
+  sql,
+} from 'drizzle-orm'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import type { User } from 'src/users/entities/user.entity'
@@ -14,6 +25,7 @@ import { tasksTable } from '../entities/task.entity'
 import { AppSocketService } from 'src/socket/app/app-socket.service'
 import { TasksListQueryParamsDTO } from '../dto/tasks-list-query-params.dto'
 import { parseSort } from 'src/core/utils/sort.util'
+import { FolderTasksListQueryParamsDTO } from '../dto/folder-tasks-list-query-params.dto'
 
 export enum TaskSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -34,7 +46,7 @@ export class TaskService {
     private readonly folderService: FolderService,
   ) {}
 
-  async getTaskAsUser(
+  async getFolderTaskAsUser(
     actor: User,
     { folderId, taskId }: { folderId: string; taskId: string },
   ): Promise<Task> {
@@ -55,24 +67,69 @@ export class TaskService {
     return task
   }
 
-  async listTasksAsUser(
+  async listFolderTasksAsUser(
     actor: User,
     { folderId }: { folderId: string },
-    {
-      offset,
-      limit = 25,
-      sort = TaskSort.CreatedAtAsc,
-      objectKey,
-      includeComplete,
-      includeFailed,
-      includeRunning,
-      includeWaiting,
-    }: TasksListQueryParamsDTO,
+    queryParams: FolderTasksListQueryParamsDTO,
   ) {
+    // ACL check
     const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
+    return this.listTasks({ ...queryParams, folderId })
+  }
 
-    const folderEqCondition = eq(tasksTable.subjectFolderId, folder.id)
-    const conditions: (SQL<unknown> | undefined)[] = [folderEqCondition]
+  async listTasksAsAdmin(actor: User, queryParams: TasksListQueryParamsDTO) {
+    // ACL check
+    if (!actor?.isAdmin) {
+      throw new UnauthorizedException()
+    }
+    return this.listTasks(queryParams)
+  }
+
+  async getTaskAsAdmin(actor: User, taskId: string): Promise<Task> {
+    // ACL check
+    if (!actor?.isAdmin) {
+      throw new UnauthorizedException()
+    }
+
+    const task = await this.ormService.db.query.tasksTable.findFirst({
+      where: eq(tasksTable.id, taskId),
+    })
+
+    if (!task) {
+      // no task matching the given input
+      throw new NotFoundException()
+    }
+
+    return task
+  }
+
+  async listTasks({
+    offset,
+    limit = 25,
+    search,
+    sort = TaskSort.CreatedAtAsc,
+    objectKey,
+    includeComplete,
+    includeFailed,
+    includeRunning,
+    includeWaiting,
+    folderId,
+  }: TasksListQueryParamsDTO) {
+    const conditions: (SQL<unknown> | undefined)[] = []
+    if (folderId) {
+      conditions.push(eq(tasksTable.subjectFolderId, folderId))
+    }
+
+    if (search) {
+      conditions.push(
+        or(
+          ilike(tasksTable.taskKey, `%${search}%`),
+          ilike(tasksTable.errorMessage, `%${search}%`),
+          ilike(tasksTable.errorCode, `%${search}%`),
+        ),
+      )
+    }
+
     const statusFilters = ([] as (SQL<unknown> | undefined)[])
       .concat(includeComplete ? [isNotNull(tasksTable.completedAt)] : [])
       .concat(includeFailed ? [isNotNull(tasksTable.errorAt)] : [])
@@ -97,7 +154,7 @@ export class TaskService {
     }
 
     const tasks = await this.ormService.db.query.tasksTable.findMany({
-      where: and(...conditions),
+      ...(conditions.length ? { where: and(...conditions) } : {}),
       offset: Math.max(0, offset ?? 0),
       limit: Math.min(100, limit ?? 25),
       orderBy: parseSort(tasksTable, sort),
@@ -108,7 +165,7 @@ export class TaskService {
         count: count(),
       })
       .from(tasksTable)
-      .where(and(...conditions))
+      .where(conditions.length ? and(...conditions) : undefined)
 
     return {
       result: tasks,

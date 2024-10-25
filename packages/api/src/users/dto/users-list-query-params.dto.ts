@@ -15,6 +15,7 @@ export const usersListQueryParamsSchema = z.object({
     .optional(),
   isAdmin: z.preprocess((a) => a === 'true', z.boolean().optional()),
   sort: z.nativeEnum(UserSort).optional(),
+  search: z.string().optional(),
 })
 
 export class UsersListQueryParamsDTO extends createZodDto(

@@ -16,7 +16,7 @@ export function InstalledAppDataPanel({
   const [activeTab, setActiveTab] = React.useState<AppsTab>('config')
   const _connectedAppInstances = Object.keys(connectedAppInstances).map(
     (workerName) => ({
-      id: connectedAppInstances[workerName]?.id ?? '',
+      id: connectedAppInstances[workerName]?.socketClientId ?? '',
       name: connectedAppInstances[workerName]?.name ?? '',
       ip: connectedAppInstances[workerName]?.ip ?? '',
     }),

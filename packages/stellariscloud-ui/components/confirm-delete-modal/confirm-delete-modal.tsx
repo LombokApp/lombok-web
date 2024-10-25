@@ -1,10 +1,10 @@
 import type { FolderObjectDTO } from '@stellariscloud/api-client'
-import clsx from 'clsx'
 import React from 'react'
 
-import { Button } from '../../design-system/button/button'
+import { Button } from '@stellariscloud/ui-toolkit'
 import { Modal } from '../../design-system/modal/modal'
-import { Heading } from '../../design-system/typography'
+import { TypographyH3 } from '@/components'
+import { cn } from '@stellariscloud/ui-toolkit'
 
 export const ConfirmDeleteModal = ({
   onConfirm,
@@ -18,20 +18,20 @@ export const ConfirmDeleteModal = ({
   return (
     <Modal title="Delete Object" onClose={onCancel}>
       <div
-        className={clsx(
+        className={cn(
           'flex gap-4 justify-between rounded-md p-4 bg-secondary hover:bg-secondary-focus text-white min-w-[24rem] min-h-[14rem]',
         )}
       >
         <div className="flex flex-col gap-4 p-6">
-          <Heading level={6}>This will permanently delete the object</Heading>
+          <TypographyH3>This will permanently delete the object</TypographyH3>
           <div>
             <em>{folderObject.objectKey}</em>
           </div>
           <div className="flex gap-4">
-            <Button size="lg" primary preventDefaultOnClick onClick={onConfirm}>
+            <Button size="lg" onClick={onConfirm}>
               Delete
             </Button>
-            <Button size="lg" preventDefaultOnClick onClick={onCancel}>
+            <Button size="lg" variant={'secondary'} onClick={onCancel}>
               Cancel
             </Button>
           </div>

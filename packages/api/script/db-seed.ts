@@ -160,22 +160,17 @@ async function main(): Promise<void> {
     region: process.env.DEV_S3_REGION ?? '',
     prefix: process.env.DEV_S3_PREFIX,
     provisionTypes: ['CONTENT', 'METADATA'],
+    accessKeyHashId: buildAccessKeyHashId({
+      accessKeyId: S3_CREDENTIALS.accessKeyId,
+      secretAccessKey: S3_CREDENTIALS.secretAccessKey,
+      region: process.env.DEV_S3_REGION ?? '',
+      endpoint: process.env.DEV_S3_ENDPOINT ?? '',
+    }),
   }
-  const secondStorageProvision: StorageProvisionDTO = {
-    ...S3_CREDENTIALS,
-    id: uuidV4(),
-    bucket: process.env.DEV_S3_BUCKET_NAME ?? '',
-    description:
-      "An second special dev only S3 location. Don't store anything sensitive here.",
-    label: process.env.DEV_S3_LABEL ?? '',
-    endpoint: process.env.DEV_S3_ENDPOINT ?? '',
-    region: process.env.DEV_S3_REGION ?? '',
-    prefix: process.env.DEV_S3_PREFIX,
-    provisionTypes: ['CONTENT', 'METADATA'],
-  }
+
   await db.insert(serverSettingsTable).values({
     key: STORAGE_PROVISIONS_KEY.key,
-    value: [storageProvision, secondStorageProvision],
+    value: [storageProvision],
     createdAt: new Date('2023-11-01 22:49:00.93'),
     updatedAt: new Date('2023-11-01 22:49:00.93'),
   })

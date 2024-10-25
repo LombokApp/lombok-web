@@ -77,7 +77,7 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
       <main
         className={cn(
           'flex-1 min-h-[calc(100vh_-_56px)] bg-background transition-[margin-left] ease-in-out duration-300',
-          !settings.disabled && (!getOpenState() ? 'lg:ml-[70px]' : 'lg:ml-72'),
+          !settings.disabled && (!getOpenState() ? 'lg:ml-[70px]' : 'lg:ml-64'),
         )}
       >
         <Component {...pageProps} />

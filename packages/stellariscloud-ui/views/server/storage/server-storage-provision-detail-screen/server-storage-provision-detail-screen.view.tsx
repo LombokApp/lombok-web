@@ -2,10 +2,10 @@ import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import { PageHeading } from '../../../../design-system/page-heading/page-heading'
 import { apiClient } from '../../../../services/api'
 import { StorageProvisionDTO } from '@stellariscloud/api-client'
 import { ServerStorageProvisionAttributesList } from '../../../../components/server-storage-provision-attributes-list/server-storage-provision-attributes-list'
+import { TypographyH2, TypographyH3 } from '@stellariscloud/ui-toolkit'
 
 export function ServerStorageProvisionDetailScreen() {
   const router = useRouter()
@@ -59,23 +59,16 @@ export function ServerStorageProvisionDetailScreen() {
 
   return (
     <>
-      <div
-        className={clsx(
-          'p-4 items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
-        )}
-      >
+      <div className={clsx('p-4 items-center flex flex-1 flex-col h-full')}>
         <div className="container flex-1 flex flex-col">
-          <PageHeading
-            titleIconBg={'bg-green-100'}
-            avatarSize="md"
-            avatarKey={`${storageProvision?.accessKeyId}_${storageProvision?.id}`}
-            title={[`Storage Provision: ${storageProvision?.label}`]}
-            subtitle={storageProvision?.description}
-          />
-          <ServerStorageProvisionAttributesList
-            storageProvision={storageProvision}
-          />
+          <TypographyH2>
+            {`Storage Provision: ${storageProvision?.label}`}
+          </TypographyH2>
+          <TypographyH3>{storageProvision?.description}</TypographyH3>
         </div>
+        <ServerStorageProvisionAttributesList
+          storageProvision={storageProvision}
+        />
       </div>
     </>
   )

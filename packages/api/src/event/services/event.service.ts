@@ -7,7 +7,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, ilike, inArray, or, SQL, sql } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
 import { OrmService } from 'src/orm/orm.service'
 import type { NewTask } from 'src/task/entities/task.entity'
@@ -16,10 +16,19 @@ import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
 import type { Event } from '../entities/event.entity'
-import { eventsTable } from '../entities/event.entity'
+import { EventLevel, eventsTable } from '../entities/event.entity'
 import { CoreEvent, FolderPushMessage } from '@stellariscloud/types'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { AppDTO } from 'src/app/dto/app.dto'
+import { parseSort } from 'src/core/utils/sort.util'
+import { EventsListQueryParamsDTO } from '../dto/events-list-query-params.dto'
+
+export enum EventSort {
+  CreatedAtAsc = 'createdAt-asc',
+  CreatedAtDesc = 'createdAt-desc',
+  UpdatedAtAsc = 'updatedAt-asc',
+  UpdatedAtDesc = 'updatedAt-desc',
+}
 
 @Injectable()
 export class EventService {
@@ -42,12 +51,14 @@ export class EventService {
     emitterIdentifier,
     eventKey,
     data,
+    level = EventLevel.INFO,
     locationContext,
     userId,
   }: {
     emitterIdentifier: string // "CORE" for internally emitted events, and "APP:<appIdentifier>" for app emitted events
     eventKey: CoreEvent | string
     data: any
+    level: EventLevel
     locationContext?: { folderId: string; objectKey?: string }
     userId?: string
   }) {
@@ -100,6 +111,7 @@ export class EventService {
             id: uuidV4(),
             eventKey,
             emitterIdentifier,
+            level,
             folderId: locationContext?.folderId,
             objectKey: locationContext?.objectKey,
             userId,
@@ -200,23 +212,70 @@ export class EventService {
     {
       offset,
       limit,
-    }: {
-      offset?: number
-      limit?: number
-    },
+      sort = EventSort.CreatedAtDesc,
+      search,
+      folderId,
+      objectKey,
+      includeDebug,
+      includeError,
+      includeInfo,
+      includeTrace,
+      includeWarning,
+    }: EventsListQueryParamsDTO,
   ): Promise<{ meta: { totalCount: number }; result: Event[] }> {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
+
+    const levelFilters: EventLevel[] = []
+    if (includeDebug) {
+      levelFilters.push(EventLevel.DEBUG)
+    }
+    if (includeTrace) {
+      levelFilters.push(EventLevel.TRACE)
+    }
+    if (includeInfo) {
+      levelFilters.push(EventLevel.INFO)
+    }
+    if (includeWarning) {
+      levelFilters.push(EventLevel.WARN)
+    }
+    if (includeError) {
+      levelFilters.push(EventLevel.ERROR)
+    }
+    const conditions: (SQL<unknown> | undefined)[] = []
+    if (search) {
+      conditions.push(
+        or(
+          ilike(eventsTable.eventKey, `%${search}%`),
+          ilike(eventsTable.emitterIdentifier, `%${search}%`),
+        ),
+      )
+    }
+
+    if (levelFilters.length) {
+      conditions.push(inArray(eventsTable.level, levelFilters))
+    }
+
+    if (folderId) {
+      conditions.push(eq(tasksTable.subjectFolderId, folderId))
+      if (objectKey) {
+        conditions.push(eq(tasksTable.subjectObjectKey, objectKey))
+      }
+    }
+
     const events: Event[] = await this.ormService.db.query.eventsTable.findMany(
       {
-        offset: offset ?? 0,
-        limit: limit ?? 25,
+        offset: Math.max(offset ?? 0, 0),
+        limit: Math.min(100, limit ?? 25),
+        orderBy: parseSort(eventsTable, sort),
+        where: and(...conditions),
       },
     )
     const [eventsCount] = await this.ormService.db
       .select({ count: sql<string | null>`count(*)` })
       .from(eventsTable)
+      .where(and(...conditions))
 
     return {
       result: events,

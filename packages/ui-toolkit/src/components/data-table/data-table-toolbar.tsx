@@ -3,8 +3,9 @@
 import React from 'react'
 
 import { Cross2Icon } from '@radix-ui/react-icons'
-import { Button } from '@stellariscloud/ui-toolkit'
+import { Button, Input } from '@stellariscloud/ui-toolkit'
 import { Table } from '@tanstack/react-table'
+import { Filter } from 'lucide-react'
 
 import { DataTableFacetedFilter } from './data-table-faceted-filter'
 
@@ -19,16 +20,40 @@ export interface ColumnFilterOptions {
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
   filterOptions: Record<string, ColumnFilterOptions>
+  enableSearch?: boolean
+  searchColumn?: string
+  searchPlaceholder?: string
 }
 
 export function DataTableToolbar<TData>({
   table,
   filterOptions,
+  enableSearch = false,
+  searchColumn,
+  searchPlaceholder,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
+  if (enableSearch && !searchColumn) {
+    throw new Error('Must set `searchColumn` if `enableSearch` is true.')
+  }
   return (
     <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2">
+      <div className="flex items-center space-x-2 border p-2 bg-card border-foreground/5 rounded-md">
+        <div className="pl-2 pr-1 flex items-center">
+          <Filter className="w-5 h-5 text-foreground/30" />
+        </div>
+        {enableSearch && searchColumn && (
+          <Input
+            placeholder={searchPlaceholder ?? 'Search...'}
+            value={
+              (table.getColumn(searchColumn)?.getFilterValue() as string) ?? ''
+            }
+            onChange={(event) =>
+              table.getColumn(searchColumn)?.setFilterValue(event.target.value)
+            }
+            className="h-8 w-[150px] lg:w-[250px]"
+          />
+        )}
         {Object.keys(filterOptions)
           .filter((filterOption) => table.getColumn(filterOption))
           .map((filterOption, i) => (

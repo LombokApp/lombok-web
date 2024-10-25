@@ -7,13 +7,7 @@ import { KeyRound } from 'lucide-react'
 
 const AccessKeys: NextPage = () => {
   return (
-    <ContentLayout
-      titleIcon={KeyRound}
-      breadcrumbs={[{ label: 'Access Keys' }]}
-      description={
-        'Manage and review access keys used by your current and recent folders'
-      }
-    >
+    <ContentLayout breadcrumbs={[{ label: 'Access Keys' }]}>
       <UserAccessKeysScreen />
     </ContentLayout>
   )

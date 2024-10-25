@@ -1,101 +1,81 @@
-import {
-  ChevronRightIcon,
-  PlusIcon,
-  UserPlusIcon,
-} from '@heroicons/react/24/outline'
-import type { UserDTO } from '@stellariscloud/api-client'
-import clsx from 'clsx'
+import type {
+  UserDTO,
+  UsersApiListUsersRequest,
+} from '@stellariscloud/api-client'
 import React from 'react'
 
-import { Avatar } from '../../../../design-system/avatar'
-import { Button } from '@stellariscloud/ui-toolkit'
+import { DataTable, cn } from '@stellariscloud/ui-toolkit'
 import { apiClient } from '../../../../services/api'
-import { StackedList } from '../../../../design-system/stacked-list/stacked-list'
 import { ServerUserCreatePanel } from '../server-user-create-panel/server-user-create-panel.view'
-import { Badge } from '@stellariscloud/ui-toolkit'
-import Link from 'next/link'
+import { PaginationState, SortingState } from '@tanstack/react-table'
+import { serverUsersTableColumns } from './server-users-table-columns'
 
 export function ServerUsersScreen() {
   const [addingUser, setAddingUser] = React.useState(false)
-  const [users, setUsers] =
-    React.useState<(UserDTO & { permissions: { label: string }[] })[]>()
+  const [users, setUsers] = React.useState<{
+    result: (UserDTO & { permissions: { label: string }[] })[]
+    meta: { totalCount: number }
+  }>()
+
+  const [filters, setFilters] = React.useState<
+    { id: string; value: unknown }[]
+  >([])
+
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  })
+  const searchFilter = filters.find((f) => f.id === 'username')
+
   React.useEffect(() => {
     void apiClient.usersApi
-      .listUsers()
+      .listUsers({
+        limit: pagination.pageSize,
+        offset: pagination.pageSize * pagination.pageIndex,
+        ...(sorting[0]
+          ? {
+              sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as UsersApiListUsersRequest['sort'],
+            }
+          : {}),
+        ...(typeof searchFilter?.value === 'string'
+          ? {
+              search: searchFilter.value,
+            }
+          : {}),
+      })
       .then((response) =>
-        setUsers(response.data.result.map((r) => ({ ...r, permissions: [] }))),
+        setUsers({
+          result: response.data.result.map((r) => ({ ...r, permissions: [] })),
+          meta: response.data.meta,
+        }),
       )
-  }, [])
+  }, [filters, sorting, pagination])
+
   return (
-    <div
-      className={clsx(
-        'items-center flex flex-1 flex-col h-full overflow-x-hidden overflow-y-auto',
-      )}
-    >
-      <div className="container flex-1 flex flex-col">
-        {users && (
-          <div className="inline-block min-w-full align-middle p-8">
-            <StackedList
-              items={users.map((u, i) => (
-                <Link href={`/server/users/${u.id}`} className="w-full py-2">
-                  <div className="flex min-w-0 gap-x-4 items-center">
-                    <Avatar
-                      uniqueKey={u.id}
-                      size="sm"
-                      className="bg-indigo-100"
-                    />
-                    <div className="min-w-0 flex-auto">
-                      <p className="text-sm font-semibold leading-6">
-                        {u.username} - {u.id}
-                      </p>
-                      <div className="mt-1 flex items-center gap-x-2 text-xs leading-5">
-                        <p className="whitespace-nowrap">{u.email}</p>
-                        <svg
-                          viewBox="0 0 2 2"
-                          className="h-0.5 w-0.5 fill-current"
-                        >
-                          <circle r={1} cx={1} cy={1} />
-                        </svg>
-                        {u.isAdmin && (
-                          <>
-                            <span className="truncate">
-                              <Badge variant={'outline'}>admin</Badge>
-                            </span>
-                            <svg
-                              viewBox="0 0 2 2"
-                              className="h-0.5 w-0.5 fill-current"
-                            >
-                              <circle r={1} cx={1} cy={1} />
-                            </svg>
-                          </>
-                        )}
-                        <p className="truncate">Created {u.createdAt}</p>
-                      </div>
-                    </div>
-                    <div className="ml-auto">
-                      <ChevronRightIcon className="w-5 h-5" />
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            />
-            {addingUser ? (
-              <div className="pt-10">
-                <ServerUserCreatePanel
-                  onCancel={() => void setAddingUser(false)}
-                />
-              </div>
-            ) : (
-              <div className="pt-4">
-                <Button onClick={() => setAddingUser(true)}>
-                  <PlusIcon className="w-5 h-5" />
-                  Add User
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+    <div className={cn('items-center flex flex-1 flex-col h-full')}>
+      <DataTable
+        enableSearch={true}
+        searchColumn="username"
+        onColumnFiltersChange={(updater) => {
+          setFilters((old) =>
+            updater instanceof Function ? updater(old) : updater,
+          )
+        }}
+        rowCount={users?.meta.totalCount}
+        data={users?.result ?? []}
+        columns={serverUsersTableColumns}
+        onPaginationChange={(updater) => {
+          setPagination((old) =>
+            updater instanceof Function ? updater(old) : updater,
+          )
+        }}
+        onSortingChange={(updater) => {
+          setSorting((old) =>
+            updater instanceof Function ? updater(old) : updater,
+          )
+        }}
+      />
     </div>
   )
 }

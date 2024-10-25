@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { eq, sql } from 'drizzle-orm'
+import { SQL, and, eq, ilike, or, sql } from 'drizzle-orm'
 import { authHelper } from 'src/auth/utils/auth-helper'
 import { parseSort } from 'src/core/utils/sort.util'
 import { OrmService } from 'src/orm/orm.service'
@@ -10,6 +10,7 @@ import { UserUpdateInputDTO } from '../dto/user-update-input.dto'
 import type { NewUser, User } from '../entities/user.entity'
 import { usersTable } from '../entities/user.entity'
 import { UserNotFoundException } from '../exceptions/user-not-found.exception'
+import { UsersListQueryParamsDTO } from '../dto/users-list-query-params.dto'
 
 export enum UserSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -18,10 +19,8 @@ export enum UserSort {
   EmailDesc = 'email-desc',
   NameAsc = 'name-asc',
   NameDesc = 'name-desc',
-  RoleAsc = 'role-asc',
-  RoleDesc = 'role-desc',
-  StatusAsc = 'status-asc',
-  StatusDesc = 'status-desc',
+  UsernameAsc = 'username-asc',
+  UsernameDesc = 'username-desc',
   UpdatedAtAsc = 'updatedAt-asc',
   UpdatedAtDesc = 'updatedAt-desc',
 }
@@ -72,21 +71,38 @@ export class UserService {
     limit = 10,
     offset = 0,
     sort = UserSort.CreatedAtDesc,
+    search,
     isAdmin,
   }: {
     limit?: number
     offset?: number
     sort?: UserSort
+    search?: string
     isAdmin?: boolean
   }) {
-    const where = isAdmin ? eq(usersTable.isAdmin, isAdmin) : undefined
+    const conditions: (SQL<unknown> | undefined)[] = []
+    if (search) {
+      conditions.push(
+        or(
+          ilike(usersTable.username, `%${search}%`),
+          ilike(usersTable.email, `%${search}%`),
+        ),
+      )
+    }
+
+    if (isAdmin) {
+      conditions.push(eq(usersTable.isAdmin, isAdmin))
+    }
+
+    const where = conditions.length ? and(...conditions) : undefined
 
     const users = await this.ormService.db.query.usersTable.findMany({
       where,
-      limit,
-      offset,
+      limit: Math.min(100, limit),
+      offset: Math.max(0, offset),
       orderBy: parseSort(usersTable, sort),
     })
+
     const [userCountResult] = await this.ormService.db
       .select({ count: sql<string | null>`count(*)` })
       .from(usersTable)
@@ -103,19 +119,15 @@ export class UserService {
     {
       limit = 10,
       offset = 0,
+      search,
       sort = UserSort.CreatedAtDesc,
       isAdmin,
-    }: {
-      limit?: number
-      offset?: number
-      sort?: UserSort
-      isAdmin?: boolean
-    },
+    }: UsersListQueryParamsDTO,
   ) {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
-    return this.listUsers({ limit, offset, sort, isAdmin })
+    return this.listUsers({ limit, offset, search, sort, isAdmin })
   }
 
   getUserByIdAsAdmin(actor: User, userId: string) {

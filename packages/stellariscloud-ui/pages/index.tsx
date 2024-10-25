@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import { Button } from '../design-system/button/button'
+import { Button, ButtonVariant } from '@stellariscloud/ui-toolkit'
 
 const Landing: NextPage = () => {
   const router = useRouter()
@@ -48,12 +48,10 @@ const Landing: NextPage = () => {
               and compute solution that you can run anywhere on any hardware.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Button onClick={handleGetStarted} primary>
-                Get started
-              </Button>
+              <Button onClick={handleGetStarted}>Get started</Button>
               <Link href="https://github.com/stellariscloud/stellariscloud-monorepo">
                 <Button
-                  link
+                  variant={ButtonVariant.link}
                   className="text-sm font-semibold leading-6 text-white"
                 >
                   Learn more <span aria-hidden="true">→</span>

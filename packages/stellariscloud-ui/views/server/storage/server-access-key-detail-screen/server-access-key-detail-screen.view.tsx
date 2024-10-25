@@ -3,7 +3,6 @@ import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import { PageHeading } from '../../../../design-system/page-heading/page-heading'
 import { apiClient } from '../../../../services/api'
 import { AccessKeyAttributeList } from '../../../../components/access-key-attribute-list/access-key-attributes-list'
 import { AccessKeyRotateForm } from '../../../../components/access-key-rotate-form/access-key-rotate-form'

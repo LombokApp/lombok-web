@@ -1,0 +1,27 @@
+import { Canvas, Controls, Meta, Source, Title } from '@storybook/blocks'
+
+import { ButtonGroup } from '..'
+
+import * as Stories from './button-group.stories'
+
+<Meta of={Stories} />
+
+<Title />
+
+#### A button group component
+
+<Source
+  dark
+  language="tsx"
+  code={`
+import { ButtonGroup, Button } from '@stellariscloud/ui-toolkit'
+
+<ButtonGroup {...props}>
+  <Button>Action 1</Button>
+  <Button>Action 2</Button>
+  <Button>Action 3</Button>
+</ButtonGroup>
+
+`} />
+
+<Canvas of={Stories.BasicUsage} sourceState="none" />

@@ -1,7 +1,7 @@
 import type { StorageProvisionInputDTO } from '@stellariscloud/api-client'
 import React from 'react'
 
-import { Button } from '../../../../../../design-system/button/button'
+import { Button } from '@stellariscloud/ui-toolkit'
 import { StorageProvisionFormFields } from './storage-provision-form-fields'
 import { StorageProvisionType } from '@stellariscloud/types'
 
@@ -47,9 +47,10 @@ export const StorageProvisionForm = ({
         onChange={(output) => setStorageProvision(output)}
       />
       <div className="flex gap-2 justify-end">
-        <Button onClick={onCancel}>Cancel</Button>
+        <Button variant={'secondary'} onClick={onCancel}>
+          Cancel
+        </Button>
         <Button
-          primary
           onClick={() =>
             onSubmit(storageProvision.value as StorageProvisionFormValues)
           }

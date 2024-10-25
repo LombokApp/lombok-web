@@ -14,6 +14,18 @@ import { AccessKeyDTO } from './dto/access-key.dto'
 import { RotateAccessKeyInputDTO } from './dto/rotate-access-key-input.dto'
 import { storageLocationsTable } from './entities/storage-location.entity'
 
+export enum AccessKeySort {
+  AccessKeyIdAsc = 'accessKeyId-asc',
+  AccessKeyIdDesc = 'accessKeyId-desc',
+  AccessKeyHashIdAsc = 'accessKeyHashId-asc',
+  AccessKeyHashIdDesc = 'accessKeyHashId-desc',
+  EndpointAsc = 'endpoint-asc',
+  EndpointDesc = 'endpoint-desc',
+  RegionAsc = 'region-asc',
+  RegionDesc = 'region-desc',
+  UpdatedAtAsc = 'updatedAt-asc',
+  UpdatedAtDesc = 'updatedAt-desc',
+}
 @Injectable()
 export class StorageLocationService {
   constructor(

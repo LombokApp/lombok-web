@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Button } from '../button/button'
+import { Button } from '@stellariscloud/ui-toolkit'
 import type { IconProps } from '../icon'
 import { Icon } from '../icon'
 
@@ -21,9 +21,7 @@ export function EmptyState({
       <h3 className="mt-2 text-sm font-semibold">{text}</h3>
       {onButtonPress && buttonText && (
         <div className="flex justify-center mt-6">
-          <Button primary onClick={onButtonPress}>
-            {buttonText}
-          </Button>
+          <Button onClick={onButtonPress}>{buttonText}</Button>
         </div>
       )}
     </div>

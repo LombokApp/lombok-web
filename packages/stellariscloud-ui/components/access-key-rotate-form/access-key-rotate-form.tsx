@@ -1,9 +1,7 @@
-import { AccessKeyDTO } from '@stellariscloud/api-client'
 import { useFormState } from '../../utils/forms'
 import * as r from 'runtypes'
 import React from 'react'
-import { Input } from '../../design-system/input/input'
-import { Button } from '../../design-system/button/button'
+import { Button, Input, Label } from '@stellariscloud/ui-toolkit'
 
 export function AccessKeyRotateForm({
   onSubmit,
@@ -43,31 +41,29 @@ export function AccessKeyRotateForm({
   }, [form, onSubmit])
 
   return (
-    <div className="flex items-end gap-4">
-      <Input
-        label="New Access Key ID"
-        placeholder="New Access Key ID"
-        error={
-          !form.state.fields.accessKeyId.valid
-            ? form.state.fields.accessKeyId.error
-            : undefined
-        }
-        value={form.values.accessKeyId}
-        onChange={(e) => form.setValue('accessKeyId', e.target.value)}
-      />
-      <Input
-        label="New Secret Access Key"
-        placeholder="New Secret Access Key"
-        error={
-          !form.state.fields.secretAccessKey.valid
-            ? form.state.fields.secretAccessKey.error
-            : undefined
-        }
-        value={form.values.secretAccessKey}
-        onChange={(e) => form.setValue('secretAccessKey', e.target.value)}
-      />
-      <Button primary onClick={handleSubmit}>
-        Submit
+    <div className="flex flex-col items-start gap-4">
+      <div className="flex items-end gap-4">
+        <div>
+          <Label htmlFor="newAccessKeyId">New Access Key ID</Label>
+          <Input
+            id="newAccessKeyId"
+            placeholder="New Access Key ID"
+            value={form.values.accessKeyId}
+            onChange={(e) => form.setValue('accessKeyId', e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="newSecretAccessKey">New Secret Access Key</Label>
+          <Input
+            id="newSecretAccessKey"
+            placeholder="New Secret Access Key"
+            value={form.values.secretAccessKey}
+            onChange={(e) => form.setValue('secretAccessKey', e.target.value)}
+          />
+        </div>
+      </div>
+      <Button size="sm" onClick={handleSubmit}>
+        Rotate
       </Button>
     </div>
   )

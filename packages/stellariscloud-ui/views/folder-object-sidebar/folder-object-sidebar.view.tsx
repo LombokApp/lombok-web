@@ -60,7 +60,7 @@ export const FolderObjectSidebar = ({
   const fetchTasks = React.useCallback(() => {
     if (folder?.id) {
       void apiClient.tasksApi
-        .listTasks({ folderId: folder?.id, objectKey })
+        .listFolderTasks({ folderId: folder?.id, objectKey })
         .then((resp) => setTasks(resp.data.result))
     }
   }, [folder?.id])

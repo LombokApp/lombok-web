@@ -1,31 +1,40 @@
 import type { EventDTO } from '@stellariscloud/api-client'
 import clsx from 'clsx'
-import { useRouter } from 'next/router'
 import React from 'react'
 
 import { apiClient } from '../../../../services/api'
 import { ServerEventAttributesList } from '../../../../components/server-event-attributes-list/server-event-attributes-list'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@stellariscloud/ui-toolkit'
 
-export function ServerEventDetailScreen() {
-  const router = useRouter()
+export function ServerEventDetailScreen({ eventId }: { eventId: string }) {
   const [event, setEvent] = React.useState<EventDTO>()
   React.useEffect(() => {
-    if (typeof router.query.eventId === 'string') {
+    if (typeof eventId === 'string') {
       void apiClient.serverEventsApi
-        .getEvent({ eventId: router.query.eventId })
+        .getEvent({ eventId })
         .then((u) => setEvent(u.data.event))
     }
-  }, [router.query.eventId])
+  }, [eventId])
 
   return (
     <>
-      <div
-        className={clsx(
-          'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
-        )}
-      >
-        <div className="container flex-1 flex flex-col gap-4 p-8">
-          <ServerEventAttributesList event={event} />
+      <div className={clsx('items-center flex flex-1 flex-col gap-6 h-full')}>
+        <div className="container flex-1 flex flex-col gap-4">
+          <Card className="border-0 bg-transparent">
+            <CardHeader className="p-0 pb-4">
+              <CardTitle>Event: {event?.id}</CardTitle>
+              <CardDescription>Key: {event?.eventKey}</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ServerEventAttributesList event={event} />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </>

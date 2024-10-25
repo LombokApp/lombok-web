@@ -1,5 +1,5 @@
 import { TaskDTO } from '@stellariscloud/api-client'
-import clsx from 'clsx'
+import { cn } from '@stellariscloud/ui-toolkit'
 
 export function TasksListCard({ task }: { task: TaskDTO }) {
   return (
@@ -8,7 +8,7 @@ export function TasksListCard({ task }: { task: TaskDTO }) {
         <div className="flex gap-2">
           <div className="flex items-center gap-2">
             <div
-              className={clsx(
+              className={cn(
                 'rounded-full w-2 h-2',
                 task.completedAt
                   ? 'bg-green-500'

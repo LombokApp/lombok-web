@@ -24,7 +24,7 @@ export const FolderTasksList = ({
   const fetchTasks = React.useCallback(() => {
     if (folder?.id) {
       void apiClient.tasksApi
-        .listTasks({ folderId: folder?.id })
+        .listFolderTasks({ folderId: folder?.id })
         .then((resp) => setTasks(resp.data.result))
     }
   }, [folder?.id])

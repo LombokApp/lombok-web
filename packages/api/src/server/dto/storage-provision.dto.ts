@@ -3,7 +3,8 @@ import { StorageProvisionTypeZodEnum } from '@stellariscloud/types'
 import { z } from 'zod'
 
 export const storageProvisionSchema = z.object({
-  id: z.string(),
+  id: z.string().uuid(),
+  accessKeyHashId: z.string(),
   endpoint: z.string(),
   bucket: z.string(),
   region: z.string(),
