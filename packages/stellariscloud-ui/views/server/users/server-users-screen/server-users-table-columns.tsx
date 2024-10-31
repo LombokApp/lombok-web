@@ -6,10 +6,24 @@ import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components
 import { timeSinceOrUntil } from '@stellariscloud/utils'
 import { invertColour, stringToColour } from '../../../../utils/colors'
 import { UserDTO } from '@stellariscloud/api-client'
-import { DataTableRowActions } from '@stellariscloud/ui-toolkit'
-import { useRouter } from 'next/router'
+import Link from 'next/link'
 
 export const serverUsersTableColumns: ColumnDef<UserDTO>[] = [
+  {
+    id: '__HIDDEN__',
+    cell: ({ row }) => {
+      return (
+        <div className="w-0 h-0 overflow-hidden max-w-0">
+          <Link
+            href={`/server/users/${row.original.id}`}
+            className="absolute top-0 bottom-0 left-0 right-0"
+          />
+        </div>
+      )
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     id: 'icon',
     header: ({ column }) => (
@@ -20,54 +34,24 @@ export const serverUsersTableColumns: ColumnDef<UserDTO>[] = [
       />
     ),
     cell: ({ row: { original: user } }) => (
-      <div
-        className="flex items-center justify-center rounded-full w-8 h-8 overflow-hidden"
-        style={{
-          background: stringToColour(user.id),
-          color: invertColour(stringToColour(user.id)),
-        }}
-      >
-        <span className="uppercase">
-          {user.name?.[0] ?? user.email?.[0] ?? '?'}
-        </span>
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'email',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="Email"
-      />
-    ),
-    cell: ({ row }) => (
-      <div className="flex flex-col">
-        <div className="w-[150px]">{row.original.email}</div>
-      </div>
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'username',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="Username"
-      />
-    ),
-    cell: ({ row: { original: user } }) => {
-      return (
-        <div className="flex gap-2 items-center font-normal">
-          {user.username}
+      <div className="flex gap-4 items-start">
+        <div
+          className="flex items-center justify-center rounded-full w-8 h-8 overflow-hidden"
+          style={{
+            background: stringToColour(user.id),
+            color: invertColour(stringToColour(user.id)),
+          }}
+        >
+          <span className="uppercase">
+            {user.name?.[0] ?? user.email?.[0] ?? '?'}
+          </span>
         </div>
-      )
-    },
+        <div className="flex flex-col">
+          <div>{user.email}</div>
+          <div>{user.username}</div>
+        </div>
+      </div>
+    ),
     enableSorting: false,
     enableHiding: false,
   },
@@ -133,24 +117,5 @@ export const serverUsersTableColumns: ColumnDef<UserDTO>[] = [
     ),
     enableSorting: true,
     enableHiding: false,
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => {
-      const router = useRouter()
-      return (
-        <DataTableRowActions
-          actions={[
-            {
-              label: 'View',
-              value: 'view',
-              isPinned: true,
-              onClick: () => router.push(`/server/users/${row.original.id}`),
-            },
-          ]}
-          row={row}
-        />
-      )
-    },
   },
 ]

@@ -19,7 +19,7 @@ export function ServerAppsScreen() {
 
   React.useEffect(() => {
     void apiClient.appsApi.listApps().then((apps) => {
-      setInstalledApps(apps.data.installed.result)
+      setInstalledApps(apps.data.result)
     })
   }, [coreAppResetKey])
 

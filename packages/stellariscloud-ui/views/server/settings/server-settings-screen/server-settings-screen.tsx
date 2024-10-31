@@ -20,6 +20,7 @@ import {
 import { ServerStorageProvisions } from './server-storage-provisions/server-storage-provisions.view'
 import { useRouter } from 'next/router'
 import { ServerAccessKeysScreen } from '../../storage/server-access-keys-screen/server-access-keys-screen.view'
+import { ServerMetadataStorageProvisions } from './server-storage-provisions/server-metadata-storage-provisions.view'
 
 export function ServerSettingsScreen({ tab }: { tab: string }) {
   const router = useRouter()
@@ -130,7 +131,22 @@ export function ServerSettingsScreen({ tab }: { tab: string }) {
           <div className="flex flex-col gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Storage Provisions</CardTitle>
+                <CardTitle>Server Storage Provision</CardTitle>
+                <CardDescription>
+                  This location is used by the server to store arbitrary server
+                  level data, like app assets. It is required before you can
+                  install apps.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="w-full">
+                  <ServerMetadataStorageProvisions />
+                </div>
+              </CardContent>
+            </Card>{' '}
+            <Card>
+              <CardHeader>
+                <CardTitle>User Storage Provisions</CardTitle>
                 <CardDescription>
                   Designate S3 locations that a user can nominate as storage for
                   new folders. Without entries here your users can only create
@@ -198,6 +214,25 @@ export function ServerSettingsScreen({ tab }: { tab: string }) {
                       Allow administrators to change the directory.
                     </label>
                   </div>
+                </form>
+              </CardContent>
+              <CardFooter className="border-t px-6 py-4">
+                <Button>Save</Button>
+              </CardFooter>
+            </Card>
+          </div>
+        ) : tab === 'apps' ? (
+          <div className="grid gap-6">
+            <Card x-chunk="dashboard-04-chunk-1">
+              <CardHeader>
+                <CardTitle>Local Apps</CardTitle>
+                <CardDescription>
+                  Install apps that already exist local to your server.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form>
+                  <Input placeholder="Server Name" />
                 </form>
               </CardContent>
               <CardFooter className="border-t px-6 py-4">

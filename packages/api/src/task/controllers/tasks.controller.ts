@@ -13,13 +13,12 @@ import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
+import { FolderTasksListQueryParamsDTO } from '../dto/folder-tasks-list-query-params.dto'
 import type { TaskGetResponse } from '../dto/responses/task-get-response.dto'
 import type { TaskListResponse } from '../dto/responses/task-list-response.dto'
 import { TaskDTO } from '../dto/task.dto'
-import { TasksListQueryParamsDTO } from '../dto/tasks-list-query-params.dto'
 import { TaskService } from '../services/task.service'
 import { transformTaskToDTO } from '../transforms/task.transforms'
-import { FolderTasksListQueryParamsDTO } from '../dto/folder-tasks-list-query-params.dto'
 
 @Controller('/api/v1/folders')
 @ApiTags('Tasks')

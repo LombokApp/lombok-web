@@ -33,7 +33,6 @@ import { useLocalFileCacheContext } from '../../contexts/local-file-cache.contex
 import { useWindowDimensions } from '../../hooks/use-window-dimensions'
 import { apiClient } from '../../services/api'
 import { FolderObjectDetailScreen } from '../folder-object-detail-screen/folder-object-detail-screen.view'
-import type { FolderSidebarTab } from '../folder-sidebar/folder-sidebar.view'
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
 import { Button, cn } from '@stellariscloud/ui-toolkit'
 import { EmptyState } from '../../design-system/empty-state/empty-state'
@@ -573,8 +572,6 @@ export const FolderDetailScreen = () => {
   const [isResizing, setIsResizing] = React.useState(false)
   // const [_folderWebsocket, setFolderWebsocket] = React.useState<Socket>()
   const [_shareModalOpen, setShareModalOpen] = React.useState(false)
-  const [sidebarTab, setSidebarTab] =
-    React.useState<FolderSidebarTab>('overview')
 
   const [refreshFolderConfirmationOpen, setRefreshFolderConfirmationOpen] =
     React.useState(false)
@@ -948,11 +945,6 @@ export const FolderDetailScreen = () => {
     [getData, handleObjectLinkClick],
   )
   const folderContext = useFolderContext(messageHandler)
-
-  const handleIndexAll = () => {
-    // TODO: replace
-    // void foldersApi.indexAllContent({ folderId: folderContext.folderId })
-  }
 
   React.useEffect(() => {
     const changedPageState: { search?: string; filterTagId?: string } = {}
@@ -1333,9 +1325,6 @@ export const FolderDetailScreen = () => {
                   <div className="xs:w-[100%] md:w-[50%] lg:w-[50%] xl:w-[40%] 2xl:w-[35%] 2xl:max-w-[35rem]">
                     <FolderSidebar
                       onRescan={() => setRefreshFolderConfirmationOpen(true)}
-                      onIndexAll={handleIndexAll}
-                      activeTab={sidebarTab}
-                      onTabChange={(t) => setSidebarTab(t)}
                       folderMetadata={folderContext.folderMetadata}
                       folderAndPermission={{
                         folder: folderContext.folder,

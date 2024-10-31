@@ -190,18 +190,40 @@ export interface AppDTO {
     'identifier': string;
     /**
      *
+     * @type {string}
+     * @memberof AppDTO
+     */
+    'publicKey': string;
+    /**
+     *
      * @type {AppDTOConfig}
      * @memberof AppDTO
      */
     'config': AppDTOConfig;
     /**
      *
-     * @type {{ [key: string]: AppDTOUiValue | undefined; }}
+     * @type {Array<AppDTOManifestInner>}
      * @memberof AppDTO
      */
-    'ui': {
-        [key: string]: AppDTOUiValue | undefined;
-    };
+    'manifest': Array<AppDTOManifestInner>;
+    /**
+     *
+     * @type {Array<AppDTOConnectedWorkersInner>}
+     * @memberof AppDTO
+     */
+    'connectedWorkers': Array<AppDTOConnectedWorkersInner>;
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTO
+     */
+    'createdAt': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTO
+     */
+    'updatedAt': string;
 }
 /**
  *
@@ -209,12 +231,6 @@ export interface AppDTO {
  * @interface AppDTOConfig
  */
 export interface AppDTOConfig {
-    /**
-     *
-     * @type {string}
-     * @memberof AppDTOConfig
-     */
-    'publicKey': string;
     /**
      *
      * @type {string}
@@ -312,7 +328,7 @@ export interface AppDTOConfigTasksInner {
      * @type {{ [key: string]: AppDTOConfigTasksInnerInputParamsValue | undefined; }}
      * @memberof AppDTOConfigTasksInner
      */
-    'inputParams': {
+    'inputParams'?: {
         [key: string]: AppDTOConfigTasksInnerInputParamsValue | undefined;
     };
 }
@@ -362,48 +378,64 @@ export type AppDTOConfigTasksInnerInputParamsValueDefault = boolean | number | s
 /**
  *
  * @export
- * @interface AppDTOUiValue
+ * @interface AppDTOConnectedWorkersInner
  */
-export interface AppDTOUiValue {
+export interface AppDTOConnectedWorkersInner {
     /**
      *
      * @type {string}
-     * @memberof AppDTOUiValue
+     * @memberof AppDTOConnectedWorkersInner
+     */
+    'appIdentifier': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOConnectedWorkersInner
+     */
+    'workerId': string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof AppDTOConnectedWorkersInner
+     */
+    'handledTaskKeys': Array<string>;
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOConnectedWorkersInner
+     */
+    'socketClientId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOConnectedWorkersInner
+     */
+    'ip': string;
+}
+/**
+ *
+ * @export
+ * @interface AppDTOManifestInner
+ */
+export interface AppDTOManifestInner {
+    /**
+     *
+     * @type {string}
+     * @memberof AppDTOManifestInner
      */
     'path': string;
     /**
      *
      * @type {string}
-     * @memberof AppDTOUiValue
+     * @memberof AppDTOManifestInner
      */
-    'name': string;
-    /**
-     *
-     * @type {{ [key: string]: AppDTOUiValueFilesValue | undefined; }}
-     * @memberof AppDTOUiValue
-     */
-    'files': {
-        [key: string]: AppDTOUiValueFilesValue | undefined;
-    };
-}
-/**
- *
- * @export
- * @interface AppDTOUiValueFilesValue
- */
-export interface AppDTOUiValueFilesValue {
+    'hash': string;
     /**
      *
      * @type {number}
-     * @memberof AppDTOUiValueFilesValue
+     * @memberof AppDTOManifestInner
      */
     'size': number;
-    /**
-     *
-     * @type {string}
-     * @memberof AppDTOUiValueFilesValue
-     */
-    'hash': string;
 }
 /**
  *
@@ -413,10 +445,10 @@ export interface AppDTOUiValueFilesValue {
 export interface AppGetResponse {
     /**
      *
-     * @type {AppListResponseInstalledResultInner}
+     * @type {AppListResponseResultInner}
      * @memberof AppGetResponse
      */
-    'app': AppListResponseInstalledResultInner;
+    'app': AppListResponseResultInner;
 }
 /**
  *
@@ -426,95 +458,65 @@ export interface AppGetResponse {
 export interface AppListResponse {
     /**
      *
-     * @type {AppListResponseInstalled}
-     * @memberof AppListResponse
-     */
-    'installed': AppListResponseInstalled;
-    /**
-     *
-     * @type {{ [key: string]: Array<AppListResponseConnectedValueInner> | undefined; }}
-     * @memberof AppListResponse
-     */
-    'connected': {
-        [key: string]: Array<AppListResponseConnectedValueInner> | undefined;
-    };
-}
-/**
- *
- * @export
- * @interface AppListResponseConnectedValueInner
- */
-export interface AppListResponseConnectedValueInner {
-    /**
-     *
-     * @type {string}
-     * @memberof AppListResponseConnectedValueInner
-     */
-    'appIdentifier': string;
-    /**
-     *
-     * @type {string}
-     * @memberof AppListResponseConnectedValueInner
-     */
-    'socketClientId': string;
-    /**
-     *
-     * @type {string}
-     * @memberof AppListResponseConnectedValueInner
-     */
-    'name': string;
-    /**
-     *
-     * @type {string}
-     * @memberof AppListResponseConnectedValueInner
-     */
-    'ip': string;
-}
-/**
- *
- * @export
- * @interface AppListResponseInstalled
- */
-export interface AppListResponseInstalled {
-    /**
-     *
      * @type {UserListResponseMeta}
-     * @memberof AppListResponseInstalled
+     * @memberof AppListResponse
      */
     'meta': UserListResponseMeta;
     /**
      *
-     * @type {Array<AppListResponseInstalledResultInner>}
-     * @memberof AppListResponseInstalled
+     * @type {Array<AppListResponseResultInner>}
+     * @memberof AppListResponse
      */
-    'result': Array<AppListResponseInstalledResultInner>;
+    'result': Array<AppListResponseResultInner>;
 }
 /**
  *
  * @export
- * @interface AppListResponseInstalledResultInner
+ * @interface AppListResponseResultInner
  */
-export interface AppListResponseInstalledResultInner {
+export interface AppListResponseResultInner {
     /**
      *
      * @type {string}
-     * @memberof AppListResponseInstalledResultInner
+     * @memberof AppListResponseResultInner
      */
     'identifier': string;
     /**
      *
+     * @type {string}
+     * @memberof AppListResponseResultInner
+     */
+    'publicKey': string;
+    /**
+     *
      * @type {AppDTOConfig}
-     * @memberof AppListResponseInstalledResultInner
+     * @memberof AppListResponseResultInner
      */
     'config': AppDTOConfig;
     /**
      *
-     * @type {{ [key: string]: AppDTOUiValue | undefined; }}
-     * @memberof AppListResponseInstalledResultInner
+     * @type {Array<AppDTOManifestInner>}
+     * @memberof AppListResponseResultInner
      */
-    'ui': {
-        [key: string]: AppDTOUiValue | undefined;
-    };
+    'manifest': Array<AppDTOManifestInner>;
+    /**
+     *
+     * @type {Array<AppDTOConnectedWorkersInner>}
+     * @memberof AppListResponseResultInner
+     */
+    'connectedWorkers': Array<AppDTOConnectedWorkersInner>;
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseResultInner
+     */
+    'createdAt': string;
+    /**
+     *
+     * @type {string}
+     * @memberof AppListResponseResultInner
+     */
+    'updatedAt': string;
 }
 /**
  *

@@ -27,6 +27,7 @@
     "script/*.ts",
     "test/**/*.ts",
     "babel.config.js",
+    "jest.config.ts",
     ".eslintrc.js"
   ]
 }

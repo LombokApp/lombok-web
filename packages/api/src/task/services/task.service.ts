@@ -1,12 +1,11 @@
 import {
+  forwardRef,
   Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
-  forwardRef,
 } from '@nestjs/common'
 import {
-  SQL,
   and,
   count,
   eq,
@@ -14,18 +13,19 @@ import {
   isNotNull,
   isNull,
   or,
+  SQL,
   sql,
 } from 'drizzle-orm'
+import { parseSort } from 'src/core/utils/sort.util'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
+import { AppSocketService } from 'src/socket/app/app-socket.service'
 import type { User } from 'src/users/entities/user.entity'
 
+import { FolderTasksListQueryParamsDTO } from '../dto/folder-tasks-list-query-params.dto'
+import { TasksListQueryParamsDTO } from '../dto/tasks-list-query-params.dto'
 import type { Task } from '../entities/task.entity'
 import { tasksTable } from '../entities/task.entity'
-import { AppSocketService } from 'src/socket/app/app-socket.service'
-import { TasksListQueryParamsDTO } from '../dto/tasks-list-query-params.dto'
-import { parseSort } from 'src/core/utils/sort.util'
-import { FolderTasksListQueryParamsDTO } from '../dto/folder-tasks-list-query-params.dto'
 
 export enum TaskSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -74,12 +74,12 @@ export class TaskService {
   ) {
     // ACL check
     const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
-    return this.listTasks({ ...queryParams, folderId })
+    return this.listTasks({ ...queryParams, folderId: folder.id })
   }
 
   async listTasksAsAdmin(actor: User, queryParams: TasksListQueryParamsDTO) {
     // ACL check
-    if (!actor?.isAdmin) {
+    if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
     return this.listTasks(queryParams)
@@ -87,7 +87,7 @@ export class TaskService {
 
   async getTaskAsAdmin(actor: User, taskId: string): Promise<Task> {
     // ACL check
-    if (!actor?.isAdmin) {
+    if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
 
@@ -105,7 +105,7 @@ export class TaskService {
 
   async listTasks({
     offset,
-    limit = 25,
+    limit,
     search,
     sort = TaskSort.CreatedAtAsc,
     objectKey,
@@ -115,7 +115,7 @@ export class TaskService {
     includeWaiting,
     folderId,
   }: TasksListQueryParamsDTO) {
-    const conditions: (SQL<unknown> | undefined)[] = []
+    const conditions: (SQL | undefined)[] = []
     if (folderId) {
       conditions.push(eq(tasksTable.subjectFolderId, folderId))
     }
@@ -130,7 +130,7 @@ export class TaskService {
       )
     }
 
-    const statusFilters = ([] as (SQL<unknown> | undefined)[])
+    const statusFilters = ([] as (SQL | undefined)[])
       .concat(includeComplete ? [isNotNull(tasksTable.completedAt)] : [])
       .concat(includeFailed ? [isNotNull(tasksTable.errorAt)] : [])
       .concat(includeWaiting ? [isNull(tasksTable.startedAt)] : [])

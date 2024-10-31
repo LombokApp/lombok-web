@@ -17,6 +17,7 @@ import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { AppDTO } from '../dto/app.dto'
 import { AppGetResponse } from '../dto/responses/app-get-response.dto'
 import { AppListResponse } from '../dto/responses/app-list-response.dto'
+import { transformAppToDTO } from '../dto/transforms/app.transforms'
 
 @Controller('/api/v1/server/apps')
 @ApiTags('Apps')
@@ -34,17 +35,12 @@ export class AppsController {
     }
     const apps = await this.appService.getApps()
     const connectedInstances = await this.appService.getAppConnections()
-    const result = Object.keys(apps).reduce<AppDTO[]>(
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      (acc, next) => acc.concat({ ...apps[next], identifier: next } as any),
-      [],
+    const result = apps.map((app) =>
+      transformAppToDTO(app, connectedInstances[app.identifier]),
     )
     return {
-      connected: connectedInstances,
-      installed: {
-        result,
-        meta: { totalCount: result.length },
-      },
+      result,
+      meta: { totalCount: result.length },
     }
   }
 
@@ -61,8 +57,14 @@ export class AppsController {
     if (!result) {
       throw new NotFoundException()
     }
+    const connectedInstances = await this.appService.getAppConnections()
+
     return {
-      app: { ...result, identifier: appIdentifier },
+      app: {
+        ...result,
+        identifier: appIdentifier,
+        workers: connectedInstances[appIdentifier] ?? [],
+      },
     }
   }
 }

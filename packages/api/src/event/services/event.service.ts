@@ -7,21 +7,21 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
+import { CoreEvent, FolderPushMessage } from '@stellariscloud/types'
 import { and, eq, ilike, inArray, or, SQL, sql } from 'drizzle-orm'
+import { AppDTO } from 'src/app/dto/app.dto'
 import { AppService } from 'src/app/services/app.service'
+import { parseSort } from 'src/core/utils/sort.util'
 import { OrmService } from 'src/orm/orm.service'
+import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import type { NewTask } from 'src/task/entities/task.entity'
 import { tasksTable } from 'src/task/entities/task.entity'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
+import { EventsListQueryParamsDTO } from '../dto/events-list-query-params.dto'
 import type { Event } from '../entities/event.entity'
 import { EventLevel, eventsTable } from '../entities/event.entity'
-import { CoreEvent, FolderPushMessage } from '@stellariscloud/types'
-import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
-import { AppDTO } from 'src/app/dto/app.dto'
-import { parseSort } from 'src/core/utils/sort.util'
-import { EventsListQueryParamsDTO } from '../dto/events-list-query-params.dto'
 
 export enum EventSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -76,13 +76,14 @@ export class EventService {
       ? await this.appService.getApp(appIdentifier.toLowerCase())
       : undefined
     const task = triggeringTaskKey
-      ? app?.tasks.find((t) => t.key === triggeringTaskKey)
+      ? app?.config.tasks.find((t) => t.key === triggeringTaskKey)
       : undefined
 
     const authorized =
       (isCoreEmitter ||
         (appIdentifier &&
-          (triggeringTaskKey || app?.emittableEvents.includes(eventKey)))) ??
+          (triggeringTaskKey ||
+            app?.config.emittableEvents.includes(eventKey)))) ??
       false
 
     if (triggeringTaskKey && !task) {
@@ -133,7 +134,8 @@ export class EventService {
           },
           taskKey: triggeringTaskKey,
           inputData: {},
-          ownerIdentifier: `APP:${(appIdentifier as string).toUpperCase()}`,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          ownerIdentifier: `APP:${appIdentifier!.toUpperCase()}`,
           createdAt: now,
           updatedAt: now,
         }
@@ -141,39 +143,39 @@ export class EventService {
       } else {
         // regular event, so we should lookup apps that have subscribed to this event
         const tasks: NewTask[] = await this.appService.getApps().then((apps) =>
-          Object.keys(apps)
+          apps
             .reduce<
               {
                 appIdentifier: string
                 taskDefinition: AppDTO['config']['tasks'][0]
               }[]
-            >((acc, appIdentifier) => {
-              return acc.concat(
-                appIdentifier in apps
-                  ? apps[appIdentifier]?.config.tasks
-                      .filter((taskDefinition) =>
-                        taskDefinition.eventTriggers.includes(event.eventKey),
-                      )
-                      .map((taskDefinition) => ({
-                        appIdentifier,
-                        taskDefinition,
-                      })) ?? []
-                  : [],
-              )
-            }, [])
+            >(
+              (acc, _app) =>
+                acc.concat(
+                  _app.config.tasks
+                    .filter((taskDefinition) =>
+                      taskDefinition.eventTriggers.includes(event.eventKey),
+                    )
+                    .map((taskDefinition) => ({
+                      appIdentifier: _app.identifier,
+                      taskDefinition,
+                    })),
+                ),
+              [],
+            )
             .map(
-              ({ appIdentifier, taskDefinition }): NewTask => ({
+              (taskRequest): NewTask => ({
                 id: uuidV4(),
                 triggeringEventId: event.id,
                 subjectFolderId: locationContext?.folderId,
                 subjectObjectKey: locationContext?.objectKey,
                 taskDescription: {
-                  textKey: taskDefinition.key, // TODO: Determine task description based on app configs
+                  textKey: taskRequest.taskDefinition.key, // TODO: Determine task description based on app configs
                   variables: {},
                 },
-                taskKey: taskDefinition.key,
+                taskKey: taskRequest.taskDefinition.key,
                 inputData: {},
-                ownerIdentifier: `APP:${appIdentifier.toUpperCase()}`,
+                ownerIdentifier: `APP:${taskRequest.appIdentifier.toUpperCase()}`,
                 createdAt: now,
                 updatedAt: now,
               }),
@@ -184,12 +186,12 @@ export class EventService {
         }
 
         // notify folder rooms of new tasks
-        tasks.map((task) => {
-          if (task.subjectFolderId) {
-            void this.folderSocketService.sendToFolderRoom(
-              task.subjectFolderId,
+        tasks.map((_task) => {
+          if (_task.subjectFolderId) {
+            this.folderSocketService.sendToFolderRoom(
+              _task.subjectFolderId,
               FolderPushMessage.TASK_ADDED,
-              { task },
+              { task: _task },
             )
           }
         })
@@ -243,7 +245,7 @@ export class EventService {
     if (includeError) {
       levelFilters.push(EventLevel.ERROR)
     }
-    const conditions: (SQL<unknown> | undefined)[] = []
+    const conditions: (SQL | undefined)[] = []
     if (search) {
       conditions.push(
         or(

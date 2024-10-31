@@ -10,6 +10,7 @@ import {
 } from '@stellariscloud/types'
 import { eq, inArray } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
+import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
@@ -25,7 +26,6 @@ import type { NewServerSetting } from '../entities/server-configuration.entity'
 import { serverSettingsTable } from '../entities/server-configuration.entity'
 import { ServerConfigurationInvalidException } from '../exceptions/server-configuration-invalid.exception'
 import { ServerConfigurationNotFoundException } from '../exceptions/server-configuration-not-found.exception'
-import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
 
 @Injectable()
 export class ServerConfigurationService {

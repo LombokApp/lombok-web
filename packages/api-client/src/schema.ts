@@ -4793,12 +4793,12 @@ export const schema = {
           "identifier": {
             "type": "string"
           },
+          "publicKey": {
+            "type": "string"
+          },
           "config": {
             "type": "object",
             "properties": {
-              "publicKey": {
-                "type": "string"
-              },
               "description": {
                 "type": "string"
               },
@@ -4888,8 +4888,7 @@ export const schema = {
                     "key",
                     "label",
                     "eventTriggers",
-                    "description",
-                    "inputParams"
+                    "description"
                   ]
                 }
               },
@@ -4916,296 +4915,315 @@ export const schema = {
               }
             },
             "required": [
-              "publicKey",
               "description",
               "emittableEvents",
               "tasks",
               "menuItems"
             ]
           },
-          "ui": {
-            "type": "object",
-            "additionalProperties": {
+          "manifest": {
+            "type": "array",
+            "items": {
               "type": "object",
               "properties": {
                 "path": {
                   "type": "string"
                 },
-                "name": {
+                "hash": {
                   "type": "string"
                 },
-                "files": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "size": {
-                        "type": "number"
-                      },
-                      "hash": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "size",
-                      "hash"
-                    ]
-                  }
+                "size": {
+                  "type": "number"
                 }
               },
               "required": [
                 "path",
-                "name",
-                "files"
+                "hash",
+                "size"
               ]
             }
+          },
+          "connectedWorkers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "appIdentifier": {
+                  "type": "string"
+                },
+                "workerId": {
+                  "type": "string"
+                },
+                "handledTaskKeys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "socketClientId": {
+                  "type": "string"
+                },
+                "ip": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "appIdentifier",
+                "workerId",
+                "handledTaskKeys",
+                "socketClientId",
+                "ip"
+              ]
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
           "identifier",
+          "publicKey",
           "config",
-          "ui"
+          "manifest",
+          "connectedWorkers",
+          "createdAt",
+          "updatedAt"
         ]
       },
       "AppListResponse": {
         "type": "object",
         "properties": {
-          "installed": {
+          "meta": {
             "type": "object",
             "properties": {
-              "meta": {
-                "type": "object",
-                "properties": {
-                  "totalCount": {
-                    "type": "number"
-                  }
+              "totalCount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalCount"
+            ]
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "identifier": {
+                  "type": "string"
                 },
-                "required": [
-                  "totalCount"
-                ]
-              },
-              "result": {
-                "type": "array",
-                "items": {
+                "publicKey": {
+                  "type": "string"
+                },
+                "config": {
                   "type": "object",
                   "properties": {
-                    "identifier": {
+                    "description": {
                       "type": "string"
                     },
-                    "config": {
-                      "type": "object",
-                      "properties": {
-                        "publicKey": {
-                          "type": "string"
-                        },
-                        "description": {
-                          "type": "string"
-                        },
-                        "emittableEvents": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        },
-                        "tasks": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "key": {
-                                "type": "string"
-                              },
-                              "label": {
-                                "type": "string"
-                              },
-                              "eventTriggers": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              },
-                              "folderAction": {
-                                "type": "object",
-                                "properties": {
-                                  "description": {
-                                    "type": "string"
-                                  }
-                                },
-                                "required": [
-                                  "description"
-                                ]
-                              },
-                              "objectAction": {
-                                "type": "object",
-                                "properties": {
-                                  "description": {
-                                    "type": "string"
-                                  }
-                                },
-                                "required": [
-                                  "description"
-                                ]
-                              },
-                              "description": {
-                                "type": "string"
-                              },
-                              "inputParams": {
-                                "type": "object",
-                                "additionalProperties": {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "enum": [
-                                        "boolean",
-                                        "string",
-                                        "number"
-                                      ]
-                                    },
-                                    "default": {
-                                      "oneOf": [
-                                        {
-                                          "type": "string"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "boolean"
-                                        }
-                                      ],
-                                      "type": "null"
-                                    }
-                                  },
-                                  "required": [
-                                    "type"
-                                  ]
-                                }
-                              }
-                            },
-                            "required": [
-                              "key",
-                              "label",
-                              "eventTriggers",
-                              "description",
-                              "inputParams"
-                            ]
-                          }
-                        },
-                        "menuItems": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "label": {
-                                "type": "string"
-                              },
-                              "iconPath": {
-                                "type": "string"
-                              },
-                              "uiName": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "label",
-                              "uiName"
-                            ]
-                          }
-                        }
-                      },
-                      "required": [
-                        "publicKey",
-                        "description",
-                        "emittableEvents",
-                        "tasks",
-                        "menuItems"
-                      ]
+                    "emittableEvents": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     },
-                    "ui": {
-                      "type": "object",
-                      "additionalProperties": {
+                    "tasks": {
+                      "type": "array",
+                      "items": {
                         "type": "object",
                         "properties": {
-                          "path": {
+                          "key": {
                             "type": "string"
                           },
-                          "name": {
+                          "label": {
                             "type": "string"
                           },
-                          "files": {
+                          "eventTriggers": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "folderAction": {
+                            "type": "object",
+                            "properties": {
+                              "description": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "description"
+                            ]
+                          },
+                          "objectAction": {
+                            "type": "object",
+                            "properties": {
+                              "description": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "description"
+                            ]
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "inputParams": {
                             "type": "object",
                             "additionalProperties": {
                               "type": "object",
                               "properties": {
-                                "size": {
-                                  "type": "number"
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "boolean",
+                                    "string",
+                                    "number"
+                                  ]
                                 },
-                                "hash": {
-                                  "type": "string"
+                                "default": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "boolean"
+                                    }
+                                  ],
+                                  "type": "null"
                                 }
                               },
                               "required": [
-                                "size",
-                                "hash"
+                                "type"
                               ]
                             }
                           }
                         },
                         "required": [
-                          "path",
-                          "name",
-                          "files"
+                          "key",
+                          "label",
+                          "eventTriggers",
+                          "description"
+                        ]
+                      }
+                    },
+                    "menuItems": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string"
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          },
+                          "uiName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "label",
+                          "uiName"
                         ]
                       }
                     }
                   },
                   "required": [
-                    "identifier",
-                    "config",
-                    "ui"
+                    "description",
+                    "emittableEvents",
+                    "tasks",
+                    "menuItems"
                   ]
-                }
-              }
-            },
-            "required": [
-              "meta",
-              "result"
-            ]
-          },
-          "connected": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "appIdentifier": {
-                    "type": "string"
-                  },
-                  "socketClientId": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "ip": {
-                    "type": "string"
+                },
+                "manifest": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      },
+                      "hash": {
+                        "type": "string"
+                      },
+                      "size": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "hash",
+                      "size"
+                    ]
                   }
                 },
-                "required": [
-                  "appIdentifier",
-                  "socketClientId",
-                  "name",
-                  "ip"
-                ]
-              }
+                "connectedWorkers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "appIdentifier": {
+                        "type": "string"
+                      },
+                      "workerId": {
+                        "type": "string"
+                      },
+                      "handledTaskKeys": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "socketClientId": {
+                        "type": "string"
+                      },
+                      "ip": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "appIdentifier",
+                      "workerId",
+                      "handledTaskKeys",
+                      "socketClientId",
+                      "ip"
+                    ]
+                  }
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "identifier",
+                "publicKey",
+                "config",
+                "manifest",
+                "connectedWorkers",
+                "createdAt",
+                "updatedAt"
+              ]
             }
           }
         },
         "required": [
-          "installed",
-          "connected"
+          "meta",
+          "result"
         ]
       },
       "AppGetResponse": {
@@ -5217,12 +5235,12 @@ export const schema = {
               "identifier": {
                 "type": "string"
               },
+              "publicKey": {
+                "type": "string"
+              },
               "config": {
                 "type": "object",
                 "properties": {
-                  "publicKey": {
-                    "type": "string"
-                  },
                   "description": {
                     "type": "string"
                   },
@@ -5312,8 +5330,7 @@ export const schema = {
                         "key",
                         "label",
                         "eventTriggers",
-                        "description",
-                        "inputParams"
+                        "description"
                       ]
                     }
                   },
@@ -5340,55 +5357,84 @@ export const schema = {
                   }
                 },
                 "required": [
-                  "publicKey",
                   "description",
                   "emittableEvents",
                   "tasks",
                   "menuItems"
                 ]
               },
-              "ui": {
-                "type": "object",
-                "additionalProperties": {
+              "manifest": {
+                "type": "array",
+                "items": {
                   "type": "object",
                   "properties": {
                     "path": {
                       "type": "string"
                     },
-                    "name": {
+                    "hash": {
                       "type": "string"
                     },
-                    "files": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "object",
-                        "properties": {
-                          "size": {
-                            "type": "number"
-                          },
-                          "hash": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "size",
-                          "hash"
-                        ]
-                      }
+                    "size": {
+                      "type": "number"
                     }
                   },
                   "required": [
                     "path",
-                    "name",
-                    "files"
+                    "hash",
+                    "size"
                   ]
                 }
+              },
+              "connectedWorkers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "appIdentifier": {
+                      "type": "string"
+                    },
+                    "workerId": {
+                      "type": "string"
+                    },
+                    "handledTaskKeys": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "socketClientId": {
+                      "type": "string"
+                    },
+                    "ip": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "appIdentifier",
+                    "workerId",
+                    "handledTaskKeys",
+                    "socketClientId",
+                    "ip"
+                  ]
+                }
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
               }
             },
             "required": [
               "identifier",
+              "publicKey",
               "config",
-              "ui"
+              "manifest",
+              "connectedWorkers",
+              "createdAt",
+              "updatedAt"
             ]
           }
         },

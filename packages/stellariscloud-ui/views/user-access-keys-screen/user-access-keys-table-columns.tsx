@@ -4,10 +4,24 @@ import { ColumnDef } from '@tanstack/react-table'
 
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { AccessKeyDTO } from '@stellariscloud/api-client'
-import { DataTableRowActions } from '@stellariscloud/ui-toolkit'
-import { useRouter } from 'next/router'
+import Link from 'next/link'
 
 export const userAccessKeysTableColumns: ColumnDef<AccessKeyDTO>[] = [
+  {
+    id: '__HIDDEN__',
+    cell: ({ row }) => {
+      return (
+        <div className="w-0 h-0 overflow-hidden max-w-0">
+          <Link
+            href={`/access-keys/${row.original.accessKeyHashId}`}
+            className="absolute top-0 bottom-0 left-0 right-0"
+          />
+        </div>
+      )
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: 'hashId',
     header: ({ column }) => (
@@ -81,25 +95,5 @@ export const userAccessKeysTableColumns: ColumnDef<AccessKeyDTO>[] = [
     },
     enableSorting: false,
     enableHiding: false,
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => {
-      const router = useRouter()
-      return (
-        <DataTableRowActions
-          actions={[
-            {
-              label: 'View',
-              value: 'view',
-              isPinned: true,
-              onClick: () =>
-                router.push(`/access-keys/${row.original.accessKeyHashId}`),
-            },
-          ]}
-          row={row}
-        />
-      )
-    },
   },
 ]

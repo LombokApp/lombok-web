@@ -1,5 +1,6 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
+
 import { EventSort } from '../services/event.service'
 
 export const eventsListQueryParamsSchema = z.object({

@@ -86,7 +86,7 @@ export function ServerEventAttributesList({ event }: { event?: EventDTO }) {
                     {event.emitterIdentifier.startsWith('APP:') ? (
                       <Link
                         className="underline"
-                        href={`/server/apps/${event.emitterIdentifier.slice('APP:'.length)}`}
+                        href={`/server/apps/${event.emitterIdentifier.slice('APP:'.length).toLowerCase()}`}
                       >
                         {event.emitterIdentifier}
                       </Link>

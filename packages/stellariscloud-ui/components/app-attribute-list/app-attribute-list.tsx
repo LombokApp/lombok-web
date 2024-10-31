@@ -82,7 +82,7 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
               )}
             >
               <pre className="bg-foreground/5 p-4 py-2 rounded-md overflow-x-auto">
-                {app?.config.publicKey}
+                {app?.publicKey}
               </pre>
             </dd>
           </div>

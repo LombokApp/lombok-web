@@ -30,6 +30,7 @@ import mime from 'mime'
 import * as r from 'runtypes'
 import { AppService } from 'src/app/services/app.service'
 import { parseSort } from 'src/core/utils/sort.util'
+import { EventLevel } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
@@ -47,6 +48,7 @@ import type { User } from 'src/users/entities/user.entity'
 import { UserService } from 'src/users/services/users.service'
 import { v4 as uuidV4 } from 'uuid'
 
+import { FoldersListQueryParamsDTO } from '../dto/folders-list-query-params.dto'
 import type { Folder } from '../entities/folder.entity'
 import { foldersTable } from '../entities/folder.entity'
 import type { FolderObject } from '../entities/folder-object.entity'
@@ -56,8 +58,6 @@ import { FolderMetadataWriteUnauthorisedException } from '../exceptions/folder-m
 import { FolderNotFoundException } from '../exceptions/folder-not-found.exception'
 import { FolderObjectNotFoundException } from '../exceptions/folder-object-not-found.exception'
 import { FolderPermissionUnauthorizedException } from '../exceptions/folder-permission-unauthorized.exception'
-import { EventLevel } from 'src/event/entities/event.entity'
-import { FoldersListQueryParamsDTO } from '../dto/folders-list-query-params.dto'
 
 export interface OutputUploadUrlsResponse {
   folderId: string
@@ -379,9 +379,7 @@ export class FolderService implements OnModuleInit {
       sort = FolderSort.CreatedAtDesc,
     }: FoldersListQueryParamsDTO,
   ) {
-    const conditions: (SQL<unknown> | undefined)[] = [
-      eq(foldersTable.ownerId, actor.id),
-    ]
+    const conditions: (SQL | undefined)[] = [eq(foldersTable.ownerId, actor.id)]
 
     if (search) {
       conditions.push(ilike(foldersTable.name, `%${search}%`))

@@ -5,7 +5,8 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import nestJsConfig from '@nestjs/config'
-import type { AppConfig, ConnectedAppInstance } from '@stellariscloud/types'
+import { hashLocalFile } from '@stellariscloud/core-worker'
+import type { AppConfig, ConnectedAppWorker } from '@stellariscloud/types'
 import { MediaType, SignedURLsRequestMethod } from '@stellariscloud/types'
 import { EnumType } from '@stellariscloud/utils'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
@@ -30,8 +31,10 @@ import { z } from 'zod'
 
 import { appConfig } from '../config'
 import { AppSocketAPIRequest } from '../constants/app-api-messages'
+import { App, appsTable } from '../entities/app.entity'
 
-const FROM_DISK_APP_TREE_CACHE_KEY = '__STELLARIS_FROM_DISK_APP_TREE'
+const MAX_APP_FILE_SIZE = 1024 * 1024 * 16
+const MAX_APP_TOTAL_SIZE = 1024 * 1024 * 32
 
 export type MetadataUploadUrlsResponse = {
   folderId: string
@@ -125,19 +128,20 @@ const FailHandleTaskValidator = z.object({
   }),
 })
 
-interface InstalledAppDefinitions {
-  [key: string]:
-    | {
-        config: AppConfig
-        ui: {
-          [key: string]: {
-            path: string
-            name: string
-            files: { [key: string]: { size: number; hash: string } }
-          }
-        }
-      }
-    | undefined
+export interface AppDefinition {
+  config: AppConfig
+  ui: {
+    [key: string]: {
+      name: string
+      files: { [key: string]: { size: number; hash: string } }
+    }
+  }
+  workers: {
+    [key: string]: {
+      name: string
+      files: { [key: string]: { size: number; hash: string } }
+    }
+  }
 }
 
 @Injectable()
@@ -154,11 +158,10 @@ export class AppService {
     this.folderService = _folderService
   }
 
-  async getApp(appIdentifier: string): Promise<AppConfig | undefined> {
-    const installedApps = await this.getApps()
-    return appIdentifier in installedApps
-      ? installedApps[appIdentifier]?.config
-      : undefined
+  async getApp(appIdentifier: string): Promise<App | undefined> {
+    return this.ormService.db.query.appsTable.findFirst({
+      where: eq(appsTable.identifier, appIdentifier),
+    })
   }
 
   async handleAppRequest(
@@ -633,109 +636,107 @@ export class AppService {
     return `APP_UI:${appIdentifier}:${appUi}:${filename}`
   }
 
-  public updateAppsFromDisk(appsDirectory: string) {
+  public getApps() {
+    return this.ormService.db.query.appsTable.findMany({ limit: 100 })
+  }
+
+  public async updateAppsFromDisk(appsDirectory: string) {
     // load the apps from disk
-    const appsFromDisk = this.loadAppsFromDisk(appsDirectory)
+    const appsFromDisk = this.parseAppsOnDisk(
+      appsDirectory,
+      MAX_APP_FILE_SIZE,
+      MAX_APP_TOTAL_SIZE,
+    )
     // push all app UI file content into the cache
     for (const appIdentifier of Object.keys(appsFromDisk)) {
       if (appIdentifier in appsFromDisk) {
-        for (const appUi of Object.keys(
-          appsFromDisk[appIdentifier]?.ui ?? {},
-        )) {
-          for (const filename of Object.keys(
-            appsFromDisk[appIdentifier]?.ui[appUi]?.files ?? {},
-          )) {
-            const fullFilePath = path.join(
-              appsDirectory,
-              appIdentifier,
-              'ui',
-              appUi,
-              filename,
-            )
-            const CACHE_KEY = `APP_UI:${appIdentifier}:${appUi}:${filename}`
-            this.kvService.ops.set(CACHE_KEY, fs.readFileSync(fullFilePath))
-          }
-        }
+        const _app = await this.getApp(appIdentifier)
+        // TODO: Push script and UI content into configure server metadata s3 bucket
+
+        // for (const appUi of Object.keys(
+        //   appsFromDisk[appIdentifier]?.ui ?? {},
+        // )) {
+        //   for (const filename of Object.keys(
+        //     appsFromDisk[appIdentifier]?.ui[appUi]?.files ?? {},
+        //   )) {
+        //     const fullFilePath = path.join(
+        //       appsDirectory,
+        //       appIdentifier,
+        //       'ui',
+        //       appUi,
+        //       filename,
+        //     )
+        //     const CACHE_KEY = `APP_UI:${appIdentifier}:${appUi}:${filename}`
+        //     this.kvService.ops.set(CACHE_KEY, fs.readFileSync(fullFilePath))
+        //   }
+        // }
       }
     }
-
-    // save parsed apps in memory
-    this.setAppsInMemory(appsFromDisk)
-    return appsFromDisk
   }
+  public async parseAppsOnDisk(
+    appPath: string,
+    maxFileSize: number,
+    maxTotalSize: number,
+  ): Promise<{ [key: string]: App }> {
+    const now = new Date()
+    const allPotentialAppDirectoriesEntries = fs
+      .readdirSync(appPath)
+      .filter((appIdentifier) =>
+        fs.lstatSync(path.join(appPath, appIdentifier)).isDirectory(),
+      )
+    const apps: { [key: string]: App } = {}
+    for (const appIdentifier of allPotentialAppDirectoriesEntries) {
+      let currentTotalSize = 0
+      const publicKeyPath = path.join(appPath, appIdentifier, '.publicKey')
+      const configPath = path.join(appPath, appIdentifier, 'config.json')
+      const publicKey =
+        fs.existsSync(publicKeyPath) &&
+        !fs.lstatSync(publicKeyPath).isDirectory()
+          ? fs.readFileSync(publicKeyPath, 'utf-8')
+          : ''
 
-  private setAppsInMemory(apps: ReturnType<typeof this.loadAppsFromDisk>) {
-    // save app configs in memory
-    this.kvService.ops.set(FROM_DISK_APP_TREE_CACHE_KEY, apps)
-  }
+      const config =
+        fs.existsSync(configPath) && fs.lstatSync(configPath).isDirectory()
+          ? JSON.parse(fs.readFileSync(configPath, 'utf-8'))
+          : undefined
 
-  public async getApps() {
-    // get latest configs from memory
-    const inMemoryApps = await this.getAppsInMemory()
-
-    if (typeof inMemoryApps !== 'object') {
-      // load from disk and update in memory reference
-      return this.updateAppsFromDisk(this._appConfig.appsLocalPath)
-    }
-    return inMemoryApps
-  }
-
-  public async getAppsInMemory(): Promise<InstalledAppDefinitions | undefined> {
-    // get latest configs from memory
-    const cacheContent: InstalledAppDefinitions | undefined =
-      await this.kvService.ops.get(FROM_DISK_APP_TREE_CACHE_KEY)
-    return cacheContent
-  }
-
-  public loadAppsFromDisk(appsDirectory: string) {
-    const configs: InstalledAppDefinitions = {}
-
-    for (const appName of fs.readdirSync(appsDirectory)) {
-      const parentPath = path.join(appsDirectory, appName)
-      const configPath = path.join(appsDirectory, appName, 'config.json')
-      const uiDirPath = path.join(appsDirectory, appName, 'ui')
-      if (!fs.lstatSync(parentPath).isDirectory()) {
-        continue
-      }
-
-      if (fs.existsSync(configPath)) {
-        const configJson = fs.readFileSync(configPath, 'utf-8')
-        configs[appName] = { ui: {}, config: JSON.parse(configJson) }
-        // load all the frontend assets provided by the app
-        if (fs.existsSync(uiDirPath) && fs.lstatSync(uiDirPath).isDirectory()) {
-          for (const uiName of fs.readdirSync(uiDirPath)) {
-            const uiPayloadRoot = path.join(uiDirPath, uiName)
-            if (fs.lstatSync(uiPayloadRoot).isDirectory()) {
-              const uiPath = path.join(uiDirPath, uiName)
-              const appUiPath = path.join(uiDirPath, uiName)
-              const conf = configs[appName]
-              if (conf) {
-                conf.ui[uiName] = {
-                  name: uiName,
-                  path: uiPath,
-                  files: readDirRecursive(appUiPath).reduce(
-                    (acc, entryPath) => ({
-                      ...acc,
-                      [entryPath.slice(appUiPath.length)]: {
-                        hash: '',
-                        size: 1,
-                      },
-                    }),
-                    {},
-                  ),
-                }
+      // TODO: Validate app definition
+      apps[appIdentifier] = {
+        identifier: appIdentifier,
+        manifest: await Promise.all(
+          readDirRecursive(path.join(appPath, appIdentifier)).map(
+            async (pathEntry) => {
+              const size = fs.statSync(pathEntry).size
+              if (size > maxFileSize) {
+                throw new Error(`App file too large! MAX: ${maxFileSize}`)
               }
-            }
-          }
-        }
+              currentTotalSize += size
+              if (currentTotalSize > maxTotalSize) {
+                throw new Error(
+                  `Total app files size is too large! MAX: ${maxTotalSize}`,
+                )
+              }
+              return {
+                size: fs.statSync(pathEntry).size,
+                path: path.join(appPath, appIdentifier, pathEntry),
+                hash: await hashLocalFile(pathEntry),
+              }
+            },
+          ),
+        ),
+        publicKey,
+        config,
+        createdAt: now,
+        updatedAt: now,
+        contentHash: '',
       }
     }
-    return configs
+    return apps
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
   async getAppConnections(): Promise<{
-    [key: string]: ConnectedAppInstance[]
+    [key: string]: ConnectedAppWorker[]
   }> {
     let cursor = 0
     let started = false
@@ -752,7 +753,7 @@ export class AppService {
       ? this.kvService.ops
           .mget(...keys)
           .filter((_r) => _r)
-          .reduce<{ [k: string]: ConnectedAppInstance[] }>(
+          .reduce<{ [k: string]: ConnectedAppWorker[] }>(
             (acc, _r: string | undefined) => {
               const parsed = JSON.parse(_r ?? 'null')
               if (!parsed) {

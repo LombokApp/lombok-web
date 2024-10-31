@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import Image from 'next/image'
 import { LayoutGrid } from 'lucide-react'
 import {
+  Separator,
   Tabs,
   TabsContent,
   TabsList,
@@ -53,9 +54,9 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
           />
         </div>
         <div className="hidden flex-col md:flex">
-          <div className="flex-1 space-y-2">
+          <div className="flex-1">
             <Tabs defaultValue={serverPage[0]} value={serverPage[0]}>
-              <div className="flex items-start flex-col gap-5">
+              <div className="flex items-start flex-col gap-3">
                 <TabsList>
                   <TabsTrigger
                     onClick={() => router.push('/server')}
@@ -112,10 +113,11 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     </div>
                   </TabsTrigger>
                 </TabsList>
-                <TypographyH2>
+                <TypographyH2 className="pb-0">
                   Server {serverPage[0][0].toUpperCase()}
                   {serverPage[0].slice(1)}
                 </TypographyH2>
+                <Separator className="bg-foreground/10 mb-3" />
               </div>
               {(serverPage.length === 1 || serverPage[0] === 'config') && (
                 <div className="pt-2 pb-6">
@@ -194,24 +196,16 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
           </div>
         </div>
         {serverPage[0] === 'events' && typeof serverPage[1] === 'string' && (
-          <div className="pt-6">
-            <ServerEventDetailScreen eventId={serverPage[1]} />
-          </div>
+          <ServerEventDetailScreen eventId={serverPage[1]} />
         )}
         {serverPage[0] === 'apps' && typeof serverPage[1] === 'string' && (
-          <div className="pt-6">
-            <ServerAppDetailScreen appIdentifier={serverPage[1]} />
-          </div>
+          <ServerAppDetailScreen appIdentifier={serverPage[1]} />
         )}
         {serverPage[0] === 'users' && typeof serverPage[1] === 'string' && (
-          <div className="pt-6">
-            <ServerUserDetailScreen userId={serverPage[1]} />
-          </div>
+          <ServerUserDetailScreen userId={serverPage[1]} />
         )}
         {serverPage[0] === 'tasks' && typeof serverPage[1] === 'string' && (
-          <div className="pt-6">
-            <ServerTaskDetailScreen taskId={serverPage[1]} />
-          </div>
+          <ServerTaskDetailScreen taskId={serverPage[1]} />
         )}
       </div>
     </div>

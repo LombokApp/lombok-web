@@ -3,8 +3,8 @@ import {
   KeyIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline'
-import { Glasses, Globe } from 'lucide-react'
-import type { FolderGetResponse, TaskDTO } from '@stellariscloud/api-client'
+import { Globe } from 'lucide-react'
+import type { FolderGetResponse } from '@stellariscloud/api-client'
 import type { FolderMetadata } from '@stellariscloud/types'
 import { formatBytes } from '@stellariscloud/utils'
 import clsx from 'clsx'
@@ -22,28 +22,21 @@ import {
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
 import { Calculator } from 'lucide-react'
-import { apiClient } from '../../services/api'
 import { FolderTasksList } from '../folder-tasks-list/folder-tasks-list.view'
-
-export type FolderSidebarTab = 'overview' | 'settings' | 'workers'
+import { useServerContext } from '../../contexts/server.context'
+import { apiClient } from '../../services/api'
 
 export const FolderSidebar = ({
+  onRescan,
   folderAndPermission,
   folderMetadata,
-  activeTab = 'overview',
-  onTabChange,
-  onRescan,
-  onIndexAll,
 }: {
   onRescan: () => void
-  onIndexAll: () => void
-  activeTab?: FolderSidebarTab
-  onTabChange: (tab: FolderSidebarTab) => void
   folderAndPermission?: FolderGetResponse
   folderMetadata?: FolderMetadata
 }) => {
+  const serverContext = useServerContext()
   const { folder } = folderAndPermission ?? {}
-  const [tasks, setTasks] = React.useState<TaskDTO[]>()
   const actionItems: {
     id: string
     key: string
@@ -60,21 +53,27 @@ export const FolderSidebar = ({
       icon: ArrowPathIcon,
       onExecute: onRescan,
     },
-  ]
-
-  const fetchTasks = React.useCallback(() => {
-    if (folder?.id) {
-      void apiClient.tasksApi
-        .listFolderTasks({ folderId: folder?.id })
-        .then((resp) => setTasks(resp.data.result))
-    }
-  }, [folder?.id])
-
-  React.useEffect(() => {
-    if (folder?.id) {
-      void fetchTasks()
-    }
-  }, [folder?.id])
+  ].concat(
+    serverContext.appFolderTaskTriggers.map(
+      ({ taskTrigger, appIdentifier }) => ({
+        id: `${appIdentifier}__${taskTrigger.taskKey}`,
+        key: taskTrigger.taskKey,
+        label: taskTrigger.label,
+        description: taskTrigger.description,
+        icon: ArrowPathIcon,
+        onExecute: () =>
+          folder?.id &&
+          apiClient.foldersApi.handleAppTaskTrigger({
+            folderId: folder.id,
+            taskKey: taskTrigger.taskKey,
+            appIdentifier,
+            triggerAppTaskInputDTO: {
+              inputParams: {},
+            },
+          }),
+      }),
+    ),
+  )
 
   return (
     <div className="h-full flex flex-col overflow-y-auto">

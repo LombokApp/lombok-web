@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
+import { ConnectedAppWorker } from '@stellariscloud/types'
 import * as r from 'runtypes'
 import type { Namespace, Socket } from 'socket.io'
 import { AppService } from 'src/app/services/app.service'
@@ -18,15 +19,6 @@ const APP_WORKER_INFO_CACHE_KEY_PREFIX = 'APP_WORKER'
 @Injectable()
 export class AppSocketService {
   private readonly connectedClients: Map<string, Socket> = new Map()
-  private readonly connectedAppWorkers: Map<
-    string,
-    {
-      appIdentifier: string
-      socketClientId: string
-      name: string
-      ip: string
-    }
-  > = new Map()
 
   private namespace: Namespace | undefined
   setNamespace(namespace: Namespace) {
@@ -89,10 +81,11 @@ export class AppSocketService {
         socket.disconnect(true)
         throw new UnauthorizedException()
       }
-      const workerInfo = {
+      const workerInfo: ConnectedAppWorker = {
         appIdentifier,
         socketClientId: socket.id,
-        name: auth.appWorkerId,
+        handledTaskKeys: auth.handledTaskKeys, // TODO: validate worker reported task keys to match their config
+        workerId: auth.appWorkerId,
         ip: socket.handshake.address,
       }
       const workerCacheKey = `${appIdentifier}:${auth.appWorkerId}`
@@ -150,7 +143,6 @@ export class AppSocketService {
       await Promise.all(
         auth.handledTaskKeys.map((taskKey) => {
           const roomKey = this.getRoomKeyForAppAndTask(appIdentifier, taskKey)
-          console.log('App worker joining room:', roomKey)
           return socket.join(roomKey)
         }),
       )

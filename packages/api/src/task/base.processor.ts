@@ -27,7 +27,6 @@ export abstract class BaseProcessor<K extends CoreTaskName> {
   abstract run(inputData: CoreTaskInputData<K>): Promise<void>
 
   async registerProcessor() {
-    console.log('Trying to register...')
     const app = await getApp()
     if (!app) {
       console.log('App did not exist when registering processor.')

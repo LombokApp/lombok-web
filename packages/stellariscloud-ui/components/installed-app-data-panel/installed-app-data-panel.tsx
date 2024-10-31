@@ -1,23 +1,24 @@
-import type { ConnectedAppInstance, AppData } from '@stellariscloud/types'
+import type { ConnectedAppWorker } from '@stellariscloud/types'
 import React from 'react'
 
 import type { AppsTab } from './installed-app-tabs'
 import { InstalledAppTabs } from './installed-app-tabs'
+import { AppDTO } from '@stellariscloud/api-client'
 
 export function InstalledAppDataPanel({
   appInfo,
   connectedAppInstances,
 }: {
-  appInfo: AppData
+  appInfo: AppDTO
   connectedAppInstances: {
-    [name: string]: ConnectedAppInstance | undefined
+    [name: string]: ConnectedAppWorker | undefined
   }
 }) {
   const [activeTab, setActiveTab] = React.useState<AppsTab>('config')
   const _connectedAppInstances = Object.keys(connectedAppInstances).map(
     (workerName) => ({
       id: connectedAppInstances[workerName]?.socketClientId ?? '',
-      name: connectedAppInstances[workerName]?.name ?? '',
+      name: connectedAppInstances[workerName]?.workerId ?? '',
       ip: connectedAppInstances[workerName]?.ip ?? '',
     }),
   )

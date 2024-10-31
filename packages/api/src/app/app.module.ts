@@ -38,7 +38,7 @@ export class AppModule implements OnModuleInit, NestModule {
   ) {}
   async onModuleInit() {
     await this.appService.updateAppsFromDisk(this._appConfig.appsLocalPath)
-    this.coreAppService.startCoreModuleThread('embedded_worker_1')
+    // this.coreAppService.startCoreModuleThread('embedded_worker_1')
   }
 
   configure(consumer: MiddlewareConsumer) {

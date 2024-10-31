@@ -13,9 +13,9 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
-import { TasksListQueryParamsDTO } from '../dto/tasks-list-query-params.dto'
 import { TaskGetResponse } from '../dto/responses/task-get-response.dto'
 import { TaskListResponse } from '../dto/responses/task-list-response.dto'
+import { TasksListQueryParamsDTO } from '../dto/tasks-list-query-params.dto'
 import { TaskService } from '../services/task.service'
 import { transformTaskToDTO } from '../transforms/task.transforms'
 

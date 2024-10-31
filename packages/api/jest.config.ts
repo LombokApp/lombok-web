@@ -1,6 +1,6 @@
-import type { Config } from '@jest/types';
+import type { Config } from '@jest/types'
 
 export default {
   preset: 'ts-jest',
   roots: ['src'],
-} as Config.InitialOptions;
+} as Config.InitialOptions

@@ -21,7 +21,7 @@ export class FolderSocketService implements OnModuleInit {
   setNamespace(namespace: Namespace) {
     this.namespace = namespace
   }
-  private folderService: FolderService
+  private readonly folderService: FolderService
 
   constructor(
     private readonly moduleRef: ModuleRef,

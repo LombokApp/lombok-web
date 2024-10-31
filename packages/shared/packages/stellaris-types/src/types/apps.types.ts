@@ -1,6 +1,7 @@
 import z from 'zod'
 import {
   appConfigSchema,
+  appManifestSchema,
   appMenuItemConfigSchema,
   taskConfigSchema,
 } from '../schemas'
@@ -16,18 +17,18 @@ export type AppMenuItem = z.infer<typeof appMenuItemConfigSchema>
 
 export type AppConfig = z.infer<typeof appConfigSchema>
 
-export interface ConnectedAppInstancesMap {
-  [appIdentifier: string]: ConnectedAppInstance[] | undefined
+export type AppManifest = z.infer<typeof appManifestSchema>
+
+export interface ConnectedAppWorkersMap {
+  [appIdentifier: string]: ConnectedAppWorker[] | undefined
 }
 
-export interface ConnectedAppInstance {
-  appIdentifier: string
-  socketClientId: string
-  name: string
-  ip: string
-}
+export const connectedAppWorkerSchema = z.object({
+  appIdentifier: z.string(),
+  workerId: z.string(),
+  handledTaskKeys: z.array(z.string()),
+  socketClientId: z.string(),
+  ip: z.string(),
+})
 
-export interface AppData {
-  identifier: string
-  config: AppConfig
-}
+export type ConnectedAppWorker = z.infer<typeof connectedAppWorkerSchema>

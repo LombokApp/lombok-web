@@ -1,12 +1,12 @@
 import { forwardRef, Global, Module, OnModuleInit } from '@nestjs/common'
 import { CronJob } from 'cron'
 import { FoldersModule } from 'src/folders/folders.module'
+import { SocketModule } from 'src/socket/socket.module'
 
+import { ServerTasksController } from './controllers/server-tasks.controller'
 import { TasksController } from './controllers/tasks.controller'
 import { CoreTaskService } from './services/core-task.service'
 import { TaskService } from './services/task.service'
-import { SocketModule } from 'src/socket/socket.module'
-import { ServerTasksController } from './controllers/server-tasks.controller'
 
 @Global()
 @Module({

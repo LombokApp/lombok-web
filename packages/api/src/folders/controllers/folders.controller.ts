@@ -21,7 +21,6 @@ import { StorageLocationInputDTO } from 'src/storage/dto/storage-location-input.
 import { FolderDTO } from '../dto/folder.dto'
 import { FolderCreateInputDTO } from '../dto/folder-create-input.dto'
 import { FolderCreateSignedUrlInputDTO } from '../dto/folder-create-signed-url-input.dto'
-import { TriggerAppTaskInputDTO } from '../dto/trigger-app-task-input.dto'
 import { FolderObjectDTO } from '../dto/folder-object.dto'
 import { FolderObjectContentAttributesDTO } from '../dto/folder-object-content-attributes.dto'
 import { FolderObjectContentMetadataDTO } from '../dto/folder-object-content-metadata.dto'
@@ -36,6 +35,7 @@ import type { FolderObjectGetResponse } from '../dto/responses/folder-object-get
 import type { FolderObjectListResponse } from '../dto/responses/folder-object-list-response.dto'
 import { transformFolderToDTO } from '../dto/transforms/folder.transforms'
 import { transformFolderObjectToDTO } from '../dto/transforms/folder-object.transforms'
+import { TriggerAppTaskInputDTO } from '../dto/trigger-app-task-input.dto'
 import { FolderPermissionUnauthorizedException } from '../exceptions/folder-permission-unauthorized.exception'
 import { FolderService } from '../services/folder.service'
 

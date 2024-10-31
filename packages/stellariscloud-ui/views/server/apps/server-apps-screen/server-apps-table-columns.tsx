@@ -6,9 +6,25 @@ import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components
 import { invertColour, stringToColour } from '../../../../utils/colors'
 import { AppDTO } from '@stellariscloud/api-client'
 import { useRouter } from 'next/router'
-import { DataTableRowActions } from '@stellariscloud/ui-toolkit'
+import { Pointer } from 'lucide-react'
+import Link from 'next/link'
 
 export const serverAppsTableColumns: ColumnDef<AppDTO>[] = [
+  {
+    id: '__HIDDEN__',
+    cell: ({ row }) => {
+      return (
+        <div className="w-0 h-0 overflow-hidden max-w-0">
+          <Link
+            href={`/server/apps/${row.original.identifier.toLowerCase()}`}
+            className="absolute top-0 bottom-0 left-0 right-0"
+          />
+        </div>
+      )
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: 'identifier',
     header: ({ column }) => (
@@ -18,20 +34,23 @@ export const serverAppsTableColumns: ColumnDef<AppDTO>[] = [
         title="Name"
       />
     ),
-    cell: ({ row: { original: app } }) => {
+    cell: ({ row }) => {
+      const router = useRouter()
       return (
         <div className="flex gap-4 items-center font-normal">
           <div
             className="flex items-center justify-center rounded-full w-8 h-8 overflow-hidden"
             style={{
-              background: stringToColour(app.identifier),
-              color: invertColour(stringToColour(app.identifier)),
+              background: stringToColour(row.original.identifier),
+              color: invertColour(stringToColour(row.original.identifier)),
             }}
           >
-            <span className="uppercase">{app.identifier?.[0] ?? '?'}</span>
+            <span className="uppercase">
+              {row.original.identifier?.[0] ?? '?'}
+            </span>
           </div>
 
-          {app.identifier.toUpperCase()}
+          <span>{row.original.identifier.toUpperCase()}</span>
         </div>
       )
     },
@@ -51,31 +70,11 @@ export const serverAppsTableColumns: ColumnDef<AppDTO>[] = [
       <div className="flex flex-col">
         <div className="">{row.getValue('publicKey')}</div>
         <span className="max-w-[400px] truncate text-muted-foreground text-xs">
-          {row.original.config.publicKey}
+          {row.original.publicKey}
         </span>
       </div>
     ),
     enableSorting: false,
     enableHiding: false,
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => {
-      const router = useRouter()
-      return (
-        <DataTableRowActions
-          actions={[
-            {
-              label: 'View',
-              value: 'view',
-              isPinned: true,
-              onClick: () =>
-                router.push(`/server/apps/${row.original.identifier}`),
-            },
-          ]}
-          row={row}
-        />
-      )
-    },
   },
 ]

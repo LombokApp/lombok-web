@@ -38,7 +38,7 @@ export function DataTableToolbar<TData>({
   }
   return (
     <div className="flex items-center justify-between">
-      <div className="flex items-center space-x-2 border p-2 bg-card border-foreground/5 rounded-md">
+      <div className="flex items-center space-x-2 border p-2 bg-card border-foreground/10 rounded-md">
         <div className="pl-2 pr-1 flex items-center">
           <Filter className="w-5 h-5 text-foreground/30" />
         </div>

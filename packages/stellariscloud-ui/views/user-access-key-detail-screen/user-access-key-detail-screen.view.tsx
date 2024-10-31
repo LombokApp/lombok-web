@@ -9,6 +9,8 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Separator,
+  TypographyH2,
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
 
@@ -72,44 +74,40 @@ export function UserAccessKeyDetailScreen() {
   )
 
   return (
-    <>
-      <div
-        className={clsx(
-          'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
-        )}
-      >
-        <div className="container flex-1 flex flex-col gap-4">
-          <AccessKeyAttributeList accessKey={accessKey} />
+    <div className="flex flex-1 flex-col container gap-3 self-center">
+      <TypographyH2 className="pb-0">
+        Access Key {accessKey?.accessKeyHashId}
+      </TypographyH2>
+      <Separator className="bg-foreground/10 mb-3" />
+      <div className="container flex-1 flex flex-col gap-4">
+        <AccessKeyAttributeList accessKey={accessKey} />
+        <Card>
+          <CardHeader>
+            <TypographyH3>Rotate Key</TypographyH3>
+          </CardHeader>
+          <CardContent>
+            {accessKey && (
+              <AccessKeyRotateForm onSubmit={(input) => handleRotate(input)} />
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="flex flex-col gap-2">
           <Card>
             <CardHeader>
-              <TypographyH3>Rotate Key</TypographyH3>
+              <TypographyH3>Buckets</TypographyH3>
             </CardHeader>
+
             <CardContent>
-              {accessKey && (
-                <AccessKeyRotateForm
-                  onSubmit={(input) => handleRotate(input)}
-                />
-              )}
+              {accessKeyBuckets?.map(({ name, creationDate }, i) => (
+                <div key={i} className="italic opacity-50">
+                  {name}
+                </div>
+              ))}
             </CardContent>
           </Card>
-
-          <div className="flex flex-col gap-2">
-            <Card>
-              <CardHeader>
-                <TypographyH3>Buckets</TypographyH3>
-              </CardHeader>
-
-              <CardContent>
-                {accessKeyBuckets?.map(({ name, creationDate }, i) => (
-                  <div key={i} className="italic opacity-50">
-                    {name}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }

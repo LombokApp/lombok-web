@@ -13,7 +13,12 @@ import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder
 import { CreateFolderForm } from '../../components/create-folder-form/create-folder-form'
 import { CreateFolderStartPanel } from '../../components/create-folder-start-panel/create-folder-start-panel'
 import { apiClient, foldersApiHooks } from '../../services/api'
-import { DataTable, cn } from '@stellariscloud/ui-toolkit'
+import {
+  DataTable,
+  Separator,
+  TypographyH2,
+  cn,
+} from '@stellariscloud/ui-toolkit'
 import { PaginationState, SortingState } from '@tanstack/react-table'
 import { foldersTableColumns } from './folders-table-columns'
 
@@ -120,8 +125,11 @@ export const FoldersScreen = () => {
   }
 
   return (
-    <div className={cn('items-center flex flex-1 flex-col h-full')}>
-      <div className="flex flex-1 flex-col container">
+    <>
+      <div className="flex flex-1 flex-col container gap-3 self-center">
+        <TypographyH2 className="pb-0">Folders</TypographyH2>
+        <Separator className="bg-foreground/10 mb-3" />
+
         <DataTable
           enableSearch={true}
           searchColumn="name"
@@ -146,33 +154,6 @@ export const FoldersScreen = () => {
           }}
         />
       </div>
-      <div
-        className={clsx(
-          'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
-        )}
-      >
-        <div className="container flex-1 flex flex-col gap-4 p-8">
-          {folderFormKey && (
-            <div
-              className={clsx(
-                'overflow-hidden flex flex-col items-center flex-1',
-              )}
-            >
-              <div className="p-10 rounded-xl w-fit border border-gray-200 bg-white">
-                <CreateFolderForm
-                  onCancel={() =>
-                    void router.push({ pathname: router.pathname })
-                  }
-                  storageProvisions={storageProvisions}
-                  key={folderFormKey}
-                  onSubmit={handleCreateFolder}
-                />
-              </div>
-            </div>
-          )}
-          {!folders && <div className="animate-pulse">Loading folders...</div>}
-        </div>
-      </div>
-    </div>
+    </>
   )
 }

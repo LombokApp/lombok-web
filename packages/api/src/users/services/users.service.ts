@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
-import { SQL, and, eq, ilike, or, sql } from 'drizzle-orm'
+import { and, eq, ilike, or, SQL, sql } from 'drizzle-orm'
 import { authHelper } from 'src/auth/utils/auth-helper'
 import { parseSort } from 'src/core/utils/sort.util'
 import { OrmService } from 'src/orm/orm.service'
@@ -7,10 +7,10 @@ import { v4 as uuidV4 } from 'uuid'
 
 import { UserCreateInputDTO } from '../dto/user-create-input.dto'
 import { UserUpdateInputDTO } from '../dto/user-update-input.dto'
+import { UsersListQueryParamsDTO } from '../dto/users-list-query-params.dto'
 import type { NewUser, User } from '../entities/user.entity'
 import { usersTable } from '../entities/user.entity'
 import { UserNotFoundException } from '../exceptions/user-not-found.exception'
-import { UsersListQueryParamsDTO } from '../dto/users-list-query-params.dto'
 
 export enum UserSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -80,7 +80,7 @@ export class UserService {
     search?: string
     isAdmin?: boolean
   }) {
-    const conditions: (SQL<unknown> | undefined)[] = []
+    const conditions: (SQL | undefined)[] = []
     if (search) {
       conditions.push(
         or(

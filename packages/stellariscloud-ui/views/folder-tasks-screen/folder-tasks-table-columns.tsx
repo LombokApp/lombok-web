@@ -9,8 +9,24 @@ import Image from 'next/image'
 import { DataTableRowActions, cn } from '@stellariscloud/ui-toolkit'
 import { invertColour, stringToColour } from '../../utils/colors'
 import { useRouter } from 'next/router'
+import Link from 'next/link'
 
 export const folderTasksTableColumns: ColumnDef<TaskDTO>[] = [
+  {
+    id: '__HIDDEN__',
+    cell: ({ row }) => {
+      return (
+        <div className="w-0 h-0 overflow-hidden max-w-0">
+          <Link
+            href={`/folders/${row.original.subjectFolderId}/tasks/${row.original.id}`}
+            className="absolute top-0 bottom-0 left-0 right-0"
+          />
+        </div>
+      )
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: 'taskKey',
     header: ({ column }) => (
@@ -163,27 +179,5 @@ export const folderTasksTableColumns: ColumnDef<TaskDTO>[] = [
     ),
     enableSorting: true,
     enableHiding: false,
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => {
-      const router = useRouter()
-      return (
-        <DataTableRowActions
-          actions={[
-            {
-              label: 'View',
-              value: 'view',
-              isPinned: true,
-              onClick: () =>
-                router.push(
-                  `/folders/${row.original.subjectFolderId}/tasks/${row.original.id}`,
-                ),
-            },
-          ]}
-          row={row}
-        />
-      )
-    },
   },
 ]

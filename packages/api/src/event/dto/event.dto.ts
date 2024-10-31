@@ -1,5 +1,6 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
+
 import { EventLevel } from '../entities/event.entity'
 
 export const eventSchema = z.object({

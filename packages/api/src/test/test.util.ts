@@ -1,19 +1,19 @@
 import { Test } from '@nestjs/testing'
+import type { FolderDTO } from '@stellariscloud/api-client'
 import { SignedURLsRequestMethod } from '@stellariscloud/types'
 import axios from 'axios'
 import { eq } from 'drizzle-orm'
 import fs from 'fs'
 import path from 'path'
 import type { LoginResponse } from 'src/auth/dto/responses/login-response.dto'
-import type { FolderDTO } from 'src/folders/dto/folder.dto'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { configureS3Client } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { CoreTestModule } from 'src/test/core-test.module'
 import { usersTable } from 'src/users/entities/user.entity'
 
-import { setApp, setAppInitializing } from '../shared/app-helper'
 import { ormConfig } from '../orm/config'
+import { setApp, setAppInitializing } from '../shared/app-helper'
 import type { TestApiClient, TestModule } from './test.types'
 import { buildSupertestApiClient } from './test-api-client'
 
@@ -155,9 +155,13 @@ export async function createTestUser(
     admin?: boolean
   },
 ): Promise<LoginResponse> {
-  const signupResponse = await testModule?.apiClient
-    .authApi()
-    .signup({ signupCredentialsDTO: { username, password, email } })
+  const signupResponse = await testModule?.apiClient.authApi().signup({
+    signupCredentialsDTO: {
+      username,
+      password,
+      email: email ?? `${username}@example.com`,
+    },
+  })
   if (admin) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     await testModule!

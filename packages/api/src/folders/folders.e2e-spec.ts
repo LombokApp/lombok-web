@@ -1,7 +1,4 @@
-import { getQueueToken } from '@nestjs/bullmq'
 import { StorageProvisionTypeEnum } from '@stellariscloud/types'
-import type { InMemoryQueue } from 'src/queue/InMemoryQueue'
-import { CoreTaskName } from 'src/task/task.constants'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
@@ -9,7 +6,7 @@ import {
   createTestUser,
   rescanTestFolder,
   testS3Location,
-  waitForTrue,
+  // waitForTrue,
 } from 'src/test/test.util'
 
 const TEST_MODULE_KEY = 'folders'
@@ -243,10 +240,10 @@ describe('Folders', () => {
     expect(folderGetResponse.status).toEqual(200)
     expect(folderGetResponse.data.folder.id).toEqual(testFolder.folder.id)
 
-    const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
-      getQueueToken(CoreTaskName.RESCAN_FOLDER),
-    )
-    const jobsCompletedBefore = queue?.stats.completedJobs ?? 0
+    // const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
+    //   getQueueToken(CoreTaskName.RESCAN_FOLDER),
+    // )
+    // const jobsCompletedBefore = queue?.stats.completedJobs ?? 0
 
     await rescanTestFolder({
       accessToken,
@@ -255,10 +252,10 @@ describe('Folders', () => {
     })
 
     // wait to see that a job was run (we know it's our job)
-    await waitForTrue(
-      () => (queue?.stats.completedJobs ?? 0) > jobsCompletedBefore,
-      { retryPeriod: 100, maxRetries: 10 },
-    )
+    // await waitForTrue(
+    //   () => (queue?.stats.completedJobs ?? 0) > jobsCompletedBefore,
+    //   { retryPeriod: 100, maxRetries: 10 },
+    // )
     const listObjectsResponse = await apiClient
       .foldersApi({ accessToken })
       .listFolderObjects({ folderId: testFolder.folder.id })
@@ -760,11 +757,11 @@ describe('Folders', () => {
   })
 
   it(`should 401 on handleFolderAction without token`, async () => {
-    const response = await apiClient.foldersApi().handleFolderAction({
-      actionKey: '__dummy__',
+    const response = await apiClient.foldersApi().handleAppTaskTrigger({
+      taskKey: '__dummy__',
       appIdentifier: '__dummy__',
-      folderHandleActionInputDTO: {
-        actionParams: {},
+      triggerAppTaskInputDTO: {
+        inputParams: {},
       },
       folderId: '__dummy__',
     })

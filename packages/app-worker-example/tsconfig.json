@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "module": "ESNext", // Rollup prefers ES module syntax
+    "target": "esnext",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "dist"
+  },
+  "include": [
+    ".",
+    "src",
+    "index.ts",
+    "index.d.ts",
+    ".eslintrc.js",
+    "rollup.config.js"
+  ],
+  "exclude": ["dist"]
+}

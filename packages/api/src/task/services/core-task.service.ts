@@ -1,4 +1,5 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common'
+import { forwardRef, Inject, Injectable } from '@nestjs/common'
+import { FolderPushMessage } from '@stellariscloud/types'
 import { and, count, eq, isNull } from 'drizzle-orm'
 import {
   EventLevel,
@@ -6,13 +7,12 @@ import {
   NewEvent,
 } from 'src/event/entities/event.entity'
 import { OrmService } from 'src/orm/orm.service'
+import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { CoreTaskName } from 'src/task/task.constants'
 import { v4 as uuidV4 } from 'uuid'
 
 import { BaseProcessor, ProcessorError } from '../base.processor'
 import { NewTask, tasksTable } from '../entities/task.entity'
-import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
-import { FolderPushMessage } from '@stellariscloud/types'
 
 const MAX_CONCURRENT_CORE_TASKS = 10
 
@@ -149,14 +149,14 @@ export class CoreTaskService {
                 .findFirst({
                   where: eq(tasksTable.id, taskId),
                 })
-                .then((task) => {
+                .then((_task) => {
                   if (updateResult[0].subjectFolderId) {
                     // notify folder rooms of updated task
                     this.folderSocketService.sendToFolderRoom(
                       updateResult[0].subjectFolderId,
                       FolderPushMessage.TASK_UPDATED,
                       {
-                        task,
+                        task: _task,
                       },
                     )
                   }

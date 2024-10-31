@@ -23,7 +23,7 @@ export const taskConfigSchema = z.object({
   folderAction: z.object({ description: z.string() }).optional(),
   objectAction: z.object({ description: z.string() }).optional(),
   description: z.string(),
-  inputParams: z.record(z.string(), paramConfigSchema),
+  inputParams: z.record(z.string(), paramConfigSchema).optional(),
 })
 
 export const appMenuItemConfigSchema = z.object({
@@ -32,8 +32,20 @@ export const appMenuItemConfigSchema = z.object({
   uiName: z.string(),
 })
 
-export const appConfigSchema = z.object({
+export const appIdentitySchema = z.object({
   publicKey: z.string(),
+  identifier: z.string(),
+})
+
+export const appManifestSchema = z.array(
+  z.object({
+    path: z.string(),
+    hash: z.string(),
+    size: z.number(),
+  }),
+)
+
+export const appConfigSchema = z.object({
   description: z.string(),
   emittableEvents: z.array(z.string()),
   tasks: z.array(taskConfigSchema),
