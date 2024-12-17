@@ -10,7 +10,7 @@
  * Do not edit the class manually.
  */
 import type { Configuration } from './configuration';
-import type { AxiosPromise, AxiosInstance, AxiosRequestConfig } from 'axios';
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
 import type { RequestArgs } from './base';
 import { BaseAPI } from './base';
 /**
@@ -239,6 +239,12 @@ export interface AppDTOConfig {
     'description': string;
     /**
      *
+     * @type {boolean}
+     * @memberof AppDTOConfig
+     */
+    'requiresStorage': boolean;
+    /**
+     *
      * @type {Array<string>}
      * @memberof AppDTOConfig
      */
@@ -325,11 +331,11 @@ export interface AppDTOConfigTasksInner {
     'description': string;
     /**
      *
-     * @type {{ [key: string]: AppDTOConfigTasksInnerInputParamsValue | undefined; }}
+     * @type {{ [key: string]: AppDTOConfigTasksInnerInputParamsValue; }}
      * @memberof AppDTOConfigTasksInner
      */
     'inputParams'?: {
-        [key: string]: AppDTOConfigTasksInnerInputParamsValue | undefined;
+        [key: string]: AppDTOConfigTasksInnerInputParamsValue;
     };
 }
 /**
@@ -1068,16 +1074,16 @@ export interface FolderListResponse {
 export interface FolderListResponseResultInner {
     /**
      *
-     * @type {Array<string>}
-     * @memberof FolderListResponseResultInner
-     */
-    'permissions': Array<FolderListResponseResultInnerPermissionsEnum>;
-    /**
-     *
      * @type {FolderGetResponseFolder}
      * @memberof FolderListResponseResultInner
      */
     'folder': FolderGetResponseFolder;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof FolderListResponseResultInner
+     */
+    'permissions': Array<FolderListResponseResultInnerPermissionsEnum>;
 }
 export declare const FolderListResponseResultInnerPermissionsEnum: {
     readonly FolderRescan: "FOLDER_RESCAN";
@@ -1205,21 +1211,21 @@ export interface FolderObjectDTO {
     'mediaType': FolderObjectDTOMediaTypeEnum;
     /**
      *
-     * @type {{ [key: string]: FolderObjectDTOContentAttributesValue | undefined; }}
+     * @type {{ [key: string]: FolderObjectDTOContentAttributesValue; }}
      * @memberof FolderObjectDTO
      */
     'contentAttributes': {
-        [key: string]: FolderObjectDTOContentAttributesValue | undefined;
+        [key: string]: FolderObjectDTOContentAttributesValue;
     };
     /**
      *
-     * @type {{ [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue | undefined; } | undefined; }}
+     * @type {{ [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue; }; }}
      * @memberof FolderObjectDTO
      */
     'contentMetadata': {
         [key: string]: {
-            [key: string]: FolderObjectDTOContentMetadataValueValue | undefined;
-        } | undefined;
+            [key: string]: FolderObjectDTOContentMetadataValueValue;
+        };
     };
 }
 export declare const FolderObjectDTOMediaTypeEnum: {
@@ -1406,21 +1412,21 @@ export interface FolderObjectListResponseResultInner {
     'mediaType': FolderObjectListResponseResultInnerMediaTypeEnum;
     /**
      *
-     * @type {{ [key: string]: FolderObjectDTOContentAttributesValue | undefined; }}
+     * @type {{ [key: string]: FolderObjectDTOContentAttributesValue; }}
      * @memberof FolderObjectListResponseResultInner
      */
     'contentAttributes': {
-        [key: string]: FolderObjectDTOContentAttributesValue | undefined;
+        [key: string]: FolderObjectDTOContentAttributesValue;
     };
     /**
      *
-     * @type {{ [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue | undefined; } | undefined; }}
+     * @type {{ [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue; }; }}
      * @memberof FolderObjectListResponseResultInner
      */
     'contentMetadata': {
         [key: string]: {
-            [key: string]: FolderObjectDTOContentMetadataValueValue | undefined;
-        } | undefined;
+            [key: string]: FolderObjectDTOContentMetadataValueValue;
+        };
     };
 }
 export declare const FolderObjectListResponseResultInnerMediaTypeEnum: {
@@ -1500,6 +1506,148 @@ export interface RotateAccessKeyInputDTO {
      * @memberof RotateAccessKeyInputDTO
      */
     'secretAccessKey': string;
+}
+/**
+ *
+ * @export
+ * @interface ServerStorageLocationDTO
+ */
+export interface ServerStorageLocationDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationDTO
+     */
+    'accessKeyHashId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationDTO
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationDTO
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationDTO
+     */
+    'bucket': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationDTO
+     */
+    'region': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationDTO
+     */
+    'prefix'?: string;
+}
+/**
+ *
+ * @export
+ * @interface ServerStorageLocationGetResponse
+ */
+export interface ServerStorageLocationGetResponse {
+    /**
+     *
+     * @type {ServerStorageLocationGetResponseServerStorageLocation}
+     * @memberof ServerStorageLocationGetResponse
+     */
+    'serverStorageLocation'?: ServerStorageLocationGetResponseServerStorageLocation;
+}
+/**
+ *
+ * @export
+ * @interface ServerStorageLocationGetResponseServerStorageLocation
+ */
+export interface ServerStorageLocationGetResponseServerStorageLocation {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationGetResponseServerStorageLocation
+     */
+    'accessKeyHashId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationGetResponseServerStorageLocation
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationGetResponseServerStorageLocation
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationGetResponseServerStorageLocation
+     */
+    'bucket': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationGetResponseServerStorageLocation
+     */
+    'region': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationGetResponseServerStorageLocation
+     */
+    'prefix'?: string;
+}
+/**
+ *
+ * @export
+ * @interface ServerStorageLocationInputDTO
+ */
+export interface ServerStorageLocationInputDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationInputDTO
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationInputDTO
+     */
+    'secretAccessKey': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationInputDTO
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationInputDTO
+     */
+    'bucket': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationInputDTO
+     */
+    'region': string;
+    /**
+     *
+     * @type {string}
+     * @memberof ServerStorageLocationInputDTO
+     */
+    'prefix': string | null;
 }
 /**
  *
@@ -1588,7 +1736,7 @@ export interface SignupCredentialsDTO {
      * @type {string}
      * @memberof SignupCredentialsDTO
      */
-    'email': string;
+    'email'?: string;
     /**
      *
      * @type {string}
@@ -1626,13 +1774,13 @@ export interface SignupResponseUser {
      * @type {string}
      * @memberof SignupResponseUser
      */
-    'name'?: string;
+    'name': string | null;
     /**
      *
      * @type {string}
      * @memberof SignupResponseUser
      */
-    'email'?: string;
+    'email': string | null;
     /**
      *
      * @type {boolean}
@@ -1740,245 +1888,6 @@ export interface StorageLocationInputDTO {
 /**
  *
  * @export
- * @interface StorageProvisionDTO
- */
-export interface StorageProvisionDTO {
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'id': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'accessKeyHashId': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'endpoint': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'bucket': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'region': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'accessKeyId': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'prefix'?: string;
-    /**
-     *
-     * @type {Array<string>}
-     * @memberof StorageProvisionDTO
-     */
-    'provisionTypes': Array<StorageProvisionDTOProvisionTypesEnum>;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'label': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'description': string;
-}
-export declare const StorageProvisionDTOProvisionTypesEnum: {
-    readonly Content: "CONTENT";
-    readonly Metadata: "METADATA";
-    readonly Backup: "BACKUP";
-};
-export type StorageProvisionDTOProvisionTypesEnum = typeof StorageProvisionDTOProvisionTypesEnum[keyof typeof StorageProvisionDTOProvisionTypesEnum];
-/**
- *
- * @export
- * @interface StorageProvisionGetResponse
- */
-export interface StorageProvisionGetResponse {
-    /**
-     *
-     * @type {StorageProvisionListResponseResultInner}
-     * @memberof StorageProvisionGetResponse
-     */
-    'storageProvision': StorageProvisionListResponseResultInner;
-}
-/**
- *
- * @export
- * @interface StorageProvisionInputDTO
- */
-export interface StorageProvisionInputDTO {
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionInputDTO
-     */
-    'label': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionInputDTO
-     */
-    'description': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionInputDTO
-     */
-    'endpoint': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionInputDTO
-     */
-    'bucket': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionInputDTO
-     */
-    'region': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionInputDTO
-     */
-    'accessKeyId': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionInputDTO
-     */
-    'secretAccessKey': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionInputDTO
-     */
-    'prefix'?: string;
-    /**
-     *
-     * @type {Array<string>}
-     * @memberof StorageProvisionInputDTO
-     */
-    'provisionTypes': Array<StorageProvisionInputDTOProvisionTypesEnum>;
-}
-export declare const StorageProvisionInputDTOProvisionTypesEnum: {
-    readonly Content: "CONTENT";
-    readonly Metadata: "METADATA";
-    readonly Backup: "BACKUP";
-};
-export type StorageProvisionInputDTOProvisionTypesEnum = typeof StorageProvisionInputDTOProvisionTypesEnum[keyof typeof StorageProvisionInputDTOProvisionTypesEnum];
-/**
- *
- * @export
- * @interface StorageProvisionListResponse
- */
-export interface StorageProvisionListResponse {
-    /**
-     *
-     * @type {Array<StorageProvisionListResponseResultInner>}
-     * @memberof StorageProvisionListResponse
-     */
-    'result': Array<StorageProvisionListResponseResultInner>;
-}
-/**
- *
- * @export
- * @interface StorageProvisionListResponseResultInner
- */
-export interface StorageProvisionListResponseResultInner {
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'id': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'accessKeyHashId': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'endpoint': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'bucket': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'region': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'accessKeyId': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'prefix'?: string;
-    /**
-     *
-     * @type {Array<string>}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'provisionTypes': Array<StorageProvisionListResponseResultInnerProvisionTypesEnum>;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'label': string;
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'description': string;
-}
-export declare const StorageProvisionListResponseResultInnerProvisionTypesEnum: {
-    readonly Content: "CONTENT";
-    readonly Metadata: "METADATA";
-    readonly Backup: "BACKUP";
-};
-export type StorageProvisionListResponseResultInnerProvisionTypesEnum = typeof StorageProvisionListResponseResultInnerProvisionTypesEnum[keyof typeof StorageProvisionListResponseResultInnerProvisionTypesEnum];
-/**
- *
- * @export
  * @interface TaskDTO
  */
 export interface TaskDTO {
@@ -2026,11 +1935,11 @@ export interface TaskDTO {
     'handlerId'?: string;
     /**
      *
-     * @type {{ [key: string]: TaskGetResponseTaskInputDataValue | undefined; }}
+     * @type {{ [key: string]: TaskGetResponseTaskInputDataValue; }}
      * @memberof TaskDTO
      */
     'inputData': {
-        [key: string]: TaskGetResponseTaskInputDataValue | undefined;
+        [key: string]: TaskGetResponseTaskInputDataValue;
     };
     /**
      *
@@ -2150,11 +2059,11 @@ export interface TaskGetResponseTask {
     'handlerId'?: string;
     /**
      *
-     * @type {{ [key: string]: TaskGetResponseTaskInputDataValue | undefined; }}
+     * @type {{ [key: string]: TaskGetResponseTaskInputDataValue; }}
      * @memberof TaskGetResponseTask
      */
     'inputData': {
-        [key: string]: TaskGetResponseTaskInputDataValue | undefined;
+        [key: string]: TaskGetResponseTaskInputDataValue;
     };
     /**
      *
@@ -2230,11 +2139,11 @@ export interface TaskGetResponseTaskTaskDescription {
     'textKey': string;
     /**
      *
-     * @type {{ [key: string]: string | undefined; }}
+     * @type {{ [key: string]: string; }}
      * @memberof TaskGetResponseTaskTaskDescription
      */
     'variables': {
-        [key: string]: string | undefined;
+        [key: string]: string;
     };
 }
 /**
@@ -2354,13 +2263,13 @@ export interface UserDTO {
      * @type {string}
      * @memberof UserDTO
      */
-    'name'?: string;
+    'name': string | null;
     /**
      *
      * @type {string}
      * @memberof UserDTO
      */
-    'email'?: string;
+    'email': string | null;
     /**
      *
      * @type {boolean}
@@ -2446,6 +2355,245 @@ export interface UserListResponseMeta {
 /**
  *
  * @export
+ * @interface UserStorageProvisionDTO
+ */
+export interface UserStorageProvisionDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'accessKeyHashId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'bucket': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'region': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'prefix'?: string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof UserStorageProvisionDTO
+     */
+    'provisionTypes': Array<UserStorageProvisionDTOProvisionTypesEnum>;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'label': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'description': string;
+}
+export declare const UserStorageProvisionDTOProvisionTypesEnum: {
+    readonly Content: "CONTENT";
+    readonly Metadata: "METADATA";
+    readonly Redundancy: "REDUNDANCY";
+};
+export type UserStorageProvisionDTOProvisionTypesEnum = typeof UserStorageProvisionDTOProvisionTypesEnum[keyof typeof UserStorageProvisionDTOProvisionTypesEnum];
+/**
+ *
+ * @export
+ * @interface UserStorageProvisionGetResponse
+ */
+export interface UserStorageProvisionGetResponse {
+    /**
+     *
+     * @type {UserStorageProvisionListResponseResultInner}
+     * @memberof UserStorageProvisionGetResponse
+     */
+    'userStorageProvision': UserStorageProvisionListResponseResultInner;
+}
+/**
+ *
+ * @export
+ * @interface UserStorageProvisionInputDTO
+ */
+export interface UserStorageProvisionInputDTO {
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'label': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'description': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'bucket': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'region': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'secretAccessKey': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'prefix'?: string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'provisionTypes': Array<UserStorageProvisionInputDTOProvisionTypesEnum>;
+}
+export declare const UserStorageProvisionInputDTOProvisionTypesEnum: {
+    readonly Content: "CONTENT";
+    readonly Metadata: "METADATA";
+    readonly Redundancy: "REDUNDANCY";
+};
+export type UserStorageProvisionInputDTOProvisionTypesEnum = typeof UserStorageProvisionInputDTOProvisionTypesEnum[keyof typeof UserStorageProvisionInputDTOProvisionTypesEnum];
+/**
+ *
+ * @export
+ * @interface UserStorageProvisionListResponse
+ */
+export interface UserStorageProvisionListResponse {
+    /**
+     *
+     * @type {Array<UserStorageProvisionListResponseResultInner>}
+     * @memberof UserStorageProvisionListResponse
+     */
+    'result': Array<UserStorageProvisionListResponseResultInner>;
+}
+/**
+ *
+ * @export
+ * @interface UserStorageProvisionListResponseResultInner
+ */
+export interface UserStorageProvisionListResponseResultInner {
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'id': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'accessKeyHashId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'endpoint': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'bucket': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'region': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'accessKeyId': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'prefix'?: string;
+    /**
+     *
+     * @type {Array<string>}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'provisionTypes': Array<UserStorageProvisionListResponseResultInnerProvisionTypesEnum>;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'label': string;
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'description': string;
+}
+export declare const UserStorageProvisionListResponseResultInnerProvisionTypesEnum: {
+    readonly Content: "CONTENT";
+    readonly Metadata: "METADATA";
+    readonly Redundancy: "REDUNDANCY";
+};
+export type UserStorageProvisionListResponseResultInnerProvisionTypesEnum = typeof UserStorageProvisionListResponseResultInnerProvisionTypesEnum[keyof typeof UserStorageProvisionListResponseResultInnerProvisionTypesEnum];
+/**
+ *
+ * @export
  * @interface UserUpdateInputDTO
  */
 export interface UserUpdateInputDTO {
@@ -2454,19 +2602,13 @@ export interface UserUpdateInputDTO {
      * @type {string}
      * @memberof UserUpdateInputDTO
      */
-    'name'?: string;
+    'name'?: string | null;
     /**
      *
      * @type {string}
      * @memberof UserUpdateInputDTO
      */
-    'email'?: string;
-    /**
-     *
-     * @type {boolean}
-     * @memberof UserUpdateInputDTO
-     */
-    'emailVerified'?: boolean;
+    'email'?: string | null;
     /**
      *
      * @type {boolean}
@@ -2525,35 +2667,39 @@ export interface ViewerUpdateInputDTO {
 export declare const AccessKeysApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
+     * @summary Get an access key by id.
      * @param {string} accessKeyHashId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getAccessKey: (accessKeyHashId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    getAccessKey: (accessKeyHashId: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary List buckets for an access key.
      * @param {string} accessKeyHashId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listAccessKeyBuckets: (accessKeyHashId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listAccessKeyBuckets: (accessKeyHashId: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary List access keys.
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {ListAccessKeysSortEnum} [sort]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listAccessKeys: (offset?: number, limit?: number, sort?: ListAccessKeysSortEnum, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listAccessKeys: (offset?: number, limit?: number, sort?: ListAccessKeysSortEnum, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary Rotate an access key.
      * @param {string} accessKeyHashId
      * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rotateAccessKey: (accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    rotateAccessKey: (accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * AccessKeysApi - functional programming interface
@@ -2562,35 +2708,39 @@ export declare const AccessKeysApiAxiosParamCreator: (configuration?: Configurat
 export declare const AccessKeysApiFp: (configuration?: Configuration) => {
     /**
      *
+     * @summary Get an access key by id.
      * @param {string} accessKeyHashId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getAccessKey(accessKeyHashId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>>;
+    getAccessKey(accessKeyHashId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>>;
     /**
      *
+     * @summary List buckets for an access key.
      * @param {string} accessKeyHashId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listAccessKeyBuckets(accessKeyHashId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyBucketsListResponse>>;
+    listAccessKeyBuckets(accessKeyHashId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyBucketsListResponse>>;
     /**
      *
+     * @summary List access keys.
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {ListAccessKeysSortEnum} [sort]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listAccessKeys(offset?: number, limit?: number, sort?: ListAccessKeysSortEnum, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
+    listAccessKeys(offset?: number, limit?: number, sort?: ListAccessKeysSortEnum, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
     /**
      *
+     * @summary Rotate an access key.
      * @param {string} accessKeyHashId
      * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rotateAccessKey(accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyRotateResponse>>;
+    rotateAccessKey(accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyRotateResponse>>;
 };
 /**
  * AccessKeysApi - factory interface
@@ -2599,32 +2749,36 @@ export declare const AccessKeysApiFp: (configuration?: Configuration) => {
 export declare const AccessKeysApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
     /**
      *
+     * @summary Get an access key by id.
      * @param {AccessKeysApiGetAccessKeyRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyGetResponse>;
+    getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyGetResponse>;
     /**
      *
+     * @summary List buckets for an access key.
      * @param {AccessKeysApiListAccessKeyBucketsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyBucketsListResponse>;
+    listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyBucketsListResponse>;
     /**
      *
+     * @summary List access keys.
      * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listAccessKeys(requestParameters?: AccessKeysApiListAccessKeysRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyListResponse>;
+    listAccessKeys(requestParameters?: AccessKeysApiListAccessKeysRequest, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyListResponse>;
     /**
      *
+     * @summary Rotate an access key.
      * @param {AccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyRotateResponse>;
+    rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyRotateResponse>;
 };
 /**
  * Request parameters for getAccessKey operation in AccessKeysApi.
@@ -2705,36 +2859,40 @@ export interface AccessKeysApiRotateAccessKeyRequest {
 export declare class AccessKeysApi extends BaseAPI {
     /**
      *
+     * @summary Get an access key by id.
      * @param {AccessKeysApiGetAccessKeyRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AccessKeysApi
      */
-    getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyGetResponse, any>>;
+    getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyGetResponse, any>>;
     /**
      *
+     * @summary List buckets for an access key.
      * @param {AccessKeysApiListAccessKeyBucketsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AccessKeysApi
      */
-    listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyBucketsListResponse, any>>;
+    listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyBucketsListResponse, any>>;
     /**
      *
+     * @summary List access keys.
      * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AccessKeysApi
      */
-    listAccessKeys(requestParameters?: AccessKeysApiListAccessKeysRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyListResponse, any>>;
+    listAccessKeys(requestParameters?: AccessKeysApiListAccessKeysRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyListResponse, any>>;
     /**
      *
+     * @summary Rotate an access key.
      * @param {AccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AccessKeysApi
      */
-    rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyRotateResponse, any>>;
+    rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyRotateResponse, any>>;
 }
 /**
  * @export
@@ -2763,13 +2921,13 @@ export declare const AppsApiAxiosParamCreator: (configuration?: Configuration) =
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getApp: (appIdentifier: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    getApp: (appIdentifier: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listApps: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listApps: (options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * AppsApi - functional programming interface
@@ -2782,13 +2940,13 @@ export declare const AppsApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getApp(appIdentifier: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppGetResponse>>;
+    getApp(appIdentifier: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppGetResponse>>;
     /**
      *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listApps(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppListResponse>>;
+    listApps(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppListResponse>>;
 };
 /**
  * AppsApi - factory interface
@@ -2801,13 +2959,13 @@ export declare const AppsApiFactory: (configuration?: Configuration, basePath?: 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getApp(requestParameters: AppsApiGetAppRequest, options?: AxiosRequestConfig): AxiosPromise<AppGetResponse>;
+    getApp(requestParameters: AppsApiGetAppRequest, options?: RawAxiosRequestConfig): AxiosPromise<AppGetResponse>;
     /**
      *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listApps(options?: AxiosRequestConfig): AxiosPromise<AppListResponse>;
+    listApps(options?: RawAxiosRequestConfig): AxiosPromise<AppListResponse>;
 };
 /**
  * Request parameters for getApp operation in AppsApi.
@@ -2836,14 +2994,14 @@ export declare class AppsApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof AppsApi
      */
-    getApp(requestParameters: AppsApiGetAppRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AppGetResponse, any>>;
+    getApp(requestParameters: AppsApiGetAppRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<AppGetResponse, any>>;
     /**
      *
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AppsApi
      */
-    listApps(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AppListResponse, any>>;
+    listApps(options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<AppListResponse, any>>;
 }
 /**
  * AuthApi - axios parameter creator
@@ -2852,31 +3010,35 @@ export declare class AppsApi extends BaseAPI {
 export declare const AuthApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
+     * @summary Authenticate the user and return access and refresh tokens.
      * @param {LoginCredentialsDTO} loginCredentialsDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    login: (loginCredentialsDTO: LoginCredentialsDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    login: (loginCredentialsDTO: LoginCredentialsDTO, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary Logout. Kill the current session.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    logout: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    logout: (options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary Refresh a session with a refresh token.
      * @param {string} refreshToken
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    refreshToken: (refreshToken: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    refreshToken: (refreshToken: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary Register a new user.
      * @param {SignupCredentialsDTO} signupCredentialsDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    signup: (signupCredentialsDTO: SignupCredentialsDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    signup: (signupCredentialsDTO: SignupCredentialsDTO, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * AuthApi - functional programming interface
@@ -2885,31 +3047,35 @@ export declare const AuthApiAxiosParamCreator: (configuration?: Configuration) =
 export declare const AuthApiFp: (configuration?: Configuration) => {
     /**
      *
+     * @summary Authenticate the user and return access and refresh tokens.
      * @param {LoginCredentialsDTO} loginCredentialsDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    login(loginCredentialsDTO: LoginCredentialsDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<LoginResponse>>;
+    login(loginCredentialsDTO: LoginCredentialsDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<LoginResponse>>;
     /**
      *
+     * @summary Logout. Kill the current session.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    logout(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>>;
+    logout(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>>;
     /**
      *
+     * @summary Refresh a session with a refresh token.
      * @param {string} refreshToken
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    refreshToken(refreshToken: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TokenRefreshResponse>>;
+    refreshToken(refreshToken: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TokenRefreshResponse>>;
     /**
      *
+     * @summary Register a new user.
      * @param {SignupCredentialsDTO} signupCredentialsDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    signup(signupCredentialsDTO: SignupCredentialsDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SignupResponse>>;
+    signup(signupCredentialsDTO: SignupCredentialsDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SignupResponse>>;
 };
 /**
  * AuthApi - factory interface
@@ -2918,31 +3084,35 @@ export declare const AuthApiFp: (configuration?: Configuration) => {
 export declare const AuthApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
     /**
      *
+     * @summary Authenticate the user and return access and refresh tokens.
      * @param {AuthApiLoginRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig): AxiosPromise<LoginResponse>;
+    login(requestParameters: AuthApiLoginRequest, options?: RawAxiosRequestConfig): AxiosPromise<LoginResponse>;
     /**
      *
+     * @summary Logout. Kill the current session.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    logout(options?: AxiosRequestConfig): AxiosPromise<boolean>;
+    logout(options?: RawAxiosRequestConfig): AxiosPromise<boolean>;
     /**
      *
+     * @summary Refresh a session with a refresh token.
      * @param {AuthApiRefreshTokenRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    refreshToken(requestParameters: AuthApiRefreshTokenRequest, options?: AxiosRequestConfig): AxiosPromise<TokenRefreshResponse>;
+    refreshToken(requestParameters: AuthApiRefreshTokenRequest, options?: RawAxiosRequestConfig): AxiosPromise<TokenRefreshResponse>;
     /**
      *
+     * @summary Register a new user.
      * @param {AuthApiSignupRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    signup(requestParameters: AuthApiSignupRequest, options?: AxiosRequestConfig): AxiosPromise<SignupResponse>;
+    signup(requestParameters: AuthApiSignupRequest, options?: RawAxiosRequestConfig): AxiosPromise<SignupResponse>;
 };
 /**
  * Request parameters for login operation in AuthApi.
@@ -2992,35 +3162,39 @@ export interface AuthApiSignupRequest {
 export declare class AuthApi extends BaseAPI {
     /**
      *
+     * @summary Authenticate the user and return access and refresh tokens.
      * @param {AuthApiLoginRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthApi
      */
-    login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<LoginResponse, any>>;
+    login(requestParameters: AuthApiLoginRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<LoginResponse, any>>;
     /**
      *
+     * @summary Logout. Kill the current session.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthApi
      */
-    logout(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<boolean, any>>;
+    logout(options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<boolean, any>>;
     /**
      *
+     * @summary Refresh a session with a refresh token.
      * @param {AuthApiRefreshTokenRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthApi
      */
-    refreshToken(requestParameters: AuthApiRefreshTokenRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<TokenRefreshResponse, any>>;
+    refreshToken(requestParameters: AuthApiRefreshTokenRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<TokenRefreshResponse, any>>;
     /**
      *
+     * @summary Register a new user.
      * @param {AuthApiSignupRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthApi
      */
-    signup(requestParameters: AuthApiSignupRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SignupResponse, any>>;
+    signup(requestParameters: AuthApiSignupRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<SignupResponse, any>>;
 }
 /**
  * FoldersApi - axios parameter creator
@@ -3029,58 +3203,66 @@ export declare class AuthApi extends BaseAPI {
 export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
+     * @summary Create a folder.
      * @param {FolderCreateInputDTO} folderCreateInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createFolder: (folderCreateInputDTO: FolderCreateInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    createFolder: (folderCreateInputDTO: FolderCreateInputDTO, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary Create presigned urls for objects in a folder.
      * @param {string} folderId
      * @param {Array<FolderCreateSignedUrlInputDTOInner>} folderCreateSignedUrlInputDTOInner
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createPresignedUrls: (folderId: string, folderCreateSignedUrlInputDTOInner: Array<FolderCreateSignedUrlInputDTOInner>, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    createPresignedUrls: (folderId: string, folderCreateSignedUrlInputDTOInner: Array<FolderCreateSignedUrlInputDTOInner>, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary Delete a folder by id.
      * @param {string} folderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    deleteFolder: (folderId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    deleteFolder: (folderId: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
-     * @param {string} folderId
-     * @param {string} objectKey
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    deleteFolderObject: (folderId: string, objectKey: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getFolder: (folderId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getFolderMetadata: (folderId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
+     * @summary Delete a folder object by folderId and objectKey.
      * @param {string} folderId
      * @param {string} objectKey
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getFolderObject: (folderId: string, objectKey: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    deleteFolderObject: (folderId: string, objectKey: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary Get a folder by id.
+     * @param {string} folderId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getFolder: (folderId: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @summary Get the metadata for a folder by id.
+     * @param {string} folderId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getFolderMetadata: (folderId: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @summary Get a folder object by folderId and objectKey.
+     * @param {string} folderId
+     * @param {string} objectKey
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getFolderObject: (folderId: string, objectKey: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @summary Handle app task trigger
      * @param {string} folderId
      * @param {string} appIdentifier
      * @param {string} taskKey
@@ -3088,9 +3270,10 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    handleAppTaskTrigger: (folderId: string, appIdentifier: string, taskKey: string, triggerAppTaskInputDTO: TriggerAppTaskInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    handleAppTaskTrigger: (folderId: string, appIdentifier: string, taskKey: string, triggerAppTaskInputDTO: TriggerAppTaskInputDTO, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary List folder objects by folderId.
      * @param {string} folderId
      * @param {number} [offset]
      * @param {number} [limit]
@@ -3098,9 +3281,10 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolderObjects: (folderId: string, offset?: number, limit?: number, search?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listFolderObjects: (folderId: string, offset?: number, limit?: number, search?: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary List folders.
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {ListFoldersSortEnum} [sort]
@@ -3108,22 +3292,24 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolders: (offset?: number, limit?: number, sort?: ListFoldersSortEnum, search?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listFolders: (offset?: number, limit?: number, sort?: ListFoldersSortEnum, search?: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary Scan the object again in the underlying storage, and update its state in our db.
      * @param {string} folderId
      * @param {string} objectKey
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    refreshFolderObjectS3Metadata: (folderId: string, objectKey: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    refreshFolderObjectS3Metadata: (folderId: string, objectKey: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary Scan the underlying S3 location and update our local representation of it.
      * @param {string} folderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rescanFolder: (folderId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    rescanFolder: (folderId: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * FoldersApi - functional programming interface
@@ -3132,58 +3318,66 @@ export declare const FoldersApiAxiosParamCreator: (configuration?: Configuration
 export declare const FoldersApiFp: (configuration?: Configuration) => {
     /**
      *
+     * @summary Create a folder.
      * @param {FolderCreateInputDTO} folderCreateInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createFolder(folderCreateInputDTO: FolderCreateInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderCreateResponse>>;
+    createFolder(folderCreateInputDTO: FolderCreateInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderCreateResponse>>;
     /**
      *
+     * @summary Create presigned urls for objects in a folder.
      * @param {string} folderId
      * @param {Array<FolderCreateSignedUrlInputDTOInner>} folderCreateSignedUrlInputDTOInner
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createPresignedUrls(folderId: string, folderCreateSignedUrlInputDTOInner: Array<FolderCreateSignedUrlInputDTOInner>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderCreateSignedUrlsResponse>>;
+    createPresignedUrls(folderId: string, folderCreateSignedUrlInputDTOInner: Array<FolderCreateSignedUrlInputDTOInner>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderCreateSignedUrlsResponse>>;
     /**
      *
+     * @summary Delete a folder by id.
      * @param {string} folderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    deleteFolder(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    deleteFolder(folderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
     /**
      *
-     * @param {string} folderId
-     * @param {string} objectKey
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    deleteFolderObject(folderId: string, objectKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getFolder(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderGetResponse>>;
-    /**
-     *
-     * @param {string} folderId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getFolderMetadata(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderGetMetadataResponse>>;
-    /**
-     *
+     * @summary Delete a folder object by folderId and objectKey.
      * @param {string} folderId
      * @param {string} objectKey
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getFolderObject(folderId: string, objectKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectGetResponse>>;
+    deleteFolderObject(folderId: string, objectKey: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
     /**
      *
+     * @summary Get a folder by id.
+     * @param {string} folderId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getFolder(folderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderGetResponse>>;
+    /**
+     *
+     * @summary Get the metadata for a folder by id.
+     * @param {string} folderId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getFolderMetadata(folderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderGetMetadataResponse>>;
+    /**
+     *
+     * @summary Get a folder object by folderId and objectKey.
+     * @param {string} folderId
+     * @param {string} objectKey
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getFolderObject(folderId: string, objectKey: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectGetResponse>>;
+    /**
+     *
+     * @summary Handle app task trigger
      * @param {string} folderId
      * @param {string} appIdentifier
      * @param {string} taskKey
@@ -3191,9 +3385,10 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    handleAppTaskTrigger(folderId: string, appIdentifier: string, taskKey: string, triggerAppTaskInputDTO: TriggerAppTaskInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    handleAppTaskTrigger(folderId: string, appIdentifier: string, taskKey: string, triggerAppTaskInputDTO: TriggerAppTaskInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
     /**
      *
+     * @summary List folder objects by folderId.
      * @param {string} folderId
      * @param {number} [offset]
      * @param {number} [limit]
@@ -3201,9 +3396,10 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolderObjects(folderId: string, offset?: number, limit?: number, search?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectListResponse>>;
+    listFolderObjects(folderId: string, offset?: number, limit?: number, search?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectListResponse>>;
     /**
      *
+     * @summary List folders.
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {ListFoldersSortEnum} [sort]
@@ -3211,22 +3407,24 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolders(offset?: number, limit?: number, sort?: ListFoldersSortEnum, search?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderListResponse>>;
+    listFolders(offset?: number, limit?: number, sort?: ListFoldersSortEnum, search?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderListResponse>>;
     /**
      *
+     * @summary Scan the object again in the underlying storage, and update its state in our db.
      * @param {string} folderId
      * @param {string} objectKey
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    refreshFolderObjectS3Metadata(folderId: string, objectKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectGetResponse>>;
+    refreshFolderObjectS3Metadata(folderId: string, objectKey: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectGetResponse>>;
     /**
      *
+     * @summary Scan the underlying S3 location and update our local representation of it.
      * @param {string} folderId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rescanFolder(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    rescanFolder(folderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
 };
 /**
  * FoldersApi - factory interface
@@ -3235,88 +3433,100 @@ export declare const FoldersApiFp: (configuration?: Configuration) => {
 export declare const FoldersApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
     /**
      *
+     * @summary Create a folder.
      * @param {FoldersApiCreateFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createFolder(requestParameters: FoldersApiCreateFolderRequest, options?: AxiosRequestConfig): AxiosPromise<FolderCreateResponse>;
+    createFolder(requestParameters: FoldersApiCreateFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderCreateResponse>;
     /**
      *
+     * @summary Create presigned urls for objects in a folder.
      * @param {FoldersApiCreatePresignedUrlsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createPresignedUrls(requestParameters: FoldersApiCreatePresignedUrlsRequest, options?: AxiosRequestConfig): AxiosPromise<FolderCreateSignedUrlsResponse>;
+    createPresignedUrls(requestParameters: FoldersApiCreatePresignedUrlsRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderCreateSignedUrlsResponse>;
     /**
      *
+     * @summary Delete a folder by id.
      * @param {FoldersApiDeleteFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    deleteFolder(requestParameters: FoldersApiDeleteFolderRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
+    deleteFolder(requestParameters: FoldersApiDeleteFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
     /**
      *
+     * @summary Delete a folder object by folderId and objectKey.
      * @param {FoldersApiDeleteFolderObjectRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    deleteFolderObject(requestParameters: FoldersApiDeleteFolderObjectRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
+    deleteFolderObject(requestParameters: FoldersApiDeleteFolderObjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
     /**
      *
+     * @summary Get a folder by id.
      * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getFolder(requestParameters: FoldersApiGetFolderRequest, options?: AxiosRequestConfig): AxiosPromise<FolderGetResponse>;
+    getFolder(requestParameters: FoldersApiGetFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderGetResponse>;
     /**
      *
+     * @summary Get the metadata for a folder by id.
      * @param {FoldersApiGetFolderMetadataRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getFolderMetadata(requestParameters: FoldersApiGetFolderMetadataRequest, options?: AxiosRequestConfig): AxiosPromise<FolderGetMetadataResponse>;
+    getFolderMetadata(requestParameters: FoldersApiGetFolderMetadataRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderGetMetadataResponse>;
     /**
      *
+     * @summary Get a folder object by folderId and objectKey.
      * @param {FoldersApiGetFolderObjectRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: AxiosRequestConfig): AxiosPromise<FolderObjectGetResponse>;
+    getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderObjectGetResponse>;
     /**
      *
+     * @summary Handle app task trigger
      * @param {FoldersApiHandleAppTaskTriggerRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    handleAppTaskTrigger(requestParameters: FoldersApiHandleAppTaskTriggerRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
+    handleAppTaskTrigger(requestParameters: FoldersApiHandleAppTaskTriggerRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
     /**
      *
+     * @summary List folder objects by folderId.
      * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: AxiosRequestConfig): AxiosPromise<FolderObjectListResponse>;
+    listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderObjectListResponse>;
     /**
      *
+     * @summary List folders.
      * @param {FoldersApiListFoldersRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolders(requestParameters?: FoldersApiListFoldersRequest, options?: AxiosRequestConfig): AxiosPromise<FolderListResponse>;
+    listFolders(requestParameters?: FoldersApiListFoldersRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderListResponse>;
     /**
      *
+     * @summary Scan the object again in the underlying storage, and update its state in our db.
      * @param {FoldersApiRefreshFolderObjectS3MetadataRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    refreshFolderObjectS3Metadata(requestParameters: FoldersApiRefreshFolderObjectS3MetadataRequest, options?: AxiosRequestConfig): AxiosPromise<FolderObjectGetResponse>;
+    refreshFolderObjectS3Metadata(requestParameters: FoldersApiRefreshFolderObjectS3MetadataRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderObjectGetResponse>;
     /**
      *
+     * @summary Scan the underlying S3 location and update our local representation of it.
      * @param {FoldersApiRescanFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rescanFolder(requestParameters: FoldersApiRescanFolderRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
+    rescanFolder(requestParameters: FoldersApiRescanFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
 };
 /**
  * Request parameters for createFolder operation in FoldersApi.
@@ -3561,100 +3771,112 @@ export interface FoldersApiRescanFolderRequest {
 export declare class FoldersApi extends BaseAPI {
     /**
      *
+     * @summary Create a folder.
      * @param {FoldersApiCreateFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    createFolder(requestParameters: FoldersApiCreateFolderRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderCreateResponse, any>>;
+    createFolder(requestParameters: FoldersApiCreateFolderRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderCreateResponse, any>>;
     /**
      *
+     * @summary Create presigned urls for objects in a folder.
      * @param {FoldersApiCreatePresignedUrlsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    createPresignedUrls(requestParameters: FoldersApiCreatePresignedUrlsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderCreateSignedUrlsResponse, any>>;
+    createPresignedUrls(requestParameters: FoldersApiCreatePresignedUrlsRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderCreateSignedUrlsResponse, any>>;
     /**
      *
+     * @summary Delete a folder by id.
      * @param {FoldersApiDeleteFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    deleteFolder(requestParameters: FoldersApiDeleteFolderRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+    deleteFolder(requestParameters: FoldersApiDeleteFolderRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
     /**
      *
+     * @summary Delete a folder object by folderId and objectKey.
      * @param {FoldersApiDeleteFolderObjectRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    deleteFolderObject(requestParameters: FoldersApiDeleteFolderObjectRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+    deleteFolderObject(requestParameters: FoldersApiDeleteFolderObjectRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
     /**
      *
+     * @summary Get a folder by id.
      * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    getFolder(requestParameters: FoldersApiGetFolderRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderGetResponse, any>>;
+    getFolder(requestParameters: FoldersApiGetFolderRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderGetResponse, any>>;
     /**
      *
+     * @summary Get the metadata for a folder by id.
      * @param {FoldersApiGetFolderMetadataRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    getFolderMetadata(requestParameters: FoldersApiGetFolderMetadataRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderGetMetadataResponse, any>>;
+    getFolderMetadata(requestParameters: FoldersApiGetFolderMetadataRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderGetMetadataResponse, any>>;
     /**
      *
+     * @summary Get a folder object by folderId and objectKey.
      * @param {FoldersApiGetFolderObjectRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderObjectGetResponse, any>>;
+    getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderObjectGetResponse, any>>;
     /**
      *
+     * @summary Handle app task trigger
      * @param {FoldersApiHandleAppTaskTriggerRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    handleAppTaskTrigger(requestParameters: FoldersApiHandleAppTaskTriggerRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+    handleAppTaskTrigger(requestParameters: FoldersApiHandleAppTaskTriggerRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
     /**
      *
+     * @summary List folder objects by folderId.
      * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderObjectListResponse, any>>;
+    listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderObjectListResponse, any>>;
     /**
      *
+     * @summary List folders.
      * @param {FoldersApiListFoldersRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    listFolders(requestParameters?: FoldersApiListFoldersRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderListResponse, any>>;
+    listFolders(requestParameters?: FoldersApiListFoldersRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderListResponse, any>>;
     /**
      *
+     * @summary Scan the object again in the underlying storage, and update its state in our db.
      * @param {FoldersApiRefreshFolderObjectS3MetadataRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    refreshFolderObjectS3Metadata(requestParameters: FoldersApiRefreshFolderObjectS3MetadataRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderObjectGetResponse, any>>;
+    refreshFolderObjectS3Metadata(requestParameters: FoldersApiRefreshFolderObjectS3MetadataRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<FolderObjectGetResponse, any>>;
     /**
      *
+     * @summary Scan the underlying S3 location and update our local representation of it.
      * @param {FoldersApiRescanFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    rescanFolder(requestParameters: FoldersApiRescanFolderRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+    rescanFolder(requestParameters: FoldersApiRescanFolderRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
 }
 /**
  * @export
@@ -3675,25 +3897,28 @@ export type ListFoldersSortEnum = typeof ListFoldersSortEnum[keyof typeof ListFo
 export declare const ServerApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
+     * @summary Get the server settings object.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getServerSettings: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    getServerSettings: (options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary Reset a setting in the server settings objects.
      * @param {string} settingKey
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    resetServerSetting: (settingKey: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    resetServerSetting: (settingKey: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary Set a setting in the server settings objects.
      * @param {string} settingKey
      * @param {SetSettingInputDTO} setSettingInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    setServerSetting: (settingKey: string, setSettingInputDTO: SetSettingInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    setServerSetting: (settingKey: string, setSettingInputDTO: SetSettingInputDTO, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * ServerApi - functional programming interface
@@ -3702,25 +3927,28 @@ export declare const ServerApiAxiosParamCreator: (configuration?: Configuration)
 export declare const ServerApiFp: (configuration?: Configuration) => {
     /**
      *
+     * @summary Get the server settings object.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getServerSettings(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingsGetResponse>>;
+    getServerSettings(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingsGetResponse>>;
     /**
      *
+     * @summary Reset a setting in the server settings objects.
      * @param {string} settingKey
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    resetServerSetting(settingKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingSetResponse>>;
+    resetServerSetting(settingKey: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingSetResponse>>;
     /**
      *
+     * @summary Set a setting in the server settings objects.
      * @param {string} settingKey
      * @param {SetSettingInputDTO} setSettingInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    setServerSetting(settingKey: string, setSettingInputDTO: SetSettingInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingSetResponse>>;
+    setServerSetting(settingKey: string, setSettingInputDTO: SetSettingInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingSetResponse>>;
 };
 /**
  * ServerApi - factory interface
@@ -3729,24 +3957,27 @@ export declare const ServerApiFp: (configuration?: Configuration) => {
 export declare const ServerApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
     /**
      *
+     * @summary Get the server settings object.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getServerSettings(options?: AxiosRequestConfig): AxiosPromise<SettingsGetResponse>;
+    getServerSettings(options?: RawAxiosRequestConfig): AxiosPromise<SettingsGetResponse>;
     /**
      *
+     * @summary Reset a setting in the server settings objects.
      * @param {ServerApiResetServerSettingRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    resetServerSetting(requestParameters: ServerApiResetServerSettingRequest, options?: AxiosRequestConfig): AxiosPromise<SettingSetResponse>;
+    resetServerSetting(requestParameters: ServerApiResetServerSettingRequest, options?: RawAxiosRequestConfig): AxiosPromise<SettingSetResponse>;
     /**
      *
+     * @summary Set a setting in the server settings objects.
      * @param {ServerApiSetServerSettingRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    setServerSetting(requestParameters: ServerApiSetServerSettingRequest, options?: AxiosRequestConfig): AxiosPromise<SettingSetResponse>;
+    setServerSetting(requestParameters: ServerApiSetServerSettingRequest, options?: RawAxiosRequestConfig): AxiosPromise<SettingSetResponse>;
 };
 /**
  * Request parameters for resetServerSetting operation in ServerApi.
@@ -3789,27 +4020,30 @@ export interface ServerApiSetServerSettingRequest {
 export declare class ServerApi extends BaseAPI {
     /**
      *
+     * @summary Get the server settings object.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerApi
      */
-    getServerSettings(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SettingsGetResponse, any>>;
+    getServerSettings(options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<SettingsGetResponse, any>>;
     /**
      *
+     * @summary Reset a setting in the server settings objects.
      * @param {ServerApiResetServerSettingRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerApi
      */
-    resetServerSetting(requestParameters: ServerApiResetServerSettingRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SettingSetResponse, any>>;
+    resetServerSetting(requestParameters: ServerApiResetServerSettingRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<SettingSetResponse, any>>;
     /**
      *
+     * @summary Set a setting in the server settings objects.
      * @param {ServerApiSetServerSettingRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerApi
      */
-    setServerSetting(requestParameters: ServerApiSetServerSettingRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SettingSetResponse, any>>;
+    setServerSetting(requestParameters: ServerApiSetServerSettingRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<SettingSetResponse, any>>;
 }
 /**
  * ServerAccessKeysApi - axios parameter creator
@@ -3818,28 +4052,31 @@ export declare class ServerApi extends BaseAPI {
 export declare const ServerAccessKeysApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
+     * @summary Get server access key by id.
      * @param {string} accessKeyHashId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getServerAccessKey: (accessKeyHashId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    getServerAccessKey: (accessKeyHashId: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary List server access keys.
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {ListServerAccessKeysSortEnum} [sort]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listServerAccessKeys: (offset?: number, limit?: number, sort?: ListServerAccessKeysSortEnum, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listServerAccessKeys: (offset?: number, limit?: number, sort?: ListServerAccessKeysSortEnum, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary Rotate a server access key.
      * @param {string} accessKeyHashId
      * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rotateAccessKey: (accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    rotateServerAccessKey: (accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * ServerAccessKeysApi - functional programming interface
@@ -3848,28 +4085,31 @@ export declare const ServerAccessKeysApiAxiosParamCreator: (configuration?: Conf
 export declare const ServerAccessKeysApiFp: (configuration?: Configuration) => {
     /**
      *
+     * @summary Get server access key by id.
      * @param {string} accessKeyHashId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getServerAccessKey(accessKeyHashId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>>;
+    getServerAccessKey(accessKeyHashId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>>;
     /**
      *
+     * @summary List server access keys.
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {ListServerAccessKeysSortEnum} [sort]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listServerAccessKeys(offset?: number, limit?: number, sort?: ListServerAccessKeysSortEnum, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
+    listServerAccessKeys(offset?: number, limit?: number, sort?: ListServerAccessKeysSortEnum, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>>;
     /**
      *
+     * @summary Rotate a server access key.
      * @param {string} accessKeyHashId
      * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rotateAccessKey(accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyRotateResponse>>;
+    rotateServerAccessKey(accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyRotateResponse>>;
 };
 /**
  * ServerAccessKeysApi - factory interface
@@ -3878,25 +4118,28 @@ export declare const ServerAccessKeysApiFp: (configuration?: Configuration) => {
 export declare const ServerAccessKeysApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
     /**
      *
+     * @summary Get server access key by id.
      * @param {ServerAccessKeysApiGetServerAccessKeyRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyGetResponse>;
+    getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyGetResponse>;
     /**
      *
+     * @summary List server access keys.
      * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listServerAccessKeys(requestParameters?: ServerAccessKeysApiListServerAccessKeysRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyListResponse>;
+    listServerAccessKeys(requestParameters?: ServerAccessKeysApiListServerAccessKeysRequest, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyListResponse>;
     /**
      *
-     * @param {ServerAccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+     * @summary Rotate a server access key.
+     * @param {ServerAccessKeysApiRotateServerAccessKeyRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyRotateResponse>;
+    rotateServerAccessKey(requestParameters: ServerAccessKeysApiRotateServerAccessKeyRequest, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyRotateResponse>;
 };
 /**
  * Request parameters for getServerAccessKey operation in ServerAccessKeysApi.
@@ -3937,21 +4180,21 @@ export interface ServerAccessKeysApiListServerAccessKeysRequest {
     readonly sort?: ListServerAccessKeysSortEnum;
 }
 /**
- * Request parameters for rotateAccessKey operation in ServerAccessKeysApi.
+ * Request parameters for rotateServerAccessKey operation in ServerAccessKeysApi.
  * @export
- * @interface ServerAccessKeysApiRotateAccessKeyRequest
+ * @interface ServerAccessKeysApiRotateServerAccessKeyRequest
  */
-export interface ServerAccessKeysApiRotateAccessKeyRequest {
+export interface ServerAccessKeysApiRotateServerAccessKeyRequest {
     /**
      *
      * @type {string}
-     * @memberof ServerAccessKeysApiRotateAccessKey
+     * @memberof ServerAccessKeysApiRotateServerAccessKey
      */
     readonly accessKeyHashId: string;
     /**
      *
      * @type {RotateAccessKeyInputDTO}
-     * @memberof ServerAccessKeysApiRotateAccessKey
+     * @memberof ServerAccessKeysApiRotateServerAccessKey
      */
     readonly rotateAccessKeyInputDTO: RotateAccessKeyInputDTO;
 }
@@ -3964,28 +4207,31 @@ export interface ServerAccessKeysApiRotateAccessKeyRequest {
 export declare class ServerAccessKeysApi extends BaseAPI {
     /**
      *
+     * @summary Get server access key by id.
      * @param {ServerAccessKeysApiGetServerAccessKeyRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerAccessKeysApi
      */
-    getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyGetResponse, any>>;
+    getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyGetResponse, any>>;
     /**
      *
+     * @summary List server access keys.
      * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerAccessKeysApi
      */
-    listServerAccessKeys(requestParameters?: ServerAccessKeysApiListServerAccessKeysRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyListResponse, any>>;
+    listServerAccessKeys(requestParameters?: ServerAccessKeysApiListServerAccessKeysRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyListResponse, any>>;
     /**
      *
-     * @param {ServerAccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+     * @summary Rotate a server access key.
+     * @param {ServerAccessKeysApiRotateServerAccessKeyRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerAccessKeysApi
      */
-    rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyRotateResponse, any>>;
+    rotateServerAccessKey(requestParameters: ServerAccessKeysApiRotateServerAccessKeyRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<AccessKeyRotateResponse, any>>;
 }
 /**
  * @export
@@ -4010,13 +4256,15 @@ export type ListServerAccessKeysSortEnum = typeof ListServerAccessKeysSortEnum[k
 export declare const ServerEventsApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
+     * @summary Get an event by id.
      * @param {string} eventId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getEvent: (eventId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    getEvent: (eventId: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary List events.
      * @param {ListEventsSortEnum} [sort]
      * @param {string} [folderId]
      * @param {string} [objectKey]
@@ -4031,7 +4279,7 @@ export declare const ServerEventsApiAxiosParamCreator: (configuration?: Configur
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listEvents: (sort?: ListEventsSortEnum, folderId?: string, objectKey?: string, search?: string, includeTrace?: ListEventsIncludeTraceEnum, includeDebug?: ListEventsIncludeDebugEnum, includeInfo?: ListEventsIncludeInfoEnum, includeWarning?: ListEventsIncludeWarningEnum, includeError?: ListEventsIncludeErrorEnum, offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listEvents: (sort?: ListEventsSortEnum, folderId?: string, objectKey?: string, search?: string, includeTrace?: ListEventsIncludeTraceEnum, includeDebug?: ListEventsIncludeDebugEnum, includeInfo?: ListEventsIncludeInfoEnum, includeWarning?: ListEventsIncludeWarningEnum, includeError?: ListEventsIncludeErrorEnum, offset?: number, limit?: number, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * ServerEventsApi - functional programming interface
@@ -4040,13 +4288,15 @@ export declare const ServerEventsApiAxiosParamCreator: (configuration?: Configur
 export declare const ServerEventsApiFp: (configuration?: Configuration) => {
     /**
      *
+     * @summary Get an event by id.
      * @param {string} eventId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getEvent(eventId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventGetResponse>>;
+    getEvent(eventId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventGetResponse>>;
     /**
      *
+     * @summary List events.
      * @param {ListEventsSortEnum} [sort]
      * @param {string} [folderId]
      * @param {string} [objectKey]
@@ -4061,7 +4311,7 @@ export declare const ServerEventsApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listEvents(sort?: ListEventsSortEnum, folderId?: string, objectKey?: string, search?: string, includeTrace?: ListEventsIncludeTraceEnum, includeDebug?: ListEventsIncludeDebugEnum, includeInfo?: ListEventsIncludeInfoEnum, includeWarning?: ListEventsIncludeWarningEnum, includeError?: ListEventsIncludeErrorEnum, offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventListResponse>>;
+    listEvents(sort?: ListEventsSortEnum, folderId?: string, objectKey?: string, search?: string, includeTrace?: ListEventsIncludeTraceEnum, includeDebug?: ListEventsIncludeDebugEnum, includeInfo?: ListEventsIncludeInfoEnum, includeWarning?: ListEventsIncludeWarningEnum, includeError?: ListEventsIncludeErrorEnum, offset?: number, limit?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventListResponse>>;
 };
 /**
  * ServerEventsApi - factory interface
@@ -4070,18 +4320,20 @@ export declare const ServerEventsApiFp: (configuration?: Configuration) => {
 export declare const ServerEventsApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
     /**
      *
+     * @summary Get an event by id.
      * @param {ServerEventsApiGetEventRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getEvent(requestParameters: ServerEventsApiGetEventRequest, options?: AxiosRequestConfig): AxiosPromise<EventGetResponse>;
+    getEvent(requestParameters: ServerEventsApiGetEventRequest, options?: RawAxiosRequestConfig): AxiosPromise<EventGetResponse>;
     /**
      *
+     * @summary List events.
      * @param {ServerEventsApiListEventsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listEvents(requestParameters?: ServerEventsApiListEventsRequest, options?: AxiosRequestConfig): AxiosPromise<EventListResponse>;
+    listEvents(requestParameters?: ServerEventsApiListEventsRequest, options?: RawAxiosRequestConfig): AxiosPromise<EventListResponse>;
 };
 /**
  * Request parameters for getEvent operation in ServerEventsApi.
@@ -4178,20 +4430,22 @@ export interface ServerEventsApiListEventsRequest {
 export declare class ServerEventsApi extends BaseAPI {
     /**
      *
+     * @summary Get an event by id.
      * @param {ServerEventsApiGetEventRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerEventsApi
      */
-    getEvent(requestParameters: ServerEventsApiGetEventRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<EventGetResponse, any>>;
+    getEvent(requestParameters: ServerEventsApiGetEventRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<EventGetResponse, any>>;
     /**
      *
+     * @summary List events.
      * @param {ServerEventsApiListEventsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerEventsApi
      */
-    listEvents(requestParameters?: ServerEventsApiListEventsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<EventListResponse, any>>;
+    listEvents(requestParameters?: ServerEventsApiListEventsRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<EventListResponse, any>>;
 }
 /**
  * @export
@@ -4239,19 +4493,151 @@ export declare const ListEventsIncludeErrorEnum: {
 };
 export type ListEventsIncludeErrorEnum = typeof ListEventsIncludeErrorEnum[keyof typeof ListEventsIncludeErrorEnum];
 /**
+ * ServerStorageLocationApi - axios parameter creator
+ * @export
+ */
+export declare const ServerStorageLocationApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @summary Delete any set server storage location.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteServerStorageLocation: (options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @summary Get the server storage location.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getServerStorageLocation: (options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @summary Create a new server provision.
+     * @param {ServerStorageLocationInputDTO} serverStorageLocationInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    setServerStorageLocation: (serverStorageLocationInputDTO: ServerStorageLocationInputDTO, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * ServerStorageLocationApi - functional programming interface
+ * @export
+ */
+export declare const ServerStorageLocationApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @summary Delete any set server storage location.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteServerStorageLocation(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    /**
+     *
+     * @summary Get the server storage location.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getServerStorageLocation(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ServerStorageLocationGetResponse>>;
+    /**
+     *
+     * @summary Create a new server provision.
+     * @param {ServerStorageLocationInputDTO} serverStorageLocationInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    setServerStorageLocation(serverStorageLocationInputDTO: ServerStorageLocationInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ServerStorageLocationGetResponse>>;
+};
+/**
+ * ServerStorageLocationApi - factory interface
+ * @export
+ */
+export declare const ServerStorageLocationApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @summary Delete any set server storage location.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteServerStorageLocation(options?: RawAxiosRequestConfig): AxiosPromise<void>;
+    /**
+     *
+     * @summary Get the server storage location.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getServerStorageLocation(options?: RawAxiosRequestConfig): AxiosPromise<ServerStorageLocationGetResponse>;
+    /**
+     *
+     * @summary Create a new server provision.
+     * @param {ServerStorageLocationApiSetServerStorageLocationRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    setServerStorageLocation(requestParameters: ServerStorageLocationApiSetServerStorageLocationRequest, options?: RawAxiosRequestConfig): AxiosPromise<ServerStorageLocationGetResponse>;
+};
+/**
+ * Request parameters for setServerStorageLocation operation in ServerStorageLocationApi.
+ * @export
+ * @interface ServerStorageLocationApiSetServerStorageLocationRequest
+ */
+export interface ServerStorageLocationApiSetServerStorageLocationRequest {
+    /**
+     *
+     * @type {ServerStorageLocationInputDTO}
+     * @memberof ServerStorageLocationApiSetServerStorageLocation
+     */
+    readonly serverStorageLocationInputDTO: ServerStorageLocationInputDTO;
+}
+/**
+ * ServerStorageLocationApi - object-oriented interface
+ * @export
+ * @class ServerStorageLocationApi
+ * @extends {BaseAPI}
+ */
+export declare class ServerStorageLocationApi extends BaseAPI {
+    /**
+     *
+     * @summary Delete any set server storage location.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerStorageLocationApi
+     */
+    deleteServerStorageLocation(options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+    /**
+     *
+     * @summary Get the server storage location.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerStorageLocationApi
+     */
+    getServerStorageLocation(options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<ServerStorageLocationGetResponse, any>>;
+    /**
+     *
+     * @summary Create a new server provision.
+     * @param {ServerStorageLocationApiSetServerStorageLocationRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerStorageLocationApi
+     */
+    setServerStorageLocation(requestParameters: ServerStorageLocationApiSetServerStorageLocationRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<ServerStorageLocationGetResponse, any>>;
+}
+/**
  * ServerTasksApi - axios parameter creator
  * @export
  */
 export declare const ServerTasksApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
+     * @summary Get a task by id.
      * @param {string} taskId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getTask: (taskId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    getTask: (taskId: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary List tasks.
      * @param {string} [objectKey]
      * @param {ListTasksSortEnum} [sort]
      * @param {string} [search]
@@ -4265,7 +4651,7 @@ export declare const ServerTasksApiAxiosParamCreator: (configuration?: Configura
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listTasks: (objectKey?: string, sort?: ListTasksSortEnum, search?: string, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, folderId?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listTasks: (objectKey?: string, sort?: ListTasksSortEnum, search?: string, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, folderId?: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * ServerTasksApi - functional programming interface
@@ -4274,13 +4660,15 @@ export declare const ServerTasksApiAxiosParamCreator: (configuration?: Configura
 export declare const ServerTasksApiFp: (configuration?: Configuration) => {
     /**
      *
+     * @summary Get a task by id.
      * @param {string} taskId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getTask(taskId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskGetResponse>>;
+    getTask(taskId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskGetResponse>>;
     /**
      *
+     * @summary List tasks.
      * @param {string} [objectKey]
      * @param {ListTasksSortEnum} [sort]
      * @param {string} [search]
@@ -4294,7 +4682,7 @@ export declare const ServerTasksApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listTasks(objectKey?: string, sort?: ListTasksSortEnum, search?: string, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, folderId?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>>;
+    listTasks(objectKey?: string, sort?: ListTasksSortEnum, search?: string, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, folderId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>>;
 };
 /**
  * ServerTasksApi - factory interface
@@ -4303,18 +4691,20 @@ export declare const ServerTasksApiFp: (configuration?: Configuration) => {
 export declare const ServerTasksApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
     /**
      *
+     * @summary Get a task by id.
      * @param {ServerTasksApiGetTaskRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getTask(requestParameters: ServerTasksApiGetTaskRequest, options?: AxiosRequestConfig): AxiosPromise<TaskGetResponse>;
+    getTask(requestParameters: ServerTasksApiGetTaskRequest, options?: RawAxiosRequestConfig): AxiosPromise<TaskGetResponse>;
     /**
      *
+     * @summary List tasks.
      * @param {ServerTasksApiListTasksRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listTasks(requestParameters?: ServerTasksApiListTasksRequest, options?: AxiosRequestConfig): AxiosPromise<TaskListResponse>;
+    listTasks(requestParameters?: ServerTasksApiListTasksRequest, options?: RawAxiosRequestConfig): AxiosPromise<TaskListResponse>;
 };
 /**
  * Request parameters for getTask operation in ServerTasksApi.
@@ -4405,20 +4795,22 @@ export interface ServerTasksApiListTasksRequest {
 export declare class ServerTasksApi extends BaseAPI {
     /**
      *
+     * @summary Get a task by id.
      * @param {ServerTasksApiGetTaskRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerTasksApi
      */
-    getTask(requestParameters: ServerTasksApiGetTaskRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskGetResponse, any>>;
+    getTask(requestParameters: ServerTasksApiGetTaskRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskGetResponse, any>>;
     /**
      *
+     * @summary List tasks.
      * @param {ServerTasksApiListTasksRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerTasksApi
      */
-    listTasks(requestParameters?: ServerTasksApiListTasksRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskListResponse, any>>;
+    listTasks(requestParameters?: ServerTasksApiListTasksRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskListResponse, any>>;
 }
 /**
  * @export
@@ -4459,273 +4851,22 @@ export declare const ListTasksIncludeFailedEnum: {
 };
 export type ListTasksIncludeFailedEnum = typeof ListTasksIncludeFailedEnum[keyof typeof ListTasksIncludeFailedEnum];
 /**
- * StorageProvisionsApi - axios parameter creator
- * @export
- */
-export declare const StorageProvisionsApiAxiosParamCreator: (configuration?: Configuration) => {
-    /**
-     *
-     * @param {StorageProvisionInputDTO} storageProvisionInputDTO
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createServerProvision: (storageProvisionInputDTO: StorageProvisionInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} storageProvisionId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    deleteStorageProvision: (storageProvisionId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} storageProvisionId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getStorageProvision: (storageProvisionId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listStorageProvisions: (provisionType?: ListStorageProvisionsProvisionTypeEnum, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-    /**
-     *
-     * @param {string} storageProvisionId
-     * @param {StorageProvisionInputDTO} storageProvisionInputDTO
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateStorageProvision: (storageProvisionId: string, storageProvisionInputDTO: StorageProvisionInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
-};
-/**
- * StorageProvisionsApi - functional programming interface
- * @export
- */
-export declare const StorageProvisionsApiFp: (configuration?: Configuration) => {
-    /**
-     *
-     * @param {StorageProvisionInputDTO} storageProvisionInputDTO
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createServerProvision(storageProvisionInputDTO: StorageProvisionInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionListResponse>>;
-    /**
-     *
-     * @param {string} storageProvisionId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    deleteStorageProvision(storageProvisionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionListResponse>>;
-    /**
-     *
-     * @param {string} storageProvisionId
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getStorageProvision(storageProvisionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionGetResponse>>;
-    /**
-     *
-     * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType]
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listStorageProvisions(provisionType?: ListStorageProvisionsProvisionTypeEnum, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionListResponse>>;
-    /**
-     *
-     * @param {string} storageProvisionId
-     * @param {StorageProvisionInputDTO} storageProvisionInputDTO
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateStorageProvision(storageProvisionId: string, storageProvisionInputDTO: StorageProvisionInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionListResponse>>;
-};
-/**
- * StorageProvisionsApi - factory interface
- * @export
- */
-export declare const StorageProvisionsApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
-    /**
-     *
-     * @param {StorageProvisionsApiCreateServerProvisionRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createServerProvision(requestParameters: StorageProvisionsApiCreateServerProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionListResponse>;
-    /**
-     *
-     * @param {StorageProvisionsApiDeleteStorageProvisionRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    deleteStorageProvision(requestParameters: StorageProvisionsApiDeleteStorageProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionListResponse>;
-    /**
-     *
-     * @param {StorageProvisionsApiGetStorageProvisionRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getStorageProvision(requestParameters: StorageProvisionsApiGetStorageProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionGetResponse>;
-    /**
-     *
-     * @param {StorageProvisionsApiListStorageProvisionsRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listStorageProvisions(requestParameters?: StorageProvisionsApiListStorageProvisionsRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionListResponse>;
-    /**
-     *
-     * @param {StorageProvisionsApiUpdateStorageProvisionRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateStorageProvision(requestParameters: StorageProvisionsApiUpdateStorageProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionListResponse>;
-};
-/**
- * Request parameters for createServerProvision operation in StorageProvisionsApi.
- * @export
- * @interface StorageProvisionsApiCreateServerProvisionRequest
- */
-export interface StorageProvisionsApiCreateServerProvisionRequest {
-    /**
-     *
-     * @type {StorageProvisionInputDTO}
-     * @memberof StorageProvisionsApiCreateServerProvision
-     */
-    readonly storageProvisionInputDTO: StorageProvisionInputDTO;
-}
-/**
- * Request parameters for deleteStorageProvision operation in StorageProvisionsApi.
- * @export
- * @interface StorageProvisionsApiDeleteStorageProvisionRequest
- */
-export interface StorageProvisionsApiDeleteStorageProvisionRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionsApiDeleteStorageProvision
-     */
-    readonly storageProvisionId: string;
-}
-/**
- * Request parameters for getStorageProvision operation in StorageProvisionsApi.
- * @export
- * @interface StorageProvisionsApiGetStorageProvisionRequest
- */
-export interface StorageProvisionsApiGetStorageProvisionRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionsApiGetStorageProvision
-     */
-    readonly storageProvisionId: string;
-}
-/**
- * Request parameters for listStorageProvisions operation in StorageProvisionsApi.
- * @export
- * @interface StorageProvisionsApiListStorageProvisionsRequest
- */
-export interface StorageProvisionsApiListStorageProvisionsRequest {
-    /**
-     *
-     * @type {'CONTENT' | 'METADATA' | 'BACKUP'}
-     * @memberof StorageProvisionsApiListStorageProvisions
-     */
-    readonly provisionType?: ListStorageProvisionsProvisionTypeEnum;
-}
-/**
- * Request parameters for updateStorageProvision operation in StorageProvisionsApi.
- * @export
- * @interface StorageProvisionsApiUpdateStorageProvisionRequest
- */
-export interface StorageProvisionsApiUpdateStorageProvisionRequest {
-    /**
-     *
-     * @type {string}
-     * @memberof StorageProvisionsApiUpdateStorageProvision
-     */
-    readonly storageProvisionId: string;
-    /**
-     *
-     * @type {StorageProvisionInputDTO}
-     * @memberof StorageProvisionsApiUpdateStorageProvision
-     */
-    readonly storageProvisionInputDTO: StorageProvisionInputDTO;
-}
-/**
- * StorageProvisionsApi - object-oriented interface
- * @export
- * @class StorageProvisionsApi
- * @extends {BaseAPI}
- */
-export declare class StorageProvisionsApi extends BaseAPI {
-    /**
-     *
-     * @param {StorageProvisionsApiCreateServerProvisionRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof StorageProvisionsApi
-     */
-    createServerProvision(requestParameters: StorageProvisionsApiCreateServerProvisionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<StorageProvisionListResponse, any>>;
-    /**
-     *
-     * @param {StorageProvisionsApiDeleteStorageProvisionRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof StorageProvisionsApi
-     */
-    deleteStorageProvision(requestParameters: StorageProvisionsApiDeleteStorageProvisionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<StorageProvisionListResponse, any>>;
-    /**
-     *
-     * @param {StorageProvisionsApiGetStorageProvisionRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof StorageProvisionsApi
-     */
-    getStorageProvision(requestParameters: StorageProvisionsApiGetStorageProvisionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<StorageProvisionGetResponse, any>>;
-    /**
-     *
-     * @param {StorageProvisionsApiListStorageProvisionsRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof StorageProvisionsApi
-     */
-    listStorageProvisions(requestParameters?: StorageProvisionsApiListStorageProvisionsRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<StorageProvisionListResponse, any>>;
-    /**
-     *
-     * @param {StorageProvisionsApiUpdateStorageProvisionRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof StorageProvisionsApi
-     */
-    updateStorageProvision(requestParameters: StorageProvisionsApiUpdateStorageProvisionRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<StorageProvisionListResponse, any>>;
-}
-/**
- * @export
- */
-export declare const ListStorageProvisionsProvisionTypeEnum: {
-    readonly Content: "CONTENT";
-    readonly Metadata: "METADATA";
-    readonly Backup: "BACKUP";
-};
-export type ListStorageProvisionsProvisionTypeEnum = typeof ListStorageProvisionsProvisionTypeEnum[keyof typeof ListStorageProvisionsProvisionTypeEnum];
-/**
  * TasksApi - axios parameter creator
  * @export
  */
 export declare const TasksApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
+     * @summary Get a folder task by id.
      * @param {string} folderId
      * @param {string} taskId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getFolderTask: (folderId: string, taskId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    getFolderTask: (folderId: string, taskId: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary List tasks.
      * @param {string} folderId
      * @param {string} [objectKey]
      * @param {ListFolderTasksSortEnum} [sort]
@@ -4739,7 +4880,7 @@ export declare const TasksApiAxiosParamCreator: (configuration?: Configuration) 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolderTasks: (folderId: string, objectKey?: string, sort?: ListFolderTasksSortEnum, search?: string, includeWaiting?: ListFolderTasksIncludeWaitingEnum, includeRunning?: ListFolderTasksIncludeRunningEnum, includeComplete?: ListFolderTasksIncludeCompleteEnum, includeFailed?: ListFolderTasksIncludeFailedEnum, offset?: number, limit?: number, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listFolderTasks: (folderId: string, objectKey?: string, sort?: ListFolderTasksSortEnum, search?: string, includeWaiting?: ListFolderTasksIncludeWaitingEnum, includeRunning?: ListFolderTasksIncludeRunningEnum, includeComplete?: ListFolderTasksIncludeCompleteEnum, includeFailed?: ListFolderTasksIncludeFailedEnum, offset?: number, limit?: number, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * TasksApi - functional programming interface
@@ -4748,14 +4889,16 @@ export declare const TasksApiAxiosParamCreator: (configuration?: Configuration) 
 export declare const TasksApiFp: (configuration?: Configuration) => {
     /**
      *
+     * @summary Get a folder task by id.
      * @param {string} folderId
      * @param {string} taskId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getFolderTask(folderId: string, taskId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskGetResponse>>;
+    getFolderTask(folderId: string, taskId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskGetResponse>>;
     /**
      *
+     * @summary List tasks.
      * @param {string} folderId
      * @param {string} [objectKey]
      * @param {ListFolderTasksSortEnum} [sort]
@@ -4769,7 +4912,7 @@ export declare const TasksApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolderTasks(folderId: string, objectKey?: string, sort?: ListFolderTasksSortEnum, search?: string, includeWaiting?: ListFolderTasksIncludeWaitingEnum, includeRunning?: ListFolderTasksIncludeRunningEnum, includeComplete?: ListFolderTasksIncludeCompleteEnum, includeFailed?: ListFolderTasksIncludeFailedEnum, offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>>;
+    listFolderTasks(folderId: string, objectKey?: string, sort?: ListFolderTasksSortEnum, search?: string, includeWaiting?: ListFolderTasksIncludeWaitingEnum, includeRunning?: ListFolderTasksIncludeRunningEnum, includeComplete?: ListFolderTasksIncludeCompleteEnum, includeFailed?: ListFolderTasksIncludeFailedEnum, offset?: number, limit?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>>;
 };
 /**
  * TasksApi - factory interface
@@ -4778,18 +4921,20 @@ export declare const TasksApiFp: (configuration?: Configuration) => {
 export declare const TasksApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
     /**
      *
+     * @summary Get a folder task by id.
      * @param {TasksApiGetFolderTaskRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getFolderTask(requestParameters: TasksApiGetFolderTaskRequest, options?: AxiosRequestConfig): AxiosPromise<TaskGetResponse>;
+    getFolderTask(requestParameters: TasksApiGetFolderTaskRequest, options?: RawAxiosRequestConfig): AxiosPromise<TaskGetResponse>;
     /**
      *
+     * @summary List tasks.
      * @param {TasksApiListFolderTasksRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listFolderTasks(requestParameters: TasksApiListFolderTasksRequest, options?: AxiosRequestConfig): AxiosPromise<TaskListResponse>;
+    listFolderTasks(requestParameters: TasksApiListFolderTasksRequest, options?: RawAxiosRequestConfig): AxiosPromise<TaskListResponse>;
 };
 /**
  * Request parameters for getFolderTask operation in TasksApi.
@@ -4886,20 +5031,22 @@ export interface TasksApiListFolderTasksRequest {
 export declare class TasksApi extends BaseAPI {
     /**
      *
+     * @summary Get a folder task by id.
      * @param {TasksApiGetFolderTaskRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TasksApi
      */
-    getFolderTask(requestParameters: TasksApiGetFolderTaskRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskGetResponse, any>>;
+    getFolderTask(requestParameters: TasksApiGetFolderTaskRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskGetResponse, any>>;
     /**
      *
+     * @summary List tasks.
      * @param {TasksApiListFolderTasksRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TasksApi
      */
-    listFolderTasks(requestParameters: TasksApiListFolderTasksRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskListResponse, any>>;
+    listFolderTasks(requestParameters: TasksApiListFolderTasksRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<TaskListResponse, any>>;
 }
 /**
  * @export
@@ -4940,33 +5087,310 @@ export declare const ListFolderTasksIncludeFailedEnum: {
 };
 export type ListFolderTasksIncludeFailedEnum = typeof ListFolderTasksIncludeFailedEnum[keyof typeof ListFolderTasksIncludeFailedEnum];
 /**
+ * UserStorageProvisionsApi - axios parameter creator
+ * @export
+ */
+export declare const UserStorageProvisionsApiAxiosParamCreator: (configuration?: Configuration) => {
+    /**
+     *
+     * @summary Create a new user storage provision.
+     * @param {UserStorageProvisionInputDTO} userStorageProvisionInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createUserStorageProvision: (userStorageProvisionInputDTO: UserStorageProvisionInputDTO, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @summary Delete a server provision by id.
+     * @param {string} userStorageProvisionId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteUserStorageProvision: (userStorageProvisionId: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @summary Get a user storage provision by id.
+     * @param {string} userStorageProvisionId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getUserStorageProvision: (userStorageProvisionId: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @summary List the user storage provisions.
+     * @param {ListUserStorageProvisionsProvisionTypeEnum} [provisionType]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listUserStorageProvisions: (provisionType?: ListUserStorageProvisionsProvisionTypeEnum, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
+    /**
+     *
+     * @summary Update a server provision by id.
+     * @param {string} userStorageProvisionId
+     * @param {UserStorageProvisionInputDTO} userStorageProvisionInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateUserStorageProvision: (userStorageProvisionId: string, userStorageProvisionInputDTO: UserStorageProvisionInputDTO, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
+};
+/**
+ * UserStorageProvisionsApi - functional programming interface
+ * @export
+ */
+export declare const UserStorageProvisionsApiFp: (configuration?: Configuration) => {
+    /**
+     *
+     * @summary Create a new user storage provision.
+     * @param {UserStorageProvisionInputDTO} userStorageProvisionInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createUserStorageProvision(userStorageProvisionInputDTO: UserStorageProvisionInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserStorageProvisionListResponse>>;
+    /**
+     *
+     * @summary Delete a server provision by id.
+     * @param {string} userStorageProvisionId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteUserStorageProvision(userStorageProvisionId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserStorageProvisionListResponse>>;
+    /**
+     *
+     * @summary Get a user storage provision by id.
+     * @param {string} userStorageProvisionId
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getUserStorageProvision(userStorageProvisionId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserStorageProvisionGetResponse>>;
+    /**
+     *
+     * @summary List the user storage provisions.
+     * @param {ListUserStorageProvisionsProvisionTypeEnum} [provisionType]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listUserStorageProvisions(provisionType?: ListUserStorageProvisionsProvisionTypeEnum, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserStorageProvisionListResponse>>;
+    /**
+     *
+     * @summary Update a server provision by id.
+     * @param {string} userStorageProvisionId
+     * @param {UserStorageProvisionInputDTO} userStorageProvisionInputDTO
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateUserStorageProvision(userStorageProvisionId: string, userStorageProvisionInputDTO: UserStorageProvisionInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserStorageProvisionListResponse>>;
+};
+/**
+ * UserStorageProvisionsApi - factory interface
+ * @export
+ */
+export declare const UserStorageProvisionsApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+    /**
+     *
+     * @summary Create a new user storage provision.
+     * @param {UserStorageProvisionsApiCreateUserStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createUserStorageProvision(requestParameters: UserStorageProvisionsApiCreateUserStorageProvisionRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserStorageProvisionListResponse>;
+    /**
+     *
+     * @summary Delete a server provision by id.
+     * @param {UserStorageProvisionsApiDeleteUserStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteUserStorageProvision(requestParameters: UserStorageProvisionsApiDeleteUserStorageProvisionRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserStorageProvisionListResponse>;
+    /**
+     *
+     * @summary Get a user storage provision by id.
+     * @param {UserStorageProvisionsApiGetUserStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getUserStorageProvision(requestParameters: UserStorageProvisionsApiGetUserStorageProvisionRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserStorageProvisionGetResponse>;
+    /**
+     *
+     * @summary List the user storage provisions.
+     * @param {UserStorageProvisionsApiListUserStorageProvisionsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listUserStorageProvisions(requestParameters?: UserStorageProvisionsApiListUserStorageProvisionsRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserStorageProvisionListResponse>;
+    /**
+     *
+     * @summary Update a server provision by id.
+     * @param {UserStorageProvisionsApiUpdateUserStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateUserStorageProvision(requestParameters: UserStorageProvisionsApiUpdateUserStorageProvisionRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserStorageProvisionListResponse>;
+};
+/**
+ * Request parameters for createUserStorageProvision operation in UserStorageProvisionsApi.
+ * @export
+ * @interface UserStorageProvisionsApiCreateUserStorageProvisionRequest
+ */
+export interface UserStorageProvisionsApiCreateUserStorageProvisionRequest {
+    /**
+     *
+     * @type {UserStorageProvisionInputDTO}
+     * @memberof UserStorageProvisionsApiCreateUserStorageProvision
+     */
+    readonly userStorageProvisionInputDTO: UserStorageProvisionInputDTO;
+}
+/**
+ * Request parameters for deleteUserStorageProvision operation in UserStorageProvisionsApi.
+ * @export
+ * @interface UserStorageProvisionsApiDeleteUserStorageProvisionRequest
+ */
+export interface UserStorageProvisionsApiDeleteUserStorageProvisionRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionsApiDeleteUserStorageProvision
+     */
+    readonly userStorageProvisionId: string;
+}
+/**
+ * Request parameters for getUserStorageProvision operation in UserStorageProvisionsApi.
+ * @export
+ * @interface UserStorageProvisionsApiGetUserStorageProvisionRequest
+ */
+export interface UserStorageProvisionsApiGetUserStorageProvisionRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionsApiGetUserStorageProvision
+     */
+    readonly userStorageProvisionId: string;
+}
+/**
+ * Request parameters for listUserStorageProvisions operation in UserStorageProvisionsApi.
+ * @export
+ * @interface UserStorageProvisionsApiListUserStorageProvisionsRequest
+ */
+export interface UserStorageProvisionsApiListUserStorageProvisionsRequest {
+    /**
+     *
+     * @type {'CONTENT' | 'METADATA' | 'REDUNDANCY'}
+     * @memberof UserStorageProvisionsApiListUserStorageProvisions
+     */
+    readonly provisionType?: ListUserStorageProvisionsProvisionTypeEnum;
+}
+/**
+ * Request parameters for updateUserStorageProvision operation in UserStorageProvisionsApi.
+ * @export
+ * @interface UserStorageProvisionsApiUpdateUserStorageProvisionRequest
+ */
+export interface UserStorageProvisionsApiUpdateUserStorageProvisionRequest {
+    /**
+     *
+     * @type {string}
+     * @memberof UserStorageProvisionsApiUpdateUserStorageProvision
+     */
+    readonly userStorageProvisionId: string;
+    /**
+     *
+     * @type {UserStorageProvisionInputDTO}
+     * @memberof UserStorageProvisionsApiUpdateUserStorageProvision
+     */
+    readonly userStorageProvisionInputDTO: UserStorageProvisionInputDTO;
+}
+/**
+ * UserStorageProvisionsApi - object-oriented interface
+ * @export
+ * @class UserStorageProvisionsApi
+ * @extends {BaseAPI}
+ */
+export declare class UserStorageProvisionsApi extends BaseAPI {
+    /**
+     *
+     * @summary Create a new user storage provision.
+     * @param {UserStorageProvisionsApiCreateUserStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UserStorageProvisionsApi
+     */
+    createUserStorageProvision(requestParameters: UserStorageProvisionsApiCreateUserStorageProvisionRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<UserStorageProvisionListResponse, any>>;
+    /**
+     *
+     * @summary Delete a server provision by id.
+     * @param {UserStorageProvisionsApiDeleteUserStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UserStorageProvisionsApi
+     */
+    deleteUserStorageProvision(requestParameters: UserStorageProvisionsApiDeleteUserStorageProvisionRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<UserStorageProvisionListResponse, any>>;
+    /**
+     *
+     * @summary Get a user storage provision by id.
+     * @param {UserStorageProvisionsApiGetUserStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UserStorageProvisionsApi
+     */
+    getUserStorageProvision(requestParameters: UserStorageProvisionsApiGetUserStorageProvisionRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<UserStorageProvisionGetResponse, any>>;
+    /**
+     *
+     * @summary List the user storage provisions.
+     * @param {UserStorageProvisionsApiListUserStorageProvisionsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UserStorageProvisionsApi
+     */
+    listUserStorageProvisions(requestParameters?: UserStorageProvisionsApiListUserStorageProvisionsRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<UserStorageProvisionListResponse, any>>;
+    /**
+     *
+     * @summary Update a server provision by id.
+     * @param {UserStorageProvisionsApiUpdateUserStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UserStorageProvisionsApi
+     */
+    updateUserStorageProvision(requestParameters: UserStorageProvisionsApiUpdateUserStorageProvisionRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<UserStorageProvisionListResponse, any>>;
+}
+/**
+ * @export
+ */
+export declare const ListUserStorageProvisionsProvisionTypeEnum: {
+    readonly Content: "CONTENT";
+    readonly Metadata: "METADATA";
+    readonly Redundancy: "REDUNDANCY";
+};
+export type ListUserStorageProvisionsProvisionTypeEnum = typeof ListUserStorageProvisionsProvisionTypeEnum[keyof typeof ListUserStorageProvisionsProvisionTypeEnum];
+/**
  * UsersApi - axios parameter creator
  * @export
  */
 export declare const UsersApiAxiosParamCreator: (configuration?: Configuration) => {
     /**
      *
+     * @summary Create a user.
      * @param {UserCreateInputDTO} userCreateInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createUser: (userCreateInputDTO: UserCreateInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    createUser: (userCreateInputDTO: UserCreateInputDTO, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary Delete a server user by id.
      * @param {string} userId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    deleteUser: (userId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    deleteUser: (userId: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary Get a user by id.
      * @param {string} userId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getUser: (userId: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    getUser: (userId: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary List the users.
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {boolean} [isAdmin]
@@ -4975,15 +5399,16 @@ export declare const UsersApiAxiosParamCreator: (configuration?: Configuration) 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listUsers: (offset?: number, limit?: number, isAdmin?: boolean, sort?: ListUsersSortEnum, search?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    listUsers: (offset?: number, limit?: number, isAdmin?: boolean, sort?: ListUsersSortEnum, search?: string, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
+     * @summary Update a user.
      * @param {string} userId
      * @param {UserUpdateInputDTO} userUpdateInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    updateUser: (userId: string, userUpdateInputDTO: UserUpdateInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    updateUser: (userId: string, userUpdateInputDTO: UserUpdateInputDTO, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * UsersApi - functional programming interface
@@ -4992,27 +5417,31 @@ export declare const UsersApiAxiosParamCreator: (configuration?: Configuration) 
 export declare const UsersApiFp: (configuration?: Configuration) => {
     /**
      *
+     * @summary Create a user.
      * @param {UserCreateInputDTO} userCreateInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createUser(userCreateInputDTO: UserCreateInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>>;
+    createUser(userCreateInputDTO: UserCreateInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>>;
     /**
      *
+     * @summary Delete a server user by id.
      * @param {string} userId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    deleteUser(userId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
+    deleteUser(userId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>>;
     /**
      *
+     * @summary Get a user by id.
      * @param {string} userId
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getUser(userId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>>;
+    getUser(userId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>>;
     /**
      *
+     * @summary List the users.
      * @param {number} [offset]
      * @param {number} [limit]
      * @param {boolean} [isAdmin]
@@ -5021,15 +5450,16 @@ export declare const UsersApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listUsers(offset?: number, limit?: number, isAdmin?: boolean, sort?: ListUsersSortEnum, search?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserListResponse>>;
+    listUsers(offset?: number, limit?: number, isAdmin?: boolean, sort?: ListUsersSortEnum, search?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserListResponse>>;
     /**
      *
+     * @summary Update a user.
      * @param {string} userId
      * @param {UserUpdateInputDTO} userUpdateInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    updateUser(userId: string, userUpdateInputDTO: UserUpdateInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>>;
+    updateUser(userId: string, userUpdateInputDTO: UserUpdateInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>>;
 };
 /**
  * UsersApi - factory interface
@@ -5038,39 +5468,44 @@ export declare const UsersApiFp: (configuration?: Configuration) => {
 export declare const UsersApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
     /**
      *
+     * @summary Create a user.
      * @param {UsersApiCreateUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createUser(requestParameters: UsersApiCreateUserRequest, options?: AxiosRequestConfig): AxiosPromise<UserGetResponse>;
+    createUser(requestParameters: UsersApiCreateUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserGetResponse>;
     /**
      *
+     * @summary Delete a server user by id.
      * @param {UsersApiDeleteUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    deleteUser(requestParameters: UsersApiDeleteUserRequest, options?: AxiosRequestConfig): AxiosPromise<void>;
+    deleteUser(requestParameters: UsersApiDeleteUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<void>;
     /**
      *
+     * @summary Get a user by id.
      * @param {UsersApiGetUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getUser(requestParameters: UsersApiGetUserRequest, options?: AxiosRequestConfig): AxiosPromise<UserGetResponse>;
+    getUser(requestParameters: UsersApiGetUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserGetResponse>;
     /**
      *
+     * @summary List the users.
      * @param {UsersApiListUsersRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    listUsers(requestParameters?: UsersApiListUsersRequest, options?: AxiosRequestConfig): AxiosPromise<UserListResponse>;
+    listUsers(requestParameters?: UsersApiListUsersRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserListResponse>;
     /**
      *
+     * @summary Update a user.
      * @param {UsersApiUpdateUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    updateUser(requestParameters: UsersApiUpdateUserRequest, options?: AxiosRequestConfig): AxiosPromise<UserGetResponse>;
+    updateUser(requestParameters: UsersApiUpdateUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserGetResponse>;
 };
 /**
  * Request parameters for createUser operation in UsersApi.
@@ -5176,44 +5611,49 @@ export interface UsersApiUpdateUserRequest {
 export declare class UsersApi extends BaseAPI {
     /**
      *
+     * @summary Create a user.
      * @param {UsersApiCreateUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UsersApi
      */
-    createUser(requestParameters: UsersApiCreateUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<UserGetResponse, any>>;
+    createUser(requestParameters: UsersApiCreateUserRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<UserGetResponse, any>>;
     /**
      *
+     * @summary Delete a server user by id.
      * @param {UsersApiDeleteUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UsersApi
      */
-    deleteUser(requestParameters: UsersApiDeleteUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
+    deleteUser(requestParameters: UsersApiDeleteUserRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<void, any>>;
     /**
      *
+     * @summary Get a user by id.
      * @param {UsersApiGetUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UsersApi
      */
-    getUser(requestParameters: UsersApiGetUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<UserGetResponse, any>>;
+    getUser(requestParameters: UsersApiGetUserRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<UserGetResponse, any>>;
     /**
      *
+     * @summary List the users.
      * @param {UsersApiListUsersRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UsersApi
      */
-    listUsers(requestParameters?: UsersApiListUsersRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<UserListResponse, any>>;
+    listUsers(requestParameters?: UsersApiListUsersRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<UserListResponse, any>>;
     /**
      *
+     * @summary Update a user.
      * @param {UsersApiUpdateUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UsersApi
      */
-    updateUser(requestParameters: UsersApiUpdateUserRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<UserGetResponse, any>>;
+    updateUser(requestParameters: UsersApiUpdateUserRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<UserGetResponse, any>>;
 }
 /**
  * @export
@@ -5241,14 +5681,14 @@ export declare const ViewerApiAxiosParamCreator: (configuration?: Configuration)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getViewer: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    getViewer: (options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
     /**
      *
      * @param {ViewerUpdateInputDTO} viewerUpdateInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    updateViewer: (viewerUpdateInputDTO: ViewerUpdateInputDTO, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+    updateViewer: (viewerUpdateInputDTO: ViewerUpdateInputDTO, options?: RawAxiosRequestConfig) => Promise<RequestArgs>;
 };
 /**
  * ViewerApi - functional programming interface
@@ -5260,14 +5700,14 @@ export declare const ViewerApiFp: (configuration?: Configuration) => {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getViewer(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ViewerGetResponse>>;
+    getViewer(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ViewerGetResponse>>;
     /**
      *
      * @param {ViewerUpdateInputDTO} viewerUpdateInputDTO
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    updateViewer(viewerUpdateInputDTO: ViewerUpdateInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ViewerGetResponse>>;
+    updateViewer(viewerUpdateInputDTO: ViewerUpdateInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ViewerGetResponse>>;
 };
 /**
  * ViewerApi - factory interface
@@ -5279,14 +5719,14 @@ export declare const ViewerApiFactory: (configuration?: Configuration, basePath?
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getViewer(options?: AxiosRequestConfig): AxiosPromise<ViewerGetResponse>;
+    getViewer(options?: RawAxiosRequestConfig): AxiosPromise<ViewerGetResponse>;
     /**
      *
      * @param {ViewerApiUpdateViewerRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): AxiosPromise<ViewerGetResponse>;
+    updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: RawAxiosRequestConfig): AxiosPromise<ViewerGetResponse>;
 };
 /**
  * Request parameters for updateViewer operation in ViewerApi.
@@ -5314,7 +5754,7 @@ export declare class ViewerApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof ViewerApi
      */
-    getViewer(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ViewerGetResponse, any>>;
+    getViewer(options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<ViewerGetResponse, any>>;
     /**
      *
      * @param {ViewerApiUpdateViewerRequest} requestParameters Request parameters.
@@ -5322,5 +5762,5 @@ export declare class ViewerApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof ViewerApi
      */
-    updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<ViewerGetResponse, any>>;
+    updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: RawAxiosRequestConfig): Promise<import("axios").AxiosResponse<ViewerGetResponse, any>>;
 }

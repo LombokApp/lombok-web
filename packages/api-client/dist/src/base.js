@@ -37,7 +37,7 @@ export class BaseAPI {
         this.axios = axios;
         if (configuration) {
             this.configuration = configuration;
-            this.basePath = configuration.basePath || this.basePath;
+            this.basePath = configuration.basePath ?? basePath;
         }
     }
 }
@@ -56,3 +56,8 @@ export class RequiredError extends Error {
         this.name = "RequiredError";
     }
 }
+/**
+ *
+ * @export
+ */
+export const operationServerMap = {};

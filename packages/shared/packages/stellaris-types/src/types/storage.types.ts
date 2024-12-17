@@ -6,10 +6,35 @@ export enum SignedURLsRequestMethod {
   GET = 'GET',
 }
 
-export const StorageProvisionTypeZodEnum = z.enum([
+export const UserStorageProvisionTypeZodEnum = z.enum([
   'CONTENT',
   'METADATA',
-  'BACKUP',
+  'REDUNDANCY',
 ])
-export type StorageProvisionType = z.infer<typeof StorageProvisionTypeZodEnum>
-export const StorageProvisionTypeEnum = StorageProvisionTypeZodEnum.Enum
+export type UserStorageProvisionType = z.infer<
+  typeof UserStorageProvisionTypeZodEnum
+>
+export const UserStorageProvisionTypeEnum = UserStorageProvisionTypeZodEnum.Enum
+
+export const serverStorageLocationInputSchema = z.object({
+  accessKeyId: z.string().min(1),
+  secretAccessKey: z.string().min(1),
+  endpoint: z
+    .string()
+    .url()
+    .refine(
+      (e) => {
+        try {
+          return new URL(e).pathname === '/'
+        } catch (error) {
+          return false
+        }
+      },
+      {
+        message: 'Expected hostname but got URL.',
+      },
+    ),
+  bucket: z.string().min(1),
+  region: z.string().min(1),
+  prefix: z.union([z.string().min(1), z.null()]),
+})

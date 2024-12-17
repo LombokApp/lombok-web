@@ -3,8 +3,13 @@ export interface ServerConfigKey {
   key: string
 }
 
-export const STORAGE_PROVISIONS_KEY: ServerConfigKey = {
-  key: 'STORAGE_PROVISIONS',
+export const USER_STORAGE_PROVISIONS_KEY: ServerConfigKey = {
+  key: 'USER_STORAGE_PROVISIONS',
+  private: true,
+}
+
+export const SERVER_STORAGE_LOCATION_KEY: ServerConfigKey = {
+  key: 'SERVER_STORAGE_LOCATION',
   private: true,
 }
 
@@ -24,7 +29,8 @@ export const SIGNUP_PERMISSIONS_KEY: ServerConfigKey = {
 }
 
 export const CONFIGURATION_KEYS = [
-  STORAGE_PROVISIONS_KEY,
+  USER_STORAGE_PROVISIONS_KEY,
+  SERVER_STORAGE_LOCATION_KEY,
   SIGNUP_ENABLED_KEY,
   SIGNUP_PERMISSIONS_KEY,
   SERVER_HOSTNAME,

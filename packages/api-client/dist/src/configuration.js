@@ -47,6 +47,13 @@ export class Configuration {
      */
     basePath;
     /**
+     * override server index
+     *
+     * @type {number}
+     * @memberof Configuration
+     */
+    serverIndex;
+    /**
      * base options for axios calls
      *
      * @type {any}
@@ -67,6 +74,7 @@ export class Configuration {
         this.password = param.password;
         this.accessToken = param.accessToken;
         this.basePath = param.basePath;
+        this.serverIndex = param.serverIndex;
         this.baseOptions = param.baseOptions;
         this.formDataCtor = param.formDataCtor;
     }

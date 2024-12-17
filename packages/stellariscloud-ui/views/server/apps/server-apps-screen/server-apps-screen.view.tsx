@@ -38,6 +38,7 @@ export function ServerAppsScreen() {
   return (
     <div className={cn('items-center flex flex-1 flex-col h-full')}>
       <DataTable
+        title="Apps"
         enableSearch={true}
         searchColumn="identifier"
         data={

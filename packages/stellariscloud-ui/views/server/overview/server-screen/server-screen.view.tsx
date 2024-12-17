@@ -25,7 +25,7 @@ import { ServerUsersScreen } from '../../users/server-users-screen/server-users-
 import { ServerEventsScreen } from '../../events/server-events-screen/server-events-screen.view'
 import { ServerAppsScreen } from '../../apps/server-apps-screen/server-apps-screen.view'
 import { useRouter } from 'next/router'
-import { ServerSettingsScreen } from '../../settings/server-settings-screen/server-settings-screen'
+import { ServerConfigScreen } from '../../config/server-config-screen/server-config-screen'
 import { ServerEventDetailScreen } from '../../events/server-event-detail-screen/server-event-detail-screen.view'
 import { ServerUserDetailScreen } from '../../users/server-user-detail-screen/server-user-detail-screen.view'
 import { ServerAppDetailScreen } from '../../apps/server-app-detail-screen/server-app-detail-screen.view'
@@ -56,7 +56,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
         <div className="hidden flex-col md:flex">
           <div className="flex-1">
             <Tabs defaultValue={serverPage[0]} value={serverPage[0]}>
-              <div className="flex items-start flex-col gap-3">
+              <div className="flex items-start flex-col gap-3 pb-6">
                 <TabsList>
                   <TabsTrigger
                     onClick={() => router.push('/server')}
@@ -113,14 +113,9 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     </div>
                   </TabsTrigger>
                 </TabsList>
-                <TypographyH2 className="pb-0">
-                  Server {serverPage[0][0].toUpperCase()}
-                  {serverPage[0].slice(1)}
-                </TypographyH2>
-                <Separator className="bg-foreground/10 mb-3" />
               </div>
               {(serverPage.length === 1 || serverPage[0] === 'config') && (
-                <div className="pt-2 pb-6">
+                <div className="pb-6">
                   <TabsContent value="users">
                     <ServerUsersScreen />
                   </TabsContent>
@@ -135,7 +130,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                   </TabsContent>
                   <TabsContent value="config">
                     {router.query.serverPage?.[0] === 'config' && (
-                      <ServerSettingsScreen
+                      <ServerConfigScreen
                         tab={router.query.serverPage[1] ?? 'general'}
                       />
                     )}

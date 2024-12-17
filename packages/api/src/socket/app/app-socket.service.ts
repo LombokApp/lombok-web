@@ -14,7 +14,7 @@ const AppAuthPayload = r.Record({
   handledTaskKeys: r.Array(r.String),
 })
 
-const APP_WORKER_INFO_CACHE_KEY_PREFIX = 'APP_WORKER'
+export const APP_WORKER_INFO_CACHE_KEY_PREFIX = 'APP_WORKER'
 
 @Injectable()
 export class AppSocketService {

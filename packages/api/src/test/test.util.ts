@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm'
 import fs from 'fs'
 import path from 'path'
 import type { LoginResponse } from 'src/auth/dto/responses/login-response.dto'
+import { KVService } from 'src/cache/kv.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { configureS3Client } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
@@ -46,9 +47,10 @@ export async function buildTestModule({
   setApp(app)
 
   const ormService = await app.resolve(OrmService)
+  const kvService = await app.resolve(KVService)
 
   // truncate the db before running first init (which will migrate the db)
-  await ormService.truncateTestDatabase()
+  await ormService.truncateAllTestTables()
 
   await app.enableShutdownHooks().init()
 
@@ -67,7 +69,10 @@ export async function buildTestModule({
     getOrmService: () => {
       return ormService
     },
-    resetDb: () => ormService.resetTestDb(),
+    resetAppState: async () => {
+      kvService.ops.flushall()
+      await ormService.resetTestDb()
+    },
     testS3ClientConfig: () => ({
       accessKeyId: MINIO_ACCESS_KEY_ID,
       secretAccessKey: MINIO_SECRET_ACCESS_KEY,

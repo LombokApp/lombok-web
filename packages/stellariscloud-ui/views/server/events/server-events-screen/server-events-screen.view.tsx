@@ -63,6 +63,7 @@ export function ServerEventsScreen() {
   return (
     <div className={cn('items-center flex flex-1 flex-col h-full')}>
       <DataTable
+        title="Events"
         enableSearch={true}
         searchColumn="identifier"
         onColumnFiltersChange={(updater) => {

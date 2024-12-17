@@ -133,28 +133,6 @@ export class AuthService {
     )
   }
 
-  async verifySessionWithAccessToken(
-    tokenString: string,
-  ): Promise<{ user: User; session: Session }> {
-    const accessToken = AccessTokenJWT.parse(
-      this.jwtService.verifyUserJWT(tokenString),
-    )
-    const session =
-      await this.sessionService.verifySessionWithAccessToken(accessToken)
-    const user = await this.ormService.db.query.usersTable.findFirst({
-      where: eq(usersTable.id, session.userId),
-    })
-
-    if (!user) {
-      throw new SessionInvalidException()
-    }
-
-    return {
-      user,
-      session,
-    }
-  }
-
   async verifySessionWithRefreshToken(refreshToken: string): Promise<{
     user: User
     session: Session

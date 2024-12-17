@@ -33,6 +33,7 @@ import { ColumnFilterOptions, DataTableToolbar } from './data-table-toolbar'
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  title?: string
   filterFns?: Record<string, FilterFn<TValue>>
   filterOptions?: Record<string, ColumnFilterOptions>
   manualFiltering?: boolean
@@ -53,6 +54,7 @@ interface TableHandlerProps<TData> {
 export function DataTable<TData, TValue>({
   columns,
   data,
+  title,
   filterFns,
   filterOptions = {},
   rowCount = data.length,
@@ -118,6 +120,7 @@ export function DataTable<TData, TValue>({
     <div className="space-y-4 w-full">
       {(Object.keys(filterOptions).length > 0 || enableSearch) && (
         <DataTableToolbar
+          title={title}
           enableSearch={enableSearch}
           searchColumn={searchColumn}
           searchPlaceholder={searchPlaceholder}

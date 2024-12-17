@@ -7,8 +7,9 @@ import {
   FoldersApi,
   ServerAccessKeysApi,
   ServerApi,
-  StorageProvisionsApi,
+  ServerStorageLocationApi,
   UsersApi,
+  UserStorageProvisionsApi,
   ViewerApi,
 } from '@stellariscloud/api-client'
 import type { AxiosInstance, AxiosRequestConfig } from 'axios'
@@ -74,6 +75,15 @@ export function buildSupertestApiClient(app: INestApplication) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         buildMockAxios(configParams.accessToken) as any,
       ),
+    serverStorageLocationApi: (
+      configParams: SupertestApiClientConfigParams = {},
+    ) =>
+      new ServerStorageLocationApi(
+        new Configuration(configParams),
+        '',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        buildMockAxios(configParams.accessToken) as any,
+      ),
     accessKeysApi: (configParams: SupertestApiClientConfigParams = {}) =>
       new AccessKeysApi(
         new Configuration(configParams),
@@ -88,8 +98,10 @@ export function buildSupertestApiClient(app: INestApplication) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         buildMockAxios(configParams.accessToken) as any,
       ),
-    storageProvisionsApi: (configParams: SupertestApiClientConfigParams = {}) =>
-      new StorageProvisionsApi(
+    userStorageProvisionsApi: (
+      configParams: SupertestApiClientConfigParams = {},
+    ) =>
+      new UserStorageProvisionsApi(
         new Configuration(configParams),
         '',
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument

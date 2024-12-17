@@ -1,4 +1,3 @@
-import type { OnModuleInit } from '@nestjs/common'
 import {
   BadRequestException,
   forwardRef,
@@ -12,14 +11,14 @@ import type {
   ContentMetadataType,
   FolderPermissionName,
   S3ObjectInternal,
-  StorageProvisionType,
+  UserStorageProvisionType,
 } from '@stellariscloud/types'
 import {
   FolderPermissionEnum,
   FolderPushMessage,
   MediaType,
   SignedURLsRequestMethod,
-  StorageProvisionTypeEnum,
+  UserStorageProvisionTypeEnum,
 } from '@stellariscloud/types'
 import {
   mediaTypeFromExtension,
@@ -142,7 +141,7 @@ const ServerLocationPayloadRunType = r.Record({
 })
 
 @Injectable()
-export class FolderService implements OnModuleInit {
+export class FolderService {
   eventService: EventService
   appService: AppService
   get folderSocketService(): FolderSocketService {
@@ -167,8 +166,6 @@ export class FolderService implements OnModuleInit {
     this.appService = this.moduleRef.get(AppService)
   }
 
-  onModuleInit() {}
-
   async createFolder({
     userId,
     body,
@@ -191,7 +188,7 @@ export class FolderService implements OnModuleInit {
 
     const now = new Date()
     const buildLocation = async (
-      storageProvisionType: StorageProvisionType,
+      storageProvisionType: UserStorageProvisionType,
       locationInput: UserLocationInputDTO,
     ): Promise<StorageLocation> => {
       const withNewUserLocationConnection =
@@ -277,7 +274,7 @@ export class FolderService implements OnModuleInit {
       } else if (withExistingServerLocation.success) {
         // user has provided a server location reference
         const existingServerLocation =
-          await this.serverConfigurationService.getStorageProvisionById(
+          await this.serverConfigurationService.getUserStorageProvisionById(
             withExistingServerLocation.value.storageProvisionId,
           )
 
@@ -286,9 +283,9 @@ export class FolderService implements OnModuleInit {
         }
 
         const prefixSuffix =
-          storageProvisionType === StorageProvisionTypeEnum.METADATA
+          storageProvisionType === UserStorageProvisionTypeEnum.METADATA
             ? `.stellaris_folder_metadata_${prospectiveFolderId}/`
-            : storageProvisionType === StorageProvisionTypeEnum.CONTENT
+            : storageProvisionType === UserStorageProvisionTypeEnum.CONTENT
               ? `.stellaris_folder_content_${prospectiveFolderId}/`
               : `.stellaris_folder_backup_${prospectiveFolderId}/`
 
@@ -330,12 +327,12 @@ export class FolderService implements OnModuleInit {
     }
 
     const contentLocation = await buildLocation(
-      StorageProvisionTypeEnum.CONTENT,
+      UserStorageProvisionTypeEnum.CONTENT,
       body.contentLocation,
     )
 
     const metadataLocation = await buildLocation(
-      StorageProvisionTypeEnum.METADATA,
+      UserStorageProvisionTypeEnum.METADATA,
       body.metadataLocation,
     )
 

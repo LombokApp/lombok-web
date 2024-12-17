@@ -1,5 +1,7 @@
 {
+  "description": "The dev app.",
   "tasks": [],
+  "requiresStorage": true,
   "emittableEvents": [],
   "menuItems": [{
     "name": "dev-main",

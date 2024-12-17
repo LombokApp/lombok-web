@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   Req,
   UnauthorizedException,
@@ -25,6 +26,7 @@ import { UserDTO } from '../dto/user.dto'
 import { UserCreateInputDTO } from '../dto/user-create-input.dto'
 import { UserUpdateInputDTO } from '../dto/user-update-input.dto'
 import { UsersListQueryParamsDTO } from '../dto/users-list-query-params.dto'
+import { UserEmailUpdateInputDTO } from '../dto/user-email-update-input.dto'
 
 @Controller('/api/v1/server/users')
 @ApiTags('Users')

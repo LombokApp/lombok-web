@@ -11,6 +11,7 @@ import { MediaType, SignedURLsRequestMethod } from '@stellariscloud/types'
 import { EnumType } from '@stellariscloud/utils'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
 import fs from 'fs'
+import mime from 'mime'
 import path from 'path'
 import * as r from 'runtypes'
 import { KVService } from 'src/cache/kv.service'
@@ -22,6 +23,9 @@ import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
 import { FolderNotFoundException } from 'src/folders/exceptions/folder-not-found.exception'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
+import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
+import { uploadLocalFile } from 'src/shared/utils'
+import { APP_WORKER_INFO_CACHE_KEY_PREFIX } from 'src/socket/app/app-socket.service'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
@@ -32,6 +36,9 @@ import { z } from 'zod'
 import { appConfig } from '../config'
 import { AppSocketAPIRequest } from '../constants/app-api-messages'
 import { App, appsTable } from '../entities/app.entity'
+import { AppAlreadyInstalledException } from '../exceptions/app-already-installed.exception'
+import { AppNotParsableException } from '../exceptions/app-not-parsable.exception'
+import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirements-not-satisfied.exception'
 
 const MAX_APP_FILE_SIZE = 1024 * 1024 * 16
 const MAX_APP_TOTAL_SIZE = 1024 * 1024 * 32
@@ -151,6 +158,7 @@ export class AppService {
     @Inject(appConfig.KEY)
     private readonly _appConfig: nestJsConfig.ConfigType<typeof appConfig>,
     private readonly ormService: OrmService,
+    private readonly serverConfigurationService: ServerConfigurationService,
     private readonly kvService: KVService,
     @Inject(forwardRef(() => FolderService)) _folderService,
     private readonly s3Service: S3Service,
@@ -636,102 +644,220 @@ export class AppService {
     return `APP_UI:${appIdentifier}:${appUi}:${filename}`
   }
 
-  public getApps() {
+  public listApps() {
     return this.ormService.db.query.appsTable.findMany({ limit: 100 })
   }
 
-  public async updateAppsFromDisk(appsDirectory: string) {
-    // load the apps from disk
-    const appsFromDisk = this.parseAppsOnDisk(
-      appsDirectory,
-      MAX_APP_FILE_SIZE,
-      MAX_APP_TOTAL_SIZE,
-    )
-    // push all app UI file content into the cache
-    for (const appIdentifier of Object.keys(appsFromDisk)) {
-      if (appIdentifier in appsFromDisk) {
-        const _app = await this.getApp(appIdentifier)
-        // TODO: Push script and UI content into configure server metadata s3 bucket
+  public async uninstallApp(app: App) {
+    const serverStorageLocation =
+      await this.serverConfigurationService.getServerStorageLocation()
+    const appRequiresStorage =
+      app.config.requiresStorage ||
+      app.manifest.filter(
+        (manifestItem) =>
+          manifestItem.path.startsWith('/ui') ||
+          manifestItem.path.startsWith('/workers'),
+      ).length
 
-        // for (const appUi of Object.keys(
-        //   appsFromDisk[appIdentifier]?.ui ?? {},
-        // )) {
-        //   for (const filename of Object.keys(
-        //     appsFromDisk[appIdentifier]?.ui[appUi]?.files ?? {},
-        //   )) {
-        //     const fullFilePath = path.join(
-        //       appsDirectory,
-        //       appIdentifier,
-        //       'ui',
-        //       appUi,
-        //       filename,
-        //     )
-        //     const CACHE_KEY = `APP_UI:${appIdentifier}:${appUi}:${filename}`
-        //     this.kvService.ops.set(CACHE_KEY, fs.readFileSync(fullFilePath))
-        //   }
-        // }
+    if (appRequiresStorage && serverStorageLocation) {
+      const prefix = `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-storage/${app.identifier}/`
+      this.s3Service.deleteAllWithPrefix({
+        ...serverStorageLocation,
+        prefix,
+      })
+    }
+
+    // remove app db record
+    await this.ormService.db
+      .delete(appsTable)
+      .where(eq(appsTable.identifier, app.identifier))
+  }
+
+  public async installApp(app: App, update: boolean = false) {
+    const now = new Date()
+    const installedApp = await this.getApp(app.identifier)
+    if (installedApp && !update) {
+      throw new AppAlreadyInstalledException()
+    }
+    const assetManifestEntries = app.manifest.filter(
+      (manifestItem) =>
+        manifestItem.path.startsWith('/ui') ||
+        manifestItem.path.startsWith('/workers'),
+    )
+
+    const serverStorageLocation =
+      await this.serverConfigurationService.getServerStorageLocation()
+    const appRequiresStorage =
+      app.config.requiresStorage || assetManifestEntries.length
+
+    if (appRequiresStorage && !serverStorageLocation) {
+      throw new AppRequirementsNotSatisfiedException()
+    }
+
+    if (installedApp) {
+      // uninstall currently installed app instance
+      await this.uninstallApp(app)
+    }
+
+    if (serverStorageLocation) {
+      for (const manifestEntry of assetManifestEntries) {
+        const fullFilepath = path.join(
+          this._appConfig.appsLocalPath,
+          app.identifier,
+          manifestEntry.path,
+        )
+        const objectKey = `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-storage/${app.identifier}${manifestEntry.path}`
+        console.log('Uploading app file:', {
+          objectKey,
+          filepath: manifestEntry.path,
+          fullFilepath,
+        })
+
+        const [url] = this.s3Service.createS3PresignedUrls([
+          {
+            ...serverStorageLocation,
+            method: SignedURLsRequestMethod.PUT,
+            expirySeconds: 600,
+            objectKey,
+          },
+        ])
+
+        await uploadLocalFile(
+          fullFilepath,
+          url,
+          mime.getType(manifestEntry.path) ?? undefined,
+        )
       }
     }
+
+    // update app db record to match new app
+    if (installedApp) {
+      await this.ormService.db
+        .update(appsTable)
+        .set({ ...app, createdAt: installedApp.createdAt, updatedAt: now })
+        .where(eq(appsTable.identifier, installedApp.identifier))
+    } else {
+      await this.ormService.db.insert(appsTable).values({
+        ...app,
+        createdAt: now,
+        updatedAt: now,
+      })
+    }
   }
-  public async parseAppsOnDisk(
-    appPath: string,
-    maxFileSize: number,
-    maxTotalSize: number,
-  ): Promise<{ [key: string]: App }> {
-    const now = new Date()
-    const allPotentialAppDirectoriesEntries = fs
+
+  public async installAllAppsFromDisk() {
+    // get potential app identifier from the directory structure
+    const allPotentialAppDirectoriesEntries =
+      this.getAllPotentialAppDirectories(this._appConfig.appsLocalPath)
+
+    // for each potential app, attempt to install it (without updating if its already installed)
+    for (const appIdentifier of allPotentialAppDirectoriesEntries) {
+      await this.attemptParseAndInstallAppFromDisk(appIdentifier, false)
+    }
+  }
+
+  public async attemptParseAndInstallAppFromDisk(
+    appIdentifier: string,
+    update: boolean,
+  ) {
+    const app = await this.parseAppFromDisk(appIdentifier)
+
+    if (app.valid) {
+      try {
+        await this.installApp(app.definition, update)
+      } catch (error) {
+        if (error instanceof AppAlreadyInstalledException) {
+          console.log(
+            `APP INSTALL ERROR - APP[${appIdentifier}]: App is already installed.`,
+          )
+        } else if (error instanceof AppNotParsableException) {
+          console.log(
+            `APP INSTALL ERROR - APP[${appIdentifier}]: App is not parsable.`,
+          )
+        } else if (error instanceof AppRequirementsNotSatisfiedException) {
+          console.log(
+            `APP INSTALL ERROR - APP[${appIdentifier}]: App requirements are not met.`,
+          )
+        } else {
+          console.log(`APP INSTALL ERROR - APP[${appIdentifier}]:`, error)
+        }
+      }
+    } else {
+      console.log(`APP PARSE ERROR - APP[${appIdentifier}]: DEFINITION_INVALID`)
+    }
+  }
+
+  public getAllPotentialAppDirectories = (appPath: string) => {
+    return fs
       .readdirSync(appPath)
       .filter((appIdentifier) =>
         fs.lstatSync(path.join(appPath, appIdentifier)).isDirectory(),
       )
-    const apps: { [key: string]: App } = {}
-    for (const appIdentifier of allPotentialAppDirectoriesEntries) {
-      let currentTotalSize = 0
-      const publicKeyPath = path.join(appPath, appIdentifier, '.publicKey')
-      const configPath = path.join(appPath, appIdentifier, 'config.json')
-      const publicKey =
-        fs.existsSync(publicKeyPath) &&
-        !fs.lstatSync(publicKeyPath).isDirectory()
-          ? fs.readFileSync(publicKeyPath, 'utf-8')
-          : ''
+  }
 
-      const config =
-        fs.existsSync(configPath) && fs.lstatSync(configPath).isDirectory()
-          ? JSON.parse(fs.readFileSync(configPath, 'utf-8'))
-          : undefined
+  public async parseAppFromDisk(
+    appIdentifier: string,
+  ): Promise<{ definition: App; valid: boolean }> {
+    const now = new Date()
 
-      // TODO: Validate app definition
-      apps[appIdentifier] = {
+    let currentTotalSize = 0
+    const publicKeyPath = path.join(
+      this._appConfig.appsLocalPath,
+      appIdentifier,
+      '.publicKey',
+    )
+    const configPath = path.join(
+      this._appConfig.appsLocalPath,
+      appIdentifier,
+      'config.json',
+    )
+    const publicKey =
+      fs.existsSync(publicKeyPath) && !fs.lstatSync(publicKeyPath).isDirectory()
+        ? fs.readFileSync(publicKeyPath, 'utf-8')
+        : ''
+
+    const config = fs.existsSync(configPath)
+      ? JSON.parse(fs.readFileSync(configPath, 'utf-8'))
+      : undefined
+
+    // console.log('READ APP CONFIG', { config, configPath, publicKeyPath, publicKey })
+    const appRoot = path.join(this._appConfig.appsLocalPath, appIdentifier)
+    const manifest = await Promise.all(
+      readDirRecursive(appRoot).map(async (absoluteAssetPath) => {
+        const size = fs.statSync(absoluteAssetPath).size
+        if (size > MAX_APP_FILE_SIZE) {
+          throw new Error(`App file too large! MAX: ${MAX_APP_FILE_SIZE}`)
+        }
+        currentTotalSize += size
+        if (currentTotalSize > MAX_APP_TOTAL_SIZE) {
+          throw new Error(
+            `Total app files size is too large! MAX: ${MAX_APP_TOTAL_SIZE}`,
+          )
+        }
+        const relativeAssetPath = absoluteAssetPath.slice(appRoot.length)
+
+        return {
+          size: fs.statSync(absoluteAssetPath).size,
+          path: relativeAssetPath,
+          hash: await hashLocalFile(absoluteAssetPath),
+        }
+      }),
+    )
+    // TODO: Validate app definition
+    const app = {
+      valid: true,
+      definition: {
         identifier: appIdentifier,
-        manifest: await Promise.all(
-          readDirRecursive(path.join(appPath, appIdentifier)).map(
-            async (pathEntry) => {
-              const size = fs.statSync(pathEntry).size
-              if (size > maxFileSize) {
-                throw new Error(`App file too large! MAX: ${maxFileSize}`)
-              }
-              currentTotalSize += size
-              if (currentTotalSize > maxTotalSize) {
-                throw new Error(
-                  `Total app files size is too large! MAX: ${maxTotalSize}`,
-                )
-              }
-              return {
-                size: fs.statSync(pathEntry).size,
-                path: path.join(appPath, appIdentifier, pathEntry),
-                hash: await hashLocalFile(pathEntry),
-              }
-            },
-          ),
-        ),
+        manifest,
         publicKey,
         config,
         createdAt: now,
         updatedAt: now,
-        contentHash: '',
-      }
+        contentHash: '', // TODO: calculate the exact content hash
+        enabled: false,
+      },
     }
-    return apps
+    return app
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -744,7 +870,11 @@ export class AppService {
     while (!started || cursor !== 0) {
       started = true
 
-      const scanResult = this.kvService.ops.scan(cursor, 'APP_WORKER:*', 10000)
+      const scanResult = this.kvService.ops.scan(
+        cursor,
+        `${APP_WORKER_INFO_CACHE_KEY_PREFIX}:*`,
+        10000,
+      )
       cursor = scanResult[0]
       keys = keys.concat(scanResult[1])
     }
@@ -770,7 +900,6 @@ export class AppService {
             {},
           )
       : {}
-
     return result
   }
 }

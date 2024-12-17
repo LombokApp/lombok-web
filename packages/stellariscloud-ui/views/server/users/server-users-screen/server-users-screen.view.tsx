@@ -55,6 +55,7 @@ export function ServerUsersScreen() {
   return (
     <div className={cn('items-center flex flex-1 flex-col h-full')}>
       <DataTable
+        title="Users"
         enableSearch={true}
         searchColumn="username"
         onColumnFiltersChange={(updater) => {

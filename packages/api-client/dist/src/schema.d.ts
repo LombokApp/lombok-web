@@ -1,5 +1,5 @@
 export declare const schema: {
-    readonly openapi: "3.0.0";
+    readonly openapi: "3.1.0";
     readonly paths: {
         readonly "/api/v1/auth/login": {
             readonly post: {
@@ -17,7 +17,7 @@ export declare const schema: {
                 };
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "Authenticate the user and return access and refresh tokens.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -27,6 +27,7 @@ export declare const schema: {
                         };
                     };
                 };
+                readonly summary: "Authenticate the user and return access and refresh tokens.";
                 readonly tags: readonly ["Auth"];
             };
         };
@@ -46,7 +47,7 @@ export declare const schema: {
                 };
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "Register a new user.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -56,6 +57,7 @@ export declare const schema: {
                         };
                     };
                 };
+                readonly summary: "Register a new user.";
                 readonly tags: readonly ["Auth"];
             };
         };
@@ -65,7 +67,7 @@ export declare const schema: {
                 readonly parameters: readonly [];
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "Logout. Kill the current session.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -75,10 +77,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Auth"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Logout. Kill the current session.";
+                readonly tags: readonly ["Auth"];
             };
         };
         readonly "/api/v1/auth/{refreshToken}": {
@@ -94,7 +97,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "Refresh a session with a refresh token.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -104,6 +107,7 @@ export declare const schema: {
                         };
                     };
                 };
+                readonly summary: "Refresh a session with a refresh token.";
                 readonly tags: readonly ["Auth"];
             };
         };
@@ -123,10 +127,10 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Viewer"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly tags: readonly ["Viewer"];
             };
             readonly put: {
                 readonly operationId: "updateViewer";
@@ -153,10 +157,10 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Viewer"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly tags: readonly ["Viewer"];
             };
         };
         readonly "/api/v1/server/users": {
@@ -175,7 +179,7 @@ export declare const schema: {
                 };
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "Create a user.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -185,10 +189,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Users"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Create a user.";
+                readonly tags: readonly ["Users"];
             };
             readonly get: {
                 readonly operationId: "listUsers";
@@ -204,8 +209,6 @@ export declare const schema: {
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
-                        readonly minimum: 0;
-                        readonly exclusiveMinimum: true;
                         readonly type: "number";
                     };
                 }, {
@@ -233,7 +236,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "List the users.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -243,10 +246,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Users"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "List the users.";
+                readonly tags: readonly ["Users"];
             };
         };
         readonly "/api/v1/server/users/{userId}": {
@@ -272,7 +276,7 @@ export declare const schema: {
                 };
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Update a user.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -282,10 +286,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Users"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Update a user.";
+                readonly tags: readonly ["Users"];
             };
             readonly get: {
                 readonly operationId: "getUser";
@@ -299,7 +304,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Get a user by id.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -309,10 +314,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Users"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Get a user by id.";
+                readonly tags: readonly ["Users"];
             };
             readonly delete: {
                 readonly operationId: "deleteUser";
@@ -326,13 +332,14 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Delete a server user by id.";
+                        readonly description: "";
                     };
                 };
-                readonly tags: readonly ["Users"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Delete a server user by id.";
+                readonly tags: readonly ["Users"];
             };
         };
         readonly "/api/v1/folders/{folderId}": {
@@ -348,7 +355,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Get a folder by id.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -358,10 +365,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Folders"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Get a folder by id.";
+                readonly tags: readonly ["Folders"];
             };
             readonly delete: {
                 readonly operationId: "deleteFolder";
@@ -375,13 +383,14 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Delete a folder by id.";
+                        readonly description: "";
                     };
                 };
-                readonly tags: readonly ["Folders"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Delete a folder by id.";
+                readonly tags: readonly ["Folders"];
             };
         };
         readonly "/api/v1/folders/{folderId}/metadata": {
@@ -397,7 +406,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Get the metadata for a folder by id.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -407,10 +416,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Folders"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Get the metadata for a folder by id.";
+                readonly tags: readonly ["Folders"];
             };
         };
         readonly "/api/v1/folders": {
@@ -428,8 +438,6 @@ export declare const schema: {
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
-                        readonly minimum: 0;
-                        readonly exclusiveMinimum: true;
                         readonly type: "number";
                     };
                 }, {
@@ -450,7 +458,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "List folders.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -460,10 +468,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Folders"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "List folders.";
+                readonly tags: readonly ["Folders"];
             };
             readonly post: {
                 readonly operationId: "createFolder";
@@ -480,7 +489,7 @@ export declare const schema: {
                 };
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "Create a folder.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -490,10 +499,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Folders"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Create a folder.";
+                readonly tags: readonly ["Folders"];
             };
         };
         readonly "/api/v1/folders/{folderId}/rescan": {
@@ -509,13 +519,14 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "Scan the underlying S3 location and update our local representation of it.";
+                        readonly description: "";
                     };
                 };
-                readonly tags: readonly ["Folders"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Scan the underlying S3 location and update our local representation of it.";
+                readonly tags: readonly ["Folders"];
             };
         };
         readonly "/api/v1/folders/{folderId}/objects": {
@@ -540,8 +551,6 @@ export declare const schema: {
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
-                        readonly minimum: 0;
-                        readonly exclusiveMinimum: true;
                         readonly type: "number";
                     };
                 }, {
@@ -554,7 +563,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "List folder objects by folderId.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -564,10 +573,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Folders"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "List folder objects by folderId.";
+                readonly tags: readonly ["Folders"];
             };
         };
         readonly "/api/v1/folders/{folderId}/objects/{objectKey}": {
@@ -590,7 +600,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Get a folder object by folderId and objectKey.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -600,10 +610,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Folders"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Get a folder object by folderId and objectKey.";
+                readonly tags: readonly ["Folders"];
             };
             readonly delete: {
                 readonly operationId: "deleteFolderObject";
@@ -624,13 +635,14 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Delete a folder object by folderId and objectKey.";
+                        readonly description: "";
                     };
                 };
-                readonly tags: readonly ["Folders"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Delete a folder object by folderId and objectKey.";
+                readonly tags: readonly ["Folders"];
             };
             readonly post: {
                 readonly operationId: "refreshFolderObjectS3Metadata";
@@ -651,7 +663,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "Scan the object again in the underlying storage, and update its state in our db.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -661,10 +673,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Folders"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Scan the object again in the underlying storage, and update its state in our db.";
+                readonly tags: readonly ["Folders"];
             };
         };
         readonly "/api/v1/folders/{folderId}/presigned-urls": {
@@ -690,7 +703,7 @@ export declare const schema: {
                 };
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "Create presigned urls for objects in a folder.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -700,10 +713,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Folders"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Create presigned urls for objects in a folder.";
+                readonly tags: readonly ["Folders"];
             };
         };
         readonly "/api/v1/folders/{folderId}/apps/{appIdentifier}/trigger/{taskKey}": {
@@ -743,13 +757,14 @@ export declare const schema: {
                 };
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "Handle app task trigger";
+                        readonly description: "";
                     };
                 };
-                readonly tags: readonly ["Folders"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Handle app task trigger";
+                readonly tags: readonly ["Folders"];
             };
         };
         readonly "/api/v1/access-keys": {
@@ -767,8 +782,6 @@ export declare const schema: {
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
-                        readonly minimum: 0;
-                        readonly exclusiveMinimum: true;
                         readonly type: "number";
                     };
                 }, {
@@ -782,7 +795,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "List access keys.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -792,10 +805,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["AccessKeys"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "List access keys.";
+                readonly tags: readonly ["AccessKeys"];
             };
         };
         readonly "/api/v1/access-keys/{accessKeyHashId}": {
@@ -811,7 +825,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Get an access key by id.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -821,10 +835,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["AccessKeys"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Get an access key by id.";
+                readonly tags: readonly ["AccessKeys"];
             };
             readonly post: {
                 readonly operationId: "rotateAccessKey";
@@ -848,7 +863,7 @@ export declare const schema: {
                 };
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "Rotate an access key.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -858,10 +873,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["AccessKeys"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Rotate an access key.";
+                readonly tags: readonly ["AccessKeys"];
             };
         };
         readonly "/api/v1/access-keys/{accessKeyHashId}/buckets": {
@@ -877,7 +893,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "List buckets for an access key.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -887,10 +903,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["AccessKeys"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "List buckets for an access key.";
+                readonly tags: readonly ["AccessKeys"];
             };
         };
         readonly "/api/v1/server/access-keys": {
@@ -908,8 +925,6 @@ export declare const schema: {
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
-                        readonly minimum: 0;
-                        readonly exclusiveMinimum: true;
                         readonly type: "number";
                     };
                 }, {
@@ -923,7 +938,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "List server access keys.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -933,10 +948,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["ServerAccessKeys"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "List server access keys.";
+                readonly tags: readonly ["ServerAccessKeys"];
             };
         };
         readonly "/api/v1/server/access-keys/{accessKeyHashId}": {
@@ -952,7 +968,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Get server access key by id.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -962,13 +978,14 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["ServerAccessKeys"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Get server access key by id.";
+                readonly tags: readonly ["ServerAccessKeys"];
             };
             readonly post: {
-                readonly operationId: "rotateAccessKey";
+                readonly operationId: "rotateServerAccessKey";
                 readonly parameters: readonly [{
                     readonly name: "accessKeyHashId";
                     readonly required: true;
@@ -989,7 +1006,7 @@ export declare const schema: {
                 };
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "Rotate a server access key.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -999,10 +1016,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["ServerAccessKeys"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Rotate a server access key.";
+                readonly tags: readonly ["ServerAccessKeys"];
             };
         };
         readonly "/api/v1/server/settings": {
@@ -1011,7 +1029,7 @@ export declare const schema: {
                 readonly parameters: readonly [];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Get the server settings object.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -1021,10 +1039,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Server"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Get the server settings object.";
+                readonly tags: readonly ["Server"];
             };
         };
         readonly "/api/v1/server/settings/{settingKey}": {
@@ -1050,7 +1069,7 @@ export declare const schema: {
                 };
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Set a setting in the server settings objects.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -1060,10 +1079,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Server"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Set a setting in the server settings objects.";
+                readonly tags: readonly ["Server"];
             };
             readonly delete: {
                 readonly operationId: "resetServerSetting";
@@ -1077,7 +1097,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Reset a setting in the server settings objects.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -1087,77 +1107,80 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Server"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Reset a setting in the server settings objects.";
+                readonly tags: readonly ["Server"];
             };
         };
-        readonly "/api/v1/server/storage-provisions": {
+        readonly "/api/v1/server/user-storage-provisions": {
             readonly get: {
-                readonly operationId: "listStorageProvisions";
+                readonly operationId: "listUserStorageProvisions";
                 readonly parameters: readonly [{
                     readonly name: "provisionType";
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
-                        readonly enum: readonly ["CONTENT", "METADATA", "BACKUP"];
+                        readonly enum: readonly ["CONTENT", "METADATA", "REDUNDANCY"];
                         readonly type: "string";
                     };
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "List the server provisions.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
-                                    readonly $ref: "#/components/schemas/StorageProvisionListResponse";
+                                    readonly $ref: "#/components/schemas/UserStorageProvisionListResponse";
                                 };
                             };
                         };
                     };
                 };
-                readonly tags: readonly ["StorageProvisions"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "List the user storage provisions.";
+                readonly tags: readonly ["UserStorageProvisions"];
             };
             readonly post: {
-                readonly operationId: "createServerProvision";
+                readonly operationId: "createUserStorageProvision";
                 readonly parameters: readonly [];
                 readonly requestBody: {
                     readonly required: true;
                     readonly content: {
                         readonly "application/json": {
                             readonly schema: {
-                                readonly $ref: "#/components/schemas/StorageProvisionInputDTO";
+                                readonly $ref: "#/components/schemas/UserStorageProvisionInputDTO";
                             };
                         };
                     };
                 };
                 readonly responses: {
                     readonly "201": {
-                        readonly description: "Create a new server provision.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
-                                    readonly $ref: "#/components/schemas/StorageProvisionListResponse";
+                                    readonly $ref: "#/components/schemas/UserStorageProvisionListResponse";
                                 };
                             };
                         };
                     };
                 };
-                readonly tags: readonly ["StorageProvisions"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Create a new user storage provision.";
+                readonly tags: readonly ["UserStorageProvisions"];
             };
         };
-        readonly "/api/v1/server/storage-provisions/{storageProvisionId}": {
+        readonly "/api/v1/server/user-storage-provisions/{userStorageProvisionId}": {
             readonly get: {
-                readonly operationId: "getStorageProvision";
+                readonly operationId: "getUserStorageProvision";
                 readonly parameters: readonly [{
-                    readonly name: "storageProvisionId";
+                    readonly name: "userStorageProvisionId";
                     readonly required: true;
                     readonly in: "path";
                     readonly schema: {
@@ -1166,25 +1189,26 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "List the server provisions.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
-                                    readonly $ref: "#/components/schemas/StorageProvisionGetResponse";
+                                    readonly $ref: "#/components/schemas/UserStorageProvisionGetResponse";
                                 };
                             };
                         };
                     };
                 };
-                readonly tags: readonly ["StorageProvisions"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Get a user storage provision by id.";
+                readonly tags: readonly ["UserStorageProvisions"];
             };
             readonly put: {
-                readonly operationId: "updateStorageProvision";
+                readonly operationId: "updateUserStorageProvision";
                 readonly parameters: readonly [{
-                    readonly name: "storageProvisionId";
+                    readonly name: "userStorageProvisionId";
                     readonly required: true;
                     readonly in: "path";
                     readonly schema: {
@@ -1196,32 +1220,33 @@ export declare const schema: {
                     readonly content: {
                         readonly "application/json": {
                             readonly schema: {
-                                readonly $ref: "#/components/schemas/StorageProvisionInputDTO";
+                                readonly $ref: "#/components/schemas/UserStorageProvisionInputDTO";
                             };
                         };
                     };
                 };
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Update a server provision by id.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
-                                    readonly $ref: "#/components/schemas/StorageProvisionListResponse";
+                                    readonly $ref: "#/components/schemas/UserStorageProvisionListResponse";
                                 };
                             };
                         };
                     };
                 };
-                readonly tags: readonly ["StorageProvisions"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Update a server provision by id.";
+                readonly tags: readonly ["UserStorageProvisions"];
             };
             readonly delete: {
-                readonly operationId: "deleteStorageProvision";
+                readonly operationId: "deleteUserStorageProvision";
                 readonly parameters: readonly [{
-                    readonly name: "storageProvisionId";
+                    readonly name: "userStorageProvisionId";
                     readonly required: true;
                     readonly in: "path";
                     readonly schema: {
@@ -1230,20 +1255,89 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Delete a server provision by id.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
-                                    readonly $ref: "#/components/schemas/StorageProvisionListResponse";
+                                    readonly $ref: "#/components/schemas/UserStorageProvisionListResponse";
                                 };
                             };
                         };
                     };
                 };
-                readonly tags: readonly ["StorageProvisions"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Delete a server provision by id.";
+                readonly tags: readonly ["UserStorageProvisions"];
+            };
+        };
+        readonly "/api/v1/server/server-storage-location": {
+            readonly get: {
+                readonly operationId: "getServerStorageLocation";
+                readonly parameters: readonly [];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/ServerStorageLocationGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+                readonly summary: "Get the server storage location.";
+                readonly tags: readonly ["ServerStorageLocation"];
+            };
+            readonly post: {
+                readonly operationId: "setServerStorageLocation";
+                readonly parameters: readonly [];
+                readonly requestBody: {
+                    readonly required: true;
+                    readonly content: {
+                        readonly "application/json": {
+                            readonly schema: {
+                                readonly $ref: "#/components/schemas/ServerStorageLocationInputDTO";
+                            };
+                        };
+                    };
+                };
+                readonly responses: {
+                    readonly "201": {
+                        readonly description: "";
+                        readonly content: {
+                            readonly "application/json": {
+                                readonly schema: {
+                                    readonly $ref: "#/components/schemas/ServerStorageLocationGetResponse";
+                                };
+                            };
+                        };
+                    };
+                };
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+                readonly summary: "Create a new server provision.";
+                readonly tags: readonly ["ServerStorageLocation"];
+            };
+            readonly delete: {
+                readonly operationId: "deleteServerStorageLocation";
+                readonly parameters: readonly [];
+                readonly responses: {
+                    readonly "200": {
+                        readonly description: "";
+                    };
+                };
+                readonly security: readonly [{
+                    readonly bearer: readonly [];
+                }];
+                readonly summary: "Delete any set server storage location.";
+                readonly tags: readonly ["ServerStorageLocation"];
             };
         };
         readonly "/api/v1/server/tasks/{taskId}": {
@@ -1259,7 +1353,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Get a task by id.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -1269,10 +1363,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["ServerTasks"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Get a task by id.";
+                readonly tags: readonly ["ServerTasks"];
             };
         };
         readonly "/api/v1/server/tasks": {
@@ -1344,8 +1439,6 @@ export declare const schema: {
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
-                        readonly minimum: 0;
-                        readonly exclusiveMinimum: true;
                         readonly type: "number";
                     };
                 }, {
@@ -1359,7 +1452,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "List tasks.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -1369,10 +1462,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["ServerTasks"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "List tasks.";
+                readonly tags: readonly ["ServerTasks"];
             };
         };
         readonly "/api/v1/folders/{folderId}/tasks/{taskId}": {
@@ -1395,7 +1489,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Get a folder task by id.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -1405,10 +1499,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Tasks"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Get a folder task by id.";
+                readonly tags: readonly ["Tasks"];
             };
         };
         readonly "/api/v1/folders/{folderId}/tasks": {
@@ -1480,8 +1575,6 @@ export declare const schema: {
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
-                        readonly minimum: 0;
-                        readonly exclusiveMinimum: true;
                         readonly type: "number";
                     };
                 }, {
@@ -1494,7 +1587,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "List tasks.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -1504,10 +1597,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Tasks"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "List tasks.";
+                readonly tags: readonly ["Tasks"];
             };
         };
         readonly "/api/v1/server/events/{eventId}": {
@@ -1523,7 +1617,7 @@ export declare const schema: {
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "Get an event by id.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -1533,10 +1627,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["ServerEvents"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "Get an event by id.";
+                readonly tags: readonly ["ServerEvents"];
             };
         };
         readonly "/api/v1/server/events": {
@@ -1624,14 +1719,12 @@ export declare const schema: {
                     readonly required: false;
                     readonly in: "query";
                     readonly schema: {
-                        readonly minimum: 0;
-                        readonly exclusiveMinimum: true;
                         readonly type: "number";
                     };
                 }];
                 readonly responses: {
                     readonly "200": {
-                        readonly description: "List events.";
+                        readonly description: "";
                         readonly content: {
                             readonly "application/json": {
                                 readonly schema: {
@@ -1641,10 +1734,11 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["ServerEvents"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly summary: "List events.";
+                readonly tags: readonly ["ServerEvents"];
             };
         };
         readonly "/api/v1/server/apps": {
@@ -1663,10 +1757,10 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Apps"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly tags: readonly ["Apps"];
             };
         };
         readonly "/api/v1/server/apps/{appIdentifier}": {
@@ -1692,10 +1786,10 @@ export declare const schema: {
                         };
                     };
                 };
-                readonly tags: readonly ["Apps"];
                 readonly security: readonly [{
                     readonly bearer: readonly [];
                 }];
+                readonly tags: readonly ["Apps"];
             };
         };
     };
@@ -1764,7 +1858,7 @@ export declare const schema: {
                         readonly maxLength: 255;
                     };
                 };
-                readonly required: readonly ["username", "email", "password"];
+                readonly required: readonly ["username", "password"];
             };
             readonly SignupResponse: {
                 readonly type: "object";
@@ -1777,10 +1871,18 @@ export declare const schema: {
                                 readonly format: "uuid";
                             };
                             readonly name: {
-                                readonly type: "string";
+                                readonly oneOf: readonly [{
+                                    readonly type: "string";
+                                }, {
+                                    readonly type: "null";
+                                }];
                             };
                             readonly email: {
-                                readonly type: "string";
+                                readonly oneOf: readonly [{
+                                    readonly type: "string";
+                                }, {
+                                    readonly type: "null";
+                                }];
                             };
                             readonly emailVerified: {
                                 readonly type: "boolean";
@@ -1806,7 +1908,7 @@ export declare const schema: {
                                 readonly format: "date-time";
                             };
                         };
-                        readonly required: readonly ["id", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
+                        readonly required: readonly ["id", "name", "email", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
                     };
                 };
                 readonly required: readonly ["user"];
@@ -1840,10 +1942,18 @@ export declare const schema: {
                                 readonly format: "uuid";
                             };
                             readonly name: {
-                                readonly type: "string";
+                                readonly oneOf: readonly [{
+                                    readonly type: "string";
+                                }, {
+                                    readonly type: "null";
+                                }];
                             };
                             readonly email: {
-                                readonly type: "string";
+                                readonly oneOf: readonly [{
+                                    readonly type: "string";
+                                }, {
+                                    readonly type: "null";
+                                }];
                             };
                             readonly emailVerified: {
                                 readonly type: "boolean";
@@ -1869,7 +1979,7 @@ export declare const schema: {
                                 readonly format: "date-time";
                             };
                         };
-                        readonly required: readonly ["id", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
+                        readonly required: readonly ["id", "name", "email", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
                     };
                 };
                 readonly required: readonly ["user"];
@@ -1891,10 +2001,18 @@ export declare const schema: {
                         readonly format: "uuid";
                     };
                     readonly name: {
-                        readonly type: "string";
+                        readonly oneOf: readonly [{
+                            readonly type: "string";
+                        }, {
+                            readonly type: "null";
+                        }];
                     };
                     readonly email: {
-                        readonly type: "string";
+                        readonly oneOf: readonly [{
+                            readonly type: "string";
+                        }, {
+                            readonly type: "null";
+                        }];
                     };
                     readonly emailVerified: {
                         readonly type: "boolean";
@@ -1920,7 +2038,7 @@ export declare const schema: {
                         readonly format: "date-time";
                     };
                 };
-                readonly required: readonly ["id", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
+                readonly required: readonly ["id", "name", "email", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
             };
             readonly UserCreateInputDTO: {
                 readonly type: "object";
@@ -1963,10 +2081,18 @@ export declare const schema: {
                                 readonly format: "uuid";
                             };
                             readonly name: {
-                                readonly type: "string";
+                                readonly oneOf: readonly [{
+                                    readonly type: "string";
+                                }, {
+                                    readonly type: "null";
+                                }];
                             };
                             readonly email: {
-                                readonly type: "string";
+                                readonly oneOf: readonly [{
+                                    readonly type: "string";
+                                }, {
+                                    readonly type: "null";
+                                }];
                             };
                             readonly emailVerified: {
                                 readonly type: "boolean";
@@ -1992,7 +2118,7 @@ export declare const schema: {
                                 readonly format: "date-time";
                             };
                         };
-                        readonly required: readonly ["id", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
+                        readonly required: readonly ["id", "name", "email", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
                     };
                 };
                 readonly required: readonly ["user"];
@@ -2001,22 +2127,31 @@ export declare const schema: {
                 readonly type: "object";
                 readonly properties: {
                     readonly name: {
-                        readonly type: "string";
+                        readonly oneOf: readonly [{
+                            readonly type: "string";
+                            readonly minLength: 1;
+                        }, {
+                            readonly type: "null";
+                        }];
                     };
                     readonly email: {
-                        readonly type: "string";
-                    };
-                    readonly emailVerified: {
-                        readonly type: "boolean";
+                        readonly oneOf: readonly [{
+                            readonly type: "string";
+                            readonly format: "email";
+                        }, {
+                            readonly type: "null";
+                        }];
                     };
                     readonly isAdmin: {
                         readonly type: "boolean";
                     };
                     readonly username: {
                         readonly type: "string";
+                        readonly minLength: 2;
                     };
                     readonly password: {
                         readonly type: "string";
+                        readonly minLength: 1;
                     };
                     readonly permissions: {
                         readonly type: "array";
@@ -2048,10 +2183,18 @@ export declare const schema: {
                                     readonly format: "uuid";
                                 };
                                 readonly name: {
-                                    readonly type: "string";
+                                    readonly oneOf: readonly [{
+                                        readonly type: "string";
+                                    }, {
+                                        readonly type: "null";
+                                    }];
                                 };
                                 readonly email: {
-                                    readonly type: "string";
+                                    readonly oneOf: readonly [{
+                                        readonly type: "string";
+                                    }, {
+                                        readonly type: "null";
+                                    }];
                                 };
                                 readonly emailVerified: {
                                     readonly type: "boolean";
@@ -2077,7 +2220,7 @@ export declare const schema: {
                                     readonly format: "date-time";
                                 };
                             };
-                            readonly required: readonly ["id", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
+                            readonly required: readonly ["id", "name", "email", "emailVerified", "isAdmin", "username", "permissions", "createdAt", "updatedAt"];
                         };
                     };
                 };
@@ -3226,7 +3369,7 @@ export declare const schema: {
                 };
                 readonly required: readonly ["settingKey"];
             };
-            readonly StorageProvisionDTO: {
+            readonly UserStorageProvisionDTO: {
                 readonly type: "object";
                 readonly properties: {
                     readonly id: {
@@ -3255,7 +3398,7 @@ export declare const schema: {
                         readonly type: "array";
                         readonly items: {
                             readonly type: "string";
-                            readonly enum: readonly ["CONTENT", "METADATA", "BACKUP"];
+                            readonly enum: readonly ["CONTENT", "METADATA", "REDUNDANCY"];
                         };
                         readonly minItems: 1;
                     };
@@ -3270,7 +3413,7 @@ export declare const schema: {
                 };
                 readonly required: readonly ["id", "accessKeyHashId", "endpoint", "bucket", "region", "accessKeyId", "provisionTypes", "label", "description"];
             };
-            readonly StorageProvisionListResponse: {
+            readonly UserStorageProvisionListResponse: {
                 readonly type: "object";
                 readonly properties: {
                     readonly result: {
@@ -3304,7 +3447,7 @@ export declare const schema: {
                                     readonly type: "array";
                                     readonly items: {
                                         readonly type: "string";
-                                        readonly enum: readonly ["CONTENT", "METADATA", "BACKUP"];
+                                        readonly enum: readonly ["CONTENT", "METADATA", "REDUNDANCY"];
                                     };
                                     readonly minItems: 1;
                                 };
@@ -3323,10 +3466,10 @@ export declare const schema: {
                 };
                 readonly required: readonly ["result"];
             };
-            readonly StorageProvisionGetResponse: {
+            readonly UserStorageProvisionGetResponse: {
                 readonly type: "object";
                 readonly properties: {
-                    readonly storageProvision: {
+                    readonly userStorageProvision: {
                         readonly type: "object";
                         readonly properties: {
                             readonly id: {
@@ -3355,7 +3498,7 @@ export declare const schema: {
                                 readonly type: "array";
                                 readonly items: {
                                     readonly type: "string";
-                                    readonly enum: readonly ["CONTENT", "METADATA", "BACKUP"];
+                                    readonly enum: readonly ["CONTENT", "METADATA", "REDUNDANCY"];
                                 };
                                 readonly minItems: 1;
                             };
@@ -3371,9 +3514,9 @@ export declare const schema: {
                         readonly required: readonly ["id", "accessKeyHashId", "endpoint", "bucket", "region", "accessKeyId", "provisionTypes", "label", "description"];
                     };
                 };
-                readonly required: readonly ["storageProvision"];
+                readonly required: readonly ["userStorageProvision"];
             };
-            readonly StorageProvisionInputDTO: {
+            readonly UserStorageProvisionInputDTO: {
                 readonly type: "object";
                 readonly properties: {
                     readonly label: {
@@ -3406,12 +3549,99 @@ export declare const schema: {
                         readonly type: "array";
                         readonly items: {
                             readonly type: "string";
-                            readonly enum: readonly ["CONTENT", "METADATA", "BACKUP"];
+                            readonly enum: readonly ["CONTENT", "METADATA", "REDUNDANCY"];
                         };
                         readonly minItems: 1;
                     };
                 };
                 readonly required: readonly ["label", "description", "endpoint", "bucket", "region", "accessKeyId", "secretAccessKey", "provisionTypes"];
+            };
+            readonly ServerStorageLocationDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly accessKeyHashId: {
+                        readonly type: "string";
+                    };
+                    readonly accessKeyId: {
+                        readonly type: "string";
+                    };
+                    readonly endpoint: {
+                        readonly type: "string";
+                    };
+                    readonly bucket: {
+                        readonly type: "string";
+                    };
+                    readonly region: {
+                        readonly type: "string";
+                    };
+                    readonly prefix: {
+                        readonly type: "string";
+                    };
+                };
+                readonly required: readonly ["accessKeyHashId", "accessKeyId", "endpoint", "bucket", "region"];
+            };
+            readonly ServerStorageLocationGetResponse: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly serverStorageLocation: {
+                        readonly type: "object";
+                        readonly properties: {
+                            readonly accessKeyHashId: {
+                                readonly type: "string";
+                            };
+                            readonly accessKeyId: {
+                                readonly type: "string";
+                            };
+                            readonly endpoint: {
+                                readonly type: "string";
+                            };
+                            readonly bucket: {
+                                readonly type: "string";
+                            };
+                            readonly region: {
+                                readonly type: "string";
+                            };
+                            readonly prefix: {
+                                readonly type: "string";
+                            };
+                        };
+                        readonly required: readonly ["accessKeyHashId", "accessKeyId", "endpoint", "bucket", "region"];
+                    };
+                };
+            };
+            readonly ServerStorageLocationInputDTO: {
+                readonly type: "object";
+                readonly properties: {
+                    readonly accessKeyId: {
+                        readonly type: "string";
+                        readonly minLength: 1;
+                    };
+                    readonly secretAccessKey: {
+                        readonly type: "string";
+                        readonly minLength: 1;
+                    };
+                    readonly endpoint: {
+                        readonly type: "string";
+                        readonly format: "uri";
+                    };
+                    readonly bucket: {
+                        readonly type: "string";
+                        readonly minLength: 1;
+                    };
+                    readonly region: {
+                        readonly type: "string";
+                        readonly minLength: 1;
+                    };
+                    readonly prefix: {
+                        readonly oneOf: readonly [{
+                            readonly type: "string";
+                            readonly minLength: 1;
+                        }, {
+                            readonly type: "null";
+                        }];
+                    };
+                };
+                readonly required: readonly ["accessKeyId", "secretAccessKey", "endpoint", "bucket", "region", "prefix"];
             };
             readonly TaskGetResponse: {
                 readonly type: "object";
@@ -3845,6 +4075,9 @@ export declare const schema: {
                             readonly description: {
                                 readonly type: "string";
                             };
+                            readonly requiresStorage: {
+                                readonly type: "boolean";
+                            };
                             readonly emittableEvents: {
                                 readonly type: "array";
                                 readonly items: {
@@ -3935,7 +4168,7 @@ export declare const schema: {
                                 };
                             };
                         };
-                        readonly required: readonly ["description", "emittableEvents", "tasks", "menuItems"];
+                        readonly required: readonly ["description", "requiresStorage", "emittableEvents", "tasks", "menuItems"];
                     };
                     readonly manifest: {
                         readonly type: "array";
@@ -4021,6 +4254,9 @@ export declare const schema: {
                                     readonly properties: {
                                         readonly description: {
                                             readonly type: "string";
+                                        };
+                                        readonly requiresStorage: {
+                                            readonly type: "boolean";
                                         };
                                         readonly emittableEvents: {
                                             readonly type: "array";
@@ -4112,7 +4348,7 @@ export declare const schema: {
                                             };
                                         };
                                     };
-                                    readonly required: readonly ["description", "emittableEvents", "tasks", "menuItems"];
+                                    readonly required: readonly ["description", "requiresStorage", "emittableEvents", "tasks", "menuItems"];
                                 };
                                 readonly manifest: {
                                     readonly type: "array";
@@ -4191,6 +4427,9 @@ export declare const schema: {
                                 readonly properties: {
                                     readonly description: {
                                         readonly type: "string";
+                                    };
+                                    readonly requiresStorage: {
+                                        readonly type: "boolean";
                                     };
                                     readonly emittableEvents: {
                                         readonly type: "array";
@@ -4282,7 +4521,7 @@ export declare const schema: {
                                         };
                                     };
                                 };
-                                readonly required: readonly ["description", "emittableEvents", "tasks", "menuItems"];
+                                readonly required: readonly ["description", "requiresStorage", "emittableEvents", "tasks", "menuItems"];
                             };
                             readonly manifest: {
                                 readonly type: "array";

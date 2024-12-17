@@ -15,7 +15,7 @@ describe('Folder Objects', () => {
   })
 
   afterEach(async () => {
-    await testModule?.resetDb()
+    await testModule?.resetAppState()
   })
 
   it(`should 401 on list folder objects without token`, async () => {

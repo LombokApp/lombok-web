@@ -33,11 +33,11 @@ export class AppsController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    const apps = await this.appService.getApps()
+    const apps = await this.appService.listApps()
     const connectedInstances = await this.appService.getAppConnections()
-    const result = apps.map((app) =>
-      transformAppToDTO(app, connectedInstances[app.identifier]),
-    )
+    const result = apps.map((app) => {
+      return transformAppToDTO(app, connectedInstances[app.identifier] ?? [])
+    })
     return {
       result,
       meta: { totalCount: result.length },
@@ -52,18 +52,16 @@ export class AppsController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    const apps = await this.appService.getApps()
-    const result = apps[appIdentifier]
-    if (!result) {
+    const app = await this.appService.getApp(appIdentifier)
+    if (!app) {
       throw new NotFoundException()
     }
     const connectedInstances = await this.appService.getAppConnections()
 
     return {
       app: {
-        ...result,
-        identifier: appIdentifier,
-        workers: connectedInstances[appIdentifier] ?? [],
+        ...app,
+        connectedWorkers: connectedInstances[appIdentifier] ?? [],
       },
     }
   }

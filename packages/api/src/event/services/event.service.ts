@@ -142,7 +142,7 @@ export class EventService {
         await db.insert(tasksTable).values([triggeredTask])
       } else {
         // regular event, so we should lookup apps that have subscribed to this event
-        const tasks: NewTask[] = await this.appService.getApps().then((apps) =>
+        const tasks: NewTask[] = await this.appService.listApps().then((apps) =>
           apps
             .reduce<
               {

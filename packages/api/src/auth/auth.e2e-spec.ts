@@ -1,4 +1,4 @@
-import type { TestModule } from 'src/test/test.types'
+import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule } from 'src/test/test.util'
 import request from 'supertest'
 
@@ -6,13 +6,15 @@ const TEST_MODULE_KEY = 'auth'
 
 describe('Auth', () => {
   let testModule: TestModule | undefined
+  let apiClient: TestApiClient
 
   beforeAll(async () => {
     testModule = await buildTestModule({ testModuleKey: TEST_MODULE_KEY })
+    apiClient = testModule.apiClient
   })
 
   afterEach(async () => {
-    await testModule?.resetDb()
+    await testModule?.resetAppState()
   })
 
   it(`POST /api/v1/auth/signup`, async () => {
@@ -28,14 +30,13 @@ describe('Auth', () => {
   })
 
   it(`POST /api/v1/auth/signup (without email)`, async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const _response = await request(testModule?.app.getHttpServer())
-      .post('/api/v1/auth/signup')
-      .send({
+    const signupResponse = await apiClient.authApi().signup({
+      signupCredentialsDTO: {
         username: 'mekpans',
         password: '123',
-      })
-      .expect(201)
+      },
+    })
+    expect(signupResponse.status).toBe(201)
   })
 
   it(`POST /api/v1/auth/signup (with conflict)`, async () => {
@@ -100,6 +101,11 @@ describe('Auth', () => {
         username: 'mekpans',
         email: 'steven@stellariscloud.com',
         INVALID_KEY: '123',
+      },
+      {
+        username: 'mekpans',
+        email: '',
+        password: '123',
       },
     ]
     for (const input of inputs) {

@@ -291,6 +291,55 @@ export class S3Service {
     return urls
   }
 
+  async deleteAllWithPrefix({
+    accessKeyId,
+    secretAccessKey,
+    endpoint,
+    bucket,
+    prefix,
+    region,
+  }: {
+    endpoint: string
+    region: string
+    accessKeyId: string
+    secretAccessKey: string
+    bucket: string
+    prefix: string
+  }) {
+    const s3Client = configureS3Client({
+      accessKeyId,
+      secretAccessKey,
+      endpoint,
+      region,
+    })
+
+    let continuationToken: string | undefined = ''
+    let count = 0
+
+    while (continuationToken) {
+      const response = await this.s3ListBucketObjects({
+        s3Client,
+        bucketName: bucket,
+        prefix,
+        continuationToken: continuationToken ?? undefined,
+      })
+
+      for (const objectKey in response.result) {
+        await this.s3DeleteBucketObject({
+          accessKeyId,
+          secretAccessKey,
+          endpoint,
+          region,
+          bucket,
+          objectKey,
+        })
+      }
+
+      count += response.result.length
+      continuationToken = response.continuationToken
+    }
+  }
+
   async testS3Connection(input: {
     name: string
     accessKeyId: string

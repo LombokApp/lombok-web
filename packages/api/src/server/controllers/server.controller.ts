@@ -37,11 +37,11 @@ export class ServerController {
   async getServerSettings(
     @Req() req: express.Request,
   ): Promise<SettingsGetResponse> {
-    if (!req.user) {
+    if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
     return {
-      settings: await this.serverConfigurationService.getServerSettingsAsUser(
+      settings: await this.serverConfigurationService.getServerSettingsAsAdmin(
         req.user,
       ),
     }
@@ -59,7 +59,7 @@ export class ServerController {
     if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
-    await this.serverConfigurationService.setServerSettingAsUser(
+    await this.serverConfigurationService.setServerSettingAsAdmin(
       req.user,
       settingKey,
       settingValue.value,
@@ -86,7 +86,7 @@ export class ServerController {
       settingKey,
     )
     const newSettings =
-      await this.serverConfigurationService.getServerSettingsAsUser(req.user)
+      await this.serverConfigurationService.getServerSettingsAsAdmin(req.user)
 
     return { settingKey, settingValue: newSettings[settingKey] }
   }

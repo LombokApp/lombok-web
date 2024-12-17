@@ -1,5 +1,5 @@
 export const schema = {
-    "openapi": "3.0.0",
+    "openapi": "3.1.0",
     "paths": {
         "/api/v1/auth/login": {
             "post": {
@@ -17,7 +17,7 @@ export const schema = {
                 },
                 "responses": {
                     "201": {
-                        "description": "Authenticate the user and return access and refresh tokens.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -27,6 +27,7 @@ export const schema = {
                         }
                     }
                 },
+                "summary": "Authenticate the user and return access and refresh tokens.",
                 "tags": [
                     "Auth"
                 ]
@@ -48,7 +49,7 @@ export const schema = {
                 },
                 "responses": {
                     "201": {
-                        "description": "Register a new user.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -58,6 +59,7 @@ export const schema = {
                         }
                     }
                 },
+                "summary": "Register a new user.",
                 "tags": [
                     "Auth"
                 ]
@@ -69,7 +71,7 @@ export const schema = {
                 "parameters": [],
                 "responses": {
                     "201": {
-                        "description": "Logout. Kill the current session.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -79,13 +81,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Auth"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Logout. Kill the current session.",
+                "tags": [
+                    "Auth"
                 ]
             }
         },
@@ -104,7 +107,7 @@ export const schema = {
                 ],
                 "responses": {
                     "201": {
-                        "description": "Refresh a session with a refresh token.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -114,6 +117,7 @@ export const schema = {
                         }
                     }
                 },
+                "summary": "Refresh a session with a refresh token.",
                 "tags": [
                     "Auth"
                 ]
@@ -135,13 +139,13 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Viewer"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "tags": [
+                    "Viewer"
                 ]
             },
             "put": {
@@ -169,13 +173,13 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Viewer"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "tags": [
+                    "Viewer"
                 ]
             }
         },
@@ -195,7 +199,7 @@ export const schema = {
                 },
                 "responses": {
                     "201": {
-                        "description": "Create a user.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -205,13 +209,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Users"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Create a user.",
+                "tags": [
+                    "Users"
                 ]
             },
             "get": {
@@ -230,8 +235,6 @@ export const schema = {
                         "required": false,
                         "in": "query",
                         "schema": {
-                            "minimum": 0,
-                            "exclusiveMinimum": true,
                             "type": "number"
                         }
                     },
@@ -274,7 +277,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "List the users.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -284,13 +287,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Users"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "List the users.",
+                "tags": [
+                    "Users"
                 ]
             }
         },
@@ -319,7 +323,7 @@ export const schema = {
                 },
                 "responses": {
                     "200": {
-                        "description": "Update a user.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -329,13 +333,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Users"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Update a user.",
+                "tags": [
+                    "Users"
                 ]
             },
             "get": {
@@ -352,7 +357,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Get a user by id.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -362,13 +367,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Users"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Get a user by id.",
+                "tags": [
+                    "Users"
                 ]
             },
             "delete": {
@@ -385,16 +391,17 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Delete a server user by id."
+                        "description": ""
                     }
                 },
-                "tags": [
-                    "Users"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Delete a server user by id.",
+                "tags": [
+                    "Users"
                 ]
             }
         },
@@ -413,7 +420,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Get a folder by id.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -423,13 +430,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Folders"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Get a folder by id.",
+                "tags": [
+                    "Folders"
                 ]
             },
             "delete": {
@@ -446,16 +454,17 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Delete a folder by id."
+                        "description": ""
                     }
                 },
-                "tags": [
-                    "Folders"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Delete a folder by id.",
+                "tags": [
+                    "Folders"
                 ]
             }
         },
@@ -474,7 +483,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Get the metadata for a folder by id.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -484,13 +493,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Folders"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Get the metadata for a folder by id.",
+                "tags": [
+                    "Folders"
                 ]
             }
         },
@@ -511,8 +521,6 @@ export const schema = {
                         "required": false,
                         "in": "query",
                         "schema": {
-                            "minimum": 0,
-                            "exclusiveMinimum": true,
                             "type": "number"
                         }
                     },
@@ -543,7 +551,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "List folders.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -553,13 +561,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Folders"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "List folders.",
+                "tags": [
+                    "Folders"
                 ]
             },
             "post": {
@@ -577,7 +586,7 @@ export const schema = {
                 },
                 "responses": {
                     "201": {
-                        "description": "Create a folder.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -587,13 +596,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Folders"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Create a folder.",
+                "tags": [
+                    "Folders"
                 ]
             }
         },
@@ -612,16 +622,17 @@ export const schema = {
                 ],
                 "responses": {
                     "201": {
-                        "description": "Scan the underlying S3 location and update our local representation of it."
+                        "description": ""
                     }
                 },
-                "tags": [
-                    "Folders"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Scan the underlying S3 location and update our local representation of it.",
+                "tags": [
+                    "Folders"
                 ]
             }
         },
@@ -650,8 +661,6 @@ export const schema = {
                         "required": false,
                         "in": "query",
                         "schema": {
-                            "minimum": 0,
-                            "exclusiveMinimum": true,
                             "type": "number"
                         }
                     },
@@ -666,7 +675,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "List folder objects by folderId.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -676,13 +685,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Folders"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "List folder objects by folderId.",
+                "tags": [
+                    "Folders"
                 ]
             }
         },
@@ -709,7 +719,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Get a folder object by folderId and objectKey.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -719,13 +729,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Folders"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Get a folder object by folderId and objectKey.",
+                "tags": [
+                    "Folders"
                 ]
             },
             "delete": {
@@ -750,16 +761,17 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Delete a folder object by folderId and objectKey."
+                        "description": ""
                     }
                 },
-                "tags": [
-                    "Folders"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Delete a folder object by folderId and objectKey.",
+                "tags": [
+                    "Folders"
                 ]
             },
             "post": {
@@ -784,7 +796,7 @@ export const schema = {
                 ],
                 "responses": {
                     "201": {
-                        "description": "Scan the object again in the underlying storage, and update its state in our db.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -794,13 +806,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Folders"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Scan the object again in the underlying storage, and update its state in our db.",
+                "tags": [
+                    "Folders"
                 ]
             }
         },
@@ -829,7 +842,7 @@ export const schema = {
                 },
                 "responses": {
                     "201": {
-                        "description": "Create presigned urls for objects in a folder.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -839,13 +852,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Folders"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Create presigned urls for objects in a folder.",
+                "tags": [
+                    "Folders"
                 ]
             }
         },
@@ -890,16 +904,17 @@ export const schema = {
                 },
                 "responses": {
                     "201": {
-                        "description": "Handle app task trigger"
+                        "description": ""
                     }
                 },
-                "tags": [
-                    "Folders"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Handle app task trigger",
+                "tags": [
+                    "Folders"
                 ]
             }
         },
@@ -920,8 +935,6 @@ export const schema = {
                         "required": false,
                         "in": "query",
                         "schema": {
-                            "minimum": 0,
-                            "exclusiveMinimum": true,
                             "type": "number"
                         }
                     },
@@ -948,7 +961,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "List access keys.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -958,13 +971,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "AccessKeys"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "List access keys.",
+                "tags": [
+                    "AccessKeys"
                 ]
             }
         },
@@ -983,7 +997,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Get an access key by id.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -993,13 +1007,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "AccessKeys"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Get an access key by id.",
+                "tags": [
+                    "AccessKeys"
                 ]
             },
             "post": {
@@ -1026,7 +1041,7 @@ export const schema = {
                 },
                 "responses": {
                     "201": {
-                        "description": "Rotate an access key.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1036,13 +1051,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "AccessKeys"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Rotate an access key.",
+                "tags": [
+                    "AccessKeys"
                 ]
             }
         },
@@ -1061,7 +1077,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "List buckets for an access key.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1071,13 +1087,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "AccessKeys"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "List buckets for an access key.",
+                "tags": [
+                    "AccessKeys"
                 ]
             }
         },
@@ -1098,8 +1115,6 @@ export const schema = {
                         "required": false,
                         "in": "query",
                         "schema": {
-                            "minimum": 0,
-                            "exclusiveMinimum": true,
                             "type": "number"
                         }
                     },
@@ -1126,7 +1141,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "List server access keys.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1136,13 +1151,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "ServerAccessKeys"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "List server access keys.",
+                "tags": [
+                    "ServerAccessKeys"
                 ]
             }
         },
@@ -1161,7 +1177,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Get server access key by id.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1171,17 +1187,18 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "ServerAccessKeys"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Get server access key by id.",
+                "tags": [
+                    "ServerAccessKeys"
                 ]
             },
             "post": {
-                "operationId": "rotateAccessKey",
+                "operationId": "rotateServerAccessKey",
                 "parameters": [
                     {
                         "name": "accessKeyHashId",
@@ -1204,7 +1221,7 @@ export const schema = {
                 },
                 "responses": {
                     "201": {
-                        "description": "Rotate a server access key.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1214,13 +1231,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "ServerAccessKeys"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Rotate a server access key.",
+                "tags": [
+                    "ServerAccessKeys"
                 ]
             }
         },
@@ -1230,7 +1248,7 @@ export const schema = {
                 "parameters": [],
                 "responses": {
                     "200": {
-                        "description": "Get the server settings object.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1240,13 +1258,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Server"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Get the server settings object.",
+                "tags": [
+                    "Server"
                 ]
             }
         },
@@ -1275,7 +1294,7 @@ export const schema = {
                 },
                 "responses": {
                     "200": {
-                        "description": "Set a setting in the server settings objects.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1285,13 +1304,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Server"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Set a setting in the server settings objects.",
+                "tags": [
+                    "Server"
                 ]
             },
             "delete": {
@@ -1308,7 +1328,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Reset a setting in the server settings objects.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1318,19 +1338,20 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Server"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Reset a setting in the server settings objects.",
+                "tags": [
+                    "Server"
                 ]
             }
         },
-        "/api/v1/server/storage-provisions": {
+        "/api/v1/server/user-storage-provisions": {
             "get": {
-                "operationId": "listStorageProvisions",
+                "operationId": "listUserStorageProvisions",
                 "parameters": [
                     {
                         "name": "provisionType",
@@ -1340,7 +1361,7 @@ export const schema = {
                             "enum": [
                                 "CONTENT",
                                 "METADATA",
-                                "BACKUP"
+                                "REDUNDANCY"
                             ],
                             "type": "string"
                         }
@@ -1348,66 +1369,68 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "List the server provisions.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/StorageProvisionListResponse"
+                                    "$ref": "#/components/schemas/UserStorageProvisionListResponse"
                                 }
                             }
                         }
                     }
                 },
-                "tags": [
-                    "StorageProvisions"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "List the user storage provisions.",
+                "tags": [
+                    "UserStorageProvisions"
                 ]
             },
             "post": {
-                "operationId": "createServerProvision",
+                "operationId": "createUserStorageProvision",
                 "parameters": [],
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/StorageProvisionInputDTO"
+                                "$ref": "#/components/schemas/UserStorageProvisionInputDTO"
                             }
                         }
                     }
                 },
                 "responses": {
                     "201": {
-                        "description": "Create a new server provision.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/StorageProvisionListResponse"
+                                    "$ref": "#/components/schemas/UserStorageProvisionListResponse"
                                 }
                             }
                         }
                     }
                 },
-                "tags": [
-                    "StorageProvisions"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Create a new user storage provision.",
+                "tags": [
+                    "UserStorageProvisions"
                 ]
             }
         },
-        "/api/v1/server/storage-provisions/{storageProvisionId}": {
+        "/api/v1/server/user-storage-provisions/{userStorageProvisionId}": {
             "get": {
-                "operationId": "getStorageProvision",
+                "operationId": "getUserStorageProvision",
                 "parameters": [
                     {
-                        "name": "storageProvisionId",
+                        "name": "userStorageProvisionId",
                         "required": true,
                         "in": "path",
                         "schema": {
@@ -1417,30 +1440,31 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "List the server provisions.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/StorageProvisionGetResponse"
+                                    "$ref": "#/components/schemas/UserStorageProvisionGetResponse"
                                 }
                             }
                         }
                     }
                 },
-                "tags": [
-                    "StorageProvisions"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Get a user storage provision by id.",
+                "tags": [
+                    "UserStorageProvisions"
                 ]
             },
             "put": {
-                "operationId": "updateStorageProvision",
+                "operationId": "updateUserStorageProvision",
                 "parameters": [
                     {
-                        "name": "storageProvisionId",
+                        "name": "userStorageProvisionId",
                         "required": true,
                         "in": "path",
                         "schema": {
@@ -1453,37 +1477,38 @@ export const schema = {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/StorageProvisionInputDTO"
+                                "$ref": "#/components/schemas/UserStorageProvisionInputDTO"
                             }
                         }
                     }
                 },
                 "responses": {
                     "200": {
-                        "description": "Update a server provision by id.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/StorageProvisionListResponse"
+                                    "$ref": "#/components/schemas/UserStorageProvisionListResponse"
                                 }
                             }
                         }
                     }
                 },
-                "tags": [
-                    "StorageProvisions"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Update a server provision by id.",
+                "tags": [
+                    "UserStorageProvisions"
                 ]
             },
             "delete": {
-                "operationId": "deleteStorageProvision",
+                "operationId": "deleteUserStorageProvision",
                 "parameters": [
                     {
-                        "name": "storageProvisionId",
+                        "name": "userStorageProvisionId",
                         "required": true,
                         "in": "path",
                         "schema": {
@@ -1493,23 +1518,104 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Delete a server provision by id.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/StorageProvisionListResponse"
+                                    "$ref": "#/components/schemas/UserStorageProvisionListResponse"
                                 }
                             }
                         }
                     }
                 },
-                "tags": [
-                    "StorageProvisions"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Delete a server provision by id.",
+                "tags": [
+                    "UserStorageProvisions"
+                ]
+            }
+        },
+        "/api/v1/server/server-storage-location": {
+            "get": {
+                "operationId": "getServerStorageLocation",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerStorageLocationGetResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "summary": "Get the server storage location.",
+                "tags": [
+                    "ServerStorageLocation"
+                ]
+            },
+            "post": {
+                "operationId": "setServerStorageLocation",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ServerStorageLocationInputDTO"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServerStorageLocationGetResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "summary": "Create a new server provision.",
+                "tags": [
+                    "ServerStorageLocation"
+                ]
+            },
+            "delete": {
+                "operationId": "deleteServerStorageLocation",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "summary": "Delete any set server storage location.",
+                "tags": [
+                    "ServerStorageLocation"
                 ]
             }
         },
@@ -1528,7 +1634,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Get a task by id.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1538,13 +1644,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "ServerTasks"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Get a task by id.",
+                "tags": [
+                    "ServerTasks"
                 ]
             }
         },
@@ -1639,8 +1746,6 @@ export const schema = {
                         "required": false,
                         "in": "query",
                         "schema": {
-                            "minimum": 0,
-                            "exclusiveMinimum": true,
                             "type": "number"
                         }
                     },
@@ -1656,7 +1761,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "List tasks.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1666,13 +1771,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "ServerTasks"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "List tasks.",
+                "tags": [
+                    "ServerTasks"
                 ]
             }
         },
@@ -1699,7 +1805,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Get a folder task by id.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1709,13 +1815,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Tasks"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Get a folder task by id.",
+                "tags": [
+                    "Tasks"
                 ]
             }
         },
@@ -1810,8 +1917,6 @@ export const schema = {
                         "required": false,
                         "in": "query",
                         "schema": {
-                            "minimum": 0,
-                            "exclusiveMinimum": true,
                             "type": "number"
                         }
                     },
@@ -1826,7 +1931,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "List tasks.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1836,13 +1941,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Tasks"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "List tasks.",
+                "tags": [
+                    "Tasks"
                 ]
             }
         },
@@ -1861,7 +1967,7 @@ export const schema = {
                 ],
                 "responses": {
                     "200": {
-                        "description": "Get an event by id.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1871,13 +1977,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "ServerEvents"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "Get an event by id.",
+                "tags": [
+                    "ServerEvents"
                 ]
             }
         },
@@ -1992,15 +2099,13 @@ export const schema = {
                         "required": false,
                         "in": "query",
                         "schema": {
-                            "minimum": 0,
-                            "exclusiveMinimum": true,
                             "type": "number"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "List events.",
+                        "description": "",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -2010,13 +2115,14 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "ServerEvents"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "summary": "List events.",
+                "tags": [
+                    "ServerEvents"
                 ]
             }
         },
@@ -2036,13 +2142,13 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Apps"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "tags": [
+                    "Apps"
                 ]
             }
         },
@@ -2071,13 +2177,13 @@ export const schema = {
                         }
                     }
                 },
-                "tags": [
-                    "Apps"
-                ],
                 "security": [
                     {
                         "bearer": []
                     }
+                ],
+                "tags": [
+                    "Apps"
                 ]
             }
         }
@@ -2157,7 +2263,6 @@ export const schema = {
                 },
                 "required": [
                     "username",
-                    "email",
                     "password"
                 ]
             },
@@ -2172,10 +2277,24 @@ export const schema = {
                                 "format": "uuid"
                             },
                             "name": {
-                                "type": "string"
+                                "oneOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
                             },
                             "email": {
-                                "type": "string"
+                                "oneOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
                             },
                             "emailVerified": {
                                 "type": "boolean"
@@ -2203,6 +2322,8 @@ export const schema = {
                         },
                         "required": [
                             "id",
+                            "name",
+                            "email",
                             "emailVerified",
                             "isAdmin",
                             "username",
@@ -2250,10 +2371,24 @@ export const schema = {
                                 "format": "uuid"
                             },
                             "name": {
-                                "type": "string"
+                                "oneOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
                             },
                             "email": {
-                                "type": "string"
+                                "oneOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
                             },
                             "emailVerified": {
                                 "type": "boolean"
@@ -2281,6 +2416,8 @@ export const schema = {
                         },
                         "required": [
                             "id",
+                            "name",
+                            "email",
                             "emailVerified",
                             "isAdmin",
                             "username",
@@ -2313,10 +2450,24 @@ export const schema = {
                         "format": "uuid"
                     },
                     "name": {
-                        "type": "string"
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     },
                     "email": {
-                        "type": "string"
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     },
                     "emailVerified": {
                         "type": "boolean"
@@ -2344,6 +2495,8 @@ export const schema = {
                 },
                 "required": [
                     "id",
+                    "name",
+                    "email",
                     "emailVerified",
                     "isAdmin",
                     "username",
@@ -2396,10 +2549,24 @@ export const schema = {
                                 "format": "uuid"
                             },
                             "name": {
-                                "type": "string"
+                                "oneOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
                             },
                             "email": {
-                                "type": "string"
+                                "oneOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ]
                             },
                             "emailVerified": {
                                 "type": "boolean"
@@ -2427,6 +2594,8 @@ export const schema = {
                         },
                         "required": [
                             "id",
+                            "name",
+                            "email",
                             "emailVerified",
                             "isAdmin",
                             "username",
@@ -2444,22 +2613,37 @@ export const schema = {
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string"
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "minLength": 1
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     },
                     "email": {
-                        "type": "string"
-                    },
-                    "emailVerified": {
-                        "type": "boolean"
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "email"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
                     },
                     "isAdmin": {
                         "type": "boolean"
                     },
                     "username": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 2
                     },
                     "password": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     },
                     "permissions": {
                         "type": "array",
@@ -2493,10 +2677,24 @@ export const schema = {
                                     "format": "uuid"
                                 },
                                 "name": {
-                                    "type": "string"
+                                    "oneOf": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
                                 },
                                 "email": {
-                                    "type": "string"
+                                    "oneOf": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ]
                                 },
                                 "emailVerified": {
                                     "type": "boolean"
@@ -2524,6 +2722,8 @@ export const schema = {
                             },
                             "required": [
                                 "id",
+                                "name",
+                                "email",
                                 "emailVerified",
                                 "isAdmin",
                                 "username",
@@ -4020,7 +4220,7 @@ export const schema = {
                     "settingKey"
                 ]
             },
-            "StorageProvisionDTO": {
+            "UserStorageProvisionDTO": {
                 "type": "object",
                 "properties": {
                     "id": {
@@ -4052,7 +4252,7 @@ export const schema = {
                             "enum": [
                                 "CONTENT",
                                 "METADATA",
-                                "BACKUP"
+                                "REDUNDANCY"
                             ]
                         },
                         "minItems": 1
@@ -4078,7 +4278,7 @@ export const schema = {
                     "description"
                 ]
             },
-            "StorageProvisionListResponse": {
+            "UserStorageProvisionListResponse": {
                 "type": "object",
                 "properties": {
                     "result": {
@@ -4115,7 +4315,7 @@ export const schema = {
                                         "enum": [
                                             "CONTENT",
                                             "METADATA",
-                                            "BACKUP"
+                                            "REDUNDANCY"
                                         ]
                                     },
                                     "minItems": 1
@@ -4147,10 +4347,10 @@ export const schema = {
                     "result"
                 ]
             },
-            "StorageProvisionGetResponse": {
+            "UserStorageProvisionGetResponse": {
                 "type": "object",
                 "properties": {
-                    "storageProvision": {
+                    "userStorageProvision": {
                         "type": "object",
                         "properties": {
                             "id": {
@@ -4182,7 +4382,7 @@ export const schema = {
                                     "enum": [
                                         "CONTENT",
                                         "METADATA",
-                                        "BACKUP"
+                                        "REDUNDANCY"
                                     ]
                                 },
                                 "minItems": 1
@@ -4210,10 +4410,10 @@ export const schema = {
                     }
                 },
                 "required": [
-                    "storageProvision"
+                    "userStorageProvision"
                 ]
             },
-            "StorageProvisionInputDTO": {
+            "UserStorageProvisionInputDTO": {
                 "type": "object",
                 "properties": {
                     "label": {
@@ -4249,7 +4449,7 @@ export const schema = {
                             "enum": [
                                 "CONTENT",
                                 "METADATA",
-                                "BACKUP"
+                                "REDUNDANCY"
                             ]
                         },
                         "minItems": 1
@@ -4264,6 +4464,115 @@ export const schema = {
                     "accessKeyId",
                     "secretAccessKey",
                     "provisionTypes"
+                ]
+            },
+            "ServerStorageLocationDTO": {
+                "type": "object",
+                "properties": {
+                    "accessKeyHashId": {
+                        "type": "string"
+                    },
+                    "accessKeyId": {
+                        "type": "string"
+                    },
+                    "endpoint": {
+                        "type": "string"
+                    },
+                    "bucket": {
+                        "type": "string"
+                    },
+                    "region": {
+                        "type": "string"
+                    },
+                    "prefix": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "accessKeyHashId",
+                    "accessKeyId",
+                    "endpoint",
+                    "bucket",
+                    "region"
+                ]
+            },
+            "ServerStorageLocationGetResponse": {
+                "type": "object",
+                "properties": {
+                    "serverStorageLocation": {
+                        "type": "object",
+                        "properties": {
+                            "accessKeyHashId": {
+                                "type": "string"
+                            },
+                            "accessKeyId": {
+                                "type": "string"
+                            },
+                            "endpoint": {
+                                "type": "string"
+                            },
+                            "bucket": {
+                                "type": "string"
+                            },
+                            "region": {
+                                "type": "string"
+                            },
+                            "prefix": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "accessKeyHashId",
+                            "accessKeyId",
+                            "endpoint",
+                            "bucket",
+                            "region"
+                        ]
+                    }
+                }
+            },
+            "ServerStorageLocationInputDTO": {
+                "type": "object",
+                "properties": {
+                    "accessKeyId": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "secretAccessKey": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "endpoint": {
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "bucket": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "region": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "prefix": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "minLength": 1
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    }
+                },
+                "required": [
+                    "accessKeyId",
+                    "secretAccessKey",
+                    "endpoint",
+                    "bucket",
+                    "region",
+                    "prefix"
                 ]
             },
             "TaskGetResponse": {
@@ -4802,6 +5111,9 @@ export const schema = {
                             "description": {
                                 "type": "string"
                             },
+                            "requiresStorage": {
+                                "type": "boolean"
+                            },
                             "emittableEvents": {
                                 "type": "array",
                                 "items": {
@@ -4916,6 +5228,7 @@ export const schema = {
                         },
                         "required": [
                             "description",
+                            "requiresStorage",
                             "emittableEvents",
                             "tasks",
                             "menuItems"
@@ -5025,6 +5338,9 @@ export const schema = {
                                     "properties": {
                                         "description": {
                                             "type": "string"
+                                        },
+                                        "requiresStorage": {
+                                            "type": "boolean"
                                         },
                                         "emittableEvents": {
                                             "type": "array",
@@ -5140,6 +5456,7 @@ export const schema = {
                                     },
                                     "required": [
                                         "description",
+                                        "requiresStorage",
                                         "emittableEvents",
                                         "tasks",
                                         "menuItems"
@@ -5243,6 +5560,9 @@ export const schema = {
                                 "properties": {
                                     "description": {
                                         "type": "string"
+                                    },
+                                    "requiresStorage": {
+                                        "type": "boolean"
                                     },
                                     "emittableEvents": {
                                         "type": "array",
@@ -5358,6 +5678,7 @@ export const schema = {
                                 },
                                 "required": [
                                     "description",
+                                    "requiresStorage",
                                     "emittableEvents",
                                     "tasks",
                                     "menuItems"

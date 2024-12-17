@@ -1,5 +1,4 @@
-import type { AccessKeyDTO, EventDTO } from '@stellariscloud/api-client'
-import clsx from 'clsx'
+import type { AccessKeyDTO } from '@stellariscloud/api-client'
 import { useRouter } from 'next/router'
 import React from 'react'
 import { apiClient } from '../../services/api'

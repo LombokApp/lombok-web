@@ -11,6 +11,7 @@ import { UsersListQueryParamsDTO } from '../dto/users-list-query-params.dto'
 import type { NewUser, User } from '../entities/user.entity'
 import { usersTable } from '../entities/user.entity'
 import { UserNotFoundException } from '../exceptions/user-not-found.exception'
+import { UserIdentityConflictException } from '../exceptions/user-identity-conflict.exception'
 
 export enum UserSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -161,13 +162,22 @@ export class UserService {
       createdAt: now,
       updatedAt: now,
     }
+    try {
+      const [createdUser] = await this.ormService.db
+        .insert(usersTable)
+        .values(newUser)
+        .returning()
 
-    const [createdUser] = await this.ormService.db
-      .insert(usersTable)
-      .values(newUser)
-      .returning()
-
-    return createdUser
+      return createdUser
+    } catch (error: any) {
+      if (
+        'constraint_name' in error &&
+        error.constraint_name == 'users_username_unique'
+      ) {
+        throw new UserIdentityConflictException()
+      }
+      throw error
+    }
   }
 
   async updateUserAsAdmin(
@@ -223,10 +233,6 @@ export class UserService {
     if ('username' in updatePayload) {
       // TOOD: validate username uniqueness before trying to save, or just catch the error and return a nice response
       updates.username = updatePayload.username
-    }
-
-    if ('emailVerified' in updatePayload) {
-      updates.emailVerified = updatePayload.emailVerified
     }
 
     if ('permissions' in updatePayload) {

@@ -1,5 +1,6 @@
 {
   "description": "An app implementing core functionality. This is a separate node process and can be run alongside the core app or deployed on another host.",
+  "requiresStorage": false,
   "tasks": [
     {
       "key": "ANALYZE_OBJECT",

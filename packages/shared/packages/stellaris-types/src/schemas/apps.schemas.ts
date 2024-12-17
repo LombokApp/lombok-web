@@ -47,6 +47,7 @@ export const appManifestSchema = z.array(
 
 export const appConfigSchema = z.object({
   description: z.string(),
+  requiresStorage: z.boolean(),
   emittableEvents: z.array(z.string()),
   tasks: z.array(taskConfigSchema),
   menuItems: z.array(appMenuItemConfigSchema),

@@ -5,7 +5,7 @@ import fs from 'fs'
 export const streamUploadFile = async (
   filepath: string,
   uploadUrl: string,
-  mimeType: string,
+  mimeType?: string,
 ) => {
   const readmeStream = fs.createReadStream(filepath)
   readmeStream.on('error', (e: any) => {
@@ -18,7 +18,7 @@ export const streamUploadFile = async (
   console.log('Uploading file of size %d bytes to "%s":', size, uploadUrl)
   await axios.put(uploadUrl, readmeStream, {
     headers: {
-      'Content-Type': mimeType,
+      ...(mimeType ? { 'Content-Type': mimeType } : {}),
       'Content-Length': size,
     },
     maxContentLength: Infinity,

@@ -37,6 +37,7 @@ async function main() {
     metadata as unknown as () => Promise<Record<string, any>>,
   )
   const options = new DocumentBuilder()
+    .setOpenAPIVersion('3.1.0')
     .setTitle('@stellariscloud/api')
     .setDescription('The Stellaris Cloud core API')
     .setVersion('1.0')

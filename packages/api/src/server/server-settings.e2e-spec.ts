@@ -13,7 +13,7 @@ describe('Server - Settings', () => {
   })
 
   afterEach(async () => {
-    await testModule?.resetDb()
+    await testModule?.resetAppState()
   })
 
   it(`should get the server settings`, async () => {

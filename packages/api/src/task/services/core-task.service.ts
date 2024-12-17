@@ -39,7 +39,7 @@ export class CoreTaskService {
       this.draining = true
       await this._drainCoreTasks()
     } catch (error) {
-      console.log('Error draining core tasks. Error', error)
+      // console.log('Error draining core tasks. Error', error)
     } finally {
       this.draining = false
     }
@@ -92,7 +92,7 @@ export class CoreTaskService {
       where: eq(tasksTable.id, taskId),
     })
     if (task?.startedAt) {
-      console.log('Task already started.')
+      // console.log('Task already started.')
     } else if (task?.ownerIdentifier === 'CORE') {
       const startedTimestamp = new Date()
       const updateResult = await this.ormService.db
@@ -231,7 +231,7 @@ export class CoreTaskService {
     // processorFunction: (inputData: CoreTaskInputData<K>) => Promise<void>,
     processorFunction: BaseProcessor<CoreTaskName>,
   ) => {
-    console.log('Registering processor for:', taskName)
+    // console.log('Registering processor for:', taskName)
     this.processors[taskName] = processorFunction
   }
 }

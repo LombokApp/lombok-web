@@ -2,7 +2,7 @@ import type {
   FolderGetResponse,
   FoldersApiCreateFolderRequest,
   FoldersApiListFoldersRequest,
-  StorageProvisionDTO,
+  UserStorageProvisionDTO,
 } from '@stellariscloud/api-client'
 import clsx from 'clsx'
 import Link from 'next/link'
@@ -41,8 +41,8 @@ export const FoldersScreen = () => {
   const [folderFormKey, setFolderFormKey] = React.useState<string>()
   const [forgetFolderConfirmationOpen, setForgetFolderConfirmationOpen] =
     React.useState<string | false>(false)
-  const [storageProvisions, setStorageProvisions] = React.useState<
-    StorageProvisionDTO[]
+  const [userStorageProvisions, setUserStorageProvisions] = React.useState<
+    UserStorageProvisionDTO[]
   >([])
   const handleForgetFolder = React.useCallback(
     (folderId: string) => {
@@ -65,9 +65,9 @@ export const FoldersScreen = () => {
   )
 
   const handleStartCreate = () => {
-    void apiClient.storageProvisionsApi
-      .listStorageProvisions()
-      .then((resp) => setStorageProvisions(resp.data.result))
+    void apiClient.userStorageProvisionsApi
+      .listUserStorageProvisions()
+      .then((resp) => setUserStorageProvisions(resp.data.result))
 
     void router.push({
       pathname: router.pathname,
@@ -127,10 +127,8 @@ export const FoldersScreen = () => {
   return (
     <>
       <div className="flex flex-1 flex-col container gap-3 self-center">
-        <TypographyH2 className="pb-0">Folders</TypographyH2>
-        <Separator className="bg-foreground/10 mb-3" />
-
         <DataTable
+          title="Folders"
           enableSearch={true}
           searchColumn="name"
           onColumnFiltersChange={(updater) => {

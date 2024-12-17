@@ -5,6 +5,7 @@ import { isBoolean, isInteger, parseEnv } from '../utils/config.util'
 
 export const coreConfig = registerAs('core', () => {
   const env = parseEnv({
+    INSTALL_APPS_ON_START: r.String.withConstraint(isBoolean).optional(),
     API_PORT: r.String.withConstraint(isInteger),
     APP_HOST_ID: r.String,
     DISABLE_HTTP: r.String.withConstraint(isBoolean).optional(),
@@ -14,6 +15,9 @@ export const coreConfig = registerAs('core', () => {
     EMBEDDED_CORE_APP_TOKEN: r.String.optional(),
   })
   return {
+    installAppsOnStart: !!(
+      env.INSTALL_APPS_ON_START === '1' || env.INSTALL_APPS_ON_START === 'true'
+    ),
     port: parseInt(env.API_PORT, 10),
     hostId: env.APP_HOST_ID,
     disableHttp: env.DISABLE_HTTP === '1' || env.DISABLE_HTTP === 'true',

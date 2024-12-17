@@ -6,7 +6,8 @@ export const signupCredentialsSchema = z.object({
   email: z
     .string()
     .min(1, { message: 'This field has to be filled.' })
-    .email('This is not a valid email.'),
+    .email('This is not a valid email.')
+    .optional(),
   password: z.string().max(255),
 })
 

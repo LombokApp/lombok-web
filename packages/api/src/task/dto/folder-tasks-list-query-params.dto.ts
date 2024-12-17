@@ -18,7 +18,10 @@ export const folderTasksListQueryParamsSchema = z.object({
     )
     .optional(),
   limit: z
-    .preprocess((a) => parseInt(a as string, 10), z.number().positive())
+    .preprocess(
+      (a) => parseInt(a as string, 10),
+      z.number().refine((a) => a > 0),
+    )
     .optional(),
 })
 

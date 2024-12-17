@@ -23,7 +23,8 @@
     "dev:docker:kill": "docker compose --env-file \"./packages/api/.env\" kill",
     "dev:check-all": "sh ./cmd/dev-check-all.sh",
     "ui:dev": "bun --cwd packages/stellariscloud-ui dev",
-    "api:dev": "bun --cwd packages/api dev"
+    "services:dev": "bun --cwd packages/api dev:docker:services",
+    "api:dev": "bun --cwd packages/api dev:docker:api"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "7.15.0",

@@ -23,7 +23,7 @@ describe('Users', () => {
   })
 
   afterEach(async () => {
-    await testModule?.resetDb()
+    await testModule?.resetAppState()
   })
 
   it(`should create a user`, async () => {
@@ -44,72 +44,336 @@ describe('Users', () => {
     expect(newUserResponse.status).toEqual(201)
   })
 
-  it(`should update a user`, async () => {
+  it(`should fail to create a user on duplicate username`, async () => {
     const {
       session: { accessToken },
     } = await createTestUser(testModule, {
-      username: 'mekpans',
-      name: 'initialname',
-      email: 'me@test.com',
+      username: 'user1',
       password: '123',
       admin: true,
     })
-    const viewer = await apiClient.viewerApi({ accessToken }).getViewer()
-
-    expect(viewer.data.user.email).toEqual('me@test.com')
-    expect(viewer.data.user.name).toEqual('initialname')
 
     const newUserResponse = await apiClient
       .usersApi({ accessToken })
       .createUser({
-        userCreateInputDTO: TEST_USER_INPUT,
+        userCreateInputDTO: { ...TEST_USER_INPUT, username: 'user1' },
+      })
+
+    expect(newUserResponse.status).toEqual(409)
+  })
+
+  it(`should update a user's email only`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule, {
+      username: 'initialusername',
+      name: 'initialname',
+      password: '123',
+      admin: true,
+    })
+
+    const newUserResponse = await apiClient
+      .usersApi({ accessToken })
+      .createUser({
+        userCreateInputDTO: {
+          isAdmin: false,
+          password: 'testpass',
+          username: 'testusername',
+          // email: 'email@example.com',
+          name: 'testname',
+          emailVerified: true,
+          permissions: [],
+        },
       })
     expect(newUserResponse.status).toEqual(201)
 
-    const updatedUserResponse = await apiClient
+    expect(newUserResponse.data.user.name).toEqual('testname')
+    expect(newUserResponse.data.user.username).toEqual('testusername')
+    expect(newUserResponse.data.user.email).toEqual(null)
+    expect(newUserResponse.data.user.isAdmin).toEqual(false)
+    expect(
+      newUserResponse.data.user.createdAt ===
+        newUserResponse.data.user.updatedAt,
+    ).toBe(true)
+
+    const setEmailUpdateUserResponse = await apiClient
       .usersApi({ accessToken })
       .updateUser({
         userId: newUserResponse.data.user.id,
         userUpdateInputDTO: {
-          name: 'updatedname',
-          username: 'updatedusername',
-          password: 'updatedpassword',
+          email: 'email@example.com',
+        },
+      })
+
+    expect(setEmailUpdateUserResponse.status).toEqual(200)
+    expect(setEmailUpdateUserResponse.data.user.name).toEqual('testname')
+    expect(setEmailUpdateUserResponse.data.user.username).toEqual(
+      'testusername',
+    )
+    expect(setEmailUpdateUserResponse.data.user.email).toBe('email@example.com')
+    expect(setEmailUpdateUserResponse.data.user.isAdmin).toEqual(false)
+    expect(
+      setEmailUpdateUserResponse.data.user.createdAt ===
+        setEmailUpdateUserResponse.data.user.updatedAt,
+    ).toBe(false)
+  })
+
+  it(`should update a user's name only`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule, {
+      username: 'adminusername',
+      name: 'adminname',
+      password: '123',
+      admin: true,
+    })
+
+    const newUserResponse = await apiClient
+      .usersApi({ accessToken })
+      .createUser({
+        userCreateInputDTO: {
+          isAdmin: false,
+          password: 'testpass',
+          username: 'initialusername',
+          email: 'email@example.com',
+          // name: 'initialname',
+          emailVerified: true,
+          permissions: [],
+        },
+      })
+    expect(newUserResponse.status).toEqual(201)
+
+    expect(newUserResponse.data.user.name).toEqual(null)
+    expect(newUserResponse.data.user.username).toEqual('initialusername')
+    expect(newUserResponse.data.user.email).toEqual('email@example.com')
+    expect(newUserResponse.data.user.isAdmin).toEqual(false)
+    expect(
+      newUserResponse.data.user.createdAt ===
+        newUserResponse.data.user.updatedAt,
+    ).toBe(true)
+
+    const setNameUpdateUserResponse = await apiClient
+      .usersApi({ accessToken })
+      .updateUser({
+        userId: newUserResponse.data.user.id,
+        userUpdateInputDTO: {
+          name: 'newname',
+        },
+      })
+
+    expect(setNameUpdateUserResponse.status).toEqual(200)
+    expect(setNameUpdateUserResponse.data.user.name).toEqual('newname')
+    expect(setNameUpdateUserResponse.data.user.username).toEqual(
+      'initialusername',
+    )
+    expect(setNameUpdateUserResponse.data.user.email).toBe('email@example.com')
+    expect(setNameUpdateUserResponse.data.user.isAdmin).toEqual(false)
+    expect(
+      setNameUpdateUserResponse.data.user.createdAt ===
+        setNameUpdateUserResponse.data.user.updatedAt,
+    ).toBe(false)
+  })
+
+  it(`should update a user's isAdmin flag only`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule, {
+      username: 'adminusername',
+      name: 'adminname',
+      password: '123',
+      admin: true,
+    })
+
+    const newUserResponse = await apiClient
+      .usersApi({ accessToken })
+      .createUser({
+        userCreateInputDTO: {
+          isAdmin: false,
+          password: 'testpass',
+          username: 'initialusername',
+          email: 'email@example.com',
+          name: 'initialname',
+          emailVerified: true,
+          permissions: [],
+        },
+      })
+    expect(newUserResponse.status).toEqual(201)
+
+    expect(newUserResponse.data.user.name).toEqual('initialname')
+    expect(newUserResponse.data.user.username).toEqual('initialusername')
+    expect(newUserResponse.data.user.email).toEqual('email@example.com')
+    expect(newUserResponse.data.user.isAdmin).toEqual(false)
+    expect(
+      newUserResponse.data.user.createdAt ===
+        newUserResponse.data.user.updatedAt,
+    ).toBe(true)
+
+    const setNameUpdateUserResponse = await apiClient
+      .usersApi({ accessToken })
+      .updateUser({
+        userId: newUserResponse.data.user.id,
+        userUpdateInputDTO: {
           isAdmin: true,
         },
       })
-    expect(updatedUserResponse.data.user.name).toEqual('updatedname')
-    expect(updatedUserResponse.data.user.username).toEqual('updatedusername')
-    expect(updatedUserResponse.data.user.isAdmin).toEqual(true)
+
+    expect(setNameUpdateUserResponse.status).toEqual(200)
+    expect(setNameUpdateUserResponse.data.user.name).toEqual('initialname')
+    expect(setNameUpdateUserResponse.data.user.username).toEqual(
+      'initialusername',
+    )
+    expect(setNameUpdateUserResponse.data.user.email).toBe('email@example.com')
+    expect(setNameUpdateUserResponse.data.user.isAdmin).toEqual(true)
     expect(
-      updatedUserResponse.data.user.createdAt ===
-        updatedUserResponse.data.user.updatedAt,
+      setNameUpdateUserResponse.data.user.createdAt ===
+        setNameUpdateUserResponse.data.user.updatedAt,
     ).toBe(false)
+  })
 
-    expect(updatedUserResponse.status).toEqual(200)
+  it(`should update a user's username only`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule, {
+      username: 'adminusername',
+      name: 'adminname',
+      password: '123',
+      admin: true,
+    })
 
-    const removeEmailUpdateUserResponse = await apiClient
+    const newUserResponse = await apiClient
+      .usersApi({ accessToken })
+      .createUser({
+        userCreateInputDTO: {
+          isAdmin: false,
+          password: 'testpass',
+          username: 'initialusername',
+          email: 'email@example.com',
+          name: 'initialname',
+          emailVerified: true,
+          permissions: [],
+        },
+      })
+    expect(newUserResponse.status).toEqual(201)
+
+    expect(newUserResponse.data.user.name).toEqual('initialname')
+    expect(newUserResponse.data.user.username).toEqual('initialusername')
+    expect(newUserResponse.data.user.email).toEqual('email@example.com')
+    expect(newUserResponse.data.user.isAdmin).toEqual(false)
+    expect(
+      newUserResponse.data.user.createdAt ===
+        newUserResponse.data.user.updatedAt,
+    ).toBe(true)
+
+    const setNameUpdateUserResponse = await apiClient
       .usersApi({ accessToken })
       .updateUser({
         userId: newUserResponse.data.user.id,
         userUpdateInputDTO: {
-          email: null,
+          username: 'newusername',
         },
       })
 
-    expect(removeEmailUpdateUserResponse.status).toEqual(200)
-    expect(removeEmailUpdateUserResponse.data.user.email).toBeFalsy()
+    expect(setNameUpdateUserResponse.status).toEqual(200)
+    expect(setNameUpdateUserResponse.data.user.name).toEqual('initialname')
+    expect(setNameUpdateUserResponse.data.user.username).toEqual('newusername')
+    expect(setNameUpdateUserResponse.data.user.email).toBe('email@example.com')
+    expect(setNameUpdateUserResponse.data.user.isAdmin).toEqual(false)
+    expect(
+      setNameUpdateUserResponse.data.user.createdAt ===
+        setNameUpdateUserResponse.data.user.updatedAt,
+    ).toBe(false)
+  })
 
-    const removeNameUpdateUserResponse = await apiClient
+  it(`should update a user's username only [bad input]`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule, {
+      username: 'adminusername',
+      name: 'adminname',
+      password: '123',
+      admin: true,
+    })
+
+    const newUserResponse = await apiClient
+      .usersApi({ accessToken })
+      .createUser({
+        userCreateInputDTO: {
+          isAdmin: false,
+          password: 'testpass',
+          username: 'initialusername',
+          email: 'email@example.com',
+          name: 'initialname',
+          emailVerified: true,
+          permissions: [],
+        },
+      })
+    expect(newUserResponse.status).toEqual(201)
+
+    expect(newUserResponse.data.user.name).toEqual('initialname')
+    expect(newUserResponse.data.user.username).toEqual('initialusername')
+    expect(newUserResponse.data.user.email).toEqual('email@example.com')
+    expect(newUserResponse.data.user.isAdmin).toEqual(false)
+    expect(
+      newUserResponse.data.user.createdAt ===
+        newUserResponse.data.user.updatedAt,
+    ).toBe(true)
+
+    const setNameUpdateUserResponse = await apiClient
       .usersApi({ accessToken })
       .updateUser({
         userId: newUserResponse.data.user.id,
         userUpdateInputDTO: {
-          name: null,
+          username: '',
         },
       })
 
-    expect(removeNameUpdateUserResponse.status).toEqual(200)
-    expect(removeNameUpdateUserResponse.data.user.name).toBeFalsy()
+    expect(setNameUpdateUserResponse.status).toEqual(400)
+  })
+
+  it(`should update a user's email only [bad input]`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule, {
+      username: 'adminusername',
+      name: 'adminname',
+      password: '123',
+      admin: true,
+    })
+
+    const newUserResponse = await apiClient
+      .usersApi({ accessToken })
+      .createUser({
+        userCreateInputDTO: {
+          isAdmin: false,
+          password: 'testpass',
+          username: 'initialusername',
+          email: 'email@example.com',
+          name: 'initialname',
+          emailVerified: true,
+          permissions: [],
+        },
+      })
+    expect(newUserResponse.status).toEqual(201)
+
+    expect(newUserResponse.data.user.name).toEqual('initialname')
+    expect(newUserResponse.data.user.username).toEqual('initialusername')
+    expect(newUserResponse.data.user.email).toEqual('email@example.com')
+    expect(newUserResponse.data.user.isAdmin).toEqual(false)
+    expect(
+      newUserResponse.data.user.createdAt ===
+        newUserResponse.data.user.updatedAt,
+    ).toBe(true)
+
+    const setNameUpdateUserResponse = await apiClient
+      .usersApi({ accessToken })
+      .updateUser({
+        userId: newUserResponse.data.user.id,
+        userUpdateInputDTO: {
+          email: '',
+        },
+      })
+
+    expect(setNameUpdateUserResponse.status).toEqual(400)
   })
 
   it(`should get a user by id`, async () => {

@@ -21,7 +21,7 @@ describe('S3', () => {
   })
 
   afterEach(async () => {
-    await testModule?.resetDb()
+    await testModule?.resetAppState()
   })
 
   it(`it should be able to read from a bucket`, async () => {

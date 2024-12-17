@@ -1,4 +1,3 @@
-import { $ } from 'bun'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -47,7 +46,7 @@ export const runWorkerScriptHandler = async (
     `STELLARIS_APP_TASK_EXECUTION_ID=${taskUUID}`,
   ]
 
-  await $`nsjail ${taskEnvVars.join(' ')} ${stellarisEnvVars.join(' ')} -Me --chroot / -- /usr/bin/bun`
+  // await $`nsjail ${taskEnvVars.join(' ')} ${stellarisEnvVars.join(' ')} -Me --chroot / -- /usr/bin/bun`
 
   // verify the content of the script (that it matches the scriptHash)
 

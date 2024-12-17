@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NEXT_PUBLIC_BACKEND_ENV=local next dev",
+    "dev": "NEXT_PUBLIC_BACKEND_ENV=local next dev -p 8080",
     "dev:staging": "NEXT_PUBLIC_BACKEND_ENV=staging next dev",
     "build": "next build",
     "start": "next start",
@@ -30,6 +30,7 @@
     "axios": "1.7.2",
     "clsx": "2.1.1",
     "dotenv": "16.4.5",
+    "eslint-plugin-tailwindcss": "^3.17.5",
     "idb": "8.0.0",
     "immer": "10.1.1",
     "jwt-decode": "4.0.0",

@@ -6,7 +6,6 @@ import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components
 import { invertColour, stringToColour } from '../../../../utils/colors'
 import { AppDTO } from '@stellariscloud/api-client'
 import { useRouter } from 'next/router'
-import { Pointer } from 'lucide-react'
 import Link from 'next/link'
 
 export const serverAppsTableColumns: ColumnDef<AppDTO>[] = [

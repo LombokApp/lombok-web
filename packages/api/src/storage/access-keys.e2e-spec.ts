@@ -21,7 +21,7 @@ describe('Access Keys', () => {
   })
 
   afterEach(async () => {
-    await testModule?.resetDb()
+    await testModule?.resetAppState()
   })
 
   it(`should list DISTINCT user access keys`, async () => {

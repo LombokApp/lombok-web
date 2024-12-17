@@ -3,7 +3,7 @@
 import React from 'react'
 
 import { Cross2Icon } from '@radix-ui/react-icons'
-import { Button, Input } from '@stellariscloud/ui-toolkit'
+import { Button, Input, TypographyH3 } from '@stellariscloud/ui-toolkit'
 import { Table } from '@tanstack/react-table'
 import { Filter } from 'lucide-react'
 
@@ -18,6 +18,7 @@ export interface ColumnFilterOptions {
   }[]
 }
 interface DataTableToolbarProps<TData> {
+  title?: string
   table: Table<TData>
   filterOptions: Record<string, ColumnFilterOptions>
   enableSearch?: boolean
@@ -26,6 +27,7 @@ interface DataTableToolbarProps<TData> {
 }
 
 export function DataTableToolbar<TData>({
+  title,
   table,
   filterOptions,
   enableSearch = false,
@@ -37,7 +39,8 @@ export function DataTableToolbar<TData>({
     throw new Error('Must set `searchColumn` if `enableSearch` is true.')
   }
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center gap-6">
+      {title && <TypographyH3>{title}</TypographyH3>}
       <div className="flex items-center space-x-2 border p-2 bg-card border-foreground/10 rounded-md">
         <div className="pl-2 pr-1 flex items-center">
           <Filter className="w-5 h-5 text-foreground/30" />

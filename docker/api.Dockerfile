@@ -1,6 +1,6 @@
 # use the official Bun image
 # see all versions at https://hub.docker.com/r/oven/bun/tags
-FROM oven/bun:1.1.33-alpine as local
+FROM oven/bun:1.1.42-alpine as local
 WORKDIR /usr/src/app
 RUN set -eux \
   & apk add \
@@ -57,5 +57,5 @@ COPY --from=prerelease /usr/src/app/package.json .
 
 # run the app
 USER bun
-EXPOSE 3000/tcp
+EXPOSE 3001/tcp
 ENTRYPOINT [ "bun", "run", "index.ts" ]

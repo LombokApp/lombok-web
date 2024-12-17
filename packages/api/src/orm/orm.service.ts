@@ -75,7 +75,12 @@ export class OrmService {
     return this._db
   }
 
+  initialized = false
+
   async initDatabase() {
+    if (this.initialized) {
+      return
+    }
     if (this._ormConfig.createDatabase) {
       await this.runWithTestClient(async (_c) => {
         const existsResult = await _c.unsafe(
@@ -92,6 +97,26 @@ export class OrmService {
     if (this._ormConfig.runMigrations) {
       await this.migrate()
     }
+
+    this.initialized = true
+  }
+
+  async waitForInit() {
+    const maxRetries = 50
+    const retryPeriod = 50
+    await new Promise<void>((resolve, reject) => {
+      let checkCount = 0
+      const interval = setInterval(() => {
+        if (checkCount >= maxRetries) {
+          clearInterval(interval)
+          reject(new Error('Timeout waiting for db to init.'))
+        } else if (this.initialized) {
+          clearInterval(interval)
+          resolve()
+        }
+        checkCount += 1
+      }, retryPeriod)
+    })
   }
 
   async migrate() {
@@ -104,18 +129,13 @@ export class OrmService {
     if (!this._ormConfig.dbName.startsWith(TEST_DB_PREFIX)) {
       throw new Error('Attempt to reset non-test db.')
     }
-    await this.truncateTestDatabase()
-    await this.migrate()
+    await this.truncateAllTestTables()
   }
 
-  async truncateTestDatabase() {
+  public async truncateAllTestTables() {
     if (!this._ormConfig.dbName.startsWith(TEST_DB_PREFIX)) {
       throw new Error('Attempt to truncate non-test database.')
     }
-    await this._truncateAllTables()
-  }
-
-  private async _truncateAllTables() {
     await this.runWithTestClient(async (_c) => {
       const existsResult = await _c.unsafe(
         `SELECT 1 FROM pg_database WHERE datname = '${this._ormConfig.dbName}'`,
@@ -128,7 +148,7 @@ export class OrmService {
 
       try {
         const tables = await this.client.unsafe(
-          `SELECT tablename,schemaname FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema');`,
+          `SELECT tablename,schemaname FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema', 'drizzle');`,
         )
 
         if (tables.length > 0) {

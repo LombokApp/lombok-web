@@ -85,23 +85,20 @@ export const ServerContextProvider = ({
       apiClient.appsApi.listApps().then((response) => {
         setServerApps(response.data)
         setMenuItems(
-          response.data.installed.result.reduce<AppMenuItemAndHref[]>(
-            (acc, next) => {
-              return acc.concat(
-                next.config.menuItems.map((item) => ({
-                  iconPath: item.iconPath,
-                  href: `/apps/${next.identifier}/${item.uiName}`,
-                  label: item.label,
-                  uiName: item.uiName,
-                  appIdentifier: next.identifier,
-                })),
-              )
-            },
-            [],
-          ),
+          response.data.result.reduce<AppMenuItemAndHref[]>((acc, next) => {
+            return acc.concat(
+              next.config.menuItems.map((item) => ({
+                iconPath: item.iconPath,
+                href: `/apps/${next.identifier}/${item.uiName}`,
+                label: item.label,
+                uiName: item.uiName,
+                appIdentifier: next.identifier,
+              })),
+            )
+          }, []),
         )
         setAppFolderActions(
-          response.data.installed.result.reduce<
+          response.data.result.reduce<
             { taskTrigger: AppTaskTrigger; appIdentifier: string }[]
           >((acc, next) => {
             return acc.concat(
@@ -119,7 +116,7 @@ export const ServerContextProvider = ({
           }, []),
         )
         setAppFolderObjectActions(
-          response.data.installed.result.reduce<
+          response.data.result.reduce<
             { taskTrigger: AppTaskTrigger; appIdentifier: string }[]
           >((acc, next) => {
             return acc.concat(

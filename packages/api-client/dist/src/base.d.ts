@@ -10,7 +10,7 @@
  * Do not edit the class manually.
  */
 import type { Configuration } from './configuration';
-import type { AxiosInstance, AxiosRequestConfig } from 'axios';
+import type { AxiosInstance, RawAxiosRequestConfig } from 'axios';
 export declare const BASE_PATH: string;
 /**
  *
@@ -29,7 +29,7 @@ export declare const COLLECTION_FORMATS: {
  */
 export interface RequestArgs {
     url: string;
-    options: AxiosRequestConfig;
+    options: RawAxiosRequestConfig;
 }
 /**
  *
@@ -52,3 +52,15 @@ export declare class RequiredError extends Error {
     field: string;
     constructor(field: string, msg?: string);
 }
+interface ServerMap {
+    [key: string]: {
+        url: string;
+        description: string;
+    }[];
+}
+/**
+ *
+ * @export
+ */
+export declare const operationServerMap: ServerMap;
+export {};

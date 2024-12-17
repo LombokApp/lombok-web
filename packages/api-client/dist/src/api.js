@@ -16,7 +16,7 @@ import globalAxios from 'axios';
 // @ts-ignore
 import { DUMMY_BASE_URL, assertParamExists, setBearerAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from './common';
 // @ts-ignore
-import { BASE_PATH, BaseAPI } from './base';
+import { BASE_PATH, BaseAPI, operationServerMap } from './base';
 export const AppDTOConfigTasksInnerInputParamsValueTypeEnum = {
     Boolean: 'boolean',
     String: 'string',
@@ -85,20 +85,20 @@ export const FolderObjectListResponseResultInnerMediaTypeEnum = {
     Document: 'DOCUMENT',
     Unknown: 'UNKNOWN'
 };
-export const StorageProvisionDTOProvisionTypesEnum = {
+export const UserStorageProvisionDTOProvisionTypesEnum = {
     Content: 'CONTENT',
     Metadata: 'METADATA',
-    Backup: 'BACKUP'
+    Redundancy: 'REDUNDANCY'
 };
-export const StorageProvisionInputDTOProvisionTypesEnum = {
+export const UserStorageProvisionInputDTOProvisionTypesEnum = {
     Content: 'CONTENT',
     Metadata: 'METADATA',
-    Backup: 'BACKUP'
+    Redundancy: 'REDUNDANCY'
 };
-export const StorageProvisionListResponseResultInnerProvisionTypesEnum = {
+export const UserStorageProvisionListResponseResultInnerProvisionTypesEnum = {
     Content: 'CONTENT',
     Metadata: 'METADATA',
-    Backup: 'BACKUP'
+    Redundancy: 'REDUNDANCY'
 };
 /**
  * AccessKeysApi - axios parameter creator
@@ -108,6 +108,7 @@ export const AccessKeysApiAxiosParamCreator = function (configuration) {
     return {
         /**
          *
+         * @summary Get an access key by id.
          * @param {string} accessKeyHashId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -139,6 +140,7 @@ export const AccessKeysApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary List buckets for an access key.
          * @param {string} accessKeyHashId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -170,6 +172,7 @@ export const AccessKeysApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary List access keys.
          * @param {number} [offset]
          * @param {number} [limit]
          * @param {ListAccessKeysSortEnum} [sort]
@@ -209,6 +212,7 @@ export const AccessKeysApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Rotate an access key.
          * @param {string} accessKeyHashId
          * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
          * @param {*} [options] Override http request option.
@@ -254,26 +258,33 @@ export const AccessKeysApiFp = function (configuration) {
     return {
         /**
          *
+         * @summary Get an access key by id.
          * @param {string} accessKeyHashId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async getAccessKey(accessKeyHashId, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getAccessKey(accessKeyHashId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AccessKeysApi.getAccessKey']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary List buckets for an access key.
          * @param {string} accessKeyHashId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async listAccessKeyBuckets(accessKeyHashId, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listAccessKeyBuckets(accessKeyHashId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AccessKeysApi.listAccessKeyBuckets']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary List access keys.
          * @param {number} [offset]
          * @param {number} [limit]
          * @param {ListAccessKeysSortEnum} [sort]
@@ -282,10 +293,13 @@ export const AccessKeysApiFp = function (configuration) {
          */
         async listAccessKeys(offset, limit, sort, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listAccessKeys(offset, limit, sort, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AccessKeysApi.listAccessKeys']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Rotate an access key.
          * @param {string} accessKeyHashId
          * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
          * @param {*} [options] Override http request option.
@@ -293,7 +307,9 @@ export const AccessKeysApiFp = function (configuration) {
          */
         async rotateAccessKey(accessKeyHashId, rotateAccessKeyInputDTO, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.rotateAccessKey(accessKeyHashId, rotateAccessKeyInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AccessKeysApi.rotateAccessKey']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     };
 };
@@ -306,6 +322,7 @@ export const AccessKeysApiFactory = function (configuration, basePath, axios) {
     return {
         /**
          *
+         * @summary Get an access key by id.
          * @param {AccessKeysApiGetAccessKeyRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -315,6 +332,7 @@ export const AccessKeysApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary List buckets for an access key.
          * @param {AccessKeysApiListAccessKeyBucketsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -324,6 +342,7 @@ export const AccessKeysApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary List access keys.
          * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -333,6 +352,7 @@ export const AccessKeysApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Rotate an access key.
          * @param {AccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -351,6 +371,7 @@ export const AccessKeysApiFactory = function (configuration, basePath, axios) {
 export class AccessKeysApi extends BaseAPI {
     /**
      *
+     * @summary Get an access key by id.
      * @param {AccessKeysApiGetAccessKeyRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -361,6 +382,7 @@ export class AccessKeysApi extends BaseAPI {
     }
     /**
      *
+     * @summary List buckets for an access key.
      * @param {AccessKeysApiListAccessKeyBucketsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -371,6 +393,7 @@ export class AccessKeysApi extends BaseAPI {
     }
     /**
      *
+     * @summary List access keys.
      * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -381,6 +404,7 @@ export class AccessKeysApi extends BaseAPI {
     }
     /**
      *
+     * @summary Rotate an access key.
      * @param {AccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -486,7 +510,9 @@ export const AppsApiFp = function (configuration) {
          */
         async getApp(appIdentifier, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getApp(appIdentifier, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AppsApi.getApp']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
@@ -495,7 +521,9 @@ export const AppsApiFp = function (configuration) {
          */
         async listApps(options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listApps(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AppsApi.listApps']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     };
 };
@@ -560,6 +588,7 @@ export const AuthApiAxiosParamCreator = function (configuration) {
     return {
         /**
          *
+         * @summary Authenticate the user and return access and refresh tokens.
          * @param {LoginCredentialsDTO} loginCredentialsDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -589,6 +618,7 @@ export const AuthApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Logout. Kill the current session.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -616,6 +646,7 @@ export const AuthApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Refresh a session with a refresh token.
          * @param {string} refreshToken
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -644,6 +675,7 @@ export const AuthApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Register a new user.
          * @param {SignupCredentialsDTO} signupCredentialsDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -682,42 +714,54 @@ export const AuthApiFp = function (configuration) {
     return {
         /**
          *
+         * @summary Authenticate the user and return access and refresh tokens.
          * @param {LoginCredentialsDTO} loginCredentialsDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async login(loginCredentialsDTO, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.login(loginCredentialsDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.login']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Logout. Kill the current session.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async logout(options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.logout(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.logout']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Refresh a session with a refresh token.
          * @param {string} refreshToken
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async refreshToken(refreshToken, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.refreshToken(refreshToken, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.refreshToken']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Register a new user.
          * @param {SignupCredentialsDTO} signupCredentialsDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async signup(signupCredentialsDTO, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.signup(signupCredentialsDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.signup']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     };
 };
@@ -730,6 +774,7 @@ export const AuthApiFactory = function (configuration, basePath, axios) {
     return {
         /**
          *
+         * @summary Authenticate the user and return access and refresh tokens.
          * @param {AuthApiLoginRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -739,6 +784,7 @@ export const AuthApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Logout. Kill the current session.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -747,6 +793,7 @@ export const AuthApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Refresh a session with a refresh token.
          * @param {AuthApiRefreshTokenRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -756,6 +803,7 @@ export const AuthApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Register a new user.
          * @param {AuthApiSignupRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -774,6 +822,7 @@ export const AuthApiFactory = function (configuration, basePath, axios) {
 export class AuthApi extends BaseAPI {
     /**
      *
+     * @summary Authenticate the user and return access and refresh tokens.
      * @param {AuthApiLoginRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -784,6 +833,7 @@ export class AuthApi extends BaseAPI {
     }
     /**
      *
+     * @summary Logout. Kill the current session.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthApi
@@ -793,6 +843,7 @@ export class AuthApi extends BaseAPI {
     }
     /**
      *
+     * @summary Refresh a session with a refresh token.
      * @param {AuthApiRefreshTokenRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -803,6 +854,7 @@ export class AuthApi extends BaseAPI {
     }
     /**
      *
+     * @summary Register a new user.
      * @param {AuthApiSignupRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -820,6 +872,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
     return {
         /**
          *
+         * @summary Create a folder.
          * @param {FolderCreateInputDTO} folderCreateInputDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -852,6 +905,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Create presigned urls for objects in a folder.
          * @param {string} folderId
          * @param {Array<FolderCreateSignedUrlInputDTOInner>} folderCreateSignedUrlInputDTOInner
          * @param {*} [options] Override http request option.
@@ -888,6 +942,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Delete a folder by id.
          * @param {string} folderId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -919,6 +974,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Delete a folder object by folderId and objectKey.
          * @param {string} folderId
          * @param {string} objectKey
          * @param {*} [options] Override http request option.
@@ -954,6 +1010,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Get a folder by id.
          * @param {string} folderId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -985,6 +1042,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Get the metadata for a folder by id.
          * @param {string} folderId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1016,6 +1074,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Get a folder object by folderId and objectKey.
          * @param {string} folderId
          * @param {string} objectKey
          * @param {*} [options] Override http request option.
@@ -1051,6 +1110,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Handle app task trigger
          * @param {string} folderId
          * @param {string} appIdentifier
          * @param {string} taskKey
@@ -1095,6 +1155,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary List folder objects by folderId.
          * @param {string} folderId
          * @param {number} [offset]
          * @param {number} [limit]
@@ -1138,6 +1199,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary List folders.
          * @param {number} [offset]
          * @param {number} [limit]
          * @param {ListFoldersSortEnum} [sort]
@@ -1181,6 +1243,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Scan the object again in the underlying storage, and update its state in our db.
          * @param {string} folderId
          * @param {string} objectKey
          * @param {*} [options] Override http request option.
@@ -1216,6 +1279,7 @@ export const FoldersApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Scan the underlying S3 location and update our local representation of it.
          * @param {string} folderId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1256,16 +1320,20 @@ export const FoldersApiFp = function (configuration) {
     return {
         /**
          *
+         * @summary Create a folder.
          * @param {FolderCreateInputDTO} folderCreateInputDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async createFolder(folderCreateInputDTO, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.createFolder(folderCreateInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.createFolder']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Create presigned urls for objects in a folder.
          * @param {string} folderId
          * @param {Array<FolderCreateSignedUrlInputDTOInner>} folderCreateSignedUrlInputDTOInner
          * @param {*} [options] Override http request option.
@@ -1273,20 +1341,26 @@ export const FoldersApiFp = function (configuration) {
          */
         async createPresignedUrls(folderId, folderCreateSignedUrlInputDTOInner, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.createPresignedUrls(folderId, folderCreateSignedUrlInputDTOInner, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.createPresignedUrls']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Delete a folder by id.
          * @param {string} folderId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async deleteFolder(folderId, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.deleteFolder(folderId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.deleteFolder']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Delete a folder object by folderId and objectKey.
          * @param {string} folderId
          * @param {string} objectKey
          * @param {*} [options] Override http request option.
@@ -1294,30 +1368,39 @@ export const FoldersApiFp = function (configuration) {
          */
         async deleteFolderObject(folderId, objectKey, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.deleteFolderObject(folderId, objectKey, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.deleteFolderObject']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Get a folder by id.
          * @param {string} folderId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async getFolder(folderId, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getFolder(folderId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.getFolder']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Get the metadata for a folder by id.
          * @param {string} folderId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async getFolderMetadata(folderId, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getFolderMetadata(folderId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.getFolderMetadata']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Get a folder object by folderId and objectKey.
          * @param {string} folderId
          * @param {string} objectKey
          * @param {*} [options] Override http request option.
@@ -1325,10 +1408,13 @@ export const FoldersApiFp = function (configuration) {
          */
         async getFolderObject(folderId, objectKey, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getFolderObject(folderId, objectKey, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.getFolderObject']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Handle app task trigger
          * @param {string} folderId
          * @param {string} appIdentifier
          * @param {string} taskKey
@@ -1338,10 +1424,13 @@ export const FoldersApiFp = function (configuration) {
          */
         async handleAppTaskTrigger(folderId, appIdentifier, taskKey, triggerAppTaskInputDTO, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.handleAppTaskTrigger(folderId, appIdentifier, taskKey, triggerAppTaskInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.handleAppTaskTrigger']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary List folder objects by folderId.
          * @param {string} folderId
          * @param {number} [offset]
          * @param {number} [limit]
@@ -1351,10 +1440,13 @@ export const FoldersApiFp = function (configuration) {
          */
         async listFolderObjects(folderId, offset, limit, search, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderObjects(folderId, offset, limit, search, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.listFolderObjects']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary List folders.
          * @param {number} [offset]
          * @param {number} [limit]
          * @param {ListFoldersSortEnum} [sort]
@@ -1364,10 +1456,13 @@ export const FoldersApiFp = function (configuration) {
          */
         async listFolders(offset, limit, sort, search, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listFolders(offset, limit, sort, search, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.listFolders']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Scan the object again in the underlying storage, and update its state in our db.
          * @param {string} folderId
          * @param {string} objectKey
          * @param {*} [options] Override http request option.
@@ -1375,17 +1470,22 @@ export const FoldersApiFp = function (configuration) {
          */
         async refreshFolderObjectS3Metadata(folderId, objectKey, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.refreshFolderObjectS3Metadata(folderId, objectKey, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.refreshFolderObjectS3Metadata']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Scan the underlying S3 location and update our local representation of it.
          * @param {string} folderId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async rescanFolder(folderId, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.rescanFolder(folderId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.rescanFolder']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     };
 };
@@ -1398,6 +1498,7 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
     return {
         /**
          *
+         * @summary Create a folder.
          * @param {FoldersApiCreateFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1407,6 +1508,7 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Create presigned urls for objects in a folder.
          * @param {FoldersApiCreatePresignedUrlsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1416,6 +1518,7 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Delete a folder by id.
          * @param {FoldersApiDeleteFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1425,6 +1528,7 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Delete a folder object by folderId and objectKey.
          * @param {FoldersApiDeleteFolderObjectRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1434,6 +1538,7 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Get a folder by id.
          * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1443,6 +1548,7 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Get the metadata for a folder by id.
          * @param {FoldersApiGetFolderMetadataRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1452,6 +1558,7 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Get a folder object by folderId and objectKey.
          * @param {FoldersApiGetFolderObjectRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1461,6 +1568,7 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Handle app task trigger
          * @param {FoldersApiHandleAppTaskTriggerRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1470,6 +1578,7 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary List folder objects by folderId.
          * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1479,6 +1588,7 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary List folders.
          * @param {FoldersApiListFoldersRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1488,6 +1598,7 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Scan the object again in the underlying storage, and update its state in our db.
          * @param {FoldersApiRefreshFolderObjectS3MetadataRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1497,6 +1608,7 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Scan the underlying S3 location and update our local representation of it.
          * @param {FoldersApiRescanFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1515,6 +1627,7 @@ export const FoldersApiFactory = function (configuration, basePath, axios) {
 export class FoldersApi extends BaseAPI {
     /**
      *
+     * @summary Create a folder.
      * @param {FoldersApiCreateFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1525,6 +1638,7 @@ export class FoldersApi extends BaseAPI {
     }
     /**
      *
+     * @summary Create presigned urls for objects in a folder.
      * @param {FoldersApiCreatePresignedUrlsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1535,6 +1649,7 @@ export class FoldersApi extends BaseAPI {
     }
     /**
      *
+     * @summary Delete a folder by id.
      * @param {FoldersApiDeleteFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1545,6 +1660,7 @@ export class FoldersApi extends BaseAPI {
     }
     /**
      *
+     * @summary Delete a folder object by folderId and objectKey.
      * @param {FoldersApiDeleteFolderObjectRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1555,6 +1671,7 @@ export class FoldersApi extends BaseAPI {
     }
     /**
      *
+     * @summary Get a folder by id.
      * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1565,6 +1682,7 @@ export class FoldersApi extends BaseAPI {
     }
     /**
      *
+     * @summary Get the metadata for a folder by id.
      * @param {FoldersApiGetFolderMetadataRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1575,6 +1693,7 @@ export class FoldersApi extends BaseAPI {
     }
     /**
      *
+     * @summary Get a folder object by folderId and objectKey.
      * @param {FoldersApiGetFolderObjectRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1585,6 +1704,7 @@ export class FoldersApi extends BaseAPI {
     }
     /**
      *
+     * @summary Handle app task trigger
      * @param {FoldersApiHandleAppTaskTriggerRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1595,6 +1715,7 @@ export class FoldersApi extends BaseAPI {
     }
     /**
      *
+     * @summary List folder objects by folderId.
      * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1605,6 +1726,7 @@ export class FoldersApi extends BaseAPI {
     }
     /**
      *
+     * @summary List folders.
      * @param {FoldersApiListFoldersRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1615,6 +1737,7 @@ export class FoldersApi extends BaseAPI {
     }
     /**
      *
+     * @summary Scan the object again in the underlying storage, and update its state in our db.
      * @param {FoldersApiRefreshFolderObjectS3MetadataRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1625,6 +1748,7 @@ export class FoldersApi extends BaseAPI {
     }
     /**
      *
+     * @summary Scan the underlying S3 location and update our local representation of it.
      * @param {FoldersApiRescanFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1653,6 +1777,7 @@ export const ServerApiAxiosParamCreator = function (configuration) {
     return {
         /**
          *
+         * @summary Get the server settings object.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1680,6 +1805,7 @@ export const ServerApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Reset a setting in the server settings objects.
          * @param {string} settingKey
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1711,6 +1837,7 @@ export const ServerApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Set a setting in the server settings objects.
          * @param {string} settingKey
          * @param {SetSettingInputDTO} setSettingInputDTO
          * @param {*} [options] Override http request option.
@@ -1756,25 +1883,32 @@ export const ServerApiFp = function (configuration) {
     return {
         /**
          *
+         * @summary Get the server settings object.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async getServerSettings(options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getServerSettings(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerApi.getServerSettings']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Reset a setting in the server settings objects.
          * @param {string} settingKey
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async resetServerSetting(settingKey, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.resetServerSetting(settingKey, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerApi.resetServerSetting']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Set a setting in the server settings objects.
          * @param {string} settingKey
          * @param {SetSettingInputDTO} setSettingInputDTO
          * @param {*} [options] Override http request option.
@@ -1782,7 +1916,9 @@ export const ServerApiFp = function (configuration) {
          */
         async setServerSetting(settingKey, setSettingInputDTO, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.setServerSetting(settingKey, setSettingInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerApi.setServerSetting']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     };
 };
@@ -1795,6 +1931,7 @@ export const ServerApiFactory = function (configuration, basePath, axios) {
     return {
         /**
          *
+         * @summary Get the server settings object.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1803,6 +1940,7 @@ export const ServerApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Reset a setting in the server settings objects.
          * @param {ServerApiResetServerSettingRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1812,6 +1950,7 @@ export const ServerApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Set a setting in the server settings objects.
          * @param {ServerApiSetServerSettingRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1830,6 +1969,7 @@ export const ServerApiFactory = function (configuration, basePath, axios) {
 export class ServerApi extends BaseAPI {
     /**
      *
+     * @summary Get the server settings object.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerApi
@@ -1839,6 +1979,7 @@ export class ServerApi extends BaseAPI {
     }
     /**
      *
+     * @summary Reset a setting in the server settings objects.
      * @param {ServerApiResetServerSettingRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1849,6 +1990,7 @@ export class ServerApi extends BaseAPI {
     }
     /**
      *
+     * @summary Set a setting in the server settings objects.
      * @param {ServerApiSetServerSettingRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1866,6 +2008,7 @@ export const ServerAccessKeysApiAxiosParamCreator = function (configuration) {
     return {
         /**
          *
+         * @summary Get server access key by id.
          * @param {string} accessKeyHashId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1897,6 +2040,7 @@ export const ServerAccessKeysApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary List server access keys.
          * @param {number} [offset]
          * @param {number} [limit]
          * @param {ListServerAccessKeysSortEnum} [sort]
@@ -1936,16 +2080,17 @@ export const ServerAccessKeysApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Rotate a server access key.
          * @param {string} accessKeyHashId
          * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        rotateAccessKey: async (accessKeyHashId, rotateAccessKeyInputDTO, options = {}) => {
+        rotateServerAccessKey: async (accessKeyHashId, rotateAccessKeyInputDTO, options = {}) => {
             // verify required parameter 'accessKeyHashId' is not null or undefined
-            assertParamExists('rotateAccessKey', 'accessKeyHashId', accessKeyHashId);
+            assertParamExists('rotateServerAccessKey', 'accessKeyHashId', accessKeyHashId);
             // verify required parameter 'rotateAccessKeyInputDTO' is not null or undefined
-            assertParamExists('rotateAccessKey', 'rotateAccessKeyInputDTO', rotateAccessKeyInputDTO);
+            assertParamExists('rotateServerAccessKey', 'rotateAccessKeyInputDTO', rotateAccessKeyInputDTO);
             const localVarPath = `/api/v1/server/access-keys/{accessKeyHashId}`
                 .replace(`{${"accessKeyHashId"}}`, encodeURIComponent(String(accessKeyHashId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -1981,16 +2126,20 @@ export const ServerAccessKeysApiFp = function (configuration) {
     return {
         /**
          *
+         * @summary Get server access key by id.
          * @param {string} accessKeyHashId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async getServerAccessKey(accessKeyHashId, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getServerAccessKey(accessKeyHashId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerAccessKeysApi.getServerAccessKey']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary List server access keys.
          * @param {number} [offset]
          * @param {number} [limit]
          * @param {ListServerAccessKeysSortEnum} [sort]
@@ -1999,18 +2148,23 @@ export const ServerAccessKeysApiFp = function (configuration) {
          */
         async listServerAccessKeys(offset, limit, sort, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listServerAccessKeys(offset, limit, sort, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerAccessKeysApi.listServerAccessKeys']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Rotate a server access key.
          * @param {string} accessKeyHashId
          * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async rotateAccessKey(accessKeyHashId, rotateAccessKeyInputDTO, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.rotateAccessKey(accessKeyHashId, rotateAccessKeyInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        async rotateServerAccessKey(accessKeyHashId, rotateAccessKeyInputDTO, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.rotateServerAccessKey(accessKeyHashId, rotateAccessKeyInputDTO, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerAccessKeysApi.rotateServerAccessKey']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     };
 };
@@ -2023,6 +2177,7 @@ export const ServerAccessKeysApiFactory = function (configuration, basePath, axi
     return {
         /**
          *
+         * @summary Get server access key by id.
          * @param {ServerAccessKeysApiGetServerAccessKeyRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2032,6 +2187,7 @@ export const ServerAccessKeysApiFactory = function (configuration, basePath, axi
         },
         /**
          *
+         * @summary List server access keys.
          * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2041,12 +2197,13 @@ export const ServerAccessKeysApiFactory = function (configuration, basePath, axi
         },
         /**
          *
-         * @param {ServerAccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+         * @summary Rotate a server access key.
+         * @param {ServerAccessKeysApiRotateServerAccessKeyRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        rotateAccessKey(requestParameters, options) {
-            return localVarFp.rotateAccessKey(requestParameters.accessKeyHashId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(axios, basePath));
+        rotateServerAccessKey(requestParameters, options) {
+            return localVarFp.rotateServerAccessKey(requestParameters.accessKeyHashId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -2059,6 +2216,7 @@ export const ServerAccessKeysApiFactory = function (configuration, basePath, axi
 export class ServerAccessKeysApi extends BaseAPI {
     /**
      *
+     * @summary Get server access key by id.
      * @param {ServerAccessKeysApiGetServerAccessKeyRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2069,6 +2227,7 @@ export class ServerAccessKeysApi extends BaseAPI {
     }
     /**
      *
+     * @summary List server access keys.
      * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2079,13 +2238,14 @@ export class ServerAccessKeysApi extends BaseAPI {
     }
     /**
      *
-     * @param {ServerAccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+     * @summary Rotate a server access key.
+     * @param {ServerAccessKeysApiRotateServerAccessKeyRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerAccessKeysApi
      */
-    rotateAccessKey(requestParameters, options) {
-        return ServerAccessKeysApiFp(this.configuration).rotateAccessKey(requestParameters.accessKeyHashId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(this.axios, this.basePath));
+    rotateServerAccessKey(requestParameters, options) {
+        return ServerAccessKeysApiFp(this.configuration).rotateServerAccessKey(requestParameters.accessKeyHashId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
 /**
@@ -2111,6 +2271,7 @@ export const ServerEventsApiAxiosParamCreator = function (configuration) {
     return {
         /**
          *
+         * @summary Get an event by id.
          * @param {string} eventId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2142,6 +2303,7 @@ export const ServerEventsApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary List events.
          * @param {ListEventsSortEnum} [sort]
          * @param {string} [folderId]
          * @param {string} [objectKey]
@@ -2222,16 +2384,20 @@ export const ServerEventsApiFp = function (configuration) {
     return {
         /**
          *
+         * @summary Get an event by id.
          * @param {string} eventId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async getEvent(eventId, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getEvent(eventId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerEventsApi.getEvent']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary List events.
          * @param {ListEventsSortEnum} [sort]
          * @param {string} [folderId]
          * @param {string} [objectKey]
@@ -2248,7 +2414,9 @@ export const ServerEventsApiFp = function (configuration) {
          */
         async listEvents(sort, folderId, objectKey, search, includeTrace, includeDebug, includeInfo, includeWarning, includeError, offset, limit, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listEvents(sort, folderId, objectKey, search, includeTrace, includeDebug, includeInfo, includeWarning, includeError, offset, limit, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerEventsApi.listEvents']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     };
 };
@@ -2261,6 +2429,7 @@ export const ServerEventsApiFactory = function (configuration, basePath, axios) 
     return {
         /**
          *
+         * @summary Get an event by id.
          * @param {ServerEventsApiGetEventRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2270,6 +2439,7 @@ export const ServerEventsApiFactory = function (configuration, basePath, axios) 
         },
         /**
          *
+         * @summary List events.
          * @param {ServerEventsApiListEventsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2288,6 +2458,7 @@ export const ServerEventsApiFactory = function (configuration, basePath, axios) 
 export class ServerEventsApi extends BaseAPI {
     /**
      *
+     * @summary Get an event by id.
      * @param {ServerEventsApiGetEventRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2298,6 +2469,7 @@ export class ServerEventsApi extends BaseAPI {
     }
     /**
      *
+     * @summary List events.
      * @param {ServerEventsApiListEventsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2347,6 +2519,225 @@ export const ListEventsIncludeErrorEnum = {
     True: 'true'
 };
 /**
+ * ServerStorageLocationApi - axios parameter creator
+ * @export
+ */
+export const ServerStorageLocationApiAxiosParamCreator = function (configuration) {
+    return {
+        /**
+         *
+         * @summary Delete any set server storage location.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteServerStorageLocation: async (options = {}) => {
+            const localVarPath = `/api/v1/server/server-storage-location`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @summary Get the server storage location.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getServerStorageLocation: async (options = {}) => {
+            const localVarPath = `/api/v1/server/server-storage-location`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @summary Create a new server provision.
+         * @param {ServerStorageLocationInputDTO} serverStorageLocationInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        setServerStorageLocation: async (serverStorageLocationInputDTO, options = {}) => {
+            // verify required parameter 'serverStorageLocationInputDTO' is not null or undefined
+            assertParamExists('setServerStorageLocation', 'serverStorageLocationInputDTO', serverStorageLocationInputDTO);
+            const localVarPath = `/api/v1/server/server-storage-location`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = serializeDataIfNeeded(serverStorageLocationInputDTO, localVarRequestOptions, configuration);
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    };
+};
+/**
+ * ServerStorageLocationApi - functional programming interface
+ * @export
+ */
+export const ServerStorageLocationApiFp = function (configuration) {
+    const localVarAxiosParamCreator = ServerStorageLocationApiAxiosParamCreator(configuration);
+    return {
+        /**
+         *
+         * @summary Delete any set server storage location.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteServerStorageLocation(options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteServerStorageLocation(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerStorageLocationApi.deleteServerStorageLocation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         *
+         * @summary Get the server storage location.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getServerStorageLocation(options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getServerStorageLocation(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerStorageLocationApi.getServerStorageLocation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         *
+         * @summary Create a new server provision.
+         * @param {ServerStorageLocationInputDTO} serverStorageLocationInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async setServerStorageLocation(serverStorageLocationInputDTO, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.setServerStorageLocation(serverStorageLocationInputDTO, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerStorageLocationApi.setServerStorageLocation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    };
+};
+/**
+ * ServerStorageLocationApi - factory interface
+ * @export
+ */
+export const ServerStorageLocationApiFactory = function (configuration, basePath, axios) {
+    const localVarFp = ServerStorageLocationApiFp(configuration);
+    return {
+        /**
+         *
+         * @summary Delete any set server storage location.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteServerStorageLocation(options) {
+            return localVarFp.deleteServerStorageLocation(options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @summary Get the server storage location.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getServerStorageLocation(options) {
+            return localVarFp.getServerStorageLocation(options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @summary Create a new server provision.
+         * @param {ServerStorageLocationApiSetServerStorageLocationRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        setServerStorageLocation(requestParameters, options) {
+            return localVarFp.setServerStorageLocation(requestParameters.serverStorageLocationInputDTO, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+/**
+ * ServerStorageLocationApi - object-oriented interface
+ * @export
+ * @class ServerStorageLocationApi
+ * @extends {BaseAPI}
+ */
+export class ServerStorageLocationApi extends BaseAPI {
+    /**
+     *
+     * @summary Delete any set server storage location.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerStorageLocationApi
+     */
+    deleteServerStorageLocation(options) {
+        return ServerStorageLocationApiFp(this.configuration).deleteServerStorageLocation(options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @summary Get the server storage location.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerStorageLocationApi
+     */
+    getServerStorageLocation(options) {
+        return ServerStorageLocationApiFp(this.configuration).getServerStorageLocation(options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @summary Create a new server provision.
+     * @param {ServerStorageLocationApiSetServerStorageLocationRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerStorageLocationApi
+     */
+    setServerStorageLocation(requestParameters, options) {
+        return ServerStorageLocationApiFp(this.configuration).setServerStorageLocation(requestParameters.serverStorageLocationInputDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+/**
  * ServerTasksApi - axios parameter creator
  * @export
  */
@@ -2354,6 +2745,7 @@ export const ServerTasksApiAxiosParamCreator = function (configuration) {
     return {
         /**
          *
+         * @summary Get a task by id.
          * @param {string} taskId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2385,6 +2777,7 @@ export const ServerTasksApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary List tasks.
          * @param {string} [objectKey]
          * @param {ListTasksSortEnum} [sort]
          * @param {string} [search]
@@ -2461,16 +2854,20 @@ export const ServerTasksApiFp = function (configuration) {
     return {
         /**
          *
+         * @summary Get a task by id.
          * @param {string} taskId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async getTask(taskId, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getTask(taskId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerTasksApi.getTask']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary List tasks.
          * @param {string} [objectKey]
          * @param {ListTasksSortEnum} [sort]
          * @param {string} [search]
@@ -2486,7 +2883,9 @@ export const ServerTasksApiFp = function (configuration) {
          */
         async listTasks(objectKey, sort, search, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, folderId, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listTasks(objectKey, sort, search, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, folderId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerTasksApi.listTasks']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     };
 };
@@ -2499,6 +2898,7 @@ export const ServerTasksApiFactory = function (configuration, basePath, axios) {
     return {
         /**
          *
+         * @summary Get a task by id.
          * @param {ServerTasksApiGetTaskRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2508,6 +2908,7 @@ export const ServerTasksApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary List tasks.
          * @param {ServerTasksApiListTasksRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2526,6 +2927,7 @@ export const ServerTasksApiFactory = function (configuration, basePath, axios) {
 export class ServerTasksApi extends BaseAPI {
     /**
      *
+     * @summary Get a task by id.
      * @param {ServerTasksApiGetTaskRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2536,6 +2938,7 @@ export class ServerTasksApi extends BaseAPI {
     }
     /**
      *
+     * @summary List tasks.
      * @param {ServerTasksApiListTasksRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2579,355 +2982,6 @@ export const ListTasksIncludeFailedEnum = {
     True: 'true'
 };
 /**
- * StorageProvisionsApi - axios parameter creator
- * @export
- */
-export const StorageProvisionsApiAxiosParamCreator = function (configuration) {
-    return {
-        /**
-         *
-         * @param {StorageProvisionInputDTO} storageProvisionInputDTO
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        createServerProvision: async (storageProvisionInputDTO, options = {}) => {
-            // verify required parameter 'storageProvisionInputDTO' is not null or undefined
-            assertParamExists('createServerProvision', 'storageProvisionInputDTO', storageProvisionInputDTO);
-            const localVarPath = `/api/v1/server/storage-provisions`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
-            const localVarHeaderParameter = {};
-            const localVarQueryParameter = {};
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration);
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            localVarRequestOptions.data = serializeDataIfNeeded(storageProvisionInputDTO, localVarRequestOptions, configuration);
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         *
-         * @param {string} storageProvisionId
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        deleteStorageProvision: async (storageProvisionId, options = {}) => {
-            // verify required parameter 'storageProvisionId' is not null or undefined
-            assertParamExists('deleteStorageProvision', 'storageProvisionId', storageProvisionId);
-            const localVarPath = `/api/v1/server/storage-provisions/{storageProvisionId}`
-                .replace(`{${"storageProvisionId"}}`, encodeURIComponent(String(storageProvisionId)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options };
-            const localVarHeaderParameter = {};
-            const localVarQueryParameter = {};
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration);
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         *
-         * @param {string} storageProvisionId
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getStorageProvision: async (storageProvisionId, options = {}) => {
-            // verify required parameter 'storageProvisionId' is not null or undefined
-            assertParamExists('getStorageProvision', 'storageProvisionId', storageProvisionId);
-            const localVarPath = `/api/v1/server/storage-provisions/{storageProvisionId}`
-                .replace(`{${"storageProvisionId"}}`, encodeURIComponent(String(storageProvisionId)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
-            const localVarHeaderParameter = {};
-            const localVarQueryParameter = {};
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration);
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         *
-         * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType]
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        listStorageProvisions: async (provisionType, options = {}) => {
-            const localVarPath = `/api/v1/server/storage-provisions`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
-            const localVarHeaderParameter = {};
-            const localVarQueryParameter = {};
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration);
-            if (provisionType !== undefined) {
-                localVarQueryParameter['provisionType'] = provisionType;
-            }
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         *
-         * @param {string} storageProvisionId
-         * @param {StorageProvisionInputDTO} storageProvisionInputDTO
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        updateStorageProvision: async (storageProvisionId, storageProvisionInputDTO, options = {}) => {
-            // verify required parameter 'storageProvisionId' is not null or undefined
-            assertParamExists('updateStorageProvision', 'storageProvisionId', storageProvisionId);
-            // verify required parameter 'storageProvisionInputDTO' is not null or undefined
-            assertParamExists('updateStorageProvision', 'storageProvisionInputDTO', storageProvisionInputDTO);
-            const localVarPath = `/api/v1/server/storage-provisions/{storageProvisionId}`
-                .replace(`{${"storageProvisionId"}}`, encodeURIComponent(String(storageProvisionId)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options };
-            const localVarHeaderParameter = {};
-            const localVarQueryParameter = {};
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration);
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-            localVarRequestOptions.data = serializeDataIfNeeded(storageProvisionInputDTO, localVarRequestOptions, configuration);
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    };
-};
-/**
- * StorageProvisionsApi - functional programming interface
- * @export
- */
-export const StorageProvisionsApiFp = function (configuration) {
-    const localVarAxiosParamCreator = StorageProvisionsApiAxiosParamCreator(configuration);
-    return {
-        /**
-         *
-         * @param {StorageProvisionInputDTO} storageProvisionInputDTO
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async createServerProvision(storageProvisionInputDTO, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createServerProvision(storageProvisionInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         *
-         * @param {string} storageProvisionId
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async deleteStorageProvision(storageProvisionId, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteStorageProvision(storageProvisionId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         *
-         * @param {string} storageProvisionId
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async getStorageProvision(storageProvisionId, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getStorageProvision(storageProvisionId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         *
-         * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType]
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async listStorageProvisions(provisionType, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listStorageProvisions(provisionType, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         *
-         * @param {string} storageProvisionId
-         * @param {StorageProvisionInputDTO} storageProvisionInputDTO
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async updateStorageProvision(storageProvisionId, storageProvisionInputDTO, options) {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateStorageProvision(storageProvisionId, storageProvisionInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-    };
-};
-/**
- * StorageProvisionsApi - factory interface
- * @export
- */
-export const StorageProvisionsApiFactory = function (configuration, basePath, axios) {
-    const localVarFp = StorageProvisionsApiFp(configuration);
-    return {
-        /**
-         *
-         * @param {StorageProvisionsApiCreateServerProvisionRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        createServerProvision(requestParameters, options) {
-            return localVarFp.createServerProvision(requestParameters.storageProvisionInputDTO, options).then((request) => request(axios, basePath));
-        },
-        /**
-         *
-         * @param {StorageProvisionsApiDeleteStorageProvisionRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        deleteStorageProvision(requestParameters, options) {
-            return localVarFp.deleteStorageProvision(requestParameters.storageProvisionId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         *
-         * @param {StorageProvisionsApiGetStorageProvisionRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getStorageProvision(requestParameters, options) {
-            return localVarFp.getStorageProvision(requestParameters.storageProvisionId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         *
-         * @param {StorageProvisionsApiListStorageProvisionsRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        listStorageProvisions(requestParameters = {}, options) {
-            return localVarFp.listStorageProvisions(requestParameters.provisionType, options).then((request) => request(axios, basePath));
-        },
-        /**
-         *
-         * @param {StorageProvisionsApiUpdateStorageProvisionRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        updateStorageProvision(requestParameters, options) {
-            return localVarFp.updateStorageProvision(requestParameters.storageProvisionId, requestParameters.storageProvisionInputDTO, options).then((request) => request(axios, basePath));
-        },
-    };
-};
-/**
- * StorageProvisionsApi - object-oriented interface
- * @export
- * @class StorageProvisionsApi
- * @extends {BaseAPI}
- */
-export class StorageProvisionsApi extends BaseAPI {
-    /**
-     *
-     * @param {StorageProvisionsApiCreateServerProvisionRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof StorageProvisionsApi
-     */
-    createServerProvision(requestParameters, options) {
-        return StorageProvisionsApiFp(this.configuration).createServerProvision(requestParameters.storageProvisionInputDTO, options).then((request) => request(this.axios, this.basePath));
-    }
-    /**
-     *
-     * @param {StorageProvisionsApiDeleteStorageProvisionRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof StorageProvisionsApi
-     */
-    deleteStorageProvision(requestParameters, options) {
-        return StorageProvisionsApiFp(this.configuration).deleteStorageProvision(requestParameters.storageProvisionId, options).then((request) => request(this.axios, this.basePath));
-    }
-    /**
-     *
-     * @param {StorageProvisionsApiGetStorageProvisionRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof StorageProvisionsApi
-     */
-    getStorageProvision(requestParameters, options) {
-        return StorageProvisionsApiFp(this.configuration).getStorageProvision(requestParameters.storageProvisionId, options).then((request) => request(this.axios, this.basePath));
-    }
-    /**
-     *
-     * @param {StorageProvisionsApiListStorageProvisionsRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof StorageProvisionsApi
-     */
-    listStorageProvisions(requestParameters = {}, options) {
-        return StorageProvisionsApiFp(this.configuration).listStorageProvisions(requestParameters.provisionType, options).then((request) => request(this.axios, this.basePath));
-    }
-    /**
-     *
-     * @param {StorageProvisionsApiUpdateStorageProvisionRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof StorageProvisionsApi
-     */
-    updateStorageProvision(requestParameters, options) {
-        return StorageProvisionsApiFp(this.configuration).updateStorageProvision(requestParameters.storageProvisionId, requestParameters.storageProvisionInputDTO, options).then((request) => request(this.axios, this.basePath));
-    }
-}
-/**
- * @export
- */
-export const ListStorageProvisionsProvisionTypeEnum = {
-    Content: 'CONTENT',
-    Metadata: 'METADATA',
-    Backup: 'BACKUP'
-};
-/**
  * TasksApi - axios parameter creator
  * @export
  */
@@ -2935,6 +2989,7 @@ export const TasksApiAxiosParamCreator = function (configuration) {
     return {
         /**
          *
+         * @summary Get a folder task by id.
          * @param {string} folderId
          * @param {string} taskId
          * @param {*} [options] Override http request option.
@@ -2970,6 +3025,7 @@ export const TasksApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary List tasks.
          * @param {string} folderId
          * @param {string} [objectKey]
          * @param {ListFolderTasksSortEnum} [sort]
@@ -3046,6 +3102,7 @@ export const TasksApiFp = function (configuration) {
     return {
         /**
          *
+         * @summary Get a folder task by id.
          * @param {string} folderId
          * @param {string} taskId
          * @param {*} [options] Override http request option.
@@ -3053,10 +3110,13 @@ export const TasksApiFp = function (configuration) {
          */
         async getFolderTask(folderId, taskId, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getFolderTask(folderId, taskId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TasksApi.getFolderTask']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary List tasks.
          * @param {string} folderId
          * @param {string} [objectKey]
          * @param {ListFolderTasksSortEnum} [sort]
@@ -3072,7 +3132,9 @@ export const TasksApiFp = function (configuration) {
          */
         async listFolderTasks(folderId, objectKey, sort, search, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderTasks(folderId, objectKey, sort, search, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TasksApi.listFolderTasks']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     };
 };
@@ -3085,6 +3147,7 @@ export const TasksApiFactory = function (configuration, basePath, axios) {
     return {
         /**
          *
+         * @summary Get a folder task by id.
          * @param {TasksApiGetFolderTaskRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3094,6 +3157,7 @@ export const TasksApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary List tasks.
          * @param {TasksApiListFolderTasksRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3112,6 +3176,7 @@ export const TasksApiFactory = function (configuration, basePath, axios) {
 export class TasksApi extends BaseAPI {
     /**
      *
+     * @summary Get a folder task by id.
      * @param {TasksApiGetFolderTaskRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3122,6 +3187,7 @@ export class TasksApi extends BaseAPI {
     }
     /**
      *
+     * @summary List tasks.
      * @param {TasksApiListFolderTasksRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3165,6 +3231,385 @@ export const ListFolderTasksIncludeFailedEnum = {
     True: 'true'
 };
 /**
+ * UserStorageProvisionsApi - axios parameter creator
+ * @export
+ */
+export const UserStorageProvisionsApiAxiosParamCreator = function (configuration) {
+    return {
+        /**
+         *
+         * @summary Create a new user storage provision.
+         * @param {UserStorageProvisionInputDTO} userStorageProvisionInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createUserStorageProvision: async (userStorageProvisionInputDTO, options = {}) => {
+            // verify required parameter 'userStorageProvisionInputDTO' is not null or undefined
+            assertParamExists('createUserStorageProvision', 'userStorageProvisionInputDTO', userStorageProvisionInputDTO);
+            const localVarPath = `/api/v1/server/user-storage-provisions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = serializeDataIfNeeded(userStorageProvisionInputDTO, localVarRequestOptions, configuration);
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @summary Delete a server provision by id.
+         * @param {string} userStorageProvisionId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteUserStorageProvision: async (userStorageProvisionId, options = {}) => {
+            // verify required parameter 'userStorageProvisionId' is not null or undefined
+            assertParamExists('deleteUserStorageProvision', 'userStorageProvisionId', userStorageProvisionId);
+            const localVarPath = `/api/v1/server/user-storage-provisions/{userStorageProvisionId}`
+                .replace(`{${"userStorageProvisionId"}}`, encodeURIComponent(String(userStorageProvisionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @summary Get a user storage provision by id.
+         * @param {string} userStorageProvisionId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getUserStorageProvision: async (userStorageProvisionId, options = {}) => {
+            // verify required parameter 'userStorageProvisionId' is not null or undefined
+            assertParamExists('getUserStorageProvision', 'userStorageProvisionId', userStorageProvisionId);
+            const localVarPath = `/api/v1/server/user-storage-provisions/{userStorageProvisionId}`
+                .replace(`{${"userStorageProvisionId"}}`, encodeURIComponent(String(userStorageProvisionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @summary List the user storage provisions.
+         * @param {ListUserStorageProvisionsProvisionTypeEnum} [provisionType]
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listUserStorageProvisions: async (provisionType, options = {}) => {
+            const localVarPath = `/api/v1/server/user-storage-provisions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            if (provisionType !== undefined) {
+                localVarQueryParameter['provisionType'] = provisionType;
+            }
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         *
+         * @summary Update a server provision by id.
+         * @param {string} userStorageProvisionId
+         * @param {UserStorageProvisionInputDTO} userStorageProvisionInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateUserStorageProvision: async (userStorageProvisionId, userStorageProvisionInputDTO, options = {}) => {
+            // verify required parameter 'userStorageProvisionId' is not null or undefined
+            assertParamExists('updateUserStorageProvision', 'userStorageProvisionId', userStorageProvisionId);
+            // verify required parameter 'userStorageProvisionInputDTO' is not null or undefined
+            assertParamExists('updateUserStorageProvision', 'userStorageProvisionInputDTO', userStorageProvisionInputDTO);
+            const localVarPath = `/api/v1/server/user-storage-provisions/{userStorageProvisionId}`
+                .replace(`{${"userStorageProvisionId"}}`, encodeURIComponent(String(userStorageProvisionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options };
+            const localVarHeaderParameter = {};
+            const localVarQueryParameter = {};
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration);
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+            localVarRequestOptions.data = serializeDataIfNeeded(userStorageProvisionInputDTO, localVarRequestOptions, configuration);
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    };
+};
+/**
+ * UserStorageProvisionsApi - functional programming interface
+ * @export
+ */
+export const UserStorageProvisionsApiFp = function (configuration) {
+    const localVarAxiosParamCreator = UserStorageProvisionsApiAxiosParamCreator(configuration);
+    return {
+        /**
+         *
+         * @summary Create a new user storage provision.
+         * @param {UserStorageProvisionInputDTO} userStorageProvisionInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createUserStorageProvision(userStorageProvisionInputDTO, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createUserStorageProvision(userStorageProvisionInputDTO, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UserStorageProvisionsApi.createUserStorageProvision']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         *
+         * @summary Delete a server provision by id.
+         * @param {string} userStorageProvisionId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteUserStorageProvision(userStorageProvisionId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteUserStorageProvision(userStorageProvisionId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UserStorageProvisionsApi.deleteUserStorageProvision']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         *
+         * @summary Get a user storage provision by id.
+         * @param {string} userStorageProvisionId
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getUserStorageProvision(userStorageProvisionId, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getUserStorageProvision(userStorageProvisionId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UserStorageProvisionsApi.getUserStorageProvision']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         *
+         * @summary List the user storage provisions.
+         * @param {ListUserStorageProvisionsProvisionTypeEnum} [provisionType]
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listUserStorageProvisions(provisionType, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listUserStorageProvisions(provisionType, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UserStorageProvisionsApi.listUserStorageProvisions']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         *
+         * @summary Update a server provision by id.
+         * @param {string} userStorageProvisionId
+         * @param {UserStorageProvisionInputDTO} userStorageProvisionInputDTO
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateUserStorageProvision(userStorageProvisionId, userStorageProvisionInputDTO, options) {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateUserStorageProvision(userStorageProvisionId, userStorageProvisionInputDTO, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UserStorageProvisionsApi.updateUserStorageProvision']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    };
+};
+/**
+ * UserStorageProvisionsApi - factory interface
+ * @export
+ */
+export const UserStorageProvisionsApiFactory = function (configuration, basePath, axios) {
+    const localVarFp = UserStorageProvisionsApiFp(configuration);
+    return {
+        /**
+         *
+         * @summary Create a new user storage provision.
+         * @param {UserStorageProvisionsApiCreateUserStorageProvisionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createUserStorageProvision(requestParameters, options) {
+            return localVarFp.createUserStorageProvision(requestParameters.userStorageProvisionInputDTO, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @summary Delete a server provision by id.
+         * @param {UserStorageProvisionsApiDeleteUserStorageProvisionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteUserStorageProvision(requestParameters, options) {
+            return localVarFp.deleteUserStorageProvision(requestParameters.userStorageProvisionId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @summary Get a user storage provision by id.
+         * @param {UserStorageProvisionsApiGetUserStorageProvisionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getUserStorageProvision(requestParameters, options) {
+            return localVarFp.getUserStorageProvision(requestParameters.userStorageProvisionId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @summary List the user storage provisions.
+         * @param {UserStorageProvisionsApiListUserStorageProvisionsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listUserStorageProvisions(requestParameters = {}, options) {
+            return localVarFp.listUserStorageProvisions(requestParameters.provisionType, options).then((request) => request(axios, basePath));
+        },
+        /**
+         *
+         * @summary Update a server provision by id.
+         * @param {UserStorageProvisionsApiUpdateUserStorageProvisionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateUserStorageProvision(requestParameters, options) {
+            return localVarFp.updateUserStorageProvision(requestParameters.userStorageProvisionId, requestParameters.userStorageProvisionInputDTO, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+/**
+ * UserStorageProvisionsApi - object-oriented interface
+ * @export
+ * @class UserStorageProvisionsApi
+ * @extends {BaseAPI}
+ */
+export class UserStorageProvisionsApi extends BaseAPI {
+    /**
+     *
+     * @summary Create a new user storage provision.
+     * @param {UserStorageProvisionsApiCreateUserStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UserStorageProvisionsApi
+     */
+    createUserStorageProvision(requestParameters, options) {
+        return UserStorageProvisionsApiFp(this.configuration).createUserStorageProvision(requestParameters.userStorageProvisionInputDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @summary Delete a server provision by id.
+     * @param {UserStorageProvisionsApiDeleteUserStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UserStorageProvisionsApi
+     */
+    deleteUserStorageProvision(requestParameters, options) {
+        return UserStorageProvisionsApiFp(this.configuration).deleteUserStorageProvision(requestParameters.userStorageProvisionId, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @summary Get a user storage provision by id.
+     * @param {UserStorageProvisionsApiGetUserStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UserStorageProvisionsApi
+     */
+    getUserStorageProvision(requestParameters, options) {
+        return UserStorageProvisionsApiFp(this.configuration).getUserStorageProvision(requestParameters.userStorageProvisionId, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @summary List the user storage provisions.
+     * @param {UserStorageProvisionsApiListUserStorageProvisionsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UserStorageProvisionsApi
+     */
+    listUserStorageProvisions(requestParameters = {}, options) {
+        return UserStorageProvisionsApiFp(this.configuration).listUserStorageProvisions(requestParameters.provisionType, options).then((request) => request(this.axios, this.basePath));
+    }
+    /**
+     *
+     * @summary Update a server provision by id.
+     * @param {UserStorageProvisionsApiUpdateUserStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UserStorageProvisionsApi
+     */
+    updateUserStorageProvision(requestParameters, options) {
+        return UserStorageProvisionsApiFp(this.configuration).updateUserStorageProvision(requestParameters.userStorageProvisionId, requestParameters.userStorageProvisionInputDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+/**
+ * @export
+ */
+export const ListUserStorageProvisionsProvisionTypeEnum = {
+    Content: 'CONTENT',
+    Metadata: 'METADATA',
+    Redundancy: 'REDUNDANCY'
+};
+/**
  * UsersApi - axios parameter creator
  * @export
  */
@@ -3172,6 +3617,7 @@ export const UsersApiAxiosParamCreator = function (configuration) {
     return {
         /**
          *
+         * @summary Create a user.
          * @param {UserCreateInputDTO} userCreateInputDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3204,6 +3650,7 @@ export const UsersApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Delete a server user by id.
          * @param {string} userId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3235,6 +3682,7 @@ export const UsersApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Get a user by id.
          * @param {string} userId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3266,6 +3714,7 @@ export const UsersApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary List the users.
          * @param {number} [offset]
          * @param {number} [limit]
          * @param {boolean} [isAdmin]
@@ -3313,6 +3762,7 @@ export const UsersApiAxiosParamCreator = function (configuration) {
         },
         /**
          *
+         * @summary Update a user.
          * @param {string} userId
          * @param {UserUpdateInputDTO} userUpdateInputDTO
          * @param {*} [options] Override http request option.
@@ -3358,36 +3808,46 @@ export const UsersApiFp = function (configuration) {
     return {
         /**
          *
+         * @summary Create a user.
          * @param {UserCreateInputDTO} userCreateInputDTO
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async createUser(userCreateInputDTO, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.createUser(userCreateInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.createUser']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Delete a server user by id.
          * @param {string} userId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async deleteUser(userId, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.deleteUser(userId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.deleteUser']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Get a user by id.
          * @param {string} userId
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         async getUser(userId, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getUser(userId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.getUser']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary List the users.
          * @param {number} [offset]
          * @param {number} [limit]
          * @param {boolean} [isAdmin]
@@ -3398,10 +3858,13 @@ export const UsersApiFp = function (configuration) {
          */
         async listUsers(offset, limit, isAdmin, sort, search, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listUsers(offset, limit, isAdmin, sort, search, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.listUsers']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
+         * @summary Update a user.
          * @param {string} userId
          * @param {UserUpdateInputDTO} userUpdateInputDTO
          * @param {*} [options] Override http request option.
@@ -3409,7 +3872,9 @@ export const UsersApiFp = function (configuration) {
          */
         async updateUser(userId, userUpdateInputDTO, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.updateUser(userId, userUpdateInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.updateUser']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     };
 };
@@ -3422,6 +3887,7 @@ export const UsersApiFactory = function (configuration, basePath, axios) {
     return {
         /**
          *
+         * @summary Create a user.
          * @param {UsersApiCreateUserRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3431,6 +3897,7 @@ export const UsersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Delete a server user by id.
          * @param {UsersApiDeleteUserRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3440,6 +3907,7 @@ export const UsersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Get a user by id.
          * @param {UsersApiGetUserRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3449,6 +3917,7 @@ export const UsersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary List the users.
          * @param {UsersApiListUsersRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3458,6 +3927,7 @@ export const UsersApiFactory = function (configuration, basePath, axios) {
         },
         /**
          *
+         * @summary Update a user.
          * @param {UsersApiUpdateUserRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3476,6 +3946,7 @@ export const UsersApiFactory = function (configuration, basePath, axios) {
 export class UsersApi extends BaseAPI {
     /**
      *
+     * @summary Create a user.
      * @param {UsersApiCreateUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3486,6 +3957,7 @@ export class UsersApi extends BaseAPI {
     }
     /**
      *
+     * @summary Delete a server user by id.
      * @param {UsersApiDeleteUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3496,6 +3968,7 @@ export class UsersApi extends BaseAPI {
     }
     /**
      *
+     * @summary Get a user by id.
      * @param {UsersApiGetUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3506,6 +3979,7 @@ export class UsersApi extends BaseAPI {
     }
     /**
      *
+     * @summary List the users.
      * @param {UsersApiListUsersRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3516,6 +3990,7 @@ export class UsersApi extends BaseAPI {
     }
     /**
      *
+     * @summary Update a user.
      * @param {UsersApiUpdateUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3621,7 +4096,9 @@ export const ViewerApiFp = function (configuration) {
          */
         async getViewer(options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getViewer(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ViewerApi.getViewer']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          *
@@ -3631,7 +4108,9 @@ export const ViewerApiFp = function (configuration) {
          */
         async updateViewer(viewerUpdateInputDTO, options) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.updateViewer(viewerUpdateInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ViewerApi.updateViewer']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     };
 };

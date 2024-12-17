@@ -1,5 +1,5 @@
 import type {
-  StorageProvisionDTO,
+  UserStorageProvisionDTO,
   StorageLocationInputDTO,
 } from '@stellariscloud/api-client'
 import { FOLDER_NAME_VALIDATORS_COMBINED } from '@stellariscloud/utils'
@@ -39,11 +39,11 @@ const UserLocationRecord = r.Record({
 export const CreateFolderForm = ({
   onSubmit,
   onCancel,
-  storageProvisions: storageProvisions,
+  userStorageProvisions,
 }: {
   onSubmit: (values: CreateFolderFormValues) => void
   onCancel: () => void
-  storageProvisions: StorageProvisionDTO[]
+  userStorageProvisions: UserStorageProvisionDTO[]
 }) => {
   const [newMetadataLocation, setNewMetadataLocation] = React.useState(false)
   const [newContentLocation, setNewContentLocation] = React.useState(false)
@@ -61,7 +61,7 @@ export const CreateFolderForm = ({
     form.values.contentLocation,
   )
   const selectedContentServerLocation = serverContentLocationValidation.success
-    ? storageProvisions.find(
+    ? userStorageProvisions.find(
         (l) =>
           l.id === serverContentLocationValidation.value.storageProvisionId,
       )
@@ -72,7 +72,7 @@ export const CreateFolderForm = ({
   )
   const selectedMetadataServerLocation =
     serverMetadataLocationValidation.success
-      ? storageProvisions.find(
+      ? userStorageProvisions.find(
           (l) =>
             l.id === serverMetadataLocationValidation.value.storageProvisionId,
         )
@@ -118,7 +118,7 @@ export const CreateFolderForm = ({
                 ? selectedContentServerLocation.label
                 : 'choose content location...'
             }
-            items={storageProvisions
+            items={userStorageProvisions
               .map((l) => ({
                 name: l.label,
                 onClick: () =>
@@ -161,7 +161,7 @@ export const CreateFolderForm = ({
                 ? selectedMetadataServerLocation.label
                 : 'choose metadata location...'
             }
-            items={storageProvisions
+            items={userStorageProvisions
               .map((l) => ({
                 name: l.label,
                 onClick: () =>

@@ -19,6 +19,7 @@ import {
 } from '@stellariscloud/ui-toolkit'
 import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
 import { serverAppWorkerTableColumns } from './server-app-worker-table-columns'
+import { serverAppManifestTableColumns } from './server-app-manifest-table-columns'
 
 export function ServerAppDetailScreen({
   appIdentifier,
@@ -81,6 +82,18 @@ export function ServerAppDetailScreen({
             <DataTable
               data={app?.connectedWorkers ?? []}
               columns={serverAppWorkerTableColumns}
+            />
+          </CardContent>
+        </Card>
+        <Card className="flex-1 bg-transparent border-0">
+          <CardHeader className="p-0 pb-4">
+            <CardTitle>Manifest</CardTitle>
+            <CardDescription>All files included in the app.</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <DataTable
+              data={app?.manifest ?? []}
+              columns={serverAppManifestTableColumns}
             />
           </CardContent>
         </Card>

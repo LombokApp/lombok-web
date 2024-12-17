@@ -7,7 +7,7 @@ import { Globe } from 'lucide-react'
 import type { FolderGetResponse } from '@stellariscloud/api-client'
 import type { FolderMetadata } from '@stellariscloud/types'
 import { formatBytes } from '@stellariscloud/utils'
-import clsx from 'clsx'
+import { cn } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 
 import type { IconProps } from '../../design-system/icon'
@@ -96,7 +96,7 @@ export const FolderSidebar = ({
                       <span className="sr-only">Access Key</span>
                       <Icon icon={KeyIcon} size="md" />
                     </dt>
-                    <dd className={clsx('text-sm leading-6')}>
+                    <dd className={cn('text-sm leading-6')}>
                       {folder.contentLocation.providerType === 'USER' ? (
                         <Link
                           className="underline"
@@ -114,7 +114,7 @@ export const FolderSidebar = ({
                       <span className="sr-only">Bucket</span>
                       <Icon icon={Globe} size="md" />
                     </dt>
-                    <dd className={clsx('text-sm leading-6')}>
+                    <dd className={cn('text-sm leading-6')}>
                       <span className="opacity-50">Bucket: </span>
                       <span className="italic">
                         {folder.contentLocation.bucket}
@@ -132,7 +132,7 @@ export const FolderSidebar = ({
                   <span className="sr-only">Size</span>
                   <Calculator />
                 </dt>
-                <dd className={clsx('text-sm leading-6')}>
+                <dd className={cn('text-sm leading-6')}>
                   {`${folderMetadata ? folderMetadata.totalCount : 'unknown'}`}{' '}
                   objects -{' '}
                   {`${

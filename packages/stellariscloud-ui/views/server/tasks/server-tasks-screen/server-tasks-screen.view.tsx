@@ -61,6 +61,7 @@ export function ServerTasksScreen() {
   return (
     <div className={cn('items-center flex flex-1 flex-col h-full')}>
       <DataTable
+        title="Tasks"
         enableSearch={true}
         searchColumn="taskKey"
         onColumnFiltersChange={(updater) => {

@@ -1,4 +1,3 @@
-import type { OnModuleInit } from '@nestjs/common'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import type { UserPushMessage } from '@stellariscloud/types'
 import * as r from 'runtypes'
@@ -11,7 +10,7 @@ const UserAuthPayload = r.Record({
 })
 
 @Injectable()
-export class UserSocketService implements OnModuleInit {
+export class UserSocketService {
   private readonly connectedClients: Map<string, Socket> = new Map()
 
   private namespace: Namespace | undefined
@@ -59,8 +58,6 @@ export class UserSocketService implements OnModuleInit {
       throw new UnauthorizedException()
     }
   }
-
-  onModuleInit() {}
 
   sendToUserRoom(userId: string, name: UserPushMessage, msg: any) {
     if (this.namespace) {

@@ -14,7 +14,7 @@ services:
       WAIT_HOSTS: db:${DB_PORT:-0}
     deploy:
       replicas: 1
-    command: ['bun', 'api:dev']
+    command: ['bun', '--cwd', 'packages/api', 'dev']
     ports:
       - 3001:3001
   # minio:

@@ -45,7 +45,7 @@ services:
       - 9001:9001
       - 9000:9000
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ['CMD', 'mc', 'ready', 'local']
       interval: 1s
       timeout: 1s
       retries: 5

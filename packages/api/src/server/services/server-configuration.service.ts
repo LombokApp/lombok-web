@@ -4,9 +4,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import {
-  StorageProvisionType,
-  StorageProvisionTypeEnum,
-  StorageProvisionTypeZodEnum,
+  UserStorageProvisionType,
+  UserStorageProvisionTypeEnum,
+  UserStorageProvisionTypeZodEnum,
 } from '@stellariscloud/types'
 import { eq, inArray } from 'drizzle-orm'
 import { OrmService } from 'src/orm/orm.service'
@@ -17,11 +17,14 @@ import { z } from 'zod'
 
 import {
   CONFIGURATION_KEYS,
-  STORAGE_PROVISIONS_KEY,
+  SERVER_STORAGE_LOCATION_KEY,
+  USER_STORAGE_PROVISIONS_KEY,
 } from '../constants/server.constants'
+import { ServerStorageLocationDTO } from '../dto/server-storage-location.dto'
+import { ServerStorageLocationInputDTO } from '../dto/server-storage-location-input.dto'
 import { SettingsDTO } from '../dto/settings.dto'
-import { StorageProvisionDTO } from '../dto/storage-provision.dto'
-import { StorageProvisionInputDTO } from '../dto/storage-provision-input.dto'
+import { UserStorageProvisionDTO } from '../dto/user-storage-provision.dto'
+import { UserStorageProvisionInputDTO } from '../dto/user-storage-provision-input.dto'
 import type { NewServerSetting } from '../entities/server-configuration.entity'
 import { serverSettingsTable } from '../entities/server-configuration.entity'
 import { ServerConfigurationInvalidException } from '../exceptions/server-configuration-invalid.exception'
@@ -31,7 +34,7 @@ import { ServerConfigurationNotFoundException } from '../exceptions/server-confi
 export class ServerConfigurationService {
   constructor(private readonly ormService: OrmService) {}
 
-  async getServerSettingsAsUser(actor: User): Promise<SettingsDTO> {
+  async getServerSettingsAsAdmin(actor: User): Promise<SettingsDTO> {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
@@ -65,7 +68,7 @@ export class ServerConfigurationService {
     })
   }
 
-  async setServerSettingAsUser(
+  async setServerSettingAsAdmin(
     actor: User,
     settingKey: string,
     settingValue: any,
@@ -122,7 +125,7 @@ export class ServerConfigurationService {
 
   async createStorageProvisionAsAdmin(
     actor: User,
-    storageProvision: StorageProvisionInputDTO,
+    storageProvision: UserStorageProvisionInputDTO,
   ) {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
@@ -131,7 +134,7 @@ export class ServerConfigurationService {
 
     for (const provisionType of storageProvision.provisionTypes) {
       if (
-        z.nativeEnum(StorageProvisionTypeEnum).parse(provisionType) !==
+        z.nativeEnum(UserStorageProvisionTypeEnum).parse(provisionType) !==
         provisionType
       ) {
         throw new ServerConfigurationInvalidException()
@@ -151,7 +154,7 @@ export class ServerConfigurationService {
 
     const existingRecord =
       await this.ormService.db.query.serverSettingsTable.findFirst({
-        where: eq(serverSettingsTable.key, STORAGE_PROVISIONS_KEY.key),
+        where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key),
       })
 
     if (existingRecord) {
@@ -161,10 +164,10 @@ export class ServerConfigurationService {
           value: existingRecord.value.concat([locationWithId]),
           updatedAt: now,
         })
-        .where(eq(serverSettingsTable.key, STORAGE_PROVISIONS_KEY.key))
+        .where(eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key))
     } else {
       const newServerConfiguration: NewServerSetting = {
-        key: STORAGE_PROVISIONS_KEY.key,
+        key: USER_STORAGE_PROVISIONS_KEY.key,
         value: [locationWithId],
         createdAt: now,
         updatedAt: now,
@@ -177,10 +180,10 @@ export class ServerConfigurationService {
     return locationWithId
   }
 
-  async updateServerProvisionAsAdmin(
+  async updateUserStorageProvisionAsAdmin(
     actor: User,
     storageProvisionId: string,
-    storageProvision: StorageProvisionInputDTO,
+    storageProvision: UserStorageProvisionInputDTO,
   ) {
     const now = new Date()
     if (!actor.isAdmin) {
@@ -189,7 +192,7 @@ export class ServerConfigurationService {
 
     for (const provisionType of storageProvision.provisionTypes) {
       if (
-        z.nativeEnum(StorageProvisionTypeEnum).parse(provisionType) !==
+        z.nativeEnum(UserStorageProvisionTypeEnum).parse(provisionType) !==
         provisionType
       ) {
         throw new ServerConfigurationInvalidException()
@@ -198,7 +201,7 @@ export class ServerConfigurationService {
 
     const existingSettingRecord =
       await this.ormService.db.query.serverSettingsTable.findFirst({
-        where: eq(serverSettingsTable.key, STORAGE_PROVISIONS_KEY.key),
+        where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key),
       })
 
     if (!existingSettingRecord) {
@@ -214,36 +217,40 @@ export class ServerConfigurationService {
       await this.ormService.db
         .update(serverSettingsTable)
         .set({
-          value: existingSettingRecord.value.map((sp: StorageProvisionDTO) =>
-            sp.id === storageProvisionId
-              ? {
-                  ...storageProvision,
-                  id: storageProvisionId,
-                  accessKeyHashId: buildAccessKeyHashId({
-                    accessKeyId: storageProvision.accessKeyId,
-                    secretAccessKey: storageProvision.secretAccessKey,
-                    region: storageProvision.region,
-                    endpoint: storageProvision.endpoint,
-                  }),
-                }
-              : sp,
+          value: existingSettingRecord.value.map(
+            (sp: UserStorageProvisionDTO) =>
+              sp.id === storageProvisionId
+                ? {
+                    ...storageProvision,
+                    id: storageProvisionId,
+                    accessKeyHashId: buildAccessKeyHashId({
+                      accessKeyId: storageProvision.accessKeyId,
+                      secretAccessKey: storageProvision.secretAccessKey,
+                      region: storageProvision.region,
+                      endpoint: storageProvision.endpoint,
+                    }),
+                  }
+                : sp,
           ),
           updatedAt: now,
         })
-        .where(eq(serverSettingsTable.key, STORAGE_PROVISIONS_KEY.key))
+        .where(eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key))
     }
 
     return storageProvision
   }
 
-  async deleteStorageProvisionAsAdmin(actor: User, storageProvisionId: string) {
+  async deleteUserStorageProvisionAsAdmin(
+    actor: User,
+    storageProvisionId: string,
+  ) {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
     const now = new Date()
     const existingRecord =
       await this.ormService.db.query.serverSettingsTable.findFirst({
-        where: eq(serverSettingsTable.key, STORAGE_PROVISIONS_KEY.key),
+        where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key),
       })
 
     if (!existingRecord) {
@@ -266,37 +273,37 @@ export class ServerConfigurationService {
         value: existingRecord.value,
         updatedAt: now,
       })
-      .where(eq(serverSettingsTable.key, STORAGE_PROVISIONS_KEY.key))
+      .where(eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key))
     return existingRecord
   }
 
-  async getStorageProvisionById(storageProvisionId: string) {
+  async getUserStorageProvisionById(storageProvisionId: string) {
     // TODO: check user permissions for access to server configuration values
 
     const record =
       (await this.ormService.db.query.serverSettingsTable.findFirst({
-        where: eq(serverSettingsTable.key, STORAGE_PROVISIONS_KEY.key),
+        where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key),
       })) ?? { value: [] }
 
     return (
-      record.value as (StorageProvisionDTO & { secretAccessKey: string })[]
+      record.value as (UserStorageProvisionDTO & { secretAccessKey: string })[]
     ).find((v) => v.id === storageProvisionId)
   }
 
-  async listStorageProvisionsAsUser(
+  async listUserStorageProvisionsAsUser(
     actor: User,
-    { provisionType }: { provisionType?: StorageProvisionType } = {},
-  ): Promise<(StorageProvisionDTO & StorageProvisionInputDTO)[]> {
+    { provisionType }: { provisionType?: UserStorageProvisionType } = {},
+  ): Promise<(UserStorageProvisionDTO & UserStorageProvisionInputDTO)[]> {
     if (
       provisionType &&
-      StorageProvisionTypeZodEnum.parse(provisionType) !== provisionType
+      UserStorageProvisionTypeZodEnum.parse(provisionType) !== provisionType
     ) {
       throw new ServerConfigurationInvalidException()
     }
 
     const record = await this.ormService.db.query.serverSettingsTable.findFirst(
       {
-        where: eq(serverSettingsTable.key, STORAGE_PROVISIONS_KEY.key),
+        where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key),
       },
     )
 
@@ -305,9 +312,87 @@ export class ServerConfigurationService {
     }
 
     return provisionType
-      ? record.value.filter((r: StorageProvisionDTO) =>
+      ? record.value.filter((r: UserStorageProvisionDTO) =>
           r.provisionTypes.includes(provisionType),
         )
       : record.value
+  }
+
+  async getServerStorageLocationAsAdmin(
+    actor: User,
+  ): Promise<ServerStorageLocationDTO | undefined> {
+    if (!actor.isAdmin) {
+      throw new UnauthorizedException()
+    }
+
+    return this.getServerStorageLocation()
+  }
+
+  async getServerStorageLocation(): Promise<
+    (ServerStorageLocationDTO & { secretAccessKey: string }) | undefined
+  > {
+    const savedLocation =
+      await this.ormService.db.query.serverSettingsTable.findFirst({
+        where: eq(serverSettingsTable.key, SERVER_STORAGE_LOCATION_KEY.key),
+      })
+
+    return savedLocation ? savedLocation.value : undefined
+  }
+
+  async setServerStorageLocationAsAdmin(
+    actor: User,
+    appStorageProvisionInput: ServerStorageLocationInputDTO,
+  ) {
+    if (!actor.isAdmin) {
+      throw new UnauthorizedException()
+    }
+    const now = new Date()
+    const idCondition = eq(
+      serverSettingsTable.key,
+      SERVER_STORAGE_LOCATION_KEY.key,
+    )
+    const existingServerStorageLocation =
+      await this.ormService.db.query.serverSettingsTable.findFirst({
+        where: idCondition,
+      })
+
+    const accessKeyHashId = buildAccessKeyHashId({
+      accessKeyId: appStorageProvisionInput.accessKeyId,
+      secretAccessKey: appStorageProvisionInput.secretAccessKey,
+      region: appStorageProvisionInput.region,
+      endpoint: appStorageProvisionInput.endpoint,
+    })
+
+    if (existingServerStorageLocation) {
+      await this.ormService.db
+        .update(serverSettingsTable)
+        .set({
+          value: {
+            ...appStorageProvisionInput,
+            accessKeyHashId,
+          },
+          createdAt: existingServerStorageLocation.createdAt,
+          updatedAt: now,
+        })
+        .where(idCondition)
+    } else {
+      await this.ormService.db.insert(serverSettingsTable).values({
+        key: SERVER_STORAGE_LOCATION_KEY.key,
+        value: { ...appStorageProvisionInput, accessKeyHashId },
+        createdAt: now,
+        updatedAt: now,
+      })
+    }
+    return this.getServerStorageLocation()
+  }
+
+  async deleteServerStorageLocationAsAdmin(actor: User): Promise<void> {
+    if (!actor.isAdmin) {
+      throw new UnauthorizedException()
+    }
+
+    await this.ormService.db
+      .delete(serverSettingsTable)
+      .where(eq(serverSettingsTable.key, SERVER_STORAGE_LOCATION_KEY.key))
   }
 }

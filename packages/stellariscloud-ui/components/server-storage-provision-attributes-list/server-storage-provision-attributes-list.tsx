@@ -1,4 +1,4 @@
-import { StorageProvisionDTO } from '@stellariscloud/api-client'
+import { UserStorageProvisionDTO } from '@stellariscloud/api-client'
 import clsx from 'clsx'
 import { Badge } from '@stellariscloud/ui-toolkit'
 
@@ -7,9 +7,9 @@ const LABEL_TEXT_COLOR = 'opacity-50'
 const VALUE_TEXT_COLOR = ''
 
 export function ServerStorageProvisionAttributesList({
-  storageProvision,
+  userStorageProvision,
 }: {
-  storageProvision?: StorageProvisionDTO
+  userStorageProvision?: UserStorageProvisionDTO
 }) {
   return (
     <div className="rounded-lg dark:rounded-none pl-4">
@@ -31,8 +31,8 @@ export function ServerStorageProvisionAttributesList({
               VALUE_TEXT_COLOR,
             )}
           >
-            {storageProvision?.label ? (
-              storageProvision.label
+            {userStorageProvision?.label ? (
+              userStorageProvision.label
             ) : (
               <span className="italic opacity-50">None</span>
             )}
@@ -55,7 +55,7 @@ export function ServerStorageProvisionAttributesList({
               VALUE_TEXT_COLOR,
             )}
           >
-            {storageProvision?.accessKeyId}
+            {userStorageProvision?.accessKeyId}
           </dd>
         </div>
         <div
@@ -95,10 +95,10 @@ export function ServerStorageProvisionAttributesList({
               VALUE_TEXT_COLOR,
             )}
           >
-            {typeof storageProvision === 'undefined' ? (
+            {typeof userStorageProvision === 'undefined' ? (
               <span className="italic opacity-50">Unknown</span>
             ) : (
-              storageProvision.endpoint
+              userStorageProvision.endpoint
             )}
           </dd>
         </div>
@@ -119,10 +119,10 @@ export function ServerStorageProvisionAttributesList({
               VALUE_TEXT_COLOR,
             )}
           >
-            {typeof storageProvision === 'undefined' ? (
+            {typeof userStorageProvision === 'undefined' ? (
               <span className="italic opacity-50">Unknown</span>
             ) : (
-              storageProvision.bucket
+              userStorageProvision.bucket
             )}
           </dd>
         </div>
@@ -143,10 +143,10 @@ export function ServerStorageProvisionAttributesList({
               VALUE_TEXT_COLOR,
             )}
           >
-            {typeof storageProvision === 'undefined' ? (
+            {typeof userStorageProvision === 'undefined' ? (
               <span className="italic opacity-50">Unknown</span>
             ) : (
-              storageProvision.prefix
+              userStorageProvision.prefix
             )}
           </dd>
         </div>
@@ -167,10 +167,10 @@ export function ServerStorageProvisionAttributesList({
               VALUE_TEXT_COLOR,
             )}
           >
-            {typeof storageProvision === 'undefined' ? (
+            {typeof userStorageProvision === 'undefined' ? (
               <span className="italic opacity-50">Unknown</span>
             ) : (
-              storageProvision.region
+              userStorageProvision.region
             )}
           </dd>
         </div>
@@ -192,12 +192,12 @@ export function ServerStorageProvisionAttributesList({
             )}
           >
             <div className="flex gap-2">
-              {typeof storageProvision === 'undefined' ? (
+              {typeof userStorageProvision === 'undefined' ? (
                 <span className="italic opacity-50">Unknown</span>
-              ) : !storageProvision.provisionTypes.length ? (
+              ) : !userStorageProvision.provisionTypes.length ? (
                 <span className="italic opacity-50">None</span>
               ) : (
-                storageProvision.provisionTypes.map((provisionType, i) => (
+                userStorageProvision.provisionTypes.map((provisionType, i) => (
                   <Badge key={i}>{provisionType}</Badge>
                 ))
               )}
