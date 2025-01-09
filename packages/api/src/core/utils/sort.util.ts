@@ -7,7 +7,9 @@ export type Sort<T extends string, O extends string = 'asc' | 'desc'> =
   | `${T}-${O}`
   | undefined
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type SortField<T> = T extends Sort<infer U, any> ? U : never
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type SortDir<T> = T extends Sort<any, infer U> ? U : never
 
 export const splitSort = <T extends string, O extends string>(
@@ -17,6 +19,7 @@ export const splitSort = <T extends string, O extends string>(
 }
 
 export const parseSort = <
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TA extends PgTableWithColumns<any>,
   T extends string = string,
   O extends string = string,

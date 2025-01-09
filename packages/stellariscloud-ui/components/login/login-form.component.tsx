@@ -40,12 +40,15 @@ export function LoginForm({
 
   async function handleSubmit(values: LoginFormValues) {
     setIsLoading(true)
-    onSubmit(values).then(() => {
-      setIsLoading(false)
-    })
-    setTimeout(() => {
-      setIsLoading(false)
-    }, 3000)
+    return onSubmit(values)
+      .then(() => {
+        setIsLoading(false)
+      })
+      .then(() => {
+        setTimeout(() => {
+          setIsLoading(false)
+        }, 3000)
+      })
   }
 
   const form = useForm<LoginFormValues>({

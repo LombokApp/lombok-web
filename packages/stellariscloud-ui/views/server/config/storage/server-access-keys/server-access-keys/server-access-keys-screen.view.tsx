@@ -35,11 +35,11 @@ export function ServerAccessKeysScreen() {
       .then((resp) => {
         setAccessKeys(resp.data)
       })
-  }, [sorting, pagination, filters])
+  }, [sorting, pagination])
 
   React.useEffect(() => {
     void fetchAccessKeys()
-  }, [sorting, pagination, filters])
+  }, [sorting, pagination, filters, fetchAccessKeys])
 
   return (
     <div className={cn('items-center flex flex-1 flex-col h-full')}>

@@ -30,12 +30,6 @@ const CustomLocationRecord = r.Record({
   prefix: r.String,
 })
 
-const UserLocationRecord = r.Record({
-  userLocationId: r.String,
-  userLocationBucketOverride: r.String,
-  userLocationPrefixOverride: r.String,
-})
-
 export const CreateFolderForm = ({
   onSubmit,
   onCancel,

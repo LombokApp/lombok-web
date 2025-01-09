@@ -21,6 +21,8 @@ export function setApp(app: INestApplication) {
   appReference.app = app
 }
 
-export function setAppInitializing(initPromise: Promise<any>) {
+export function setAppInitializing(
+  initPromise: Promise<INestApplication<unknown>>,
+) {
   appReference.appInitializing = initPromise
 }

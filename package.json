@@ -6,7 +6,7 @@
     "packages/shared/packages/*"
   ],
   "scripts": {
-    "install:clean": "rm -rf ./node_modules || true && rm bun.lockb || true && bun install",
+    "install:clean": "rm -rf ./node_modules || true && rm -rf ./packages/api/node_modules || true && rm -rf ./packages/stellariscloud-ui/node_modules || true && rm bun.lockb || true && bun install",
     "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
     "prettier:write": "prettier --write \"./**/*.(ts|tsx)\"",
     "deploy:local-platform-worker": "(cd ./deploy && sh ./deploy-local-platform-worker.sh)",
@@ -28,6 +28,7 @@
     "api:dev": "bun --cwd packages/api dev:docker:api"
   },
   "devDependencies": {
+    "@stylistic/eslint-plugin-ts": "2.12.1",
     "@typescript-eslint/eslint-plugin": "8.19.1",
     "@typescript-eslint/parser": "8.19.1",
     "eslint": "9.17.0",

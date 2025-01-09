@@ -96,11 +96,10 @@ export class UserStorageProvisionsController {
       throw new UnauthorizedException()
     }
 
-    const _createResult =
-      await this.serverConfigurationService.createStorageProvisionAsAdmin(
-        req.user,
-        serverProvision,
-      )
+    await this.serverConfigurationService.createStorageProvisionAsAdmin(
+      req.user,
+      serverProvision,
+    )
 
     const listResult =
       await this.serverConfigurationService.listUserStorageProvisionsAsUser(
@@ -124,12 +123,12 @@ export class UserStorageProvisionsController {
     if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
-    const _updateResult =
-      await this.serverConfigurationService.updateUserStorageProvisionAsAdmin(
-        req.user,
-        userStorageProvisionId,
-        userStorageProvision,
-      )
+
+    await this.serverConfigurationService.updateUserStorageProvisionAsAdmin(
+      req.user,
+      userStorageProvisionId,
+      userStorageProvision,
+    )
 
     const listResult =
       await this.serverConfigurationService.listUserStorageProvisionsAsUser(

@@ -163,7 +163,7 @@ export class AppService {
     @Inject(forwardRef(() => FolderService)) _folderService,
     private readonly s3Service: S3Service,
   ) {
-    this.folderService = _folderService
+    this.folderService = _folderService as FolderService
   }
 
   async getApp(appIdentifier: string): Promise<App | undefined> {
@@ -175,7 +175,7 @@ export class AppService {
   async handleAppRequest(
     handlerId: string,
     appIdentifier: string,
-    message: any,
+    message: unknown,
   ) {
     const now = new Date()
     if (AppSocketAPIRequest.guard(message)) {
@@ -633,7 +633,7 @@ export class AppService {
       appUi,
       filename,
     )
-    return this.kvService.ops.get(CACHE_KEY)
+    return this.kvService.ops.get(CACHE_KEY) as string
   }
 
   public getCacheKeyForAppAsset(
@@ -661,7 +661,7 @@ export class AppService {
 
     if (appRequiresStorage && serverStorageLocation) {
       const prefix = `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-storage/${app.identifier}/`
-      this.s3Service.deleteAllWithPrefix({
+      await this.s3Service.deleteAllWithPrefix({
         ...serverStorageLocation,
         prefix,
       })
@@ -817,8 +817,12 @@ export class AppService {
         : ''
 
     const config = fs.existsSync(configPath)
-      ? JSON.parse(fs.readFileSync(configPath, 'utf-8'))
+      ? (JSON.parse(fs.readFileSync(configPath, 'utf-8')) as AppConfig)
       : undefined
+
+    if (!config) {
+      throw new Error(`Config file not found when parsing app.`)
+    }
 
     // console.log('READ APP CONFIG', { config, configPath, publicKeyPath, publicKey })
     const appRoot = path.join(this._appConfig.appsLocalPath, appIdentifier)
@@ -885,7 +889,7 @@ export class AppService {
           .filter((_r) => _r)
           .reduce<{ [k: string]: ConnectedAppWorker[] }>(
             (acc, _r: string | undefined) => {
-              const parsed = JSON.parse(_r ?? 'null')
+              const parsed = JSON.parse(_r ?? 'null') as ConnectedAppWorker
               if (!parsed) {
                 return acc
               }

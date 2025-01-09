@@ -20,8 +20,7 @@ export abstract class BaseProcessor<K extends CoreTaskName> {
   }
 
   _run(inputData: { [key: string]: string | number }) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return this.run(inputData as any)
+    return this.run(inputData as never)
   }
 
   abstract run(inputData: CoreTaskInputData<K>): Promise<void>

@@ -18,6 +18,7 @@ export const UploadModal = ({
   const [uploadingFiles, setUploadingFiles] = React.useState<File[]>([])
 
   const onDrop = React.useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     (acceptedFiles: File[], _fileRejections: FileRejection[]) => {
       setUploadingFiles((_uploadingFiles) =>
         _uploadingFiles.concat(acceptedFiles),

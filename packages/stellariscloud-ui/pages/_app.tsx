@@ -66,8 +66,8 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
     <div className="flex h-full">
       <Sidebar
         onSignOut={async () => {
-          authContext.logout()
-          router.push('/login')
+          await authContext.logout()
+          await router.push('/login')
         }}
         authContext={authContext}
         menuItems={menuItems}

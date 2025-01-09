@@ -4,8 +4,6 @@ import { ColumnDef } from '@tanstack/react-table'
 
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { AccessKeyDTO } from '@stellariscloud/api-client'
-import { useRouter } from 'next/router'
-import { DataTableRowActions } from '@/components'
 import Link from 'next/link'
 
 export const serverAccessKeysTableColumns: ColumnDef<AccessKeyDTO>[] = [

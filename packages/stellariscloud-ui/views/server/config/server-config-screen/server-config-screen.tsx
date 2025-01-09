@@ -16,11 +16,9 @@ import {
   Input,
   cn,
 } from '@stellariscloud/ui-toolkit'
-import { useRouter } from 'next/router'
 import { ServerStorageConfigTab } from '../storage/server-storage-config-tab/server-storage-config-tab'
 
 export function ServerConfigScreen({ tab }: { tab: string }) {
-  const router = useRouter()
   const [originalSettings, setOriginalSettings] =
     React.useState<Partial<SettingsGetResponse['settings']>>()
   const [settings, setSettings] =
@@ -43,6 +41,7 @@ export function ServerConfigScreen({ tab }: { tab: string }) {
     setDataResetKey(`___${Math.random()}___`)
   }, [])
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/require-await
   const handleUpdateSettings = React.useCallback(async () => {
     const allSettingsKeys: (keyof SettingsGetResponse['settings'])[] =
       removeDuplicates([
@@ -52,14 +51,8 @@ export function ServerConfigScreen({ tab }: { tab: string }) {
 
     const changedSettings = allSettingsKeys.filter((settingKey) => {
       return (
-        JSON.stringify(
-          originalSettings?.[
-            settingKey as keyof SettingsGetResponse['settings']
-          ],
-        ) !==
-        JSON.stringify(
-          settings?.[settingKey as keyof SettingsGetResponse['settings']],
-        )
+        JSON.stringify(originalSettings?.[settingKey]) !==
+        JSON.stringify(settings?.[settingKey])
       )
     })
 
@@ -83,16 +76,6 @@ export function ServerConfigScreen({ tab }: { tab: string }) {
       }
     }
   }, [reloadSettings, settings, originalSettings])
-
-  const onFormChange = React.useCallback(
-    (updatedSettings: {
-      valid: boolean
-      value: SettingsGetResponse['settings']
-    }) => {
-      setSettings(updatedSettings.value)
-    },
-    [],
-  )
 
   return (
     <div className="flex w-full items-start gap-6 sm:gap-16 pl-4">

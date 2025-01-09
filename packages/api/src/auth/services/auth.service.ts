@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common'
 import { addMs, earliest } from '@stellariscloud/utils'
 import { eq, or } from 'drizzle-orm'
-import { AccessTokenJWT, JWTService } from 'src/auth/services/jwt.service'
+import { JWTService } from 'src/auth/services/jwt.service'
 import { OrmService } from 'src/orm/orm.service'
 import type { NewUser, User } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
@@ -40,7 +40,7 @@ export class AuthService {
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => SessionService)) _sessionService,
   ) {
-    this.sessionService = _sessionService
+    this.sessionService = _sessionService as SessionService
   }
 
   async signup(data: SignupCredentialsDTO) {
@@ -126,10 +126,11 @@ export class AuthService {
       return false
     }
 
+    const buff = Buffer.from(user.passwordHash, 'hex')
     return (
       authHelper
         .createPasswordHash(password, user.passwordSalt)
-        .compare(Buffer.from(user.passwordHash, 'hex')) === 0
+        .compare(buff as unknown as Uint8Array<ArrayBufferLike>) === 0
     )
   }
 

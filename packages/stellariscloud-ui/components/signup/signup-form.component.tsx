@@ -8,7 +8,6 @@ import { z } from 'zod'
 import {
   cn,
   Button,
-  Label,
   Input,
   Form,
   FormItem,
@@ -47,7 +46,7 @@ export function SignupForm({
 
   async function handleSubmit(values: SignupFormValues) {
     setIsLoading(true)
-    onSubmit(values).then(() => {
+    return onSubmit(values).then(() => {
       setIsLoading(false)
     })
     setTimeout(() => {

@@ -21,6 +21,7 @@ export async function buildApp() {
   app.enableShutdownHooks()
   app.enableCors()
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return app.listen(3001)
 }
 

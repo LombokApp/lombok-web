@@ -5,7 +5,7 @@ export interface MediaDimensions {
 }
 
 export const fileReaderFromBlob = (blob: Blob): Promise<FileReader> => {
-  return new Promise((resolve, _reject) => {
+  return new Promise((resolve) => {
     const f = new FileReader()
     f.onload = () => {
       resolve(f)

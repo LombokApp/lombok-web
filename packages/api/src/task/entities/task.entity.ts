@@ -19,7 +19,7 @@ export const tasksTable = pgTable('tasks', {
   updates: jsonb('updates')
     .notNull()
     .$type<
-      { updateData: { [key: string]: any }; updateTemplateString: string }[]
+      { updateData: { [key: string]: unknown }; updateTemplateString: string }[]
     >()
     .default([]),
   triggeringEventId: uuid('triggeringEventId')

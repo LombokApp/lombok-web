@@ -71,7 +71,7 @@ export class ServerConfigurationService {
   async setServerSettingAsAdmin(
     actor: User,
     settingKey: string,
-    settingValue: any,
+    settingValue: unknown,
   ) {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
@@ -152,16 +152,19 @@ export class ServerConfigurationService {
       }),
     }
 
-    const existingRecord =
+    const existingRecord = (
       await this.ormService.db.query.serverSettingsTable.findFirst({
         where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key),
       })
+    )?.value as
+      | (UserStorageProvisionDTO & UserStorageProvisionInputDTO)[]
+      | undefined
 
     if (existingRecord) {
       await this.ormService.db
         .update(serverSettingsTable)
         .set({
-          value: existingRecord.value.concat([locationWithId]),
+          value: existingRecord.concat([locationWithId]),
           updatedAt: now,
         })
         .where(eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key))
@@ -199,16 +202,19 @@ export class ServerConfigurationService {
       }
     }
 
-    const existingSettingRecord =
+    const existingSettingRecord = (
       await this.ormService.db.query.serverSettingsTable.findFirst({
         where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key),
       })
+    )?.value as
+      | (UserStorageProvisionDTO & UserStorageProvisionInputDTO)[]
+      | undefined
 
     if (!existingSettingRecord) {
       throw new NotFoundException()
     }
 
-    const existingLocation = existingSettingRecord.value.find(
+    const existingLocation = existingSettingRecord.find(
       ({ id }) => id === storageProvisionId,
     )
     if (!existingLocation) {
@@ -217,20 +223,19 @@ export class ServerConfigurationService {
       await this.ormService.db
         .update(serverSettingsTable)
         .set({
-          value: existingSettingRecord.value.map(
-            (sp: UserStorageProvisionDTO) =>
-              sp.id === storageProvisionId
-                ? {
-                    ...storageProvision,
-                    id: storageProvisionId,
-                    accessKeyHashId: buildAccessKeyHashId({
-                      accessKeyId: storageProvision.accessKeyId,
-                      secretAccessKey: storageProvision.secretAccessKey,
-                      region: storageProvision.region,
-                      endpoint: storageProvision.endpoint,
-                    }),
-                  }
-                : sp,
+          value: existingSettingRecord.map((sp: UserStorageProvisionDTO) =>
+            sp.id === storageProvisionId
+              ? {
+                  ...storageProvision,
+                  id: storageProvisionId,
+                  accessKeyHashId: buildAccessKeyHashId({
+                    accessKeyId: storageProvision.accessKeyId,
+                    secretAccessKey: storageProvision.secretAccessKey,
+                    region: storageProvision.region,
+                    endpoint: storageProvision.endpoint,
+                  }),
+                }
+              : sp,
           ),
           updatedAt: now,
         })
@@ -248,29 +253,30 @@ export class ServerConfigurationService {
       throw new UnauthorizedException()
     }
     const now = new Date()
-    const existingRecord =
+    const existingRecord = (
       await this.ormService.db.query.serverSettingsTable.findFirst({
         where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key),
       })
+    )?.value as
+      | (UserStorageProvisionDTO & UserStorageProvisionInputDTO)[]
+      | undefined
 
     if (!existingRecord) {
       throw new ServerConfigurationNotFoundException()
     }
 
-    const previousCount = existingRecord.value.length
-
-    existingRecord.value = existingRecord.value.filter(
+    const newValue = existingRecord.filter(
       (v: { id: string }) => v.id !== storageProvisionId,
     )
 
-    if (existingRecord.value.length === previousCount) {
+    if (newValue.length === existingRecord.length) {
       throw new ServerConfigurationNotFoundException()
     }
 
     await this.ormService.db
       .update(serverSettingsTable)
       .set({
-        value: existingRecord.value,
+        value: newValue,
         updatedAt: now,
       })
       .where(eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key))
@@ -301,21 +307,24 @@ export class ServerConfigurationService {
       throw new ServerConfigurationInvalidException()
     }
 
-    const record = await this.ormService.db.query.serverSettingsTable.findFirst(
-      {
+    const record = (
+      await this.ormService.db.query.serverSettingsTable.findFirst({
         where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key),
-      },
-    )
+      })
+    )?.value as
+      | (UserStorageProvisionDTO & UserStorageProvisionInputDTO)[]
+      | undefined
 
     if (!record) {
       return []
     }
 
     return provisionType
-      ? record.value.filter((r: UserStorageProvisionDTO) =>
-          r.provisionTypes.includes(provisionType),
+      ? record.filter(
+          (r: UserStorageProvisionDTO & UserStorageProvisionInputDTO) =>
+            r.provisionTypes.includes(provisionType),
         )
-      : record.value
+      : record
   }
 
   async getServerStorageLocationAsAdmin(
@@ -331,12 +340,15 @@ export class ServerConfigurationService {
   async getServerStorageLocation(): Promise<
     (ServerStorageLocationDTO & { secretAccessKey: string }) | undefined
   > {
-    const savedLocation =
+    const savedLocation = (
       await this.ormService.db.query.serverSettingsTable.findFirst({
         where: eq(serverSettingsTable.key, SERVER_STORAGE_LOCATION_KEY.key),
       })
+    )?.value as
+      | (ServerStorageLocationDTO & { secretAccessKey: string })
+      | undefined
 
-    return savedLocation ? savedLocation.value : undefined
+    return savedLocation
   }
 
   async setServerStorageLocationAsAdmin(

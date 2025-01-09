@@ -3,7 +3,6 @@ import {
   ArrowRightIcon,
   ArrowUpIcon,
   CheckCircledIcon,
-  CircleIcon,
   CrossCircledIcon,
   QuestionMarkCircledIcon,
   StopwatchIcon,

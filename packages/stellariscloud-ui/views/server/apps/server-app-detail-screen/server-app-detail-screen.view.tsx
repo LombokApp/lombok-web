@@ -33,7 +33,7 @@ export function ServerAppDetailScreen({
         .getApp({ appIdentifier })
         .then((u) => setApp(u.data.app))
     }
-  }, [app])
+  }, [app, appIdentifier])
   const [showRawConfig, setShowRawConfig] = React.useState(false)
   return (
     <div

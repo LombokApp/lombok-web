@@ -48,6 +48,7 @@ export const FolderObjectSidebar = ({
   folderAndPermission?: FolderGetResponse
 }) => {
   const { downloadToFile, getData } = useLocalFileCacheContext()
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showRawMetadata, setShowRawMetadata] = React.useState(false)
   const folderId = folder.id
   const [focusedMetadata, setFocusedMetadata] = React.useState<string>()
@@ -62,13 +63,13 @@ export const FolderObjectSidebar = ({
         .listFolderTasks({ folderId: folder?.id, objectKey })
         .then((resp) => setTasks(resp.data.result))
     }
-  }, [folder?.id])
+  }, [folder?.id, objectKey])
 
   React.useEffect(() => {
     if (folder?.id && objectKey) {
       void fetchTasks()
     }
-  }, [folder?.id, objectKey])
+  }, [fetchTasks, folder?.id, objectKey])
 
   const serverContext = useServerContext()
 
@@ -103,8 +104,8 @@ export const FolderObjectSidebar = ({
   ])
 
   const attributes = folderObject.hash
-    ? folderObject.contentAttributes[folderObject.hash] ??
-      ({} as { [key: string]: string })
+    ? (folderObject.contentAttributes[folderObject.hash] ??
+      ({} as { [key: string]: string }))
     : ({} as { [key: string]: string })
 
   const actionItems: {

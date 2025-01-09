@@ -14,7 +14,7 @@ export const dataURLtoBlob = (dataurl: string) => {
 
 export const blobToBase64 = (blob: Blob): Promise<string> => {
   const reader = new FileReader()
-  return new Promise((resolve, _reject) => {
+  return new Promise((resolve) => {
     reader.readAsDataURL(blob)
     reader.onload = function () {
       resolve(reader.result as string)

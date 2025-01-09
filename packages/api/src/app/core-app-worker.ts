@@ -57,19 +57,27 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
       .then(() => {
         console.log('Done work.')
       })
-      .catch((e) => {
+      .catch((e: unknown) => {
         console.log('Reporting Error:', e)
-        sendLogEntry({
-          message: 'Core app worker thread error.',
-          level: 'error',
-          name: 'CoreAppWorkerError',
-          data: {
-            name: e.name,
-            message: e.message,
-            stacktrace: e.stacktrace,
-            appWorkerId: workerData.appWorkerId,
-          },
-        })
+        if (
+          e &&
+          typeof e === 'object' &&
+          'name' in e &&
+          'message' in e &&
+          'stacktrace' in e
+        ) {
+          sendLogEntry({
+            message: 'Core app worker thread error.',
+            level: 'error',
+            name: 'CoreAppWorkerError',
+            data: {
+              name: e.name,
+              message: e.message,
+              stacktrace: e.stacktrace,
+              appWorkerId: workerData.appWorkerId,
+            },
+          })
+        }
         throw e
       })
       .finally(() => {
@@ -78,6 +86,7 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
   } else if (!workerThreads.isMainThread) {
     sendLogEntry({ message: `Didn't run.` })
     console.log("Is not main thread but didn't run because { workerData }:", {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       workerData: workerThreads.workerData,
     })
   }

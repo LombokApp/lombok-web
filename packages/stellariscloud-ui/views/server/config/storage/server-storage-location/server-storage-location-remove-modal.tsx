@@ -39,7 +39,7 @@ const ServerStorageLocationRemoveModal = ({
             This will uninstall any apps which rely on server storage.
           </DialogDescription>
         </DialogHeader>
-        <Button variant="destructive" onClick={onConfirm}>
+        <Button variant="destructive" onClick={() => void onConfirm()}>
           Confirm Remove Server Storage Location
         </Button>
       </DialogContent>

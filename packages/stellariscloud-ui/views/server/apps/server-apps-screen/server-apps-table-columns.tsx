@@ -5,7 +5,6 @@ import { ColumnDef } from '@tanstack/react-table'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { invertColour, stringToColour } from '../../../../utils/colors'
 import { AppDTO } from '@stellariscloud/api-client'
-import { useRouter } from 'next/router'
 import Link from 'next/link'
 
 export const serverAppsTableColumns: ColumnDef<AppDTO>[] = [
@@ -34,7 +33,6 @@ export const serverAppsTableColumns: ColumnDef<AppDTO>[] = [
       />
     ),
     cell: ({ row }) => {
-      const router = useRouter()
       return (
         <div className="flex gap-4 items-center font-normal">
           <div

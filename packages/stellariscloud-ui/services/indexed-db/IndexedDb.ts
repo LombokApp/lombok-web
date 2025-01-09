@@ -137,6 +137,7 @@ export class IndexedDb {
       const folderSizes = result.reduce<{ [key: string]: number }>(
         (acc, row) => ({
           ...acc,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
           [row.folderId]: (acc as any)[row.folderId] ?? 0 + row.size,
         }),
         {},
@@ -180,10 +181,10 @@ export class IndexedDb {
     objectKey: string,
   ): Promise<FileContentDBSchema | undefined> {
     await this.initDb()
-    const result = await this.db
+    const result = (await this.db
       ?.transaction(LOCAL_DB_FILE_CACHE_TABLE, 'readwrite')
       .objectStore(LOCAL_DB_FILE_CACHE_TABLE)
-      .get(`${folderId}:${objectKey}`)
+      .get(`${folderId}:${objectKey}`)) as FileContentDBSchema | undefined
 
     return result
   }

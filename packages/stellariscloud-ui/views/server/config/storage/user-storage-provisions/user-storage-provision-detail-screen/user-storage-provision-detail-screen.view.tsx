@@ -29,8 +29,13 @@ export function UserStorageProvisionDetailScreen() {
     ) {
       void fetchUserStorageProvision(router.query.userStorageProvisionId)
     }
-  }, [router.query.userStorageProvisionId])
+  }, [
+    router.query.userStorageProvisionId,
+    fetchUserStorageProvision,
+    userStorageProvisionId,
+  ])
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleRotate = React.useCallback(
     (
       accessKeyHashId: string,
@@ -53,7 +58,11 @@ export function UserStorageProvisionDetailScreen() {
           }
         })
     },
-    [],
+    [
+      fetchUserStorageProvision,
+      userStorageProvisionId,
+      router.query.userStorageProvisionId,
+    ],
   )
 
   return (

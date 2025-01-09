@@ -49,12 +49,12 @@ const LocalFileCacheContext = React.createContext<ILocalFileCacheContext>(
   {} as ILocalFileCacheContext,
 )
 
-type WorkerMessage = [string, any]
+type WorkerMessage = [string, unknown]
 
 interface DownloadingContext {
   progressPercent: number
   resolve: ({ dataURL }: { dataURL: string; type: string }) => void
-  reject: (e: any) => void
+  reject: (e: unknown) => void
 }
 
 interface DownloadingContextMap {
@@ -106,7 +106,7 @@ export const LocalFileCacheContextProvider = ({
   const deleteFromMemory = React.useCallback(
     (folderId: string, objectIdentifier: string) => {
       // console.log('deleteFromMemory(%s, %s)', folderId, objectIdentifier)
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+
       delete fileCacheRef.current[`${folderId}:${objectIdentifier}`]
     },
     [],
@@ -133,8 +133,12 @@ export const LocalFileCacheContextProvider = ({
           if (
             ['DOWNLOAD_COMPLETED', 'DOWNLOAD_FAILED'].includes(event.data[0])
           ) {
-            const folderId: string = event.data[1].folderId
-            const objectIdentifier: string = event.data[1].objectIdentifier
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            const folderId: string = (event.data[1] as any).folderId as string
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const objectIdentifier: string =
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+              (event.data[1] as any).objectIdentifier
             const folderIdAndKey = `${folderId}:${objectIdentifier}`
             if (event.data[0] === 'DOWNLOAD_FAILED') {
               downloading.current[folderIdAndKey]?.reject(
@@ -144,7 +148,7 @@ export const LocalFileCacheContextProvider = ({
                   2,
                 )}`,
               )
-              // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+
               delete downloading.current[folderIdAndKey]
             } else {
               void getDataFromDisk(folderId, objectIdentifier).then((data) => {
@@ -157,20 +161,22 @@ export const LocalFileCacheContextProvider = ({
                     `Failed to load data "${objectIdentifier}" from disk.`,
                   )
                 }
-                // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+
                 delete downloading.current[folderIdAndKey]
               })
             }
           } else if (event.data[0] === 'LOG_MESSAGE') {
             // const folderId: string = event.data[1].folderId
-            const line: LogLine = event.data[1]
+            const line = event.data[1] as LogLine
             loggingContext.appendLogLine({
               ...line,
               remote: false,
             })
           } else if (event.data[0] === 'UPLOAD_PROGRESS') {
-            const progress: number = event.data[1].progress
-            const uploadObjectKey: string = event.data[1].objectKey
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            const progress = (event.data[1] as any).progress as number
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            const uploadObjectKey = (event.data[1] as any).objectKey as string
             setUploadingProgress((up) => ({
               ...up,
               [uploadObjectKey]: progress,
@@ -197,20 +203,19 @@ export const LocalFileCacheContextProvider = ({
           const folderIdAndKey = `${folderId}:${objectIdentifier}`
           if (downloading.current[folderIdAndKey]) {
             const oldResolve = downloading.current[folderIdAndKey]?.resolve as (
-              blob: any,
+              blob: unknown,
             ) => void
             const oldReject = downloading.current[folderIdAndKey]?.reject as (
-              e: any,
+              e: unknown,
             ) => void
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            const downloadingContext = downloading.current[
-              folderIdAndKey
-            ] as DownloadingContext
+
+            const downloadingContext = downloading.current[folderIdAndKey]
             downloadingContext.resolve = (result) => {
               resolve(result)
               oldResolve(result)
             }
-            downloadingContext.reject = (e) => {
+            downloadingContext.reject = (e: unknown) => {
+              // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
               reject(e)
               oldReject(e)
             }
@@ -306,7 +311,7 @@ export const LocalFileCacheContextProvider = ({
         throw err
       }
       console.log('Deleted %s local files.', result.deletedCount)
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+
       delete localStorageFolderSizes[folderId]
       setLocalStorageFolderSizes({
         ...localStorageFolderSizes,

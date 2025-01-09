@@ -143,13 +143,16 @@ export const useFormState = <
 
     setFormState((_s) => {
       for (const fieldName of Object.keys(c)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
         const field = fields[fieldName as keyof FS] as any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         field.dirty = (_s as any).fields[fieldName].dirty
       }
       const newState = {
         valid: formValidity,
         error: formError,
         dirty: !!Object.keys(c).find(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
           (fieldName) => (_s as any).fields[fieldName]?.dirty,
         ),
         fields,
@@ -208,6 +211,7 @@ export const useFormState = <
         dirty: true,
         fields: {
           ..._s.fields,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
           [fieldName]: { ...(_s.fields as any)[fieldName], dirty: true },
         },
       }))

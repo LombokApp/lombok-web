@@ -8,7 +8,6 @@ import {
 } from '@stellariscloud/ui-toolkit'
 import { SheetMenu } from './sheet-menu'
 import { UserNav } from './user-nav'
-import { Type } from 'lucide-react'
 import Link from 'next/link'
 import React from 'react'
 import { ModeToggle } from '../../mode-toggle/mode-toggle'

@@ -22,21 +22,26 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status = exception.getStatus()
 
     const serviceErrorKey =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
       (exception as any).serviceErrorkey &&
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
       typeof (exception as any).serviceErrorkey === 'string'
-        ? (exception as any).serviceErrorkey
+        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+          ((exception as any).serviceErrorkey as unknown)
         : undefined
 
+    const exceptionResponse = exception.getResponse()
+    const responseMessage: string | undefined =
+      typeof exceptionResponse === 'object' && 'message' in exceptionResponse
+        ? (exceptionResponse['message'] as string)
+        : undefined
     // Send a JSON response using the response object
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
       serviceErrorKey,
-      message:
-        exception.message ||
-        exception.getResponse()['message'] ||
-        'Internal Server Error',
+      message: responseMessage || 'Internal Server Error',
     })
   }
 }

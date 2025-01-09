@@ -56,7 +56,10 @@ export class OrmService {
     return this._client
   }
 
-  async runWithTestClient(func: (client: postgres.Sql<any>) => Promise<void>) {
+  async runWithTestClient(
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+    func: (client: postgres.Sql<{}>) => Promise<void>,
+  ) {
     const c = postgres(
       `postgres://${this._ormConfig.dbUser}:${this._ormConfig.dbPassword}@${this._ormConfig.dbHost}:${this._ormConfig.dbPort}/postgres`,
       this._ormConfig.disableNoticeLogging
@@ -152,12 +155,14 @@ export class OrmService {
         )
 
         if (tables.length > 0) {
-          const schemaToTableMapping = tables.reduce(
+          const schemaToTableMapping = tables.reduce<{
+            [key: string]: string[]
+          }>(
             (acc, next) => ({
               ...acc,
-              [next.schemaname]: (acc[next.schemaname] ?? []).concat(
-                next.tablename,
-              ),
+              [next.schemaname]: (
+                acc[next.schemaname as unknown as string] ?? []
+              ).concat(next.tablename as unknown as string),
             }),
             {},
           )

@@ -28,7 +28,7 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
         .getUser({ userId: userId })
         .then((u) => setUser(u.data.user))
     }
-  }, [user])
+  }, [user, userId])
 
   // const handleSubmitClick = React.useCallback(() => {
   //   void apiClient.usersApi

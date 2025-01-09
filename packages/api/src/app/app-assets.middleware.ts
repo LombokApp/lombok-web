@@ -18,10 +18,11 @@ export class AppAssetsMiddleware implements NestMiddleware {
     this.appUiSubDomainSuffix = `.apps.${new URL(this._coreConfig.hostId).host}`
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async use(req: Request, res: Response, next: NextFunction) {
     const host =
       'x-forwarded-host' in req.headers
-        ? (req.headers['x-forwarded-host'] as string | undefined) ?? ''
+        ? ((req.headers['x-forwarded-host'] as string | undefined) ?? '')
         : (req.headers.host ?? '').split(':')[0]
 
     const parsedHost = new URL(`http://${host}`)
@@ -48,7 +49,7 @@ export class AppAssetsMiddleware implements NestMiddleware {
     }
 
     const mimeType = mime.getType(resolvedContentPath) ?? 'text/html'
-    const returnContent = await this.appService.getContentForAppAsset(
+    const returnContent = this.appService.getContentForAppAsset(
       appIdentifier,
       uiName,
       resolvedContentPath,

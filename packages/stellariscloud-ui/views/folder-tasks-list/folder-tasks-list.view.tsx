@@ -33,7 +33,7 @@ export const FolderTasksList = ({
     if (folder?.id) {
       void fetchTasks()
     }
-  }, [folder?.id])
+  }, [fetchTasks, folder?.id])
 
   return (
     <Card className="bg-transparent">

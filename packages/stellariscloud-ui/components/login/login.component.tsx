@@ -1,5 +1,4 @@
 import React from 'react'
-import * as r from 'runtypes'
 
 import {
   Card,
@@ -10,18 +9,13 @@ import {
 import { LoginForm, LoginFormValues } from './login-form.component'
 
 export const LoginComponent = ({
-  error,
+  // error,
   onSubmit,
 }: {
   error?: string
   onSubmit: (input: { login: string; password: string }) => Promise<void>
   onSignup: () => void
 }) => {
-  const [errors, _setErrors] = React.useState({
-    login: '',
-    password: '',
-  })
-
   const handleSubmit = React.useCallback(
     async (values: LoginFormValues) => {
       return onSubmit({

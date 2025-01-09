@@ -1,7 +1,7 @@
 import React from 'react'
 import * as r from 'runtypes'
 
-import { Input, Label, Switch, Toggle } from '@stellariscloud/ui-toolkit'
+import { Input, Label, Switch } from '@stellariscloud/ui-toolkit'
 import { useFormState } from '../../../../../../utils/forms'
 import {
   UserStorageProvisionType,
@@ -85,8 +85,8 @@ export const UserStorageProvisionFormFields = ({
           disabled={secretAccessKeyObfuscated}
           value={
             secretAccessKeyObfuscated
-              ? form.values.secretAccessKey ??
-                '_______________________________________'
+              ? (form.values.secretAccessKey ??
+                '_______________________________________')
               : form.values.secretAccessKey
           }
           type={'password'}

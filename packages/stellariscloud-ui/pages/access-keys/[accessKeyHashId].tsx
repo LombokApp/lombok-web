@@ -12,7 +12,7 @@ const UserAccessKeyDetailPage: NextPage = () => {
     <ContentLayout
       breadcrumbs={[
         { label: 'Access Keys', href: '/access-keys' },
-        { label: `Key ID: ${router.query.accessKeyHashId}` },
+        { label: `Key ID: ${router.query.accessKeyHashId as string}` },
       ]}
     >
       {authContext.authState.isAuthenticated && <UserAccessKeyDetailScreen />}

@@ -43,21 +43,21 @@ export function ServerTasksScreen() {
               search: searchFilter.value,
             }
           : {}),
-        ...((statusFilterValue as any).includes('COMPLETE')
+        ...((statusFilterValue as string[]).includes('COMPLETE')
           ? { includeComplete: 'true' }
           : {}),
-        ...((statusFilterValue as any).includes('FAILED')
+        ...((statusFilterValue as string[]).includes('FAILED')
           ? { includeFailed: 'true' }
           : {}),
-        ...((statusFilterValue as any).includes('RUNNING')
+        ...((statusFilterValue as string[]).includes('RUNNING')
           ? { includeRunning: 'true' }
           : {}),
-        ...((statusFilterValue as any).includes('WAITING')
+        ...((statusFilterValue as string[]).includes('WAITING')
           ? { includeWaiting: 'true' }
           : {}),
       })
       .then((response) => setTasks(response.data))
-  }, [filters, sorting, pagination])
+  }, [filters, sorting, pagination, searchFilter?.value])
   return (
     <div className={cn('items-center flex flex-1 flex-col h-full')}>
       <DataTable

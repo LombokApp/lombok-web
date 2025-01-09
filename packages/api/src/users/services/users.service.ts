@@ -169,8 +169,10 @@ export class UserService {
         .returning()
 
       return createdUser
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (
+        error &&
+        typeof error === 'object' &&
         'constraint_name' in error &&
         error.constraint_name == 'users_username_unique'
       ) {

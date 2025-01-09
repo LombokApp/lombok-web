@@ -54,28 +54,35 @@ export function FolderTasksScreen() {
                 search: searchFilter.value,
               }
             : {}),
-          ...((statusFilterValue as any).includes('COMPLETE')
+          ...((statusFilterValue as string[]).includes('COMPLETE')
             ? { includeComplete: 'true' }
             : {}),
-          ...((statusFilterValue as any).includes('FAILED')
+          ...((statusFilterValue as string[]).includes('FAILED')
             ? { includeFailed: 'true' }
             : {}),
-          ...((statusFilterValue as any).includes('RUNNING')
+          ...((statusFilterValue as string[]).includes('RUNNING')
             ? { includeRunning: 'true' }
             : {}),
-          ...((statusFilterValue as any).includes('WAITING')
+          ...((statusFilterValue as string[]).includes('WAITING')
             ? { includeWaiting: 'true' }
             : {}),
         })
         .then((resp) => setTasks(resp.data))
     }
-  }, [folder?.id, filters, sorting, pagination])
+  }, [
+    filters,
+    folder?.id,
+    pagination.pageSize,
+    pagination.pageIndex,
+    sorting,
+    searchFilter?.value,
+  ])
 
   React.useEffect(() => {
     if (folder?.id) {
       void fetchTasks()
     }
-  }, [folder?.id, filters, sorting, pagination])
+  }, [folder?.id, filters, sorting, pagination, fetchTasks])
 
   return (
     <div className={cn('items-center flex flex-1 flex-col h-full')}>

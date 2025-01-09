@@ -7,8 +7,7 @@ import { timeSinceOrUntil } from '@stellariscloud/utils'
 import { invertColour, stringToColour } from '../../../../utils/colors'
 import { EventDTO } from '@stellariscloud/api-client'
 import Image from 'next/image'
-import { useRouter } from 'next/router'
-import { DataTableRowActions, cn } from '@stellariscloud/ui-toolkit'
+import { cn } from '@stellariscloud/ui-toolkit'
 import Link from 'next/link'
 
 export const serverEventsTableColumns: ColumnDef<EventDTO>[] = [

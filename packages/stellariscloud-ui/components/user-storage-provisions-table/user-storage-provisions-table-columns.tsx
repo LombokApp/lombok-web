@@ -3,8 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table'
 
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
-import { Badge, DataTableRowActions, cn } from '@stellariscloud/ui-toolkit'
-import { useRouter } from 'next/router'
+import { Badge } from '@stellariscloud/ui-toolkit'
 import { UserStorageProvisionDTO } from '@stellariscloud/api-client'
 import Link from 'next/link'
 

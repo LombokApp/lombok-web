@@ -11,7 +11,7 @@ export type LineSelectFunc = (
 export type BuildSelectSourceFunc = (
   importPath?: string,
   lineNumber?: number,
-) => { pathname: string; query: { [key: string]: any } }
+) => { pathname: string; query: { [key: string]: unknown } }
 
 export const useBreakPoints = () => {
   const [breakpoints, setBreakPoints] = React.useState<{ md: boolean }>({

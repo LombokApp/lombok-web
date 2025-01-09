@@ -1,8 +1,3 @@
-import { ArrowRightIcon } from '@heroicons/react/24/outline'
-import {
-  EMAIL_VALIDATORS_COMBINED,
-  USERNAME_VALIDATORS_COMBINED,
-} from '@stellariscloud/utils'
 import React from 'react'
 
 import {
@@ -11,8 +6,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  TypographyH2,
-  TypographyH3,
 } from '@stellariscloud/ui-toolkit'
 import { SignupForm, SignupFormValues } from './signup-form.component'
 import Link from 'next/link'

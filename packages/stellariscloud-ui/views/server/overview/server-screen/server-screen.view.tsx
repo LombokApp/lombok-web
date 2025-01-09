@@ -2,12 +2,10 @@ import React from 'react'
 import Image from 'next/image'
 import { LayoutGrid } from 'lucide-react'
 import {
-  Separator,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-  TypographyH2,
   cn,
 } from '@stellariscloud/ui-toolkit'
 import {
@@ -59,7 +57,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
               <div className="flex items-start flex-col gap-3 pb-6">
                 <TabsList>
                   <TabsTrigger
-                    onClick={() => router.push('/server')}
+                    onClick={() => void router.push('/server')}
                     value="overview"
                   >
                     <div className="flex items-center gap-2">
@@ -68,7 +66,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     </div>
                   </TabsTrigger>
                   <TabsTrigger
-                    onClick={() => router.push('/server/users')}
+                    onClick={() => void router.push('/server/users')}
                     value="users"
                   >
                     <div className="flex items-center gap-2">
@@ -77,7 +75,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     </div>
                   </TabsTrigger>
                   <TabsTrigger
-                    onClick={() => router.push('/server/apps')}
+                    onClick={() => void router.push('/server/apps')}
                     value="apps"
                   >
                     <div className="flex items-center gap-2">
@@ -86,7 +84,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     </div>
                   </TabsTrigger>
                   <TabsTrigger
-                    onClick={() => router.push('/server/events')}
+                    onClick={() => void router.push('/server/events')}
                     value="events"
                   >
                     <div className="flex items-center gap-2">
@@ -95,7 +93,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     </div>
                   </TabsTrigger>
                   <TabsTrigger
-                    onClick={() => router.push('/server/tasks')}
+                    onClick={() => void router.push('/server/tasks')}
                     value="tasks"
                   >
                     <div className="flex items-center gap-2">
@@ -104,7 +102,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     </div>
                   </TabsTrigger>
                   <TabsTrigger
-                    onClick={() => router.push('/server/config')}
+                    onClick={() => void router.push('/server/config')}
                     value="config"
                   >
                     <div className="flex items-center gap-2">

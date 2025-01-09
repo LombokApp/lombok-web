@@ -324,20 +324,21 @@ export class S3Service {
         continuationToken: continuationToken ?? undefined,
       })
 
-      for (const objectKey in response.result) {
+      for (const objectKey of response.result) {
         await this.s3DeleteBucketObject({
           accessKeyId,
           secretAccessKey,
           endpoint,
           region,
           bucket,
-          objectKey,
+          objectKey: objectKey.key,
         })
       }
 
       count += response.result.length
       continuationToken = response.continuationToken
     }
+    return { count }
   }
 
   async testS3Connection(input: {
@@ -347,7 +348,7 @@ export class S3Service {
     endpoint: string
     region?: string
   }) {
-    let success
+    let success: boolean
     try {
       const s3Client = configureS3Client({
         ...input,
@@ -355,7 +356,7 @@ export class S3Service {
       })
       await this.s3ListBuckets({ s3Client })
       success = true
-    } catch (e) {
+    } catch {
       success = false
     }
 

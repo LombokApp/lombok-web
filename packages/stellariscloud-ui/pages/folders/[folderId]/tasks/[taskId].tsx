@@ -18,11 +18,14 @@ const FolderTaskDetailPageInner = () => {
         { label: 'Folders', href: `/folders` },
         {
           label: folderContext.folder?.name ?? 'Folder',
-          href: `/folders/${router.query.folderId}`,
+          href: `/folders/${router.query.folderId as string}`,
         },
-        { label: 'Tasks', href: `/folders/${router.query.folderId}/tasks` },
         {
-          label: `Task ${router.query.taskId}`,
+          label: 'Tasks',
+          href: `/folders/${router.query.folderId as string}/tasks`,
+        },
+        {
+          label: `Task ${router.query.taskId as string}`,
         },
       ]}
     >
@@ -32,8 +35,6 @@ const FolderTaskDetailPageInner = () => {
 }
 const FolderTaskDetailPage: NextPage = () => {
   const router = useRouter()
-  const folderContext = useFolderContext()
-  console.log({ router })
   return (
     <FolderContextProvider folderId={router.query.folderId as string}>
       <FolderTaskDetailPageInner />

@@ -46,12 +46,17 @@ export function UserAccessKeyDetailScreen() {
         accessKeyHashId: router.query.accessKeyHashId,
       })
     }
-  }, [router.query.accessKeyHashId])
+  }, [
+    accessKey,
+    fetchAccessKey,
+    fetchAccessKeyBuckets,
+    router.query.accessKeyHashId,
+  ])
 
   const handleRotate = React.useCallback(
     async (input: { accessKeyId: string; secretAccessKey: string }) => {
       if (!accessKey) {
-        return Promise.reject('No Access Key.')
+        return Promise.reject(new Error('No Access Key.'))
       }
       const updatedAccessKey = await apiClient.accessKeysApi.rotateAccessKey({
         accessKeyHashId: accessKey.accessKeyHashId,
@@ -69,7 +74,7 @@ export function UserAccessKeyDetailScreen() {
         })
       }
     },
-    [accessKey, router.query.accessKeyHashId],
+    [accessKey, fetchAccessKey, router],
   )
 
   return (
@@ -98,7 +103,7 @@ export function UserAccessKeyDetailScreen() {
             </CardHeader>
 
             <CardContent>
-              {accessKeyBuckets?.map(({ name, creationDate }, i) => (
+              {accessKeyBuckets?.map(({ name }, i) => (
                 <div key={i} className="italic opacity-50">
                   {name}
                 </div>

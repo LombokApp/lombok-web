@@ -7,16 +7,11 @@ import type {
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
-import { CreateFolderForm } from '../../components/create-folder-form/create-folder-form'
-import { CreateFolderStartPanel } from '../../components/create-folder-start-panel/create-folder-start-panel'
+// import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
+// import { CreateFolderForm } from '../../components/create-folder-form/create-folder-form'
+// import { CreateFolderStartPanel } from '../../components/create-folder-start-panel/create-folder-start-panel'
 import { apiClient, foldersApiHooks } from '../../services/api'
-import {
-  DataTable,
-  Separator,
-  TypographyH2,
-  cn,
-} from '@stellariscloud/ui-toolkit'
+import { DataTable } from '@stellariscloud/ui-toolkit'
 import { PaginationState, SortingState } from '@tanstack/react-table'
 import { foldersTableColumns } from './folders-table-columns'
 
@@ -39,9 +34,11 @@ export const FoldersScreen = () => {
   const [folderFormKey, setFolderFormKey] = React.useState<string>()
   const [forgetFolderConfirmationOpen, setForgetFolderConfirmationOpen] =
     React.useState<string | false>(false)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [userStorageProvisions, setUserStorageProvisions] = React.useState<
     UserStorageProvisionDTO[]
   >([])
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleForgetFolder = React.useCallback(
     (folderId: string) => {
       if (!forgetFolderConfirmationOpen) {
@@ -59,9 +56,10 @@ export const FoldersScreen = () => {
         )
       }
     },
-    [setForgetFolderConfirmationOpen, forgetFolderConfirmationOpen /*folders*/],
+    [forgetFolderConfirmationOpen, folders?.result],
   )
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleStartCreate = () => {
     void apiClient.userStorageProvisionsApi
       .listUserStorageProvisions()
@@ -111,12 +109,13 @@ export const FoldersScreen = () => {
     refreshFolders()
   }, [refreshFolders])
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleCreateFolder = (
     folder: FoldersApiCreateFolderRequest['folderCreateInputDTO'],
   ) => {
     void apiClient.foldersApi
       .createFolder({ folderCreateInputDTO: folder })
-      .then(async (response) => {
+      .then(async () => {
         await listFolders.refetch()
         void router.push({ pathname: router.pathname })
       })

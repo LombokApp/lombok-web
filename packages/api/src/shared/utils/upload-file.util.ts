@@ -1,5 +1,5 @@
 import fs from 'fs'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 
 export const uploadLocalFile = async (
   filepath: string,
@@ -7,9 +7,12 @@ export const uploadLocalFile = async (
   mimeType?: string,
 ) => {
   const readmeStream = fs.createReadStream(filepath)
-  readmeStream.on('error', (e: any) => {
-    if (e.isAxiosError) {
-      console.log({ status: e.status, json: e.toJSON() })
+  readmeStream.on('error', (e: unknown) => {
+    if (e && typeof e === 'object' && 'isAxiosError' in e) {
+      console.log({
+        status: (e as AxiosError).status,
+        json: (e as AxiosError).toJSON(),
+      })
     }
     throw e
   })

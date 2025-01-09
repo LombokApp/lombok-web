@@ -88,6 +88,9 @@ export const useWebsocket = (
     socketState.socket?.active,
     socketState.reconnectKey,
     authContext.viewer?.id,
+    authContext,
+    namespace,
+    authParams,
   ])
 
   return {

@@ -1,12 +1,12 @@
 import { FoldersApi } from '@stellariscloud/api-client'
 import { bindApiConfig } from '@stellariscloud/auth-utils'
+import { SignedURLsRequestMethod } from '@stellariscloud/types'
 import { objectIdentifierToObjectKey } from '@stellariscloud/utils'
 import axios from 'axios'
 
 import { LogLevel } from './contexts/logging.context'
 import { indexedDb } from './services/indexed-db'
 import { addFileToLocalFileStorage } from './services/local-cache/local-cache.service'
-import { SignedURLsRequestMethod } from '@stellariscloud/types'
 
 const downloading: { [key: string]: { progressPercent: number } | undefined } =
   {}
@@ -125,8 +125,8 @@ const requestDownloadUrlAndMaybeSendBatch = (
   }
 
   recentlyRequested[folderObjectKey] = {}
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  recentlyRequested[folderObjectKey]!.promise = new Promise<string>(
+
+  recentlyRequested[folderObjectKey].promise = new Promise<string>(
     (resolve, reject) => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       recentlyRequested[folderObjectKey]!.callbacks = { resolve, reject }
@@ -236,7 +236,7 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
       })
       .then((response) => response.data)
       .then(async ({ urls: [uploadSlot] }) => {
-        const uploadResponse = await axios.put(uploadSlot, uploadFile, {
+        await axios.put(uploadSlot, uploadFile, {
           headers: {
             'Content-Type': uploadFile.type,
             'Content-Encoding': 'base64',
@@ -284,7 +284,7 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
         ])
       })
       .catch((e) => {
-        console.log(e)
+        console.log('DOWNLOAD ERROR:', e)
         postMessage([
           'DOWNLOAD_FAILED',
           {

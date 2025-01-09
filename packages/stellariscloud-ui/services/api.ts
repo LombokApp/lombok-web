@@ -24,7 +24,7 @@ export const createQueryHooks = <
 
     if (typeof api[method] === 'function') {
       const hook = `use${capitalize(method)}` as keyof ApiQueryHooks<T>
-      const f = (requestParameters: any, options: any) => {
+      const f = (requestParameters: unknown, options: unknown) => {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         return useQuery(
           [hook, requestParameters],
@@ -36,14 +36,16 @@ export const createQueryHooks = <
 
             const promise = fn
               .call(api, requestParameters, { signal })
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-return
               .then((response: AxiosResponse) => response.data)
 
             return promise
           },
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-          options,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
+          options as any,
         )
       }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
       hooks[hook] = f as any
     }
   })

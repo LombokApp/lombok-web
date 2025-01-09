@@ -24,6 +24,7 @@ export function UserStorageProvisions() {
     mutationType: 'CREATE',
   })
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleAddStorageProvision = React.useCallback(
     (input: UserStorageProvisionFormValues) =>
       apiClient.userStorageProvisionsApi
@@ -38,6 +39,7 @@ export function UserStorageProvisions() {
     [],
   )
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleUpdateStorageProvision = React.useCallback(
     (
       userStorageProvision: UserStorageProvisionDTO,
@@ -77,6 +79,7 @@ export function UserStorageProvisions() {
   return (
     <div className="w-full">
       <UserStorageProvisionModal
+        // eslint-disable-next-line @typescript-eslint/require-await
         onSubmit={async () => undefined}
         setModalData={setModalData}
         modalData={modalData}
@@ -96,7 +99,7 @@ export function UserStorageProvisions() {
                       })
                     }
                     onDelete={(storageProvision) =>
-                      handleDeleteStorageProvision(storageProvision.id)
+                      void handleDeleteStorageProvision(storageProvision.id)
                     }
                   />
                 </div>

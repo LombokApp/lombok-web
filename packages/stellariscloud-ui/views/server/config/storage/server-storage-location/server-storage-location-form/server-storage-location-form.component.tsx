@@ -26,7 +26,7 @@ export type ServerStorageLocationFormValues = z.infer<
 export function ServerStorageLocationForm({
   className,
   onSubmit,
-  onCancel,
+  // onCancel,
 }: {
   className?: string
   onSubmit: (values: ServerStorageLocationFormValues) => Promise<void>
@@ -36,7 +36,7 @@ export function ServerStorageLocationForm({
 
   async function handleSubmit(values: ServerStorageLocationFormValues) {
     setIsLoading(true)
-    onSubmit(values).then(() => {
+    await onSubmit(values).then(() => {
       setIsLoading(false)
     })
     setTimeout(() => {

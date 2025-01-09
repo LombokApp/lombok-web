@@ -66,10 +66,9 @@ export class FolderSocketService implements OnModuleInit {
         } else {
           throw new UnauthorizedException()
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.log('SOCKET ERROR:', e)
         socket.conn.close()
-        throw e ?? new Error('Undefined Error.')
       }
     } else {
       // auth payload does not match expected
@@ -91,7 +90,7 @@ export class FolderSocketService implements OnModuleInit {
     // this.folderService = this.moduleRef.get(FolderService)
   }
 
-  sendToFolderRoom(folderId: string, name: FolderPushMessage, msg: any) {
+  sendToFolderRoom(folderId: string, name: FolderPushMessage, msg: unknown) {
     // console.log('sendToFolderRoom:', { folderId, name, msg })
     // this.server?.to(this.getRoomId(folderId)).emit(name, msg)
     // console.log(

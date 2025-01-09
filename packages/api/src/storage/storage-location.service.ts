@@ -144,7 +144,10 @@ export class StorageLocationService {
     return {
       result: accessKeys.map((accessKey) => ({
         ...accessKey,
-        folderCount: mappedFolderCounts[accessKey.accessKeyHashId] ?? 0,
+        folderCount:
+          (mappedFolderCounts[accessKey.accessKeyHashId] as
+            | number
+            | undefined) ?? 0,
       })),
       meta: { totalCount: accessKeysCountResult[0].count },
     }
@@ -386,7 +389,10 @@ export class StorageLocationService {
     return {
       result: accessKeys.map((accessKey) => ({
         ...accessKey,
-        folderCount: mappedFolderCounts[accessKey.accessKeyHashId] ?? 0,
+        folderCount:
+          (mappedFolderCounts[accessKey.accessKeyHashId] as
+            | number
+            | undefined) ?? 0,
       })),
       meta: { totalCount: accessKeysCountResult[0].count },
     }

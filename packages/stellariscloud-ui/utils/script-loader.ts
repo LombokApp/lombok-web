@@ -4,7 +4,7 @@ export class ScriptLoader {
   private readonly m_css_files: string[]
   private readonly m_head: HTMLHeadElement
 
-  private readonly log = (t: any) => {
+  private readonly log = (t: string) => {
     console.log(`ScriptLoader: ${t}`)
   }
 

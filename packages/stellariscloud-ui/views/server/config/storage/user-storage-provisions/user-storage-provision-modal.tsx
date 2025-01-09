@@ -61,8 +61,8 @@ const UserStorageProvisionModal = ({
             onCancel={() =>
               setModalData({ ...modalData, userStorageProvision: undefined })
             }
-            onSubmit={async (userStorageProvision) => {
-              onSubmit(modalData.mutationType, userStorageProvision)
+            onSubmit={(userStorageProvision) => {
+              void onSubmit(modalData.mutationType, userStorageProvision)
             }}
           />
         </div>

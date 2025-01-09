@@ -42,24 +42,24 @@ export function ServerEventsScreen() {
               search: searchFilter.value,
             }
           : {}),
-        ...((levelFilterValue as any).includes('TRACE')
+        ...((levelFilterValue as string[]).includes('TRACE')
           ? { includeTrace: 'true' as const }
           : {}),
-        ...((levelFilterValue as any).includes('DEBUG')
+        ...((levelFilterValue as string[]).includes('DEBUG')
           ? { includeDebug: 'true' as const }
           : {}),
-        ...((levelFilterValue as any).includes('INFO')
+        ...((levelFilterValue as string[]).includes('INFO')
           ? { includeInfo: 'true' as const }
           : {}),
-        ...((levelFilterValue as any).includes('WARNING')
+        ...((levelFilterValue as string[]).includes('WARNING')
           ? { includeWarning: 'true' as const }
           : {}),
-        ...((levelFilterValue as any).includes('ERROR')
+        ...((levelFilterValue as string[]).includes('ERROR')
           ? { includeError: 'true' as const }
           : {}),
       })
       .then((response) => setEvents(response.data))
-  }, [filters, sorting, pagination])
+  }, [filters, sorting, pagination, searchFilter?.value])
   return (
     <div className={cn('items-center flex flex-1 flex-col h-full')}>
       <DataTable

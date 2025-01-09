@@ -14,7 +14,7 @@ export const eventSchema = z.object({
       objectKey: z.string().optional(),
     })
     .optional(),
-  data: z.any(),
+  data: z.unknown(),
   createdAt: z.date(),
 })
 

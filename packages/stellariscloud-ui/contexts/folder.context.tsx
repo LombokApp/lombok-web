@@ -27,7 +27,7 @@ export interface IFolderContext {
 
 export type SocketMessageHandler = (
   name: FolderPushMessage,
-  msg: { [key: string]: any },
+  msg: { [key: string]: unknown },
 ) => void
 
 export const FolderContext = React.createContext<IFolderContext>(
@@ -48,6 +48,7 @@ export const FolderContextProvider = ({
   children: React.ReactNode
   folderId: string
 }) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _localFileCacheContext = useLocalFileCacheContext()
   //   const loggingContext = useLoggingContext()
 
@@ -74,7 +75,10 @@ export const FolderContextProvider = ({
   )
 
   const messageHandler = React.useCallback(
-    (message: { name: FolderPushMessage; payload: { [key: string]: any } }) => {
+    (message: {
+      name: FolderPushMessage
+      payload: { [key: string]: unknown }
+    }) => {
       if (
         [
           FolderPushMessage.OBJECTS_ADDED,

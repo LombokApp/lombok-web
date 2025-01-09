@@ -128,7 +128,7 @@ export function Menu({
               <Tooltip delayDuration={100}>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={onSignOut}
+                    onClick={() => void onSignOut()}
                     variant="outline"
                     className="w-full justify-center h-10 mt-5"
                   >

@@ -14,7 +14,6 @@ import {
   FormMessage,
   Switch,
 } from '@stellariscloud/ui-toolkit'
-import { UserPermissions } from '../server-user-form/user-permissions'
 
 export interface ServerSettingsFormValues {
   SIGNUP_PERMISSIONS: string[]
@@ -31,8 +30,8 @@ const formSchema = z.object({
 })
 
 export const ServerSettingsForm = ({
-  onChange,
-  formValue,
+  // onChange,
+  // formValue,
   onSubmit,
   onReset,
 }: {
@@ -68,8 +67,8 @@ export const ServerSettingsForm = ({
     },
   })
 
-  async function handleSubmit(values: ServerSettingsFormValues) {
-    onSubmit({ valid: true, values })
+  function handleSubmit(values: ServerSettingsFormValues) {
+    return onSubmit({ valid: true, values })
   }
 
   const SETTINGS_SECTIONS = [
@@ -138,9 +137,9 @@ export const ServerSettingsForm = ({
               </Button>
               <Button
                 onClick={() =>
-                  onSubmit({
+                  void onSubmit({
                     valid: true,
-                    values: form.getValues() as ServerSettingsFormValues,
+                    values: form.getValues(),
                   })
                 }
                 disabled={!false}

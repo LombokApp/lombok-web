@@ -6,8 +6,7 @@ import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components
 import { TaskDTO } from '@stellariscloud/api-client'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
 import Image from 'next/image'
-import { DataTableRowActions, cn } from '@stellariscloud/ui-toolkit'
-import { useRouter } from 'next/router'
+import { cn } from '@stellariscloud/ui-toolkit'
 import { invertColour, stringToColour } from '../../../../utils/colors'
 import Link from 'next/link'
 

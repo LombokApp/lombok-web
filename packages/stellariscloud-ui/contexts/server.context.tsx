@@ -38,7 +38,7 @@ export interface IServerContext {
 
 export type SocketMessageHandler = (
   name: ServerPushMessage,
-  msg: { [key: string]: any },
+  msg: { [key: string]: unknown },
 ) => void
 
 export const ServerContext = React.createContext<IServerContext>(
@@ -74,7 +74,7 @@ export const ServerContextProvider = ({
 
   const fetchServerSettings = React.useCallback(async () => {
     if (authContext.viewer?.isAdmin) {
-      void apiClient.serverApi
+      await apiClient.serverApi
         .getServerSettings()
         .then((response) => setServerSettings(response.data.settings))
     }
@@ -138,7 +138,10 @@ export const ServerContextProvider = ({
   )
 
   const messageHandler = React.useCallback(
-    (message: { name: AppPushMessage; payload: { [key: string]: any } }) => {
+    (message: {
+      name: AppPushMessage
+      payload: { [key: string]: unknown }
+    }) => {
       if (ServerPushMessage.APPS_UPDATED === message.name) {
         void fetchServerApps()
       } else if (ServerPushMessage.SETTINGS_UPDATED === message.name) {

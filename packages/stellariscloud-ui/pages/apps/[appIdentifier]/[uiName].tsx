@@ -17,7 +17,7 @@ const AppsIndexPage: NextPage = () => {
         <ContentLayout
           breadcrumbs={[
             { label: 'Server', href: '/server' },
-            { label: `App: ${router.query.appIdentifier}` },
+            { label: `App: ${router.query.appIdentifier as string}` },
           ]}
         >
           <AppUI

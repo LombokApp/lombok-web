@@ -22,11 +22,6 @@ export function AccessKeyRotateForm({
     },
   })
 
-  const [errors, _setErrors] = React.useState({
-    login: '',
-    password: '',
-  })
-
   const handleSubmit = React.useCallback(() => {
     if (form.values.accessKeyId && form.values.secretAccessKey) {
       void onSubmit?.({

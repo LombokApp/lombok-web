@@ -6,11 +6,13 @@ import React from 'react'
 
 import { DataTable, cn } from '@stellariscloud/ui-toolkit'
 import { apiClient } from '../../../../services/api'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ServerUserCreatePanel } from '../server-user-create-panel/server-user-create-panel.view'
 import { PaginationState, SortingState } from '@tanstack/react-table'
 import { serverUsersTableColumns } from './server-users-table-columns'
 
 export function ServerUsersScreen() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [addingUser, setAddingUser] = React.useState(false)
   const [users, setUsers] = React.useState<{
     result: (UserDTO & { permissions: { label: string }[] })[]
@@ -50,7 +52,7 @@ export function ServerUsersScreen() {
           meta: response.data.meta,
         }),
       )
-  }, [filters, sorting, pagination])
+  }, [filters, sorting, pagination, searchFilter?.value])
 
   return (
     <div className={cn('items-center flex flex-1 flex-col h-full')}>

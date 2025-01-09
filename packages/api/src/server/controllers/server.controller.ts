@@ -66,7 +66,7 @@ export class ServerController {
     )
     return {
       settingKey,
-      settingValue: settingValue.value,
+      settingValue: settingValue.value as never,
     }
   }
 
@@ -88,6 +88,6 @@ export class ServerController {
     const newSettings =
       await this.serverConfigurationService.getServerSettingsAsAdmin(req.user)
 
-    return { settingKey, settingValue: newSettings[settingKey] }
+    return { settingKey, settingValue: newSettings[settingKey] as never }
   }
 }

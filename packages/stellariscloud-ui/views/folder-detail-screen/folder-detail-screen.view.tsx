@@ -115,7 +115,6 @@ const createVideoIcon = () =>
 
 const createLoadingIconRaw = (size: 'sm' | 'md' | 'lg' = 'sm') => {
   const sizeNum =
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     size === 'sm' ? 32 : size === 'md' ? 64 : size === 'lg' ? '128' : 32
   return `<svg width="${sizeNum}" height="${sizeNum}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z" opacity=".25"/><path d="M10.72,19.9a8,8,0,0,1-6.5-9.79A7.77,7.77,0,0,1,10.4,4.16a8,8,0,0,1,9.49,6.52A1.54,1.54,0,0,0,21.38,12h.13a1.37,1.37,0,0,0,1.38-1.54,11,11,0,1,0-12.7,12.39A1.54,1.54,0,0,0,12,21.34h0A1.47,1.47,0,0,0,10.72,19.9Z"><animateTransform attributeName="transform" type="rotate" dur="0.75s" values="0 12 12;360 12 12" repeatCount="indefinite"/></path></svg>`
 }
@@ -167,7 +166,7 @@ const renderFolderObjectPreview = (
 
   const currentVersionMetadata =
     folderObject.hash && folderObject.contentMetadata[folderObject.hash]
-      ? folderObject.contentMetadata[folderObject.hash] ?? {}
+      ? (folderObject.contentMetadata[folderObject.hash] ?? {})
       : {}
 
   const getDataResult =
@@ -466,8 +465,7 @@ const removeTileSequence = (
   nodesToRemove
     .filter((n) => !!n)
     .forEach((n) => {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      container.removeChild(n!)
+      container.removeChild(n)
     })
 }
 
@@ -570,6 +568,7 @@ export const FolderDetailScreen = () => {
   const router = useRouter()
   const [isResizing, setIsResizing] = React.useState(false)
   // const [_folderWebsocket, setFolderWebsocket] = React.useState<Socket>()
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_shareModalOpen, setShareModalOpen] = React.useState(false)
 
   const [refreshFolderConfirmationOpen, setRefreshFolderConfirmationOpen] =
@@ -583,6 +582,7 @@ export const FolderDetailScreen = () => {
   const [focusedObjectKey, setFocusedObjectKey] = React.useState<string>()
   const focusedObjectKeyRef = React.useRef<string>()
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
 
   const [pageState, setPageState] = React.useState<{
@@ -634,7 +634,7 @@ export const FolderDetailScreen = () => {
       setSurroundingFocusedContext({ next: index + 1, previous: index - 1 })
       void router.push(
         {
-          pathname: `/folders/${router.query.folderId}/${encodeURIComponent(
+          pathname: `/folders/${router.query.folderId as string}/${encodeURIComponent(
             objectKey,
           )}`,
         },
@@ -646,7 +646,8 @@ export const FolderDetailScreen = () => {
   )
 
   const handleScroll = React.useCallback(
-    (_e?: React.UIEvent) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    (e?: React.UIEvent) => {
       // console.log('handleScroll', folderObjects.current.totalCount)
       if (isResizing) {
         return
@@ -906,7 +907,7 @@ export const FolderDetailScreen = () => {
   )
 
   const messageHandler = React.useCallback(
-    (name: FolderPushMessage, payload: { [key: string]: any }) => {
+    (name: FolderPushMessage, payload: unknown) => {
       if (
         [
           FolderPushMessage.OBJECTS_ADDED,
@@ -1004,6 +1005,7 @@ export const FolderDetailScreen = () => {
     [windowDimensions.innerWidth, windowDimensions.innerHeight],
   )
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_fetch, _cancel] = useDebounce(
     () => {
       if (!focusedObjectKey) {
@@ -1037,7 +1039,8 @@ export const FolderDetailScreen = () => {
   }, [router.query.objectKey, fetchFolderObjects, handleScroll])
 
   const startOrContinueFolderRefresh = React.useCallback(
-    (_t?: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    (t?: string) => {
       if (folderContext.folderMetadata) {
         void apiClient.foldersApi.rescanFolder({
           folderId: folderContext.folderId,
@@ -1058,18 +1061,22 @@ export const FolderDetailScreen = () => {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleShareClick = React.useCallback(() => {
     setShareModalOpen(true)
   }, [])
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _handleShareClose = React.useCallback(() => {
     setShareModalOpen(false)
   }, [])
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _handleRecalculateLocalStorage = async () => {
     await recalculateLocalStorageFolderSizes()
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _handlePurgeLocalStorage = async () => {
     await purgeLocalStorageForFolder(folderContext.folderId)
   }
@@ -1094,7 +1101,8 @@ export const FolderDetailScreen = () => {
     setUploadOpen(true)
   }, [])
 
-  const _handleSearchValueUpdate = (value?: string | undefined) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _handleSearchValueUpdate = (value?: string) => {
     setSearchTerm(value)
     setObjectsViewContext(undefined)
     setPageState((s) => ({ ...s, search: value }))

@@ -37,7 +37,7 @@ export enum TaskSort {
 @Injectable()
 export class TaskService {
   get appSocketService(): AppSocketService {
-    return this._appSocketService
+    return this._appSocketService as AppSocketService
   }
   constructor(
     private readonly ormService: OrmService,

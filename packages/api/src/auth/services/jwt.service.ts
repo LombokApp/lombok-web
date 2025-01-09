@@ -41,7 +41,7 @@ export class AuthTokenParseError extends Error {
   readonly details
 
   constructor(
-    readonly token: any,
+    readonly token: unknown,
     failure: r.Failure,
   ) {
     super()

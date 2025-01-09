@@ -4,8 +4,8 @@ import { userStorageProvisionsTableColumns } from './user-storage-provisions-tab
 
 export function UserStorageProvisionsTable({
   userStorageProvisions,
-  onEdit,
-  onDelete,
+  // onEdit,
+  // onDelete,
 }: {
   userStorageProvisions: UserStorageProvisionDTO[]
   onEdit: (l: UserStorageProvisionDTO) => void

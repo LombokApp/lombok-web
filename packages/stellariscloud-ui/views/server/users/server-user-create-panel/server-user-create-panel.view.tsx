@@ -42,7 +42,7 @@ export function ServerUserCreatePanel({
   const handleCancelClick = React.useCallback(() => {
     setUserObject(buildInitialUserObject())
     onCancel()
-  }, [])
+  }, [onCancel])
 
   return (
     <div

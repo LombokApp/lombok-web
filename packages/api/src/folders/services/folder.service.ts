@@ -145,10 +145,10 @@ export class FolderService {
   eventService: EventService
   appService: AppService
   get folderSocketService(): FolderSocketService {
-    return this._folderSocketService
+    return this._folderSocketService as FolderSocketService
   }
   get coreTaskService(): CoreTaskService {
-    return this._coreTaskService
+    return this._coreTaskService as CoreTaskService
   }
 
   constructor(
@@ -471,7 +471,7 @@ export class FolderService {
   }
 
   async getFolderMetadata(actor: User, folderId: string) {
-    const _folder = await this.getFolderAsUser(actor, folderId)
+    const { folder } = await this.getFolderAsUser(actor, folderId)
 
     const folderMetadata = await this.ormService.db
       .select({
@@ -481,7 +481,7 @@ export class FolderService {
         >`sum(${folderObjectsTable.sizeBytes})`,
       })
       .from(folderObjectsTable)
-      .where(eq(folderObjectsTable.folderId, folderId))
+      .where(eq(folderObjectsTable.folderId, folder.id))
 
     return {
       totalCount: parseInt(folderMetadata[0].totalCount ?? '0', 10),
@@ -499,10 +499,10 @@ export class FolderService {
       folderId: string
     },
   ) {
-    const _folder = await this.getFolderAsUser(actor, folderId)
+    const { folder } = await this.getFolderAsUser(actor, folderId)
     const obj = await this.ormService.db.query.folderObjectsTable.findFirst({
       where: and(
-        eq(folderObjectsTable.folderId, folderId),
+        eq(folderObjectsTable.folderId, folder.id),
         eq(folderObjectsTable.objectKey, objectKey),
       ),
     })
@@ -644,8 +644,13 @@ export class FolderService {
             objectKey: absoluteObjectKey,
             expirySeconds: 3600,
           }
-        } catch (e: any) {
-          if (e.constructor.name === 'BadObjectIdentifierError') {
+        } catch (e: unknown) {
+          if (
+            e &&
+            typeof e === 'object' &&
+            'constructor' in e &&
+            e.constructor.name === 'BadObjectIdentifierError'
+          ) {
             throw new FolderLocationNotFoundException()
           }
           throw e
@@ -716,6 +721,7 @@ export class FolderService {
           continue
         }
         if (obj.size > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           _contentCount++
           // console.log('Trying to update key metadata [%s]:', objectKey, obj)
           await this.updateFolderObjectInDB(folder.id, objectKey, obj)
@@ -792,10 +798,11 @@ export class FolderService {
       folderId: string
       appIdentifier: string
       taskKey: string
-      inputParams: any // TODO: improve
+      inputParams: unknown // TODO: improve
       objectKey?: string
     },
   ): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _folderAndPermissions = await this.getFolderAsUser(actor, folderId)
     // console.log('Handling Action:', {
     //   taskKey,
@@ -860,7 +867,7 @@ export class FolderService {
             mediaType: extension
               ? mediaTypeFromExtension(extension)
               : MediaType.Unknown,
-            mimeType: extension ? mime.getType(extension) ?? '' : '',
+            mimeType: extension ? (mime.getType(extension) ?? '') : '',
             createdAt: now,
             updatedAt: now,
           })

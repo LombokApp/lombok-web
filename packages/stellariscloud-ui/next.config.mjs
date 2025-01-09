@@ -5,6 +5,7 @@ const APP_ENV = process.env.NEXT_PUBLIC_BACKEND_ENV || 'live'
 import dotenv from 'dotenv'
 
 dotenv.config({
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-base-to-string
   path: `./config/.env.${APP_ENV}`,
 })
 
@@ -68,11 +69,13 @@ export default {
     esmExternals: true,
   },
   webpack: (config) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     config.module.rules.push({
       test: /\.svg$/,
       use: [{ loader: '@svgr/webpack', options: { typescript: true } }],
     })
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return config
   },
   env,

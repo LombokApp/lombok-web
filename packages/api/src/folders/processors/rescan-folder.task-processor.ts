@@ -13,7 +13,7 @@ export class RescanFolderProcessor<
   private readonly folderService: FolderService
   constructor(@Inject(forwardRef(() => FolderService)) _folderService) {
     super(CoreTaskName.RESCAN_FOLDER)
-    this.folderService = _folderService
+    this.folderService = _folderService as FolderService
   }
 
   async run(data: K) {

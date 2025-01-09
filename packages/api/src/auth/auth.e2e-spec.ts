@@ -18,7 +18,7 @@ describe('Auth', () => {
   })
 
   it(`POST /api/v1/auth/signup`, async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unused-vars
     const _response = await request(testModule?.app.getHttpServer())
       .post('/api/v1/auth/signup')
       .send({
@@ -40,7 +40,7 @@ describe('Auth', () => {
   })
 
   it(`POST /api/v1/auth/signup (with conflict)`, async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unused-vars
     const _response = await request(testModule?.app.getHttpServer())
       .post('/api/v1/auth/signup')
       .send({
@@ -131,18 +131,18 @@ describe('Auth', () => {
       })
       .expect(201)
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const response = await request(testModule?.app.getHttpServer())
-      .post('/api/v1/auth/login')
-      .send({
+    const response = await apiClient.authApi().login({
+      loginCredentialsDTO: {
         login: 'mekpans',
         password: '123',
-      })
+      },
+    })
 
-    expect(response.statusCode).toEqual(201)
-    expect(response.body.session.user).toBeUndefined()
-    expect(response.body.session.accessToken.length).toBeGreaterThan(0)
-    expect(response.body.session.refreshToken.length).toBeGreaterThan(0)
+    expect(response.status).toEqual(201)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+    expect((response.data.session as any).user).toBeUndefined()
+    expect(response.data.session.accessToken.length).toBeGreaterThan(0)
+    expect(response.data.session.refreshToken.length).toBeGreaterThan(0)
   })
 
   it(`should succeed in fetching viewer with token`, async () => {
@@ -156,28 +156,25 @@ describe('Auth', () => {
       .expect(201)
 
     const {
-      body: {
+      data: {
         session: { accessToken },
       },
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    } = await request(testModule?.app.getHttpServer())
-      .post('/api/v1/auth/login')
-      .send({
+    } = await apiClient.authApi().login({
+      loginCredentialsDTO: {
         login: 'mekpans',
         password: '123',
-      })
+      },
+    })
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const viewerResponse = await request(testModule?.app.getHttpServer())
-      .get('/api/v1/viewer')
-      .auth(accessToken as string, { type: 'bearer' })
-      .send()
+    const viewerResponse = await apiClient
+      .viewerApi({ accessToken })
+      .getViewer()
 
-    expect(viewerResponse.statusCode).toEqual(200)
-    expect(viewerResponse.body.user.username).toEqual('mekpans')
-    expect(viewerResponse.body.user.isAdmin).toEqual(false)
-    expect(viewerResponse.body.user.permissions).toEqual([])
-    expect(viewerResponse.body.user.name).toBeNull()
+    expect(viewerResponse.status).toEqual(200)
+    expect(viewerResponse.data.user.username).toEqual('mekpans')
+    expect(viewerResponse.data.user.isAdmin).toEqual(false)
+    expect(viewerResponse.data.user.permissions).toEqual([])
+    expect(viewerResponse.data.user.name).toBeNull()
   })
 
   it(`should fail in fetching viewer without token`, async () => {

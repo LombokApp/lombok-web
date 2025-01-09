@@ -28,7 +28,7 @@ export function ServerAccessKeyDetailScreen() {
         accessKeyHashId: router.query.accessKeyHashId,
       })
     }
-  }, [router.query.accessKeyHashId])
+  }, [accessKey, fetchAccessKey, router.query.accessKeyHashId])
 
   const handleRotate = React.useCallback(
     async (input: { accessKeyId: string; secretAccessKey: string }) => {
@@ -47,7 +47,7 @@ export function ServerAccessKeyDetailScreen() {
         accessKeyHashId: updatedAccessKey.data.accessKeyHashId,
       })
     },
-    [accessKey, router.query.accessKeyHashId],
+    [fetchAccessKey, router],
   )
 
   return (

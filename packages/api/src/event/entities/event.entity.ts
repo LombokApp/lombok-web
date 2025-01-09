@@ -16,7 +16,7 @@ export const eventsTable = pgTable('events', {
   folderId: text('folderId'),
   level: text('level').notNull().$type<EventLevel>(),
   objectKey: text('objectKey'),
-  data: jsonb('data').$type<any>(),
+  data: jsonb('data').$type<unknown>(),
   createdAt: timestamp('createdAt').notNull(),
 })
 

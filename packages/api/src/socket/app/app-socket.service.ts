@@ -70,13 +70,13 @@ export class AppSocketService {
 
       try {
         // verifies the token using the publicKey we have on file for this app
-        const _verifiedJwt = this.jwtService.verifyAppJWT({
+        this.jwtService.verifyAppJWT({
           appIdentifier,
           publicKey: app.publicKey,
           token: auth.token,
         })
         // console.log('verifiedJwt:', _verifiedJwt)
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.log('SOCKET JWT VERIFY ERROR:', e)
         socket.disconnect(true)
         throw new UnauthorizedException()
@@ -96,43 +96,46 @@ export class AppSocketService {
       )
 
       // register listener for requests from the app
-      socket.on('APP_API', async (message, ack) => {
-        console.log('APP Message Request:', {
-          message,
-          auth,
-          appIdentifier,
-        })
-        const response = await this.appService
-          .handleAppRequest(auth.appWorkerId, appIdentifier, message)
-          .catch((error) => {
-            console.log('Unexpected error during message handling:', {
-              message,
-              error,
+      socket.on(
+        'APP_API',
+        async (message: string, ack: (response: unknown) => void) => {
+          console.log('APP Message Request:', {
+            message,
+            auth,
+            appIdentifier,
+          })
+          const response = await this.appService
+            .handleAppRequest(auth.appWorkerId, appIdentifier, message)
+            .catch((error: unknown) => {
+              console.log('Unexpected error during message handling:', {
+                message,
+                error,
+              })
+              return {
+                error: {
+                  code: '500',
+                  message: 'Unexpected error.',
+                },
+              }
             })
-            return {
-              error: {
-                code: '500',
-                message: 'Unexpected error.',
-              },
-            }
-          })
-        if (response?.error) {
-          console.log('APP Message Error:', {
-            message,
-            auth,
-            appIdentifier,
-            error: response.error,
-          })
-        } else {
-          console.log('APP Message Response:', {
-            message,
-            auth,
-            appIdentifier,
-            response,
-          })
-        }
-        return ack(response)
-      })
+          if (response?.error) {
+            console.log('APP Message Error:', {
+              message,
+              auth,
+              appIdentifier,
+              error: response.error,
+            })
+          } else {
+            console.log('APP Message Response:', {
+              message,
+              auth,
+              appIdentifier,
+              response,
+            })
+          }
+          return ack(response)
+        },
+      )
 
       socket.on('disconnect', () => {
         void this.kvService.ops.del(

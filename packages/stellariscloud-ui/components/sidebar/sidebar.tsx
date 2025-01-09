@@ -13,7 +13,7 @@ import { NextRouter } from 'next/router'
 
 export function Sidebar({
   onSignOut,
-  menuItems,
+  // menuItems,
 }: {
   onSignOut: () => Promise<void>
   authContext: IAuthContext

@@ -6,12 +6,7 @@ import {
 } from '@stellariscloud/api-client'
 import { apiClient } from '../../services/api'
 import { PaginationState, SortingState } from '@tanstack/react-table'
-import {
-  DataTable,
-  Separator,
-  TypographyH2,
-  cn,
-} from '@stellariscloud/ui-toolkit'
+import { DataTable, Separator, TypographyH2 } from '@stellariscloud/ui-toolkit'
 import { userAccessKeysTableColumns } from './user-access-keys-table-columns'
 
 export function UserAccessKeysScreen() {
@@ -43,11 +38,11 @@ export function UserAccessKeysScreen() {
       .then((resp) => {
         setAccessKeys(resp.data)
       })
-  }, [sorting, pagination, filters])
+  }, [sorting, pagination])
 
   React.useEffect(() => {
     void fetchAccessKeys()
-  }, [sorting, pagination, filters])
+  }, [sorting, pagination, filters, fetchAccessKeys])
 
   return (
     <div className="flex flex-1 flex-col container gap-3 self-center">

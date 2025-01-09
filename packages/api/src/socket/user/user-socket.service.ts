@@ -45,11 +45,9 @@ export class UserSocketService {
         } else {
           throw new UnauthorizedException()
         }
-      } catch (e: any) {
-        console.log('SOCKET ERROR:', e)
+      } catch (error: unknown) {
+        console.log('SOCKET ERROR:', error)
         socket.conn.close()
-        // throw e
-        throw e ?? new Error('Undefined error?')
       }
     } else {
       // auth payload does not match expected
@@ -59,7 +57,7 @@ export class UserSocketService {
     }
   }
 
-  sendToUserRoom(userId: string, name: UserPushMessage, msg: any) {
+  sendToUserRoom(userId: string, name: UserPushMessage, msg: unknown) {
     if (this.namespace) {
       this.namespace.to(`user:${userId}`).emit(name, msg)
     } else {

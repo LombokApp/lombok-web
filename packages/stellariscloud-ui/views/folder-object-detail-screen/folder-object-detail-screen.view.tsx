@@ -6,8 +6,6 @@ import {
   FolderPushMessage,
   MediaType,
 } from '@stellariscloud/types'
-import { toMetadataObjectIdentifier } from '@stellariscloud/utils'
-import { useRouter } from 'next/router'
 import React from 'react'
 
 import { ConfirmDeleteModal } from '../../components/confirm-delete-modal/confirm-delete-modal'
@@ -32,6 +30,7 @@ export const FolderObjectDetailScreen = ({
   onNextClick?: () => void
   onPreviousClick?: () => void
 }) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
   const [showDeleteModal, setShowDeleteModal] = React.useState(false)
   const [folderObject, setFolderObject] = React.useState<FolderObjectDTO>()
@@ -43,7 +42,7 @@ export const FolderObjectDetailScreen = ({
   const currentVersionMetadata = React.useMemo(
     () =>
       folderObject?.hash && folderObject.contentMetadata[folderObject.hash]
-        ? folderObject.contentMetadata[folderObject.hash] ?? {}
+        ? (folderObject.contentMetadata[folderObject.hash] ?? {})
         : {},
     [folderObject?.contentMetadata, folderObject?.hash],
   )
@@ -75,8 +74,6 @@ export const FolderObjectDetailScreen = ({
     )
   }, [folderObject?.sizeBytes])
 
-  const { getData } = useLocalFileCacheContext()
-
   const fetchKeyMetadata = React.useCallback(() => {
     void apiClient.foldersApi
       .getFolderObject({ folderId, objectKey })
@@ -97,13 +94,14 @@ export const FolderObjectDetailScreen = ({
   }
 
   const messageHandler = React.useCallback(
-    (name: FolderPushMessage, payload: { [key: string]: any }) => {
+    (name: FolderPushMessage, payload: unknown) => {
       if (
         [
           FolderPushMessage.OBJECT_UPDATED,
           FolderPushMessage.OBJECTS_REMOVED,
         ].includes(name) &&
-        payload.objectKey === objectKey
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+        (payload as any).objectKey === objectKey
       ) {
         setFolderObject(payload as FolderObjectDTO)
       }
@@ -143,25 +141,6 @@ export const FolderObjectDetailScreen = ({
   React.useEffect(() => {
     fetchKeyMetadata()
   }, [fetchKeyMetadata])
-
-  const router = useRouter()
-  const [objectThumbnailData, setObjectThumbnailData] = React.useState<string>()
-
-  React.useEffect(() => {
-    if (
-      folderObject?.hash &&
-      folderObject.contentMetadata[folderObject.hash]?.thumbnailSm?.hash
-    ) {
-      const metadataObjectIdentifier = toMetadataObjectIdentifier(
-        objectKey,
-        folderObject.contentMetadata[folderObject.hash]?.thumbnailSm?.hash ??
-          '',
-      )
-      void getData(folderId, metadataObjectIdentifier).then((data) => {
-        setObjectThumbnailData(data?.dataURL)
-      })
-    }
-  }, [folderId, folderObject, getData, objectKey])
 
   return (
     <>

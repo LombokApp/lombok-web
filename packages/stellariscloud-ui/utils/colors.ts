@@ -27,7 +27,7 @@ export function invertColour(hex: string, bw: boolean = true) {
   if (hex.length !== 6) {
     throw new Error('Invalid HEX color.')
   }
-  var r = parseInt(hex.slice(0, 2), 16),
+  const r = parseInt(hex.slice(0, 2), 16),
     g = parseInt(hex.slice(2, 4), 16),
     b = parseInt(hex.slice(4, 6), 16)
   if (bw) {

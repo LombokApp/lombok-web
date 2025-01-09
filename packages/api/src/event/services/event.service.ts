@@ -33,11 +33,11 @@ export enum EventSort {
 @Injectable()
 export class EventService {
   get folderSocketService(): FolderSocketService {
-    return this._folderSocketService
+    return this._folderSocketService as FolderSocketService
   }
 
   get appService(): AppService {
-    return this._appService
+    return this._appService as AppService
   }
 
   constructor(
@@ -57,7 +57,7 @@ export class EventService {
   }: {
     emitterIdentifier: string // "CORE" for internally emitted events, and "APP:<appIdentifier>" for app emitted events
     eventKey: CoreEvent | string
-    data: any
+    data: unknown
     level: EventLevel
     locationContext?: { folderId: string; objectKey?: string }
     userId?: string

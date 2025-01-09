@@ -23,7 +23,7 @@ export class CoreTaskService {
   draining = false
 
   get folderSocketService(): FolderSocketService {
-    return this._folderSocketService
+    return this._folderSocketService as FolderSocketService
   }
   constructor(
     private readonly ormService: OrmService,
@@ -38,8 +38,8 @@ export class CoreTaskService {
       }
       this.draining = true
       await this._drainCoreTasks()
-    } catch (error) {
-      // console.log('Error draining core tasks. Error', error)
+    } catch (error: unknown) {
+      console.log('Error draining core tasks. Error', error)
     } finally {
       this.draining = false
     }
