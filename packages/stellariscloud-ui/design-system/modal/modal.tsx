@@ -1,5 +1,5 @@
+import { cn } from '@stellariscloud/ui-toolkit'
 import { Dialog, Transition } from '@headlessui/react'
-import clsx from 'clsx'
 import React from 'react'
 
 export function Modal({
@@ -54,7 +54,7 @@ export function Modal({
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel
-                className={clsx(
+                className={cn(
                   'relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-900 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6',
                   'min-w-[40rem]',
                 )}

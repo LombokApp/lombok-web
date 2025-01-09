@@ -18,7 +18,7 @@ describe('Viewer', () => {
       session: { accessToken },
     } = await createTestUser(testModule, {
       username: 'testuser',
-      password: '123',
+      password: '123' ,
     })
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

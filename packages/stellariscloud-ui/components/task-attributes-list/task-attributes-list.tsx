@@ -1,5 +1,5 @@
 import { AccessKeyDTO } from '@stellariscloud/api-client'
-import clsx from 'clsx'
+import { cn } from '@stellariscloud/ui-toolkit'
 
 const ROW_SPACING = 'px-4 py-3'
 const LABEL_TEXT_COLOR = 'text-gray-500 dark:text-white'
@@ -10,18 +10,13 @@ export function TaskAttributeList({ accessKey }: { accessKey?: AccessKeyDTO }) {
     <div className="bg-gray-200 dark:bg-transparent rounded-lg dark:rounded-none pl-4">
       <dl className="divide-y divide-white/10">
         <div
-          className={clsx(
-            'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
-            ROW_SPACING,
-          )}
+          className={cn('sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0', ROW_SPACING)}
         >
-          <dt
-            className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
-          >
+          <dt className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}>
             Domain
           </dt>
           <dd
-            className={clsx(
+            className={cn(
               'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
               VALUE_TEXT_COLOR,
             )}
@@ -34,18 +29,13 @@ export function TaskAttributeList({ accessKey }: { accessKey?: AccessKeyDTO }) {
           </dd>
         </div>
         <div
-          className={clsx(
-            'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
-            ROW_SPACING,
-          )}
+          className={cn('sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0', ROW_SPACING)}
         >
-          <dt
-            className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
-          >
+          <dt className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}>
             Access Key ID
           </dt>
           <dd
-            className={clsx(
+            className={cn(
               'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
               VALUE_TEXT_COLOR,
             )}
@@ -54,18 +44,13 @@ export function TaskAttributeList({ accessKey }: { accessKey?: AccessKeyDTO }) {
           </dd>
         </div>
         <div
-          className={clsx(
-            'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
-            ROW_SPACING,
-          )}
+          className={cn('sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0', ROW_SPACING)}
         >
-          <dt
-            className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
-          >
+          <dt className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}>
             Secret Access Key
           </dt>
           <dd
-            className={clsx(
+            className={cn(
               'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
               VALUE_TEXT_COLOR,
             )}
@@ -74,18 +59,13 @@ export function TaskAttributeList({ accessKey }: { accessKey?: AccessKeyDTO }) {
           </dd>
         </div>
         <div
-          className={clsx(
-            'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
-            ROW_SPACING,
-          )}
+          className={cn('sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0', ROW_SPACING)}
         >
-          <dt
-            className={clsx('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
-          >
+          <dt className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}>
             Folder Count
           </dt>
           <dd
-            className={clsx(
+            className={cn(
               'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
               VALUE_TEXT_COLOR,
             )}

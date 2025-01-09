@@ -1,12 +1,11 @@
 import type { UserDTO } from '@stellariscloud/api-client'
 import type { NullablePartial } from '@stellariscloud/utils'
-import clsx from 'clsx'
 import React from 'react'
 
 import type { ProfileUserFormValues } from '../../components/profile-user-form/profile-user-form'
 import { ProfileUserForm } from '../../components/profile-user-form/profile-user-form'
 import { apiClient } from '../../services/api'
-import { Button, TypographyH2 } from '@stellariscloud/ui-toolkit'
+import { Button, TypographyH2, cn } from '@stellariscloud/ui-toolkit'
 
 export function UserProfileScreen() {
   const [user, setUser] = React.useState<UserDTO>()
@@ -35,7 +34,7 @@ export function UserProfileScreen() {
   }, [userFormState])
 
   return (
-    <div className={clsx('items-center flex flex-1 flex-col h-full')}>
+    <div className={cn('items-center flex flex-1 flex-col h-full')}>
       <div className="container flex-1 flex flex-col">
         <div className="p-4">
           <TypographyH2>

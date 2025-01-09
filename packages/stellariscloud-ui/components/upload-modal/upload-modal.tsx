@@ -1,8 +1,7 @@
-import clsx from 'clsx'
 import React from 'react'
 import type { FileRejection } from 'react-dropzone'
 
-import { Button } from '@stellariscloud/ui-toolkit'
+import { Button, cn } from '@stellariscloud/ui-toolkit'
 import { Modal } from '../../design-system/modal/modal'
 import { FolderUploadDropzone } from '../../views/folder-upload-dropzone/folder-upload-dropzone.view'
 import { ProgressBar } from '../progress-bar/progress-bar'
@@ -32,7 +31,7 @@ export const UploadModal = ({
 
   return (
     <Modal title="Upload files" onClose={onCancel} disableClose>
-      <div className={clsx('flex gap-4 justify-between rounded-md p-4 w-full')}>
+      <div className={cn('flex gap-4 justify-between rounded-md p-4 w-full')}>
         <div className="flex flex-col gap-4 p-6 w-full">
           <div className="flex flex-col gap-4 w-full">
             <FolderUploadDropzone onDrop={onDrop} />

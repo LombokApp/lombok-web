@@ -1,4 +1,4 @@
-import clsx from 'clsx'
+import { cn } from '@stellariscloud/ui-toolkit'
 
 interface VideoPlayerProps {
   width: string
@@ -23,7 +23,7 @@ export const VideoPlayer = ({
 }: VideoPlayerProps) => {
   return (
     <div
-      className={clsx(
+      className={cn(
         'flex flex-1',
         grayscale && 'ease-in-out duration-200 grayscale hover:grayscale-0',
       )}

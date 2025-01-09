@@ -1,11 +1,11 @@
-import type { AccessKeyDTO, EventDTO } from '@stellariscloud/api-client'
-import clsx from 'clsx'
+import type { AccessKeyDTO } from '@stellariscloud/api-client'
 import { useRouter } from 'next/router'
 import React from 'react'
 
 import { apiClient } from '../../../../../../services/api'
 import { AccessKeyAttributeList } from '../../../../../../components/access-key-attribute-list/access-key-attributes-list'
 import { AccessKeyRotateForm } from '../../../../../../components/access-key-rotate-form/access-key-rotate-form'
+import { cn } from '@stellariscloud/ui-toolkit'
 
 export function ServerAccessKeyDetailScreen() {
   const router = useRouter()
@@ -33,7 +33,7 @@ export function ServerAccessKeyDetailScreen() {
   const handleRotate = React.useCallback(
     async (input: { accessKeyId: string; secretAccessKey: string }) => {
       const updatedAccessKey =
-        await apiClient.serverAccessKeysApi.rotateAccessKey({
+        await apiClient.serverAccessKeysApi.rotateServerAccessKey({
           accessKeyHashId: router.query.accessKeyHashId as string,
           rotateAccessKeyInputDTO: {
             accessKeyId: input.accessKeyId,
@@ -53,7 +53,7 @@ export function ServerAccessKeyDetailScreen() {
   return (
     <>
       <div
-        className={clsx(
+        className={cn(
           'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto px-4',
         )}
       >

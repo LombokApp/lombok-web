@@ -22,7 +22,6 @@ import {
   mediaTypeFromMimeType,
   toMetadataObjectIdentifier,
 } from '@stellariscloud/utils'
-import clsx from 'clsx'
 import Image from 'next/image'
 import React from 'react'
 
@@ -34,7 +33,7 @@ import { FolderDTO, TaskDTO } from '@stellariscloud/api-client'
 import { FolderObjectDTO } from '@stellariscloud/api-client'
 import { FolderGetResponse } from '@stellariscloud/api-client'
 import { useServerContext } from '../../contexts/server.context'
-import { Button, Card } from '@stellariscloud/ui-toolkit'
+import { Button, Card, cn } from '@stellariscloud/ui-toolkit'
 import { ActionsList } from '../../components/actions-list/actions-list.component'
 import { TasksList } from '../../components/tasks-list/tasks-list.component'
 
@@ -153,7 +152,7 @@ export const FolderObjectSidebar = ({
                   <span className="sr-only">Path</span>
                   <Icon icon={GlobeAltIcon} size="md" />
                 </dt>
-                <dd className={clsx('text-sm leading-6 overflow-hidden')}>
+                <dd className={cn('text-sm leading-6 overflow-hidden')}>
                   {folder.contentLocation.endpoint}
                   {folder.contentLocation.endpoint.endsWith('/') ? '' : '/'}
                   {folder.contentLocation.bucket}
@@ -169,7 +168,7 @@ export const FolderObjectSidebar = ({
                     <span className="sr-only">Hash</span>
                     <Icon icon={HashtagIcon} size="md" />
                   </dt>
-                  <dd className={clsx('text-sm leading-6')}>
+                  <dd className={cn('text-sm leading-6')}>
                     {folderObject.hash}
                   </dd>
                 </div>
@@ -179,14 +178,14 @@ export const FolderObjectSidebar = ({
                   <span className="sr-only">Folder</span>
                   <Icon icon={FolderIcon} size="md" />
                 </dt>
-                <dd className={clsx('text-sm leading-6')}>{folder.name}</dd>
+                <dd className={cn('text-sm leading-6')}>{folder.name}</dd>
               </div>
               <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
                 <dt className="flex-none flex">
                   <span className="sr-only">Size</span>
                   <Icon icon={CubeIcon} size="md" />
                 </dt>
-                <dd className={clsx('text-sm leading-6')}>
+                <dd className={cn('text-sm leading-6')}>
                   {`${formatBytes(folderObject.sizeBytes)}`}{' '}
                   <span className="font-mono">{`(${folderObject.sizeBytes.toLocaleString()} bytes)`}</span>
                 </dd>
@@ -197,7 +196,7 @@ export const FolderObjectSidebar = ({
                     <span className="sr-only">Dimensions</span>
                     <Icon icon={TvIcon} size="md" />
                   </dt>
-                  <dd className={clsx('text-sm leading-6')}>
+                  <dd className={cn('text-sm leading-6')}>
                     {attributes.width} x {attributes.height}
                   </dd>
                 </div>
@@ -223,7 +222,7 @@ export const FolderObjectSidebar = ({
                       size="md"
                     />
                   </dt>
-                  <dd className={clsx('text-sm leading-6')}>
+                  <dd className={cn('text-sm leading-6')}>
                     {attributes.mimeType}
                   </dd>
                 </div>
@@ -232,7 +231,7 @@ export const FolderObjectSidebar = ({
             <div className="text-xs p-4 py-1">
               {folderObject.hash && (
                 <div>
-                  <div className={clsx('pt-4 text-lg font-semibold')}>
+                  <div className={cn('pt-4 text-lg font-semibold')}>
                     Metadata
                   </div>
                   <ul>
@@ -269,7 +268,7 @@ export const FolderObjectSidebar = ({
                               }
                               <div className="min-w-0 flex-auto">
                                 <p
-                                  className={clsx(
+                                  className={cn(
                                     'text-sm font-medium leading-6',
                                   )}
                                 >
@@ -279,7 +278,7 @@ export const FolderObjectSidebar = ({
                                   </span>
                                 </p>
                                 <p
-                                  className={clsx(
+                                  className={cn(
                                     'truncate text-xs leading-5',
                                     'text-sm font-semibold ',
                                   )}
@@ -340,7 +339,7 @@ export const FolderObjectSidebar = ({
                             </div>
                           </div>
                           {focusedMetadata === metadataKey && (
-                            <div className={clsx('w-full')}>
+                            <div className={cn('w-full')}>
                               {mediaType === MediaType.Document && (
                                 <pre className="">
                                   {metadataContent[metadataKey] &&

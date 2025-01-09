@@ -1,5 +1,4 @@
 import React from 'react'
-import clsx from 'clsx'
 import Image from 'next/image'
 import { LayoutGrid } from 'lucide-react'
 import {
@@ -9,6 +8,7 @@ import {
   TabsList,
   TabsTrigger,
   TypographyH2,
+  cn,
 } from '@stellariscloud/ui-toolkit'
 import {
   ChartLine,
@@ -35,7 +35,7 @@ import { ServerTasksScreen } from '../../tasks/server-tasks-screen/server-tasks-
 export function ServerScreen({ serverPage }: { serverPage: string[] }) {
   const router = useRouter()
   return (
-    <div className={clsx('items-center flex flex-1 flex-col h-full ')}>
+    <div className={cn('items-center flex flex-1 flex-col h-full ')}>
       <div className="container flex-1 flex flex-col">
         <div className="md:hidden">
           <Image

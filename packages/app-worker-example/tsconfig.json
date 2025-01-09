@@ -17,7 +17,7 @@
     "src",
     "index.ts",
     "index.d.ts",
-    ".eslintrc.js",
+    "eslint.config.js",
     "rollup.config.js"
   ],
   "exclude": ["dist"]

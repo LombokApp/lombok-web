@@ -1,5 +1,4 @@
 import type { UserDTO } from '@stellariscloud/api-client'
-import clsx from 'clsx'
 import React from 'react'
 import { Edit, Folders, HandshakeIcon, HardDrive, KeyIcon } from 'lucide-react'
 import { v4 as uuidV4 } from 'uuid'
@@ -16,6 +15,7 @@ import {
   CardTitle,
   DataTable,
   DataTableColumnHeader,
+  cn,
 } from '@stellariscloud/ui-toolkit'
 
 const DUMMY_UUID = uuidV4()
@@ -44,7 +44,7 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
   return (
     <>
       <div
-        className={clsx(
+        className={cn(
           'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
         )}
       >

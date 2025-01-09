@@ -1,5 +1,4 @@
 import type { TaskDTO } from '@stellariscloud/api-client'
-import clsx from 'clsx'
 import React from 'react'
 
 import { apiClient } from '../../../../services/api'
@@ -10,6 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  cn,
 } from '@stellariscloud/ui-toolkit'
 import { ServerTaskAttributesList } from '../../../../components/server-task-attributes-list/server-task-attributes-list'
 
@@ -25,7 +25,7 @@ export function ServerTaskDetailScreen({ taskId }: { taskId: string }) {
 
   return (
     <>
-      <div className={clsx('items-center flex flex-1 flex-col gap-6 h-full')}>
+      <div className={cn('items-center flex flex-1 flex-col gap-6 h-full')}>
         <div className="container flex-1 flex flex-col gap-4">
           <Card className="border-0 bg-transparent">
             <CardHeader className="p-0 pb-4">

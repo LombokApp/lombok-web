@@ -1,5 +1,4 @@
 import type { EventDTO } from '@stellariscloud/api-client'
-import clsx from 'clsx'
 import React from 'react'
 
 import { apiClient } from '../../../../services/api'
@@ -10,6 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  cn,
 } from '@stellariscloud/ui-toolkit'
 
 export function ServerEventDetailScreen({ eventId }: { eventId: string }) {
@@ -24,7 +24,7 @@ export function ServerEventDetailScreen({ eventId }: { eventId: string }) {
 
   return (
     <>
-      <div className={clsx('items-center flex flex-1 flex-col gap-6 h-full')}>
+      <div className={cn('items-center flex flex-1 flex-col gap-6 h-full')}>
         <div className="container flex-1 flex flex-col gap-4">
           <Card className="border-0 bg-transparent">
             <CardHeader className="p-0 pb-4">

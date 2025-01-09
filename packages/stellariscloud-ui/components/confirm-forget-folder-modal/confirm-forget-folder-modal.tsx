@@ -1,7 +1,6 @@
-import clsx from 'clsx'
 import React from 'react'
 
-import { Button } from '@stellariscloud/ui-toolkit'
+import { Button, cn } from '@stellariscloud/ui-toolkit'
 import { Modal } from '../../design-system/modal/modal'
 
 export const ConfirmForgetFolderModal = ({
@@ -14,7 +13,7 @@ export const ConfirmForgetFolderModal = ({
   return (
     <Modal title="Delete folder" onClose={onCancel}>
       <div
-        className={clsx(
+        className={cn(
           'flex gap-4 justify-between rounded-md p-4 bg-secondary hover:bg-secondary-focus',
         )}
       >

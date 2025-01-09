@@ -1,11 +1,10 @@
 import type { UserCreateInputDTO } from '@stellariscloud/api-client'
-import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import React from 'react'
 
 import type { UserInput } from '../../../../components/server-user-form/server-user-form'
 import { ServerUserForm } from '../../../../components/server-user-form/server-user-form'
-import { Button } from '@stellariscloud/ui-toolkit'
+import { Button, cn } from '@stellariscloud/ui-toolkit'
 import { apiClient } from '../../../../services/api'
 
 const buildInitialUserObject = () => {
@@ -47,7 +46,7 @@ export function ServerUserCreatePanel({
 
   return (
     <div
-      className={clsx(
+      className={cn(
         'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
       )}
     >

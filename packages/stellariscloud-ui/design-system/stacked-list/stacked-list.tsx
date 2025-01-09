@@ -1,4 +1,4 @@
-import clsx from 'clsx'
+import { cn } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 
 export function StackedList({
@@ -9,8 +9,8 @@ export function StackedList({
   className?: string
 }) {
   return (
-    <div className={clsx('w-full', className)}>
-      <div className={clsx('overflow-hidden', 'flex flex-col gap-4')}>
+    <div className={cn('w-full', className)}>
+      <div className={cn('overflow-hidden', 'flex flex-col gap-4')}>
         {items.map((item, i) => (
           <div
             className="border border-foreground/5 bg-foreground/[.03] rounded-md text-sm font-bold"

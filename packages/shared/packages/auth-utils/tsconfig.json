@@ -18,6 +18,6 @@
     "jsx": "react-jsx",
     "outDir": "dist"
   },
-  "include": [".", "index.ts", ".eslintrc.js"],
+  "include": [".", "index.ts", "eslint.config.js"],
   "exclude": ["dist"]
 }

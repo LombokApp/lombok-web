@@ -1,10 +1,10 @@
 import { Menu, Transition } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
-import clsx from 'clsx'
 import React from 'react'
 
 import type { IconProps } from '../icon'
 import { Icon } from '../icon'
+import { cn } from '@stellariscloud/ui-toolkit'
 
 interface Item {
   name: string
@@ -64,7 +64,7 @@ export function ButtonDropdown({
                           item.onClick(e as React.MouseEvent<HTMLButtonElement>)
                         }
                       }}
-                      className={clsx(
+                      className={cn(
                         'w-full',
                         active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                         'w-full block px-4 py-2 text-sm',

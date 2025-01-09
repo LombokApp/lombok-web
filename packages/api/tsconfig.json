@@ -26,8 +26,6 @@
     "src/**/*.json",
     "script/*.ts",
     "test/**/*.ts",
-    "babel.config.js",
-    "jest.config.ts",
-    ".eslintrc.js"
+    "eslint.config.ts"
   ]
 }

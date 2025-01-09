@@ -1,6 +1,5 @@
-import clsx from 'clsx'
 import { AppDTO } from '@stellariscloud/api-client'
-import { Badge, Card, CardContent } from '@stellariscloud/ui-toolkit'
+import { cn, Badge, Card, CardContent } from '@stellariscloud/ui-toolkit'
 
 const LABEL_TEXT_COLOR = 'opacity-50'
 const VALUE_TEXT_COLOR = ''
@@ -12,21 +11,18 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
       <CardContent>
         <dl className="divide-y divide-white/10">
           <div
-            className={clsx(
+            className={cn(
               'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
               ROW_SPACING,
             )}
           >
             <dt
-              className={clsx(
-                'text-sm font-medium leading-6',
-                LABEL_TEXT_COLOR,
-              )}
+              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
               Identifier
             </dt>
             <dd
-              className={clsx(
+              className={cn(
                 'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
                 VALUE_TEXT_COLOR,
               )}
@@ -39,21 +35,18 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
             </dd>
           </div>
           <div
-            className={clsx(
+            className={cn(
               'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
               ROW_SPACING,
             )}
           >
             <dt
-              className={clsx(
-                'text-sm font-medium leading-6',
-                LABEL_TEXT_COLOR,
-              )}
+              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
               Description
             </dt>
             <dd
-              className={clsx(
+              className={cn(
                 'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
                 VALUE_TEXT_COLOR,
               )}
@@ -62,21 +55,18 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
             </dd>
           </div>
           <div
-            className={clsx(
+            className={cn(
               'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
               ROW_SPACING,
             )}
           >
             <dt
-              className={clsx(
-                'text-sm font-medium leading-6',
-                LABEL_TEXT_COLOR,
-              )}
+              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
               Public Key
             </dt>
             <dd
-              className={clsx(
+              className={cn(
                 'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
                 VALUE_TEXT_COLOR,
               )}
@@ -87,21 +77,18 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
             </dd>
           </div>
           <div
-            className={clsx(
+            className={cn(
               'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
               ROW_SPACING,
             )}
           >
             <dt
-              className={clsx(
-                'text-sm font-medium leading-6',
-                LABEL_TEXT_COLOR,
-              )}
+              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
               Emit Events
             </dt>
             <dd
-              className={clsx(
+              className={cn(
                 'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
                 VALUE_TEXT_COLOR,
               )}
@@ -122,21 +109,18 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
             </dd>
           </div>
           <div
-            className={clsx(
+            className={cn(
               'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
               ROW_SPACING,
             )}
           >
             <dt
-              className={clsx(
-                'text-sm font-medium leading-6',
-                LABEL_TEXT_COLOR,
-              )}
+              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
               Tasks
             </dt>
             <dd
-              className={clsx(
+              className={cn(
                 'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
                 VALUE_TEXT_COLOR,
               )}

@@ -1,4 +1,4 @@
-import clsx from 'clsx'
+import { cn } from '@stellariscloud/ui-toolkit'
 import { Badge, CardContent } from '@stellariscloud/ui-toolkit'
 import { UserDTO } from '@stellariscloud/api-client'
 import { Card } from '@stellariscloud/ui-toolkit'
@@ -13,21 +13,18 @@ export function UserAttributeList({ user }: { user?: UserDTO }) {
       <CardContent>
         <dl className="divide-y divide-white/10">
           <div
-            className={clsx(
+            className={cn(
               'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
               ROW_SPACING,
             )}
           >
             <dt
-              className={clsx(
-                'text-sm font-medium leading-6',
-                LABEL_TEXT_COLOR,
-              )}
+              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
               Name
             </dt>
             <dd
-              className={clsx(
+              className={cn(
                 'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
                 VALUE_TEXT_COLOR,
               )}
@@ -40,21 +37,18 @@ export function UserAttributeList({ user }: { user?: UserDTO }) {
             </dd>
           </div>
           <div
-            className={clsx(
+            className={cn(
               'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
               ROW_SPACING,
             )}
           >
             <dt
-              className={clsx(
-                'text-sm font-medium leading-6',
-                LABEL_TEXT_COLOR,
-              )}
+              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
               Username
             </dt>
             <dd
-              className={clsx(
+              className={cn(
                 'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
                 VALUE_TEXT_COLOR,
               )}
@@ -63,16 +57,13 @@ export function UserAttributeList({ user }: { user?: UserDTO }) {
             </dd>
           </div>
           <div
-            className={clsx(
+            className={cn(
               'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
               ROW_SPACING,
             )}
           >
             <dt
-              className={clsx(
-                'text-sm font-medium leading-6',
-                LABEL_TEXT_COLOR,
-              )}
+              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
               Admin
             </dt>
@@ -89,21 +80,18 @@ export function UserAttributeList({ user }: { user?: UserDTO }) {
             </dd>
           </div>
           <div
-            className={clsx(
+            className={cn(
               'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
               ROW_SPACING,
             )}
           >
             <dt
-              className={clsx(
-                'text-sm font-medium leading-6',
-                LABEL_TEXT_COLOR,
-              )}
+              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
               Email
             </dt>
             <dd
-              className={clsx(
+              className={cn(
                 'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
                 VALUE_TEXT_COLOR,
               )}
@@ -116,21 +104,18 @@ export function UserAttributeList({ user }: { user?: UserDTO }) {
             </dd>
           </div>
           <div
-            className={clsx(
+            className={cn(
               'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
               ROW_SPACING,
             )}
           >
             <dt
-              className={clsx(
-                'text-sm font-medium leading-6',
-                LABEL_TEXT_COLOR,
-              )}
+              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
               Permissions
             </dt>
             <dd
-              className={clsx(
+              className={cn(
                 'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
                 VALUE_TEXT_COLOR,
               )}
@@ -151,21 +136,18 @@ export function UserAttributeList({ user }: { user?: UserDTO }) {
             </dd>
           </div>
           <div
-            className={clsx(
+            className={cn(
               'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
               ROW_SPACING,
             )}
           >
             <dt
-              className={clsx(
-                'text-sm font-medium leading-6',
-                LABEL_TEXT_COLOR,
-              )}
+              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
               Password
             </dt>
             <dd
-              className={clsx(
+              className={cn(
                 'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
                 VALUE_TEXT_COLOR,
               )}

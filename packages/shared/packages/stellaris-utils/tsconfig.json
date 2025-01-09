@@ -17,6 +17,6 @@
     "isolatedModules": true,
     "outDir": "dist"
   },
-  "include": [".", "index.ts", "index.d.ts", ".eslintrc.js"],
+  "include": [".", "index.ts", "index.d.ts", "eslint.config.js"],
   "exclude": ["dist"]
 }

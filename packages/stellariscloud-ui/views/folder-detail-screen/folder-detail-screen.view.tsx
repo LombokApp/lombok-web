@@ -19,7 +19,6 @@ import {
   mediaTypeFromMimeType,
   VIDEO_MEDIA_MIME_TYPES,
 } from '@stellariscloud/utils'
-import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import React from 'react'
 import useDebounce from 'react-use/lib/useDebounce'
@@ -1299,7 +1298,7 @@ export const FolderDetailScreen = () => {
                   )}
                 </div>
                 <div
-                  className={clsx(
+                  className={cn(
                     'flex pb-2',
                     folderContext.folderMetadata?.totalCount === 0
                       ? 'opacity-0'

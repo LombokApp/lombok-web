@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Ellipsis, LogOut } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 
-import { cn } from '@/utils'
+import { cn } from '@stellariscloud/ui-toolkit'
 import { getMenuList } from '../menu-list'
 import {
   Tooltip,

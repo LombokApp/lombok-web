@@ -1,6 +1,6 @@
 import { PanelLeftClose } from 'lucide-react'
 
-import { cn } from '@/utils'
+import { cn } from '@stellariscloud/ui-toolkit'
 import { Button } from '@stellariscloud/ui-toolkit'
 
 interface SidebarToggleProps {

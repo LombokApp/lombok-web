@@ -4,10 +4,9 @@ import {
   DocumentTextIcon,
   SignalIcon,
 } from '@heroicons/react/24/outline'
-import clsx from 'clsx'
 import React from 'react'
 
-import { Button } from '@stellariscloud/ui-toolkit'
+import { Button, cn } from '@stellariscloud/ui-toolkit'
 
 export type AppsTab = 'config' | 'logs' | 'events' | 'workers'
 
@@ -66,7 +65,7 @@ export function InstalledAppTabs({
               <div key={tab.name} className="group">
                 <Button
                   onClick={() => onChange(tab.name)}
-                  className={clsx(
+                  className={cn(
                     'active',
                     tab.name === activeTab
                       ? 'border-indigo-500 text-indigo-600'
@@ -76,7 +75,7 @@ export function InstalledAppTabs({
                   aria-current={tab.name === activeTab ? 'page' : undefined}
                 >
                   <tab.icon
-                    className={clsx(
+                    className={cn(
                       tab.name === activeTab
                         ? 'text-indigo-500'
                         : 'text-gray-400 dark:text-gray-300 group-hover:text-gray-500',

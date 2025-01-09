@@ -1,5 +1,4 @@
 import type { AppDTO } from '@stellariscloud/api-client'
-import clsx from 'clsx'
 import React from 'react'
 import { HardDrive, KeyIcon, OctagonX } from 'lucide-react'
 
@@ -16,6 +15,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
+  cn,
 } from '@stellariscloud/ui-toolkit'
 import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
 import { serverAppWorkerTableColumns } from './server-app-worker-table-columns'
@@ -37,7 +37,7 @@ export function ServerAppDetailScreen({
   const [showRawConfig, setShowRawConfig] = React.useState(false)
   return (
     <div
-      className={clsx('items-center flex flex-1 flex-col gap-6 h-full w-full')}
+      className={cn('items-center flex flex-1 flex-col gap-6 h-full w-full')}
     >
       <div className="container flex flex-col gap-8">
         <Card className="flex-1 bg-transparent border-0">

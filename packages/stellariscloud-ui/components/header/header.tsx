@@ -1,6 +1,6 @@
 import { ArrowRightIcon, FolderOpenIcon } from '@heroicons/react/24/outline'
 import { useAuthContext } from '@stellariscloud/auth-utils'
-import clsx from 'clsx'
+import { cn } from '@stellariscloud/ui-toolkit'
 import { useRouter } from 'next/dist/client/router'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -61,7 +61,7 @@ export const Header = () => {
               alt="Stellaris cloud logo"
             />
             <div
-              className={clsx(
+              className={cn(
                 'font-bold',
                 router.pathname === '/' && 'text-white',
               )}
@@ -75,7 +75,7 @@ export const Header = () => {
         <ModeToggle />
         {authState.isAuthenticated && (
           <Link href="/folders">
-            <Button size="sm" className={clsx('text-left')}>
+            <Button size="sm" className={cn('text-left')}>
               <FolderOpenIcon />
               Folders
             </Button>
@@ -87,7 +87,7 @@ export const Header = () => {
               {!['/signup', '/'].includes(router.pathname) && (
                 <Button
                   size="sm"
-                  className={clsx('text-left')}
+                  className={cn('text-left')}
                   onClick={(e) => handleLoginSignupClick(e, true)}
                 >
                   <div className="flex items-center gap-2">

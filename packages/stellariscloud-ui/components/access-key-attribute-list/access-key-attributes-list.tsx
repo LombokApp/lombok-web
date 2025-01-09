@@ -1,6 +1,5 @@
-import { Card, CardContent } from '@stellariscloud/ui-toolkit'
+import { Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
 import { AccessKeyDTO } from '@stellariscloud/api-client'
-import clsx from 'clsx'
 
 const ROW_SPACING = 'px-4 py-3'
 const LABEL_TEXT_COLOR = 'opacity-50'
@@ -16,21 +15,18 @@ export function AccessKeyAttributeList({
       <CardContent>
         <dl className="divide-y divide-white/10">
           <div
-            className={clsx(
+            className={cn(
               'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
               ROW_SPACING,
             )}
           >
             <dt
-              className={clsx(
-                'text-sm font-medium leading-6',
-                LABEL_TEXT_COLOR,
-              )}
+              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
               Domain
             </dt>
             <dd
-              className={clsx(
+              className={cn(
                 'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
                 VALUE_TEXT_COLOR,
               )}
@@ -43,21 +39,18 @@ export function AccessKeyAttributeList({
             </dd>
           </div>
           <div
-            className={clsx(
+            className={cn(
               'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
               ROW_SPACING,
             )}
           >
             <dt
-              className={clsx(
-                'text-sm font-medium leading-6',
-                LABEL_TEXT_COLOR,
-              )}
+              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
               Access Key ID
             </dt>
             <dd
-              className={clsx(
+              className={cn(
                 'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
                 VALUE_TEXT_COLOR,
               )}
@@ -66,21 +59,18 @@ export function AccessKeyAttributeList({
             </dd>
           </div>
           <div
-            className={clsx(
+            className={cn(
               'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
               ROW_SPACING,
             )}
           >
             <dt
-              className={clsx(
-                'text-sm font-medium leading-6',
-                LABEL_TEXT_COLOR,
-              )}
+              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
               Secret Access Key
             </dt>
             <dd
-              className={clsx(
+              className={cn(
                 'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
                 VALUE_TEXT_COLOR,
               )}
@@ -89,21 +79,18 @@ export function AccessKeyAttributeList({
             </dd>
           </div>
           <div
-            className={clsx(
+            className={cn(
               'sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0',
               ROW_SPACING,
             )}
           >
             <dt
-              className={clsx(
-                'text-sm font-medium leading-6',
-                LABEL_TEXT_COLOR,
-              )}
+              className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
               Folder Count
             </dt>
             <dd
-              className={clsx(
+              className={cn(
                 'mt-1 text-sm leading-6 sm:col-span-2 sm:mt-0',
                 VALUE_TEXT_COLOR,
               )}

@@ -1,11 +1,10 @@
-import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import React from 'react'
 
 import { apiClient } from '../../../../../../services/api'
 import { UserStorageProvisionDTO } from '@stellariscloud/api-client'
 import { ServerStorageProvisionAttributesList } from '../../../../../../components/server-storage-provision-attributes-list/server-storage-provision-attributes-list'
-import { TypographyH2, TypographyH3 } from '@stellariscloud/ui-toolkit'
+import { TypographyH2, TypographyH3, cn } from '@stellariscloud/ui-toolkit'
 
 export function UserStorageProvisionDetailScreen() {
   const router = useRouter()
@@ -38,7 +37,7 @@ export function UserStorageProvisionDetailScreen() {
       newAccessKey: { accessKeyId: string; secretAccessKey: string },
     ) => {
       void apiClient.serverAccessKeysApi
-        .rotateAccessKey({
+        .rotateServerAccessKey({
           accessKeyHashId,
           rotateAccessKeyInputDTO: {
             accessKeyId: newAccessKey.accessKeyId,
@@ -59,7 +58,7 @@ export function UserStorageProvisionDetailScreen() {
 
   return (
     <>
-      <div className={clsx('p-4 items-center flex flex-1 flex-col h-full')}>
+      <div className={cn('p-4 items-center flex flex-1 flex-col h-full')}>
         <div className="container flex-1 flex flex-col">
           <TypographyH2>
             {`Storage Provision: ${userStorageProvisionId?.label}`}

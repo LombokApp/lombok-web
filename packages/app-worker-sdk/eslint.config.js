@@ -4,6 +4,7 @@ module.exports = {
     '../../../../eslint-config/jest',
     '../../../../eslint-config/strict',
   ],
+  ignores: ['dist'],
   parserOptions: {
     project: './tsconfig.json',
   },

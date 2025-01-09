@@ -14,14 +14,14 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2020,
   },
-
-  extends: [
-    'eslint:recommended',
-    'plugin:promise/recommended',
-    'plugin:sonarjs/recommended',
-    'plugin:regexp/recommended',
-    'plugin:eslint-comments/recommended',
-  ],
+  ignores: ['/.data'],
+  // extends: [
+  //   'eslint:recommended',
+  //   'plugin:promise/recommended',
+  //   'plugin:sonarjs/recommended',
+  //   'plugin:regexp/recommended',
+  //   'plugin:eslint-comments/recommended',
+  // ],
 
   rules: {
     'arrow-parens': ['error', 'always'],
@@ -115,7 +115,7 @@ module.exports = {
           { ignoreArrowShorthand: true },
         ],
         '@typescript-eslint/no-dupe-class-members': 'error',
-        "import/no-duplicates": 'error',
+        'import/no-duplicates': 'error',
         '@typescript-eslint/no-dynamic-delete': 'error',
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/no-extraneous-class': 'error',

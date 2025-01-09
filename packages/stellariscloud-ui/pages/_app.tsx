@@ -2,7 +2,6 @@ import '../styles/globals.css'
 import '../fonts/inter/inter.css'
 
 import { AuthContextProvider, useAuthContext } from '@stellariscloud/auth-utils'
-import clsx from 'clsx'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -33,8 +32,8 @@ const UnauthenticatedContent = ({ Component, pageProps }: AppProps) => {
       <div className="w-full flex shrink-0 grow-0 absolute right-0 top-0 overflow-visible">
         <Header />
       </div>
-      <main className={clsx('flex-1 justify-center overflow-hidden')}>
-        <div className={clsx('relative h-full w-full flex')}>
+      <main className={cn('flex-1 justify-center overflow-hidden')}>
+        <div className={cn('relative h-full w-full flex')}>
           <div className="relative w-full">
             <Component {...pageProps} />
           </div>

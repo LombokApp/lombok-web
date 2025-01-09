@@ -1,4 +1,4 @@
-import clsx from 'clsx'
+import { cn } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 
 export type IconSizeType = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'text'
@@ -21,7 +21,7 @@ export function Icon({ icon, size = 'text', className }: IconProps) {
   return (
     <IconComponent
       aria-hidden="true"
-      className={clsx(
+      className={cn(
         'text-foreground',
         size === 'xs'
           ? 'w-3 h-3'

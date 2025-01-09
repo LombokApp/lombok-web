@@ -1,5 +1,4 @@
 import { removeDuplicates } from '@stellariscloud/utils'
-import clsx from 'clsx'
 import React from 'react'
 
 import { apiClient } from '../../../../services/api'

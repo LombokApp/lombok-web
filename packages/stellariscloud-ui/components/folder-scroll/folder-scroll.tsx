@@ -1,4 +1,4 @@
-import clsx from 'clsx'
+import { cn } from '@stellariscloud/ui-toolkit'
 
 export function FolderScroll({
   viewHeight,
@@ -8,8 +8,8 @@ export function FolderScroll({
   marginTop: number
 }) {
   return (
-    <div className={clsx('h-full', 'bg-foreground/20 rounded-full')}>
-      <div className={clsx('w-4 h-full rounded-full')}>
+    <div className={cn('h-full', 'bg-foreground/20 rounded-full')}>
+      <div className={cn('w-4 h-full rounded-full')}>
         <div
           style={{
             height: `${viewHeight ?? 0}%`,
