@@ -1,4 +1,5 @@
 // lint-staged.config.js
+// eslint-disable-next-line no-undef
 module.exports = {
   // Type check TypeScript files
   '**/*.(ts|tsx)': () => 'yarn tsc --noEmit',

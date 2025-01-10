@@ -8,8 +8,7 @@ import { LogLevel } from './contexts/logging.context'
 import { indexedDb } from './services/indexed-db'
 import { addFileToLocalFileStorage } from './services/local-cache/local-cache.service'
 
-const downloading: { [key: string]: { progressPercent: number } | undefined } =
-  {}
+const downloading: Record<string, { progressPercent: number } | undefined> = {}
 
 // we receive the token updates from the main thread so here we just use the latest reference
 let accessToken = ''
@@ -38,24 +37,25 @@ const isLocal = async (folderId: string, objectIdentifier: string) => {
     ?.result
 }
 
-const recentlyRequested: {
-  [key: string]:
-    | {
-        callbacks?: {
-          resolve: (url: string) => void
-          reject: (e: unknown) => void
-        }
-        promise?: Promise<string>
+const recentlyRequested: Record<
+  string,
+  | {
+      callbacks?: {
+        resolve: (url: string) => void
+        reject: (e: unknown) => void
       }
-    | undefined
-} = {}
+      promise?: Promise<string>
+    }
+  | undefined
+> = {}
 
-const presignedURLBufferContext: {
-  [folderId: string]: {
+const presignedURLBufferContext: Record<
+  string,
+  {
     batchBuffer: string[]
     lastTimeExecuted?: number
   }
-} = {}
+> = {}
 
 const maybeSendBatch = (folderId: string) => {
   const folderBatch =

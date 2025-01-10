@@ -20,7 +20,7 @@ export const FolderDetailSidePanel = ({
   onShareClick?: () => void
   onRecalculateLocalStorage: () => Promise<void>
   onPurgeLocalStorage: () => Promise<void>
-  localStorageFolderSizes: { [folderId: string]: number }
+  localStorageFolderSizes: Record<string, number>
   onForgetFolder?: () => void
   websocketConnected: boolean
 }) => {

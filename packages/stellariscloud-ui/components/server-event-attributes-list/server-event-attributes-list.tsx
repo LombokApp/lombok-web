@@ -140,7 +140,7 @@ export function ServerEventAttributesList({ event }: { event?: EventDTO }) {
                 <div className="flex items-center gap-2">
                   <div
                     className={cn(
-                      'rounded-full w-2 h-2',
+                      'size-2 rounded-full',
                       event.level === 'INFO'
                         ? 'bg-blue-500'
                         : event.level === 'ERROR'
@@ -199,7 +199,7 @@ export function ServerEventAttributesList({ event }: { event?: EventDTO }) {
               {typeof event === 'undefined' ? (
                 <span className="italic opacity-50">Unknown</span>
               ) : (
-                <div className="rounded-lg bg-background/50 p-4">
+                <div className="bg-background/50 rounded-lg p-4">
                   <pre>{JSON.stringify(event.data, null, 2)}</pre>
                 </div>
               )}

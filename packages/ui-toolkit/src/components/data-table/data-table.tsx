@@ -1,11 +1,13 @@
 'use client'
 
-import * as React from 'react'
-
-import {
+import type {
   ColumnDef,
   ColumnFiltersState,
   FilterFn,
+  SortingState,
+  TableOptions,
+  VisibilityState} from '@tanstack/react-table'
+import {
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -13,11 +15,9 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  SortingState,
-  TableOptions,
-  useReactTable,
-  VisibilityState,
+  useReactTable
 } from '@tanstack/react-table'
+import * as React from 'react'
 
 import {
   Table,
@@ -28,7 +28,8 @@ import {
   TableRow,
 } from '../table'
 import { DataTablePagination } from './data-table-pagination'
-import { ColumnFilterOptions, DataTableToolbar } from './data-table-toolbar'
+import type { ColumnFilterOptions} from './data-table-toolbar'
+import { DataTableToolbar } from './data-table-toolbar'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -117,7 +118,7 @@ export function DataTable<TData, TValue>({
   }
 
   return (
-    <div className="space-y-4 w-full">
+    <div className="w-full space-y-4">
       {(Object.keys(filterOptions).length > 0 || enableSearch) && (
         <DataTableToolbar
           title={title}
@@ -128,7 +129,7 @@ export function DataTable<TData, TValue>({
           table={table}
         />
       )}
-      <div className="rounded-md border bg-card border-foreground/10">
+      <div className="border-foreground/10 bg-card rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -157,7 +158,7 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}

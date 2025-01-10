@@ -64,7 +64,7 @@ export const serverAppsTableColumns: ColumnDef<AppDTO>[] = [
     cell: ({ row }) => (
       <div className="flex flex-col">
         <div className="">{row.getValue('publicKey')}</div>
-        <span className="max-w-[400px] truncate text-xs text-muted-foreground">
+        <span className="text-muted-foreground max-w-[400px] truncate text-xs">
           {row.original.publicKey}
         </span>
       </div>

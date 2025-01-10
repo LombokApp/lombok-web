@@ -1,10 +1,10 @@
+import eslint from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import baseConfig from '../../eslint-config/base.mjs'
 import nodeConfig from '../../eslint-config/node.mjs'
 import strictConfig from '../../eslint-config/strict.mjs'
 
 export default tseslint.config(
-  tseslint.configs.recommendedTypeChecked,
   baseConfig,
   nodeConfig,
   strictConfig,
@@ -20,4 +20,8 @@ export default tseslint.config(
       },
     },
   },
+  eslint.configs.recommended,
+  ...tseslint.configs.strict,
+  ...tseslint.configs.stylistic,
+  ...tseslint.configs.recommendedTypeChecked,
 )

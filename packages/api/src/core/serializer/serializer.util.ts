@@ -16,7 +16,7 @@ import { createZodSerializationException } from './exception'
 @Injectable()
 export class ZodSerializerInterceptor implements NestInterceptor {
   nestJSMetadata = nestJSMetadataLoader()
-  controllers: { [key: string]: Controller } = {}
+  controllers: Record<string, Controller> = {}
   initialized = false
 
   constructor() {

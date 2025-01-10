@@ -148,7 +148,7 @@ const renderFolderObjectPreview = (
   },
   position: number,
   folderObject: FolderObjectDTO,
-  forcePreviewRerender: boolean = false,
+  forcePreviewRerender = false,
 ) => {
   const contentWrapperDiv = document.getElementById(
     `display-position-${position}`,
@@ -452,7 +452,7 @@ const renderTileSequence = (
 const removeTileSequence = (
   container: HTMLDivElement,
   removeCount: number,
-  removeFromStart: boolean = false,
+  removeFromStart = false,
 ) => {
   // console.log(
   //   'remove %d tiles from %s',
@@ -608,15 +608,12 @@ export const FolderDetailScreen = () => {
   const tileContainerRef = React.useRef<HTMLDivElement>(null)
   const windowDimensions = useWindowDimensions()
   const folderObjects = React.useRef<{
-    results: {
-      [key: string]: FolderObjectDTO | undefined
-    }
-    positions: {
-      [objectKey: string]: number
-    }
-    folderRequests: {
-      [objectKey: string]: { time: number; success?: boolean } | undefined
-    }
+    results: Record<string, FolderObjectDTO | undefined>
+    positions: Record<string, number>
+    folderRequests: Record<
+      string,
+      { time: number; success?: boolean } | undefined
+    >
     fetched: boolean
     totalCount?: number
     searchTerm?: string
@@ -1158,11 +1155,7 @@ export const FolderDetailScreen = () => {
       )}
       <div className="relative flex size-full flex-1" ref={mainContainerRef}>
         {focusedObjectKeyRef.current && (
-          <div
-            className={cn(
-              'absolute top-0 right-0 bottom-0 left-0 z-20 opacity-100',
-            )}
-          >
+          <div className={cn('absolute inset-0 z-20 opacity-100')}>
             <FolderObjectDetailScreen
               folderId={folderContext.folderId}
               objectKey={focusedObjectKeyRef.current}
@@ -1228,7 +1221,7 @@ export const FolderDetailScreen = () => {
         )}
         <div
           className={cn(
-            'flex flex-1 h-full w-full z-10 pl-4',
+            'z-10 flex size-full flex-1 pl-4',
             focusedObjectKeyRef.current && 'opacity-0',
           )}
         >

@@ -34,7 +34,7 @@ export const CONFIGURATION_KEYS = [
   SIGNUP_ENABLED_KEY,
   SIGNUP_PERMISSIONS_KEY,
   SERVER_HOSTNAME,
-].reduce<{ [key: string]: ServerConfigKey }>(
+].reduce<Record<string, ServerConfigKey>>(
   (acc, next) => ({ ...acc, [next.key]: next }),
   {},
 )

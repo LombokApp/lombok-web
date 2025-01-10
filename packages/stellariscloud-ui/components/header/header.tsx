@@ -40,7 +40,7 @@ export const Header = () => {
       | MouseEvent<HTMLButtonElement>
       | MouseEvent<HTMLAnchorElement>
       | MouseEvent<HTMLLabelElement>,
-    shouldGotoSignup: boolean = false,
+    shouldGotoSignup = false,
   ) => {
     e.preventDefault()
     void router.push(shouldGotoSignup ? '/signup' : '/login')

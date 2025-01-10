@@ -31,7 +31,7 @@ export interface DBSchemas {
 export class IndexedDb {
   private readonly database: string
   private db: IDBPDatabase<DBSchemas> | undefined
-  public initialized: boolean = false
+  public initialized = false
 
   constructor() {
     this.database = LOCAL_DB_NAME
@@ -135,7 +135,7 @@ export class IndexedDb {
       )
       const store = tx.objectStore(LOCAL_DB_FILE_CACHE_METADATA_TABLE)
       const result = (await store.getAll()) as FileMetadataDBSchema[]
-      const folderSizes = result.reduce<{ [key: string]: number }>(
+      const folderSizes = result.reduce<Record<string, number>>(
         (acc, row) => ({
           ...acc,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access

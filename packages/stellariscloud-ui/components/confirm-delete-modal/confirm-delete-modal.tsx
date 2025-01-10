@@ -19,7 +19,7 @@ export const ConfirmDeleteModal = ({
     <Modal title="Delete Object" onClose={onCancel}>
       <div
         className={cn(
-          'flex gap-4 justify-between rounded-md p-4 bg-secondary hover:bg-secondary-focus text-white min-w-[24rem] min-h-[14rem]',
+          'bg-secondary hover:bg-secondary-focus flex min-h-56 min-w-96 justify-between gap-4 rounded-md p-4 text-white',
         )}
       >
         <div className="flex flex-col gap-4 p-6">

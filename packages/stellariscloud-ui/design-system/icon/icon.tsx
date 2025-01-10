@@ -24,15 +24,15 @@ export function Icon({ icon, size = 'text', className }: IconProps) {
       className={cn(
         'text-foreground',
         size === 'xs'
-          ? 'w-3 h-3'
+          ? 'size-3'
           : size === 'sm'
-            ? 'w-5 h-5'
+            ? 'size-5'
             : size === 'md'
-              ? 'w-7 h-7'
+              ? 'size-7'
               : size === 'lg'
-                ? 'w-12 h-12'
+                ? 'size-12'
                 : size === 'xl'
-                  ? 'w-16 h-16'
+                  ? 'size-16'
                   : // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                     size === 'text'
                     ? 'w-em h-em'

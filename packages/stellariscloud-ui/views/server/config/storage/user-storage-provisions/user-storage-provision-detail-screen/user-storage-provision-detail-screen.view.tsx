@@ -69,7 +69,7 @@ export function UserStorageProvisionDetailScreen() {
 
   return (
     <>
-      <div className={cn('p-4 items-center flex flex-1 flex-col h-full')}>
+      <div className={cn('flex h-full flex-1 flex-col items-center p-4')}>
         <div className="container flex flex-1 flex-col">
           <TypographyH2>
             {`Storage Provision: ${userStorageProvisionId?.label}`}

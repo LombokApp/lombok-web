@@ -45,7 +45,7 @@ export function ServerAccessKeysScreen() {
   }, [sorting, pagination, filters, fetchAccessKeys])
 
   return (
-    <div className={cn('items-center flex flex-1 flex-col h-full')}>
+    <div className={cn('flex h-full flex-1 flex-col items-center')}>
       <DataTable
         onColumnFiltersChange={(updater) => {
           setFilters((old) =>

@@ -68,8 +68,8 @@ export function InstalledAppTabs({
                     'active',
                     tab.name === activeTab
                       ? 'border-indigo-500 text-indigo-600'
-                      : 'border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 group-hover:text-gray-500',
-                    'inline-flex items-center border-b-2 py-4 px-1 text-sm font-medium',
+                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 group-hover:text-gray-500 dark:text-gray-300',
+                    'inline-flex items-center border-b-2 px-1 py-4 text-sm font-medium',
                   )}
                   aria-current={tab.name === activeTab ? 'page' : undefined}
                 >
@@ -77,8 +77,8 @@ export function InstalledAppTabs({
                     className={cn(
                       tab.name === activeTab
                         ? 'text-indigo-500'
-                        : 'text-gray-400 dark:text-gray-300 group-hover:text-gray-500',
-                      '-ml-0.5 mr-2 h-5 w-5',
+                        : 'text-gray-400 group-hover:text-gray-500 dark:text-gray-300',
+                      '-ml-0.5 mr-2 size-5',
                     )}
                     aria-hidden="true"
                   />

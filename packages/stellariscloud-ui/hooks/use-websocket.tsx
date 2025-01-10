@@ -6,7 +6,7 @@ import { io } from 'socket.io-client'
 
 type MessageCallback = (msg: {
   name: FolderPushMessage
-  payload: { [key: string]: string }
+  payload: Record<string, string>
 }) => void
 
 const SOCKET_BASE_URL = process.env.NEXT_PUBLIC_SOCKET_BASE_URL ?? ''
@@ -14,7 +14,7 @@ const SOCKET_BASE_URL = process.env.NEXT_PUBLIC_SOCKET_BASE_URL ?? ''
 export const useWebsocket = (
   namespace: string,
   onMessage: MessageCallback,
-  authParams: { [key: string]: string } = {},
+  authParams: Record<string, string> = {},
 ) => {
   const [socketState, setSocketState] = React.useState<{
     socket?: Socket

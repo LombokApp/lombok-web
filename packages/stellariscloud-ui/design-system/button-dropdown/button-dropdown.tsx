@@ -65,9 +65,8 @@ export function ButtonDropdown({
                         }
                       }}
                       className={cn(
-                        'w-full',
                         active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
-                        'w-full block px-4 py-2 text-sm',
+                        'block w-full px-4 py-2 text-sm',
                       )}
                     >
                       <div className="flex gap-2 whitespace-pre">

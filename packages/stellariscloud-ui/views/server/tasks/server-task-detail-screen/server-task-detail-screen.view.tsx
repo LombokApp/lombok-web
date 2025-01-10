@@ -24,7 +24,7 @@ export function ServerTaskDetailScreen({ taskId }: { taskId: string }) {
 
   return (
     <>
-      <div className={cn('items-center flex flex-1 flex-col gap-6 h-full')}>
+      <div className={cn('flex h-full flex-1 flex-col items-center gap-6')}>
         <div className="container flex flex-1 flex-col gap-4">
           <Card className="border-0 bg-transparent">
             <CardHeader className="p-0 pb-4">

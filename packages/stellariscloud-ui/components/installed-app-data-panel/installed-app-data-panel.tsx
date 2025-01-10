@@ -10,9 +10,7 @@ export function InstalledAppDataPanel({
   connectedAppInstances,
 }: {
   appInfo: AppDTO
-  connectedAppInstances: {
-    [name: string]: ConnectedAppWorker | undefined
-  }
+  connectedAppInstances: Record<string, ConnectedAppWorker | undefined>
 }) {
   const [activeTab, setActiveTab] = React.useState<AppsTab>('config')
   const _connectedAppInstances = Object.keys(connectedAppInstances).map(

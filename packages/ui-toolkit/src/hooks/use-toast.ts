@@ -62,6 +62,7 @@ const addToRemoveQueue = (toastId: string) => {
 
   const timeout = setTimeout(() => {
     toastTimeouts.delete(toastId)
+    // eslint-disable-next-line no-use-before-define, @typescript-eslint/no-use-before-define
     dispatch({
       type: 'REMOVE_TOAST',
       toastId,
@@ -98,8 +99,8 @@ export const reducer = (state: State, action: Action): State => {
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {
-        state.toasts.forEach((toast) => {
-          addToRemoveQueue(toast.id)
+        state.toasts.forEach((_toast) => {
+          addToRemoveQueue(_toast.id)
         })
       }
 
@@ -146,10 +147,10 @@ type Toast = Omit<ToasterToast, 'id'>
 function toast({ ...props }: Toast) {
   const id = genId()
 
-  const update = (props: ToasterToast) =>
+  const update = (_props: ToasterToast) =>
     dispatch({
       type: 'UPDATE_TOAST',
-      toast: { ...props, id },
+      toast: { ..._props, id },
     })
   const dismiss = () => dispatch({ type: 'DISMISS_TOAST', toastId: id })
 

@@ -11,7 +11,7 @@ const UserAuthPayload = r.Record({
 
 @Injectable()
 export class UserSocketService {
-  private readonly connectedClients: Map<string, Socket> = new Map()
+  private readonly connectedClients = new Map<string, Socket>()
 
   private namespace: Namespace | undefined
   setNamespace(namespace: Namespace) {

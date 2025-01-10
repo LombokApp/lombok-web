@@ -46,7 +46,7 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
     <>
       <div
         className={cn(
-          'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
+          'flex h-full flex-1 flex-col items-center gap-6 overflow-y-auto',
         )}
       >
         <div className="container flex flex-1 flex-col gap-8">
@@ -93,7 +93,7 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
                   <CardTitle>
                     <div className="relative flex items-center gap-4">
                       Details
-                      <div className="absolute left-24 top-0 text-muted-foreground">
+                      <div className="text-muted-foreground absolute left-24 top-0">
                         <Button
                           variant={'outline'}
                           size="xs"

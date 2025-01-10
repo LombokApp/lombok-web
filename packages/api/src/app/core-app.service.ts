@@ -5,7 +5,7 @@ import { coreConfig } from 'src/core/config'
 
 @Injectable()
 export class CoreAppService {
-  workers: { [workerKey: string]: Worker | undefined } = {}
+  workers: Record<string, Worker | undefined> = {}
 
   constructor(
     @Inject(coreConfig.KEY)

@@ -80,24 +80,24 @@ export function ServerConfigScreen({ tab }: { tab: string }) {
   return (
     <div className="flex w-full items-start gap-6 pl-4 sm:gap-16">
       <nav
-        className="flex flex-col gap-4 text-sm text-muted-foreground"
+        className="text-muted-foreground flex flex-col gap-4 text-sm"
         x-chunk="dashboard-04-chunk-0"
       >
         <Link
           href="/server/config"
-          className={cn(tab === 'general' && 'font-semibold text-primary')}
+          className={cn(tab === 'general' && 'text-primary font-semibold')}
         >
           General
         </Link>
         <Link
           href="/server/config/storage"
-          className={cn(tab === 'storage' && 'font-semibold text-primary')}
+          className={cn(tab === 'storage' && 'text-primary font-semibold')}
         >
           Storage
         </Link>
         <Link
           href="/server/config/apps"
-          className={cn(tab === 'apps' && 'font-semibold text-primary')}
+          className={cn(tab === 'apps' && 'text-primary font-semibold')}
         >
           Apps
         </Link>

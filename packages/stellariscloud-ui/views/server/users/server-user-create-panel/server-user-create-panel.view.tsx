@@ -47,7 +47,7 @@ export function ServerUserCreatePanel({
   return (
     <div
       className={cn(
-        'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
+        'flex h-full flex-1 flex-col items-center gap-6 overflow-y-auto',
       )}
     >
       <div className="inline-block min-w-full py-2 align-middle">

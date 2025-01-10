@@ -13,7 +13,7 @@ export function createS3PresignedUrls(
     expirySeconds: number
   }[],
 ) {
-  const hostnames = requests.reduce<{ [key: string]: string }>(
+  const hostnames = requests.reduce<Record<string, string>>(
     (acc, next) =>
       next.endpoint in acc
         ? acc

@@ -1,9 +1,8 @@
+import type { Meta, StoryObj } from '@storybook/react'
 import React from 'react'
 
-import type { Meta, StoryObj } from '@storybook/react'
-
-import { Button, Toast, ToastAction, Toaster } from '..'
 import { useToast } from '../../hooks'
+import { Button, Toast, ToastAction, Toaster } from '..'
 
 const meta: Meta<typeof Toast> = {
   title: 'Components/Toast',

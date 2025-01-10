@@ -1,5 +1,4 @@
-import React from 'react'
-
+/* eslint-disable no-console */
 import type { Meta, StoryObj } from '@storybook/react'
 import { useForm } from 'react-hook-form'
 
@@ -33,6 +32,7 @@ export const BasicUsage: Story = {
   args: {},
   decorators: [(Story) => <Story />],
   render: () => {
+    // eslint-disable-next-line @typescript-eslint/require-await
     async function handleSubmit(values: FormType) {
       console.log('Validated values submitted:', { values })
     }
@@ -48,8 +48,8 @@ export const BasicUsage: Story = {
     return (
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(handleSubmit)}
-          className="space-y-4 min-w-[20rem]"
+          onSubmit={(event) => void form.handleSubmit(handleSubmit)(event)}
+          className="min-w-80 space-y-4"
         >
           <FormField
             control={form.control}

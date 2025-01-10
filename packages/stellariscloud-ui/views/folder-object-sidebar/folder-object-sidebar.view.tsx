@@ -55,9 +55,9 @@ export const FolderObjectSidebar = ({
   const [showRawMetadata, setShowRawMetadata] = React.useState(false)
   const folderId = folder.id
   const [focusedMetadata, setFocusedMetadata] = React.useState<string>()
-  const [metadataContent, setMetadataContent] = React.useState<{
-    [key: string]: string
-  }>({})
+  const [metadataContent, setMetadataContent] = React.useState<
+    Record<string, string>
+  >({})
   const [tasks, setTasks] = React.useState<TaskDTO[]>()
 
   const fetchTasks = React.useCallback(() => {
@@ -107,8 +107,8 @@ export const FolderObjectSidebar = ({
 
   const attributes = folderObject.hash
     ? (folderObject.contentAttributes[folderObject.hash] ??
-      ({} as { [key: string]: string }))
-    : ({} as { [key: string]: string })
+      ({} as Record<string, string>))
+    : ({} as Record<string, string>)
 
   const actionItems: {
     id: string
@@ -141,7 +141,7 @@ export const FolderObjectSidebar = ({
     <div className="flex h-full min-w-full flex-col overflow-hidden">
       <div className="flex h-full px-2 pb-2">
         <Card className="w-full p-3">
-          <div className="flex flex-1 flex-col gap-1 rounded-md bg-foreground/5 p-2">
+          <div className="bg-foreground/5 flex flex-1 flex-col gap-1 rounded-md p-2">
             <div className="flex items-center gap-2">
               <Icon icon={MagnifyingGlassIcon} size="md" />
               <div className="text-lg font-bold">Object Details</div>
@@ -155,7 +155,7 @@ export const FolderObjectSidebar = ({
                   <span className="sr-only">Path</span>
                   <Icon icon={GlobeAltIcon} size="md" />
                 </dt>
-                <dd className={cn('text-sm leading-6 overflow-hidden')}>
+                <dd className={cn('overflow-hidden text-sm leading-6')}>
                   {folder.contentLocation.endpoint}
                   {folder.contentLocation.endpoint.endsWith('/') ? '' : '/'}
                   {folder.contentLocation.bucket}
@@ -279,7 +279,7 @@ export const FolderObjectSidebar = ({
                                 </p>
                                 <p
                                   className={cn(
-                                    'truncate text-xs leading-5',
+                                    'truncate leading-5',
                                     'text-sm font-semibold ',
                                   )}
                                 >

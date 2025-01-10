@@ -1,8 +1,6 @@
 import React from 'react'
 
-export interface FolderView {
-  [key: string]: { size: number; type: string }
-}
+export type FolderView = Record<string, { size: number; type: string }>
 
 export class FileCacheError extends Error {}
 

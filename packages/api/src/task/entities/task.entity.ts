@@ -10,16 +10,16 @@ export const tasksTable = pgTable('tasks', {
   taskDescription: jsonb('taskDescription')
     .$type<{
       textKey: string
-      variables: { [key: string]: string }
+      variables: Record<string, string>
     }>()
     .notNull(),
   inputData: jsonb('inputData')
     .notNull()
-    .$type<{ [key: string]: string | number }>(),
+    .$type<Record<string, string | number>>(),
   updates: jsonb('updates')
     .notNull()
     .$type<
-      { updateData: { [key: string]: unknown }; updateTemplateString: string }[]
+      { updateData: Record<string, unknown>; updateTemplateString: string }[]
     >()
     .default([]),
   triggeringEventId: uuid('triggeringEventId')

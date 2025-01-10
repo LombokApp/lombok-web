@@ -14,7 +14,7 @@ export const ConfirmRefreshFolderModal = ({
     <Modal title="Refresh folder" onClose={onCancel}>
       <div
         className={cn(
-          'flex gap-4 justify-between rounded-md p-4 bg-secondary hover:bg-secondary-focus',
+          'bg-secondary hover:bg-secondary-focus flex justify-between gap-4 rounded-md p-4',
         )}
       >
         <div className="flex flex-col gap-4 p-6">

@@ -36,9 +36,7 @@ export function ServerAppDetailScreen({
   }, [app, appIdentifier])
   const [showRawConfig, setShowRawConfig] = React.useState(false)
   return (
-    <div
-      className={cn('items-center flex flex-1 flex-col gap-6 h-full w-full')}
-    >
+    <div className={cn('flex size-full flex-1 flex-col items-center gap-6')}>
       <div className="container flex flex-col gap-8">
         <Card className="flex-1 border-0 bg-transparent">
           <CardHeader className="p-0 pb-4">
@@ -130,7 +128,7 @@ export function ServerAppDetailScreen({
                   <AppAttributeList app={app} />
                 </TabsContent>
                 <TabsContent value="json" className="overflow-x-auto">
-                  <pre className="overflow-y-auto rounded-lg bg-muted-foreground/5 p-4 text-foreground/75">
+                  <pre className="bg-muted-foreground/5 text-foreground/75 overflow-y-auto rounded-lg p-4">
                     {JSON.stringify(app, null, 2)}
                   </pre>
                 </TabsContent>

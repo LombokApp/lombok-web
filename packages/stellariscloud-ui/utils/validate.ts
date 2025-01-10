@@ -1,4 +1,4 @@
-export const isValidEmail = (email: string = '') => {
+export const isValidEmail = (email = '') => {
   const splitEmail = email.split('@')
   if (splitEmail.length !== 2) {
     return false

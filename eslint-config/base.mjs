@@ -111,11 +111,6 @@ export default {
     '@typescript-eslint/no-unnecessary-qualifier': 'error',
     '@typescript-eslint/no-unnecessary-type-arguments': 'error',
     '@typescript-eslint/no-unnecessary-type-constraint': 'error',
-    // '@typescript-eslint/no-unsafe-assignment': 'off',
-    // '@typescript-eslint/no-unsafe-call': 'off',
-    // '@typescript-eslint/no-unsafe-member-access': 'off',
-    // '@typescript-eslint/no-unsafe-return': 'off',
-    // 'no-unused-expressions': 'off',
     '@typescript-eslint/no-unused-expressions': 'error',
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': [

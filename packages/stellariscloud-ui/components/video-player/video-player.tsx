@@ -25,7 +25,7 @@ export const VideoPlayer = ({
     <div
       className={cn(
         'flex flex-1',
-        grayscale && 'ease-in-out duration-200 grayscale hover:grayscale-0',
+        grayscale && 'grayscale duration-200 ease-in-out hover:grayscale-0',
       )}
     >
       <video

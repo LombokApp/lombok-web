@@ -1,11 +1,10 @@
 'use client'
 
-import React from 'react'
-
 import { Cross2Icon } from '@radix-ui/react-icons'
 import { Button, Input, TypographyH3 } from '@stellariscloud/ui-toolkit'
-import { Table } from '@tanstack/react-table'
+import type { Table } from '@tanstack/react-table'
 import { Filter } from 'lucide-react'
+import React from 'react'
 
 import { DataTableFacetedFilter } from './data-table-faceted-filter'
 
@@ -41,15 +40,15 @@ export function DataTableToolbar<TData>({
   return (
     <div className="flex items-center gap-6">
       {title && <TypographyH3>{title}</TypographyH3>}
-      <div className="flex items-center space-x-2 border p-2 bg-card border-foreground/10 rounded-md">
-        <div className="pl-2 pr-1 flex items-center">
-          <Filter className="w-5 h-5 text-foreground/30" />
+      <div className="border-foreground/10 bg-card flex items-center space-x-2 rounded-md border p-2">
+        <div className="flex items-center pl-2 pr-1">
+          <Filter className="text-foreground/30 size-5" />
         </div>
         {enableSearch && searchColumn && (
           <Input
             placeholder={searchPlaceholder ?? 'Search...'}
             value={
-              (table.getColumn(searchColumn)?.getFilterValue() as string) ?? ''
+              table.getColumn(searchColumn)?.getFilterValue() as string
             }
             onChange={(event) =>
               table.getColumn(searchColumn)?.setFilterValue(event.target.value)
@@ -74,7 +73,7 @@ export function DataTableToolbar<TData>({
             className="h-8 px-2 lg:px-3"
           >
             Reset
-            <Cross2Icon className="ml-2 h-4 w-4" />
+            <Cross2Icon className="ml-2 size-4" />
           </Button>
         )}
       </div>

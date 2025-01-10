@@ -1,19 +1,20 @@
-import { colorMix } from '@/utils'
 import plugin from 'tailwindcss/plugin'
+
+import { colorMix } from '@/utils'
 
 import { baseTheme } from './themes'
 
 export const themePlugin = plugin(
-  ({ addBase }) => {
+  (pluginAPI) => {
     // Add html base styles
-    addBase({
+    pluginAPI.addBase({
       html: {
         color: 'var(--foreground)',
         backgroundColor: 'var(--background)',
       },
     })
     // Add light theme
-    addBase({
+    pluginAPI.addBase({
       ':root': {
         '--background': baseTheme.light.background,
         '--foreground': baseTheme.light.foreground,
@@ -43,7 +44,7 @@ export const themePlugin = plugin(
       },
     })
     // Add dark theme
-    addBase({
+    pluginAPI.addBase({
       '[data-mode="dark"]': {
         '--background': baseTheme.dark.background,
         '--foreground': baseTheme.dark.foreground,

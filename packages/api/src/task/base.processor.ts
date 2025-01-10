@@ -19,7 +19,7 @@ export abstract class BaseProcessor<K extends CoreTaskName> {
     setTimeout(() => void this.registerProcessor(), 100)
   }
 
-  _run(inputData: { [key: string]: string | number }) {
+  _run(inputData: Record<string, string | number>) {
     return this.run(inputData as never)
   }
 

@@ -1,9 +1,8 @@
 'use client'
 
-import React from 'react'
-
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
-import { Row } from '@tanstack/react-table'
+import type { Row } from '@tanstack/react-table'
+import React from 'react'
 
 import {
   Button,
@@ -55,7 +54,7 @@ export function DataTableRowActions<TData>({
         variant="outline"
         size="xs"
         onClick={action.onClick}
-        className="flex p-2 px-4 data-[state=open]:bg-muted"
+        className="data-[state=open]:bg-muted flex p-2 px-4"
       >
         <div className="flex items-center gap-1">
           {action.icon ? <action.icon /> : null}
@@ -70,9 +69,9 @@ export function DataTableRowActions<TData>({
               <Button
                 variant="outline"
                 size="xs"
-                className="flex w-8 p-0 data-[state=open]:bg-muted"
+                className="data-[state=open]:bg-muted flex w-8 p-0"
               >
-                <DotsHorizontalIcon className="h-4 w-4" />
+                <DotsHorizontalIcon className="size-4" />
                 <span className="sr-only">Open menu</span>
               </Button>
             </DropdownMenuTrigger>,

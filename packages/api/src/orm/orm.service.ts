@@ -152,9 +152,7 @@ export class OrmService {
         )
 
         if (tables.length > 0) {
-          const schemaToTableMapping = tables.reduce<{
-            [key: string]: string[]
-          }>(
+          const schemaToTableMapping = tables.reduce<Record<string, string[]>>(
             (acc, next) => ({
               ...acc,
               [next.schemaname]: (

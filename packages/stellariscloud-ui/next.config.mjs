@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 
+// eslint-disable-next-line no-undef
 const APP_ENV = process.env.NEXT_PUBLIC_BACKEND_ENV || 'live'
 
 import dotenv from 'dotenv'
@@ -11,8 +12,10 @@ dotenv.config({
 
 const env = {}
 
+// eslint-disable-next-line no-undef
 Object.keys(process.env).forEach((key) => {
   if (key.startsWith('NEXT_PUBLIC_')) {
+    // eslint-disable-next-line no-undef
     env[key] = process.env[key]
   }
 })

@@ -183,9 +183,9 @@ export class TaskService {
       .from(tasksTable)
       .where(isNull(tasksTable.startedAt))
       .groupBy(tasksTable.taskKey, tasksTable.ownerIdentifier)
-    const pendingTasksByApp = pendingTasks.reduce<{
-      [emitterIdentifier: string]: { [key: string]: number }
-    }>((acc, next) => {
+    const pendingTasksByApp = pendingTasks.reduce<
+      Record<string, Record<string, number>>
+    >((acc, next) => {
       const appIdentifier = next.ownerIdentifier.slice('APP:'.length)
       return {
         ...acc,

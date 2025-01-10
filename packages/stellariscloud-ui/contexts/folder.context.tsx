@@ -18,7 +18,7 @@ export interface Notification {
 
 export type SocketMessageHandler = (
   name: FolderPushMessage,
-  msg: { [key: string]: unknown },
+  msg: Record<string, unknown>,
 ) => void
 
 export interface IFolderContext {
@@ -76,7 +76,7 @@ export const FolderContextProvider = ({
   const messageHandler = React.useCallback(
     (message: {
       name: FolderPushMessage
-      payload: { [key: string]: unknown }
+      payload: Record<string, unknown>
     }) => {
       if (
         [

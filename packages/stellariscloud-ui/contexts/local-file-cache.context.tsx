@@ -7,9 +7,7 @@ import { downloadData } from '../utils/file'
 import type { LogLine } from './logging.context'
 import { useLoggingContext } from './logging.context'
 
-export interface LocalFileCache {
-  [key: string]: { size: number; type: string }
-}
+export type LocalFileCache = Record<string, { size: number; type: string }>
 
 export class FileCacheError extends Error {}
 
@@ -34,10 +32,10 @@ export interface ILocalFileCacheContext {
     downloadFilename: string,
   ) => void
   uploadFile: (folderId: string, filename: string, file: File) => void
-  localStorageFolderSizes: { [key: string]: number }
+  localStorageFolderSizes: Record<string, number>
   purgeLocalStorageForFolder: (folderId: string) => Promise<boolean>
   recalculateLocalStorageFolderSizes: () => Promise<boolean>
-  uploadingProgress: { [key: string]: number }
+  uploadingProgress: Record<string, number>
   getDataFromMemory: (
     folderId: string,
     key: string,
@@ -57,9 +55,7 @@ interface DownloadingContext {
   reject: (e: unknown) => void
 }
 
-interface DownloadingContextMap {
-  [key: string]: DownloadingContext | undefined
-}
+type DownloadingContextMap = Record<string, DownloadingContext | undefined>
 
 export const LocalFileCacheContextProvider = ({
   children,
@@ -67,16 +63,16 @@ export const LocalFileCacheContextProvider = ({
   children: React.ReactNode
 }) => {
   const downloading = React.useRef<DownloadingContextMap>({})
-  const [localStorageFolderSizes, setLocalStorageFolderSizes] = React.useState<{
-    [key: string]: number
-  }>({})
-  const [uploadingProgress, setUploadingProgress] = React.useState<{
-    [key: string]: number
-  }>({})
+  const [localStorageFolderSizes, setLocalStorageFolderSizes] = React.useState<
+    Record<string, number>
+  >({})
+  const [uploadingProgress, setUploadingProgress] = React.useState<
+    Record<string, number>
+  >({})
   const workerRef = React.useRef<Worker>()
-  const fileCacheRef = React.useRef<{
-    [key: string]: { dataURL: string; type: string } | undefined
-  }>({})
+  const fileCacheRef = React.useRef<
+    Record<string, { dataURL: string; type: string } | undefined>
+  >({})
   const loggingContext = useLoggingContext()
 
   const addDataToMemory = React.useCallback(

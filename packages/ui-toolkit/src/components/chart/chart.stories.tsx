@@ -1,10 +1,9 @@
-import React from 'react'
-
 import type { Meta, StoryObj } from '@storybook/react'
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
 
+import type {
+  ChartConfig} from './chart'
 import {
-  ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
@@ -52,7 +51,7 @@ export const BarChartExample: Story = {
             tickLine={false}
             tickMargin={10}
             axisLine={false}
-            tickFormatter={(value) => value.slice(0, 3)}
+            tickFormatter={(value: string) => value.slice(0, 3)}
           />
           <ChartTooltip content={<ChartTooltipContent />} />
           <ChartLegend content={<ChartLegendContent />} />

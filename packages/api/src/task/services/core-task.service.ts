@@ -23,7 +23,7 @@ export type CoreTaskInputData<K extends CoreTaskName> =
 
 @Injectable()
 export class CoreTaskService {
-  processors: { [key: string]: BaseProcessor<CoreTaskName> } = {}
+  processors: Record<string, BaseProcessor<CoreTaskName>> = {}
   runningTasksCount = 0
   draining = false
 

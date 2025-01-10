@@ -72,7 +72,7 @@ async function main(): Promise<void> {
 
   function buildDevSeedLocation(
     userId: string,
-    prefix: string = '',
+    prefix = '',
   ): NewStorageLocation {
     return {
       id: uuidV4(),

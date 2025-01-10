@@ -18,7 +18,7 @@ import type { LogLevel } from './logging.context'
 
 export type SocketMessageHandler = (
   name: ServerPushMessage,
-  msg: { [key: string]: unknown },
+  msg: Record<string, unknown>,
 ) => void
 
 export interface Notification {
@@ -138,10 +138,7 @@ export const ServerContextProvider = ({
   )
 
   const messageHandler = React.useCallback(
-    (message: {
-      name: AppPushMessage
-      payload: { [key: string]: unknown }
-    }) => {
+    (message: { name: AppPushMessage; payload: Record<string, unknown> }) => {
       if (ServerPushMessage.APPS_UPDATED === message.name) {
         void fetchServerApps()
       } else if (ServerPushMessage.SETTINGS_UPDATED === message.name) {

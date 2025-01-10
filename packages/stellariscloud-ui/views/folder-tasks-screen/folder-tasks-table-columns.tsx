@@ -64,7 +64,7 @@ export const folderTasksTableColumns: ColumnDef<TaskDTO>[] = [
 
         <div className="flex flex-col">
           <div className="w-[80px]">{row.getValue('taskKey')}</div>
-          <span className="max-w-[150px] truncate text-xs text-muted-foreground">
+          <span className="text-muted-foreground max-w-[150px] truncate text-xs">
             {row.original.taskDescription.textKey}
           </span>
         </div>
@@ -88,7 +88,7 @@ export const folderTasksTableColumns: ColumnDef<TaskDTO>[] = [
           {task.subjectObjectKey ? (
             task.subjectObjectKey
           ) : (
-            <span className="italic text-muted-foreground">None</span>
+            <span className="text-muted-foreground italic">None</span>
           )}
         </div>
       )
@@ -112,7 +112,7 @@ export const folderTasksTableColumns: ColumnDef<TaskDTO>[] = [
           <div className="flex items-center gap-2">
             <div
               className={cn(
-                'rounded-full w-2 h-2',
+                'size-2 rounded-full',
                 task.completedAt
                   ? 'bg-green-600'
                   : task.errorAt
@@ -124,7 +124,7 @@ export const folderTasksTableColumns: ColumnDef<TaskDTO>[] = [
             />
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
+          <div className="text-muted-foreground flex items-center gap-2 text-xs font-normal">
             {task.completedAt
               ? 'Complete'
               : task.errorAt
@@ -151,7 +151,7 @@ export const folderTasksTableColumns: ColumnDef<TaskDTO>[] = [
     cell: ({ row }) => (
       <div className="flex w-[140px] flex-col text-xs">
         <div>{new Date(row.getValue('createdAt')).toLocaleString()}</div>
-        <div className="italic text-muted-foreground">
+        <div className="text-muted-foreground italic">
           {timeSinceOrUntil(new Date(row.original.createdAt))}
         </div>
       </div>
@@ -171,7 +171,7 @@ export const folderTasksTableColumns: ColumnDef<TaskDTO>[] = [
     cell: ({ row }) => (
       <div className="flex w-[140px] flex-col text-xs">
         <div>{new Date(row.getValue('updatedAt')).toLocaleString()}</div>
-        <div className="italic text-muted-foreground">
+        <div className="text-muted-foreground italic">
           {timeSinceOrUntil(new Date(row.original.updatedAt))}
         </div>
       </div>

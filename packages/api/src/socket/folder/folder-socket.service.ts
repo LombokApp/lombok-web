@@ -16,7 +16,7 @@ const UserAuthPayload = r.Record({
 
 @Injectable()
 export class FolderSocketService implements OnModuleInit {
-  private readonly connectedClients: Map<string, Socket> = new Map()
+  private readonly connectedClients = new Map<string, Socket>()
   private namespace: Namespace | undefined
   setNamespace(namespace: Namespace) {
     this.namespace = namespace

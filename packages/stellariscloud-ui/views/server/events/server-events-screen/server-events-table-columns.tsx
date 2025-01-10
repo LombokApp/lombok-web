@@ -79,7 +79,7 @@ export const serverEventsTableColumns: ColumnDef<EventDTO>[] = [
       <div className="flex items-center gap-2">
         <div
           className={cn(
-            'rounded-full w-2 h-2',
+            'size-2 rounded-full',
             row.original.level === 'INFO'
               ? 'bg-blue-500'
               : row.original.level === 'ERROR'
@@ -109,7 +109,7 @@ export const serverEventsTableColumns: ColumnDef<EventDTO>[] = [
     cell: ({ row }) => (
       <div className="flex w-[140px] flex-col text-xs">
         <div>{new Date(row.getValue('createdAt')).toLocaleString()}</div>
-        <div className="italic text-muted-foreground">
+        <div className="text-muted-foreground italic">
           {timeSinceOrUntil(new Date(row.original.createdAt))}
         </div>
       </div>

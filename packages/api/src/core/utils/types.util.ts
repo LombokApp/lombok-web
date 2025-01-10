@@ -16,7 +16,7 @@ export type PartialWritable<T extends object> = {
   [K in keyof T as MutableKeys<T>]?: T[K]
 }
 
-export const EnumType = <T>(e: { [key: string]: T }): r.Runtype<T> => {
+export const EnumType = <T>(e: Record<string, T>): r.Runtype<T> => {
   const values: unknown[] = Object.values(e)
 
   return r.Unknown.withConstraint<T>(

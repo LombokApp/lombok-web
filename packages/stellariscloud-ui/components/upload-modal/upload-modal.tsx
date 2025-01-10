@@ -13,7 +13,7 @@ export const UploadModal = ({
 }: {
   onUpload: (file: File) => void
   onCancel: () => void
-  uploadingProgress: { [key: string]: number | undefined }
+  uploadingProgress: Record<string, number | undefined>
 }) => {
   const [uploadingFiles, setUploadingFiles] = React.useState<File[]>([])
 
@@ -31,7 +31,7 @@ export const UploadModal = ({
 
   return (
     <Modal title="Upload files" onClose={onCancel} disableClose>
-      <div className={cn('flex gap-4 justify-between rounded-md p-4 w-full')}>
+      <div className={cn('flex w-full justify-between gap-4 rounded-md p-4')}>
         <div className="flex w-full flex-col gap-4 p-6">
           <div className="flex w-full flex-col gap-4">
             <FolderUploadDropzone onDrop={onDrop} />

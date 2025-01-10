@@ -18,7 +18,7 @@ export const APP_WORKER_INFO_CACHE_KEY_PREFIX = 'APP_WORKER'
 
 @Injectable()
 export class AppSocketService {
-  private readonly connectedClients: Map<string, Socket> = new Map()
+  private readonly connectedClients = new Map<string, Socket>()
 
   private namespace: Namespace | undefined
   setNamespace(namespace: Namespace) {

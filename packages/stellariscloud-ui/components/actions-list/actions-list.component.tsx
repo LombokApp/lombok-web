@@ -15,7 +15,7 @@ export interface ActionItem {
 export function ActionsList({ actionItems }: { actionItems: ActionItem[] }) {
   return (
     <div>
-      <div className="mb-2 flex flex-1 flex-col gap-1 rounded-md bg-foreground/5 p-2">
+      <div className="bg-foreground/5 mb-2 flex flex-1 flex-col gap-1 rounded-md p-2">
         <div className="flex items-center gap-2">
           <Icon icon={PlayIcon} size="md" />
           <div className="text-lg font-bold">Actions</div>
@@ -26,13 +26,13 @@ export function ActionsList({ actionItems }: { actionItems: ActionItem[] }) {
           <li key={actionItem.id} className="overflow-hidden rounded-lg border">
             <button
               onClick={actionItem.onExecute}
-              className="p-2 px-4 text-foreground/60"
+              className="text-foreground/60 p-2 px-4"
             >
               <div className="flex items-start gap-2">
                 <div className="flex flex-1 flex-col gap-1">
                   <div className="flex items-center gap-2">
                     <Icon icon={actionItem.icon} size="sm" className="" />
-                    <div className="text-base font-bold text-foreground/80">
+                    <div className="text-foreground/80 text-base font-bold">
                       {actionItem.label}
                     </div>
                   </div>

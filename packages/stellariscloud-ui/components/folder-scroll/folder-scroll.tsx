@@ -9,7 +9,7 @@ export function FolderScroll({
 }) {
   return (
     <div className={cn('h-full', 'bg-foreground/20 rounded-full')}>
-      <div className={cn('w-4 h-full rounded-full')}>
+      <div className={cn('h-full w-4 rounded-full')}>
         <div
           style={{
             height: `${viewHeight ?? 0}%`,
@@ -17,7 +17,7 @@ export function FolderScroll({
           }}
           className=""
         >
-          <div className="size-full rounded-full bg-background/70"></div>
+          <div className="bg-background/70 size-full rounded-full"></div>
         </div>
       </div>
     </div>

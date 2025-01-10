@@ -20,7 +20,7 @@ import {
 import { LayoutGrid, LogOut, User } from 'lucide-react'
 import Link from 'next/link'
 
-export function UserNav() {
+export function UserNav({ onSignout }: { onSignout: () => Promise<void> }) {
   return (
     <DropdownMenu>
       <TooltipProvider disableHoverableContent>
@@ -46,7 +46,7 @@ export function UserNav() {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">John Doe</p>
-            <p className="text-xs leading-none text-muted-foreground">
+            <p className="text-foreground text-xs leading-none">
               johndoe@example.com
             </p>
           </div>
@@ -55,20 +55,23 @@ export function UserNav() {
         <DropdownMenuGroup>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
             <Link href="/dashboard" className="flex items-center">
-              <LayoutGrid className="mr-3 size-4 text-muted-foreground" />
+              <LayoutGrid className="text-muted-foreground mr-3 size-4" />
               Dashboard
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
             <Link href="/account" className="flex items-center">
-              <User className="mr-3 size-4 text-muted-foreground" />
+              <User className="text-muted-foreground mr-3 size-4" />
               Account
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="hover:cursor-pointer" onClick={() => {}}>
-          <LogOut className="mr-3 size-4 text-muted-foreground" />
+        <DropdownMenuItem
+          className="hover:cursor-pointer"
+          onClick={() => void onSignout()}
+        >
+          <LogOut className="text-muted-foreground mr-3 size-4" />
           Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>

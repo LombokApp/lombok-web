@@ -33,8 +33,8 @@ export function buildSupertestApiClient(app: INestApplication) {
       const fn: FnType = method.toLowerCase() as FnType
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      const response = await request(app.getHttpServer())
-        [fn](url ?? '')
+      const supertestReq = request(app.getHttpServer())
+      const response = await supertestReq[fn](url ?? '')
         .set(
           accessToken ? 'Authorization' : '__DUMMY__',
           accessToken ? `Bearer ${accessToken}` : '',
@@ -42,7 +42,6 @@ export function buildSupertestApiClient(app: INestApplication) {
         .set(headers as never)
         .send(data)
 
-      // return response as Promise<any>
       return {
         data: response.body as never,
         status: response.status,

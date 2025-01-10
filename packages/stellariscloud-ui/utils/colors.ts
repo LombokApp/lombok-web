@@ -11,12 +11,12 @@ export const stringToColour = (str: string) => {
   return colour
 }
 
-function padZero(str: string, len: number = 2) {
+function padZero(str: string, len = 2) {
   const zeros = new Array(len).join('0')
   return (zeros + str).slice(-len)
 }
 
-export function invertColour(hex: string, bw: boolean = true) {
+export function invertColour(hex: string, bw = true) {
   let _hex = hex
   if (_hex.startsWith('#')) {
     _hex = _hex.slice(1)

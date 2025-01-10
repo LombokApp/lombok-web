@@ -17,7 +17,7 @@ export function SidebarToggle({ isOpen, setIsOpen }: SidebarToggleProps) {
       >
         <PanelLeftClose
           className={cn(
-            'h-4 w-4 transition-transform ease-in-out duration-700 opacity-50',
+            'size-4 opacity-50 transition-transform duration-700 ease-in-out',
             isOpen === false ? 'rotate-180' : 'rotate-0',
           )}
         />

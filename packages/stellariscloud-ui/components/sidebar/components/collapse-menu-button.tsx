@@ -89,7 +89,6 @@ export function CollapseMenuButton({
           </div>
         </Button>
       </CollapsibleTrigger>
-      {/* eslint-disable-next-line tailwindcss/no-custom-classname */}
       <CollapsibleContent className="data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down overflow-hidden">
         {submenus.map(({ href, label: _label, active }, index) => (
           <Button

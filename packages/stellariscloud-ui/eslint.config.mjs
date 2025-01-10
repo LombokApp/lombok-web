@@ -1,3 +1,5 @@
+import path from 'path'
+import eslint from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import eslintStorybook from 'eslint-plugin-storybook'
 import eslintTailwind from 'eslint-plugin-tailwindcss'
@@ -6,7 +8,12 @@ import reactConfig from '../../eslint-config/react.mjs'
 import strictConfig from '../../eslint-config/strict.mjs'
 
 export default tseslint.config(
-  tseslint.configs.recommendedTypeChecked,
+  eslint.configs.recommended,
+  ...tseslint.configs.strict,
+  ...tseslint.configs.stylistic,
+  ...tseslint.configs.recommendedTypeChecked,
+  // Tailwind
+  ...eslintTailwind.configs['flat/recommended'],
   baseConfig,
   reactConfig,
   strictConfig,
@@ -18,6 +25,12 @@ export default tseslint.config(
       storybook: eslintStorybook,
       tailwind: eslintTailwind,
     },
+    settings: {
+      tailwindcss: {
+        config: 'tailwind.config.js',
+        callees: ['classnames', 'clsx', 'ctl', 'cn', 'cva'],
+      },
+    },
     languageOptions: {
       ecmaVersion: 2022,
       parserOptions: {
@@ -26,6 +39,4 @@ export default tseslint.config(
       },
     },
   },
-  // Tailwind
-  ...eslintTailwind.configs['flat/recommended'],
 )

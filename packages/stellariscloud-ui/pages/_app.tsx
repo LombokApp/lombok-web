@@ -33,7 +33,7 @@ const UnauthenticatedContent = ({ Component, pageProps }: AppProps) => {
         <Header />
       </div>
       <main className={cn('flex-1 justify-center overflow-hidden')}>
-        <div className={cn('relative h-full w-full flex')}>
+        <div className={cn('relative flex size-full')}>
           <div className="relative w-full">
             <Component {...pageProps} />
           </div>
@@ -74,7 +74,7 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
       />
       <main
         className={cn(
-          'flex-1 min-h-[calc(100vh_-_56px)] bg-background transition-[margin-left] ease-in-out duration-300',
+          'bg-background min-h-[calc(100vh_-_56px)] flex-1 transition-[margin-left] duration-300 ease-in-out',
           !settings.disabled && (!getOpenState() ? 'lg:ml-[70px]' : 'lg:ml-64'),
         )}
       >

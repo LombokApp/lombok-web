@@ -86,7 +86,7 @@ export function FolderTasksScreen() {
   }, [folder?.id, filters, sorting, pagination, fetchTasks])
 
   return (
-    <div className={cn('items-center flex flex-1 flex-col h-full')}>
+    <div className={cn('flex h-full flex-1 flex-col items-center')}>
       <div className="container flex flex-1 flex-col">
         <Card className="border-0 bg-transparent">
           <CardHeader className="p-0 pb-4">

@@ -34,7 +34,7 @@ export function Menu({
           {menuList.map(({ groupLabel, menus }, index) => (
             <li className={cn('w-full', groupLabel ? 'pt-5' : '')} key={index}>
               {(isOpen && groupLabel) || isOpen === undefined ? (
-                <p className="max-w-[248px] truncate px-4 pb-2 text-sm font-medium text-muted-foreground">
+                <p className="text-muted-foreground max-w-[248px] truncate px-4 pb-2 text-sm font-medium">
                   {groupLabel}
                 </p>
               ) : !isOpen && groupLabel ? (
@@ -69,7 +69,7 @@ export function Menu({
                                   : 'ghost'
                               }
                               className={cn(
-                                'w-full justify-start h-10 mb-1',
+                                'mb-1 h-10 w-full justify-start',
                                 (active === undefined &&
                                   pathname.startsWith(href)) ||
                                   active
@@ -138,7 +138,7 @@ export function Menu({
                     <p
                       className={cn(
                         'whitespace-nowrap',
-                        isOpen === false ? 'opacity-0 hidden' : 'opacity-100',
+                        isOpen === false ? 'hidden opacity-0' : 'opacity-100',
                       )}
                     >
                       Sign out

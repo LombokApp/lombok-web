@@ -54,7 +54,7 @@ export function ServerAccessKeyDetailScreen() {
     <>
       <div
         className={cn(
-          'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto px-4',
+          'flex h-full flex-1 flex-col items-center gap-6 overflow-y-auto px-4',
         )}
       >
         <div className="container flex flex-1 flex-col pt-12">

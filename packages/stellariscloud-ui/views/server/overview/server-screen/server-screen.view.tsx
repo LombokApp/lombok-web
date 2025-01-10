@@ -34,7 +34,7 @@ import { ServerUsersScreen } from '../../users/server-users-screen/server-users-
 export function ServerScreen({ serverPage }: { serverPage: string[] }) {
   const router = useRouter()
   return (
-    <div className={cn('items-center flex flex-1 flex-col h-full ')}>
+    <div className={cn('flex h-full flex-1 flex-col items-center')}>
       <div className="container flex flex-1 flex-col">
         <div className="md:hidden">
           <Image

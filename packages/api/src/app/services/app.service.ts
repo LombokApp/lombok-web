@@ -137,18 +137,20 @@ const FailHandleTaskValidator = z.object({
 
 export interface AppDefinition {
   config: AppConfig
-  ui: {
-    [key: string]: {
+  ui: Record<
+    string,
+    {
       name: string
-      files: { [key: string]: { size: number; hash: string } }
+      files: Record<string, { size: number; hash: string }>
     }
-  }
-  workers: {
-    [key: string]: {
+  >
+  workers: Record<
+    string,
+    {
       name: string
-      files: { [key: string]: { size: number; hash: string } }
+      files: Record<string, { size: number; hash: string }>
     }
-  }
+  >
 }
 
 @Injectable()
@@ -420,8 +422,7 @@ export class AppService {
       metadataHash: string
     }[]
   }) {
-    const folders: { [folderId: string]: FolderWithoutLocations | undefined } =
-      {}
+    const folders: Record<string, FolderWithoutLocations | undefined> = {}
 
     const urls: MetadataUploadUrlsResponse = createS3PresignedUrls(
       await Promise.all(
@@ -557,11 +558,12 @@ export class AppService {
       url: string
     }[]
   > {
-    const presignedUrlRequestsByFolderId = signedUrlRequests.reduce<{
-      [key: string]:
-        | { objectKey: string; method: SignedURLsRequestMethod }[]
-        | undefined
-    }>((acc, next) => {
+    const presignedUrlRequestsByFolderId = signedUrlRequests.reduce<
+      Record<
+        string,
+        { objectKey: string; method: SignedURLsRequestMethod }[] | undefined
+      >
+    >((acc, next) => {
       return {
         ...acc,
         [next.folderId]: (acc[next.folderId] ?? []).concat([
@@ -674,7 +676,7 @@ export class AppService {
       .where(eq(appsTable.identifier, app.identifier))
   }
 
-  public async installApp(app: App, update: boolean = false) {
+  public async installApp(app: App, update = false) {
     const now = new Date()
     const installedApp = await this.getApp(app.identifier)
     if (installedApp && !update) {
@@ -871,9 +873,7 @@ export class AppService {
     return app
   }
 
-  getAppConnections(): {
-    [key: string]: ConnectedAppWorker[]
-  } {
+  getAppConnections(): Record<string, ConnectedAppWorker[]> {
     let cursor = 0
     let started = false
     let keys: string[] = []
@@ -893,7 +893,7 @@ export class AppService {
       ? this.kvService.ops
           .mget(...keys)
           .filter((_r) => _r)
-          .reduce<{ [k: string]: ConnectedAppWorker[] }>(
+          .reduce<Record<string, ConnectedAppWorker[]>>(
             (acc, _r: string | undefined) => {
               const parsed = JSON.parse(
                 _r ?? 'null',

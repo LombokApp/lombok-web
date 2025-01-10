@@ -28,7 +28,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        'fixed top-0 left-0 z-20 h-screen -translate-x-full lg:translate-x-0 transition-[width] ease-in-out duration-300',
+        'fixed left-0 top-0 z-20 h-screen -translate-x-full transition-[width] duration-300 ease-in-out lg:translate-x-0',
         !getOpenState() ? 'w-[70px]' : 'w-64',
         settings.disabled && 'hidden',
       )}
@@ -37,12 +37,12 @@ export function Sidebar({
       <div
         onMouseEnter={() => setIsHover(true)}
         onMouseLeave={() => setIsHover(false)}
-        className="relative flex h-screen flex-col overflow-y-auto border-r shadow-md dark:border-foreground/5 dark:shadow-zinc-900"
+        className="dark:border-foreground/5 relative flex h-screen flex-col overflow-y-auto border-r shadow-md dark:shadow-zinc-900"
       >
         <div className="border-b bg-black/5 pb-0 pl-4 pr-2 pt-1">
           <Button
             className={cn(
-              'transition-transform ease-in-out duration-300 mb-1 justify-start pl-2',
+              'mb-1 justify-start pl-2 transition-transform duration-300 ease-in-out',
             )}
             variant="link"
             asChild
@@ -58,9 +58,9 @@ export function Sidebar({
               />
               <h1
                 className={cn(
-                  'font-bold text-lg whitespace-nowrap transition-[transform,opacity,display] ease-in-out duration-300',
+                  'whitespace-nowrap text-lg font-bold transition-[transform,opacity,display] duration-300 ease-in-out',
                   !getOpenState()
-                    ? '-translate-x-96 opacity-0 hidden'
+                    ? 'hidden -translate-x-96 opacity-0'
                     : 'translate-x-0 opacity-100',
                 )}
               >

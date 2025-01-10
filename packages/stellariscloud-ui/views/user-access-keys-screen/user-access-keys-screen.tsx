@@ -47,7 +47,7 @@ export function UserAccessKeysScreen() {
   return (
     <div className="container flex flex-1 flex-col gap-3 self-center">
       <TypographyH2 className="pb-0">Access Keys</TypographyH2>
-      <Separator className="mb-3 bg-foreground/10" />
+      <Separator className="bg-foreground/10 mb-3" />
 
       <DataTable
         onColumnFiltersChange={(updater) => {

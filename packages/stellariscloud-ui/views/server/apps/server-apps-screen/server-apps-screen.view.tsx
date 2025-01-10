@@ -32,7 +32,7 @@ export function ServerAppsScreen() {
     ?.value as string | undefined
 
   return (
-    <div className={cn('items-center flex flex-1 flex-col h-full')}>
+    <div className={cn('flex h-full flex-1 flex-col items-center')}>
       <DataTable
         title="Apps"
         enableSearch={true}
