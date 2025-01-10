@@ -1,22 +1,23 @@
-import React from 'react'
-import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
-import { folderTasksTableColumns } from './folder-tasks-table-columns'
+import type {
+  ServerTasksApiListTasksRequest,
+  TaskDTO,
+} from '@stellariscloud/api-client'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-  DataTable,
   cn,
+  DataTable,
 } from '@stellariscloud/ui-toolkit'
-import {
-  ServerTasksApiListTasksRequest,
-  TaskDTO,
-} from '@stellariscloud/api-client'
+import type { PaginationState, SortingState } from '@tanstack/react-table'
+import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
+import React from 'react'
+
 import { useFolderContext } from '../../contexts/folder.context'
 import { apiClient } from '../../services/api'
-import { PaginationState, SortingState } from '@tanstack/react-table'
+import { folderTasksTableColumns } from './folder-tasks-table-columns'
 
 export function FolderTasksScreen() {
   const [tasks, setTasks] = React.useState<{
@@ -41,7 +42,7 @@ export function FolderTasksScreen() {
     if (folder?.id) {
       void apiClient.tasksApi
         .listFolderTasks({
-          folderId: folder?.id,
+          folderId: folder.id,
           limit: pagination.pageSize,
           offset: pagination.pageSize * pagination.pageIndex,
           ...(sorting[0]
@@ -80,14 +81,14 @@ export function FolderTasksScreen() {
 
   React.useEffect(() => {
     if (folder?.id) {
-      void fetchTasks()
+      fetchTasks()
     }
   }, [folder?.id, filters, sorting, pagination, fetchTasks])
 
   return (
     <div className={cn('items-center flex flex-1 flex-col h-full')}>
-      <div className="container flex-1 flex flex-col">
-        <Card className="bg-transparent border-0">
+      <div className="container flex flex-1 flex-col">
+        <Card className="border-0 bg-transparent">
           <CardHeader className="p-0 pb-4">
             <CardTitle>Folder Tasks</CardTitle>
             <CardDescription>Folder: {folder?.name}</CardDescription>

@@ -1,10 +1,6 @@
 import type kvjs from '@heyputer/kv.js'
 import type { Promisify } from '@stellariscloud/utils'
 
-export type AdapterMap = {
-  [K in keyof KVJSOperations]: string | Promisify<KVJSOperations[K]>
-}
-
 export type KVJSOperations = Omit<
   {
     [K in keyof typeof kvjs.prototype]: (typeof kvjs.prototype)[K]
@@ -19,3 +15,7 @@ export type KVJSOperations = Omit<
   | '_convertDistance'
   | '_encodeGeohash'
 >
+
+export type AdapterMap = {
+  [K in keyof KVJSOperations]: string | Promisify<KVJSOperations[K]>
+}

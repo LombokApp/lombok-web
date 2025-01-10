@@ -1,3 +1,4 @@
+import { Input, Label } from '@stellariscloud/ui-toolkit'
 import {
   EMAIL_VALIDATORS_COMBINED,
   NAME_VALIDATORS_COMBINED,
@@ -8,7 +9,6 @@ import * as r from 'runtypes'
 
 import { useFormState } from '../../utils/forms'
 import { UserPermissions } from './user-permissions'
-import { Input, Label } from '@stellariscloud/ui-toolkit'
 
 export interface UserInput {
   name?: string

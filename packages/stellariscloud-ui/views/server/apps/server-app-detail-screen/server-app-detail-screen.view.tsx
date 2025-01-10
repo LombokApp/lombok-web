@@ -1,25 +1,25 @@
 import type { AppDTO } from '@stellariscloud/api-client'
-import React from 'react'
-import { HardDrive, KeyIcon, OctagonX } from 'lucide-react'
-
-import { apiClient } from '../../../../services/api'
-import { AppAttributeList } from '../../../../components/app-attribute-list/app-attribute-list'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  cn,
   DataTable,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-  cn,
 } from '@stellariscloud/ui-toolkit'
+import { HardDrive, KeyIcon, OctagonX } from 'lucide-react'
+import React from 'react'
+
+import { AppAttributeList } from '../../../../components/app-attribute-list/app-attribute-list'
 import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
-import { serverAppWorkerTableColumns } from './server-app-worker-table-columns'
+import { apiClient } from '../../../../services/api'
 import { serverAppManifestTableColumns } from './server-app-manifest-table-columns'
+import { serverAppWorkerTableColumns } from './server-app-worker-table-columns'
 
 export function ServerAppDetailScreen({
   appIdentifier,
@@ -40,7 +40,7 @@ export function ServerAppDetailScreen({
       className={cn('items-center flex flex-1 flex-col gap-6 h-full w-full')}
     >
       <div className="container flex flex-col gap-8">
-        <Card className="flex-1 bg-transparent border-0">
+        <Card className="flex-1 border-0 bg-transparent">
           <CardHeader className="p-0 pb-4">
             <CardTitle>App: {app?.identifier.toUpperCase()}</CardTitle>
             <CardDescription>{app?.config.description}</CardDescription>
@@ -70,7 +70,7 @@ export function ServerAppDetailScreen({
             />
           </CardContent>
         </Card>
-        <Card className="flex-1 bg-transparent border-0">
+        <Card className="flex-1 border-0 bg-transparent">
           <CardHeader className="p-0 pb-4">
             <CardTitle>Workers</CardTitle>
             <CardDescription>
@@ -85,7 +85,7 @@ export function ServerAppDetailScreen({
             />
           </CardContent>
         </Card>
-        <Card className="flex-1 bg-transparent border-0">
+        <Card className="flex-1 border-0 bg-transparent">
           <CardHeader className="p-0 pb-4">
             <CardTitle>Manifest</CardTitle>
             <CardDescription>All files included in the app.</CardDescription>
@@ -98,7 +98,7 @@ export function ServerAppDetailScreen({
           </CardContent>
         </Card>
         <div className="flex flex-col gap-4">
-          <Card className="bg-transparent border-0">
+          <Card className="border-0 bg-transparent">
             <CardHeader className="px-0 pt-0">
               <CardTitle>Configuration</CardTitle>
               <CardDescription>
@@ -130,7 +130,7 @@ export function ServerAppDetailScreen({
                   <AppAttributeList app={app} />
                 </TabsContent>
                 <TabsContent value="json" className="overflow-x-auto">
-                  <pre className="bg-muted-foreground/5 p-4 rounded-lg text-foreground/75 overflow-y-auto">
+                  <pre className="overflow-y-auto rounded-lg bg-muted-foreground/5 p-4 text-foreground/75">
                     {JSON.stringify(app, null, 2)}
                   </pre>
                 </TabsContent>

@@ -5,9 +5,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components'
+
+import { ServerAccessKeysScreen } from '../server-access-keys/server-access-keys/server-access-keys-screen.view'
 import { ServerStorageLocation } from '../server-storage-location/server-storage-location.view'
 import { UserStorageProvisions } from '../user-storage-provisions/user-storage-provisions.view'
-import { ServerAccessKeysScreen } from '../server-access-keys/server-access-keys/server-access-keys-screen.view'
 
 export function ServerStorageConfigTab() {
   return (

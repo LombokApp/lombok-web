@@ -1,8 +1,8 @@
+import { Input, Label } from '@stellariscloud/ui-toolkit'
 import { NAME_VALIDATORS_COMBINED } from '@stellariscloud/utils'
 import React from 'react'
 import * as r from 'runtypes'
 
-import { Input, Label } from '@stellariscloud/ui-toolkit'
 import { useFormState } from '../../utils/forms'
 
 export interface ProfileUserFormValues {

@@ -15,7 +15,14 @@ import {
   TvIcon,
   VideoCameraIcon,
 } from '@heroicons/react/24/outline'
+import type {
+  FolderDTO,
+  FolderGetResponse,
+  FolderObjectDTO,
+  TaskDTO,
+} from '@stellariscloud/api-client'
 import { MediaType } from '@stellariscloud/types'
+import { Button, Card, cn } from '@stellariscloud/ui-toolkit'
 import {
   extensionFromMimeType,
   formatBytes,
@@ -25,17 +32,13 @@ import {
 import Image from 'next/image'
 import React from 'react'
 
+import { ActionsList } from '../../components/actions-list/actions-list.component'
+import { TasksList } from '../../components/tasks-list/tasks-list.component'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
+import { useServerContext } from '../../contexts/server.context'
 import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
 import { apiClient } from '../../services/api'
-import { FolderDTO, TaskDTO } from '@stellariscloud/api-client'
-import { FolderObjectDTO } from '@stellariscloud/api-client'
-import { FolderGetResponse } from '@stellariscloud/api-client'
-import { useServerContext } from '../../contexts/server.context'
-import { Button, Card, cn } from '@stellariscloud/ui-toolkit'
-import { ActionsList } from '../../components/actions-list/actions-list.component'
-import { TasksList } from '../../components/tasks-list/tasks-list.component'
 
 export const FolderObjectSidebar = ({
   folder,
@@ -58,18 +61,18 @@ export const FolderObjectSidebar = ({
   const [tasks, setTasks] = React.useState<TaskDTO[]>()
 
   const fetchTasks = React.useCallback(() => {
-    if (folder?.id) {
+    if (folder.id) {
       void apiClient.tasksApi
-        .listFolderTasks({ folderId: folder?.id, objectKey })
+        .listFolderTasks({ folderId: folder.id, objectKey })
         .then((resp) => setTasks(resp.data.result))
     }
-  }, [folder?.id, objectKey])
+  }, [folder.id, objectKey])
 
   React.useEffect(() => {
-    if (folder?.id && objectKey) {
-      void fetchTasks()
+    if (folder.id && objectKey) {
+      fetchTasks()
     }
-  }, [fetchTasks, folder?.id, objectKey])
+  }, [fetchTasks, folder.id, objectKey])
 
   const serverContext = useServerContext()
 
@@ -83,8 +86,7 @@ export const FolderObjectSidebar = ({
         folderId,
         toMetadataObjectIdentifier(
           objectKey,
-          folderObject.contentMetadata[folderObject.hash]?.[focusedMetadata]
-            ?.hash ?? '',
+          folderObject.contentMetadata[folderObject.hash][focusedMetadata].hash,
         ),
       ).then((result) => {
         setMetadataContent((mc) => ({
@@ -136,20 +138,20 @@ export const FolderObjectSidebar = ({
   )
 
   return (
-    <div className="h-full min-w-full flex flex-col overflow-hidden">
-      <div className="h-full flex pb-2 px-2">
-        <Card className="p-3 w-full">
-          <div className="flex flex-col flex-1 gap-1 bg-foreground/5 p-2 rounded-md">
+    <div className="flex h-full min-w-full flex-col overflow-hidden">
+      <div className="flex h-full px-2 pb-2">
+        <Card className="w-full p-3">
+          <div className="flex flex-1 flex-col gap-1 rounded-md bg-foreground/5 p-2">
             <div className="flex items-center gap-2">
               <Icon icon={MagnifyingGlassIcon} size="md" />
               <div className="text-lg font-bold">Object Details</div>
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col overflow-y-auto">
+          <div className="flex flex-1 flex-col overflow-y-auto">
             <dl className="pb-6">
-              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
-                <dt className="flex-none flex">
+              <div className="mt-4 flex w-full flex-none items-center gap-x-4 px-2">
+                <dt className="flex flex-none">
                   <span className="sr-only">Path</span>
                   <Icon icon={GlobeAltIcon} size="md" />
                 </dt>
@@ -164,8 +166,8 @@ export const FolderObjectSidebar = ({
                 </dd>
               </div>
               {folderObject.hash && (
-                <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
-                  <dt className="flex-none flex">
+                <div className="mt-4 flex w-full flex-none items-center gap-x-4 px-2">
+                  <dt className="flex flex-none">
                     <span className="sr-only">Hash</span>
                     <Icon icon={HashtagIcon} size="md" />
                   </dt>
@@ -174,15 +176,15 @@ export const FolderObjectSidebar = ({
                   </dd>
                 </div>
               )}
-              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
-                <dt className="flex-none flex">
+              <div className="mt-4 flex w-full flex-none items-center gap-x-4 px-2">
+                <dt className="flex flex-none">
                   <span className="sr-only">Folder</span>
                   <Icon icon={FolderIcon} size="md" />
                 </dt>
                 <dd className={cn('text-sm leading-6')}>{folder.name}</dd>
               </div>
-              <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
-                <dt className="flex-none flex">
+              <div className="mt-4 flex w-full flex-none items-center gap-x-4 px-2">
+                <dt className="flex flex-none">
                   <span className="sr-only">Size</span>
                   <Icon icon={CubeIcon} size="md" />
                 </dt>
@@ -192,8 +194,8 @@ export const FolderObjectSidebar = ({
                 </dd>
               </div>
               {attributes.height && attributes.width ? (
-                <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
-                  <dt className="flex-none flex">
+                <div className="mt-4 flex w-full flex-none items-center gap-x-4 px-2">
+                  <dt className="flex flex-none">
                     <span className="sr-only">Dimensions</span>
                     <Icon icon={TvIcon} size="md" />
                   </dt>
@@ -205,7 +207,7 @@ export const FolderObjectSidebar = ({
                 ''
               )}
               {attributes.mimeType && (
-                <div className="mt-4 flex w-full items-center flex-none gap-x-4 px-2">
+                <div className="mt-4 flex w-full flex-none items-center gap-x-4 px-2">
                   <dt className="flex-none">
                     <span className="sr-only">Status</span>
                     <Icon
@@ -229,7 +231,7 @@ export const FolderObjectSidebar = ({
                 </div>
               )}
             </dl>
-            <div className="text-xs p-4 py-1">
+            <div className="p-4 py-1 text-xs">
               {folderObject.hash && (
                 <div>
                   <div className={cn('pt-4 text-lg font-semibold')}>
@@ -240,21 +242,18 @@ export const FolderObjectSidebar = ({
                       folderObject.contentMetadata[folderObject.hash] ?? {},
                     ).map((metadataKey, i) => {
                       const metadataEntry =
-                        folderObject.contentMetadata[folderObject.hash ?? '']?.[
+                        folderObject.contentMetadata[folderObject.hash ?? ''][
                           metadataKey
                         ]
-                      const mediaType =
-                        metadataEntry &&
-                        mediaTypeFromMimeType(metadataEntry.mimeType)
-                      if (!metadataEntry) {
-                        return <></>
-                      }
+                      const mediaType = mediaTypeFromMimeType(
+                        metadataEntry.mimeType,
+                      )
                       return (
                         <li key={i} className="flex flex-col">
                           <div className="flex justify-between gap-x-6 py-5">
-                            <div className="flex items-center justify-center min-w-0 gap-x-4">
+                            <div className="flex min-w-0 items-center justify-center gap-x-4">
                               {
-                                <div className="p-4 rounded-full">
+                                <div className="rounded-full p-4">
                                   <Icon
                                     icon={
                                       mediaType === MediaType.Image
@@ -290,7 +289,7 @@ export const FolderObjectSidebar = ({
                                 </p>
                               </div>
                             </div>
-                            <div className="flex gap-2 hidden shrink-0 sm:flex sm:items-end">
+                            <div className="flex shrink-0 gap-2 sm:flex sm:items-end">
                               <Button
                                 size="sm"
                                 className="dark:bg-gray-50/5"
@@ -353,7 +352,7 @@ export const FolderObjectSidebar = ({
                                 </pre>
                               )}
                               {mediaType === MediaType.Image && (
-                                <div className="relative w-full min-h-[30rem]">
+                                <div className="relative min-h-[30rem] w-full">
                                   <Image
                                     fill
                                     className="object-contain"
@@ -372,10 +371,10 @@ export const FolderObjectSidebar = ({
               )}
             </div>
           </div>
-          <div>{actionItems && <ActionsList actionItems={actionItems} />}</div>
+          <div>{<ActionsList actionItems={actionItems} />}</div>
           <div>{tasks && <TasksList tasks={tasks} />}</div>
           {showRawMetadata && (
-            <div className="text-xs p-4">
+            <div className="p-4 text-xs">
               <pre className="p-6 dark:bg-white/5 dark:text-gray-200">
                 {JSON.stringify(
                   {

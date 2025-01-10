@@ -1,10 +1,10 @@
 import type { FolderObjectDTO } from '@stellariscloud/api-client'
+import { Button, cn } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 
-import { Button } from '@stellariscloud/ui-toolkit'
-import { Modal } from '../../design-system/modal/modal'
 import { TypographyH3 } from '@/components'
-import { cn } from '@stellariscloud/ui-toolkit'
+
+import { Modal } from '../../design-system/modal/modal'
 
 export const ConfirmDeleteModal = ({
   onConfirm,

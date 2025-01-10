@@ -10,8 +10,8 @@ import { UserUpdateInputDTO } from '../dto/user-update-input.dto'
 import { UsersListQueryParamsDTO } from '../dto/users-list-query-params.dto'
 import type { NewUser, User } from '../entities/user.entity'
 import { usersTable } from '../entities/user.entity'
-import { UserNotFoundException } from '../exceptions/user-not-found.exception'
 import { UserIdentityConflictException } from '../exceptions/user-identity-conflict.exception'
+import { UserNotFoundException } from '../exceptions/user-not-found.exception'
 
 export enum UserSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -174,7 +174,7 @@ export class UserService {
         error &&
         typeof error === 'object' &&
         'constraint_name' in error &&
-        error.constraint_name == 'users_username_unique'
+        error.constraint_name === 'users_username_unique'
       ) {
         throw new UserIdentityConflictException()
       }

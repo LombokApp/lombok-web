@@ -33,7 +33,7 @@ export class StorageLocationService {
     private readonly s3Service: S3Service,
   ) {}
 
-  async testS3Connection({
+  testS3Connection({
     // userId,
     body,
   }: {

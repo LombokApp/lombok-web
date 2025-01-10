@@ -1,11 +1,11 @@
 import React from 'react'
 
+import { sdkInstance } from '../services/api'
 import { indexedDb } from '../services/indexed-db'
 import { getDataFromDisk } from '../services/local-cache/local-cache.service'
 import { downloadData } from '../utils/file'
 import type { LogLine } from './logging.context'
 import { useLoggingContext } from './logging.context'
-import { sdkInstance } from '../services/api'
 
 export interface LocalFileCache {
   [key: string]: { size: number; type: string }
@@ -106,8 +106,11 @@ export const LocalFileCacheContextProvider = ({
   const deleteFromMemory = React.useCallback(
     (folderId: string, objectIdentifier: string) => {
       // console.log('deleteFromMemory(%s, %s)', folderId, objectIdentifier)
-
-      delete fileCacheRef.current[`${folderId}:${objectIdentifier}`]
+      const key = `${folderId}:${objectIdentifier}`
+      if (key in fileCacheRef.current) {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete fileCacheRef.current[key]
+      }
     },
     [],
   )
@@ -149,6 +152,7 @@ export const LocalFileCacheContextProvider = ({
                 )}`,
               )
 
+              // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
               delete downloading.current[folderIdAndKey]
             } else {
               void getDataFromDisk(folderId, objectIdentifier).then((data) => {
@@ -162,6 +166,7 @@ export const LocalFileCacheContextProvider = ({
                   )
                 }
 
+                // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
                 delete downloading.current[folderIdAndKey]
               })
             }
@@ -202,10 +207,10 @@ export const LocalFileCacheContextProvider = ({
         ) => {
           const folderIdAndKey = `${folderId}:${objectIdentifier}`
           if (downloading.current[folderIdAndKey]) {
-            const oldResolve = downloading.current[folderIdAndKey]?.resolve as (
+            const oldResolve = downloading.current[folderIdAndKey].resolve as (
               blob: unknown,
             ) => void
-            const oldReject = downloading.current[folderIdAndKey]?.reject as (
+            const oldReject = downloading.current[folderIdAndKey].reject as (
               e: unknown,
             ) => void
 
@@ -310,8 +315,10 @@ export const LocalFileCacheContextProvider = ({
       if (err) {
         throw err
       }
+      // eslint-disable-next-line no-console
       console.log('Deleted %s local files.', result.deletedCount)
 
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete localStorageFolderSizes[folderId]
       setLocalStorageFolderSizes({
         ...localStorageFolderSizes,

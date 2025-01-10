@@ -2,6 +2,7 @@ import '../styles/globals.css'
 import '../fonts/inter/inter.css'
 
 import { AuthContextProvider, useAuthContext } from '@stellariscloud/auth-utils'
+import { cn } from '@stellariscloud/ui-toolkit'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
@@ -9,6 +10,8 @@ import React from 'react'
 import { QueryClient, QueryClientProvider } from 'react-query'
 
 import { Header } from '../components/header'
+import { Sidebar } from '../components/sidebar/sidebar'
+import { useSidebar } from '../components/sidebar/use-sidebar'
 import { LocalFileCacheContextProvider } from '../contexts/local-file-cache.context'
 import { LoggingContextProvider } from '../contexts/logging.context'
 import {
@@ -16,11 +19,8 @@ import {
   useServerContext,
 } from '../contexts/server.context'
 import { ThemeProvider } from '../contexts/theme.context'
-import { sdkInstance } from '../services/api'
-import { Sidebar } from '../components/sidebar/sidebar'
-import { useSidebar } from '../components/sidebar/use-sidebar'
 import { useStore } from '../hooks/use-store'
-import { cn } from '@stellariscloud/ui-toolkit'
+import { sdkInstance } from '../services/api'
 
 const queryClient = new QueryClient()
 
@@ -28,8 +28,8 @@ const UNAUTHENTICATED_PAGES = ['/', '/faq', '/login', '/signup']
 
 const UnauthenticatedContent = ({ Component, pageProps }: AppProps) => {
   return (
-    <div className="h-full flex flex-col">
-      <div className="w-full flex shrink-0 grow-0 absolute right-0 top-0 overflow-visible">
+    <div className="flex h-full flex-col">
+      <div className="absolute right-0 top-0 flex w-full shrink-0 grow-0 overflow-visible">
         <Header />
       </div>
       <main className={cn('flex-1 justify-center overflow-hidden')}>
@@ -59,16 +59,15 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
   }, [authContext.authState.isAuthenticated, authContext.authState, router])
 
   const sidebar = useStore(useSidebar, (x) => x)
-  if (!sidebar) return null
+  if (!sidebar) {
+    return null
+  }
   const { getOpenState, settings } = sidebar
 
   return (
     <div className="flex h-full">
       <Sidebar
-        onSignOut={async () => {
-          await authContext.logout()
-          await router.push('/login')
-        }}
+        onSignOut={authContext.logout}
         authContext={authContext}
         menuItems={menuItems}
         router={router}
@@ -116,7 +115,7 @@ const Layout = (appProps: AppProps) => {
               />
               <link rel="icon" href="/favicon.ico" />
             </Head>
-            <div className="w-full h-full" id="takeover-root">
+            <div className="size-full" id="takeover-root">
               {loaded && sdkInstance.authenticator.state.isAuthenticated ? (
                 <LocalFileCacheContextProvider>
                   <ServerContextProvider>

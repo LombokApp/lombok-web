@@ -1,16 +1,16 @@
 import type {
-  UserStorageProvisionDTO,
   StorageLocationInputDTO,
+  UserStorageProvisionDTO,
 } from '@stellariscloud/api-client'
+import { Button, Input, Label } from '@stellariscloud/ui-toolkit'
 import { FOLDER_NAME_VALIDATORS_COMBINED } from '@stellariscloud/utils'
 import React from 'react'
 import * as r from 'runtypes'
 
-import { Button, Input, Label } from '@stellariscloud/ui-toolkit'
 import { ButtonDropdown } from '../../design-system/button-dropdown/button-dropdown'
 import { useFormState } from '../../utils/forms'
-import { FolderLocationFormFields } from './folder-location-form-fields'
 import type { FolderLocationFormValues } from './folder-location-form-fields'
+import { FolderLocationFormFields } from './folder-location-form-fields'
 
 interface CreateFolderFormValues {
   name: string
@@ -73,11 +73,11 @@ export const CreateFolderForm = ({
       : undefined
 
   return (
-    <div className="lg:min-w-[28rem] lg:max-w-[30rem] flex flex-col gap-4">
-      <h3 className="font-bold text-gray-600 dark:text-gray-200 text-3xl mb">
+    <div className="flex flex-col gap-4 lg:min-w-[28rem] lg:max-w-[30rem]">
+      <h3 className="text-3xl font-bold text-gray-600 dark:text-gray-200">
         Create a new folder
       </h3>
-      <div className="text-gray-600 dark:text-gray-400 font-medium mb-4">
+      <div className="mb-4 font-medium text-gray-600 dark:text-gray-400">
         Folders refer to an arbitrary storage location, potentially already
         containing files
       </div>
@@ -89,7 +89,7 @@ export const CreateFolderForm = ({
           onChange={(e) => form.setValue('name', e.target.value)}
         />
       </div>
-      <div className="flex flex-col gap-4 justify-stretch">
+      <div className="flex flex-col justify-stretch gap-4">
         <h3 className="font-semibold dark:text-gray-200">
           <div className="flex justify-between">Content Location</div>
         </h3>
@@ -129,7 +129,7 @@ export const CreateFolderForm = ({
           />
         )}
       </div>
-      <div className="flex flex-col gap-4 justify-stretch">
+      <div className="flex flex-col justify-stretch gap-4">
         <h3 className="font-semibold dark:text-gray-200">
           <div className="flex justify-between">Metadata Location</div>
         </h3>
@@ -173,7 +173,7 @@ export const CreateFolderForm = ({
         )}
       </div>
 
-      <div className="flex gap-2 justify-end">
+      <div className="flex justify-end gap-2">
         <Button variant={'secondary'} onClick={onCancel}>
           Cancel
         </Button>

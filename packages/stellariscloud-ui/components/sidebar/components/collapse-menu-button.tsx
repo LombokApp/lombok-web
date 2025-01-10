@@ -1,30 +1,30 @@
 'use client'
 
-import Link from 'next/link'
-import { useState } from 'react'
-import { ChevronDown, Dot, LucideIcon } from 'lucide-react'
-
-import { cn } from '@stellariscloud/ui-toolkit'
+import { DropdownMenuArrow } from '@radix-ui/react-dropdown-menu'
 import {
   Button,
+  cn,
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
   DropdownMenu,
+  DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from '@stellariscloud/ui-toolkit'
-import { DropdownMenuArrow } from '@radix-ui/react-dropdown-menu'
+import type { LucideIcon } from 'lucide-react'
+import { ChevronDown, Dot } from 'lucide-react'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 
-type Submenu = {
+interface Submenu {
   href: string
   label: string
   active?: boolean
@@ -57,14 +57,14 @@ export function CollapseMenuButton({
       className="w-full"
     >
       <CollapsibleTrigger
-        className="[&[data-state=open]>div>div>svg]:rotate-180 mb-1"
+        className="mb-1 [&[data-state=open]>div>div>svg]:rotate-180"
         asChild
       >
         <Button
           variant={isSubmenuActive ? 'secondary' : 'ghost'}
-          className="w-full justify-start h-10"
+          className="h-10 w-full justify-start"
         >
-          <div className="w-full items-center flex justify-between">
+          <div className="flex w-full items-center justify-between">
             <div className="flex items-center">
               <span className="mr-4">
                 <Icon size={18} />
@@ -72,21 +72,14 @@ export function CollapseMenuButton({
               <p
                 className={cn(
                   'max-w-[150px] truncate',
-                  isOpen
-                    ? 'translate-x-0 opacity-100'
-                    : '-translate-x-96 opacity-0',
+                  'translate-x-0 opacity-100',
                 )}
               >
                 {label}
               </p>
             </div>
             <div
-              className={cn(
-                'whitespace-nowrap',
-                isOpen
-                  ? 'translate-x-0 opacity-100'
-                  : '-translate-x-96 opacity-0',
-              )}
+              className={cn('whitespace-nowrap', 'translate-x-0 opacity-100')}
             >
               <ChevronDown
                 size={18}
@@ -96,8 +89,9 @@ export function CollapseMenuButton({
           </div>
         </Button>
       </CollapsibleTrigger>
-      <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
-        {submenus.map(({ href, label, active }, index) => (
+      {/* eslint-disable-next-line tailwindcss/no-custom-classname */}
+      <CollapsibleContent className="data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down overflow-hidden">
+        {submenus.map(({ href, label: _label, active }, index) => (
           <Button
             key={index}
             variant={
@@ -105,22 +99,20 @@ export function CollapseMenuButton({
                 ? 'secondary'
                 : 'ghost'
             }
-            className="w-full justify-start h-10 mb-1"
+            className="mb-1 h-10 w-full justify-start"
             asChild
           >
             <Link href={href}>
-              <span className="mr-4 ml-2">
+              <span className="ml-2 mr-4">
                 <Dot size={18} />
               </span>
               <p
                 className={cn(
                   'max-w-[170px] truncate',
-                  isOpen
-                    ? 'translate-x-0 opacity-100'
-                    : '-translate-x-96 opacity-0',
+                  'translate-x-0 opacity-100',
                 )}
               >
-                {label}
+                {_label}
               </p>
             </Link>
           </Button>
@@ -135,9 +127,9 @@ export function CollapseMenuButton({
             <DropdownMenuTrigger asChild>
               <Button
                 variant={isSubmenuActive ? 'secondary' : 'ghost'}
-                className="w-full justify-start h-10 mb-1"
+                className="mb-1 h-10 w-full justify-start"
               >
-                <div className="w-full items-center flex justify-between">
+                <div className="flex w-full items-center justify-between">
                   <div className="flex items-center">
                     <span className={cn(isOpen === false ? '' : 'mr-4')}>
                       <Icon size={18} />
@@ -165,7 +157,7 @@ export function CollapseMenuButton({
           {label}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {submenus.map(({ href, label, active }, index) => (
+        {submenus.map(({ href, label: _label, active }, index) => (
           <DropdownMenuItem key={index} asChild>
             <Link
               className={`cursor-pointer ${
@@ -174,7 +166,7 @@ export function CollapseMenuButton({
               }`}
               href={href}
             >
-              <p className="max-w-[180px] truncate">{label}</p>
+              <p className="max-w-[180px] truncate">{_label}</p>
             </Link>
           </DropdownMenuItem>
         ))}

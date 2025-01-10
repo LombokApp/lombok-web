@@ -95,6 +95,7 @@ async function main(): Promise<void> {
     }
   }
 
+  // eslint-disable-next-line no-console
   console.log('Seed start')
 
   const locations = [
@@ -174,12 +175,14 @@ async function main(): Promise<void> {
     createdAt: new Date('2023-11-01 22:49:00.93'),
     updatedAt: new Date('2023-11-01 22:49:00.93'),
   })
+  // eslint-disable-next-line no-console
   console.log('Seed done')
 }
 
 main()
   .then(() => process.exit(0))
   .catch((error) => {
+    // eslint-disable-next-line no-console
     console.error(error)
     process.exit(1)
   })

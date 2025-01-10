@@ -166,7 +166,7 @@ export class AppService {
     this.folderService = _folderService as FolderService
   }
 
-  async getApp(appIdentifier: string): Promise<App | undefined> {
+  getApp(appIdentifier: string): Promise<App | undefined> {
     return this.ormService.db.query.appsTable.findFirst({
       where: eq(appsTable.identifier, appIdentifier),
     })
@@ -371,6 +371,7 @@ export class AppService {
                 ),
             }
           } else {
+            // eslint-disable-next-line no-console
             console.log(
               'FAIL_HANDLE_TASK error:',
               FailHandleTaskValidator.safeParse(requestData).error,
@@ -707,6 +708,7 @@ export class AppService {
           manifestEntry.path,
         )
         const objectKey = `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-storage/${app.identifier}${manifestEntry.path}`
+        // eslint-disable-next-line no-console
         console.log('Uploading app file:', {
           objectKey,
           filepath: manifestEntry.path,
@@ -767,22 +769,27 @@ export class AppService {
         await this.installApp(app.definition, update)
       } catch (error) {
         if (error instanceof AppAlreadyInstalledException) {
+          // eslint-disable-next-line no-console
           console.log(
             `APP INSTALL ERROR - APP[${appIdentifier}]: App is already installed.`,
           )
         } else if (error instanceof AppNotParsableException) {
+          // eslint-disable-next-line no-console
           console.log(
             `APP INSTALL ERROR - APP[${appIdentifier}]: App is not parsable.`,
           )
         } else if (error instanceof AppRequirementsNotSatisfiedException) {
+          // eslint-disable-next-line no-console
           console.log(
             `APP INSTALL ERROR - APP[${appIdentifier}]: App requirements are not met.`,
           )
         } else {
+          // eslint-disable-next-line no-console
           console.log(`APP INSTALL ERROR - APP[${appIdentifier}]:`, error)
         }
       }
     } else {
+      // eslint-disable-next-line no-console
       console.log(`APP PARSE ERROR - APP[${appIdentifier}]: DEFINITION_INVALID`)
     }
   }
@@ -864,10 +871,9 @@ export class AppService {
     return app
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async getAppConnections(): Promise<{
+  getAppConnections(): {
     [key: string]: ConnectedAppWorker[]
-  }> {
+  } {
     let cursor = 0
     let started = false
     let keys: string[] = []
@@ -889,7 +895,9 @@ export class AppService {
           .filter((_r) => _r)
           .reduce<{ [k: string]: ConnectedAppWorker[] }>(
             (acc, _r: string | undefined) => {
-              const parsed = JSON.parse(_r ?? 'null') as ConnectedAppWorker
+              const parsed = JSON.parse(
+                _r ?? 'null',
+              ) as ConnectedAppWorker | null
               if (!parsed) {
                 return acc
               }

@@ -36,17 +36,21 @@ export class CoreAppService {
         appWorkerId,
       })
 
+      // eslint-disable-next-line no-console
       console.log('Embedded core app worker thread started')
 
       worker.addEventListener('error', (err) => {
+        // eslint-disable-next-line no-console
         console.log('Worker thread error:', err)
       })
 
       worker.addEventListener('exit', (err) => {
+        // eslint-disable-next-line no-console
         console.log('Worker thread exit:', err)
       })
 
       worker.addEventListener('message', (msg) => {
+        // eslint-disable-next-line no-console
         console.log('Embedded core app worker thread message:', msg)
       })
     }

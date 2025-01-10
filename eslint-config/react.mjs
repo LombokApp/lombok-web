@@ -1,6 +1,7 @@
 import eslintJsxAlly from 'eslint-plugin-jsx-a11y'
 import eslintReact from 'eslint-plugin-react'
 import eslintReactHooks from 'eslint-plugin-react-hooks'
+import eslintImport from 'eslint-plugin-import'
 
 export default {
   settings: {
@@ -13,6 +14,7 @@ export default {
     'jsx-a11y': eslintJsxAlly,
     react: eslintReact,
     'react-hooks': eslintReactHooks,
+    import: eslintImport,
   },
 
   // extends: [

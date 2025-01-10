@@ -1,8 +1,8 @@
+import { Input, Label } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 import * as r from 'runtypes'
 
 import { useFormState } from '../../utils/forms'
-import { Input, Label } from '@stellariscloud/ui-toolkit'
 
 export interface FolderLocationFormValues {
   name: string

@@ -4,6 +4,8 @@ import type {
   FoldersApiListFoldersRequest,
   UserStorageProvisionDTO,
 } from '@stellariscloud/api-client'
+import { DataTable } from '@stellariscloud/ui-toolkit'
+import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import React from 'react'
 
@@ -11,8 +13,6 @@ import React from 'react'
 // import { CreateFolderForm } from '../../components/create-folder-form/create-folder-form'
 // import { CreateFolderStartPanel } from '../../components/create-folder-start-panel/create-folder-start-panel'
 import { apiClient, foldersApiHooks } from '../../services/api'
-import { DataTable } from '@stellariscloud/ui-toolkit'
-import { PaginationState, SortingState } from '@tanstack/react-table'
 import { foldersTableColumns } from './folders-table-columns'
 
 export const FoldersScreen = () => {
@@ -49,7 +49,7 @@ export const FoldersScreen = () => {
           setFolders((state) => {
             return {
               result:
-                folders?.result?.filter((b) => b.folder.id !== folderId) ?? [],
+                folders?.result.filter((b) => b.folder.id !== folderId) ?? [],
               meta: { totalCount: state?.meta.totalCount ?? 0 },
             }
           }),
@@ -123,7 +123,7 @@ export const FoldersScreen = () => {
 
   return (
     <>
-      <div className="flex flex-1 flex-col container gap-3 self-center">
+      <div className="container flex flex-1 flex-col gap-3 self-center">
         <DataTable
           title="Folders"
           enableSearch={true}

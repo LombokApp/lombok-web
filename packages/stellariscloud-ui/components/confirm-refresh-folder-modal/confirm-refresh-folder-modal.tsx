@@ -1,6 +1,6 @@
+import { Button, cn } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 
-import { Button, cn } from '@stellariscloud/ui-toolkit'
 import { Modal } from '../../design-system/modal/modal'
 
 export const ConfirmRefreshFolderModal = ({

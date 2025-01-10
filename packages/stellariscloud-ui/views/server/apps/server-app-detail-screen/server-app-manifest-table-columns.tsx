@@ -1,10 +1,9 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
-
+import type { AppDTOManifestInner } from '@stellariscloud/api-client'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
-import { AppDTOManifestInner } from '@stellariscloud/api-client'
 import { formatBytes } from '@stellariscloud/utils'
+import type { ColumnDef } from '@tanstack/react-table'
 
 export const serverAppManifestTableColumns: ColumnDef<AppDTOManifestInner>[] = [
   {

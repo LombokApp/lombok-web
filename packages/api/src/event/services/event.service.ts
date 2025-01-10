@@ -186,7 +186,7 @@ export class EventService {
         }
 
         // notify folder rooms of new tasks
-        tasks.map((_task) => {
+        tasks.forEach((_task) => {
           if (_task.subjectFolderId) {
             this.folderSocketService.sendToFolderRoom(
               _task.subjectFolderId,

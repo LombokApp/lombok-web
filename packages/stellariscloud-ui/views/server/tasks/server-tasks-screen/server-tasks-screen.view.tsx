@@ -1,13 +1,13 @@
 import type {
-  TaskDTO,
   ServerTasksApiListTasksRequest,
+  TaskDTO,
 } from '@stellariscloud/api-client'
+import { cn, DataTable } from '@stellariscloud/ui-toolkit'
+import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
 import React from 'react'
 
 import { apiClient } from '../../../../services/api'
-import { DataTable, cn } from '@stellariscloud/ui-toolkit'
-import { PaginationState, SortingState } from '@tanstack/react-table'
 import { serverTasksTableColumns } from './server-tasks-table-columns'
 
 export function ServerTasksScreen() {
@@ -25,7 +25,7 @@ export function ServerTasksScreen() {
     result: TaskDTO[]
     meta: { totalCount: number }
   }>()
-  console.log({ filters })
+
   React.useEffect(() => {
     const statusFilterValue =
       filters.find((f) => f.id === 'status')?.value ?? []

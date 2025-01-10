@@ -20,6 +20,7 @@ const defaultConfig = {
 
 const foldersApi = bindApiConfig(defaultConfig, FoldersApi)()
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AsyncWorkerMessage = [string, any]
 
 const log = (logMessage: {
@@ -40,7 +41,10 @@ const isLocal = async (folderId: string, objectIdentifier: string) => {
 const recentlyRequested: {
   [key: string]:
     | {
-        callbacks?: { resolve: (url: string) => void; reject: (e: any) => void }
+        callbacks?: {
+          resolve: (url: string) => void
+          reject: (e: unknown) => void
+        }
         promise?: Promise<string>
       }
     | undefined
@@ -215,7 +219,9 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
   const message = event.data
   // console.log('WORKER event.data', event.data)
   if (message[0] === 'UPLOAD') {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const folderId: string = message[1].folderId
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const objectIdentifier: string = message[1].objectIdentifier
     log({
       level: LogLevel.INFO,
@@ -223,6 +229,8 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
       objectIdentifier,
       message: `Upload of '${objectIdentifier}' started`,
     })
+    // TODO: type check this with zod
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const uploadFile: File = message[1].uploadFile
     void foldersApi
       .createPresignedUrls({
@@ -278,17 +286,24 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
         postMessage([
           'DOWNLOAD_COMPLETED',
           {
+            // TODO: type check this with zod
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             folderId: message[1].folderId,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             objectIdentifier: message[1].objectIdentifier,
           },
         ])
       })
       .catch((e) => {
+        // eslint-disable-next-line no-console
         console.log('DOWNLOAD ERROR:', e)
         postMessage([
           'DOWNLOAD_FAILED',
           {
+            // TODO: type check this with zod
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             folderId: message[1].folderId,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             objectIdentifier: message[1].objectIdentifier,
           },
         ])
@@ -298,6 +313,7 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
         delete downloading[folderIdAndKey]
       })
   } else if (message[0] === 'AUTH_UPDATED') {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     accessToken = message[1]
   }
 }

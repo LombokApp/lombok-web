@@ -4,9 +4,8 @@ import {
   DocumentTextIcon,
   SignalIcon,
 } from '@heroicons/react/24/outline'
-import React from 'react'
-
 import { Button, cn } from '@stellariscloud/ui-toolkit'
+import React from 'react'
 
 export type AppsTab = 'config' | 'logs' | 'events' | 'workers'
 

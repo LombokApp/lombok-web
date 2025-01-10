@@ -1,4 +1,5 @@
 import type { NextPage } from 'next'
+import { useRouter } from 'next/router'
 import React from 'react'
 
 import { ContentLayout } from '../../../../components/sidebar/components/content-layout'
@@ -6,7 +7,6 @@ import {
   FolderContextProvider,
   useFolderContext,
 } from '../../../../contexts/folder.context'
-import { useRouter } from 'next/router'
 import { FolderTaskDetailScreen } from '../../../../views/folder-task-detail-screen/folder-task-detail-screen.view'
 
 const FolderTaskDetailPageInner = () => {

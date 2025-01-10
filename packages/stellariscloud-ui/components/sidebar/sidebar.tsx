@@ -1,15 +1,15 @@
 'use client'
+import type { IAuthContext } from '@stellariscloud/auth-utils'
+import { Button, cn } from '@stellariscloud/ui-toolkit'
+import Image from 'next/image'
+import Link from 'next/link'
+import type { NextRouter } from 'next/router'
+
+import type { AppMenuItemAndHref } from '../../contexts/server.context'
+import { useStore } from '../../hooks/use-store'
 import { Menu } from './components/menu'
 import { SidebarToggle } from './components/sidebar-toggle'
-import { Button } from '@stellariscloud/ui-toolkit'
 import { useSidebar } from './use-sidebar'
-import { useStore } from '../../hooks/use-store'
-import { cn } from '@stellariscloud/ui-toolkit'
-import Link from 'next/link'
-import Image from 'next/image'
-import { IAuthContext } from '@stellariscloud/auth-utils'
-import { AppMenuItemAndHref } from '../../contexts/server.context'
-import { NextRouter } from 'next/router'
 
 export function Sidebar({
   onSignOut,
@@ -21,7 +21,9 @@ export function Sidebar({
   router: NextRouter
 }) {
   const sidebar = useStore(useSidebar, (x) => x)
-  if (!sidebar) return null
+  if (!sidebar) {
+    return null
+  }
   const { isOpen, toggleOpen, getOpenState, setIsHover, settings } = sidebar
   return (
     <aside
@@ -35,9 +37,9 @@ export function Sidebar({
       <div
         onMouseEnter={() => setIsHover(true)}
         onMouseLeave={() => setIsHover(false)}
-        className="relative h-screen flex flex-col overflow-y-auto border-r shadow-md dark:shadow-zinc-900 dark:border-foreground/5"
+        className="relative flex h-screen flex-col overflow-y-auto border-r shadow-md dark:border-foreground/5 dark:shadow-zinc-900"
       >
-        <div className="bg-black/5 pl-4 pr-2 pt-1 pb-0 border-b">
+        <div className="border-b bg-black/5 pb-0 pl-4 pr-2 pt-1">
           <Button
             className={cn(
               'transition-transform ease-in-out duration-300 mb-1 justify-start pl-2',
@@ -45,7 +47,7 @@ export function Sidebar({
             variant="link"
             asChild
           >
-            <Link href="/folders" className="flex gap-4 py-0 px-0">
+            <Link href="/folders" className="flex gap-4 p-0">
               <Image
                 className="rounded-full"
                 priority
@@ -67,7 +69,7 @@ export function Sidebar({
             </Link>
           </Button>
         </div>
-        <div className="p-0 px-3 h-full overflow-hidden">
+        <div className="h-full overflow-hidden p-0 px-3">
           <Menu isOpen={getOpenState()} onSignOut={onSignOut} />
         </div>
       </div>

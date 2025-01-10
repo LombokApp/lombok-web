@@ -1,6 +1,7 @@
+import type { ServerStorageLocationDTO } from '@stellariscloud/api-client'
+import { Globe, Key, Lock, PackageOpen, Server, Slash } from 'lucide-react'
+
 import { Button } from '@/components'
-import { ServerStorageLocationDTO } from '@stellariscloud/api-client'
-import { Lock, Slash, Key, PackageOpen, Server, Globe } from 'lucide-react'
 
 const DD_CLASS = 'mt-1 text-base text-muted-foreground font-mono'
 
@@ -107,7 +108,7 @@ export function ServerStorageLocationCard({
             </dd>
           </div>
         </dl>
-        <div className="mt-6 border-t border-gray-900/5 px-6 py-6">
+        <div className="mt-6 border-t border-gray-900/5 p-6">
           <Button onClick={onRemoveClick} variant="destructive">
             Remove
           </Button>

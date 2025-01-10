@@ -1,7 +1,5 @@
 'use client'
 
-import React from 'react'
-
 import {
   Button,
   Dialog,
@@ -10,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@stellariscloud/ui-toolkit'
+import React from 'react'
 
 const ServerStorageLocationRemoveModal = ({
   modalData,
@@ -25,8 +24,8 @@ const ServerStorageLocationRemoveModal = ({
   return (
     <Dialog
       open={open}
-      onOpenChange={(open) => {
-        setModalData({ ...modalData, open })
+      onOpenChange={(_open) => {
+        setModalData({ ...modalData, open: _open })
       }}
     >
       <DialogContent

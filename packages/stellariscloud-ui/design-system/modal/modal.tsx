@@ -1,5 +1,5 @@
-import { cn } from '@stellariscloud/ui-toolkit'
 import { Dialog, Transition } from '@headlessui/react'
+import { cn } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 
 export function Modal({
@@ -39,11 +39,11 @@ export function Modal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-60 transition-opacity" />
+          <div className="fixed inset-0 bg-black/60 transition-opacity" />
         </Transition.Child>
 
         <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0 text-gray-900 dark:text-white">
+          <div className="flex min-h-full items-end justify-center p-4 text-center text-gray-900 sm:items-center sm:p-0 dark:text-white">
             <Transition.Child
               as={React.Fragment}
               enter="ease-out duration-300"

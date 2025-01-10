@@ -1,9 +1,10 @@
-import { TaskDTO } from '@stellariscloud/api-client'
+import type { TaskDTO } from '@stellariscloud/api-client'
 import { Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
-import { invertColour, stringToColour } from '../../utils/colors'
-import Image from 'next/image'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
+import Image from 'next/image'
 import Link from 'next/link'
+
+import { invertColour, stringToColour } from '../../utils/colors'
 
 const ROW_SPACING = 'px-4 py-3'
 const LABEL_TEXT_COLOR = 'opacity/50'
@@ -54,7 +55,7 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
               {task?.ownerIdentifier && (
                 <div className="flex items-center gap-4">
                   <div
-                    className="flex items-center justify-center rounded-full w-8 h-8 overflow-hidden"
+                    className="flex size-8 items-center justify-center overflow-hidden rounded-full"
                     style={{
                       background: task.ownerIdentifier.includes(':')
                         ? stringToColour(task.ownerIdentifier.split(':')[1])
@@ -140,7 +141,7 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
               )}
             >
               {task && (
-                <div className="flex gap-2 items-center">
+                <div className="flex items-center gap-2">
                   <div className="flex items-center gap-2">
                     <div
                       className={cn(
@@ -156,7 +157,7 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
                     />
                   </div>
 
-                  <div className="flex gap-2 items-center font-normal text-muted-foreground text-xs">
+                  <div className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
                     {task.completedAt
                       ? 'Complete'
                       : task.errorAt
@@ -187,7 +188,7 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
               )}
             >
               {task && (
-                <div className="bg-background/50 p-4 rounded-lg">
+                <div className="rounded-lg bg-background/50 p-4">
                   <pre>{JSON.stringify(task.inputData, null, 2)}</pre>
                 </div>
               )}

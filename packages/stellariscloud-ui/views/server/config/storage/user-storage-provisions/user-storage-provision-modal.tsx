@@ -1,7 +1,9 @@
 'use client'
 
-import React from 'react'
-
+import type {
+  ServerStorageLocationInputDTO,
+  UserStorageProvisionDTO,
+} from '@stellariscloud/api-client'
 import {
   Dialog,
   DialogContent,
@@ -9,14 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@stellariscloud/ui-toolkit'
-import {
-  ServerStorageLocationInputDTO,
-  UserStorageProvisionDTO,
-} from '@stellariscloud/api-client'
+import React from 'react'
+
 import { UserStorageProvisionForm } from './user-storage-provision-form/user-storage-provision-form'
 
 export type MutationType = 'CREATE' | 'UPDATE'
-type ModalData = {
+interface ModalData {
   userStorageProvision: UserStorageProvisionDTO | undefined
   mutationType: MutationType
 }

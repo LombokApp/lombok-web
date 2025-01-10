@@ -34,7 +34,7 @@ export class AppsController {
       throw new UnauthorizedException()
     }
     const apps = await this.appService.listApps()
-    const connectedInstances = await this.appService.getAppConnections()
+    const connectedInstances = this.appService.getAppConnections()
     const result = apps.map((app) => {
       return transformAppToDTO(app, connectedInstances[app.identifier] ?? [])
     })
@@ -56,7 +56,7 @@ export class AppsController {
     if (!app) {
       throw new NotFoundException()
     }
-    const connectedInstances = await this.appService.getAppConnections()
+    const connectedInstances = this.appService.getAppConnections()
 
     return {
       app: {

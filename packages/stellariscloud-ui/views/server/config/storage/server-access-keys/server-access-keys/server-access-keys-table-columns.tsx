@@ -1,9 +1,8 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
-
+import type { AccessKeyDTO } from '@stellariscloud/api-client'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
-import { AccessKeyDTO } from '@stellariscloud/api-client'
+import type { ColumnDef } from '@tanstack/react-table'
 import Link from 'next/link'
 
 export const serverAccessKeysTableColumns: ColumnDef<AccessKeyDTO>[] = [
@@ -11,10 +10,10 @@ export const serverAccessKeysTableColumns: ColumnDef<AccessKeyDTO>[] = [
     id: '__HIDDEN__',
     cell: ({ row }) => {
       return (
-        <div className="w-0 h-0 overflow-hidden max-w-0">
+        <div className="size-0 max-w-0 overflow-hidden">
           <Link
             href={`/server/access-keys/${row.original.accessKeyHashId}`}
-            className="absolute top-0 bottom-0 left-0 right-0"
+            className="absolute inset-0"
           />
         </div>
       )
@@ -50,7 +49,7 @@ export const serverAccessKeysTableColumns: ColumnDef<AccessKeyDTO>[] = [
     ),
     cell: ({ row: { original: accessKey } }) => {
       return (
-        <div className="flex gap-2 items-center font-normal">
+        <div className="flex items-center gap-2 font-normal">
           {accessKey.accessKeyId}
         </div>
       )
@@ -69,7 +68,7 @@ export const serverAccessKeysTableColumns: ColumnDef<AccessKeyDTO>[] = [
     ),
     cell: ({ row: { original: accessKey } }) => {
       return (
-        <div className="flex gap-2 items-center font-normal">
+        <div className="flex items-center gap-2 font-normal">
           {accessKey.endpointDomain}
         </div>
       )
@@ -88,7 +87,7 @@ export const serverAccessKeysTableColumns: ColumnDef<AccessKeyDTO>[] = [
     ),
     cell: ({ row: { original: accessKey } }) => {
       return (
-        <div className="flex gap-2 items-center font-normal">
+        <div className="flex items-center gap-2 font-normal">
           {accessKey.region}
         </div>
       )

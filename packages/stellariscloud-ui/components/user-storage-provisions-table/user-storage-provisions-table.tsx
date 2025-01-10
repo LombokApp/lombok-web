@@ -1,5 +1,6 @@
-import { UserStorageProvisionDTO } from '@stellariscloud/api-client'
+import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
 import { DataTable } from '@stellariscloud/ui-toolkit'
+
 import { userStorageProvisionsTableColumns } from './user-storage-provisions-table-columns'
 
 export function UserStorageProvisionsTable({
@@ -13,7 +14,7 @@ export function UserStorageProvisionsTable({
 }) {
   return (
     <DataTable
-      data={userStorageProvisions ?? []}
+      data={userStorageProvisions}
       columns={userStorageProvisionsTableColumns}
     />
   )

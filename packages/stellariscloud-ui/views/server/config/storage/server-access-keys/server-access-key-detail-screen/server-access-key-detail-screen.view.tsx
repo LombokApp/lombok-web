@@ -1,11 +1,11 @@
 import type { AccessKeyDTO } from '@stellariscloud/api-client'
+import { cn } from '@stellariscloud/ui-toolkit'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import { apiClient } from '../../../../../../services/api'
 import { AccessKeyAttributeList } from '../../../../../../components/access-key-attribute-list/access-key-attributes-list'
 import { AccessKeyRotateForm } from '../../../../../../components/access-key-rotate-form/access-key-rotate-form'
-import { cn } from '@stellariscloud/ui-toolkit'
+import { apiClient } from '../../../../../../services/api'
 
 export function ServerAccessKeyDetailScreen() {
   const router = useRouter()
@@ -24,7 +24,7 @@ export function ServerAccessKeyDetailScreen() {
 
   React.useEffect(() => {
     if (typeof router.query.accessKeyHashId === 'string' && !accessKey) {
-      void fetchAccessKey({
+      fetchAccessKey({
         accessKeyHashId: router.query.accessKeyHashId,
       })
     }
@@ -57,7 +57,7 @@ export function ServerAccessKeyDetailScreen() {
           'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto px-4',
         )}
       >
-        <div className="container flex-1 flex flex-col pt-12">
+        <div className="container flex flex-1 flex-col pt-12">
           <AccessKeyAttributeList accessKey={accessKey} />
           {accessKey && (
             <AccessKeyRotateForm onSubmit={(input) => handleRotate(input)} />

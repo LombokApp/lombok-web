@@ -1,9 +1,4 @@
 import type { AccessKeyDTO } from '@stellariscloud/api-client'
-import { useRouter } from 'next/router'
-import React from 'react'
-import { apiClient } from '../../services/api'
-import { AccessKeyAttributeList } from '../../components/access-key-attribute-list/access-key-attributes-list'
-import { AccessKeyRotateForm } from '../../components/access-key-rotate-form/access-key-rotate-form'
 import {
   Card,
   CardContent,
@@ -12,6 +7,12 @@ import {
   TypographyH2,
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
+import { useRouter } from 'next/router'
+import React from 'react'
+
+import { AccessKeyAttributeList } from '../../components/access-key-attribute-list/access-key-attributes-list'
+import { AccessKeyRotateForm } from '../../components/access-key-rotate-form/access-key-rotate-form'
+import { apiClient } from '../../services/api'
 
 export function UserAccessKeyDetailScreen() {
   const router = useRouter()
@@ -39,10 +40,10 @@ export function UserAccessKeyDetailScreen() {
 
   React.useEffect(() => {
     if (typeof router.query.accessKeyHashId === 'string' && !accessKey) {
-      void fetchAccessKey({
+      fetchAccessKey({
         accessKeyHashId: router.query.accessKeyHashId,
       })
-      void fetchAccessKeyBuckets({
+      fetchAccessKeyBuckets({
         accessKeyHashId: router.query.accessKeyHashId,
       })
     }
@@ -78,12 +79,12 @@ export function UserAccessKeyDetailScreen() {
   )
 
   return (
-    <div className="flex flex-1 flex-col container gap-3 self-center">
+    <div className="container flex flex-1 flex-col gap-3 self-center">
       <TypographyH2 className="pb-0">
         Access Key {accessKey?.accessKeyHashId}
       </TypographyH2>
-      <Separator className="bg-foreground/10 mb-3" />
-      <div className="container flex-1 flex flex-col gap-4">
+      <Separator className="mb-3 bg-foreground/10" />
+      <div className="container flex flex-1 flex-col gap-4">
         <AccessKeyAttributeList accessKey={accessKey} />
         <Card>
           <CardHeader>

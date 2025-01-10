@@ -1,8 +1,4 @@
 import type { EventDTO } from '@stellariscloud/api-client'
-import React from 'react'
-
-import { apiClient } from '../../../../services/api'
-import { ServerEventAttributesList } from '../../../../components/server-event-attributes-list/server-event-attributes-list'
 import {
   Card,
   CardContent,
@@ -11,6 +7,10 @@ import {
   CardTitle,
   cn,
 } from '@stellariscloud/ui-toolkit'
+import React from 'react'
+
+import { ServerEventAttributesList } from '../../../../components/server-event-attributes-list/server-event-attributes-list'
+import { apiClient } from '../../../../services/api'
 
 export function ServerEventDetailScreen({ eventId }: { eventId: string }) {
   const [event, setEvent] = React.useState<EventDTO>()
@@ -25,7 +25,7 @@ export function ServerEventDetailScreen({ eventId }: { eventId: string }) {
   return (
     <>
       <div className={cn('items-center flex flex-1 flex-col gap-6 h-full')}>
-        <div className="container flex-1 flex flex-col gap-4">
+        <div className="container flex flex-1 flex-col gap-4">
           <Card className="border-0 bg-transparent">
             <CardHeader className="p-0 pb-4">
               <CardTitle>Event: {event?.id}</CardTitle>

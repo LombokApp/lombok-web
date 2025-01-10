@@ -28,10 +28,11 @@ export abstract class BaseProcessor<K extends CoreTaskName> {
   async registerProcessor() {
     const app = await getApp()
     if (!app) {
+      // eslint-disable-next-line no-console
       console.log('App did not exist when registering processor.')
       return
     }
     const coreTaskService = await app.resolve(CoreTaskService)
-    await coreTaskService.registerProcessor(this.coreTaskName, this)
+    coreTaskService.registerProcessor(this.coreTaskName, this)
   }
 }

@@ -23,4 +23,5 @@ const token = jwt.sign(payload, privateKey, {
   expiresIn: 60 * 60 * 24 * 31,
 })
 
+// eslint-disable-next-line no-console
 console.log('token "%s"', token)

@@ -1,14 +1,14 @@
 import { FolderIcon } from '@heroicons/react/24/outline'
+import { Card } from '@stellariscloud/ui-toolkit'
 
 import { Icon } from '../../design-system/icon'
-import { Card } from '@stellariscloud/ui-toolkit'
 
 export function CreateFolderStartPanel({ onCreate }: { onCreate: () => void }) {
   return (
-    <button onClick={onCreate} className="h-full w-full group">
-      <Card className="h-full w-full">
-        <div className="rounded-lg h-full">
-          <div className="text-center flex flex-col justify-around items-center p-6 h-full">
+    <button onClick={onCreate} className="group size-full">
+      <Card className="size-full">
+        <div className="h-full rounded-lg">
+          <div className="flex h-full flex-col items-center justify-around p-6 text-center">
             <Icon size="lg" icon={FolderIcon} />
             <p className="mt-1 text-sm">Create a new folder</p>
           </div>

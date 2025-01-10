@@ -126,11 +126,10 @@ export class AuthService {
       return false
     }
 
-    const buff = Buffer.from(user.passwordHash, 'hex')
     return (
       authHelper
         .createPasswordHash(password, user.passwordSalt)
-        .compare(buff as unknown as Uint8Array<ArrayBufferLike>) === 0
+        .compare(Buffer.from(user.passwordHash, 'hex')) === 0
     )
   }
 

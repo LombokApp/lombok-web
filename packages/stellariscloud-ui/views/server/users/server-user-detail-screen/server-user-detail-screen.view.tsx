@@ -1,11 +1,4 @@
 import type { UserDTO } from '@stellariscloud/api-client'
-import React from 'react'
-import { Edit, Folders, HandshakeIcon, HardDrive, KeyIcon } from 'lucide-react'
-import { v4 as uuidV4 } from 'uuid'
-import { timeSinceOrUntil } from '@stellariscloud/utils'
-import { UserAttributeList } from '../../../../components/user-attribute-list/user-attribute-list'
-import { apiClient } from '../../../../services/api'
-import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
 import {
   Button,
   Card,
@@ -13,10 +6,18 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  cn,
   DataTable,
   DataTableColumnHeader,
-  cn,
 } from '@stellariscloud/ui-toolkit'
+import { timeSinceOrUntil } from '@stellariscloud/utils'
+import { Edit, Folders, HandshakeIcon, HardDrive, KeyIcon } from 'lucide-react'
+import React from 'react'
+import { v4 as uuidV4 } from 'uuid'
+
+import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
+import { UserAttributeList } from '../../../../components/user-attribute-list/user-attribute-list'
+import { apiClient } from '../../../../services/api'
 
 const DUMMY_UUID = uuidV4()
 
@@ -25,7 +26,7 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
   React.useEffect(() => {
     if (userId && !user) {
       void apiClient.usersApi
-        .getUser({ userId: userId })
+        .getUser({ userId })
         .then((u) => setUser(u.data.user))
     }
   }, [user, userId])
@@ -48,8 +49,8 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
           'items-center flex flex-1 flex-col gap-6 h-full overflow-y-auto',
         )}
       >
-        <div className="container flex-1 flex flex-col gap-8">
-          <Card className="bg-transparent border-0">
+        <div className="container flex flex-1 flex-col gap-8">
+          <Card className="border-0 bg-transparent">
             <CardHeader className="p-0 pb-4">
               <CardTitle>{user?.username}</CardTitle>
               <CardDescription>ID: {user?.id}</CardDescription>
@@ -87,18 +88,18 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
           </Card>
           <div className="flex min-w-full items-start gap-4">
             <div className="flex-1">
-              <Card className="bg-transparent border-0">
+              <Card className="border-0 bg-transparent">
                 <CardHeader className="px-0 pt-2">
                   <CardTitle>
-                    <div className="flex items-center gap-4 relative">
+                    <div className="relative flex items-center gap-4">
                       Details
-                      <div className="text-muted-foreground absolute left-24 top-0">
+                      <div className="absolute left-24 top-0 text-muted-foreground">
                         <Button
                           variant={'outline'}
                           size="xs"
-                          className="flex imtes-center gap-2"
+                          className="flex items-center gap-2"
                         >
-                          Edit <Edit className="w-4 h-4" />
+                          Edit <Edit className="size-4" />
                         </Button>
                       </div>
                     </div>
@@ -109,7 +110,7 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
                 </CardContent>
               </Card>
             </div>
-            <Card className="bg-transparent border-0">
+            <Card className="border-0 bg-transparent">
               <CardHeader className="px-0 pt-2">
                 <CardTitle>Sessions</CardTitle>
               </CardHeader>

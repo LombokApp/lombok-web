@@ -17,7 +17,7 @@ export function FolderScroll({
           }}
           className=""
         >
-          <div className="h-full w-full bg-background/70 rounded-full"></div>
+          <div className="size-full rounded-full bg-background/70"></div>
         </div>
       </div>
     </div>

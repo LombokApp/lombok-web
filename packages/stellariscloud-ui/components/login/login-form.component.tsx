@@ -1,22 +1,21 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  Button,
+  cn,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Icons,
+  Input,
+} from '@stellariscloud/ui-toolkit'
 import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-
-import {
-  cn,
-  Button,
-  Input,
-  Form,
-  FormItem,
-  FormField,
-  FormLabel,
-  FormControl,
-  FormMessage,
-  Icons,
-} from '@stellariscloud/ui-toolkit'
 
 const formSchema = z.object({
   login: z.string().min(2, {
@@ -107,7 +106,7 @@ export function LoginForm({
               // disabled={!form.state.valid || isLoading}
             >
               {isLoading && (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                <Icons.spinner className="mr-2 size-4 animate-spin" />
               )}
               Login
             </Button>

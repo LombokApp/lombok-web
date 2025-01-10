@@ -1,10 +1,9 @@
 import { useAuthContext } from '@stellariscloud/auth-utils'
+import { Button, ButtonVariant } from '@stellariscloud/ui-toolkit'
 import type { NextPage } from 'next'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import React from 'react'
-
-import { Button, ButtonVariant } from '@stellariscloud/ui-toolkit'
 
 const Landing: NextPage = () => {
   const router = useRouter()
@@ -18,14 +17,14 @@ const Landing: NextPage = () => {
   }, [router, authContext.isAuthenticated])
 
   return (
-    <div className="h-full w-full text-center flex flex-col justify-around text-8xl">
-      <div className="relative isolate overflow-hidden pt-14 h-full">
+    <div className="flex size-full flex-col justify-around text-center text-8xl">
+      <div className="relative isolate h-full overflow-hidden pt-14">
         <img
           src="/home-bg.jpeg"
           alt=""
-          className="absolute inset-0 -z-10 h-full w-full object-cover"
+          className="absolute inset-0 -z-10 size-full object-cover"
         />
-        <div className="absolute -z-10 top-0 h-full w-full opacity-60 bg-black" />
+        <div className="absolute top-0 -z-10 size-full bg-black opacity-60" />
         <div
           className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80"
           aria-hidden="true"

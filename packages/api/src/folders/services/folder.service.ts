@@ -721,7 +721,6 @@ export class FolderService {
           continue
         }
         if (obj.size > 0) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           _contentCount++
           // console.log('Trying to update key metadata [%s]:', objectKey, obj)
           await this.updateFolderObjectInDB(folder.id, objectKey, obj)
@@ -802,7 +801,6 @@ export class FolderService {
       objectKey?: string
     },
   ): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _folderAndPermissions = await this.getFolderAsUser(actor, folderId)
     // console.log('Handling Action:', {
     //   taskKey,

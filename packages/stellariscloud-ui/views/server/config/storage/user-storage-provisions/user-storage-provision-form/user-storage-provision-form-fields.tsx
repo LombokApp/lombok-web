@@ -1,12 +1,10 @@
+import type { UserStorageProvisionType } from '@stellariscloud/types'
+import { UserStorageProvisionTypeEnum } from '@stellariscloud/types'
+import { Input, Label, Switch } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 import * as r from 'runtypes'
 
-import { Input, Label, Switch } from '@stellariscloud/ui-toolkit'
 import { useFormState } from '../../../../../../utils/forms'
-import {
-  UserStorageProvisionType,
-  UserStorageProvisionTypeEnum,
-} from '@stellariscloud/types'
 
 export interface UserStorageProvisionFormValues {
   label: string
@@ -121,7 +119,7 @@ export const UserStorageProvisionFormFields = ({
           onChange={(e) => form.setValue('prefix', e.target.value)}
         />
       </div>
-      <div className="flex gap-4 items-center text-white">
+      <div className="flex items-center gap-4 text-white">
         {[
           UserStorageProvisionTypeEnum.REDUNDANCY,
           UserStorageProvisionTypeEnum.CONTENT,

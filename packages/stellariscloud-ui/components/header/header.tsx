@@ -1,6 +1,6 @@
 import { ArrowRightIcon, FolderOpenIcon } from '@heroicons/react/24/outline'
 import { useAuthContext } from '@stellariscloud/auth-utils'
-import { cn } from '@stellariscloud/ui-toolkit'
+import { Button, cn } from '@stellariscloud/ui-toolkit'
 import { useRouter } from 'next/dist/client/router'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -10,7 +10,6 @@ import React from 'react'
 import { Icon } from '../../design-system/icon'
 import { useBreakPoints } from '../../utils/hooks'
 import { ModeToggle } from '../mode-toggle/mode-toggle'
-import { Button } from '@stellariscloud/ui-toolkit'
 
 export const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false)
@@ -48,8 +47,8 @@ export const Header = () => {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-between gap-8 z-20 p-2 px-3 min-h-[3.2rem]">
-      <div className="flex shrink-0 items-center px-1 py-1">
+    <div className="z-20 flex min-h-[3.2rem] flex-1 items-center justify-between gap-8 p-2 px-3">
+      <div className="flex shrink-0 items-center p-1">
         <Link href={'/'} passHref>
           <div className="flex items-center gap-4">
             <Image
@@ -71,7 +70,7 @@ export const Header = () => {
           </div>
         </Link>
       </div>
-      <div className="flex items-center self-end align-end content-end gap-3">
+      <div className="flex content-end items-center gap-3 self-end">
         <ModeToggle />
         {authState.isAuthenticated && (
           <Link href="/folders">

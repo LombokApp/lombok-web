@@ -2,12 +2,12 @@ import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import React from 'react'
 
+import { ContentLayout } from '../../../components/sidebar/components/content-layout'
 import {
   FolderContextProvider,
   useFolderContext,
 } from '../../../contexts/folder.context'
 import { FolderDetailScreen } from '../../../views/folder-detail-screen/folder-detail-screen.view'
-import { ContentLayout } from '../../../components/sidebar/components/content-layout'
 
 const FolderDetailInner = () => {
   const router = useRouter()
@@ -34,7 +34,7 @@ const FolderDetailInner = () => {
           : [],
       )}
     >
-      <div className="flex flex-col flex-1 h-full gap-4 w-full">
+      <div className="flex size-full flex-1 flex-col gap-4">
         {router.query.folderId && <FolderDetailScreen />}
       </div>
     </ContentLayout>

@@ -75,7 +75,6 @@ export const useFormState = <
           error: undefined,
         },
       }),
-      // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
       {} as FS,
     ),
     valid: false,
@@ -107,39 +106,35 @@ export const useFormState = <
     let formError = ''
 
     // check validity of fields
-    const fields = Object.keys(c).reduce(
-      (acc, next) => {
-        const nextFieldName: keyof typeof fieldConfigs = next as keyof C
-        const fieldConfig = c[nextFieldName]
-        const validation = fieldConfig.validator.validate(v[nextFieldName])
-        let error = ''
-        if (!validation.success) {
-          if (validation.code === 'CONSTRAINT_FAILED') {
-            error = validation.message.slice(
-              'Failed constraint check for '.length, // TODO: Apparently I should be parsing this from 'details' which I can't see
-            )
-          } else {
-            error = validation.message
-          }
-          formError = error
+    const fields = Object.keys(c).reduce((acc, next) => {
+      const nextFieldName: keyof typeof fieldConfigs = next as keyof C
+      const fieldConfig = c[nextFieldName]
+      const validation = fieldConfig.validator.validate(v[nextFieldName])
+      let error = ''
+      if (!validation.success) {
+        if (validation.code === 'CONSTRAINT_FAILED') {
+          error = validation.message.slice(
+            'Failed constraint check for '.length, // TODO: Apparently I should be parsing this from 'details' which I can't see
+          )
+        } else {
+          error = validation.message
         }
+        formError = error
+      }
 
-        const result = {
-          ...acc,
-          [nextFieldName]: {
-            valid: validation.success,
-            error,
-            // errorDetails: validation.success ? '' : validation.details,
-          },
-        }
-        if (!validation.success) {
-          formValidity = false
-        }
-        return result
-      },
-      // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
-      {} as FS,
-    )
+      const result = {
+        ...acc,
+        [nextFieldName]: {
+          valid: validation.success,
+          error,
+          // errorDetails: validation.success ? '' : validation.details,
+        },
+      }
+      if (!validation.success) {
+        formValidity = false
+      }
+      return result
+    }, {} as FS)
 
     setFormState((_s) => {
       for (const fieldName of Object.keys(c)) {

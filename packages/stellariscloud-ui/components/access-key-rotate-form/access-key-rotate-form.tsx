@@ -1,7 +1,8 @@
-import { useFormState } from '../../utils/forms'
-import * as r from 'runtypes'
-import React from 'react'
 import { Button, Input, Label } from '@stellariscloud/ui-toolkit'
+import React from 'react'
+import * as r from 'runtypes'
+
+import { useFormState } from '../../utils/forms'
 
 export function AccessKeyRotateForm({
   onSubmit,
@@ -28,7 +29,6 @@ export function AccessKeyRotateForm({
         accessKeyId: form.values.accessKeyId,
         secretAccessKey: form.values.secretAccessKey,
       }).then(() => {
-        console.log('Resetting!')
         form.setValue('accessKeyId', '')
         form.setValue('secretAccessKey', '')
       })

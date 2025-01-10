@@ -1,8 +1,4 @@
-import React from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-
 import {
   Button,
   Form,
@@ -14,6 +10,9 @@ import {
   FormMessage,
   Switch,
 } from '@stellariscloud/ui-toolkit'
+import React from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 export interface ServerSettingsFormValues {
   SIGNUP_PERMISSIONS: string[]
@@ -119,7 +118,7 @@ export const ServerSettingsForm = ({
                 >
                   <dt className="text-sm font-medium leading-6">
                     {title}
-                    <div className="mt-1 mr-4 font-normal text-sm leading-6 sm:col-span-2 sm:mt-0 opacity-50">
+                    <div className="mr-4 mt-1 text-sm font-normal leading-6 opacity-50 sm:col-span-2 sm:mt-0">
                       {description}
                     </div>
                   </dt>

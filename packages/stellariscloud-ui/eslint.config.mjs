@@ -1,7 +1,7 @@
 import tseslint from 'typescript-eslint'
-import eslintTs from '@typescript-eslint/eslint-plugin'
 import eslintStorybook from 'eslint-plugin-storybook'
-import baseConfig from '../../eslint.config.mjs'
+import eslintTailwind from 'eslint-plugin-tailwindcss'
+import baseConfig from '../../eslint-config/base.mjs'
 import reactConfig from '../../eslint-config/react.mjs'
 import strictConfig from '../../eslint-config/strict.mjs'
 
@@ -15,8 +15,8 @@ export default tseslint.config(
   },
   {
     plugins: {
-      '@typescript-eslint': eslintTs,
       storybook: eslintStorybook,
+      tailwind: eslintTailwind,
     },
     languageOptions: {
       ecmaVersion: 2022,
@@ -26,4 +26,6 @@ export default tseslint.config(
       },
     },
   },
+  // Tailwind
+  ...eslintTailwind.configs['flat/recommended'],
 )

@@ -1,22 +1,22 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
-
+import type { UserDTO } from '@stellariscloud/api-client'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
-import { invertColour, stringToColour } from '../../../../utils/colors'
-import { UserDTO } from '@stellariscloud/api-client'
+import type { ColumnDef } from '@tanstack/react-table'
 import Link from 'next/link'
+
+import { invertColour, stringToColour } from '../../../../utils/colors'
 
 export const serverUsersTableColumns: ColumnDef<UserDTO>[] = [
   {
     id: '__HIDDEN__',
     cell: ({ row }) => {
       return (
-        <div className="w-0 h-0 overflow-hidden max-w-0">
+        <div className="size-0 max-w-0 overflow-hidden">
           <Link
             href={`/server/users/${row.original.id}`}
-            className="absolute top-0 bottom-0 left-0 right-0"
+            className="absolute inset-0"
           />
         </div>
       )
@@ -34,9 +34,9 @@ export const serverUsersTableColumns: ColumnDef<UserDTO>[] = [
       />
     ),
     cell: ({ row: { original: user } }) => (
-      <div className="flex gap-4 items-start">
+      <div className="flex items-start gap-4">
         <div
-          className="flex items-center justify-center rounded-full w-8 h-8 overflow-hidden"
+          className="flex size-8 items-center justify-center overflow-hidden rounded-full"
           style={{
             background: stringToColour(user.id),
             color: invertColour(stringToColour(user.id)),
@@ -66,7 +66,7 @@ export const serverUsersTableColumns: ColumnDef<UserDTO>[] = [
     ),
     cell: ({ row: { original: user } }) => {
       return (
-        <div className="flex gap-2 items-center font-normal">
+        <div className="flex items-center gap-2 font-normal">
           {user.name ? (
             user.name
           ) : (
@@ -88,7 +88,7 @@ export const serverUsersTableColumns: ColumnDef<UserDTO>[] = [
       />
     ),
     cell: ({ row }) => (
-      <div className="flex flex-col text-xs w-[140px]">
+      <div className="flex w-[140px] flex-col text-xs">
         <div>{new Date(row.getValue('createdAt')).toLocaleString()}</div>
         <div className="italic text-muted-foreground">
           {timeSinceOrUntil(new Date(row.original.createdAt))}
@@ -108,7 +108,7 @@ export const serverUsersTableColumns: ColumnDef<UserDTO>[] = [
       />
     ),
     cell: ({ row }) => (
-      <div className="flex flex-col text-xs w-[140px]">
+      <div className="flex w-[140px] flex-col text-xs">
         <div>{new Date(row.getValue('updatedAt')).toLocaleString()}</div>
         <div className="italic text-muted-foreground">
           {timeSinceOrUntil(new Date(row.original.updatedAt))}

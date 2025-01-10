@@ -56,10 +56,7 @@ export class OrmService {
     return this._client
   }
 
-  async runWithTestClient(
-    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-    func: (client: postgres.Sql<{}>) => Promise<void>,
-  ) {
+  async runWithTestClient(func: (client: postgres.Sql) => Promise<void>) {
     const c = postgres(
       `postgres://${this._ormConfig.dbUser}:${this._ormConfig.dbPassword}@${this._ormConfig.dbHost}:${this._ormConfig.dbPort}/postgres`,
       this._ormConfig.disableNoticeLogging
@@ -183,6 +180,7 @@ export class OrmService {
           }
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to truncate tables:', error)
         throw error
       }

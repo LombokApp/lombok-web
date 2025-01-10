@@ -1,13 +1,12 @@
+import type { AppDTO } from '@stellariscloud/api-client'
+import { cn, DataTable } from '@stellariscloud/ui-toolkit'
+import type { ColumnFiltersState, Updater } from '@tanstack/react-table'
 import React from 'react'
 
 import { apiClient } from '../../../../services/api'
-import { DataTable, cn } from '@stellariscloud/ui-toolkit'
-import { AppDTO } from '@stellariscloud/api-client'
 import { serverAppsTableColumns } from './server-apps-table-columns'
-import { ColumnFiltersState, Updater } from '@tanstack/react-table'
 
 export function ServerAppsScreen() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [appListResetKey, _setAppListResetKey] = React.useState('__')
   const [installedApps, setInstalledApps] = React.useState<AppDTO[]>()
   const [filters, setFilters] = React.useState<

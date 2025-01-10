@@ -1,10 +1,9 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
-
+import type { FolderDTO } from '@stellariscloud/api-client'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
-import { FolderDTO } from '@stellariscloud/api-client'
+import type { ColumnDef } from '@tanstack/react-table'
 import Link from 'next/link'
 
 export const foldersTableColumns: ColumnDef<{
@@ -15,10 +14,10 @@ export const foldersTableColumns: ColumnDef<{
     id: '__HIDDEN__',
     cell: ({ row }) => {
       return (
-        <div className="w-0 h-0 overflow-hidden max-w-0">
+        <div className="size-0 max-w-0 overflow-hidden">
           <Link
             href={`/folders/${row.original.folder.id}`}
-            className="absolute top-0 bottom-0 left-0 right-0"
+            className="absolute inset-0"
           />
         </div>
       )
@@ -51,7 +50,7 @@ export const foldersTableColumns: ColumnDef<{
       />
     ),
     cell: ({ row }) => (
-      <div className="flex flex-col text-xs w-[140px]">
+      <div className="flex w-[140px] flex-col text-xs">
         <div>{new Date(row.original.folder.createdAt).toLocaleString()}</div>
         <div className="italic text-muted-foreground">
           {timeSinceOrUntil(new Date(row.original.folder.createdAt))}
@@ -71,7 +70,7 @@ export const foldersTableColumns: ColumnDef<{
       />
     ),
     cell: ({ row }) => (
-      <div className="flex flex-col text-xs w-[140px]">
+      <div className="flex w-[140px] flex-col text-xs">
         <div>{new Date(row.original.folder.updatedAt).toLocaleString()}</div>
         <div className="italic text-muted-foreground">
           {timeSinceOrUntil(new Date(row.original.folder.updatedAt))}

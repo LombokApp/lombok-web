@@ -1,10 +1,10 @@
 import { Menu, Transition } from '@headlessui/react'
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
+import { cn } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 
 import type { IconProps } from '../icon'
 import { Icon } from '../icon'
-import { cn } from '@stellariscloud/ui-toolkit'
 
 interface Item {
   name: string
@@ -22,10 +22,10 @@ export function ButtonDropdown({
   labelIcon?: IconProps['icon']
 }) {
   return (
-    <div className="inline-flex rounded-md h-content">
+    <div className="inline-flex rounded-md">
       <button
         type="button"
-        className="relative h-full inline-flex items-center rounded-l-md px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-300 ring-1 ring-inset ring-gray-300 dark:ring-gray-500 hover:bg-gray-50 dark:hover:bg-gray-50/5 focus:z-10 shadow-sm"
+        className="relative inline-flex h-full items-center rounded-l-md px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 dark:text-gray-300 dark:ring-gray-500 dark:hover:bg-gray-50/5"
       >
         <div className="flex gap-2">
           {labelIcon && (
@@ -39,7 +39,7 @@ export function ButtonDropdown({
         </div>
       </button>
       <Menu as="div" className="relative -ml-px block">
-        <Menu.Button className="relative inline-flex h-full items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 dark:ring-gray-500 hover:bg-gray-50 dark:hover:bg-gray-50/5 focus:z-10">
+        <Menu.Button className="relative inline-flex h-full items-center rounded-r-md p-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10 dark:ring-gray-500 dark:hover:bg-gray-50/5">
           <span className="sr-only">Open options</span>
           <ChevronDownIcon className="h-full w-5" aria-hidden="true" />
         </Menu.Button>
@@ -52,7 +52,7 @@ export function ButtonDropdown({
           leaveFrom="transform opacity-100 scale-100"
           leaveTo="transform opacity-0 scale-95"
         >
-          <Menu.Items className="absolute right-0 z-10 -mr-1 mt-2 w-content origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+          <Menu.Items className="absolute right-0 z-10 -mr-1 mt-2 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
             <div className="py-1">
               {items.map((item) => (
                 <Menu.Item key={item.name}>

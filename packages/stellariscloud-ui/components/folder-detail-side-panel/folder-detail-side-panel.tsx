@@ -1,10 +1,9 @@
 import type { FolderGetResponse } from '@stellariscloud/api-client'
-import { FolderPermissionEnum } from '@stellariscloud/types'
 import type { FolderMetadata } from '@stellariscloud/types'
+import { FolderPermissionEnum } from '@stellariscloud/types'
+import { Button } from '@stellariscloud/ui-toolkit'
 import { formatBytes } from '@stellariscloud/utils'
 import React from 'react'
-
-import { Button } from '@stellariscloud/ui-toolkit'
 
 export const FolderDetailSidePanel = ({
   folderAndPermissions,
@@ -26,7 +25,7 @@ export const FolderDetailSidePanel = ({
   websocketConnected: boolean
 }) => {
   return (
-    <div className="flex flex-col gap-4 p-6 pt-20 text-grey-800 dark:text-white min-w-[25rem]">
+    <div className="flex min-w-[25rem] flex-col gap-4 p-6 pt-20 text-gray-800 dark:text-white">
       <div className="flex flex-col">
         <div className="opacity-50">Total files</div>
         <div>

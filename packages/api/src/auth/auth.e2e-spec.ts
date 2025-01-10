@@ -18,7 +18,7 @@ describe('Auth', () => {
   })
 
   it(`POST /api/v1/auth/signup`, async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const _response = await request(testModule?.app.getHttpServer())
       .post('/api/v1/auth/signup')
       .send({
@@ -40,7 +40,7 @@ describe('Auth', () => {
   })
 
   it(`POST /api/v1/auth/signup (with conflict)`, async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const _response = await request(testModule?.app.getHttpServer())
       .post('/api/v1/auth/signup')
       .send({
@@ -115,6 +115,7 @@ describe('Auth', () => {
         .send(input)
         .expect(400)
         .catch((e) => {
+          // eslint-disable-next-line no-console
           console.log('Failed input:', input)
           throw e
         })

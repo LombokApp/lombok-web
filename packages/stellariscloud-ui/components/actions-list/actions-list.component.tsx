@@ -1,5 +1,7 @@
 import { PlayIcon } from '@heroicons/react/24/outline'
-import { Icon, IconProps } from '../../design-system/icon'
+
+import type { IconProps } from '../../design-system/icon'
+import { Icon } from '../../design-system/icon'
 
 export interface ActionItem {
   key: string
@@ -13,24 +15,24 @@ export interface ActionItem {
 export function ActionsList({ actionItems }: { actionItems: ActionItem[] }) {
   return (
     <div>
-      <div className="flex flex-col flex-1 gap-1 bg-foreground/5 p-2 mb-2 rounded-md">
+      <div className="mb-2 flex flex-1 flex-col gap-1 rounded-md bg-foreground/5 p-2">
         <div className="flex items-center gap-2">
           <Icon icon={PlayIcon} size="md" />
           <div className="text-lg font-bold">Actions</div>
         </div>
       </div>
-      <ul className="space-y-3 my-4">
+      <ul className="my-4 space-y-3">
         {actionItems.map((actionItem) => (
-          <li key={actionItem.id} className="overflow-hidden border rounded-lg">
+          <li key={actionItem.id} className="overflow-hidden rounded-lg border">
             <button
               onClick={actionItem.onExecute}
               className="p-2 px-4 text-foreground/60"
             >
               <div className="flex items-start gap-2">
-                <div className="flex flex-col flex-1 gap-1">
+                <div className="flex flex-1 flex-col gap-1">
                   <div className="flex items-center gap-2">
                     <Icon icon={actionItem.icon} size="sm" className="" />
-                    <div className="text-md font-bold text-foreground/80">
+                    <div className="text-base font-bold text-foreground/80">
                       {actionItem.label}
                     </div>
                   </div>

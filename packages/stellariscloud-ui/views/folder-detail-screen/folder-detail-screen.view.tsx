@@ -1,12 +1,15 @@
 import {
-  ArrowUpOnSquareIcon,
   ArrowPathIcon,
+  ArrowUpOnSquareIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline'
-import { Folder } from 'lucide-react'
-import { FolderObjectDTO } from '@stellariscloud/api-client'
-import { FolderPermissionEnum } from '@stellariscloud/types'
-import { FolderPushMessage, MediaType } from '@stellariscloud/types'
+import type { FolderObjectDTO } from '@stellariscloud/api-client'
+import {
+  FolderPermissionEnum,
+  FolderPushMessage,
+  MediaType,
+} from '@stellariscloud/types'
+import { Button, cn } from '@stellariscloud/ui-toolkit'
 import type {
   AudioMediaMimeTypes,
   ImageMediaMimeTypes,
@@ -19,6 +22,7 @@ import {
   mediaTypeFromMimeType,
   VIDEO_MEDIA_MIME_TYPES,
 } from '@stellariscloud/utils'
+import { Folder } from 'lucide-react'
 import { useRouter } from 'next/router'
 import React from 'react'
 import useDebounce from 'react-use/lib/useDebounce'
@@ -29,12 +33,11 @@ import { FolderScroll } from '../../components/folder-scroll/folder-scroll'
 import { UploadModal } from '../../components/upload-modal/upload-modal'
 import { useFolderContext } from '../../contexts/folder.context'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
+import { EmptyState } from '../../design-system/empty-state/empty-state'
 import { useWindowDimensions } from '../../hooks/use-window-dimensions'
 import { apiClient } from '../../services/api'
 import { FolderObjectDetailScreen } from '../folder-object-detail-screen/folder-object-detail-screen.view'
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
-import { Button, cn } from '@stellariscloud/ui-toolkit'
-import { EmptyState } from '../../design-system/empty-state/empty-state'
 
 const SCROLL_JUMP_ROWS_CUTTOFF = 10
 const ROW_BUFFER_SIZE = 3
@@ -115,6 +118,7 @@ const createVideoIcon = () =>
 
 const createLoadingIconRaw = (size: 'sm' | 'md' | 'lg' = 'sm') => {
   const sizeNum =
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     size === 'sm' ? 32 : size === 'md' ? 64 : size === 'lg' ? '128' : 32
   return `<svg width="${sizeNum}" height="${sizeNum}" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z" opacity=".25"/><path d="M10.72,19.9a8,8,0,0,1-6.5-9.79A7.77,7.77,0,0,1,10.4,4.16a8,8,0,0,1,9.49,6.52A1.54,1.54,0,0,0,21.38,12h.13a1.37,1.37,0,0,0,1.38-1.54,11,11,0,1,0-12.7,12.39A1.54,1.54,0,0,0,12,21.34h0A1.47,1.47,0,0,0,10.72,19.9Z"><animateTransform attributeName="transform" type="rotate" dur="0.75s" values="0 12 12;360 12 12" repeatCount="indefinite"/></path></svg>`
 }
@@ -165,6 +169,7 @@ const renderFolderObjectPreview = (
   contentWrapperDiv.append(linkElement)
 
   const currentVersionMetadata =
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     folderObject.hash && folderObject.contentMetadata[folderObject.hash]
       ? (folderObject.contentMetadata[folderObject.hash] ?? {})
       : {}
@@ -172,7 +177,7 @@ const renderFolderObjectPreview = (
   const getDataResult =
     folderObject.folderId &&
     folderObject.hash &&
-    currentVersionMetadata.thumbnailLg?.hash
+    currentVersionMetadata.thumbnailLg.hash
       ? getData(
           folderObject.folderId,
           `metadata:${folderObject.objectKey}:${currentVersionMetadata.thumbnailLg.hash}`,
@@ -568,7 +573,7 @@ export const FolderDetailScreen = () => {
   const router = useRouter()
   const [isResizing, setIsResizing] = React.useState(false)
   // const [_folderWebsocket, setFolderWebsocket] = React.useState<Socket>()
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   const [_shareModalOpen, setShareModalOpen] = React.useState(false)
 
   const [refreshFolderConfirmationOpen, setRefreshFolderConfirmationOpen] =
@@ -582,7 +587,6 @@ export const FolderDetailScreen = () => {
   const [focusedObjectKey, setFocusedObjectKey] = React.useState<string>()
   const focusedObjectKeyRef = React.useRef<string>()
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
 
   const [pageState, setPageState] = React.useState<{
@@ -1005,7 +1009,6 @@ export const FolderDetailScreen = () => {
     [windowDimensions.innerWidth, windowDimensions.innerHeight],
   )
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_fetch, _cancel] = useDebounce(
     () => {
       if (!focusedObjectKey) {
@@ -1066,17 +1069,14 @@ export const FolderDetailScreen = () => {
     setShareModalOpen(true)
   }, [])
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _handleShareClose = React.useCallback(() => {
     setShareModalOpen(false)
   }, [])
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _handleRecalculateLocalStorage = async () => {
     await recalculateLocalStorageFolderSizes()
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _handlePurgeLocalStorage = async () => {
     await purgeLocalStorageForFolder(folderContext.folderId)
   }
@@ -1101,7 +1101,6 @@ export const FolderDetailScreen = () => {
     setUploadOpen(true)
   }, [])
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _handleSearchValueUpdate = (value?: string) => {
     setSearchTerm(value)
     setObjectsViewContext(undefined)
@@ -1157,10 +1156,7 @@ export const FolderDetailScreen = () => {
           onCancel={() => setRefreshFolderConfirmationOpen(false)}
         />
       )}
-      <div
-        className="relative flex flex-1 w-full h-full"
-        ref={mainContainerRef}
-      >
+      <div className="relative flex size-full flex-1" ref={mainContainerRef}>
         {focusedObjectKeyRef.current && (
           <div
             className={cn(
@@ -1236,15 +1232,15 @@ export const FolderDetailScreen = () => {
             focusedObjectKeyRef.current && 'opacity-0',
           )}
         >
-          <div className="flex-1 flex flex-col w-full h-full">
+          <div className="flex size-full flex-1 flex-col">
             <div className="px-4 py-2">
-              <div className="pt-2 flex gap-2">
+              <div className="flex gap-2 pt-2">
                 {folderContext.folderPermissions?.includes(
                   FolderPermissionEnum.OBJECT_EDIT,
                 ) && (
                   <Button size="sm" onClick={handleUploadStart}>
-                    <div className="flex gap-1 items-center">
-                      <ArrowUpOnSquareIcon className="w-5 h-5" />
+                    <div className="flex items-center gap-1">
+                      <ArrowUpOnSquareIcon className="size-5" />
                       Upload
                     </div>
                   </Button>
@@ -1253,8 +1249,8 @@ export const FolderDetailScreen = () => {
                   FolderPermissionEnum.FOLDER_RESCAN,
                 ) && (
                   <Button size="sm" onClick={handleRefreshFolder}>
-                    <div className="flex gap-1 items-center">
-                      <ArrowPathIcon className="w-5 h-5" />
+                    <div className="flex items-center gap-1">
+                      <ArrowPathIcon className="size-5" />
                       Refresh
                     </div>
                   </Button>
@@ -1267,20 +1263,20 @@ export const FolderDetailScreen = () => {
                     size="sm"
                     onClick={handleForgetFolder}
                   >
-                    <TrashIcon className="w-5 h-5" />
+                    <TrashIcon className="size-5" />
                   </Button>
                 )}
               </div>
             </div>
             <div className="flex flex-1 overflow-hidden">
-              <div className="flex-1 flex overflow-hidden">
+              <div className="flex flex-1 overflow-hidden">
                 <div
                   ref={scrollContainerParentRef}
-                  className="flex-1 h-full overflow-hidden"
+                  className="h-full flex-1 overflow-hidden"
                 >
                   {folderContext.folderMetadata?.totalCount === 0 ? (
-                    <div className="h-full w-full flex flex-col justify-around items-center">
-                      <div className="max-w-[30rem] min-w-[30rem]">
+                    <div className="flex size-full flex-col items-center justify-around">
+                      <div className="min-w-[30rem] max-w-[30rem]">
                         <EmptyState
                           icon={Folder}
                           text={'No objects. Try refreshing the folder.'}
@@ -1292,12 +1288,12 @@ export const FolderDetailScreen = () => {
                   ) : (
                     <div
                       ref={scrollContainerRef}
-                      className="overflow-y-auto h-full flex-1 -mr-[20px]"
+                      className="mr-[-20px] h-full flex-1 overflow-y-auto"
                       onScroll={handleScroll}
                     >
                       <div
                         ref={tileContainerRef}
-                        className="justify-left ml-[4px] flex flex-wrap content-start overflow-hidden"
+                        className="ml-[4px] flex flex-wrap content-start justify-start overflow-hidden"
                         style={{
                           height: `${INITIAL_SCROLL_HEIGHT}px`,
                         }}
@@ -1329,7 +1325,7 @@ export const FolderDetailScreen = () => {
               {sidebarOpen &&
                 folderContext.folder &&
                 folderContext.folderPermissions && (
-                  <div className="xs:w-[100%] md:w-[50%] lg:w-[50%] xl:w-[40%] 2xl:w-[35%] 2xl:max-w-[35rem]">
+                  <div className="xs:w-full md:w-[1/2] lg:w-[1/2] xl:w-2/5 2xl:w-[35%] 2xl:max-w-[35rem]">
                     <FolderSidebar
                       onRescan={() => setRefreshFolderConfirmationOpen(true)}
                       folderMetadata={folderContext.folderMetadata}

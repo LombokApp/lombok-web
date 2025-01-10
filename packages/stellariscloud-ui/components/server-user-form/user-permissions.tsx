@@ -1,6 +1,5 @@
-import React from 'react'
-
 import { Switch } from '@stellariscloud/ui-toolkit'
+import React from 'react'
 
 const PERMISSIONS = ['one_permission', 'two_permission']
 
@@ -15,7 +14,7 @@ export const UserPermissions = ({
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-8">
         {PERMISSIONS.map((perm, i) => (
-          <div key={i} className="flex gap-2 items-center min-w-[12rem]">
+          <div key={i} className="flex min-w-48 items-center gap-2">
             <Switch
               checked={values.includes(perm)}
               onCheckedChange={(newValue) => {

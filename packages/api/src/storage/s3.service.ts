@@ -103,6 +103,7 @@ export class S3Service {
         }),
       )
       .catch((e) => {
+        // eslint-disable-next-line no-console
         console.log('bucket list error', e)
         throw e
       })
@@ -183,6 +184,7 @@ export class S3Service {
     ])[0]
 
     const getObjectResponse = await axios.get(url).catch((e) => {
+      // eslint-disable-next-line no-console
       console.log('Error getting object:', e)
       throw e
     })
@@ -223,6 +225,7 @@ export class S3Service {
     ])[0]
 
     const deleteObjectResponse = await axios.delete(url).catch((e) => {
+      // eslint-disable-next-line no-console
       console.log('Error deleting object:', e)
       throw e
     })
@@ -321,7 +324,7 @@ export class S3Service {
         s3Client,
         bucketName: bucket,
         prefix,
-        continuationToken: continuationToken ?? undefined,
+        continuationToken,
       })
 
       for (const objectKey of response.result) {

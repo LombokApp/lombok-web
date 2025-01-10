@@ -7,16 +7,16 @@ export function colorMix(color: string, opacity?: number) {
 }
 
 export const themePlugin = plugin(
-  (themePlugin) => {
+  (pluginAPI) => {
     // Add html base styles
-    themePlugin.addBase({
+    pluginAPI.addBase({
       html: {
         color: 'var(--foreground)',
         backgroundColor: 'var(--background)',
       },
     })
     // Add light theme
-    themePlugin.addBase({
+    pluginAPI.addBase({
       ':root': {
         '--background': baseTheme.light.background,
         '--foreground': baseTheme.light.foreground,
@@ -46,7 +46,7 @@ export const themePlugin = plugin(
       },
     })
     // Add dark theme
-    themePlugin.addBase({
+    pluginAPI.addBase({
       '[data-mode="dark"]': {
         '--background': baseTheme.dark.background,
         '--foreground': baseTheme.dark.foreground,

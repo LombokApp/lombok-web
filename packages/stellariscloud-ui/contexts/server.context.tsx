@@ -1,7 +1,12 @@
 import type {
-  AppTaskTrigger,
+  AppListResponse,
+  SettingsGetResponseSettings,
+} from '@stellariscloud/api-client'
+import { useAuthContext } from '@stellariscloud/auth-utils'
+import type {
   AppMenuItem,
   AppPushMessage,
+  AppTaskTrigger,
 } from '@stellariscloud/types'
 import { ServerPushMessage } from '@stellariscloud/types'
 import React from 'react'
@@ -10,11 +15,23 @@ import type { Socket } from 'socket.io-client'
 import { useWebsocket } from '../hooks/use-websocket'
 import { apiClient } from '../services/api'
 import type { LogLevel } from './logging.context'
-import {
-  AppListResponse,
-  SettingsGetResponseSettings,
-} from '@stellariscloud/api-client'
-import { useAuthContext } from '@stellariscloud/auth-utils'
+
+export type SocketMessageHandler = (
+  name: ServerPushMessage,
+  msg: { [key: string]: unknown },
+) => void
+
+export interface Notification {
+  level: LogLevel
+  message: string
+  thumbnailSrc?: string
+  id?: string
+}
+
+export type AppMenuItemAndHref = {
+  href: string
+  appIdentifier: string
+} & AppMenuItem
 
 export interface IServerContext {
   refreshApps: () => Promise<void>
@@ -36,26 +53,9 @@ export interface IServerContext {
   socket: Socket | undefined
 }
 
-export type SocketMessageHandler = (
-  name: ServerPushMessage,
-  msg: { [key: string]: unknown },
-) => void
-
 export const ServerContext = React.createContext<IServerContext>(
   {} as IServerContext,
 )
-
-export interface Notification {
-  level: LogLevel
-  message: string
-  thumbnailSrc?: string
-  id?: string
-}
-
-export type AppMenuItemAndHref = {
-  href: string
-  appIdentifier: string
-} & AppMenuItem
 
 export const ServerContextProvider = ({
   children,

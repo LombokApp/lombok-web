@@ -55,7 +55,7 @@ export class ServerConfigurationService {
     ) as SettingsDTO
   }
 
-  async getServerConfigurationAsUser(actor: User, configurationKey: string) {
+  getServerConfigurationAsUser(actor: User, configurationKey: string) {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
@@ -327,7 +327,7 @@ export class ServerConfigurationService {
       : record
   }
 
-  async getServerStorageLocationAsAdmin(
+  getServerStorageLocationAsAdmin(
     actor: User,
   ): Promise<ServerStorageLocationDTO | undefined> {
     if (!actor.isAdmin) {

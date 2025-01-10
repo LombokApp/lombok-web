@@ -1,11 +1,12 @@
 import { ArrowDownTrayIcon, TrashIcon } from '@heroicons/react/24/outline'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
 import type { FolderObjectDTO } from '@stellariscloud/api-client'
 import {
   FolderPermissionEnum,
   FolderPushMessage,
   MediaType,
 } from '@stellariscloud/types'
+import { Button, ButtonGroup } from '@stellariscloud/ui-toolkit'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import React from 'react'
 
 import { ConfirmDeleteModal } from '../../components/confirm-delete-modal/confirm-delete-modal'
@@ -15,7 +16,6 @@ import { LogLevel, useLoggingContext } from '../../contexts/logging.context'
 import { apiClient } from '../../services/api'
 import { FolderObjectPreview } from '../folder-object-preview/folder-object-preview.view'
 import { FolderObjectSidebar } from '../folder-object-sidebar/folder-object-sidebar.view'
-import { Button, ButtonGroup } from '@stellariscloud/ui-toolkit'
 
 export const FolderObjectDetailScreen = ({
   folderId,
@@ -30,7 +30,6 @@ export const FolderObjectDetailScreen = ({
   onNextClick?: () => void
   onPreviousClick?: () => void
 }) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
   const [showDeleteModal, setShowDeleteModal] = React.useState(false)
   const [folderObject, setFolderObject] = React.useState<FolderObjectDTO>()
@@ -41,6 +40,7 @@ export const FolderObjectDetailScreen = ({
 
   const currentVersionMetadata = React.useMemo(
     () =>
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       folderObject?.hash && folderObject.contentMetadata[folderObject.hash]
         ? (folderObject.contentMetadata[folderObject.hash] ?? {})
         : {},
@@ -53,7 +53,7 @@ export const FolderObjectDetailScreen = ({
         ? `content:${objectKey}`
         : displaySize === 'compressed' &&
             folderObject?.hash &&
-            currentVersionMetadata['compressedVersion']?.hash
+            currentVersionMetadata['compressedVersion'].hash
           ? `metadata:${objectKey}:${currentVersionMetadata['compressedVersion'].hash}`
           : undefined,
     )
@@ -151,14 +151,14 @@ export const FolderObjectDetailScreen = ({
           onCancel={() => setShowDeleteModal(false)}
         />
       )}
-      <div className="w-full h-full flex flex-1 justify-end">
+      <div className="flex size-full flex-1 justify-end">
         <div
-          className="relative w-full h-full flex flex-col items-center"
+          className="relative flex size-full flex-col items-center"
           key={displayObjectKey}
         >
           {folderObject?.objectKey && (
             <div className="w-full px-4 py-2">
-              <div className="pt-2 flex gap-2">
+              <div className="flex gap-2 pt-2">
                 {folderContext.folderPermissions?.includes(
                   FolderPermissionEnum.OBJECT_EDIT,
                 ) && (
@@ -167,7 +167,7 @@ export const FolderObjectDetailScreen = ({
                     onClick={handleDelete}
                     variant={'destructive'}
                   >
-                    <TrashIcon className="w-5 h-5" />
+                    <TrashIcon className="size-5" />
                     Delete
                   </Button>
                 )}
@@ -181,7 +181,7 @@ export const FolderObjectDetailScreen = ({
                     )
                   }
                 >
-                  <ArrowDownTrayIcon className="w-5 h-5" />
+                  <ArrowDownTrayIcon className="size-5" />
                   Download
                 </Button>
                 <ButtonGroup>
@@ -205,9 +205,9 @@ export const FolderObjectDetailScreen = ({
               </div>
             </div>
           )}
-          <div className="w-full flex-1 flex overflow-hidden">
+          <div className="flex w-full flex-1 overflow-hidden">
             {folderObject && (
-              <div className={'flex-1 flex flex-col justify-around'}>
+              <div className={'flex flex-1 flex-col justify-around'}>
                 {folderObject.hash ? (
                   <FolderObjectPreview
                     folderId={folderId}
@@ -225,7 +225,7 @@ export const FolderObjectDetailScreen = ({
               </div>
             )}
             {sidebarOpen && folderObject && folderContext.folder && (
-              <div className="xs:w-[100%] md:w-[50%] lg:w-[50%] xl:w-[40%] 2xl:w-[35%] 2xl:max-w-[35rem]">
+              <div className="xs:w-full md:w-[1/2] lg:w-[1/2] xl:w-2/5 2xl:w-[35%] 2xl:max-w-[35rem]">
                 <FolderObjectSidebar
                   folderAndPermission={
                     folderContext.folderPermissions && {

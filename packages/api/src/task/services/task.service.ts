@@ -77,7 +77,7 @@ export class TaskService {
     return this.listTasks({ ...queryParams, folderId: folder.id })
   }
 
-  async listTasksAsAdmin(actor: User, queryParams: TasksListQueryParamsDTO) {
+  listTasksAsAdmin(actor: User, queryParams: TasksListQueryParamsDTO) {
     // ACL check
     if (!actor.isAdmin) {
       throw new UnauthorizedException()

@@ -1,5 +1,3 @@
-import React from 'react'
-
 import {
   Card,
   CardContent,
@@ -7,15 +5,18 @@ import {
   CardHeader,
   CardTitle,
 } from '@stellariscloud/ui-toolkit'
-import { SignupForm, SignupFormValues } from './signup-form.component'
 import Link from 'next/link'
+import React from 'react'
+
+import type { SignupFormValues } from './signup-form.component'
+import { SignupForm } from './signup-form.component'
 
 export const SignupComponent = ({
   onSubmit,
 }: {
   onSubmit: (input: {
     username: string
-    email: string
+    email?: string
     password: string
   }) => Promise<void>
   onLogin: () => void
@@ -24,7 +25,7 @@ export const SignupComponent = ({
     async (values: SignupFormValues) => {
       return onSubmit({
         username: values.username,
-        email: values.email ?? '',
+        email: values.email,
         password: values.password,
       })
     },
@@ -33,7 +34,7 @@ export const SignupComponent = ({
 
   return (
     <div className="flex min-h-full flex-1 flex-col items-center justify-center">
-      <Card className="w-content min-w-[30rem]">
+      <Card className="min-w-[30rem]">
         <CardHeader>
           <CardTitle className="text-xl">Sign Up</CardTitle>
           <CardDescription>

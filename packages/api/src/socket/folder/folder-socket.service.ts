@@ -67,11 +67,13 @@ export class FolderSocketService implements OnModuleInit {
           throw new UnauthorizedException()
         }
       } catch (e: unknown) {
+        // eslint-disable-next-line no-console
         console.log('SOCKET ERROR:', e)
         socket.conn.close()
       }
     } else {
       // auth payload does not match expected
+      // eslint-disable-next-line no-console
       console.log('Bad auth payload.', auth)
       socket.disconnect(true)
       throw new UnauthorizedException()
@@ -101,6 +103,7 @@ export class FolderSocketService implements OnModuleInit {
     if (this.namespace) {
       this.namespace.to(this.getRoomId(folderId)).emit(name, msg)
     } else {
+      // eslint-disable-next-line no-console
       console.log('Namespace not yet set when sending folder room message.')
     }
   }

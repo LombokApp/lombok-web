@@ -1,22 +1,22 @@
+import type { LucideIcon } from 'lucide-react'
 import {
-  Users,
-  Settings,
-  KeySquare,
-  ChartLine,
-  ListChecks,
   AppWindow,
+  ChartLine,
   Folders,
+  KeySquare,
   LayoutGrid,
-  LucideIcon,
+  ListChecks,
+  Settings,
+  Users,
 } from 'lucide-react'
 
-type Submenu = {
+interface Submenu {
   href: string
   label: string
   active?: boolean
 }
 
-type Menu = {
+interface Menu {
   href: string
   label: string
   active?: boolean
@@ -24,7 +24,7 @@ type Menu = {
   submenus?: Submenu[]
 }
 
-type Group = {
+interface Group {
   groupLabel: string
   menus: Menu[]
 }

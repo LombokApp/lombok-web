@@ -1,10 +1,10 @@
 import type { UserCreateInputDTO } from '@stellariscloud/api-client'
+import { Button, cn } from '@stellariscloud/ui-toolkit'
 import { useRouter } from 'next/router'
 import React from 'react'
 
 import type { UserInput } from '../../../../components/server-user-form/server-user-form'
 import { ServerUserForm } from '../../../../components/server-user-form/server-user-form'
-import { Button, cn } from '@stellariscloud/ui-toolkit'
 import { apiClient } from '../../../../services/api'
 
 const buildInitialUserObject = () => {

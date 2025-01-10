@@ -13,7 +13,7 @@ export function StackedList({
       <div className={cn('overflow-hidden', 'flex flex-col gap-4')}>
         {items.map((item, i) => (
           <div
-            className="border border-foreground/5 bg-foreground/[.03] rounded-md text-sm font-bold"
+            className="rounded-md border border-foreground/5 bg-foreground/[.03] text-sm font-bold"
             key={i}
           >
             <div className="p-4">{item}</div>

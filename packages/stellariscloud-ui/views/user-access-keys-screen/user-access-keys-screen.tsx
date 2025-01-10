@@ -1,12 +1,12 @@
-import React from 'react'
-
-import {
+import type {
   AccessKeyDTO,
   AccessKeysApiListAccessKeysRequest,
 } from '@stellariscloud/api-client'
-import { apiClient } from '../../services/api'
-import { PaginationState, SortingState } from '@tanstack/react-table'
 import { DataTable, Separator, TypographyH2 } from '@stellariscloud/ui-toolkit'
+import type { PaginationState, SortingState } from '@tanstack/react-table'
+import React from 'react'
+
+import { apiClient } from '../../services/api'
 import { userAccessKeysTableColumns } from './user-access-keys-table-columns'
 
 export function UserAccessKeysScreen() {
@@ -41,13 +41,13 @@ export function UserAccessKeysScreen() {
   }, [sorting, pagination])
 
   React.useEffect(() => {
-    void fetchAccessKeys()
+    fetchAccessKeys()
   }, [sorting, pagination, filters, fetchAccessKeys])
 
   return (
-    <div className="flex flex-1 flex-col container gap-3 self-center">
+    <div className="container flex flex-1 flex-col gap-3 self-center">
       <TypographyH2 className="pb-0">Access Keys</TypographyH2>
-      <Separator className="bg-foreground/10 mb-3" />
+      <Separator className="mb-3 bg-foreground/10" />
 
       <DataTable
         onColumnFiltersChange={(updater) => {

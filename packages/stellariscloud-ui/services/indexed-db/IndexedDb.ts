@@ -71,6 +71,7 @@ export class IndexedDb {
           })
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('createObjectStores ERROR:', error)
       throw error
     }

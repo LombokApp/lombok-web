@@ -31,6 +31,7 @@ export class FolderSocketGateway implements OnGatewayConnection, OnGatewayInit {
     try {
       await this.folderSocketService.handleConnection(socket)
     } catch (error: unknown) {
+      // eslint-disable-next-line no-console
       console.log('Folder socket connection error:', error)
       // TODO: send some message to the client so they know what to do?
       socket.disconnect()

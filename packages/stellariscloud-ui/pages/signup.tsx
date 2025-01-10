@@ -16,18 +16,19 @@ const Login: NextPage = () => {
       password,
     }: {
       username: string
-      email: string
+      email?: string
       password: string
     }) => {
       await authContext
         .signup({ username, email, password })
         .then(() => router.push('/login'))
+        // eslint-disable-next-line no-console
         .catch((e) => console.error(e))
     },
     [authContext, router],
   )
   return (
-    <div className="h-full w-full flex flex-col justify-around">
+    <div className="flex size-full flex-col justify-around">
       <SignupComponent
         onLogin={() => void router.push('/login')}
         onSubmit={handleSignupSubmit}

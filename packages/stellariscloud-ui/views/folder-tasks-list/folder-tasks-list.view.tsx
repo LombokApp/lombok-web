@@ -1,17 +1,17 @@
 import type { FolderGetResponse, TaskDTO } from '@stellariscloud/api-client'
-import React from 'react'
-
 import {
   Card,
   CardContent,
   CardHeader,
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
-import { apiClient } from '../../services/api'
-import { TasksList } from '../../components/tasks-list/tasks-list.component'
 import { ListChecks } from 'lucide-react'
-import { Icon } from '../../design-system/icon'
 import Link from 'next/link'
+import React from 'react'
+
+import { TasksList } from '../../components/tasks-list/tasks-list.component'
+import { Icon } from '../../design-system/icon'
+import { apiClient } from '../../services/api'
 
 export const FolderTasksList = ({
   folderAndPermission,
@@ -24,14 +24,14 @@ export const FolderTasksList = ({
   const fetchTasks = React.useCallback(() => {
     if (folder?.id) {
       void apiClient.tasksApi
-        .listFolderTasks({ folderId: folder?.id })
+        .listFolderTasks({ folderId: folder.id })
         .then((resp) => setTasks(resp.data.result))
     }
   }, [folder?.id])
 
   React.useEffect(() => {
     if (folder?.id) {
-      void fetchTasks()
+      fetchTasks()
     }
   }, [fetchTasks, folder?.id])
 
@@ -46,7 +46,7 @@ export const FolderTasksList = ({
             </div>
           </TypographyH3>
           <Link
-            className="text-xs opacity-50 underline italic"
+            className="text-xs italic underline opacity-50"
             href={`/folders/${folder?.id}/tasks`}
           >
             view all

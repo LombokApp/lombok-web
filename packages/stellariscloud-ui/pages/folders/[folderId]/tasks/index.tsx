@@ -1,19 +1,25 @@
+import { useAuthContext } from '@stellariscloud/auth-utils'
 import type { NextPage } from 'next'
+import { useRouter } from 'next/router'
 import React from 'react'
 
 import { ContentLayout } from '../../../../components/sidebar/components/content-layout'
-import { FolderTasksScreen } from '../../../../views/folder-tasks-screen/folder-tasks-screen.view'
 import {
   FolderContextProvider,
   useFolderContext,
 } from '../../../../contexts/folder.context'
-import { useRouter } from 'next/router'
+import { FolderTasksScreen } from '../../../../views/folder-tasks-screen/folder-tasks-screen.view'
 
-const FolderTasksPageInner = () => {
+const FolderTasksPageInner = ({
+  onSignout,
+}: {
+  onSignout: () => Promise<void>
+}) => {
   const folderContext = useFolderContext()
 
   return (
     <ContentLayout
+      onSignout={onSignout}
       breadcrumbs={[
         { label: 'Folders', href: `/folders` },
         {
@@ -30,9 +36,10 @@ const FolderTasksPageInner = () => {
 
 const FolderTasksPage: NextPage = () => {
   const router = useRouter()
+  const authContext = useAuthContext()
   return (
     <FolderContextProvider folderId={router.query.folderId as string}>
-      <FolderTasksPageInner />
+      <FolderTasksPageInner onSignout={() => authContext.logout()} />
     </FolderContextProvider>
   )
 }

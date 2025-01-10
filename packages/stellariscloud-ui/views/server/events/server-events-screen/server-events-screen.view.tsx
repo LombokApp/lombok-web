@@ -2,13 +2,13 @@ import type {
   EventDTO,
   ServerEventsApiListEventsRequest,
 } from '@stellariscloud/api-client'
+import { cn, DataTable } from '@stellariscloud/ui-toolkit'
+import type { PaginationState, SortingState } from '@tanstack/react-table'
+import { BugIcon, InfoIcon, OctagonAlert, TriangleAlert } from 'lucide-react'
 import React from 'react'
 
 import { apiClient } from '../../../../services/api'
-import { DataTable, cn } from '@stellariscloud/ui-toolkit'
-import { PaginationState, SortingState } from '@tanstack/react-table'
 import { serverEventsTableColumns } from './server-events-table-columns'
-import { BugIcon, TriangleAlert, InfoIcon, OctagonAlert } from 'lucide-react'
 
 export function ServerEventsScreen() {
   const [filters, setFilters] = React.useState<

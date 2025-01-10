@@ -21,11 +21,11 @@ export function AppUI({
   }, [iframeRef.current?.contentWindow, appIdentifier, host, uiName, scheme])
 
   return (
-    <div className="h-full w-full flex flex-col justify-stretch">
-      <div className="w-full h-full">
+    <div className="flex size-full flex-col justify-stretch">
+      <div className="size-full">
         <iframe
           ref={iframeRef}
-          className="w-full h-full"
+          className="size-full"
           title={`app:${appIdentifier}`}
         />
       </div>

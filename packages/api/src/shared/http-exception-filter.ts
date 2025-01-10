@@ -12,6 +12,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // Get the request object from the arguments host
     const request = ctx.getRequest<Request>()
 
+    // eslint-disable-next-line no-console
     console.log(
       'API EXCEPTION (%s):',
       request.url,

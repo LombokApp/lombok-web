@@ -1,9 +1,9 @@
 import type { UserStorageProvisionInputDTO } from '@stellariscloud/api-client'
+import type { UserStorageProvisionType } from '@stellariscloud/types'
+import { Button } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 
-import { Button } from '@stellariscloud/ui-toolkit'
 import { UserStorageProvisionFormFields } from './user-storage-provision-form-fields'
-import { UserStorageProvisionType } from '@stellariscloud/types'
 
 export interface UserStorageProvisionFormValues {
   name: string
@@ -37,8 +37,8 @@ export const UserStorageProvisionForm = ({
   }>({ valid: false, value })
 
   return (
-    <div className="flex flex-col gap-4 w-full h-full bg-gray-50 dark:bg-white/5 p-6 py-10 rounded-lg">
-      <h2 className="font-bold text-3xl text-gray-800 dark:text-gray-200">
+    <div className="flex size-full flex-col gap-4 rounded-lg bg-gray-50 p-6 py-10 dark:bg-white/5">
+      <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-200">
         {titleText}
       </h2>
       <UserStorageProvisionFormFields
@@ -46,7 +46,7 @@ export const UserStorageProvisionForm = ({
         value={value}
         onChange={(output) => setUserStorageProvision(output)}
       />
-      <div className="flex gap-2 justify-end">
+      <div className="flex justify-end gap-2">
         <Button variant={'secondary'} onClick={onCancel}>
           Cancel
         </Button>

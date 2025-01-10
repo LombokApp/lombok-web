@@ -16,6 +16,11 @@ import { NewTask, tasksTable } from '../entities/task.entity'
 
 const MAX_CONCURRENT_CORE_TASKS = 10
 
+export type CoreTaskInputData<K extends CoreTaskName> =
+  K extends CoreTaskName.RESCAN_FOLDER
+    ? { folderId: string; userId: string }
+    : never
+
 @Injectable()
 export class CoreTaskService {
   processors: { [key: string]: BaseProcessor<CoreTaskName> } = {}
@@ -39,6 +44,7 @@ export class CoreTaskService {
       this.draining = true
       await this._drainCoreTasks()
     } catch (error: unknown) {
+      // eslint-disable-next-line no-console
       console.log('Error draining core tasks. Error', error)
     } finally {
       this.draining = false
@@ -225,8 +231,7 @@ export class CoreTaskService {
     void this.drainCoreTasks()
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  registerProcessor = async <K extends CoreTaskName>(
+  registerProcessor = <K extends CoreTaskName>(
     taskName: K,
     // processorFunction: (inputData: CoreTaskInputData<K>) => Promise<void>,
     processorFunction: BaseProcessor<CoreTaskName>,
@@ -235,8 +240,3 @@ export class CoreTaskService {
     this.processors[taskName] = processorFunction
   }
 }
-
-export type CoreTaskInputData<K extends CoreTaskName> =
-  K extends CoreTaskName.RESCAN_FOLDER
-    ? { folderId: string; userId: string }
-    : never

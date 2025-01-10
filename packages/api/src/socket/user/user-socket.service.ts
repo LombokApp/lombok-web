@@ -46,11 +46,13 @@ export class UserSocketService {
           throw new UnauthorizedException()
         }
       } catch (error: unknown) {
+        // eslint-disable-next-line no-console
         console.log('SOCKET ERROR:', error)
         socket.conn.close()
       }
     } else {
       // auth payload does not match expected
+      // eslint-disable-next-line no-console
       console.log('Bad auth payload.', auth)
       socket.disconnect(true)
       throw new UnauthorizedException()
@@ -61,6 +63,7 @@ export class UserSocketService {
     if (this.namespace) {
       this.namespace.to(`user:${userId}`).emit(name, msg)
     } else {
+      // eslint-disable-next-line no-console
       console.log('Namespace not yet set when sending user room message.')
     }
   }

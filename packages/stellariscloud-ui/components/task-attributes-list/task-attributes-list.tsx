@@ -1,4 +1,4 @@
-import { AccessKeyDTO } from '@stellariscloud/api-client'
+import type { AccessKeyDTO } from '@stellariscloud/api-client'
 import { cn } from '@stellariscloud/ui-toolkit'
 
 const ROW_SPACING = 'px-4 py-3'
@@ -7,7 +7,7 @@ const VALUE_TEXT_COLOR = 'text-black dark:text-white'
 
 export function TaskAttributeList({ accessKey }: { accessKey?: AccessKeyDTO }) {
   return (
-    <div className="bg-gray-200 dark:bg-transparent rounded-lg dark:rounded-none pl-4">
+    <div className="rounded-lg bg-gray-200 pl-4 dark:rounded-none dark:bg-transparent">
       <dl className="divide-y divide-white/10">
         <div
           className={cn('sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0', ROW_SPACING)}

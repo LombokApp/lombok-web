@@ -27,6 +27,7 @@ export const USER_JWT_SUB_PREFIX = 'USER'
 export const APP_USER_JWT_SUB_PREFIX = 'APP_USER'
 export const APP_JWT_SUB_PREFIX = 'APP'
 
+// eslint-disable-next-line no-use-before-define
 export const accessTokenType: r.Runtype<AccessTokenJWT> = r.Record({
   aud: r.String,
   jti: r.String,

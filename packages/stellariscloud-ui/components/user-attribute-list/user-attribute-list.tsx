@@ -1,7 +1,5 @@
-import { cn } from '@stellariscloud/ui-toolkit'
-import { Badge, CardContent } from '@stellariscloud/ui-toolkit'
-import { UserDTO } from '@stellariscloud/api-client'
-import { Card } from '@stellariscloud/ui-toolkit'
+import type { UserDTO } from '@stellariscloud/api-client'
+import { Badge, Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
 
 const LABEL_TEXT_COLOR = 'opacity-50'
 const VALUE_TEXT_COLOR = ''
@@ -71,7 +69,7 @@ export function UserAttributeList({ user }: { user?: UserDTO }) {
               {typeof user === 'undefined' ? (
                 <span className="italic opacity-50">Unknown</span>
               ) : user.isAdmin ? (
-                <div className="flex gap-2 items-start">
+                <div className="flex items-start gap-2">
                   <Badge variant={'outline'}>True</Badge>
                 </div>
               ) : (

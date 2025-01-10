@@ -1,23 +1,22 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  Button,
+  cn,
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Icons,
+  Input,
+} from '@stellariscloud/ui-toolkit'
 import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-
-import {
-  cn,
-  Button,
-  Input,
-  Form,
-  FormItem,
-  FormField,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage,
-  Icons,
-} from '@stellariscloud/ui-toolkit'
 
 const formSchema = z.object({
   username: z.string().min(2, {
@@ -29,9 +28,12 @@ const formSchema = z.object({
   confirmPassword: z.string().min(2, {
     message: 'Password must be at least 2 characters.',
   }),
-  email: z.string().min(2, {
-    message: 'Email must be at least 2 characters.',
-  }),
+  email: z
+    .string()
+    .min(2, {
+      message: 'Email must be at least 2 characters.',
+    })
+    .optional(),
 })
 export type SignupFormValues = z.infer<typeof formSchema>
 
@@ -140,7 +142,7 @@ export function SignupForm({
               // disabled={!form.state.valid || isLoading}
             >
               {isLoading && (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                <Icons.spinner className="mr-2 size-4 animate-spin" />
               )}
               Create your account
             </Button>

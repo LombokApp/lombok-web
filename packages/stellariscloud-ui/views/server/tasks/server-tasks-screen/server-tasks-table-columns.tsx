@@ -1,24 +1,24 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
-
-import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
-import { TaskDTO } from '@stellariscloud/api-client'
-import { timeSinceOrUntil } from '@stellariscloud/utils'
-import Image from 'next/image'
+import type { TaskDTO } from '@stellariscloud/api-client'
 import { cn } from '@stellariscloud/ui-toolkit'
-import { invertColour, stringToColour } from '../../../../utils/colors'
+import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
+import { timeSinceOrUntil } from '@stellariscloud/utils'
+import type { ColumnDef } from '@tanstack/react-table'
+import Image from 'next/image'
 import Link from 'next/link'
+
+import { invertColour, stringToColour } from '../../../../utils/colors'
 
 export const serverTasksTableColumns: ColumnDef<TaskDTO>[] = [
   {
     id: '__HIDDEN__',
     cell: ({ row }) => {
       return (
-        <div className="w-0 h-0 overflow-hidden max-w-0">
+        <div className="size-0 max-w-0 overflow-hidden">
           <Link
             href={`/server/tasks/${row.original.id}`}
-            className="absolute top-0 bottom-0 left-0 right-0"
+            className="absolute inset-0"
           />
         </div>
       )
@@ -36,7 +36,7 @@ export const serverTasksTableColumns: ColumnDef<TaskDTO>[] = [
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         <div
-          className="flex items-center justify-center rounded-full w-8 h-8 overflow-hidden"
+          className="flex size-8 items-center justify-center overflow-hidden rounded-full"
           style={{
             background: row.original.ownerIdentifier.includes(':')
               ? stringToColour(row.original.ownerIdentifier.split(':')[1])
@@ -64,7 +64,7 @@ export const serverTasksTableColumns: ColumnDef<TaskDTO>[] = [
 
         <div className="flex flex-col">
           <div className="w-[80px]">{row.getValue('taskKey')}</div>
-          <span className="max-w-[150px] truncate text-muted-foreground text-xs">
+          <span className="max-w-[150px] truncate text-xs text-muted-foreground">
             {row.original.taskDescription.textKey}
           </span>
         </div>
@@ -84,7 +84,7 @@ export const serverTasksTableColumns: ColumnDef<TaskDTO>[] = [
     ),
     cell: ({ row: { original: task } }) => {
       return (
-        <div className="flex gap-2 items-center font-normal">
+        <div className="flex items-center gap-2 font-normal">
           {task.subjectObjectKey ? (
             task.subjectObjectKey
           ) : (
@@ -108,7 +108,7 @@ export const serverTasksTableColumns: ColumnDef<TaskDTO>[] = [
     enableGlobalFilter: false,
     cell: ({ row: { original: task } }) => {
       return (
-        <div className="flex gap-2 items-center">
+        <div className="flex items-center gap-2">
           <div className="flex items-center gap-2">
             <div
               className={cn(
@@ -124,7 +124,7 @@ export const serverTasksTableColumns: ColumnDef<TaskDTO>[] = [
             />
           </div>
 
-          <div className="flex gap-2 items-center font-normal text-muted-foreground text-xs">
+          <div className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
             {task.completedAt
               ? 'Complete'
               : task.errorAt
@@ -149,7 +149,7 @@ export const serverTasksTableColumns: ColumnDef<TaskDTO>[] = [
       />
     ),
     cell: ({ row }) => (
-      <div className="flex flex-col text-xs w-[140px]">
+      <div className="flex w-[140px] flex-col text-xs">
         <div>{new Date(row.getValue('createdAt')).toLocaleString()}</div>
         <div className="italic text-muted-foreground">
           {timeSinceOrUntil(new Date(row.original.createdAt))}
@@ -169,7 +169,7 @@ export const serverTasksTableColumns: ColumnDef<TaskDTO>[] = [
       />
     ),
     cell: ({ row }) => (
-      <div className="flex flex-col text-xs w-[140px]">
+      <div className="flex w-[140px] flex-col text-xs">
         <div>{new Date(row.getValue('updatedAt')).toLocaleString()}</div>
         <div className="italic text-muted-foreground">
           {timeSinceOrUntil(new Date(row.original.updatedAt))}

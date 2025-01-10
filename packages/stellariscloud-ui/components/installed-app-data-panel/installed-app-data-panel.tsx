@@ -1,9 +1,9 @@
+import type { AppDTO } from '@stellariscloud/api-client'
 import type { ConnectedAppWorker } from '@stellariscloud/types'
 import React from 'react'
 
 import type { AppsTab } from './installed-app-tabs'
 import { InstalledAppTabs } from './installed-app-tabs'
-import { AppDTO } from '@stellariscloud/api-client'
 
 export function InstalledAppDataPanel({
   appInfo,
@@ -32,17 +32,17 @@ export function InstalledAppDataPanel({
         />
       </div>
       {activeTab === 'config' && (
-        <div className="border border-gray-500 p-2 rounded-md text-gray-500 dark:text-gray-400 flex flex-col gap-4 bg-black/20 overflow-x-auto">
+        <div className="flex flex-col gap-4 overflow-x-auto rounded-md border border-gray-500 bg-black/20 p-2 text-gray-500 dark:text-gray-400">
           <pre>{JSON.stringify(appInfo.config, null, 2)}</pre>
         </div>
       )}
       {activeTab === 'events' && 'events'}
       {activeTab === 'logs' && 'logs'}
       {activeTab === 'workers' && (
-        <div className="flex flex-col text-wite dark:text-gray-200">
+        <div className="flex flex-col dark:text-gray-200">
           {_connectedAppInstances.length === 0 && <em>None</em>}
           {_connectedAppInstances.map((instance) => (
-            <div key={instance.id} className="p-4 bg-black/20">
+            <div key={instance.id} className="bg-black/20 p-4">
               <pre>
                 {JSON.stringify(
                   {

@@ -1,24 +1,24 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
-
+import type { EventDTO } from '@stellariscloud/api-client'
+import { cn } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
-import { invertColour, stringToColour } from '../../../../utils/colors'
-import { EventDTO } from '@stellariscloud/api-client'
+import type { ColumnDef } from '@tanstack/react-table'
 import Image from 'next/image'
-import { cn } from '@stellariscloud/ui-toolkit'
 import Link from 'next/link'
+
+import { invertColour, stringToColour } from '../../../../utils/colors'
 
 export const serverEventsTableColumns: ColumnDef<EventDTO>[] = [
   {
     id: '__HIDDEN__',
     cell: ({ row }) => {
       return (
-        <div className="w-0 h-0 overflow-hidden max-w-0">
+        <div className="size-0 max-w-0 overflow-hidden">
           <Link
             href={`/server/events/${row.original.id}`}
-            className="absolute top-0 bottom-0 left-0 right-0"
+            className="absolute inset-0"
           />
         </div>
       )
@@ -38,7 +38,7 @@ export const serverEventsTableColumns: ColumnDef<EventDTO>[] = [
     cell: ({ row }) => (
       <div className="flex items-start gap-2">
         <div
-          className="flex items-center justify-center rounded-full w-8 h-8 overflow-hidden"
+          className="flex size-8 items-center justify-center overflow-hidden rounded-full"
           style={{
             background: stringToColour(row.original.emitterIdentifier),
             color: invertColour(stringToColour(row.original.emitterIdentifier)),
@@ -107,7 +107,7 @@ export const serverEventsTableColumns: ColumnDef<EventDTO>[] = [
       />
     ),
     cell: ({ row }) => (
-      <div className="flex flex-col text-xs w-[140px]">
+      <div className="flex w-[140px] flex-col text-xs">
         <div>{new Date(row.getValue('createdAt')).toLocaleString()}</div>
         <div className="italic text-muted-foreground">
           {timeSinceOrUntil(new Date(row.original.createdAt))}

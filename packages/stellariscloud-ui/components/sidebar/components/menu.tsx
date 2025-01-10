@@ -1,19 +1,19 @@
 'use client'
 
-import Link from 'next/link'
-import { Ellipsis, LogOut } from 'lucide-react'
-import { usePathname } from 'next/navigation'
-
-import { cn } from '@stellariscloud/ui-toolkit'
-import { getMenuList } from '../menu-list'
 import {
+  Button,
+  cn,
+  ScrollArea,
   Tooltip,
-  TooltipTrigger,
   TooltipContent,
   TooltipProvider,
-  Button,
-  ScrollArea,
+  TooltipTrigger,
 } from '@stellariscloud/ui-toolkit'
+import { Ellipsis, LogOut } from 'lucide-react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+
+import { getMenuList } from '../menu-list'
 import { CollapseMenuButton } from './collapse-menu-button'
 
 interface MenuProps {
@@ -29,20 +29,20 @@ export function Menu({
 
   return (
     <ScrollArea className="h-full [&>div>div[style]]:!block">
-      <nav className="h-full w-full pt-2">
-        <ul className="flex flex-col h-full items-start space-y-1 px-0">
+      <nav className="size-full pt-2">
+        <ul className="flex h-full flex-col items-start space-y-1 px-0">
           {menuList.map(({ groupLabel, menus }, index) => (
             <li className={cn('w-full', groupLabel ? 'pt-5' : '')} key={index}>
               {(isOpen && groupLabel) || isOpen === undefined ? (
-                <p className="text-sm font-medium text-muted-foreground px-4 pb-2 max-w-[248px] truncate">
+                <p className="max-w-[248px] truncate px-4 pb-2 text-sm font-medium text-muted-foreground">
                   {groupLabel}
                 </p>
-              ) : !isOpen && isOpen !== undefined && groupLabel ? (
+              ) : !isOpen && groupLabel ? (
                 <TooltipProvider>
                   <Tooltip delayDuration={100}>
                     <TooltipTrigger className="w-full">
-                      <div className="w-full flex justify-center items-center">
-                        <Ellipsis className="h-5 w-5" />
+                      <div className="flex w-full items-center justify-center">
+                        <Ellipsis className="size-5" />
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="right">
@@ -54,16 +54,16 @@ export function Menu({
                 <p className="pb-2"></p>
               )}
               {menus.map(
-                ({ href, label, icon: Icon, active, submenus }, index) =>
+                ({ href, label, icon: Icon, active, submenus }, _index) =>
                   !submenus || submenus.length === 0 ? (
-                    <div className="w-full" key={index}>
+                    <div className="w-full" key={_index}>
                       <TooltipProvider disableHoverableContent>
                         <Tooltip delayDuration={100}>
                           <TooltipTrigger asChild>
                             <Button
                               variant={
                                 (active === undefined &&
-                                  pathname?.startsWith(href)) ||
+                                  pathname.startsWith(href)) ||
                                 active
                                   ? 'outline'
                                   : 'ghost'
@@ -71,7 +71,7 @@ export function Menu({
                               className={cn(
                                 'w-full justify-start h-10 mb-1',
                                 (active === undefined &&
-                                  pathname?.startsWith(href)) ||
+                                  pathname.startsWith(href)) ||
                                   active
                                   ? 'bg-foreground/5'
                                   : undefined,
@@ -106,7 +106,7 @@ export function Menu({
                       </TooltipProvider>
                     </div>
                   ) : (
-                    <div className="w-full" key={index}>
+                    <div className="w-full" key={_index}>
                       <CollapseMenuButton
                         icon={Icon}
                         label={label}
@@ -123,14 +123,14 @@ export function Menu({
               )}
             </li>
           ))}
-          <li className="w-full grow flex self-end items-end pb-3">
+          <li className="flex w-full grow items-end self-end pb-3">
             <TooltipProvider disableHoverableContent>
               <Tooltip delayDuration={100}>
                 <TooltipTrigger asChild>
                   <Button
                     onClick={() => void onSignOut()}
                     variant="outline"
-                    className="w-full justify-center h-10 mt-5"
+                    className="mt-5 h-10 w-full justify-center"
                   >
                     <span className={cn(isOpen === false ? '' : 'mr-4')}>
                       <LogOut size={18} />

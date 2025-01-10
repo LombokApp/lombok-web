@@ -19,7 +19,7 @@ const Login: NextPage = () => {
   )
 
   return (
-    <div className="h-full w-full flex flex-col justify-around">
+    <div className="flex size-full flex-col justify-around">
       <LoginComponent
         error={
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any

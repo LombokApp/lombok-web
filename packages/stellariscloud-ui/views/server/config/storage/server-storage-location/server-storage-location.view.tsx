@@ -1,12 +1,14 @@
+import type {
+  ServerStorageLocationDTO,
+  ServerStorageLocationInputDTO,
+} from '@stellariscloud/api-client'
+import { FolderIcon } from 'lucide-react'
 import React from 'react'
 
 import { EmptyState } from '../../../../../design-system/empty-state/empty-state'
 import { apiClient } from '../../../../../services/api'
-import { ServerStorageLocationDTO } from '@stellariscloud/api-client'
-import { ServerStorageLocationModal } from './server-storage-location-modal'
-import { ServerStorageLocationInputDTO } from '@stellariscloud/api-client'
-import { FolderIcon } from 'lucide-react'
 import { ServerStorageLocationCard } from './server-storage-location-card'
+import { ServerStorageLocationModal } from './server-storage-location-modal'
 import { ServerStorageLocationRemoveModal } from './server-storage-location-remove-modal'
 
 export function ServerStorageLocation() {
@@ -25,7 +27,7 @@ export function ServerStorageLocation() {
         .setServerStorageLocation({
           serverStorageLocationInputDTO: {
             ...input,
-            region: input.region ?? null,
+            region: input.region,
             prefix: input.prefix ?? null,
           },
         })

@@ -1,10 +1,10 @@
+import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
+import { cn, TypographyH2, TypographyH3 } from '@stellariscloud/ui-toolkit'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import { apiClient } from '../../../../../../services/api'
-import { UserStorageProvisionDTO } from '@stellariscloud/api-client'
 import { ServerStorageProvisionAttributesList } from '../../../../../../components/server-storage-provision-attributes-list/server-storage-provision-attributes-list'
-import { TypographyH2, TypographyH3, cn } from '@stellariscloud/ui-toolkit'
+import { apiClient } from '../../../../../../services/api'
 
 export function UserStorageProvisionDetailScreen() {
   const router = useRouter()
@@ -12,9 +12,11 @@ export function UserStorageProvisionDetailScreen() {
     React.useState<UserStorageProvisionDTO>()
 
   const fetchUserStorageProvision = React.useCallback(
-    (userStorageProvisionId: string) => {
+    (_userStorageProvisionId: string) => {
       void apiClient.userStorageProvisionsApi
-        .getUserStorageProvision({ userStorageProvisionId })
+        .getUserStorageProvision({
+          userStorageProvisionId: _userStorageProvisionId,
+        })
         .then((resp) => {
           setUserStorageProvision(resp.data.userStorageProvision)
         })
@@ -27,7 +29,7 @@ export function UserStorageProvisionDetailScreen() {
       typeof router.query.userStorageProvisionId === 'string' &&
       !userStorageProvisionId
     ) {
-      void fetchUserStorageProvision(router.query.userStorageProvisionId)
+      fetchUserStorageProvision(router.query.userStorageProvisionId)
     }
   }, [
     router.query.userStorageProvisionId,
@@ -54,7 +56,7 @@ export function UserStorageProvisionDetailScreen() {
             typeof router.query.userStorageProvisionId === 'string' &&
             !userStorageProvisionId
           ) {
-            void fetchUserStorageProvision(router.query.userStorageProvisionId)
+            fetchUserStorageProvision(router.query.userStorageProvisionId)
           }
         })
     },
@@ -68,7 +70,7 @@ export function UserStorageProvisionDetailScreen() {
   return (
     <>
       <div className={cn('p-4 items-center flex flex-1 flex-col h-full')}>
-        <div className="container flex-1 flex flex-col">
+        <div className="container flex flex-1 flex-col">
           <TypographyH2>
             {`Storage Provision: ${userStorageProvisionId?.label}`}
           </TypographyH2>

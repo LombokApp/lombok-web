@@ -1,5 +1,5 @@
-import { ServerStorageLocationDTO } from '../server-storage-location.dto'
-import { ServerStorageLocationInputDTO } from '../server-storage-location-input.dto'
+import type { ServerStorageLocationDTO } from '../server-storage-location.dto'
+import type { ServerStorageLocationInputDTO } from '../server-storage-location-input.dto'
 
 export function transformServerStorageLocationToDTO(
   serverStorageLocation: ServerStorageLocationDTO &

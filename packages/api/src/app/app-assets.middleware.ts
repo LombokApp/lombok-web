@@ -55,6 +55,7 @@ export class AppAssetsMiddleware implements NestMiddleware {
       resolvedContentPath,
     )
     if (returnContent) {
+      // eslint-disable-next-line no-console
       console.log(
         '"%s" got response [%s] %d bytes',
         resolvedContentPath,

@@ -2,8 +2,8 @@ import type { NextPage } from 'next'
 import { useRouter } from 'next/router'
 import React from 'react'
 
-import { AppUI } from '../../../views/app-ui/app-ui.view'
 import { ContentLayout } from '../../../components/sidebar/components/content-layout'
+import { AppUI } from '../../../views/app-ui/app-ui.view'
 
 const AppsIndexPage: NextPage = () => {
   const router = useRouter()
@@ -12,7 +12,7 @@ const AppsIndexPage: NextPage = () => {
     setLocation(window.location)
   }, [])
   return process.env.NEXT_PUBLIC_API_HOST ? (
-    <div className="h-full w-full flex flex-col justify-around">
+    <div className="flex size-full flex-col justify-around">
       {location && (
         <ContentLayout
           breadcrumbs={[

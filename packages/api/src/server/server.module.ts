@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common'
 
 import { ServerController } from './controllers/server.controller'
+import { ServerStorageLocationController } from './controllers/server-storage-location.controller'
 import { UserStorageProvisionsController } from './controllers/user-storage-provisions.controller'
 import { ServerConfigurationService } from './services/server-configuration.service'
-import { ServerStorageLocationController } from './controllers/server-storage-location.controller'
 
 @Module({
   controllers: [

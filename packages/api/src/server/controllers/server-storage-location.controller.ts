@@ -14,10 +14,10 @@ import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
-import { ServerConfigurationService } from '../services/server-configuration.service'
 import { ServerStorageLocationGetResponse } from '../dto/responses/server-storage-location-get-response.dto'
 import { ServerStorageLocationDTO } from '../dto/server-storage-location.dto'
 import { ServerStorageLocationInputDTO } from '../dto/server-storage-location-input.dto'
+import { ServerConfigurationService } from '../services/server-configuration.service'
 
 @Controller('/api/v1/server/server-storage-location')
 @ApiTags('ServerStorageLocation')

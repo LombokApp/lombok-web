@@ -81,7 +81,7 @@ export const FolderObjectPreview = ({
     : mediaTypeFromExtension(folderObject?.objectKey.split('.').at(-1) ?? '')
 
   return file && dataURL && mediaType === MediaType.Image ? (
-    <div className="relative w-full h-full">
+    <div className="relative size-full">
       <Image
         className={displayMode}
         fill
@@ -90,7 +90,7 @@ export const FolderObjectPreview = ({
       />
     </div>
   ) : file && dataURL && mediaType === MediaType.Video ? (
-    <div className="flex justify-center h-full">
+    <div className="flex h-full justify-center">
       <VideoPlayer
         className={displayMode}
         width="100%"
@@ -100,13 +100,13 @@ export const FolderObjectPreview = ({
       />
     </div>
   ) : file && dataURL && mediaType === MediaType.Audio ? (
-    <div className="flex w-full h-full justify-center items-center p-4">
-      <div className="sm:w-full sm:h-full lg:h-[80%] lg:w-[80%] xl:h-[60%] xl:w-[60%]">
+    <div className="flex size-full items-center justify-center p-4">
+      <div className="sm:size-full lg:size-4/5 xl:size-3/5">
         <AudioPlayer width="100%" height="100%" controls src={dataURL} />
       </div>
     </div>
   ) : (
-    <div className="flex flex-col w-full h-full items-center justify-around bg-black text-white">
+    <div className="flex size-full flex-col items-center justify-around bg-black text-white">
       <Icon size={'xl'} icon={iconForMediaType(mediaType)} />
     </div>
   )

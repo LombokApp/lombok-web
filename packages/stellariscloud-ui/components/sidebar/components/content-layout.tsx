@@ -2,13 +2,18 @@ import { Navbar } from './navbar'
 interface ContentLayoutProps {
   children: React.ReactNode
   breadcrumbs?: { href?: string | undefined; label: string }[]
+  onSignout: () => Promise<void>
 }
 
-export function ContentLayout({ children, breadcrumbs }: ContentLayoutProps) {
+export function ContentLayout({
+  children,
+  breadcrumbs,
+  onSignout,
+}: ContentLayoutProps) {
   return (
-    <div className="h-full flex flex-col">
-      <Navbar breadcrumbs={breadcrumbs} />
-      <div className="overflow-x-hidden overflow-y-auto flex flex-col flex-1 p-6">
+    <div className="flex h-full flex-col">
+      <Navbar onSignout={onSignout} breadcrumbs={breadcrumbs} />
+      <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden p-6">
         {children}
       </div>
     </div>

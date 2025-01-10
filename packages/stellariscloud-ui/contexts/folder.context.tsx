@@ -4,10 +4,22 @@ import { FolderPushMessage } from '@stellariscloud/types'
 import React from 'react'
 import type { Socket } from 'socket.io-client'
 
+import { useWebsocket } from '../hooks/use-websocket'
 import { apiClient } from '../services/api'
 import { useLocalFileCacheContext } from './local-file-cache.context'
 import type { LogLevel } from './logging.context'
-import { useWebsocket } from '../hooks/use-websocket'
+
+export interface Notification {
+  level: LogLevel
+  message: string
+  thumbnailSrc?: string
+  id?: string
+}
+
+export type SocketMessageHandler = (
+  name: FolderPushMessage,
+  msg: { [key: string]: unknown },
+) => void
 
 export interface IFolderContext {
   folderId: string
@@ -25,21 +37,9 @@ export interface IFolderContext {
   socket: Socket | undefined
 }
 
-export type SocketMessageHandler = (
-  name: FolderPushMessage,
-  msg: { [key: string]: unknown },
-) => void
-
 export const FolderContext = React.createContext<IFolderContext>(
   {} as IFolderContext,
 )
-
-export interface Notification {
-  level: LogLevel
-  message: string
-  thumbnailSrc?: string
-  id?: string
-}
 
 export const FolderContextProvider = ({
   children,
@@ -48,7 +48,6 @@ export const FolderContextProvider = ({
   children: React.ReactNode
   folderId: string
 }) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _localFileCacheContext = useLocalFileCacheContext()
   //   const loggingContext = useLoggingContext()
 

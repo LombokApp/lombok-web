@@ -1,21 +1,21 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
-
+import type { AppDTO } from '@stellariscloud/api-client'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
-import { invertColour, stringToColour } from '../../../../utils/colors'
-import { AppDTO } from '@stellariscloud/api-client'
+import type { ColumnDef } from '@tanstack/react-table'
 import Link from 'next/link'
+
+import { invertColour, stringToColour } from '../../../../utils/colors'
 
 export const serverAppsTableColumns: ColumnDef<AppDTO>[] = [
   {
     id: '__HIDDEN__',
     cell: ({ row }) => {
       return (
-        <div className="w-0 h-0 overflow-hidden max-w-0">
+        <div className="size-0 max-w-0 overflow-hidden">
           <Link
             href={`/server/apps/${row.original.identifier.toLowerCase()}`}
-            className="absolute top-0 bottom-0 left-0 right-0"
+            className="absolute inset-0"
           />
         </div>
       )
@@ -34,17 +34,15 @@ export const serverAppsTableColumns: ColumnDef<AppDTO>[] = [
     ),
     cell: ({ row }) => {
       return (
-        <div className="flex gap-4 items-center font-normal">
+        <div className="flex items-center gap-4 font-normal">
           <div
-            className="flex items-center justify-center rounded-full w-8 h-8 overflow-hidden"
+            className="flex size-8 items-center justify-center overflow-hidden rounded-full"
             style={{
               background: stringToColour(row.original.identifier),
               color: invertColour(stringToColour(row.original.identifier)),
             }}
           >
-            <span className="uppercase">
-              {row.original.identifier?.[0] ?? '?'}
-            </span>
+            <span className="uppercase">{row.original.identifier[0]}</span>
           </div>
 
           <span>{row.original.identifier.toUpperCase()}</span>
@@ -66,7 +64,7 @@ export const serverAppsTableColumns: ColumnDef<AppDTO>[] = [
     cell: ({ row }) => (
       <div className="flex flex-col">
         <div className="">{row.getValue('publicKey')}</div>
-        <span className="max-w-[400px] truncate text-muted-foreground text-xs">
+        <span className="max-w-[400px] truncate text-xs text-muted-foreground">
           {row.original.publicKey}
         </span>
       </div>

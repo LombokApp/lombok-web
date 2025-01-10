@@ -1,9 +1,8 @@
 'use client'
 
-import { ColumnDef } from '@tanstack/react-table'
-
+import type { AppDTOConnectedWorkersInner } from '@stellariscloud/api-client'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
-import { AppDTOConnectedWorkersInner } from '@stellariscloud/api-client'
+import type { ColumnDef } from '@tanstack/react-table'
 
 export const serverAppWorkerTableColumns: ColumnDef<AppDTOConnectedWorkersInner>[] =
   [
@@ -37,7 +36,7 @@ export const serverAppWorkerTableColumns: ColumnDef<AppDTOConnectedWorkersInner>
       ),
       cell: ({ row: { original: appWorker } }) => {
         return (
-          <div className="flex gap-2 items-center font-normal">
+          <div className="flex items-center gap-2 font-normal">
             {appWorker.workerId}
           </div>
         )
@@ -56,7 +55,7 @@ export const serverAppWorkerTableColumns: ColumnDef<AppDTOConnectedWorkersInner>
       ),
       cell: ({ row: { original: appWorker } }) => {
         return (
-          <div className="flex gap-2 items-center font-normal">
+          <div className="flex items-center gap-2 font-normal">
             {appWorker.handledTaskKeys.join(', ')}
           </div>
         )
@@ -75,7 +74,7 @@ export const serverAppWorkerTableColumns: ColumnDef<AppDTOConnectedWorkersInner>
       ),
       cell: ({ row: { original: appWorker } }) => {
         return (
-          <div className="flex gap-2 items-center font-normal">
+          <div className="flex items-center gap-2 font-normal">
             {appWorker.ip}
           </div>
         )

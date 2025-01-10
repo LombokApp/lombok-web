@@ -2,13 +2,13 @@ import type {
   UserDTO,
   UsersApiListUsersRequest,
 } from '@stellariscloud/api-client'
+import { cn, DataTable } from '@stellariscloud/ui-toolkit'
+import type { PaginationState, SortingState } from '@tanstack/react-table'
 import React from 'react'
 
-import { DataTable, cn } from '@stellariscloud/ui-toolkit'
 import { apiClient } from '../../../../services/api'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ServerUserCreatePanel } from '../server-user-create-panel/server-user-create-panel.view'
-import { PaginationState, SortingState } from '@tanstack/react-table'
 import { serverUsersTableColumns } from './server-users-table-columns'
 
 export function ServerUsersScreen() {

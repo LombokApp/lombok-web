@@ -5,7 +5,7 @@ import { UserProfileScreen } from '../views/user-profile-screen/user-profile-scr
 
 const Profile: NextPage = () => {
   return (
-    <div className="h-full w-full">
+    <div className="size-full">
       <UserProfileScreen />
     </div>
   )

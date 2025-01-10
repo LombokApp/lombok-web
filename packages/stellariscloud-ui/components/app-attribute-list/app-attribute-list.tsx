@@ -1,5 +1,5 @@
-import { AppDTO } from '@stellariscloud/api-client'
-import { cn, Badge, Card, CardContent } from '@stellariscloud/ui-toolkit'
+import type { AppDTO } from '@stellariscloud/api-client'
+import { Badge, Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
 
 const LABEL_TEXT_COLOR = 'opacity-50'
 const VALUE_TEXT_COLOR = ''
@@ -71,7 +71,7 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
                 VALUE_TEXT_COLOR,
               )}
             >
-              <pre className="bg-foreground/5 p-4 py-2 rounded-md overflow-x-auto">
+              <pre className="overflow-x-auto rounded-md bg-foreground/5 p-4 py-2">
                 {app?.publicKey}
               </pre>
             </dd>

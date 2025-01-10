@@ -1,7 +1,5 @@
-import {
-  StellarisCloudAPI,
-  StellarisCloudAppBrowserSdk,
-} from '@stellariscloud/app-browser-sdk'
+import type { StellarisCloudAPI } from '@stellariscloud/app-browser-sdk'
+import { StellarisCloudAppBrowserSdk } from '@stellariscloud/app-browser-sdk'
 import type { ApiQueryHooks } from '@stellariscloud/auth-utils'
 import { capitalize } from '@stellariscloud/utils'
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
@@ -25,7 +23,6 @@ export const createQueryHooks = <
     if (typeof api[method] === 'function') {
       const hook = `use${capitalize(method)}` as keyof ApiQueryHooks<T>
       const f = (requestParameters: unknown, options: unknown) => {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
         return useQuery(
           [hook, requestParameters],
           ({ signal }: QueryFunctionContext) => {

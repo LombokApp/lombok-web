@@ -1,7 +1,5 @@
+import { Button, cn } from '@stellariscloud/ui-toolkit'
 import { PanelLeftClose } from 'lucide-react'
-
-import { cn } from '@stellariscloud/ui-toolkit'
-import { Button } from '@stellariscloud/ui-toolkit'
 
 interface SidebarToggleProps {
   isOpen: boolean | undefined
@@ -10,10 +8,10 @@ interface SidebarToggleProps {
 
 export function SidebarToggle({ isOpen, setIsOpen }: SidebarToggleProps) {
   return (
-    <div className="invisible lg:visible absolute top-[8px] -right-[42px] z-20">
+    <div className="invisible absolute right-[-42px] top-[8px] z-20 lg:visible">
       <Button
         onClick={() => setIsOpen?.()}
-        className="rounded-md w-8 h-8"
+        className="size-8 rounded-md"
         variant="outline"
         size="icon"
       >

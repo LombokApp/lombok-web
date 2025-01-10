@@ -3,28 +3,27 @@ import {
   KeyIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline'
-import { Globe } from 'lucide-react'
 import type { FolderGetResponse } from '@stellariscloud/api-client'
 import type { FolderMetadata } from '@stellariscloud/types'
-import { formatBytes } from '@stellariscloud/utils'
-import { cn } from '@stellariscloud/ui-toolkit'
-import React from 'react'
-
-import type { IconProps } from '../../design-system/icon'
-import { Icon } from '../../design-system/icon'
-import Link from 'next/link'
-import { ActionsList } from '../../components/actions-list/actions-list.component'
 import {
   Card,
   CardContent,
   CardHeader,
+  cn,
   Label,
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
-import { Calculator } from 'lucide-react'
-import { FolderTasksList } from '../folder-tasks-list/folder-tasks-list.view'
+import { formatBytes } from '@stellariscloud/utils'
+import { Calculator, Globe } from 'lucide-react'
+import Link from 'next/link'
+import React from 'react'
+
+import { ActionsList } from '../../components/actions-list/actions-list.component'
 import { useServerContext } from '../../contexts/server.context'
+import type { IconProps } from '../../design-system/icon'
+import { Icon } from '../../design-system/icon'
 import { apiClient } from '../../services/api'
+import { FolderTasksList } from '../folder-tasks-list/folder-tasks-list.view'
 
 export const FolderSidebar = ({
   onRescan,
@@ -76,8 +75,8 @@ export const FolderSidebar = ({
   )
 
   return (
-    <div className="h-full flex flex-col overflow-y-auto">
-      <div className="px-3 pb-3 flex flex-col gap-6 flex-1">
+    <div className="flex h-full flex-col overflow-y-auto">
+      <div className="flex flex-1 flex-col gap-6 px-3 pb-3">
         <Card className="bg-transparent">
           <CardHeader className="p-4 pt-3">
             <TypographyH3>
@@ -91,8 +90,8 @@ export const FolderSidebar = ({
             <dl>
               {folder && (
                 <>
-                  <div className="mt-0 flex w-full items-center flex-none gap-x-4">
-                    <dt className="flex-none flex">
+                  <div className="mt-0 flex w-full flex-none items-center gap-x-4">
+                    <dt className="flex flex-none">
                       <span className="sr-only">Access Key</span>
                       <Icon icon={KeyIcon} size="md" />
                     </dt>
@@ -109,8 +108,8 @@ export const FolderSidebar = ({
                       )}
                     </dd>
                   </div>
-                  <div className="mt-4 flex w-full items-center flex-none gap-x-4">
-                    <dt className="flex-none flex">
+                  <div className="mt-4 flex w-full flex-none items-center gap-x-4">
+                    <dt className="flex flex-none">
                       <span className="sr-only">Bucket</span>
                       <Icon icon={Globe} size="md" />
                     </dt>
@@ -127,8 +126,8 @@ export const FolderSidebar = ({
                   </div>
                 </>
               )}
-              <div className="mt-4 flex w-full items-center flex-none gap-x-4">
-                <dt className="flex-none flex">
+              <div className="mt-4 flex w-full flex-none items-center gap-x-4">
+                <dt className="flex flex-none">
                   <span className="sr-only">Size</span>
                   <Calculator />
                 </dt>
@@ -148,7 +147,7 @@ export const FolderSidebar = ({
             </dl>
           </CardContent>
         </Card>
-        {actionItems && <ActionsList actionItems={actionItems} />}
+        {<ActionsList actionItems={actionItems} />}
         <FolderTasksList {...{ folderAndPermission }} />
       </div>
     </div>

@@ -1,7 +1,6 @@
 'use client'
 
-import React from 'react'
-
+import type { ServerStorageLocationInputDTO } from '@stellariscloud/api-client'
 import {
   Dialog,
   DialogContent,
@@ -9,8 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@stellariscloud/ui-toolkit'
+import React from 'react'
+
 import { ServerStorageLocationForm } from './server-storage-location-form/server-storage-location-form.component'
-import { ServerStorageLocationInputDTO } from '@stellariscloud/api-client'
 
 const ServerStorageLocationModal = ({
   modalData,
@@ -26,8 +26,8 @@ const ServerStorageLocationModal = ({
   return (
     <Dialog
       open={open}
-      onOpenChange={(open) => {
-        setModalData({ ...modalData, open })
+      onOpenChange={(_open) => {
+        setModalData({ ...modalData, open: _open })
       }}
     >
       <DialogContent

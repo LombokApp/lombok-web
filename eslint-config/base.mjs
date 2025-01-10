@@ -1,36 +1,12 @@
-import tseslint from 'typescript-eslint'
 import eslintImport from 'eslint-plugin-import'
 import eslintComments from 'eslint-plugin-eslint-comments'
 import eslintPromise from 'eslint-plugin-promise'
 import eslintSimpleImportSort from 'eslint-plugin-simple-import-sort'
 import eslintTs from '@typescript-eslint/eslint-plugin'
 import stylisticTs from '@stylistic/eslint-plugin-ts'
+import eslintPrettier from 'eslint-plugin-prettier'
 
-export default tseslint.config(tseslint.configs.recommendedTypeChecked, {
-  files: ['*.ts', '*.tsx', '*.js'],
-  languageOptions: {
-    ecmaVersion: 2022,
-    parserOptions: {
-      tsconfigRootDir: import.meta.dirname,
-      projectService: true,
-    },
-  },
-  ignores: ['.data'],
-  plugins: {
-    'eslint-comments': eslintComments,
-    promise: eslintPromise,
-    'simple-import-sort': eslintSimpleImportSort,
-    '@typescript-eslint': eslintTs,
-    '@stylistic/ts': stylisticTs,
-    import: eslintImport,
-  },
-  // extends: [
-  //   'eslint:recommended',
-  //   'plugin:promise/recommended',
-  //   'plugin:sonarjs/recommended',
-  //   'plugin:regexp/recommended',
-  //   'plugin:eslint-comments/recommended',
-  // ],
+export default {
   rules: {
     'arrow-parens': ['error', 'always'],
     semi: ['error', 'never'],
@@ -86,7 +62,6 @@ export default tseslint.config(tseslint.configs.recommendedTypeChecked, {
     'promise/param-names': 'error',
     'promise/valid-params': 'error',
     radix: 'error',
-    'require-await': 'error',
     'simple-import-sort/imports': 'error',
     'sonarjs/cognitive-complexity': 'off',
     'sonarjs/no-duplicate-string': 'off',
@@ -114,7 +89,6 @@ export default tseslint.config(tseslint.configs.recommendedTypeChecked, {
     '@typescript-eslint/no-dupe-class-members': 'error',
     'import/no-duplicates': 'error',
     '@typescript-eslint/no-dynamic-delete': 'error',
-    '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-extraneous-class': 'error',
     '@typescript-eslint/no-invalid-this': 'error',
     '@typescript-eslint/no-invalid-void-type': 'error',
@@ -137,11 +111,11 @@ export default tseslint.config(tseslint.configs.recommendedTypeChecked, {
     '@typescript-eslint/no-unnecessary-qualifier': 'error',
     '@typescript-eslint/no-unnecessary-type-arguments': 'error',
     '@typescript-eslint/no-unnecessary-type-constraint': 'error',
-    '@typescript-eslint/no-unsafe-assignment': 'off',
-    '@typescript-eslint/no-unsafe-call': 'off',
-    '@typescript-eslint/no-unsafe-member-access': 'off',
-    '@typescript-eslint/no-unsafe-return': 'off',
-    'no-unused-expressions': 'off',
+    // '@typescript-eslint/no-unsafe-assignment': 'off',
+    // '@typescript-eslint/no-unsafe-call': 'off',
+    // '@typescript-eslint/no-unsafe-member-access': 'off',
+    // '@typescript-eslint/no-unsafe-return': 'off',
+    // 'no-unused-expressions': 'off',
     '@typescript-eslint/no-unused-expressions': 'error',
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': [
@@ -152,7 +126,6 @@ export default tseslint.config(tseslint.configs.recommendedTypeChecked, {
         varsIgnorePattern: '^_',
       },
     ],
-    'no-use-before-define': 'off',
     '@typescript-eslint/no-use-before-define': 'error',
     'no-useless-constructor': 'off',
     '@typescript-eslint/no-useless-constructor': 'error',
@@ -167,17 +140,21 @@ export default tseslint.config(tseslint.configs.recommendedTypeChecked, {
     '@typescript-eslint/prefer-string-starts-ends-with': 'error',
     '@typescript-eslint/prefer-ts-expect-error': 'error',
     '@typescript-eslint/require-array-sort-compare': 'error',
-    'no-return-await': 'off',
     '@typescript-eslint/return-await': ['error', 'in-try-catch'],
     'require-await': 'off',
     '@typescript-eslint/require-await': 'error',
-    '@typescript-eslint/restrict-template-expressions': 'off',
-    '@typescript-eslint/strict-boolean-expressions': 'off',
     '@typescript-eslint/switch-exhaustiveness-check': 'error',
     '@stylistic/ts/type-annotation-spacing': 'error',
     '@typescript-eslint/typedef': 'error',
     '@typescript-eslint/unified-signatures': 'error',
-    'array-callback-return': 'off',
-    'promise/catch-or-return': 'off',
   },
-})
+  plugins: {
+    'eslint-comments': eslintComments,
+    promise: eslintPromise,
+    'simple-import-sort': eslintSimpleImportSort,
+    '@typescript-eslint': eslintTs,
+    '@stylistic/ts': stylisticTs,
+    import: eslintImport,
+    prettier: eslintPrettier,
+  },
+}

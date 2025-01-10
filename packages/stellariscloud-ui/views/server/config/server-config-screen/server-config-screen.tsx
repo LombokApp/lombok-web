@@ -1,9 +1,4 @@
-import { removeDuplicates } from '@stellariscloud/utils'
-import React from 'react'
-
-import { apiClient } from '../../../../services/api'
-import { SettingsGetResponse } from '@stellariscloud/api-client'
-import Link from 'next/link'
+import type { SettingsGetResponse } from '@stellariscloud/api-client'
 import {
   Button,
   Card,
@@ -13,9 +8,14 @@ import {
   CardHeader,
   CardTitle,
   Checkbox,
-  Input,
   cn,
+  Input,
 } from '@stellariscloud/ui-toolkit'
+import { removeDuplicates } from '@stellariscloud/utils'
+import Link from 'next/link'
+import React from 'react'
+
+import { apiClient } from '../../../../services/api'
 import { ServerStorageConfigTab } from '../storage/server-storage-config-tab/server-storage-config-tab'
 
 export function ServerConfigScreen({ tab }: { tab: string }) {
@@ -78,7 +78,7 @@ export function ServerConfigScreen({ tab }: { tab: string }) {
   }, [reloadSettings, settings, originalSettings])
 
   return (
-    <div className="flex w-full items-start gap-6 sm:gap-16 pl-4">
+    <div className="flex w-full items-start gap-6 pl-4 sm:gap-16">
       <nav
         className="flex flex-col gap-4 text-sm text-muted-foreground"
         x-chunk="dashboard-04-chunk-0"

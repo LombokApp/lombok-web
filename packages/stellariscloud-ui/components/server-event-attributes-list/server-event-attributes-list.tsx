@@ -1,9 +1,10 @@
-import { EventDTO } from '@stellariscloud/api-client'
+import type { EventDTO } from '@stellariscloud/api-client'
 import { Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
-import { invertColour, stringToColour } from '../../utils/colors'
-import Image from 'next/image'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
+import Image from 'next/image'
 import Link from 'next/link'
+
+import { invertColour, stringToColour } from '../../utils/colors'
 
 const ROW_SPACING = 'px-4 py-3'
 const LABEL_TEXT_COLOR = 'opacity/50'
@@ -54,7 +55,7 @@ export function ServerEventAttributesList({ event }: { event?: EventDTO }) {
               {event?.emitterIdentifier && (
                 <div className="flex items-center gap-4">
                   <div
-                    className="flex items-center justify-center rounded-full w-8 h-8 overflow-hidden"
+                    className="flex size-8 items-center justify-center overflow-hidden rounded-full"
                     style={{
                       background: stringToColour(event.emitterIdentifier),
                       color: invertColour(
@@ -151,7 +152,7 @@ export function ServerEventAttributesList({ event }: { event?: EventDTO }) {
                               : 'bg-slate-500',
                     )}
                   />
-                  {event?.level}
+                  {event.level}
                 </div>
               )}
             </dd>
@@ -175,7 +176,7 @@ export function ServerEventAttributesList({ event }: { event?: EventDTO }) {
             >
               {event?.locationContext?.folderId}{' '}
               {event?.locationContext?.objectKey &&
-                ` - ${event?.locationContext?.objectKey}`}
+                ` - ${event.locationContext.objectKey}`}
             </dd>
           </div>
           <div
@@ -198,7 +199,7 @@ export function ServerEventAttributesList({ event }: { event?: EventDTO }) {
               {typeof event === 'undefined' ? (
                 <span className="italic opacity-50">Unknown</span>
               ) : (
-                <div className="bg-background/50 p-4 rounded-lg">
+                <div className="rounded-lg bg-background/50 p-4">
                   <pre>{JSON.stringify(event.data, null, 2)}</pre>
                 </div>
               )}

@@ -36,10 +36,10 @@ export class AppSocketService {
   }
 
   async handleConnection(socket: Socket): Promise<void> {
-    console.log(
-      'AppSocketService handleConnection from:',
-      socket.client.conn.remoteAddress,
-    )
+    // console.log(
+    //   'AppSocketService handleConnection from:',
+    //   socket.client.conn.remoteAddress,
+    // )
 
     const clientId = socket.id
     this.connectedClients.set(clientId, socket)
@@ -57,12 +57,14 @@ export class AppSocketService {
         : undefined
 
       if (!appIdentifier) {
+        // eslint-disable-next-line no-console
         console.log('No app identifier in jwt')
         socket.disconnect(true)
         throw new UnauthorizedException()
       }
       const app = await this.appService.getApp(appIdentifier)
       if (!app) {
+        // eslint-disable-next-line no-console
         console.log('App "%s" not recognised. Disconnecting...', appIdentifier)
         socket.disconnect(true)
         throw new UnauthorizedException()
@@ -77,6 +79,7 @@ export class AppSocketService {
         })
         // console.log('verifiedJwt:', _verifiedJwt)
       } catch (e: unknown) {
+        // eslint-disable-next-line no-console
         console.log('SOCKET JWT VERIFY ERROR:', e)
         socket.disconnect(true)
         throw new UnauthorizedException()
@@ -99,6 +102,7 @@ export class AppSocketService {
       socket.on(
         'APP_API',
         async (message: string, ack: (response: unknown) => void) => {
+          // eslint-disable-next-line no-console
           console.log('APP Message Request:', {
             message,
             auth,
@@ -107,6 +111,7 @@ export class AppSocketService {
           const response = await this.appService
             .handleAppRequest(auth.appWorkerId, appIdentifier, message)
             .catch((error: unknown) => {
+              // eslint-disable-next-line no-console
               console.log('Unexpected error during message handling:', {
                 message,
                 error,
@@ -119,6 +124,7 @@ export class AppSocketService {
               }
             })
           if (response?.error) {
+            // eslint-disable-next-line no-console
             console.log('APP Message Error:', {
               message,
               auth,
@@ -126,6 +132,7 @@ export class AppSocketService {
               error: response.error,
             })
           } else {
+            // eslint-disable-next-line no-console
             console.log('APP Message Response:', {
               message,
               auth,
@@ -133,7 +140,7 @@ export class AppSocketService {
               response,
             })
           }
-          return ack(response)
+          ack(response)
         },
       )
 
@@ -151,6 +158,7 @@ export class AppSocketService {
       )
     } else {
       // auth payload does not match expected
+      // eslint-disable-next-line no-console
       console.log('Bad auth payload.', auth)
       socket.disconnect(true)
       throw new UnauthorizedException()
@@ -166,6 +174,7 @@ export class AppSocketService {
     taskKey: string,
     count: number,
   ) {
+    // eslint-disable-next-line no-console
     console.log('Broadcasting pending tasks message:', {
       appIdentifier,
       taskKey,
@@ -176,6 +185,7 @@ export class AppSocketService {
         .to(this.getRoomKeyForAppAndTask(appIdentifier, taskKey))
         .emit('PENDING_TASKS_NOTIFICATION', { taskKey, count })
     } else {
+      // eslint-disable-next-line no-console
       console.log(
         'Namespace not yet set when emitting PENDING_TASKS_NOTIFICATION.',
       )

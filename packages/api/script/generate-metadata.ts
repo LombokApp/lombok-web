@@ -54,6 +54,7 @@ async function main() {
     JSON.stringify(document, null, 2),
   )
 
+  // eslint-disable-next-line no-console
   console.log('Generated OpenAPI spec:', JSON.stringify(document, null, 2))
 
   // for some reason the metadata generation (when run) stops this script from exiting automatically

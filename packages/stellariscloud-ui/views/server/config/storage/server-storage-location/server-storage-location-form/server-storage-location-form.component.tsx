@@ -1,26 +1,47 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  Button,
+  cn,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Icons,
+  Input,
+} from '@stellariscloud/ui-toolkit'
 import * as React from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-import {
-  cn,
-  Button,
-  Input,
-  Form,
-  FormItem,
-  FormField,
-  FormLabel,
-  FormControl,
-  FormMessage,
-  Icons,
-} from '@stellariscloud/ui-toolkit'
-import { serverStorageLocationInputSchema } from '@stellariscloud/types'
+const serverLocationFormSchema = z.object({
+  accessKeyId: z.string().min(1),
+  secretAccessKey: z.string().min(1),
+  endpoint: z
+    .string()
+    .url()
+    .refine(
+      (e) => {
+        try {
+          return new URL(e).pathname === '/'
+        } catch {
+          return false
+        }
+      },
+      {
+        message: 'Expected hostname but got URL.',
+      },
+    ),
+  bucket: z.string().min(1),
+  region: z.string().min(1),
+  prefix: z.string(),
+})
 
 export type ServerStorageLocationFormValues = z.infer<
-  typeof serverStorageLocationInputSchema
+  typeof serverLocationFormSchema
 >
 
 export function ServerStorageLocationForm({
@@ -45,7 +66,7 @@ export function ServerStorageLocationForm({
   }
 
   const form = useForm<ServerStorageLocationFormValues>({
-    resolver: zodResolver(serverStorageLocationInputSchema),
+    resolver: zodResolver(serverLocationFormSchema),
     defaultValues: {
       accessKeyId: '',
       secretAccessKey: '',
@@ -66,7 +87,7 @@ export function ServerStorageLocationForm({
           }}
           className="space-y-4"
         >
-          <div className="flex gap-4 w-full">
+          <div className="flex w-full gap-4">
             <div className="w-1/2">
               <FormField
                 control={form.control}
@@ -98,7 +119,7 @@ export function ServerStorageLocationForm({
               />
             </div>
           </div>
-          <div className="flex gap-4 w-full">
+          <div className="flex w-full gap-4">
             <div className="w-1/2">
               <FormField
                 control={form.control}
@@ -130,7 +151,7 @@ export function ServerStorageLocationForm({
               />
             </div>
           </div>
-          <div className="flex gap-4 w-full">
+          <div className="flex w-full gap-4">
             <div className="w-1/2">
               <FormField
                 control={form.control}
@@ -166,7 +187,7 @@ export function ServerStorageLocationForm({
           <div className="flex flex-col gap-2">
             <Button className="w-full" type="submit">
               {isLoading && (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+                <Icons.spinner className="mr-2 size-4 animate-spin" />
               )}
               Save
             </Button>

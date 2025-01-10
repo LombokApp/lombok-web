@@ -1,40 +1,41 @@
-import React from 'react'
-import Image from 'next/image'
-import { LayoutGrid } from 'lucide-react'
 import {
+  cn,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-  cn,
 } from '@stellariscloud/ui-toolkit'
 import {
+  AppWindow,
   ChartLine,
   Database,
   Folders,
   HardDrive,
-  Users,
+  LayoutGrid,
   ListChecks,
-  AppWindow,
   Settings,
+  Users,
 } from 'lucide-react'
-import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
-import { ServerUsersScreen } from '../../users/server-users-screen/server-users-screen.view'
-import { ServerEventsScreen } from '../../events/server-events-screen/server-events-screen.view'
-import { ServerAppsScreen } from '../../apps/server-apps-screen/server-apps-screen.view'
+import Image from 'next/image'
 import { useRouter } from 'next/router'
+import React from 'react'
+
+import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
+import { ServerAppDetailScreen } from '../../apps/server-app-detail-screen/server-app-detail-screen.view'
+import { ServerAppsScreen } from '../../apps/server-apps-screen/server-apps-screen.view'
 import { ServerConfigScreen } from '../../config/server-config-screen/server-config-screen'
 import { ServerEventDetailScreen } from '../../events/server-event-detail-screen/server-event-detail-screen.view'
-import { ServerUserDetailScreen } from '../../users/server-user-detail-screen/server-user-detail-screen.view'
-import { ServerAppDetailScreen } from '../../apps/server-app-detail-screen/server-app-detail-screen.view'
+import { ServerEventsScreen } from '../../events/server-events-screen/server-events-screen.view'
 import { ServerTaskDetailScreen } from '../../tasks/server-task-detail-screen/server-task-detail-screen.view'
 import { ServerTasksScreen } from '../../tasks/server-tasks-screen/server-tasks-screen.view'
+import { ServerUserDetailScreen } from '../../users/server-user-detail-screen/server-user-detail-screen.view'
+import { ServerUsersScreen } from '../../users/server-users-screen/server-users-screen.view'
 
 export function ServerScreen({ serverPage }: { serverPage: string[] }) {
   const router = useRouter()
   return (
     <div className={cn('items-center flex flex-1 flex-col h-full ')}>
-      <div className="container flex-1 flex flex-col">
+      <div className="container flex flex-1 flex-col">
         <div className="md:hidden">
           <Image
             src="/examples/dashboard-light.png"
@@ -54,14 +55,14 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
         <div className="hidden flex-col md:flex">
           <div className="flex-1">
             <Tabs defaultValue={serverPage[0]} value={serverPage[0]}>
-              <div className="flex items-start flex-col gap-3 pb-6">
+              <div className="flex flex-col items-start gap-3 pb-6">
                 <TabsList>
                   <TabsTrigger
                     onClick={() => void router.push('/server')}
                     value="overview"
                   >
                     <div className="flex items-center gap-2">
-                      <LayoutGrid className="w-4 h-4" />
+                      <LayoutGrid className="size-4" />
                       Overview
                     </div>
                   </TabsTrigger>
@@ -70,7 +71,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     value="users"
                   >
                     <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
+                      <Users className="size-4" />
                       Users
                     </div>
                   </TabsTrigger>
@@ -79,7 +80,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     value="apps"
                   >
                     <div className="flex items-center gap-2">
-                      <AppWindow className="w-4 h-4" />
+                      <AppWindow className="size-4" />
                       Apps
                     </div>
                   </TabsTrigger>
@@ -88,7 +89,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     value="events"
                   >
                     <div className="flex items-center gap-2">
-                      <ChartLine className="w-4 h-4" />
+                      <ChartLine className="size-4" />
                       Events
                     </div>
                   </TabsTrigger>
@@ -97,7 +98,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     value="tasks"
                   >
                     <div className="flex items-center gap-2">
-                      <ListChecks className="w-4 h-4" />
+                      <ListChecks className="size-4" />
                       Tasks
                     </div>
                   </TabsTrigger>
@@ -106,7 +107,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     value="config"
                   >
                     <div className="flex items-center gap-2">
-                      <Settings className="w-4 h-4" />
+                      <Settings className="size-4" />
                       Config
                     </div>
                   </TabsTrigger>

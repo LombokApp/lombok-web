@@ -1,10 +1,13 @@
+import type {
+  AccessKeyDTO,
+  ServerAccessKeysApiListServerAccessKeysRequest,
+} from '@stellariscloud/api-client'
+import { cn, DataTable } from '@stellariscloud/ui-toolkit'
+import type { PaginationState, SortingState } from '@tanstack/react-table'
 import React from 'react'
-import { AccessKeyDTO } from '@stellariscloud/api-client'
+
 import { apiClient } from '../../../../../../services/api'
-import { DataTable, cn } from '@stellariscloud/ui-toolkit'
-import { PaginationState, SortingState } from '@tanstack/react-table'
 import { serverAccessKeysTableColumns } from './server-access-keys-table-columns'
-import { ServerAccessKeysApiListServerAccessKeysRequest } from '@stellariscloud/api-client'
 
 export function ServerAccessKeysScreen() {
   const [accessKeys, setAccessKeys] = React.useState<{
@@ -38,7 +41,7 @@ export function ServerAccessKeysScreen() {
   }, [sorting, pagination])
 
   React.useEffect(() => {
-    void fetchAccessKeys()
+    fetchAccessKeys()
   }, [sorting, pagination, filters, fetchAccessKeys])
 
   return (
