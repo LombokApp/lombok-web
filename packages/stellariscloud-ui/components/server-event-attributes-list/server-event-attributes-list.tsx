@@ -199,7 +199,7 @@ export function ServerEventAttributesList({ event }: { event?: EventDTO }) {
               {typeof event === 'undefined' ? (
                 <span className="italic opacity-50">Unknown</span>
               ) : (
-                <div className="bg-background/50 rounded-lg p-4">
+                <div className="rounded-lg bg-background/50 p-4">
                   <pre>{JSON.stringify(event.data, null, 2)}</pre>
                 </div>
               )}

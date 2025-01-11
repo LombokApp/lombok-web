@@ -64,7 +64,7 @@ export const serverTasksTableColumns: ColumnDef<TaskDTO>[] = [
 
         <div className="flex flex-col">
           <div className="w-[80px]">{row.getValue('taskKey')}</div>
-          <span className="text-muted-foreground max-w-[150px] truncate text-xs">
+          <span className="max-w-[150px] truncate text-xs text-muted-foreground">
             {row.original.taskDescription.textKey}
           </span>
         </div>
@@ -88,7 +88,7 @@ export const serverTasksTableColumns: ColumnDef<TaskDTO>[] = [
           {task.subjectObjectKey ? (
             task.subjectObjectKey
           ) : (
-            <span className="text-muted-foreground italic">None</span>
+            <span className="italic text-muted-foreground">None</span>
           )}
         </div>
       )
@@ -124,7 +124,7 @@ export const serverTasksTableColumns: ColumnDef<TaskDTO>[] = [
             />
           </div>
 
-          <div className="text-muted-foreground flex items-center gap-2 text-xs font-normal">
+          <div className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
             {task.completedAt
               ? 'Complete'
               : task.errorAt
@@ -151,7 +151,7 @@ export const serverTasksTableColumns: ColumnDef<TaskDTO>[] = [
     cell: ({ row }) => (
       <div className="flex w-[140px] flex-col text-xs">
         <div>{new Date(row.getValue('createdAt')).toLocaleString()}</div>
-        <div className="text-muted-foreground italic">
+        <div className="italic text-muted-foreground">
           {timeSinceOrUntil(new Date(row.original.createdAt))}
         </div>
       </div>
@@ -171,7 +171,7 @@ export const serverTasksTableColumns: ColumnDef<TaskDTO>[] = [
     cell: ({ row }) => (
       <div className="flex w-[140px] flex-col text-xs">
         <div>{new Date(row.getValue('updatedAt')).toLocaleString()}</div>
-        <div className="text-muted-foreground italic">
+        <div className="italic text-muted-foreground">
           {timeSinceOrUntil(new Date(row.original.updatedAt))}
         </div>
       </div>

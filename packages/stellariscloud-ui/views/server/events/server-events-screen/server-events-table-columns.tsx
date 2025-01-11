@@ -109,7 +109,7 @@ export const serverEventsTableColumns: ColumnDef<EventDTO>[] = [
     cell: ({ row }) => (
       <div className="flex w-[140px] flex-col text-xs">
         <div>{new Date(row.getValue('createdAt')).toLocaleString()}</div>
-        <div className="text-muted-foreground italic">
+        <div className="italic text-muted-foreground">
           {timeSinceOrUntil(new Date(row.original.createdAt))}
         </div>
       </div>

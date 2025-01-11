@@ -141,7 +141,7 @@ export const FolderObjectSidebar = ({
     <div className="flex h-full min-w-full flex-col overflow-hidden">
       <div className="flex h-full px-2 pb-2">
         <Card className="w-full p-3">
-          <div className="bg-foreground/5 flex flex-1 flex-col gap-1 rounded-md p-2">
+          <div className="flex flex-1 flex-col gap-1 rounded-md bg-foreground/5 p-2">
             <div className="flex items-center gap-2">
               <Icon icon={MagnifyingGlassIcon} size="md" />
               <div className="text-lg font-bold">Object Details</div>

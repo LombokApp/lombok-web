@@ -25,7 +25,7 @@ export function DataTablePagination<TData>({
   return (
     <div className="flex items-center justify-between rounded-md">
       <div className="flex-1" />
-      <div className="border-foreground/5 bg-card flex items-center space-x-6 rounded-md border p-2 px-4 lg:space-x-8">
+      <div className="flex items-center space-x-6 rounded-md border border-foreground/5 bg-card p-2 px-4 lg:space-x-8">
         <div className="flex items-center space-x-2">
           <p className="text-sm font-medium">Rows per page</p>
           <Select

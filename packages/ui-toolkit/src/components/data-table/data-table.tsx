@@ -6,7 +6,8 @@ import type {
   FilterFn,
   SortingState,
   TableOptions,
-  VisibilityState} from '@tanstack/react-table'
+  VisibilityState,
+} from '@tanstack/react-table'
 import {
   flexRender,
   getCoreRowModel,
@@ -15,7 +16,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable
+  useReactTable,
 } from '@tanstack/react-table'
 import * as React from 'react'
 
@@ -28,7 +29,7 @@ import {
   TableRow,
 } from '../table'
 import { DataTablePagination } from './data-table-pagination'
-import type { ColumnFilterOptions} from './data-table-toolbar'
+import type { ColumnFilterOptions } from './data-table-toolbar'
 import { DataTableToolbar } from './data-table-toolbar'
 
 interface DataTableProps<TData, TValue> {
@@ -129,7 +130,7 @@ export function DataTable<TData, TValue>({
           table={table}
         />
       )}
-      <div className="border-foreground/10 bg-card rounded-md border">
+      <div className="rounded-md border border-foreground/10 bg-card">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

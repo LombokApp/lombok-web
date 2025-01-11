@@ -35,7 +35,7 @@ export function StatCardGroup({ stats }: { stats: Stat[] }) {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stat.label}</div>
-                <p className="text-muted-foreground text-xs">{stat.subtitle}</p>
+                <p className="text-xs text-muted-foreground">{stat.subtitle}</p>
               </CardContent>
             </Card>
           )

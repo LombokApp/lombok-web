@@ -113,7 +113,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                       <CheckIcon className={cn('size-4')} />
                     </div>
                     {option.icon && (
-                      <option.icon className="text-muted-foreground mr-2 size-4" />
+                      <option.icon className="mr-2 size-4 text-muted-foreground" />
                     )}
                     <span>{option.label}</span>
                     {facets?.get(option.value) && (

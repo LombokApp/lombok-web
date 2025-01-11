@@ -128,7 +128,7 @@ export function ServerAppDetailScreen({
                   <AppAttributeList app={app} />
                 </TabsContent>
                 <TabsContent value="json" className="overflow-x-auto">
-                  <pre className="bg-muted-foreground/5 text-foreground/75 overflow-y-auto rounded-lg p-4">
+                  <pre className="overflow-y-auto rounded-lg bg-muted-foreground/5 p-4 text-foreground/75">
                     {JSON.stringify(app, null, 2)}
                   </pre>
                 </TabsContent>

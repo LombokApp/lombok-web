@@ -12,13 +12,19 @@ export default tseslint.config(
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
   ...tseslint.configs.recommendedTypeChecked,
-  // Tailwind
   ...eslintTailwind.configs['flat/recommended'],
   baseConfig,
   reactConfig,
   strictConfig,
   {
-    ignores: ['.next', 'public'],
+    ignores: [
+      'node_modules/',
+      'dist/',
+      'build/',
+      '.next/',
+      'public/',
+      'fonts/',
+    ],
   },
   {
     plugins: {
@@ -27,8 +33,7 @@ export default tseslint.config(
     },
     settings: {
       tailwindcss: {
-        config: 'tailwind.config.js',
-        // callees: ['classnames', 'clsx', 'ctl', 'cn', 'cva'],
+        config: 'tailwind.config.ts',
       },
     },
     languageOptions: {

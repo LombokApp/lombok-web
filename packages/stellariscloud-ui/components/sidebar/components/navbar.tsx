@@ -20,7 +20,7 @@ interface NavbarProps {
 
 export function Navbar({ breadcrumbs, onSignout }: NavbarProps) {
   return (
-    <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 dark:shadow-foreground/10 sticky top-0 z-10 w-full border-b py-2">
+    <header className="sticky top-0 z-10 w-full border-b bg-background/95 py-2 supports-[backdrop-filter]:bg-background/60 dark:shadow-foreground/10">
       <div className="mx-4 flex h-8 items-center sm:mx-8">
         <div className="flex items-center space-x-4 lg:space-x-0">
           <SheetMenu onSignout={onSignout} />

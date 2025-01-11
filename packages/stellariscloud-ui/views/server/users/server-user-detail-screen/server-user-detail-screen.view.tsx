@@ -93,7 +93,7 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
                   <CardTitle>
                     <div className="relative flex items-center gap-4">
                       Details
-                      <div className="text-muted-foreground absolute left-24 top-0">
+                      <div className="absolute left-24 top-0 text-muted-foreground">
                         <Button
                           variant={'outline'}
                           size="xs"

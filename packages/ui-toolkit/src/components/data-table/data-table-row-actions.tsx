@@ -54,7 +54,7 @@ export function DataTableRowActions<TData>({
         variant="outline"
         size="xs"
         onClick={action.onClick}
-        className="data-[state=open]:bg-muted flex p-2 px-4"
+        className="flex p-2 px-4 data-[state=open]:bg-muted"
       >
         <div className="flex items-center gap-1">
           {action.icon ? <action.icon /> : null}
@@ -69,7 +69,7 @@ export function DataTableRowActions<TData>({
               <Button
                 variant="outline"
                 size="xs"
-                className="data-[state=open]:bg-muted flex w-8 p-0"
+                className="flex w-8 p-0 data-[state=open]:bg-muted"
               >
                 <DotsHorizontalIcon className="size-4" />
                 <span className="sr-only">Open menu</span>

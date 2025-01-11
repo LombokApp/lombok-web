@@ -40,16 +40,14 @@ export function DataTableToolbar<TData>({
   return (
     <div className="flex items-center gap-6">
       {title && <TypographyH3>{title}</TypographyH3>}
-      <div className="border-foreground/10 bg-card flex items-center space-x-2 rounded-md border p-2">
+      <div className="flex items-center space-x-2 rounded-md border border-foreground/10 bg-card p-2">
         <div className="flex items-center pl-2 pr-1">
-          <Filter className="text-foreground/30 size-5" />
+          <Filter className="size-5 text-foreground/30" />
         </div>
         {enableSearch && searchColumn && (
           <Input
             placeholder={searchPlaceholder ?? 'Search...'}
-            value={
-              table.getColumn(searchColumn)?.getFilterValue() as string
-            }
+            value={table.getColumn(searchColumn)?.getFilterValue() as string}
             onChange={(event) =>
               table.getColumn(searchColumn)?.setFilterValue(event.target.value)
             }

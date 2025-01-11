@@ -46,7 +46,7 @@ export function UserNav({ onSignout }: { onSignout: () => Promise<void> }) {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">John Doe</p>
-            <p className="text-foreground text-xs leading-none">
+            <p className="text-xs leading-none text-foreground">
               johndoe@example.com
             </p>
           </div>
@@ -55,13 +55,13 @@ export function UserNav({ onSignout }: { onSignout: () => Promise<void> }) {
         <DropdownMenuGroup>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
             <Link href="/dashboard" className="flex items-center">
-              <LayoutGrid className="text-muted-foreground mr-3 size-4" />
+              <LayoutGrid className="mr-3 size-4 text-muted-foreground" />
               Dashboard
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
             <Link href="/account" className="flex items-center">
-              <User className="text-muted-foreground mr-3 size-4" />
+              <User className="mr-3 size-4 text-muted-foreground" />
               Account
             </Link>
           </DropdownMenuItem>
@@ -71,7 +71,7 @@ export function UserNav({ onSignout }: { onSignout: () => Promise<void> }) {
           className="hover:cursor-pointer"
           onClick={() => void onSignout()}
         >
-          <LogOut className="text-muted-foreground mr-3 size-4" />
+          <LogOut className="mr-3 size-4 text-muted-foreground" />
           Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>

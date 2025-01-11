@@ -157,7 +157,7 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
                     />
                   </div>
 
-                  <div className="text-muted-foreground flex items-center gap-2 text-xs font-normal">
+                  <div className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
                     {task.completedAt
                       ? 'Complete'
                       : task.errorAt
@@ -188,7 +188,7 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
               )}
             >
               {task && (
-                <div className="bg-background/50 rounded-lg p-4">
+                <div className="rounded-lg bg-background/50 p-4">
                   <pre>{JSON.stringify(task.inputData, null, 2)}</pre>
                 </div>
               )}

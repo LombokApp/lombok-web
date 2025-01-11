@@ -1,13 +1,21 @@
 import eslint from '@eslint/js'
+import containerQueries from '@tailwindcss/container-queries'
 import eslintStorybook from 'eslint-plugin-storybook'
 import eslintTailwind from 'eslint-plugin-tailwindcss'
+import animatePlugin from 'tailwindcss-animate'
 import tseslint from 'typescript-eslint'
 
 import baseConfig from '../../eslint-config/base'
 import reactConfig from '../../eslint-config/react'
 import strictConfig from '../../eslint-config/strict'
+import { themePlugin } from './src/styles'
 
 export default tseslint.config(
+  eslint.configs.recommended,
+  ...tseslint.configs.strict,
+  ...tseslint.configs.stylistic,
+  ...tseslint.configs.recommendedTypeChecked,
+  ...eslintTailwind.configs['flat/recommended'],
   baseConfig,
   reactConfig,
   strictConfig,
@@ -18,7 +26,6 @@ export default tseslint.config(
       'build/',
       'coverage/',
       '.storybook/',
-      'tailwind.config.js',
       'plop-templates/',
       'plopfile.mjs'
     ],
@@ -30,7 +37,10 @@ export default tseslint.config(
     },
     settings: {
       tailwindcss: {
-        config: 'tailwind.config.js',
+        config: {
+          darkMode: ['[data-mode="dark"]'],
+          plugins: [animatePlugin, containerQueries, themePlugin],
+        }
       },
     },
     languageOptions: {
@@ -41,19 +51,11 @@ export default tseslint.config(
       },
     },
   },
-  eslint.configs.recommended,
-  ...tseslint.configs.strict,
-  ...tseslint.configs.stylistic,
-  ...tseslint.configs.recommendedTypeChecked,
-
-  // Tailwind
-  ...eslintTailwind.configs['flat/recommended'],
   {
     rules: {
       eqeqeq: 'error',
       yoda: 'error',
       curly: 'error',
-      semi: ['error', 'never'],
       'no-else-return': 'error',
       'react/prop-types': 'off',
       'prefer-const': 'error',

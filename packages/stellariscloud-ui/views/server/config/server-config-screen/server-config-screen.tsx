@@ -80,7 +80,7 @@ export function ServerConfigScreen({ tab }: { tab: string }) {
   return (
     <div className="flex w-full items-start gap-6 pl-4 sm:gap-16">
       <nav
-        className="text-muted-foreground flex flex-col gap-4 text-sm"
+        className="flex flex-col gap-4 text-sm text-muted-foreground"
         x-chunk="dashboard-04-chunk-0"
       >
         <Link

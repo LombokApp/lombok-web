@@ -6,5 +6,5 @@ import { themePlugin } from './theme-plugin'
 export default {
   darkMode: ['[data-mode="dark"]'],
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
-  plugins: [themePlugin, animatePlugin, containerQueries],
+  plugins: [animatePlugin, containerQueries, themePlugin],
 }

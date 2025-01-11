@@ -15,14 +15,14 @@ export function ServerStorageLocationCard({
   return (
     <div className="lg:col-start-3 lg:row-end-1">
       <h2 className="sr-only">Server Storage Location Description</h2>
-      <div className="bg-muted-foreground/[.02] rounded-md shadow-sm ring-1 ring-gray-900/5">
+      <div className="rounded-md bg-muted-foreground/[.02] shadow-sm ring-1 ring-gray-900/5">
         <dl className="grid grid-cols-2">
           <div className="flex flex-col pl-6 pt-6">
             <span className="sr-only">Endpoint</span>
             <dt className="flex gap-2">
               <Server
                 aria-hidden="true"
-                className="text-muted-foreground h-6 w-5"
+                className="h-6 w-5 text-muted-foreground"
               />
               <div className="text-sm/6 font-semibold">Endpoint</div>
             </dt>
@@ -34,7 +34,7 @@ export function ServerStorageLocationCard({
               <div className="flex gap-2">
                 <Globe
                   aria-hidden="true"
-                  className="text-muted-foreground h-6 w-5"
+                  className="h-6 w-5 text-muted-foreground"
                 />
                 <div className="text-sm/6 font-semibold">Region</div>
               </div>
@@ -43,7 +43,7 @@ export function ServerStorageLocationCard({
               {serverStorageLocation.region ? (
                 serverStorageLocation.region
               ) : (
-                <span className="text-muted-foreground/50 italic">auto</span>
+                <span className="italic text-muted-foreground/50">auto</span>
               )}
             </dd>
           </div>
@@ -54,7 +54,7 @@ export function ServerStorageLocationCard({
             <dt className="flex gap-2">
               <Key
                 aria-hidden="true"
-                className="text-muted-foreground h-6 w-5"
+                className="h-6 w-5 text-muted-foreground"
               />
               <div className="text-sm/6 font-semibold">Access Key ID</div>
             </dt>
@@ -66,13 +66,13 @@ export function ServerStorageLocationCard({
               <div className="flex gap-2">
                 <Lock
                   aria-hidden="true"
-                  className="text-muted-foreground h-6 w-5"
+                  className="h-6 w-5 text-muted-foreground"
                 />
                 <div className="text-sm/6 font-semibold">Secret Access Key</div>
               </div>
             </dt>
             <dd className={DD_CLASS}>
-              <span className="text-muted-foreground/50 italic">*********</span>
+              <span className="italic text-muted-foreground/50">*********</span>
             </dd>
           </div>
         </dl>
@@ -82,7 +82,7 @@ export function ServerStorageLocationCard({
             <dt className="flex gap-2">
               <PackageOpen
                 aria-hidden="true"
-                className="text-muted-foreground h-6 w-5"
+                className="h-6 w-5 text-muted-foreground"
               />
               <div className="text-sm/6 font-semibold">Bucket</div>
             </dt>
@@ -94,7 +94,7 @@ export function ServerStorageLocationCard({
               <div className="flex gap-2">
                 <Slash
                   aria-hidden="true"
-                  className="text-muted-foreground h-6 w-5"
+                  className="h-6 w-5 text-muted-foreground"
                 />
                 <div className="text-sm/6 font-semibold">Prefix</div>
               </div>
@@ -103,7 +103,7 @@ export function ServerStorageLocationCard({
               {serverStorageLocation.prefix ? (
                 serverStorageLocation.prefix
               ) : (
-                <span className="text-muted-foreground/50 italic">none</span>
+                <span className="italic text-muted-foreground/50">none</span>
               )}
             </dd>
           </div>

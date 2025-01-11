@@ -20,6 +20,6 @@
       "@/components/*": ["src/components/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", "eslint.config.ts"],
+  "include": ["**/*.ts", "**/*.tsx", "eslint.config.ts", "tailwind.config.ts"],
   "exclude": ["node_modules"]
 }

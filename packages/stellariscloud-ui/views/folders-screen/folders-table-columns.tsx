@@ -52,7 +52,7 @@ export const foldersTableColumns: ColumnDef<{
     cell: ({ row }) => (
       <div className="flex w-[140px] flex-col text-xs">
         <div>{new Date(row.original.folder.createdAt).toLocaleString()}</div>
-        <div className="text-muted-foreground italic">
+        <div className="italic text-muted-foreground">
           {timeSinceOrUntil(new Date(row.original.folder.createdAt))}
         </div>
       </div>
@@ -72,7 +72,7 @@ export const foldersTableColumns: ColumnDef<{
     cell: ({ row }) => (
       <div className="flex w-[140px] flex-col text-xs">
         <div>{new Date(row.original.folder.updatedAt).toLocaleString()}</div>
-        <div className="text-muted-foreground italic">
+        <div className="italic text-muted-foreground">
           {timeSinceOrUntil(new Date(row.original.folder.updatedAt))}
         </div>
       </div>
