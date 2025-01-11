@@ -1,4 +1,6 @@
-export default {
+import tseslint from 'typescript-eslint'
+
+export default tseslint.config({
   files: ['*.ts', '*.tsx'],
   rules: {
     // '@typescript-eslint/no-implicit-any': 'warn',
@@ -13,4 +15,4 @@ export default {
     // '@typescript-eslint/restrict-template-expressions': 'warn',
     // '@typescript-eslint/strict-boolean-expressions': 'warn',
   },
-}
+})

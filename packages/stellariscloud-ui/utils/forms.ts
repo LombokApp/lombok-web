@@ -55,7 +55,9 @@ export const useFormState = <
 >(
   fieldConfigs: C,
   values: Partial<T> = {},
-  onChange?: (change: { value: T; valid: boolean }) => void,
+  onChange:
+    | ((change: { value: T; valid: boolean }) => void)
+    | undefined = undefined,
 ) => {
   // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   type F = {

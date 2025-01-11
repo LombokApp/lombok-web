@@ -1,6 +1,7 @@
+import tseslint from 'typescript-eslint'
 import globals from 'globals'
 
-export default {
+export default tseslint.config({
   languageOptions: {
     globals: {
       ...globals.node,
@@ -15,4 +16,4 @@ export default {
     'node/no-unsupported-features/es-syntax': 'off',
     'node/no-unsupported-features/node-builtins': 'off',
   },
-}
+})

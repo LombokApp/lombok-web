@@ -1,3 +1,4 @@
+import tseslint from 'typescript-eslint'
 import eslintImport from 'eslint-plugin-import'
 import eslintComments from 'eslint-plugin-eslint-comments'
 import eslintPromise from 'eslint-plugin-promise'
@@ -6,7 +7,7 @@ import eslintTs from '@typescript-eslint/eslint-plugin'
 import stylisticTs from '@stylistic/eslint-plugin-ts'
 import eslintPrettier from 'eslint-plugin-prettier'
 
-export default {
+export default tseslint.config({
   rules: {
     'arrow-parens': ['error', 'always'],
     semi: ['error', 'never'],
@@ -21,7 +22,6 @@ export default {
     'no-extend-native': 'error',
     'no-implied-eval': 'error',
     'no-lonely-if': 'error',
-    'no-loss-of-precision': 'error',
     'no-new-wrappers': 'error',
     'no-param-reassign': 'error',
     'no-restricted-syntax': [
@@ -34,19 +34,9 @@ export default {
       },
     ],
     'no-return-assign': 'error',
-    'no-shadow': 'error',
-    'no-throw-literal': 'error',
     'no-unexpected-multiline': 'off',
     'no-unused-expressions': 'error',
-    'no-unused-vars': [
-      'error',
-      {
-        ignoreRestSiblings: true,
-        argsIgnorePattern: '^_',
-      },
-    ],
     'no-use-before-define': 'error',
-    'no-useless-constructor': 'error',
     'no-useless-rename': 'error',
     'no-useless-return': 'error',
     'object-shorthand': 'error',
@@ -72,7 +62,6 @@ export default {
     '@typescript-eslint/consistent-type-assertions': 'error',
     '@typescript-eslint/consistent-type-definitions': 'error',
     '@typescript-eslint/consistent-type-imports': 'error',
-    'default-param-last': 'off',
     '@typescript-eslint/default-param-last': 'error',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@stylistic/ts/member-delimiter-style': [
@@ -152,4 +141,4 @@ export default {
     import: eslintImport,
     prettier: eslintPrettier,
   },
-}
+})

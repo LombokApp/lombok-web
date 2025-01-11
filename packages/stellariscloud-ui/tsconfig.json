@@ -27,7 +27,7 @@
     "**/*.tsx",
     "next-env.d.ts",
     "./worker.ts",
-    "eslint.config.mjs",
+    "eslint.config.ts",
     "postcss.config.mjs",
     "lint-staged.config.js",
     "tailwind.config.ts",

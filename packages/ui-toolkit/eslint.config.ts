@@ -1,12 +1,11 @@
-import path from 'path'
 import eslint from '@eslint/js'
 import eslintStorybook from 'eslint-plugin-storybook'
 import eslintTailwind from 'eslint-plugin-tailwindcss'
 import tseslint from 'typescript-eslint'
 
-import baseConfig from '../../eslint-config/base.mjs'
-import reactConfig from '../../eslint-config/react.mjs'
-import strictConfig from '../../eslint-config/strict.mjs'
+import baseConfig from '../../eslint-config/base'
+import reactConfig from '../../eslint-config/react'
+import strictConfig from '../../eslint-config/strict'
 
 export default tseslint.config(
   baseConfig,
@@ -20,8 +19,7 @@ export default tseslint.config(
       'coverage/',
       '.storybook/',
       'tailwind.config.js',
-      'plop-templates/`',
-      'eslint.config.mjs',
+      'plop-templates/',
       'plopfile.mjs'
     ],
   },
@@ -33,8 +31,6 @@ export default tseslint.config(
     settings: {
       tailwindcss: {
         config: 'tailwind.config.js',
-        // callees: ['classnames', 'clsx', 'ctl', 'cn', 'cva'],
-        // config: path.join(import.meta.dirname, "./tailwind.config.js"),
       },
     },
     languageOptions: {

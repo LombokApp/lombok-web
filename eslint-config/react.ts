@@ -1,9 +1,10 @@
+import tseslint from 'typescript-eslint'
 import eslintJsxAlly from 'eslint-plugin-jsx-a11y'
 import eslintReact from 'eslint-plugin-react'
 import eslintReactHooks from 'eslint-plugin-react-hooks'
 import eslintImport from 'eslint-plugin-import'
 
-export default {
+export default tseslint.config({
   settings: {
     react: {
       version: 'detect',
@@ -31,4 +32,4 @@ export default {
     'react/react-in-jsx-scope': 'off',
     'react/no-unescaped-entities': 'off',
   },
-}
+})

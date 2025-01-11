@@ -1,4 +1,7 @@
 {
+  "compilerOptions": {
+    "esModuleInterop": true
+  },
   "exclude": [
     "packages/**/tests/**",
     "packages/**/dist/**",

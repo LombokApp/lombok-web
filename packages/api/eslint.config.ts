@@ -1,21 +1,22 @@
 import eslint from '@eslint/js'
 import tseslint from 'typescript-eslint'
-import baseConfig from '../../eslint-config/base.mjs'
-import nodeConfig from '../../eslint-config/node.mjs'
-import strictConfig from '../../eslint-config/strict.mjs'
+
+import baseConfig from '../../eslint-config/base'
+import nodeConfig from '../../eslint-config/node'
+import strictConfig from '../../eslint-config/strict'
 
 export default tseslint.config(
   baseConfig,
   nodeConfig,
   strictConfig,
   {
-    ignores: ['dist/*', 'src/nestjs-metadata.ts', 'eslint.config.mjs'],
+    ignores: ['dist/*', 'src/nestjs-metadata.ts'],
   },
   {
     languageOptions: {
       ecmaVersion: 2022,
       parserOptions: {
-        tsconfigRootDir: import.meta.dirname,
+        tsconfigRootDir: __dirname,
         projectService: true,
       },
     },

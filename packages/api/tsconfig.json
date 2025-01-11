@@ -25,6 +25,8 @@
     "src/**/*.ts",
     "src/**/*.json",
     "script/*.ts",
-    "test/**/*.ts"
-  ]
+    "test/**/*.ts",
+    "eslint.config.ts"
+  ],
+  "exclude": ["node_modules"]
 }
