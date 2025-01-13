@@ -20,7 +20,7 @@ export function ServerEventsScreen() {
     pageIndex: 0,
     pageSize: 10,
   })
-  const searchFilter = filters.find((f) => f.id === 'identifier')
+  const searchFilter = filters.find((f) => f.id === '__HIDDEN__')
   const [events, setEvents] = React.useState<{
     result: EventDTO[]
     meta: { totalCount: number }
@@ -65,7 +65,7 @@ export function ServerEventsScreen() {
       <DataTable
         title="Events"
         enableSearch={true}
-        searchColumn="identifier"
+        searchColumn="__HIDDEN__"
         onColumnFiltersChange={(updater) => {
           setFilters((old) =>
             updater instanceof Function ? updater(old) : updater,

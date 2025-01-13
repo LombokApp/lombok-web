@@ -28,7 +28,7 @@ export function ServerUsersScreen() {
     pageIndex: 0,
     pageSize: 10,
   })
-  const searchFilter = filters.find((f) => f.id === 'username')
+  const searchFilter = filters.find((f) => f.id === '__HIDDEN__')
 
   React.useEffect(() => {
     void apiClient.usersApi
@@ -59,7 +59,7 @@ export function ServerUsersScreen() {
       <DataTable
         title="Users"
         enableSearch={true}
-        searchColumn="username"
+        searchColumn="__HIDDEN__"
         onColumnFiltersChange={(updater) => {
           setFilters((old) =>
             updater instanceof Function ? updater(old) : updater,

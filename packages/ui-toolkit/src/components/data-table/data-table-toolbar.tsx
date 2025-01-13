@@ -4,7 +4,7 @@ import { Cross2Icon } from '@radix-ui/react-icons'
 import { Button, Input, TypographyH3 } from '@stellariscloud/ui-toolkit'
 import type { Table } from '@tanstack/react-table'
 import { Filter } from 'lucide-react'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { DataTableFacetedFilter } from './data-table-faceted-filter'
 
@@ -34,9 +34,23 @@ export function DataTableToolbar<TData>({
   searchPlaceholder,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
+
+  const _filterValue = searchColumn
+    ? ((table.getColumn(searchColumn)?.getFilterValue() as
+        | string
+        | undefined) ?? '')
+    : ''
+
   if (enableSearch && !searchColumn) {
     throw new Error('Must set `searchColumn` if `enableSearch` is true.')
   }
+
+  const [filterValue, setFilterValue] = useState(_filterValue)
+
+  useEffect(() => {
+    setFilterValue(_filterValue)
+  }, [_filterValue])
+
   return (
     <div className="flex items-center gap-6">
       {title && <TypographyH3>{title}</TypographyH3>}
@@ -47,7 +61,7 @@ export function DataTableToolbar<TData>({
         {enableSearch && searchColumn && (
           <Input
             placeholder={searchPlaceholder ?? 'Search...'}
-            value={table.getColumn(searchColumn)?.getFilterValue() as string}
+            value={filterValue}
             onChange={(event) =>
               table.getColumn(searchColumn)?.setFilterValue(event.target.value)
             }

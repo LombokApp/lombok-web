@@ -29,7 +29,7 @@ interface Group {
   menus: Menu[]
 }
 
-export function getMenuList(pathname: string): Group[] {
+export function getMenuList(pathname: string | undefined): Group[] {
   return [
     {
       groupLabel: '',

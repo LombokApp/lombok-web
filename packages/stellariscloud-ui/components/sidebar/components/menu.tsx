@@ -24,7 +24,7 @@ export function Menu({
   onSignOut,
   isOpen,
 }: { onSignOut: () => Promise<void> } & MenuProps) {
-  const pathname = usePathname()
+  const pathname = usePathname() as string | undefined
   const menuList = getMenuList(pathname)
 
   return (
@@ -63,7 +63,7 @@ export function Menu({
                             <Button
                               variant={
                                 (active === undefined &&
-                                  pathname.startsWith(href)) ||
+                                  pathname?.startsWith(href)) ||
                                 active
                                   ? 'outline'
                                   : 'ghost'
@@ -71,7 +71,7 @@ export function Menu({
                               className={cn(
                                 'mb-1 h-10 w-full justify-start',
                                 (active === undefined &&
-                                  pathname.startsWith(href)) ||
+                                  pathname?.startsWith(href)) ||
                                   active
                                   ? 'bg-foreground/5'
                                   : undefined,
@@ -112,7 +112,7 @@ export function Menu({
                         label={label}
                         active={
                           active === undefined
-                            ? pathname.startsWith(href)
+                            ? (pathname?.startsWith(href) ?? false)
                             : active
                         }
                         submenus={submenus}
