@@ -4,7 +4,7 @@ import animatePlugin from 'tailwindcss-animate'
 import { themePlugin } from './theme-plugin'
 
 export default {
-  darkMode: ['[data-mode="dark"]'],
+  darkMode: ['selector', '[data-mode="dark"]'],
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
-  plugins: [animatePlugin, containerQueries, themePlugin],
+  plugins: [themePlugin, animatePlugin, containerQueries],
 }

@@ -27,7 +27,9 @@ export default tseslint.config(
       'coverage/',
       '.storybook/',
       'plop-templates/',
-      'plopfile.mjs'
+      'plopfile.mjs',
+      '.github/',
+      'storybook-static/',
     ],
   },
   {
@@ -40,7 +42,7 @@ export default tseslint.config(
         config: {
           darkMode: ['[data-mode="dark"]'],
           plugins: [animatePlugin, containerQueries, themePlugin],
-        }
+        },
       },
     },
     languageOptions: {
