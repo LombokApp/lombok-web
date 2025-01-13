@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { Children, cloneElement } from 'react'
+import React, { Children, cloneElement } from 'react'
 
 import { cn } from '@/utils'
 

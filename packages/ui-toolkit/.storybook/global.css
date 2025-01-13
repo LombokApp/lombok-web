@@ -3,5 +3,5 @@
 @tailwind utilities;
 
 .docs-story {
-  @apply bg-background;
+  /* @apply bg-background; */
 }
