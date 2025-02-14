@@ -2,6 +2,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
 import { eq } from 'drizzle-orm'
@@ -72,7 +73,7 @@ export class AccessTokenJWT {
   }
 }
 
-export class AuthTokenInvalidError extends Error {
+export class AuthTokenInvalidError extends UnauthorizedException {
   name = AuthTokenInvalidError.name
 
   readonly inner
@@ -86,7 +87,7 @@ export class AuthTokenInvalidError extends Error {
   }
 }
 
-export class AuthTokenExpiredError extends Error {
+export class AuthTokenExpiredError extends UnauthorizedException {
   name = AuthTokenExpiredError.name
 
   readonly inner
@@ -130,7 +131,7 @@ export class JWTService {
 
     const token = jwt.sign(payload, this._authConfig.authJwtSecret, {
       algorithm: ALGORITHM,
-      expiresIn: AuthDurationSeconds.AccessToken,
+      expiresIn: AuthDurationSeconds.SessionSliding, // session validity is managed by the db row, so the token should be valid at least as long as the session
     })
 
     AccessTokenJWT.parse(this.verifyUserJWT(token))

@@ -13,7 +13,7 @@
     "deploy:dev-platform-api": "(cd ./deploy && sh ./deploy-dev-platform-api.sh)",
     "deploy:prod-platform-api": "(cd ./deploy && sh ./deploy-prod-platform-api.sh)",
     "deploy:local-platform-api": "(cd ./deploy && sh ./deploy-local-platform-api.sh)",
-    "api-client:generate": "bun --cwd packages/api api-client:generate",
+    "generate:api-client": "bun --cwd packages/api api-client:generate",
     "dev:docker:clean": "(rm -rf ./.docker/postgres/* || true) && (rm -rf ./.docker/minio || true)",
     "dev:docker:api:build": "docker compose --env-file \"./packages/api/.env\" up api --build",
     "dev:docker:api": "docker compose --env-file \"./packages/api/.env\" up api",

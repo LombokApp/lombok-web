@@ -12,7 +12,7 @@ import type { NewUser, User } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
-import { AuthDurationMs } from '../constants/duration.constants'
+import { AuthDurationMilliseconds } from '../constants/duration.constants'
 import type { LoginCredentialsDTO } from '../dto/login-credentials.dto'
 import type { SignupCredentialsDTO } from '../dto/signup-credentials.dto'
 import type { Session } from '../entities/session.entity'
@@ -27,8 +27,8 @@ import { SessionService } from './session.service'
  */
 export const sessionExpiresAt = (createdAt: Date) =>
   earliest(
-    addMs(new Date(), AuthDurationMs.SessionSliding),
-    addMs(createdAt, AuthDurationMs.SessionAbsolute),
+    addMs(new Date(), AuthDurationMilliseconds.SessionSliding),
+    addMs(createdAt, AuthDurationMilliseconds.SessionAbsolute),
   )
 
 @Injectable()
