@@ -18,14 +18,15 @@ FROM base AS install
 COPY package.json bun.lock /temp/dev/
 COPY packages /temp/dev/packages
 
-# RUN cd /temp/dev && bun install --filter packages/api --force
 RUN cd /temp/dev && \
-  BUN_INSTALL_DEPENDENCIES_ONLY=1 bun install --filter ./packages/api --frozen-lockfile && \
+  bun install --frozen-lockfile && \
   bun --cwd ./packages/api build && \
   bun --cwd ./packages/api-client build && \
   bun --cwd ./packages/core-worker build && \
   bun --cwd ./packages/stellaris-types build && \
   bun --cwd ./packages/stellaris-utils build && \
+  rm -rf ./node_modules && \
+  bun install --production --filter ./packages/api && \
   rm -rf ./packages/api/node_modules && \
   rm -rf ./packages/api/src && \
   rm -rf ./packages/auth-utils && \

@@ -5,6 +5,7 @@
     "start": "bun --bun dist/src/main.js",
     "dev": "bun --watch --bun src/main.ts",
     "build": "nest build -p tsconfig.build.json",
+    "buildold": "TS_CONFIG_PATH=./tsconfig.build.json bun build src/main.ts --target bun --outdir dist",
     "test:unit:watch": "bun test ./src/**/*.unit-spec.ts --watch",
     "test:unit": "bun test ./src/**/*.unit-spec.ts",
     "test:cov": "yarn test --coverage",

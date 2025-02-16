@@ -13,9 +13,7 @@
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
     "pre-commit": "pretty-quick --staged",
-    "prettier": "prettier --write .",
-    "prepare": "husky",
-    "postinstall": "bun run prepare"
+    "prettier": "prettier --write ."
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.3",
