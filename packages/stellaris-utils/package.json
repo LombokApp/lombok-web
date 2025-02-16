@@ -2,7 +2,7 @@
   "name": "@stellariscloud/utils",
   "private": true,
   "scripts": {
-    "build": "bun build . --outDir dist",
+    "build": "bun build . --target bun --outdir dist",
     "build:clean": "bun clean && bun run build",
     "clean": "rm -rf ./dist",
     "lint:check": "eslint .",

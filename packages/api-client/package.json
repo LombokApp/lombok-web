@@ -2,7 +2,7 @@
   "name": "@stellariscloud/api-client",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc -p ./tsconfig.json",
+    "build": "bun build . --target bun --outdir dist",
     "build:clean": "bun clean && bun run build",
     "clean": "(rm -rf ./*.tsbuildinfo ||  true) && rm -rf ./dist"
   },
