@@ -1,4 +1,5 @@
 import tseslint from 'typescript-eslint'
+import type { ConfigArray } from 'typescript-eslint'
 
 export default tseslint.config({
   files: ['*.ts', '*.tsx'],
@@ -15,4 +16,4 @@ export default tseslint.config({
     // '@typescript-eslint/restrict-template-expressions': 'warn',
     // '@typescript-eslint/strict-boolean-expressions': 'warn',
   },
-})
+}) as ConfigArray

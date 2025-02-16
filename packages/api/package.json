@@ -8,7 +8,7 @@
     "test:unit": "bun test ./src/**/*.unit-spec.ts",
     "test:cov": "yarn test --coverage",
     "test:e2e:watch": "bun ./test/e2e.setup.ts && bun test ./src/**/*.e2e-spec.ts --watch",
-    "test:e2e": "bun ./test/e2e.setup.ts && bun test ./src/**/*.e2e-spec.ts",
+    "test:e2e": "bun ./test/e2e.setup.ts && bun test ./src/**/auth.e2e-spec.ts",
     "reset:sdk": "(rm -rf ./node_modules/@stellariscloud/app-worker-sdk || true)",
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",

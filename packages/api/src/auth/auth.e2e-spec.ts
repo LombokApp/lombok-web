@@ -188,6 +188,82 @@ describe('Auth', () => {
     expect(response.status).toBe(401)
   })
 
+  it(`should succeed in extending session with refreshToken`, async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    await request(testModule?.app.getHttpServer())
+      .post('/api/v1/auth/signup')
+      .send({
+        username: 'mekpans',
+        password: '123',
+      })
+      .expect(201)
+
+    const {
+      data: {
+        session: { refreshToken },
+      },
+    } = await apiClient.authApi().login({
+      loginCredentialsDTO: {
+        login: 'mekpans',
+        password: '123',
+      },
+    })
+
+    const refreshTokenResponse = await apiClient
+      .authApi()
+      .refreshToken({ refreshToken })
+
+    expect(refreshTokenResponse.status).toEqual(201)
+    const sessionRows = await testModule
+      ?.getOrmService()
+      .db.query.sessionsTable.findMany()
+    expect(sessionRows?.length).toEqual(1)
+  })
+
+  it(`should return a 401 when attempting to extend session with old refreshToken`, async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    await request(testModule?.app.getHttpServer())
+      .post('/api/v1/auth/signup')
+      .send({
+        username: 'mekpans',
+        password: '123',
+      })
+      .expect(201)
+
+    const {
+      data: {
+        session: { refreshToken },
+      },
+    } = await apiClient.authApi().login({
+      loginCredentialsDTO: {
+        login: 'mekpans',
+        password: '123',
+      },
+    })
+
+    const refreshTokenResponse = await apiClient.authApi().refreshToken({
+      refreshToken: `${refreshToken.split(':')[0]}:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwOi8vc3RlbGxhcmlzY2xvdWQubG9jYWxob3N0IiwianRpIjoiMTk2YjM1ZjctYTJiNy00YTk0LTg4NjUtZTYyMmVlNjNjY2E3OjM3M2I0NWMxLTI1MzEtNDM4Yy1iZTdlLTJkZTY1YjBlMzI4NyIsInNjcCI6W10sInN1YiI6IlVTRVI6YmYwNTMyNDctMDA3NC00ZjVmLWFiOWYtNTFiYTBlYzdiMWFhIiwiaWF0IjoxNzM5NjMwMjAwLCJleHAiOjE3NDA5MjYyMDB9.Nu2n6b9EEotEp6an0I2T_hbRnYISTaaBtU4h74hGQN8`,
+    })
+
+    expect(refreshTokenResponse.status).toEqual(401)
+  })
+
+  it(`should return a 401 when attempting to extend session with malformed refreshToken`, async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    await request(testModule?.app.getHttpServer())
+      .post('/api/v1/auth/signup')
+      .send({
+        username: 'mekpans',
+        password: '123',
+      })
+      .expect(201)
+
+    const refreshTokenResponse = await apiClient.authApi().refreshToken({
+      refreshToken: '_pooprefreshtoken_',
+    })
+    expect(refreshTokenResponse.status).toEqual(401)
+  })
+
   afterAll(async () => {
     await testModule?.shutdown()
   })

@@ -1,4 +1,5 @@
 import tseslint from 'typescript-eslint'
+import type { ConfigArray } from 'typescript-eslint'
 import eslintImport from 'eslint-plugin-import'
 import eslintComments from 'eslint-plugin-eslint-comments'
 import eslintPromise from 'eslint-plugin-promise'
@@ -141,4 +142,4 @@ export default tseslint.config({
     import: eslintImport,
     prettier: eslintPrettier,
   },
-})
+}) as ConfigArray

@@ -133,7 +133,7 @@ export class AuthService {
     )
   }
 
-  async verifySessionWithRefreshToken(refreshToken: string): Promise<{
+  async extendSessionWithRefreshToken(refreshToken: string): Promise<{
     user: User
     session: Session
     accessToken: string
@@ -150,17 +150,13 @@ export class AuthService {
       throw new SessionInvalidException()
     }
 
-    const {
-      session: newSession,
-      refreshToken: newRefreshToken,
-      accessToken: newAccessToken,
-    } = await this.sessionService.createSession(user)
+    const updated = await this.sessionService.extendSession(session)
 
     return {
       user,
-      session: newSession,
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
+      session: updated.session,
+      accessToken: updated.accessToken,
+      refreshToken: updated.refreshToken,
     }
   }
 }

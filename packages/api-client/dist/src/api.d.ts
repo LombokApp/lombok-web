@@ -1487,6 +1487,12 @@ export interface LoginResponseSession {
      * @memberof LoginResponseSession
      */
     'refreshToken': string;
+    /**
+     *
+     * @type {string}
+     * @memberof LoginResponseSession
+     */
+    'expiresAt': string;
 }
 /**
  *
@@ -1548,7 +1554,7 @@ export interface ServerStorageLocationDTO {
      * @type {string}
      * @memberof ServerStorageLocationDTO
      */
-    'prefix'?: string;
+    'prefix': string | null;
 }
 /**
  *
@@ -1604,7 +1610,7 @@ export interface ServerStorageLocationGetResponseServerStorageLocation {
      * @type {string}
      * @memberof ServerStorageLocationGetResponseServerStorageLocation
      */
-    'prefix'?: string;
+    'prefix': string | null;
 }
 /**
  *
@@ -2173,10 +2179,29 @@ export interface TaskListResponse {
 export interface TokenRefreshResponse {
     /**
      *
-     * @type {LoginResponseSession}
+     * @type {TokenRefreshResponseSession}
      * @memberof TokenRefreshResponse
      */
-    'session': LoginResponseSession;
+    'session': TokenRefreshResponseSession;
+}
+/**
+ *
+ * @export
+ * @interface TokenRefreshResponseSession
+ */
+export interface TokenRefreshResponseSession {
+    /**
+     *
+     * @type {string}
+     * @memberof TokenRefreshResponseSession
+     */
+    'accessToken': string;
+    /**
+     *
+     * @type {string}
+     * @memberof TokenRefreshResponseSession
+     */
+    'refreshToken': string;
 }
 /**
  *

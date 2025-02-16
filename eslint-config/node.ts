@@ -1,7 +1,8 @@
 import tseslint from 'typescript-eslint'
+import type { ConfigArray } from 'typescript-eslint'
 import globals from 'globals'
 
-export default tseslint.config({
+const conf: ConfigArray = tseslint.config({
   languageOptions: {
     globals: {
       ...globals.node,
@@ -17,3 +18,5 @@ export default tseslint.config({
     'node/no-unsupported-features/node-builtins': 'off',
   },
 })
+
+export default conf

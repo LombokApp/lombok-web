@@ -123,9 +123,9 @@ export class SessionService {
     const refreshToken = hashedTokenHelper.encode(updatedSession.id, secret)
 
     return {
+      session: updatedSession,
       accessToken,
       refreshToken,
-      expiresAt: session.expiresAt,
     }
   }
 

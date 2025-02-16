@@ -2231,11 +2231,16 @@ export const schema = {
                             },
                             "refreshToken": {
                                 "type": "string"
+                            },
+                            "expiresAt": {
+                                "type": "string",
+                                "format": "date-time"
                             }
                         },
                         "required": [
                             "accessToken",
-                            "refreshToken"
+                            "refreshToken",
+                            "expiresAt"
                         ]
                     }
                 },
@@ -4485,7 +4490,14 @@ export const schema = {
                         "type": "string"
                     },
                     "prefix": {
-                        "type": "string"
+                        "oneOf": [
+                            {
+                                "type": "null"
+                            },
+                            {
+                                "type": "string"
+                            }
+                        ]
                     }
                 },
                 "required": [
@@ -4493,7 +4505,8 @@ export const schema = {
                     "accessKeyId",
                     "endpoint",
                     "bucket",
-                    "region"
+                    "region",
+                    "prefix"
                 ]
             },
             "ServerStorageLocationGetResponse": {
@@ -4518,7 +4531,14 @@ export const schema = {
                                 "type": "string"
                             },
                             "prefix": {
-                                "type": "string"
+                                "oneOf": [
+                                    {
+                                        "type": "null"
+                                    },
+                                    {
+                                        "type": "string"
+                                    }
+                                ]
                             }
                         },
                         "required": [
@@ -4526,7 +4546,8 @@ export const schema = {
                             "accessKeyId",
                             "endpoint",
                             "bucket",
-                            "region"
+                            "region",
+                            "prefix"
                         ]
                     }
                 }

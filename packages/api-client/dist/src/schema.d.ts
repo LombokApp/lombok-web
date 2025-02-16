@@ -1834,8 +1834,12 @@ export declare const schema: {
                             readonly refreshToken: {
                                 readonly type: "string";
                             };
+                            readonly expiresAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
                         };
-                        readonly required: readonly ["accessToken", "refreshToken"];
+                        readonly required: readonly ["accessToken", "refreshToken", "expiresAt"];
                     };
                 };
                 readonly required: readonly ["session"];
@@ -3575,10 +3579,14 @@ export declare const schema: {
                         readonly type: "string";
                     };
                     readonly prefix: {
-                        readonly type: "string";
+                        readonly oneOf: readonly [{
+                            readonly type: "null";
+                        }, {
+                            readonly type: "string";
+                        }];
                     };
                 };
-                readonly required: readonly ["accessKeyHashId", "accessKeyId", "endpoint", "bucket", "region"];
+                readonly required: readonly ["accessKeyHashId", "accessKeyId", "endpoint", "bucket", "region", "prefix"];
             };
             readonly ServerStorageLocationGetResponse: {
                 readonly type: "object";
@@ -3602,10 +3610,14 @@ export declare const schema: {
                                 readonly type: "string";
                             };
                             readonly prefix: {
-                                readonly type: "string";
+                                readonly oneOf: readonly [{
+                                    readonly type: "null";
+                                }, {
+                                    readonly type: "string";
+                                }];
                             };
                         };
-                        readonly required: readonly ["accessKeyHashId", "accessKeyId", "endpoint", "bucket", "region"];
+                        readonly required: readonly ["accessKeyHashId", "accessKeyId", "endpoint", "bucket", "region", "prefix"];
                     };
                 };
             };

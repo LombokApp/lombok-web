@@ -2231,11 +2231,16 @@
               },
               "refreshToken": {
                 "type": "string"
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
               }
             },
             "required": [
               "accessToken",
-              "refreshToken"
+              "refreshToken",
+              "expiresAt"
             ]
           }
         },
@@ -4485,7 +4490,14 @@
             "type": "string"
           },
           "prefix": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "string"
+              }
+            ]
           }
         },
         "required": [
@@ -4493,7 +4505,8 @@
           "accessKeyId",
           "endpoint",
           "bucket",
-          "region"
+          "region",
+          "prefix"
         ]
       },
       "ServerStorageLocationGetResponse": {
@@ -4518,7 +4531,14 @@
                 "type": "string"
               },
               "prefix": {
-                "type": "string"
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
               }
             },
             "required": [
@@ -4526,7 +4546,8 @@
               "accessKeyId",
               "endpoint",
               "bucket",
-              "region"
+              "region",
+              "prefix"
             ]
           }
         }
