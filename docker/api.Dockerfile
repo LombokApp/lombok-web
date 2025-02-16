@@ -1,11 +1,15 @@
 # use the official Bun image
 # see all versions at https://hub.docker.com/r/oven/bun/tags
-FROM oven/bun:1.1.42-alpine as local
+FROM oven/bun:1.2.2-alpine AS base
+
 WORKDIR /usr/src/app
-RUN set -eux \
-  & apk add \
-  --no-cache \
-  ffmpeg
+
+# Install necessary dependencies
+RUN set -eux && apk add --no-cache ffmpeg
+
+FROM base AS local
+
+WORKDIR /usr/src/app
 
 FROM local AS test
 
@@ -29,33 +33,54 @@ ENTRYPOINT yarn test:e2e
 # install dependencies into temp directory
 # this will cache them and speed up future builds
 FROM base AS install
-RUN mkdir -p /temp/dev
-COPY package.json bun.lockb /temp/dev/
-RUN cd /temp/dev && bun install --frozen-lockfile
+# RUN mkdir -p /temp/dev
+COPY package.json bun.lock /temp/dev/
+COPY packages /temp/dev/packages
 
-# install with --production (exclude devDependencies)
-RUN mkdir -p /temp/prod
-COPY package.json bun.lockb /temp/prod/
-RUN cd /temp/prod && bun install --frozen-lockfile --production
+# COPY package.json bun.lock /temp/dev/
+# COPY packages/api /temp/dev/packages/api
+# COPY packages/api-client/package.json /temp/dev/packages/api-client/
+# COPY packages/core-worker/package.json /temp/dev/packages/core-worker/
+# COPY packages/app-worker-sdk/package.json /temp/dev/packages/app-worker-sdk/
+# COPY packages/app-browser-sdk/package.json /temp/dev/packages/app-browser-sdk/
+# COPY packages/app-worker-example/package.json /temp/dev/packages/app-worker-example/
+# COPY packages/auth-utils/package.json /temp/dev/packages/auth-utils/
+# COPY packages/stellaris-types/package.json /temp/dev/packages/stellaris-types/
+# COPY packages/stellaris-utils/package.json /temp/dev/packages/stellaris-utils/
+# COPY packages/ui/package.json /temp/dev/packages/ui/
+# COPY packages/ui-toolkit/package.json /temp/dev/packages/ui-toolkit/
 
-# copy node_modules from temp directory
-# then copy all (non-ignored) project files into the image
-FROM base AS prerelease
-COPY --from=install /temp/dev/node_modules node_modules
-COPY . .
+# RUN cd /temp/dev && bun install --filter packages/api --force
+RUN cd /temp/dev && BUN_INSTALL_DEPENDENCIES_ONLY=1 bun install --filter ./packages/api --frozen-lockfile && bun --cwd ./packages/api build
 
-# [optional] tests & build
-ENV NODE_ENV=production
-RUN bun test
-RUN bun run build
 
-# copy production dependencies and source code into final image
+# FROM base AS prerelease
+# ENV NODE_ENV=production
+
+# # copy from install image
+# COPY --from=install /temp/dev/node_modules ./node_modules
+# COPY --from=install /temp/dev/bun.lock /temp/dev/package.json ./
+
+# # copy source files in
+# COPY packages/api ./packages/api
+# COPY packages/core-worker ./packages/core-worker
+# COPY packages/stellaris-types ./packages/stellaris-types
+# COPY packages/stellaris-utils ./packages/stellaris-utils
+# COPY packages/api-client ./packages/api-client
+
 FROM base AS release
-COPY --from=install /temp/prod/node_modules node_modules
-COPY --from=prerelease /usr/src/app/index.ts .
-COPY --from=prerelease /usr/src/app/package.json .
+
+# copy in package.json and bun.lock
+COPY --from=install /temp/dev/bun.lock /temp/dev/package.json ./
+COPY --from=install /temp/dev/node_modules ./node_modules
+COPY --from=install /temp/dev/packages/api ./packages/api
+
+# build the src
+# RUN bun --cwd ./packages/api build && rm -rf ./packages/api/src ./packages/core-worker ./packages/api-client ./packages/stellaris-types ./packages/stellaris-utils
+# RUN find . -mindepth 1 -not -path './packages/api' -exec rm -rf {} +
+# RUN find . -mindepth 1 -maxdepth 1 -type d -not -path './packages/api' -exec rm -rf {} +
 
 # run the app
 USER bun
 EXPOSE 3001/tcp
-ENTRYPOINT [ "bun", "run", "index.ts" ]
+ENTRYPOINT ["bun", "--cwd", "packages/api", "start"]

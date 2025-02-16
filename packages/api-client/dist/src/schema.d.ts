@@ -1877,16 +1877,14 @@ export declare const schema: {
                             readonly name: {
                                 readonly oneOf: readonly [{
                                     readonly type: "string";
-                                }, {
-                                    readonly type: "null";
                                 }];
+                                readonly nullable: true;
                             };
                             readonly email: {
                                 readonly oneOf: readonly [{
                                     readonly type: "string";
-                                }, {
-                                    readonly type: "null";
                                 }];
+                                readonly nullable: true;
                             };
                             readonly emailVerified: {
                                 readonly type: "boolean";
@@ -1929,8 +1927,12 @@ export declare const schema: {
                             readonly refreshToken: {
                                 readonly type: "string";
                             };
+                            readonly expiresAt: {
+                                readonly type: "string";
+                                readonly format: "date-time";
+                            };
                         };
-                        readonly required: readonly ["accessToken", "refreshToken"];
+                        readonly required: readonly ["accessToken", "refreshToken", "expiresAt"];
                     };
                 };
                 readonly required: readonly ["session"];
@@ -1948,16 +1950,14 @@ export declare const schema: {
                             readonly name: {
                                 readonly oneOf: readonly [{
                                     readonly type: "string";
-                                }, {
-                                    readonly type: "null";
                                 }];
+                                readonly nullable: true;
                             };
                             readonly email: {
                                 readonly oneOf: readonly [{
                                     readonly type: "string";
-                                }, {
-                                    readonly type: "null";
                                 }];
+                                readonly nullable: true;
                             };
                             readonly emailVerified: {
                                 readonly type: "boolean";
@@ -2007,16 +2007,14 @@ export declare const schema: {
                     readonly name: {
                         readonly oneOf: readonly [{
                             readonly type: "string";
-                        }, {
-                            readonly type: "null";
                         }];
+                        readonly nullable: true;
                     };
                     readonly email: {
                         readonly oneOf: readonly [{
                             readonly type: "string";
-                        }, {
-                            readonly type: "null";
                         }];
+                        readonly nullable: true;
                     };
                     readonly emailVerified: {
                         readonly type: "boolean";
@@ -2087,16 +2085,14 @@ export declare const schema: {
                             readonly name: {
                                 readonly oneOf: readonly [{
                                     readonly type: "string";
-                                }, {
-                                    readonly type: "null";
                                 }];
+                                readonly nullable: true;
                             };
                             readonly email: {
                                 readonly oneOf: readonly [{
                                     readonly type: "string";
-                                }, {
-                                    readonly type: "null";
                                 }];
+                                readonly nullable: true;
                             };
                             readonly emailVerified: {
                                 readonly type: "boolean";
@@ -2134,17 +2130,15 @@ export declare const schema: {
                         readonly oneOf: readonly [{
                             readonly type: "string";
                             readonly minLength: 1;
-                        }, {
-                            readonly type: "null";
                         }];
+                        readonly nullable: true;
                     };
                     readonly email: {
                         readonly oneOf: readonly [{
                             readonly type: "string";
                             readonly format: "email";
-                        }, {
-                            readonly type: "null";
                         }];
+                        readonly nullable: true;
                     };
                     readonly isAdmin: {
                         readonly type: "boolean";
@@ -2189,16 +2183,14 @@ export declare const schema: {
                                 readonly name: {
                                     readonly oneOf: readonly [{
                                         readonly type: "string";
-                                    }, {
-                                        readonly type: "null";
                                     }];
+                                    readonly nullable: true;
                                 };
                                 readonly email: {
                                     readonly oneOf: readonly [{
                                         readonly type: "string";
-                                    }, {
-                                        readonly type: "null";
                                     }];
+                                    readonly nullable: true;
                                 };
                                 readonly emailVerified: {
                                     readonly type: "boolean";
@@ -3580,10 +3572,9 @@ export declare const schema: {
                     };
                     readonly prefix: {
                         readonly oneOf: readonly [{
-                            readonly type: "null";
-                        }, {
                             readonly type: "string";
                         }];
+                        readonly nullable: true;
                     };
                 };
                 readonly required: readonly ["accessKeyHashId", "accessKeyId", "endpoint", "bucket", "region", "prefix"];
@@ -3611,10 +3602,9 @@ export declare const schema: {
                             };
                             readonly prefix: {
                                 readonly oneOf: readonly [{
-                                    readonly type: "null";
-                                }, {
                                     readonly type: "string";
                                 }];
+                                readonly nullable: true;
                             };
                         };
                         readonly required: readonly ["accessKeyHashId", "accessKeyId", "endpoint", "bucket", "region", "prefix"];
@@ -3648,9 +3638,8 @@ export declare const schema: {
                         readonly oneOf: readonly [{
                             readonly type: "string";
                             readonly minLength: 1;
-                        }, {
-                            readonly type: "null";
                         }];
+                        readonly nullable: true;
                     };
                 };
                 readonly required: readonly ["accessKeyId", "secretAccessKey", "endpoint", "bucket", "region", "prefix"];
@@ -4151,7 +4140,7 @@ export declare const schema: {
                                                         }, {
                                                             readonly type: "boolean";
                                                         }];
-                                                        readonly type: "null";
+                                                        readonly nullable: true;
                                                     };
                                                 };
                                                 readonly required: readonly ["type"];
@@ -4331,7 +4320,7 @@ export declare const schema: {
                                                                     }, {
                                                                         readonly type: "boolean";
                                                                     }];
-                                                                    readonly type: "null";
+                                                                    readonly nullable: true;
                                                                 };
                                                             };
                                                             readonly required: readonly ["type"];
@@ -4504,7 +4493,7 @@ export declare const schema: {
                                                                 }, {
                                                                     readonly type: "boolean";
                                                                 }];
-                                                                readonly type: "null";
+                                                                readonly nullable: true;
                                                             };
                                                         };
                                                         readonly required: readonly ["type"];

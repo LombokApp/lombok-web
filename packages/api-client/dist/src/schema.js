@@ -2285,21 +2285,17 @@ export const schema = {
                                 "oneOf": [
                                     {
                                         "type": "string"
-                                    },
-                                    {
-                                        "type": "null"
                                     }
-                                ]
+                                ],
+                                "nullable": true
                             },
                             "email": {
                                 "oneOf": [
                                     {
                                         "type": "string"
-                                    },
-                                    {
-                                        "type": "null"
                                     }
-                                ]
+                                ],
+                                "nullable": true
                             },
                             "emailVerified": {
                                 "type": "boolean"
@@ -2353,11 +2349,16 @@ export const schema = {
                             },
                             "refreshToken": {
                                 "type": "string"
+                            },
+                            "expiresAt": {
+                                "type": "string",
+                                "format": "date-time"
                             }
                         },
                         "required": [
                             "accessToken",
-                            "refreshToken"
+                            "refreshToken",
+                            "expiresAt"
                         ]
                     }
                 },
@@ -2379,21 +2380,17 @@ export const schema = {
                                 "oneOf": [
                                     {
                                         "type": "string"
-                                    },
-                                    {
-                                        "type": "null"
                                     }
-                                ]
+                                ],
+                                "nullable": true
                             },
                             "email": {
                                 "oneOf": [
                                     {
                                         "type": "string"
-                                    },
-                                    {
-                                        "type": "null"
                                     }
-                                ]
+                                ],
+                                "nullable": true
                             },
                             "emailVerified": {
                                 "type": "boolean"
@@ -2458,21 +2455,17 @@ export const schema = {
                         "oneOf": [
                             {
                                 "type": "string"
-                            },
-                            {
-                                "type": "null"
                             }
-                        ]
+                        ],
+                        "nullable": true
                     },
                     "email": {
                         "oneOf": [
                             {
                                 "type": "string"
-                            },
-                            {
-                                "type": "null"
                             }
-                        ]
+                        ],
+                        "nullable": true
                     },
                     "emailVerified": {
                         "type": "boolean"
@@ -2557,21 +2550,17 @@ export const schema = {
                                 "oneOf": [
                                     {
                                         "type": "string"
-                                    },
-                                    {
-                                        "type": "null"
                                     }
-                                ]
+                                ],
+                                "nullable": true
                             },
                             "email": {
                                 "oneOf": [
                                     {
                                         "type": "string"
-                                    },
-                                    {
-                                        "type": "null"
                                     }
-                                ]
+                                ],
+                                "nullable": true
                             },
                             "emailVerified": {
                                 "type": "boolean"
@@ -2622,22 +2611,18 @@ export const schema = {
                             {
                                 "type": "string",
                                 "minLength": 1
-                            },
-                            {
-                                "type": "null"
                             }
-                        ]
+                        ],
+                        "nullable": true
                     },
                     "email": {
                         "oneOf": [
                             {
                                 "type": "string",
                                 "format": "email"
-                            },
-                            {
-                                "type": "null"
                             }
-                        ]
+                        ],
+                        "nullable": true
                     },
                     "isAdmin": {
                         "type": "boolean"
@@ -2685,21 +2670,17 @@ export const schema = {
                                     "oneOf": [
                                         {
                                             "type": "string"
-                                        },
-                                        {
-                                            "type": "null"
                                         }
-                                    ]
+                                    ],
+                                    "nullable": true
                                 },
                                 "email": {
                                     "oneOf": [
                                         {
                                             "type": "string"
-                                        },
-                                        {
-                                            "type": "null"
                                         }
-                                    ]
+                                    ],
+                                    "nullable": true
                                 },
                                 "emailVerified": {
                                     "type": "boolean"
@@ -4492,12 +4473,10 @@ export const schema = {
                     "prefix": {
                         "oneOf": [
                             {
-                                "type": "null"
-                            },
-                            {
                                 "type": "string"
                             }
-                        ]
+                        ],
+                        "nullable": true
                     }
                 },
                 "required": [
@@ -4533,12 +4512,10 @@ export const schema = {
                             "prefix": {
                                 "oneOf": [
                                     {
-                                        "type": "null"
-                                    },
-                                    {
                                         "type": "string"
                                     }
-                                ]
+                                ],
+                                "nullable": true
                             }
                         },
                         "required": [
@@ -4580,11 +4557,9 @@ export const schema = {
                             {
                                 "type": "string",
                                 "minLength": 1
-                            },
-                            {
-                                "type": "null"
                             }
-                        ]
+                        ],
+                        "nullable": true
                     }
                 },
                 "required": [
@@ -5208,7 +5183,7 @@ export const schema = {
                                                                 "type": "boolean"
                                                             }
                                                         ],
-                                                        "type": "null"
+                                                        "nullable": true
                                                     }
                                                 },
                                                 "required": [
@@ -5436,7 +5411,7 @@ export const schema = {
                                                                             "type": "boolean"
                                                                         }
                                                                     ],
-                                                                    "type": "null"
+                                                                    "nullable": true
                                                                 }
                                                             },
                                                             "required": [
@@ -5658,7 +5633,7 @@ export const schema = {
                                                                         "type": "boolean"
                                                                     }
                                                                 ],
-                                                                "type": "null"
+                                                                "nullable": true
                                                             }
                                                         },
                                                         "required": [

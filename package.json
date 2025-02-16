@@ -2,11 +2,10 @@
   "name": "stellariscloud",
   "private": true,
   "workspaces": [
-    "packages/*",
-    "packages/shared/packages/*"
+    "packages/*"
   ],
   "scripts": {
-    "install:clean": "rm -rf ./node_modules || true && rm -rf ./packages/api/node_modules || true && rm -rf ./packages/stellariscloud-ui/node_modules || true && rm -rf ./packages/ui-toolkit/node_modules || true && rm bun.lockb || true && bun install",
+    "install:clean": "rm -rf ./node_modules || true && rm -rf ./packages/api/node_modules || true && rm -rf ./packages/stellariscloud-ui/node_modules || true && rm -rf ./packages/ui-toolkit/node_modules || true && rm bun.lock || true && bun install",
     "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
     "prettier:write": "prettier --write \"./**/*.(ts|tsx)\"",
     "deploy:local-platform-worker": "(cd ./deploy && sh ./deploy-local-platform-worker.sh)",

@@ -1551,10 +1551,10 @@ export interface ServerStorageLocationDTO {
     'region': string;
     /**
      *
-     * @type {string}
+     * @type {SignupResponseUserName}
      * @memberof ServerStorageLocationDTO
      */
-    'prefix': string | null;
+    'prefix': SignupResponseUserName;
 }
 /**
  *
@@ -1607,10 +1607,10 @@ export interface ServerStorageLocationGetResponseServerStorageLocation {
     'region': string;
     /**
      *
-     * @type {string}
+     * @type {SignupResponseUserName}
      * @memberof ServerStorageLocationGetResponseServerStorageLocation
      */
-    'prefix': string | null;
+    'prefix': SignupResponseUserName;
 }
 /**
  *
@@ -1650,10 +1650,10 @@ export interface ServerStorageLocationInputDTO {
     'region': string;
     /**
      *
-     * @type {string}
+     * @type {UserUpdateInputDTOName}
      * @memberof ServerStorageLocationInputDTO
      */
-    'prefix': string | null;
+    'prefix': UserUpdateInputDTOName;
 }
 /**
  *
@@ -1777,16 +1777,16 @@ export interface SignupResponseUser {
     'id': string;
     /**
      *
-     * @type {string}
+     * @type {SignupResponseUserName}
      * @memberof SignupResponseUser
      */
-    'name': string | null;
+    'name': SignupResponseUserName;
     /**
      *
-     * @type {string}
+     * @type {SignupResponseUserName}
      * @memberof SignupResponseUser
      */
-    'email': string | null;
+    'email': SignupResponseUserName;
     /**
      *
      * @type {boolean}
@@ -1824,6 +1824,11 @@ export interface SignupResponseUser {
      */
     'updatedAt': string;
 }
+/**
+ * @type SignupResponseUserName
+ * @export
+ */
+export type SignupResponseUserName = string;
 /**
  *
  * @export
@@ -2179,29 +2184,10 @@ export interface TaskListResponse {
 export interface TokenRefreshResponse {
     /**
      *
-     * @type {TokenRefreshResponseSession}
+     * @type {LoginResponseSession}
      * @memberof TokenRefreshResponse
      */
-    'session': TokenRefreshResponseSession;
-}
-/**
- *
- * @export
- * @interface TokenRefreshResponseSession
- */
-export interface TokenRefreshResponseSession {
-    /**
-     *
-     * @type {string}
-     * @memberof TokenRefreshResponseSession
-     */
-    'accessToken': string;
-    /**
-     *
-     * @type {string}
-     * @memberof TokenRefreshResponseSession
-     */
-    'refreshToken': string;
+    'session': LoginResponseSession;
 }
 /**
  *
@@ -2285,16 +2271,16 @@ export interface UserDTO {
     'id': string;
     /**
      *
-     * @type {string}
+     * @type {SignupResponseUserName}
      * @memberof UserDTO
      */
-    'name': string | null;
+    'name': SignupResponseUserName;
     /**
      *
-     * @type {string}
+     * @type {SignupResponseUserName}
      * @memberof UserDTO
      */
-    'email': string | null;
+    'email': SignupResponseUserName;
     /**
      *
      * @type {boolean}
@@ -2624,16 +2610,16 @@ export type UserStorageProvisionListResponseResultInnerProvisionTypesEnum = type
 export interface UserUpdateInputDTO {
     /**
      *
-     * @type {string}
+     * @type {UserUpdateInputDTOName}
      * @memberof UserUpdateInputDTO
      */
-    'name'?: string | null;
+    'name'?: UserUpdateInputDTOName;
     /**
      *
-     * @type {string}
+     * @type {UserUpdateInputDTOEmail}
      * @memberof UserUpdateInputDTO
      */
-    'email'?: string | null;
+    'email'?: UserUpdateInputDTOEmail;
     /**
      *
      * @type {boolean}
@@ -2659,6 +2645,16 @@ export interface UserUpdateInputDTO {
      */
     'permissions'?: Array<string>;
 }
+/**
+ * @type UserUpdateInputDTOEmail
+ * @export
+ */
+export type UserUpdateInputDTOEmail = string;
+/**
+ * @type UserUpdateInputDTOName
+ * @export
+ */
+export type UserUpdateInputDTOName = string;
 /**
  *
  * @export

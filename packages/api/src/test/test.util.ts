@@ -5,7 +5,6 @@ import axios from 'axios'
 import { eq } from 'drizzle-orm'
 import fs from 'fs'
 import path from 'path'
-import type { LoginResponse } from 'src/auth/dto/responses/login-response.dto'
 import { KVService } from 'src/cache/kv.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { configureS3Client } from 'src/storage/s3.service'
@@ -159,7 +158,9 @@ export async function createTestUser(
     password: string
     admin?: boolean
   },
-): Promise<LoginResponse> {
+): Promise<{
+  session: { expiresAt: string; accessToken: string; refreshToken: string }
+}> {
   const signupResponse = await testModule?.apiClient.authApi().signup({
     signupCredentialsDTO: {
       username,

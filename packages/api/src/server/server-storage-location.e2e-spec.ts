@@ -34,7 +34,7 @@ describe('Server - Server Storage Location', () => {
           bucket: 'dummybucket',
           endpoint: 'http://dummyendpoint',
           region: 'auto',
-          prefix: null,
+          prefix: '',
         },
       })
     expect(setServerStorageLocationResponse.status).toEqual(201)
@@ -78,7 +78,7 @@ describe('Server - Server Storage Location', () => {
           bucket: 'dummybucket',
           endpoint,
           region: 'auto',
-          prefix: null,
+          prefix: '',
         },
       }
       const setServerStorageLocationResponse = await apiClient
