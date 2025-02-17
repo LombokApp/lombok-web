@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "NEXT_PUBLIC_BACKEND_ENV=local next dev -p 8080",
     "dev:staging": "NEXT_PUBLIC_BACKEND_ENV=staging next dev",
+    "prebuild": "next telemetry disable",
     "build": "next build",
     "start": "next start",
     "lint": "next lint .",

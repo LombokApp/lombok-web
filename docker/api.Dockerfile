@@ -17,10 +17,12 @@ FROM base AS install
 
 COPY package.json bun.lock /temp/dev/
 COPY packages /temp/dev/packages
+COPY eslint-config /temp/dev/eslint-config
 
 RUN cd /temp/dev && \
   bun install --frozen-lockfile && \
   bun --cwd ./packages/api build && \
+  bun --cwd ./packages/ui build && \
   bun --cwd ./packages/api-client build && \
   bun --cwd ./packages/core-worker build && \
   bun --cwd ./packages/stellaris-types build && \
@@ -32,7 +34,8 @@ RUN cd /temp/dev && \
   rm -rf ./packages/auth-utils && \
   rm -rf ./packages/app-browser-sdk && \
   rm -rf ./packages/app-worker-sdk && \
-  rm -rf ./packages/ui-toolkit
+  rm -rf ./packages/ui-toolkit && \
+  rm -rf ./packages/eslint-config
 
 FROM base AS release
 

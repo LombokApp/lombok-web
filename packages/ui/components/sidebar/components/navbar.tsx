@@ -12,18 +12,19 @@ import React from 'react'
 import { ModeToggle } from '../../mode-toggle/mode-toggle'
 import { SheetMenu } from './sheet-menu'
 import { UserNav } from './user-nav'
+import { useAuthContext } from '../../../../auth-utils'
 
 interface NavbarProps {
   breadcrumbs?: { href?: string; label: string }[]
-  onSignout: () => Promise<void>
 }
 
-export function Navbar({ breadcrumbs, onSignout }: NavbarProps) {
+export function Navbar({ breadcrumbs }: NavbarProps) {
+  const authContext = useAuthContext()
   return (
     <header className="sticky top-0 z-10 w-full border-b bg-background/95 py-2 supports-[backdrop-filter]:bg-background/60 dark:shadow-foreground/10">
       <div className="mx-4 flex h-8 items-center sm:mx-8">
         <div className="flex items-center space-x-4 lg:space-x-0">
-          <SheetMenu onSignout={onSignout} />
+          <SheetMenu onSignout={() => authContext.logout()} />
           <div className="flex items-center gap-4 pl-6">
             {breadcrumbs && (
               <Breadcrumb className="hidden md:flex">
@@ -53,7 +54,7 @@ export function Navbar({ breadcrumbs, onSignout }: NavbarProps) {
         </div>
         <div className="flex flex-1 items-center justify-end gap-2">
           <ModeToggle />
-          <UserNav onSignout={onSignout} />
+          <UserNav onSignout={() => authContext.logout()} />
         </div>
       </div>
     </header>

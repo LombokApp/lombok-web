@@ -10,16 +10,11 @@ import {
 } from '../../../../contexts/folder.context'
 import { FolderTasksScreen } from '../../../../views/folder-tasks-screen/folder-tasks-screen.view'
 
-const FolderTasksPageInner = ({
-  onSignout,
-}: {
-  onSignout: () => Promise<void>
-}) => {
+const FolderTasksPageInner = () => {
   const folderContext = useFolderContext()
 
   return (
     <ContentLayout
-      onSignout={onSignout}
       breadcrumbs={[
         { label: 'Folders', href: `/folders` },
         {
@@ -39,7 +34,7 @@ const FolderTasksPage: NextPage = () => {
   const authContext = useAuthContext()
   return (
     <FolderContextProvider folderId={router.query.folderId as string}>
-      <FolderTasksPageInner onSignout={() => authContext.logout()} />
+      <FolderTasksPageInner />
     </FolderContextProvider>
   )
 }
