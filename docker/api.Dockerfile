@@ -3,7 +3,7 @@ FROM oven/bun:1.2.2-alpine AS base
 WORKDIR /usr/src/app
 
 # Install necessary dependencies
-RUN set -eux && apk add --no-cache ffmpeg busybox-extras
+RUN set -eux && apk add --no-cache ffmpeg nginx
 
 FROM base AS local
 
@@ -18,8 +18,7 @@ COPY packages /temp/dev/packages
 COPY eslint-config /temp/dev/eslint-config
 
 RUN cd /temp/dev && \
-  printf '#!/bin/sh\nbusybox httpd -f -p 8080 -h ./frontend 2>&1 &\nexec bun --cwd packages/api start 2>&1' > ./entrypoint.sh && \
-  chmod +x ./entrypoint.sh && \
+  cp ./packages/api/cmd/entrypoint.sh ./entrypoint.sh && \
   bun install --frozen-lockfile && \
   bun --cwd ./packages/api build && \
   bun --cwd ./packages/ui build && \
@@ -51,5 +50,5 @@ COPY --from=install /temp/dev ./
 
 # run the app
 USER bun
-EXPOSE 8080/tcp 3001/tcp
+EXPOSE 80/tcp
 ENTRYPOINT ["sh", "./entrypoint.sh"]
