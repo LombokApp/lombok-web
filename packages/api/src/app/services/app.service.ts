@@ -796,11 +796,15 @@ export class AppService {
     }
   }
 
-  public getAllPotentialAppDirectories = (appPath: string) => {
+  public getAllPotentialAppDirectories = (appsDirectoryPath: string) => {
+    if (!fs.existsSync(appsDirectoryPath)) {
+      console.log('Apps directory "%s" not found.', appsDirectoryPath)
+      return []
+    }
     return fs
-      .readdirSync(appPath)
+      .readdirSync(appsDirectoryPath)
       .filter((appIdentifier) =>
-        fs.lstatSync(path.join(appPath, appIdentifier)).isDirectory(),
+        fs.lstatSync(path.join(appsDirectoryPath, appIdentifier)).isDirectory(),
       )
   }
 

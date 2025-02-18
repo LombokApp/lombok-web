@@ -3,7 +3,7 @@ FROM oven/bun:1.2.2-alpine AS base
 WORKDIR /usr/src/app
 
 # Install necessary dependencies
-RUN set -eux && apk add --no-cache ffmpeg nginx
+RUN set -eux && apk add --no-cache ffmpeg nginx su-exec
 
 FROM base AS local
 
@@ -26,6 +26,7 @@ RUN cd /temp/dev && \
   bun --cwd ./packages/core-worker build && \
   bun --cwd ./packages/stellaris-types build && \
   bun --cwd ./packages/stellaris-utils build && \
+  cp ./packages/api/src/orm/migrations/*.sql ./packages/api/dist/src/orm/migrations/ && \
   mv ./packages/ui/out ./frontend && \
   bun remove next && \
   rm -rf ./node_modules && \
@@ -41,7 +42,8 @@ RUN cd /temp/dev && \
   rm -rf ./packages/ui && \
   rm -rf ./packages/stellaris-utils/node_modules/ && \
   rm -rf ./packages/core-worker/node_modules/ && \
-  rm -rf ./eslint-config
+  rm -rf ./eslint-config && \
+  mkdir /usr/src/app/apps
 
 FROM base AS release
 
@@ -49,6 +51,5 @@ FROM base AS release
 COPY --from=install /temp/dev ./
 
 # run the app
-USER bun
 EXPOSE 80/tcp
 ENTRYPOINT ["sh", "./entrypoint.sh"]
