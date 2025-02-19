@@ -1,10 +1,11 @@
 import type { StellarisCloudAPI } from '@stellariscloud/app-browser-sdk'
 import { StellarisCloudAppBrowserSdk } from '@stellariscloud/app-browser-sdk'
-import type { ApiQueryHooks } from '../../auth-utils'
 import { capitalize } from '@stellariscloud/utils'
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
 import type { QueryFunctionContext } from 'react-query'
 import { useQuery } from 'react-query'
+
+import type { ApiQueryHooks } from '../../auth-utils'
 
 export const sdkInstance = new StellarisCloudAppBrowserSdk({
   basePath: process.env.NEXT_PUBLIC_API_BASE_URL ?? '',

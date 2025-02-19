@@ -28,7 +28,7 @@ export function ServerStorageLocation() {
           serverStorageLocationInputDTO: {
             ...input,
             region: input.region,
-            prefix: input.prefix ?? null,
+            prefix: input.prefix,
           },
         })
         .then((resp) => {

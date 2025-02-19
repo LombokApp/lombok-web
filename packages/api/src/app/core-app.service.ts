@@ -31,7 +31,7 @@ export class CoreAppService {
 
       // send the config as the first message
       worker.postMessage({
-        socketBaseUrl: `http://127.0.0.1:${this._coreConfig.port}`,
+        socketBaseUrl: '', // TODO FIX
         appToken: embeddedCoreAppToken,
         appWorkerId,
       })

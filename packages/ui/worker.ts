@@ -1,9 +1,9 @@
 import { FoldersApi } from '@stellariscloud/api-client'
-import { bindApiConfig } from '../auth-utils'
 import { SignedURLsRequestMethod } from '@stellariscloud/types'
 import { objectIdentifierToObjectKey } from '@stellariscloud/utils'
 import axios from 'axios'
 
+import { bindApiConfig } from '../auth-utils'
 import { LogLevel } from './contexts/logging.context'
 import { indexedDb } from './services/indexed-db'
 import { addFileToLocalFileStorage } from './services/local-cache/local-cache.service'

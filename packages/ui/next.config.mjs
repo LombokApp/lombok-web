@@ -1,25 +1,5 @@
 /** @type {import('next').NextConfig} */
 
-// eslint-disable-next-line no-undef
-const APP_ENV = process.env.NEXT_PUBLIC_BACKEND_ENV || 'live'
-
-import dotenv from 'dotenv'
-
-dotenv.config({
-  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-base-to-string
-  path: `./config/.env.${APP_ENV}`,
-})
-
-const env = {}
-
-// eslint-disable-next-line no-undef
-Object.keys(process.env).forEach((key) => {
-  if (key.startsWith('NEXT_PUBLIC_')) {
-    // eslint-disable-next-line no-undef
-    env[key] = process.env[key]
-  }
-})
-
 const ContentSecurityPolicy = `
     default-src 'self';
     script-src 'self' 'unsafe-eval' 'unsafe-inline';
@@ -81,7 +61,6 @@ export default {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return config
   },
-  env,
   headers() {
     return [
       {
@@ -93,5 +72,4 @@ export default {
   images: {
     unoptimized: true,
   },
-  output: 'export',
 }

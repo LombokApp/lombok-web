@@ -11,7 +11,7 @@ const AppsIndexPage: NextPage = () => {
   React.useEffect(() => {
     setLocation(window.location)
   }, [])
-  return process.env.NEXT_PUBLIC_API_HOST ? (
+  return (
     <div className="flex size-full flex-col justify-around">
       {location && (
         <ContentLayout
@@ -23,14 +23,12 @@ const AppsIndexPage: NextPage = () => {
           <AppUI
             scheme={location.protocol}
             appIdentifier={router.query.appIdentifier as string}
-            host={process.env.NEXT_PUBLIC_API_HOST}
+            host={`${window.location.protocol}//${window.location.host}`}
             uiName={router.query.uiName as string}
           />
         </ContentLayout>
       )}
     </div>
-  ) : (
-    <></>
   )
 }
 

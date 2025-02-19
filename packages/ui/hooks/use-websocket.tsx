@@ -1,15 +1,14 @@
-import { useAuthContext } from '../../auth-utils'
 import type { FolderPushMessage } from '@stellariscloud/types'
 import React from 'react'
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
 
+import { useAuthContext } from '../../auth-utils'
+
 type MessageCallback = (msg: {
   name: FolderPushMessage
   payload: Record<string, string>
 }) => void
-
-const SOCKET_BASE_URL = process.env.NEXT_PUBLIC_SOCKET_BASE_URL ?? ''
 
 export const useWebsocket = (
   namespace: string,
@@ -25,6 +24,15 @@ export const useWebsocket = (
     connected: false,
     reconnectKey: '___',
   })
+  const [socketBaseURL, setSocketBaseURL] = React.useState<string>()
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setSocketBaseURL(
+        `${window.location.protocol === 'https:' ? 'wss' : 'ws'}//${window.location.host}`,
+      )
+    }
+  }, [])
 
   const authContext = useAuthContext()
 
@@ -38,9 +46,13 @@ export const useWebsocket = (
   }, [socketState.socket, onMessage])
 
   React.useEffect(() => {
-    if (!socketState.socket?.active && authContext.viewer?.id) {
+    if (
+      socketBaseURL &&
+      !socketState.socket?.active &&
+      authContext.viewer?.id
+    ) {
       void authContext.getAccessToken().then((token) => {
-        const s = io(`${SOCKET_BASE_URL}/${namespace}`, {
+        const s = io(`${socketBaseURL}/${namespace}`, {
           auth: {
             // userId: authContext.viewer?.id,
             ...authParams,
@@ -91,6 +103,7 @@ export const useWebsocket = (
     authContext,
     namespace,
     authParams,
+    socketBaseURL,
   ])
 
   return {
