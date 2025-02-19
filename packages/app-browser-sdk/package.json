@@ -4,6 +4,9 @@
   "types": "dist/index.d.ts",
   "version": "0.0.1-6",
   "type": "module",
+  "exports": {
+    "default": "./index.ts"
+  },
   "scripts": {
     "build": "(rm -rf ./*.tsbuildinfo ||  true) && yarn rollup -c rollup.config.js",
     "build:clean": "yarn clean && yarn build",

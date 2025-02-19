@@ -1,5 +1,3 @@
-version: '3.5'
-
 services:
   apitestwatch:
     container_name: 'stellariscloud-api-test-watch'
