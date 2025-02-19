@@ -6,8 +6,8 @@ import type {
 } from '@stellariscloud/api-client'
 import { DataTable } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
-import { useRouter } from 'next/router'
 import React from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 
 // import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
 // import { CreateFolderForm } from '../../components/create-folder-form/create-folder-form'
@@ -16,7 +16,8 @@ import { apiClient, foldersApiHooks } from '../../services/api'
 import { foldersTableColumns } from './folders-table-columns'
 
 export const FoldersScreen = () => {
-  const router = useRouter()
+  const navigate = useNavigate()
+  const params = useParams()
   const [filters, setFilters] = React.useState<
     { id: string; value: unknown }[]
   >([])
@@ -65,10 +66,7 @@ export const FoldersScreen = () => {
       .listUserStorageProvisions()
       .then((resp) => setUserStorageProvisions(resp.data.result))
 
-    void router.push({
-      pathname: router.pathname,
-      query: { add: 'true' },
-    })
+    void navigate(`${location.pathname}?add=true`)
   }
 
   const listFolders = foldersApiHooks.useListFolders(
@@ -98,12 +96,12 @@ export const FoldersScreen = () => {
 
   // reflect add query flag state
   React.useEffect(() => {
-    if (router.query.add === 'true' && !folderFormKey) {
+    if (params.add === 'true' && !folderFormKey) {
       setFolderFormKey(`${Math.random()}`)
-    } else if (router.query.add !== 'true' && folderFormKey) {
+    } else if (params.add !== 'true' && folderFormKey) {
       setFolderFormKey(undefined)
     }
-  }, [router.query.add, folderFormKey])
+  }, [params.add, folderFormKey])
 
   React.useEffect(() => {
     refreshFolders()
@@ -117,7 +115,7 @@ export const FoldersScreen = () => {
       .createFolder({ folderCreateInputDTO: folder })
       .then(async () => {
         await listFolders.refetch()
-        void router.push({ pathname: router.pathname })
+        void navigate(location.pathname)
       })
   }
 

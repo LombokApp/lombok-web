@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@stellariscloud/ui-toolkit'
-import React from 'react'
+import * as React from 'react'
 import useLocalStorageState from 'use-local-storage-state'
 
 export function useTheme() {
@@ -23,6 +23,7 @@ export function useTheme() {
 
   return { theme, setTheme }
 }
+
 export function ModeToggle() {
   const { setTheme } = useTheme()
 

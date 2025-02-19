@@ -20,9 +20,8 @@ import {
 } from '@stellariscloud/ui-toolkit'
 import type { LucideIcon } from 'lucide-react'
 import { ChevronDown, Dot } from 'lucide-react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 
 interface Submenu {
   href: string
@@ -44,9 +43,11 @@ export function CollapseMenuButton({
   submenus,
   isOpen,
 }: CollapseMenuButtonProps) {
-  const pathname = usePathname()
+  const location = useLocation()
   const isSubmenuActive = submenus.some((submenu) =>
-    submenu.active === undefined ? submenu.href === pathname : submenu.active,
+    submenu.active === undefined
+      ? submenu.href === location.pathname
+      : submenu.active,
   )
   const [isCollapsed, setIsCollapsed] = useState<boolean>(isSubmenuActive)
 
@@ -95,14 +96,14 @@ export function CollapseMenuButton({
           <Button
             key={index}
             variant={
-              (active === undefined && pathname === href) || active
+              (active === undefined && location.pathname === href) || active
                 ? 'secondary'
                 : 'ghost'
             }
             className="mb-1 h-10 w-full justify-start"
             asChild
           >
-            <Link href={href}>
+            <a href={href}>
               <span className="ml-2 mr-4">
                 <Dot size={18} />
               </span>
@@ -114,7 +115,7 @@ export function CollapseMenuButton({
               >
                 {_label}
               </p>
-            </Link>
+            </a>
           </Button>
         ))}
       </CollapsibleContent>
@@ -159,15 +160,16 @@ export function CollapseMenuButton({
         <DropdownMenuSeparator />
         {submenus.map(({ href, label: _label, active }, index) => (
           <DropdownMenuItem key={index} asChild>
-            <Link
+            <a
               className={`cursor-pointer ${
-                ((active === undefined && pathname === href) || active) &&
+                ((active === undefined && location.pathname === href) ||
+                  active) &&
                 'bg-secondary'
               }`}
               href={href}
             >
               <p className="max-w-[180px] truncate">{_label}</p>
-            </Link>
+            </a>
           </DropdownMenuItem>
         ))}
         <DropdownMenuArrow />

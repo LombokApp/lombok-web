@@ -1,7 +1,7 @@
 import type { UserCreateInputDTO } from '@stellariscloud/api-client'
 import { Button, cn } from '@stellariscloud/ui-toolkit'
-import { useRouter } from 'next/router'
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import type { UserInput } from '../../../../components/server-user-form/server-user-form'
 import { ServerUserForm } from '../../../../components/server-user-form/server-user-form'
@@ -24,7 +24,7 @@ export function ServerUserCreatePanel({
 }: {
   onCancel: () => undefined
 }) {
-  const router = useRouter()
+  const navigate = useNavigate()
   const [userObject, setUserObject] = React.useState<UserInput>(
     buildInitialUserObject(),
   )
@@ -35,9 +35,9 @@ export function ServerUserCreatePanel({
         userCreateInputDTO: userObject as UserCreateInputDTO,
       })
       .then(({ data }) => {
-        void router.push(`/server/users/${data.user.id}`)
+        void navigate(`/server/users/${data.user.id}`)
       })
-  }, [router, userObject])
+  }, [navigate, userObject])
 
   const handleCancelClick = React.useCallback(() => {
     setUserObject(buildInitialUserObject())

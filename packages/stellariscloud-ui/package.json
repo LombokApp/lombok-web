@@ -10,23 +10,26 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.0.7",
+    "@heroicons/react": "^2.2.0",
     "@stellariscloud/app-browser-sdk": "workspace:*",
+    "@tailwindcss/vite": "^4.0.7",
+    "idb": "^8.0.2",
+    "immer": "^10.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.2.0"
+    "react-query": "^3.39.3",
+    "react-router-dom": "^7.2.0",
+    "use-local-storage-state": "^19.5.0",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
-    "@types/react": "^18.3.12",
+    "@types/react": "18.3.1",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react-swc": "^3.5.0",
-    "eslint": "^9.19.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.18",
     "globals": "^15.14.0",
-    "typescript": "~5.7.2",
-    "typescript-eslint": "^8.22.0",
     "vite": "^6.1.0"
   }
 }

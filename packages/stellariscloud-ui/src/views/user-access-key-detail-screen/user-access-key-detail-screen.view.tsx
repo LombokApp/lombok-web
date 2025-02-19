@@ -7,7 +7,6 @@ import {
   TypographyH2,
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
-import { useRouter } from 'next/router'
 import React from 'react'
 
 import { AccessKeyAttributeList } from '../../components/access-key-attribute-list/access-key-attributes-list'

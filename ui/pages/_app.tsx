@@ -3,48 +3,30 @@ import '../fonts/inter/inter.css'
 
 import { AuthContextProvider, useAuthContext } from '@stellariscloud/auth-utils'
 import { cn } from '@stellariscloud/ui-toolkit'
+import type { AppProps } from 'next/app'
+import Head from 'next/head'
+import { useRouter } from 'next/router'
 import React from 'react'
 import { QueryClient, QueryClientProvider } from 'react-query'
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  useLocation,
-  useNavigate,
-} from 'react-router-dom'
 
-import { Header } from './components/header'
-import { Sidebar } from './components/sidebar/sidebar'
-import { useSidebar } from './components/sidebar/use-sidebar'
-import { LocalFileCacheContextProvider } from './contexts/local-file-cache.context'
-import { LoggingContextProvider } from './contexts/logging.context'
+import { Header } from '../components/header'
+import { Sidebar } from '../components/sidebar/sidebar'
+import { useSidebar } from '../components/sidebar/use-sidebar'
+import { LocalFileCacheContextProvider } from '../contexts/local-file-cache.context'
+import { LoggingContextProvider } from '../contexts/logging.context'
 import {
   ServerContextProvider,
   useServerContext,
-} from './contexts/server.context'
-import { ThemeProvider } from './contexts/theme.context'
-import { useStore } from './hooks/use-store'
-import LandingPage from './pages'
-import { sdkInstance } from './services/api'
+} from '../contexts/server.context'
+import { ThemeProvider } from '../contexts/theme.context'
+import { useStore } from '../hooks/use-store'
+import { sdkInstance } from '../services/api'
 
 const queryClient = new QueryClient()
 
 const UNAUTHENTICATED_PAGES = ['/', '/faq', '/login', '/signup']
 
-const Content = () => {
-  return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      {/* <Route path="/folders/:folderId" element={<FolderPage />} />
-        <Route
-          path="/folders/:folderId/tasks/:objectKey"
-          element={<TaskPage />}
-        /> */}
-    </Routes>
-  )
-}
-
-const UnauthenticatedContent = () => {
+const UnauthenticatedContent = ({ Component, pageProps }: AppProps) => {
   return (
     <div className="flex h-full flex-col">
       <div className="absolute right-0 top-0 flex w-full shrink-0 grow-0 overflow-visible">
@@ -53,7 +35,7 @@ const UnauthenticatedContent = () => {
       <main className={cn('flex-1 justify-center overflow-hidden')}>
         <div className={cn('relative flex size-full')}>
           <div className="relative w-full">
-            <Content />
+            <Component {...pageProps} />
           </div>
         </div>
       </main>
@@ -61,26 +43,20 @@ const UnauthenticatedContent = () => {
   )
 }
 
-const AuthenticatedContent = () => {
+const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
   const authContext = useAuthContext()
-  const navigate = useNavigate()
-  const location = useLocation()
+  const router = useRouter()
   const { menuItems } = useServerContext()
 
   React.useEffect(() => {
     if (
       'isAuthenticated' in authContext.authState &&
       !authContext.authState.isAuthenticated &&
-      !UNAUTHENTICATED_PAGES.includes(location.pathname)
+      !UNAUTHENTICATED_PAGES.includes(router.pathname)
     ) {
-      void navigate('/')
+      void router.push('/')
     }
-  }, [
-    authContext.authState.isAuthenticated,
-    authContext.authState,
-    location.pathname,
-    navigate,
-  ])
+  }, [authContext.authState.isAuthenticated, authContext.authState, router])
 
   const sidebar = useStore(useSidebar, (x) => x)
   if (!sidebar) {
@@ -94,6 +70,7 @@ const AuthenticatedContent = () => {
         onSignOut={authContext.logout}
         authContext={authContext}
         menuItems={menuItems}
+        router={router}
       />
       <main
         className={cn(
@@ -101,13 +78,13 @@ const AuthenticatedContent = () => {
           !settings.disabled && (!getOpenState() ? 'lg:ml-[70px]' : 'lg:ml-64'),
         )}
       >
-        <Content />
+        <Component {...pageProps} />
       </main>
     </div>
   )
 }
 
-export const App = () => {
+const Layout = (appProps: AppProps) => {
   const [loaded, setLoaded] = React.useState(false)
 
   const listener = React.useCallback(() => {
@@ -124,24 +101,36 @@ export const App = () => {
   return (
     <LoggingContextProvider>
       <QueryClientProvider client={queryClient}>
-        <Router>
-          <AuthContextProvider authenticator={sdkInstance.authenticator}>
-            <ThemeProvider>
-              <div className="size-full">
-                {loaded && sdkInstance.authenticator.state.isAuthenticated ? (
-                  <LocalFileCacheContextProvider>
-                    <ServerContextProvider>
-                      <AuthenticatedContent />
-                    </ServerContextProvider>
-                  </LocalFileCacheContextProvider>
-                ) : (
-                  <UnauthenticatedContent />
-                )}
-              </div>
-            </ThemeProvider>
-          </AuthContextProvider>
-        </Router>
+        <AuthContextProvider authenticator={sdkInstance.authenticator}>
+          <ThemeProvider
+            attribute="data-mode"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Head>
+              <meta
+                name="viewport"
+                content="initial-scale=1.0, width=device-width"
+              />
+              <link rel="icon" href="/favicon.ico" />
+            </Head>
+            <div className="size-full" id="takeover-root">
+              {loaded && sdkInstance.authenticator.state.isAuthenticated ? (
+                <LocalFileCacheContextProvider>
+                  <ServerContextProvider>
+                    <AuthenticatedContent {...appProps} />
+                  </ServerContextProvider>
+                </LocalFileCacheContextProvider>
+              ) : (
+                <UnauthenticatedContent {...appProps} />
+              )}
+            </div>
+          </ThemeProvider>
+        </AuthContextProvider>
       </QueryClientProvider>
     </LoggingContextProvider>
   )
 }
+
+export default Layout

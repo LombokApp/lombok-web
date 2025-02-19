@@ -16,9 +16,7 @@ import {
   Settings,
   Users,
 } from 'lucide-react'
-import Image from 'next/image'
-import { useRouter } from 'next/router'
-import React from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
 import { ServerAppDetailScreen } from '../../apps/server-app-detail-screen/server-app-detail-screen.view'
@@ -32,19 +30,20 @@ import { ServerUserDetailScreen } from '../../users/server-user-detail-screen/se
 import { ServerUsersScreen } from '../../users/server-users-screen/server-users-screen.view'
 
 export function ServerScreen({ serverPage }: { serverPage: string[] }) {
-  const router = useRouter()
+  const navigate = useNavigate()
+  const params = useParams()
   return (
     <div className={cn('flex h-full flex-1 flex-col items-center')}>
       <div className="container flex flex-1 flex-col">
         <div className="md:hidden">
-          <Image
+          <img
             src="/examples/dashboard-light.png"
             width={1280}
             height={866}
             alt="Dashboard"
             className="block dark:hidden"
           />
-          <Image
+          <img
             src="/examples/dashboard-dark.png"
             width={1280}
             height={866}
@@ -58,7 +57,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
               <div className="flex flex-col items-start gap-3 pb-6">
                 <TabsList>
                   <TabsTrigger
-                    onClick={() => void router.push('/server')}
+                    onClick={() => void navigate('/server')}
                     value="overview"
                   >
                     <div className="flex items-center gap-2">
@@ -67,7 +66,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     </div>
                   </TabsTrigger>
                   <TabsTrigger
-                    onClick={() => void router.push('/server/users')}
+                    onClick={() => void navigate('/server/users')}
                     value="users"
                   >
                     <div className="flex items-center gap-2">
@@ -76,7 +75,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     </div>
                   </TabsTrigger>
                   <TabsTrigger
-                    onClick={() => void router.push('/server/apps')}
+                    onClick={() => void navigate('/server/apps')}
                     value="apps"
                   >
                     <div className="flex items-center gap-2">
@@ -85,7 +84,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     </div>
                   </TabsTrigger>
                   <TabsTrigger
-                    onClick={() => void router.push('/server/events')}
+                    onClick={() => void navigate('/server/events')}
                     value="events"
                   >
                     <div className="flex items-center gap-2">
@@ -94,7 +93,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     </div>
                   </TabsTrigger>
                   <TabsTrigger
-                    onClick={() => void router.push('/server/tasks')}
+                    onClick={() => void navigate('/server/tasks')}
                     value="tasks"
                   >
                     <div className="flex items-center gap-2">
@@ -103,7 +102,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     </div>
                   </TabsTrigger>
                   <TabsTrigger
-                    onClick={() => void router.push('/server/config')}
+                    onClick={() => void navigate('/server/config')}
                     value="config"
                   >
                     <div className="flex items-center gap-2">
@@ -128,10 +127,8 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     <ServerTasksScreen />
                   </TabsContent>
                   <TabsContent value="config">
-                    {router.query.serverPage?.[0] === 'config' && (
-                      <ServerConfigScreen
-                        tab={router.query.serverPage[1] ?? 'general'}
-                      />
+                    {params.serverPage?.[0] === 'config' && (
+                      <ServerConfigScreen tab={params.serverPage[1]} />
                     )}
                   </TabsContent>
                   <TabsContent value="overview">

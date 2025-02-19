@@ -7,7 +7,6 @@ import React from 'react'
 
 import type { Authenticator } from '..'
 import type { AuthenticatorStateType } from '../authenticator'
-import { useRouter } from 'next/router'
 
 export class AuthError extends Error {}
 export interface IAuthContext {
@@ -45,7 +44,6 @@ export const AuthContextProvider = ({
   }>()
   const [error, setError] = React.useState<AuthError>()
   const { isAuthenticated } = authState
-  const router = useRouter()
 
   React.useEffect(() => {
     // Refresh the token to verify authentication state.
@@ -105,7 +103,7 @@ export const AuthContextProvider = ({
     setIsLoggingOut(true)
     await authenticator
       .logout()
-      .then(() => void router.push('/login'))
+      .then(() => (window.location.href = '/login'))
       .catch((err) => setError(err as AuthError))
       .finally(() => setIsLoggingOut(false))
   }

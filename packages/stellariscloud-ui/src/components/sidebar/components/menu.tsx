@@ -10,8 +10,7 @@ import {
   TooltipTrigger,
 } from '@stellariscloud/ui-toolkit'
 import { Ellipsis, LogOut } from 'lucide-react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useLocation } from 'react-router-dom'
 
 import { getMenuList } from '../menu-list'
 import { CollapseMenuButton } from './collapse-menu-button'
@@ -24,8 +23,8 @@ export function Menu({
   onSignOut,
   isOpen,
 }: { onSignOut: () => Promise<void> } & MenuProps) {
-  const pathname = usePathname() as string | undefined
-  const menuList = getMenuList(pathname)
+  const location = useLocation()
+  const menuList = getMenuList(location.pathname)
 
   return (
     <ScrollArea className="h-full [&>div>div[style]]:!block">
@@ -63,7 +62,7 @@ export function Menu({
                             <Button
                               variant={
                                 (active === undefined &&
-                                  pathname?.startsWith(href)) ||
+                                  location.pathname.startsWith(href)) ||
                                 active
                                   ? 'outline'
                                   : 'ghost'
@@ -71,14 +70,14 @@ export function Menu({
                               className={cn(
                                 'mb-1 h-10 w-full justify-start',
                                 (active === undefined &&
-                                  pathname?.startsWith(href)) ||
+                                  location.pathname.startsWith(href)) ||
                                   active
                                   ? 'bg-foreground/5'
                                   : undefined,
                               )}
                               asChild
                             >
-                              <Link href={href}>
+                              <a href={href}>
                                 <span
                                   className={cn(isOpen === false ? '' : 'mr-4')}
                                 >
@@ -94,7 +93,7 @@ export function Menu({
                                 >
                                   {label}
                                 </p>
-                              </Link>
+                              </a>
                             </Button>
                           </TooltipTrigger>
                           {isOpen === false && (
@@ -112,7 +111,7 @@ export function Menu({
                         label={label}
                         active={
                           active === undefined
-                            ? (pathname?.startsWith(href) ?? false)
+                            ? location.pathname.startsWith(href)
                             : active
                         }
                         submenus={submenus}

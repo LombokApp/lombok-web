@@ -1,18 +1,20 @@
 import { useAuthContext } from '@stellariscloud/auth-utils'
 import { Button, ButtonVariant } from '@stellariscloud/ui-toolkit'
+import type { NextPage } from 'next'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
 
-const LandingPage = () => {
-  const navigate = useNavigate()
+const Landing: NextPage = () => {
+  const router = useRouter()
   const authContext = useAuthContext()
   const handleGetStarted = React.useCallback(() => {
     if (authContext.isAuthenticated) {
-      void navigate('/folders')
+      void router.push('/folders')
     } else {
-      void navigate('/signup')
+      void router.push('/signup')
     }
-  }, [authContext.isAuthenticated, navigate])
+  }, [router, authContext.isAuthenticated])
 
   return (
     <div className="flex size-full flex-col justify-around text-center text-8xl">
@@ -46,14 +48,14 @@ const LandingPage = () => {
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Button onClick={handleGetStarted}>Get started</Button>
-              <a href="https://github.com/stellariscloud/stellariscloud-monorepo">
+              <Link href="https://github.com/stellariscloud/stellariscloud-monorepo">
                 <Button
                   variant={ButtonVariant.link}
                   className="text-sm font-semibold leading-6 text-white"
                 >
                   Learn more <span aria-hidden="true">→</span>
                 </Button>
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -74,4 +76,4 @@ const LandingPage = () => {
   )
 }
 
-export default LandingPage
+export default Landing

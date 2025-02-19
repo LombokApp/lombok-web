@@ -1,4 +1,3 @@
-import { useAuthContext } from '@stellariscloud/auth-utils'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -7,11 +6,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@stellariscloud/ui-toolkit'
+import Link from 'next/link'
 import React from 'react'
 
 import { ModeToggle } from '../../mode-toggle/mode-toggle'
 import { SheetMenu } from './sheet-menu'
 import { UserNav } from './user-nav'
+import { useAuthContext } from '@stellariscloud/auth-utils'
 
 interface NavbarProps {
   breadcrumbs?: { href?: string; label: string }[]
@@ -33,7 +34,9 @@ export function Navbar({ breadcrumbs }: NavbarProps) {
                       <BreadcrumbItem>
                         {breadcrumb.href ? (
                           <BreadcrumbLink asChild>
-                            <a href={breadcrumb.href}>{breadcrumb.label}</a>
+                            <Link href={breadcrumb.href}>
+                              {breadcrumb.label}
+                            </Link>
                           </BreadcrumbLink>
                         ) : (
                           <BreadcrumbPage>{breadcrumb.label}</BreadcrumbPage>
