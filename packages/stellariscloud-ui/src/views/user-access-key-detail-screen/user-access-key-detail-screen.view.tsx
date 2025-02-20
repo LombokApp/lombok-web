@@ -12,9 +12,11 @@ import React from 'react'
 import { AccessKeyAttributeList } from '../../components/access-key-attribute-list/access-key-attributes-list'
 import { AccessKeyRotateForm } from '../../components/access-key-rotate-form/access-key-rotate-form'
 import { apiClient } from '../../services/api'
+import { useNavigate, useParams } from 'react-router-dom'
 
 export function UserAccessKeyDetailScreen() {
-  const router = useRouter()
+  const params = useParams()
+  const navigate = useNavigate()
   const [accessKey, setAccessKey] = React.useState<AccessKeyDTO>()
   const [accessKeyBuckets, setAccessKeyBuckets] =
     React.useState<{ name?: string; creationDate?: Date }[]>()
@@ -38,20 +40,15 @@ export function UserAccessKeyDetailScreen() {
   )
 
   React.useEffect(() => {
-    if (typeof router.query.accessKeyHashId === 'string' && !accessKey) {
+    if (typeof params.accessKeyHashId === 'string' && !accessKey) {
       fetchAccessKey({
-        accessKeyHashId: router.query.accessKeyHashId,
+        accessKeyHashId: params.accessKeyHashId,
       })
       fetchAccessKeyBuckets({
-        accessKeyHashId: router.query.accessKeyHashId,
+        accessKeyHashId: params.accessKeyHashId,
       })
     }
-  }, [
-    accessKey,
-    fetchAccessKey,
-    fetchAccessKeyBuckets,
-    router.query.accessKeyHashId,
-  ])
+  }, [accessKey, fetchAccessKey, fetchAccessKeyBuckets, params.accessKeyHashId])
 
   const handleRotate = React.useCallback(
     async (input: { accessKeyId: string; secretAccessKey: string }) => {
@@ -65,16 +62,14 @@ export function UserAccessKeyDetailScreen() {
           secretAccessKey: input.secretAccessKey,
         },
       })
-      if (typeof router.query.accessKeyHashId === 'string') {
-        await router.push(
-          `/access-keys/${updatedAccessKey.data.accessKeyHashId}`,
-        )
+      if (typeof params.accessKeyHashId === 'string') {
+        await navigate(`/access-keys/${updatedAccessKey.data.accessKeyHashId}`)
         fetchAccessKey({
           accessKeyHashId: updatedAccessKey.data.accessKeyHashId,
         })
       }
     },
-    [accessKey, fetchAccessKey, router],
+    [accessKey, fetchAccessKey, navigate],
   )
 
   return (

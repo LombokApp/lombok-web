@@ -2285,7 +2285,8 @@
                 "oneOf": [
                   {
                     "type": "string"
-                  }
+                  },
+                  {}
                 ],
                 "nullable": true
               },
@@ -2323,7 +2324,6 @@
             },
             "required": [
               "id",
-              "name",
               "email",
               "emailVerified",
               "isAdmin",
@@ -2380,7 +2380,8 @@
                 "oneOf": [
                   {
                     "type": "string"
-                  }
+                  },
+                  {}
                 ],
                 "nullable": true
               },
@@ -2418,7 +2419,6 @@
             },
             "required": [
               "id",
-              "name",
               "email",
               "emailVerified",
               "isAdmin",
@@ -2455,7 +2455,8 @@
             "oneOf": [
               {
                 "type": "string"
-              }
+              },
+              {}
             ],
             "nullable": true
           },
@@ -2493,7 +2494,6 @@
         },
         "required": [
           "id",
-          "name",
           "email",
           "emailVerified",
           "isAdmin",
@@ -2550,7 +2550,8 @@
                 "oneOf": [
                   {
                     "type": "string"
-                  }
+                  },
+                  {}
                 ],
                 "nullable": true
               },
@@ -2588,7 +2589,6 @@
             },
             "required": [
               "id",
-              "name",
               "email",
               "emailVerified",
               "isAdmin",
@@ -2670,7 +2670,8 @@
                   "oneOf": [
                     {
                       "type": "string"
-                    }
+                    },
+                    {}
                   ],
                   "nullable": true
                 },
@@ -2708,7 +2709,6 @@
               },
               "required": [
                 "id",
-                "name",
                 "email",
                 "emailVerified",
                 "isAdmin",

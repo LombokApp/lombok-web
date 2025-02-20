@@ -28,6 +28,7 @@ import { Login } from './pages/login'
 import { Signup } from './pages/signup'
 import { sdkInstance } from './services/api'
 import FoldersPage from './pages/folders/folders'
+import ServerIndexPage from './pages/server'
 
 const queryClient = new QueryClient()
 
@@ -40,8 +41,8 @@ const Content = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/folders" element={<FoldersPage />} />
-      <Route path="/folders/:folderId" element={<FolderDetail />} />
-      <Route path="/folders/:folderId/:objectKey" element={<FolderDetail />} />
+      <Route path="/server/*" element={<ServerIndexPage />} />
+      <Route path="/folders/*" element={<FolderDetail />} />
     </Routes>
   )
 }

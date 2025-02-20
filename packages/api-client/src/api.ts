@@ -1581,10 +1581,10 @@ export interface ServerStorageLocationDTO {
     'region': string;
     /**
      * 
-     * @type {SignupResponseUserName}
+     * @type {SignupResponseUserEmail}
      * @memberof ServerStorageLocationDTO
      */
-    'prefix': SignupResponseUserName;
+    'prefix': SignupResponseUserEmail;
 }
 /**
  * 
@@ -1637,10 +1637,10 @@ export interface ServerStorageLocationGetResponseServerStorageLocation {
     'region': string;
     /**
      * 
-     * @type {SignupResponseUserName}
+     * @type {SignupResponseUserEmail}
      * @memberof ServerStorageLocationGetResponseServerStorageLocation
      */
-    'prefix': SignupResponseUserName;
+    'prefix': SignupResponseUserEmail;
 }
 /**
  * 
@@ -1807,16 +1807,16 @@ export interface SignupResponseUser {
     'id': string;
     /**
      * 
-     * @type {SignupResponseUserName}
+     * @type {string}
      * @memberof SignupResponseUser
      */
-    'name': SignupResponseUserName;
+    'name'?: string | null;
     /**
      * 
-     * @type {SignupResponseUserName}
+     * @type {SignupResponseUserEmail}
      * @memberof SignupResponseUser
      */
-    'email': SignupResponseUserName;
+    'email': SignupResponseUserEmail;
     /**
      * 
      * @type {boolean}
@@ -1855,10 +1855,10 @@ export interface SignupResponseUser {
     'updatedAt': string;
 }
 /**
- * @type SignupResponseUserName
+ * @type SignupResponseUserEmail
  * @export
  */
-export type SignupResponseUserName = string;
+export type SignupResponseUserEmail = string;
 
 /**
  * 
@@ -2297,16 +2297,16 @@ export interface UserDTO {
     'id': string;
     /**
      * 
-     * @type {SignupResponseUserName}
+     * @type {string}
      * @memberof UserDTO
      */
-    'name': SignupResponseUserName;
+    'name'?: string | null;
     /**
      * 
-     * @type {SignupResponseUserName}
+     * @type {SignupResponseUserEmail}
      * @memberof UserDTO
      */
-    'email': SignupResponseUserName;
+    'email': SignupResponseUserEmail;
     /**
      * 
      * @type {boolean}

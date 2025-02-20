@@ -43,8 +43,8 @@ export const serverUsersTableColumns: ColumnDef<UserDTO>[] = [
           }}
         >
           <span className="uppercase">
-            {user.name.length > 0
-              ? user.name[0]
+            {(user.name?.length ?? 0) > 0
+              ? user.name?.[0]
               : user.username.length > 0
                 ? user.username[0]
                 : '?'}
