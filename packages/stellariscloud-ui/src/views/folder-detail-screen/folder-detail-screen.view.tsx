@@ -1016,9 +1016,9 @@ export const FolderDetailScreen = () => {
     if (params.objectKey) {
       if (
         !focusedObjectKeyRef.current ||
-        focusedObjectKeyRef.current !== params.objectKey[0]
+        focusedObjectKeyRef.current !== params.objectKey
       ) {
-        focusedObjectKeyRef.current = params.objectKey[0]
+        focusedObjectKeyRef.current = params.objectKey
         setFocusedObjectKey(focusedObjectKeyRef.current)
       }
     } else if (focusedObjectKeyRef.current) {

@@ -27,6 +27,7 @@ import FolderDetail from './pages/folders/folder-detail'
 import { Login } from './pages/login'
 import { Signup } from './pages/signup'
 import { sdkInstance } from './services/api'
+import FoldersPage from './pages/folders/folders'
 
 const queryClient = new QueryClient()
 
@@ -38,6 +39,7 @@ const Content = () => {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/folders" element={<FoldersPage />} />
       <Route path="/folders/:folderId" element={<FolderDetail />} />
       <Route path="/folders/:folderId/:objectKey" element={<FolderDetail />} />
     </Routes>
