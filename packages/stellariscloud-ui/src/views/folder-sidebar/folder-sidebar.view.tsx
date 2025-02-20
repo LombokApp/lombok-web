@@ -15,13 +15,11 @@ import {
 } from '@stellariscloud/ui-toolkit'
 import { formatBytes } from '@stellariscloud/utils'
 import { Calculator, Globe } from 'lucide-react'
-import Link from 'next/link'
-import React from 'react'
 
 import { ActionsList } from '../../components/actions-list/actions-list.component'
-import { useServerContext } from '../../contexts/server.context'
 import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
+import { useServerContext } from '../../hooks/use-server-context'
 import { apiClient } from '../../services/api'
 import { FolderTasksList } from '../folder-tasks-list/folder-tasks-list.view'
 
@@ -97,12 +95,12 @@ export const FolderSidebar = ({
                     </dt>
                     <dd className={cn('text-sm leading-6')}>
                       {folder.contentLocation.providerType === 'USER' ? (
-                        <Link
+                        <a
                           className="underline"
                           href={`/access-keys/${folder.contentLocation.accessKeyHashId}`}
                         >
                           <Label>{folder.contentLocation.label}</Label>
-                        </Link>
+                        </a>
                       ) : (
                         <Label>{folder.contentLocation.label}</Label>
                       )}

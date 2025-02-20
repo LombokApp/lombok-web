@@ -5,8 +5,7 @@ import { cn } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
 import type { ColumnDef } from '@tanstack/react-table'
-import Image from 'next/image'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 
 import { invertColour, stringToColour } from '../../utils/colors'
 
@@ -17,7 +16,7 @@ export const folderTasksTableColumns: ColumnDef<TaskDTO>[] = [
       return (
         <div className="size-0 max-w-0 overflow-hidden">
           <Link
-            href={`/folders/${row.original.subjectFolderId}/tasks/${row.original.id}`}
+            to={`/folders/${row.original.subjectFolderId}/tasks/${row.original.id}`}
             className="absolute inset-0"
           />
         </div>
@@ -49,12 +48,7 @@ export const folderTasksTableColumns: ColumnDef<TaskDTO>[] = [
           }}
         >
           {row.original.ownerIdentifier === 'CORE' ? (
-            <Image
-              width={30}
-              height={30}
-              alt="Core"
-              src="/stellariscloud.png"
-            />
+            <img width={30} height={30} alt="Core" src="/stellariscloud.png" />
           ) : (
             <span className="uppercase">
               {row.original.ownerIdentifier.split(':')[1][0]}

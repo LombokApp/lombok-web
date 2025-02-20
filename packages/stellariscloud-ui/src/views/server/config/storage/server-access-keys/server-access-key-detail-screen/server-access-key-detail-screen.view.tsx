@@ -1,14 +1,15 @@
 import type { AccessKeyDTO } from '@stellariscloud/api-client'
 import { cn } from '@stellariscloud/ui-toolkit'
-import { useRouter } from 'next/router'
 import React from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { AccessKeyAttributeList } from '../../../../../../components/access-key-attribute-list/access-key-attributes-list'
 import { AccessKeyRotateForm } from '../../../../../../components/access-key-rotate-form/access-key-rotate-form'
 import { apiClient } from '../../../../../../services/api'
 
 export function ServerAccessKeyDetailScreen() {
-  const router = useRouter()
+  const navigate = useNavigate()
+  const params = useParams()
   const [accessKey, setAccessKey] = React.useState<AccessKeyDTO>()
 
   const fetchAccessKey = React.useCallback(
@@ -23,31 +24,32 @@ export function ServerAccessKeyDetailScreen() {
   )
 
   React.useEffect(() => {
-    if (typeof router.query.accessKeyHashId === 'string' && !accessKey) {
+    if (typeof params.accessKeyHashId === 'string' && !accessKey) {
       fetchAccessKey({
-        accessKeyHashId: router.query.accessKeyHashId,
+        accessKeyHashId: params.accessKeyHashId,
       })
     }
-  }, [accessKey, fetchAccessKey, router.query.accessKeyHashId])
+  }, [accessKey, fetchAccessKey, params.accessKeyHashId])
 
   const handleRotate = React.useCallback(
     async (input: { accessKeyId: string; secretAccessKey: string }) => {
       const updatedAccessKey =
         await apiClient.serverAccessKeysApi.rotateServerAccessKey({
-          accessKeyHashId: router.query.accessKeyHashId as string,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          accessKeyHashId: params.accessKeyHashId!,
           rotateAccessKeyInputDTO: {
             accessKeyId: input.accessKeyId,
             secretAccessKey: input.secretAccessKey,
           },
         })
-      await router.push(
+      await navigate(
         `/server/storage/keys/${updatedAccessKey.data.accessKeyHashId}`,
       )
       fetchAccessKey({
         accessKeyHashId: updatedAccessKey.data.accessKeyHashId,
       })
     },
-    [fetchAccessKey, router],
+    [fetchAccessKey, navigate, params.accessKeyHashId],
   )
 
   return (

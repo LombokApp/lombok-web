@@ -23,8 +23,8 @@ import {
   VIDEO_MEDIA_MIME_TYPES,
 } from '@stellariscloud/utils'
 import { Folder } from 'lucide-react'
-import { useRouter } from 'next/router'
 import React from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import useDebounce from 'react-use/lib/useDebounce'
 
 import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
@@ -570,7 +570,10 @@ const updateRenderedTiles = (
 }
 
 export const FolderDetailScreen = () => {
-  const router = useRouter()
+  const navigate = useNavigate()
+
+  const params = useParams()
+  const location = useLocation()
   const [isResizing, setIsResizing] = React.useState(false)
   // const [_folderWebsocket, setFolderWebsocket] = React.useState<Socket>()
 
@@ -593,12 +596,10 @@ export const FolderDetailScreen = () => {
     search?: string
     filterTagId?: string
   }>({
-    search: router.query.search as string | undefined,
-    filterTagId: router.query.search as string | undefined,
+    search: params.search,
+    filterTagId: params.search,
   })
-  const [searchTerm, setSearchTerm] = React.useState(
-    (router.query.search as string | undefined) ?? undefined,
-  )
+  const [searchTerm, setSearchTerm] = React.useState(params.search)
 
   const [pageSize] = React.useState<number>(100)
 
@@ -633,17 +634,16 @@ export const FolderDetailScreen = () => {
   const handleObjectLinkClick = React.useCallback(
     (fId: string, objectKey: string, index: number) => {
       setSurroundingFocusedContext({ next: index + 1, previous: index - 1 })
-      void router.push(
+      void navigate(
         {
-          pathname: `/folders/${router.query.folderId as string}/${encodeURIComponent(
+          pathname: `/folders/${params.folderId}/${encodeURIComponent(
             objectKey,
           )}`,
         },
-        undefined,
-        { shallow: true },
+        { replace: true },
       )
     },
-    [router],
+    [params, navigate],
   )
 
   const handleScroll = React.useCallback(
@@ -863,7 +863,8 @@ export const FolderDetailScreen = () => {
 
       await apiClient.foldersApi
         .listFolderObjects({
-          folderId: router.query.folderId as string,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          folderId: params.folderId!,
           offset: Math.max(offset + haveFirstN, 0),
           limit,
           search: searchTerm,
@@ -898,13 +899,7 @@ export const FolderDetailScreen = () => {
           })
         })
     },
-    [
-      pageSize,
-      searchTerm,
-      getData,
-      router.query.folderId,
-      handleObjectLinkClick,
-    ],
+    [pageSize, searchTerm, getData, params.folderId, handleObjectLinkClick],
   )
 
   const messageHandler = React.useCallback(
@@ -950,23 +945,18 @@ export const FolderDetailScreen = () => {
   React.useEffect(() => {
     const changedPageState: { search?: string; filterTagId?: string } = {}
     const searchInQuery =
-      (router.query.search?.length ?? 0) > 0
-        ? (router.query.search as string)
-        : undefined
+      (params.search?.length ?? 0) > 0 ? params.search : undefined
     if (searchInQuery !== pageState.search) {
       changedPageState.search = pageState.search
     }
     const filterTagIdInQuery =
-      (router.query.filterTagId?.length ?? 0) > 0
-        ? (router.query.filterTagId as string)
-        : undefined
+      (params.filterTagId?.length ?? 0) > 0 ? params.filterTagId : undefined
     if (filterTagIdInQuery !== pageState.filterTagId) {
       changedPageState.filterTagId = pageState.filterTagId
     }
-    if (Object.keys(changedPageState).length > 0 && !router.query.objectKey) {
-      void router.push({
-        pathname: router.pathname,
-        query: {
+    if (Object.keys(changedPageState).length > 0 && !params.objectKey) {
+      void navigate(
+        `${location.pathname}${new URLSearchParams({
           folderId: folderContext.folderId,
           ...(typeof changedPageState.search === 'undefined'
             ? {}
@@ -974,16 +964,16 @@ export const FolderDetailScreen = () => {
           ...(typeof changedPageState.filterTagId === 'undefined'
             ? {}
             : { filterTagId: pageState.filterTagId }),
-        },
-      })
+        })}`,
+      )
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     pageState,
     pageSize,
-    router.pathname,
-    router.query.search,
-    router.query.filterTagId,
+    location.pathname,
+    params.search,
+    params.filterTagId,
   ])
 
   const refreshView = React.useCallback(() => {
@@ -1023,12 +1013,12 @@ export const FolderDetailScreen = () => {
 
   // update focused object references
   React.useEffect(() => {
-    if (router.query.objectKey) {
+    if (params.objectKey) {
       if (
         !focusedObjectKeyRef.current ||
-        focusedObjectKeyRef.current !== router.query.objectKey[0]
+        focusedObjectKeyRef.current !== params.objectKey[0]
       ) {
-        focusedObjectKeyRef.current = router.query.objectKey[0]
+        focusedObjectKeyRef.current = params.objectKey[0]
         setFocusedObjectKey(focusedObjectKeyRef.current)
       }
     } else if (focusedObjectKeyRef.current) {
@@ -1036,7 +1026,7 @@ export const FolderDetailScreen = () => {
       setFocusedObjectKey(focusedObjectKeyRef.current)
       void fetchFolderObjects(0).then(() => handleScroll())
     }
-  }, [router.query.objectKey, fetchFolderObjects, handleScroll])
+  }, [params.objectKey, fetchFolderObjects, handleScroll])
 
   const startOrContinueFolderRefresh = React.useCallback(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1057,7 +1047,7 @@ export const FolderDetailScreen = () => {
       setForgetFolderConfirmationOpen(false)
       void apiClient.foldersApi
         .deleteFolder({ folderId: folderContext.folderId })
-        .then(() => router.push('/folders'))
+        .then(() => navigate('/folders'))
     }
   }
 
@@ -1169,7 +1159,7 @@ export const FolderDetailScreen = () => {
                         previous: surroundingFocusedContext.previous + 1,
                         next: surroundingFocusedContext.next + 1,
                       }))
-                      void router.push(
+                      void navigate(
                         {
                           pathname: `/folders/${
                             folderContext.folderId
@@ -1179,8 +1169,7 @@ export const FolderDetailScreen = () => {
                             ]?.objectKey ?? '',
                           )}`,
                         },
-                        undefined,
-                        { shallow: true },
+                        { replace: true },
                       )
                     }
                   : undefined
@@ -1193,7 +1182,7 @@ export const FolderDetailScreen = () => {
                         previous: surroundingFocusedContext.previous - 1,
                         next: surroundingFocusedContext.next - 1,
                       }))
-                      void router.push(
+                      void navigate(
                         {
                           pathname: `/folders/${
                             folderContext.folderId
@@ -1203,17 +1192,15 @@ export const FolderDetailScreen = () => {
                             ]?.objectKey ?? '',
                           )}`,
                         },
-                        undefined,
-                        { shallow: true },
+                        { replace: true },
                       )
                     }
                   : undefined
               }
               onFolderLinkClick={() => {
-                void router.push(
+                void navigate(
                   { pathname: `/folders/${folderContext.folderId}` },
-                  undefined,
-                  { shallow: true },
+                  { replace: true },
                 )
               }}
             />

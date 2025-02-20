@@ -3,7 +3,7 @@
 import type { AppDTO } from '@stellariscloud/api-client'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import type { ColumnDef } from '@tanstack/react-table'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 
 import { invertColour, stringToColour } from '../../../../utils/colors'
 
@@ -14,7 +14,7 @@ export const serverAppsTableColumns: ColumnDef<AppDTO>[] = [
       return (
         <div className="size-0 max-w-0 overflow-hidden">
           <Link
-            href={`/server/apps/${row.original.identifier.toLowerCase()}`}
+            to={`/server/apps/${row.original.identifier.toLowerCase()}`}
             className="absolute inset-0"
           />
         </div>

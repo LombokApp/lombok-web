@@ -1,6 +1,7 @@
 'use client'
 import type { IAuthContext } from '@stellariscloud/auth-utils'
 import { Button, cn } from '@stellariscloud/ui-toolkit'
+import { Link } from 'react-router-dom'
 
 import type { AppMenuItemAndHref } from '../../contexts/server.context'
 import { useStore } from '../../hooks/use-store'
@@ -43,7 +44,7 @@ export function Sidebar({
             variant="link"
             asChild
           >
-            <a href="/folders" className="flex gap-4 p-0">
+            <Link to="/folders" className="flex gap-4 p-0">
               <img
                 className="rounded-full"
                 src="/stellariscloud.png"
@@ -61,7 +62,7 @@ export function Sidebar({
               >
                 Stellaris Cloud
               </h1>
-            </a>
+            </Link>
           </Button>
         </div>
         <div className="h-full overflow-hidden p-0 px-3">

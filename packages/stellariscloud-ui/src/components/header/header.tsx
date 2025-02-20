@@ -3,7 +3,7 @@ import { useAuthContext } from '@stellariscloud/auth-utils'
 import { Button, cn } from '@stellariscloud/ui-toolkit'
 import type { MouseEvent } from 'react'
 import React from 'react'
-import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 
 import { Icon } from '../../design-system/icon'
 import { useBreakPoints } from '../../utils/hooks'
@@ -71,12 +71,12 @@ export const Header = () => {
       <div className="flex content-end items-center gap-3 self-end">
         <ModeToggle />
         {authState.isAuthenticated && (
-          <a href="/folders">
+          <Link to="/folders">
             <Button size="sm" className={cn('text-left')}>
               <FolderOpenIcon />
               Folders
             </Button>
-          </a>
+          </Link>
         )}
         {!authState.isAuthenticated && (
           <div className="flex items-center gap-6">

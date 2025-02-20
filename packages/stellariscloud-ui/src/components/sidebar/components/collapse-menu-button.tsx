@@ -21,7 +21,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import { ChevronDown, Dot } from 'lucide-react'
 import { useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 interface Submenu {
   href: string
@@ -103,7 +103,7 @@ export function CollapseMenuButton({
             className="mb-1 h-10 w-full justify-start"
             asChild
           >
-            <a href={href}>
+            <Link to={href}>
               <span className="ml-2 mr-4">
                 <Dot size={18} />
               </span>
@@ -115,7 +115,7 @@ export function CollapseMenuButton({
               >
                 {_label}
               </p>
-            </a>
+            </Link>
           </Button>
         ))}
       </CollapsibleContent>

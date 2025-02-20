@@ -1,8 +1,7 @@
 import type { TaskDTO } from '@stellariscloud/api-client'
 import { Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
-import Image from 'next/image'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 
 import { invertColour, stringToColour } from '../../utils/colors'
 
@@ -68,7 +67,7 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
                     }}
                   >
                     {task.ownerIdentifier === 'CORE' ? (
-                      <Image
+                      <img
                         width={30}
                         height={30}
                         alt="Core"
@@ -84,7 +83,7 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
                     {task.ownerIdentifier.startsWith('APP:') ? (
                       <Link
                         className="underline"
-                        href={`/server/apps/${task.ownerIdentifier.slice('APP:'.length)}`}
+                        to={`/server/apps/${task.ownerIdentifier.slice('APP:'.length)}`}
                       >
                         {task.ownerIdentifier}
                       </Link>

@@ -4,7 +4,7 @@ import type { FolderDTO } from '@stellariscloud/api-client'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
 import type { ColumnDef } from '@tanstack/react-table'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 
 export const foldersTableColumns: ColumnDef<{
   folder: FolderDTO
@@ -16,7 +16,7 @@ export const foldersTableColumns: ColumnDef<{
       return (
         <div className="size-0 max-w-0 overflow-hidden">
           <Link
-            href={`/folders/${row.original.folder.id}`}
+            to={`/folders/${row.original.folder.id}`}
             className="absolute inset-0"
           />
         </div>

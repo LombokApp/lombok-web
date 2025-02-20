@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from '@stellariscloud/ui-toolkit'
 import { Ellipsis, LogOut } from 'lucide-react'
-import { useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 import { getMenuList } from '../menu-list'
 import { CollapseMenuButton } from './collapse-menu-button'
@@ -77,7 +77,7 @@ export function Menu({
                               )}
                               asChild
                             >
-                              <a href={href}>
+                              <Link to={href}>
                                 <span
                                   className={cn(isOpen === false ? '' : 'mr-4')}
                                 >
@@ -93,7 +93,7 @@ export function Menu({
                                 >
                                   {label}
                                 </p>
-                              </a>
+                              </Link>
                             </Button>
                           </TooltipTrigger>
                           {isOpen === false && (

@@ -4,7 +4,6 @@ import {
   mediaTypeFromExtension,
   mediaTypeFromMimeType,
 } from '@stellariscloud/utils'
-import Image from 'next/image'
 import React from 'react'
 
 import { AudioPlayer } from '../../components/audio-player/audio-player'
@@ -82,12 +81,7 @@ export const FolderObjectPreview = ({
 
   return file && dataURL && mediaType === MediaType.Image ? (
     <div className="relative size-full">
-      <Image
-        className={displayMode}
-        fill
-        alt={fileName ?? objectKey}
-        src={dataURL}
-      />
+      <img className={displayMode} alt={fileName ?? objectKey} src={dataURL} />
     </div>
   ) : file && dataURL && mediaType === MediaType.Video ? (
     <div className="flex h-full justify-center">

@@ -3,7 +3,7 @@
 import type { AccessKeyDTO } from '@stellariscloud/api-client'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import type { ColumnDef } from '@tanstack/react-table'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 
 export const serverAccessKeysTableColumns: ColumnDef<AccessKeyDTO>[] = [
   {
@@ -12,7 +12,7 @@ export const serverAccessKeysTableColumns: ColumnDef<AccessKeyDTO>[] = [
       return (
         <div className="size-0 max-w-0 overflow-hidden">
           <Link
-            href={`/server/access-keys/${row.original.accessKeyHashId}`}
+            to={`/server/access-keys/${row.original.accessKeyHashId}`}
             className="absolute inset-0"
           />
         </div>

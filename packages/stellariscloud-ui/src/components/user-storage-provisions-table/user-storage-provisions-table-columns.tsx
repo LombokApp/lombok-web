@@ -4,7 +4,7 @@ import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
 import { Badge } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import type { ColumnDef } from '@tanstack/react-table'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 
 export const userStorageProvisionsTableColumns: ColumnDef<UserStorageProvisionDTO>[] =
   [
@@ -14,7 +14,7 @@ export const userStorageProvisionsTableColumns: ColumnDef<UserStorageProvisionDT
         return (
           <div className="size-0 max-w-0 overflow-hidden">
             <Link
-              href={`/server/storage/provisions/${row.original.id}`}
+              to={`/server/storage/provisions/${row.original.id}`}
               className="absolute inset-0"
             />
           </div>

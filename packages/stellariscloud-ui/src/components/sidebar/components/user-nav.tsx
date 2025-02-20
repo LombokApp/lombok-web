@@ -18,7 +18,7 @@ import {
   TooltipTrigger,
 } from '@stellariscloud/ui-toolkit'
 import { LayoutGrid, LogOut, User } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 
 export function UserNav({ onSignout }: { onSignout: () => Promise<void> }) {
   return (
@@ -54,13 +54,13 @@ export function UserNav({ onSignout }: { onSignout: () => Promise<void> }) {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
-            <Link href="/dashboard" className="flex items-center">
+            <Link to="/dashboard" className="flex items-center">
               <LayoutGrid className="mr-3 size-4 text-muted-foreground" />
               Dashboard
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
-            <Link href="/account" className="flex items-center">
+            <Link to="/account" className="flex items-center">
               <User className="mr-3 size-4 text-muted-foreground" />
               Account
             </Link>

@@ -1,8 +1,7 @@
 import type { EventDTO } from '@stellariscloud/api-client'
 import { Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
-import Image from 'next/image'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 
 import { invertColour, stringToColour } from '../../utils/colors'
 
@@ -64,7 +63,7 @@ export function ServerEventAttributesList({ event }: { event?: EventDTO }) {
                     }}
                   >
                     {event.emitterIdentifier === 'CORE' ? (
-                      <Image
+                      <img
                         width={30}
                         height={30}
                         alt="Core"
@@ -80,7 +79,7 @@ export function ServerEventAttributesList({ event }: { event?: EventDTO }) {
                     {event.emitterIdentifier.startsWith('APP:') ? (
                       <Link
                         className="underline"
-                        href={`/server/apps/${event.emitterIdentifier.slice('APP:'.length).toLowerCase()}`}
+                        to={`/server/apps/${event.emitterIdentifier.slice('APP:'.length).toLowerCase()}`}
                       >
                         {event.emitterIdentifier}
                       </Link>

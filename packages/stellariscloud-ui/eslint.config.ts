@@ -17,14 +17,7 @@ export default tseslint.config(
   reactConfig,
   strictConfig,
   {
-    ignores: [
-      'node_modules/',
-      'dist/',
-      'build/',
-      '.next/',
-      'public/',
-      'fonts/',
-    ],
+    ignores: ['node_modules/', 'dist/', 'build/', 'public/', 'fonts/'],
   },
   {
     plugins: {
@@ -41,6 +34,16 @@ export default tseslint.config(
       parserOptions: {
         tsconfigRootDir: import.meta.dirname,
         projectService: true,
+      },
+    },
+  },
+  {
+    languageOptions: {
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: ['*.js', '*.mjs'],
+        },
+        tsconfigRootDir: import.meta.dirname,
       },
     },
   },

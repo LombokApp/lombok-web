@@ -5,8 +5,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@stellariscloud/ui-toolkit'
-import Link from 'next/link'
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 import type { SignupFormValues } from './signup-form.component'
 import { SignupForm } from './signup-form.component'
@@ -45,7 +45,7 @@ export const SignupComponent = ({
           <SignupForm onSubmit={handleSubmit} />
           <div className="mt-4 text-center text-sm">
             Already have an account?{' '}
-            <Link href="/login" className="underline">
+            <Link to="/login" className="underline">
               Sign in
             </Link>
           </div>

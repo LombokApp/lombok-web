@@ -12,8 +12,8 @@ import {
   Input,
 } from '@stellariscloud/ui-toolkit'
 import { removeDuplicates } from '@stellariscloud/utils'
-import Link from 'next/link'
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 import { apiClient } from '../../../../services/api'
 import { ServerStorageConfigTab } from '../storage/server-storage-config-tab/server-storage-config-tab'
@@ -84,19 +84,19 @@ export function ServerConfigScreen({ tab }: { tab: string }) {
         x-chunk="dashboard-04-chunk-0"
       >
         <Link
-          href="/server/config"
+          to="/server/config"
           className={cn(tab === 'general' && 'text-primary font-semibold')}
         >
           General
         </Link>
         <Link
-          href="/server/config/storage"
+          to="/server/config/storage"
           className={cn(tab === 'storage' && 'text-primary font-semibold')}
         >
           Storage
         </Link>
         <Link
-          href="/server/config/apps"
+          to="/server/config/apps"
           className={cn(tab === 'apps' && 'text-primary font-semibold')}
         >
           Apps

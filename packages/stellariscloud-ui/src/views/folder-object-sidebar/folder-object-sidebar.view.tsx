@@ -29,15 +29,14 @@ import {
   mediaTypeFromMimeType,
   toMetadataObjectIdentifier,
 } from '@stellariscloud/utils'
-import Image from 'next/image'
 import React from 'react'
 
 import { ActionsList } from '../../components/actions-list/actions-list.component'
 import { TasksList } from '../../components/tasks-list/tasks-list.component'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
-import { useServerContext } from '../../contexts/server.context'
 import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
+import { useServerContext } from '../../hooks/use-server-context'
 import { apiClient } from '../../services/api'
 
 export const FolderObjectSidebar = ({
@@ -353,8 +352,7 @@ export const FolderObjectSidebar = ({
                               )}
                               {mediaType === MediaType.Image && (
                                 <div className="relative min-h-[30rem] w-full">
-                                  <Image
-                                    fill
+                                  <img
                                     className="object-contain"
                                     alt={`Metadata: ${metadataKey}`}
                                     src={metadataContent[metadataKey]}
@@ -375,7 +373,7 @@ export const FolderObjectSidebar = ({
           <div>{tasks && <TasksList tasks={tasks} />}</div>
           {showRawMetadata && (
             <div className="p-4 text-xs">
-              <pre className="p-6 dark:bg-white/5 dark:text-gray-200">
+              <pre className="dark:bg-white/5 dark:text-gray-200 p-6">
                 {JSON.stringify(
                   {
                     contentAttributes: folderObject.contentAttributes,

@@ -12,8 +12,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   })
 
   React.useEffect(() => {
-    document.documentElement.classList.remove('light', 'dark')
-    document.documentElement.classList.add(theme)
+    document.documentElement.setAttribute('data-mode', theme)
     localStorage.setItem('theme', theme)
   }, [theme])
 

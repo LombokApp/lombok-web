@@ -8,6 +8,7 @@ import {
   BreadcrumbSeparator,
 } from '@stellariscloud/ui-toolkit'
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 import { ModeToggle } from '../../mode-toggle/mode-toggle'
 import { SheetMenu } from './sheet-menu'
@@ -33,7 +34,7 @@ export function Navbar({ breadcrumbs }: NavbarProps) {
                       <BreadcrumbItem>
                         {breadcrumb.href ? (
                           <BreadcrumbLink asChild>
-                            <a href={breadcrumb.href}>{breadcrumb.label}</a>
+                            <Link to={breadcrumb.href}>{breadcrumb.label}</Link>
                           </BreadcrumbLink>
                         ) : (
                           <BreadcrumbPage>{breadcrumb.label}</BreadcrumbPage>

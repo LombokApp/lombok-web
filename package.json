@@ -47,7 +47,7 @@
     "eslint-plugin-simple-import-sort": "12.1.1",
     "eslint-plugin-sonarjs": "3.0.1",
     "eslint-plugin-storybook": "0.11.2",
-    "eslint-plugin-tailwindcss": "3.17.5",
+    "eslint-plugin-tailwindcss": "3.18.0",
     "jiti": "2.4.2",
     "prettier": "3.4.2",
     "typescript-eslint": "8.19.1"

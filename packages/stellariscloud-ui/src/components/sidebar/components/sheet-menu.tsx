@@ -7,7 +7,7 @@ import {
   SheetTrigger,
 } from '@stellariscloud/ui-toolkit'
 import { MenuIcon, PanelsTopLeft } from 'lucide-react'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 
 import { Menu } from './menu'
 
@@ -26,7 +26,7 @@ export function SheetMenu({ onSignout }: { onSignout: () => Promise<void> }) {
             variant="link"
             asChild
           >
-            <Link href="/dashboard" className="flex items-center gap-2">
+            <Link to="/dashboard" className="flex items-center gap-2">
               <PanelsTopLeft className="mr-1 size-6" />
               <SheetTitle className="text-lg font-bold">Brand</SheetTitle>
             </Link>

@@ -1,13 +1,13 @@
 import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
 import { cn, TypographyH2, TypographyH3 } from '@stellariscloud/ui-toolkit'
-import { useRouter } from 'next/router'
 import React from 'react'
+import { useParams } from 'react-router-dom'
 
 import { ServerStorageProvisionAttributesList } from '../../../../../../components/server-storage-provision-attributes-list/server-storage-provision-attributes-list'
 import { apiClient } from '../../../../../../services/api'
 
 export function UserStorageProvisionDetailScreen() {
-  const router = useRouter()
+  const params = useParams()
   const [userStorageProvisionId, setUserStorageProvision] =
     React.useState<UserStorageProvisionDTO>()
 
@@ -26,13 +26,13 @@ export function UserStorageProvisionDetailScreen() {
 
   React.useEffect(() => {
     if (
-      typeof router.query.userStorageProvisionId === 'string' &&
+      typeof params.userStorageProvisionId === 'string' &&
       !userStorageProvisionId
     ) {
-      fetchUserStorageProvision(router.query.userStorageProvisionId)
+      fetchUserStorageProvision(params.userStorageProvisionId)
     }
   }, [
-    router.query.userStorageProvisionId,
+    params.userStorageProvisionId,
     fetchUserStorageProvision,
     userStorageProvisionId,
   ])
@@ -53,17 +53,17 @@ export function UserStorageProvisionDetailScreen() {
         })
         .then(() => {
           if (
-            typeof router.query.userStorageProvisionId === 'string' &&
+            typeof params.userStorageProvisionId === 'string' &&
             !userStorageProvisionId
           ) {
-            fetchUserStorageProvision(router.query.userStorageProvisionId)
+            fetchUserStorageProvision(params.userStorageProvisionId)
           }
         })
     },
     [
       fetchUserStorageProvision,
       userStorageProvisionId,
-      router.query.userStorageProvisionId,
+      params.userStorageProvisionId,
     ],
   )
 

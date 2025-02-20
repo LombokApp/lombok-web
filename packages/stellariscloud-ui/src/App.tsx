@@ -1,5 +1,5 @@
-import '../styles/globals.css'
-import '../fonts/inter/inter.css'
+import './styles/globals.css'
+import './fonts/inter/inter.css'
 
 import { AuthContextProvider, useAuthContext } from '@stellariscloud/auth-utils'
 import { cn } from '@stellariscloud/ui-toolkit'
@@ -18,28 +18,28 @@ import { Sidebar } from './components/sidebar/sidebar'
 import { useSidebar } from './components/sidebar/use-sidebar'
 import { LocalFileCacheContextProvider } from './contexts/local-file-cache.context'
 import { LoggingContextProvider } from './contexts/logging.context'
-import {
-  ServerContextProvider,
-  useServerContext,
-} from './contexts/server.context'
+import { ServerContextProvider } from './contexts/server.context'
 import { ThemeProvider } from './contexts/theme.context'
+import { useServerContext } from './hooks/use-server-context'
 import { useStore } from './hooks/use-store'
-import LandingPage from './pages'
+import { LandingPage } from './pages'
+import FolderDetail from './pages/folders/folder-detail'
+import { Login } from './pages/login'
+import { Signup } from './pages/signup'
 import { sdkInstance } from './services/api'
 
 const queryClient = new QueryClient()
 
-const UNAUTHENTICATED_PAGES = ['/', '/faq', '/login', '/signup']
+const UNAUTHENTICATED_PAGES = ['/', '/login', '/signup']
 
 const Content = () => {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      {/* <Route path="/folders/:folderId" element={<FolderPage />} />
-        <Route
-          path="/folders/:folderId/tasks/:objectKey"
-          element={<TaskPage />}
-        /> */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/folders/:folderId" element={<FolderDetail />} />
+      <Route path="/folders/:folderId/:objectKey" element={<FolderDetail />} />
     </Routes>
   )
 }

@@ -4,7 +4,7 @@ import type { UserDTO } from '@stellariscloud/api-client'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
 import type { ColumnDef } from '@tanstack/react-table'
-import Link from 'next/link'
+import { Link } from 'react-router-dom'
 
 import { invertColour, stringToColour } from '../../../../utils/colors'
 
@@ -15,7 +15,7 @@ export const serverUsersTableColumns: ColumnDef<UserDTO>[] = [
       return (
         <div className="size-0 max-w-0 overflow-hidden">
           <Link
-            href={`/server/users/${row.original.id}`}
+            to={`/server/users/${row.original.id}`}
             className="absolute inset-0"
           />
         </div>
@@ -43,7 +43,11 @@ export const serverUsersTableColumns: ColumnDef<UserDTO>[] = [
           }}
         >
           <span className="uppercase">
-            {user.name?.[0] ?? user.email?.[0] ?? '?'}
+            {user.name.length > 0
+              ? user.name[0]
+              : user.username.length > 0
+                ? user.username[0]
+                : '?'}
           </span>
         </div>
         <div className="flex flex-col">

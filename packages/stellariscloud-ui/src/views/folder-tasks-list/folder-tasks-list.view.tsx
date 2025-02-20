@@ -6,8 +6,8 @@ import {
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
 import { ListChecks } from 'lucide-react'
-import Link from 'next/link'
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 import { TasksList } from '../../components/tasks-list/tasks-list.component'
 import { Icon } from '../../design-system/icon'
@@ -47,7 +47,7 @@ export const FolderTasksList = ({
           </TypographyH3>
           <Link
             className="text-xs italic underline opacity-50"
-            href={`/folders/${folder?.id}/tasks`}
+            to={`/folders/${folder?.id}/tasks`}
           >
             view all
           </Link>
