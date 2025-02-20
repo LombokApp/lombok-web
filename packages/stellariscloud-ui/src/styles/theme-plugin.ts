@@ -18,6 +18,7 @@ export const themePlugin = plugin(
     // Add light theme
     pluginAPI.addBase({
       ':root': {
+        '--border-input': baseTheme.light.inputBorder,
         '--background': baseTheme.light.background,
         '--foreground': baseTheme.light.foreground,
         '--card': baseTheme.light.card,
@@ -48,6 +49,7 @@ export const themePlugin = plugin(
     // Add dark theme
     pluginAPI.addBase({
       '[data-mode="dark"]': {
+        '--border-input': baseTheme.dark.inputBorder,
         '--background': baseTheme.dark.background,
         '--foreground': baseTheme.dark.foreground,
         '--card': baseTheme.dark.card,
@@ -81,6 +83,7 @@ export const themePlugin = plugin(
       extend: {
         borderColor: {
           DEFAULT: colorMix('border'),
+          input: colorMix('border-input'),
         },
         colors: {
           input: colorMix('input'),
