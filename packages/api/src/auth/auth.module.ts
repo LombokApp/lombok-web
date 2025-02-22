@@ -45,14 +45,14 @@ export class AuthModule implements OnModuleInit {
         const userCount = parseInt(userCountStr ?? '0', 10)
         if (userCount === 0) {
           console.log('Creating initial user:', this._coreConfig.initialUser)
-          await this.authService.signup({
+          const initialUser = await this.authService.signup({
             password: '0000',
             username: this._coreConfig.initialUser,
           })
-          this.ormService.db
+          await this.ormService.db
             .update(usersTable)
             .set({ isAdmin: true })
-            .where(eq(usersTable.username, this._coreConfig.initialUser))
+            .where(eq(usersTable.id, initialUser.id))
         }
       }
     })

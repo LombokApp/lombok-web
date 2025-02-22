@@ -1,4 +1,4 @@
-FROM oven/bun:1.2.2-alpine AS base
+FROM oven/bun:1.2.3-alpine AS base
 
 WORKDIR /usr/src/app
 
@@ -25,23 +25,20 @@ RUN cd /temp/dev && \
   # build the packages
   bun --cwd ./packages/api build && \
   bun --cwd ./packages/api-client build && \
-  # bun --cwd ./packages/ui-toolkit build && \
   bun --cwd ./packages/core-worker build && \
   bun --cwd ./packages/stellaris-types build && \
   bun --cwd ./packages/stellaris-utils build && \
-  # remove the local environment config for the ui and build the package
-  rm ./packages/ui/.env.local && bun --cwd ./packages/ui build && \
+  # bun --cwd ./packages/ui-toolkit build && \
+  bun --cwd ./packages/ui build && mv ./packages/ui/dist ./frontend && \
   # copy the sql migration files over (which were ignored by the build... maybe fix that)
   cp ./packages/api/src/orm/migrations/*.sql ./packages/api/dist/src/orm/migrations/ && \
   # delete the .next/cache directory (+500mb)
   rm -rf ./packages/ui/.next/cache && \
-
-  # install the production api & ui packages only
+  # install the production api packages only
   rm -rf ./node_modules && \
   bun install --production --filter ./packages/api && \
-  # bun install --production --filter ./packages/ui && \
-
   # remove as much unnecessary stuff as possible
+  rm -rf ./packages/ui && \
   rm -rf ./packages/api/node_modules && \
   rm -rf ./packages/api/src && \
   rm -rf ./packages/auth-utils && \
@@ -59,6 +56,7 @@ FROM base AS release
 
 # copy in all the compiled application
 COPY --from=install /temp/dev ./
+
 
 # run the app
 EXPOSE 80/tcp
