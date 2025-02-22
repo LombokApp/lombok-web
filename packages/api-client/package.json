@@ -2,9 +2,9 @@
   "name": "@stellariscloud/api-client",
   "main": "dist/index.js",
   "scripts": {
-    "build": "bun build . --target bun --outdir dist",
+    "build": "bun build . --outdir dist",
     "build:clean": "bun clean && bun run build",
-    "clean": "(rm -rf ./*.tsbuildinfo ||  true) && rm -rf ./dist"
+    "clean": "rm -rf ./dist"
   },
   "devDependencies": {
     "axios": "1.7.9"

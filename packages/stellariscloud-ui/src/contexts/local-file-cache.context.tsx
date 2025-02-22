@@ -1,5 +1,7 @@
 import React from 'react'
 
+import WorkerFile from '../worker.ts?worker'
+
 import { sdkInstance } from '../services/api'
 import { indexedDb } from '../services/indexed-db'
 import { getDataFromDisk } from '../services/local-cache/local-cache.service'
@@ -120,7 +122,7 @@ export const LocalFileCacheContextProvider = ({
   React.useEffect(() => {
     if (!workerRef.current) {
       updateWorkerWithAuth()
-      workerRef.current = new Worker(new URL('../worker.ts', import.meta.url))
+      workerRef.current = new Worker(WorkerFile, { type: 'module' })
       sdkInstance.authenticator.addEventListener('onStateChanged', () => {
         updateWorkerWithAuth()
       })

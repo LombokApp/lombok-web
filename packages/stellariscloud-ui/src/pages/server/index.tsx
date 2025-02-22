@@ -7,7 +7,7 @@ const ServerIndexPage = () => {
   const authContext = useAuthContext()
   const { '*': subPath } = useParams()
   const serverPage = subPath?.length ? subPath.split('/') : []
-  console.log({ serverPage, subPath })
+
   return (
     authContext.authState.isAuthenticated &&
     authContext.viewer?.isAdmin && (
