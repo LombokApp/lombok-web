@@ -7,8 +7,9 @@ import {
 } from '../../contexts/folder.context'
 import { FolderDetailScreen } from '../../views/folder-detail-screen/folder-detail-screen.view'
 
-const FolderDetailInner = () => {
-  const params = useParams()
+const FolderDetailInner = ({ paramParts }: { paramParts: string[] }) => {
+  const folderId = paramParts[0]
+  const objectKey = paramParts[1]
   const folderContext = useFolderContext()
   return (
     <ContentLayout
@@ -17,23 +18,23 @@ const FolderDetailInner = () => {
           { label: 'Folders', href: '/folders' },
           {
             label: folderContext.folder?.name ?? 'Folder',
-            href: params.objectKey
+            href: objectKey
               ? `/folders/${folderContext.folder?.id}`
               : undefined,
           },
         ] as { href?: string; label: string }[]
       ).concat(
-        params.objectKey
+        objectKey
           ? [
               {
-                label: params.objectKey,
+                label: objectKey,
               },
             ]
           : [],
       )}
     >
       <div className="flex size-full flex-1 flex-col gap-4">
-        {params.folderId && <FolderDetailScreen />}
+        {folderId && <FolderDetailScreen />}
       </div>
     </ContentLayout>
   )
@@ -41,9 +42,11 @@ const FolderDetailInner = () => {
 
 const FolderDetail = () => {
   const params = useParams()
-  return params.folderId ? (
-    <FolderContextProvider folderId={params.folderId}>
-      <FolderDetailInner />
+  const paramParts = params['*']?.split('/') ?? []
+  const folderId = paramParts[0]
+  return folderId ? (
+    <FolderContextProvider folderId={folderId}>
+      <FolderDetailInner paramParts={paramParts} />
     </FolderContextProvider>
   ) : (
     <></>

@@ -1,11 +1,10 @@
 import React from 'react'
 
-import WorkerFile from '../worker.ts?worker'
-
 import { sdkInstance } from '../services/api'
 import { indexedDb } from '../services/indexed-db'
 import { getDataFromDisk } from '../services/local-cache/local-cache.service'
 import { downloadData } from '../utils/file'
+// import Worker from '../worker.ts?worker'
 import type { LogLine } from './logging.context'
 import { useLoggingContext } from './logging.context'
 
@@ -122,7 +121,11 @@ export const LocalFileCacheContextProvider = ({
   React.useEffect(() => {
     if (!workerRef.current) {
       updateWorkerWithAuth()
-      workerRef.current = new Worker(WorkerFile, { type: 'module' })
+
+      workerRef.current = new Worker(new URL('../worker.ts', import.meta.url), {
+        type: 'module',
+      })
+
       sdkInstance.authenticator.addEventListener('onStateChanged', () => {
         updateWorkerWithAuth()
       })
@@ -130,7 +133,6 @@ export const LocalFileCacheContextProvider = ({
       workerRef.current.addEventListener(
         'message',
         (event: MessageEvent<WorkerMessage>) => {
-          // console.log('MESSSAGE FROM WORKER:', event)
           if (
             ['DOWNLOAD_COMPLETED', 'DOWNLOAD_FAILED'].includes(event.data[0])
           ) {

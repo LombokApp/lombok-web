@@ -4,6 +4,9 @@ export const verifyToken = (
   token: string | undefined,
   expWindowMs: number = 1000 * 60,
 ): token is string => {
+  if (!token) {
+    // debugger
+  }
   if (token === undefined) {
     return false
   }
@@ -13,6 +16,7 @@ export const verifyToken = (
   try {
     payload = jwtDecode.jwtDecode(token)
   } catch (error) {
+    console.log('Errror!', error)
     if (!(error instanceof jwtDecode.InvalidTokenError)) {
       throw error
     }
@@ -30,6 +34,7 @@ export const verifyToken = (
   }
 
   const expiresAt = exp * 1000
+  const hasExpired = Date.now() + expWindowMs > expiresAt
 
-  return !(Date.now() + expWindowMs > expiresAt)
+  return !hasExpired
 }

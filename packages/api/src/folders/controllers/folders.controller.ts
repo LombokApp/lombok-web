@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Post,
   Query,
   Req,
@@ -60,7 +61,7 @@ export class FoldersController {
   @Get('/:folderId')
   async getFolder(
     @Req() req: express.Request,
-    @Param('folderId') folderId: string,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
   ): Promise<FolderGetResponse> {
     if (!req.user) {
       throw new UnauthorizedException()
@@ -79,7 +80,7 @@ export class FoldersController {
   @Get('/:folderId/metadata')
   async getFolderMetadata(
     @Req() req: express.Request,
-    @Param('folderId') folderId: string,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
   ): Promise<FolderGetMetadataResponse> {
     if (!req.user) {
       throw new UnauthorizedException()
@@ -142,7 +143,7 @@ export class FoldersController {
   @Delete('/:folderId')
   async deleteFolder(
     @Req() req: express.Request,
-    @Param('folderId') folderId: string,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
   ): Promise<void> {
     if (!req.user) {
       throw new UnauthorizedException()
@@ -156,7 +157,7 @@ export class FoldersController {
   @Post('/:folderId/rescan')
   async rescanFolder(
     @Req() req: express.Request,
-    @Param('folderId') folderId: string,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
   ): Promise<void> {
     if (!req.user) {
       throw new UnauthorizedException()
@@ -177,7 +178,7 @@ export class FoldersController {
   @Get('/:folderId/objects')
   async listFolderObjects(
     @Req() req: express.Request,
-    @Param('folderId') folderId: string,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
     @Query() queryParams: FolderObjectsListQueryParamsDTO,
   ): Promise<FolderObjectListResponse> {
     if (!req.user) {
@@ -202,7 +203,7 @@ export class FoldersController {
   @Get('/:folderId/objects/:objectKey')
   async getFolderObject(
     @Req() req: express.Request,
-    @Param('folderId') folderId: string,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
     @Param('objectKey') objectKey: string,
   ): Promise<FolderObjectGetResponse> {
     if (!req.user) {
@@ -223,7 +224,7 @@ export class FoldersController {
   @Delete('/:folderId/objects/:objectKey')
   async deleteFolderObject(
     @Req() req: express.Request,
-    @Param('folderId') folderId: string,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
     @Param('objectKey') objectKey: string,
   ): Promise<void> {
     if (!req.user) {
@@ -241,7 +242,7 @@ export class FoldersController {
   @Post('/:folderId/presigned-urls')
   async createPresignedUrls(
     @Req() req: express.Request,
-    @Param('folderId') folderId: string,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
     @Body() body: FolderCreateSignedUrlInputDTO,
   ): Promise<FolderCreateSignedUrlsResponse> {
     if (!req.user) {
@@ -260,7 +261,7 @@ export class FoldersController {
   @Post('/:folderId/objects/:objectKey')
   async refreshFolderObjectS3Metadata(
     @Req() req: express.Request,
-    @Param('folderId') folderId: string,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
     @Param('objectKey') objectKey: string,
   ): Promise<FolderObjectGetResponse> {
     if (!req.user) {
@@ -283,7 +284,7 @@ export class FoldersController {
   @Post('/:folderId/apps/:appIdentifier/trigger/:taskKey')
   async handleAppTaskTrigger(
     @Req() req: express.Request,
-    @Param('folderId') folderId: string,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
     @Param('appIdentifier') appIdentifier: string,
     @Param('taskKey') taskKey: string,
     @Body() body: TriggerAppTaskInputDTO,

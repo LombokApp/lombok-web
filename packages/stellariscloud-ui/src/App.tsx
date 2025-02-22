@@ -24,11 +24,11 @@ import { useServerContext } from './hooks/use-server-context'
 import { useStore } from './hooks/use-store'
 import { LandingPage } from './pages'
 import FolderDetail from './pages/folders/folder-detail'
+import FoldersPage from './pages/folders/folders'
 import { Login } from './pages/login'
+import ServerIndexPage from './pages/server'
 import { Signup } from './pages/signup'
 import { sdkInstance } from './services/api'
-import FoldersPage from './pages/folders/folders'
-import ServerIndexPage from './pages/server'
 
 const queryClient = new QueryClient()
 

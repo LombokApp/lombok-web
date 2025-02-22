@@ -1,7 +1,8 @@
 import { useAuthContext } from '@stellariscloud/auth-utils'
+import { useParams } from 'react-router-dom'
+
 import { ContentLayout } from '../../components/sidebar/components/content-layout'
 import { ServerScreen } from '../../views/server/overview/server-screen/server-screen.view'
-import { useParams } from 'react-router-dom'
 
 const ServerIndexPage = () => {
   const authContext = useAuthContext()

@@ -24,7 +24,12 @@ import {
 } from '@stellariscloud/utils'
 import { Folder } from 'lucide-react'
 import React from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom'
 import useDebounce from 'react-use/lib/useDebounce'
 
 import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
@@ -573,6 +578,8 @@ export const FolderDetailScreen = () => {
   const navigate = useNavigate()
 
   const params = useParams()
+  const [folderId, focusedObjectKeyFromParams] = params['*']?.split('/') ?? []
+  const [queryParams] = useSearchParams()
   const location = useLocation()
   const [isResizing, setIsResizing] = React.useState(false)
   // const [_folderWebsocket, setFolderWebsocket] = React.useState<Socket>()
@@ -594,12 +601,12 @@ export const FolderDetailScreen = () => {
 
   const [pageState, setPageState] = React.useState<{
     search?: string
-    filterTagId?: string
   }>({
-    search: params.search,
-    filterTagId: params.search,
+    search: queryParams.get('search') ?? undefined,
   })
-  const [searchTerm, setSearchTerm] = React.useState(params.search)
+  const [searchTerm, setSearchTerm] = React.useState(
+    queryParams.get('search') ?? undefined,
+  )
 
   const [pageSize] = React.useState<number>(100)
 
@@ -636,14 +643,12 @@ export const FolderDetailScreen = () => {
       setSurroundingFocusedContext({ next: index + 1, previous: index - 1 })
       void navigate(
         {
-          pathname: `/folders/${params.folderId}/${encodeURIComponent(
-            objectKey,
-          )}`,
+          pathname: `/folders/${folderId}/${encodeURIComponent(objectKey)}`,
         },
         { replace: true },
       )
     },
-    [params, navigate],
+    [folderId, navigate],
   )
 
   const handleScroll = React.useCallback(
@@ -824,7 +829,7 @@ export const FolderDetailScreen = () => {
         folderObjects.current.results = {}
         folderObjects.current.positions = {}
         folderObjects.current.folderRequests = {}
-        folderObjects.current.searchTerm = searchTerm
+        folderObjects.current.searchTerm = searchTerm ?? undefined
         folderObjects.current.totalCount = undefined
         if (tileContainerRef.current) {
           tileContainerRef.current.innerHTML = ''
@@ -863,11 +868,10 @@ export const FolderDetailScreen = () => {
 
       await apiClient.foldersApi
         .listFolderObjects({
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          folderId: params.folderId!,
+          folderId,
           offset: Math.max(offset + haveFirstN, 0),
           limit,
-          search: searchTerm,
+          search: searchTerm ?? undefined,
         })
         .then((response) => {
           if (searchTerm !== folderObjects.current.searchTerm) {
@@ -899,7 +903,7 @@ export const FolderDetailScreen = () => {
           })
         })
     },
-    [pageSize, searchTerm, getData, params.folderId, handleObjectLinkClick],
+    [pageSize, searchTerm, getData, folderId, handleObjectLinkClick],
   )
 
   const messageHandler = React.useCallback(
@@ -943,38 +947,29 @@ export const FolderDetailScreen = () => {
   const folderContext = useFolderContext(messageHandler)
 
   React.useEffect(() => {
-    const changedPageState: { search?: string; filterTagId?: string } = {}
+    const changedPageState: { search?: string } = {}
     const searchInQuery =
-      (params.search?.length ?? 0) > 0 ? params.search : undefined
+      (queryParams.get('search')?.length ?? 0) > 0
+        ? queryParams.get('search')
+        : undefined
     if (searchInQuery !== pageState.search) {
       changedPageState.search = pageState.search
     }
-    const filterTagIdInQuery =
-      (params.filterTagId?.length ?? 0) > 0 ? params.filterTagId : undefined
-    if (filterTagIdInQuery !== pageState.filterTagId) {
-      changedPageState.filterTagId = pageState.filterTagId
-    }
-    if (Object.keys(changedPageState).length > 0 && !params.objectKey) {
+    if (
+      Object.keys(changedPageState).length > 0 &&
+      !focusedObjectKeyFromParams
+    ) {
       void navigate(
         `${location.pathname}${new URLSearchParams({
           folderId: folderContext.folderId,
           ...(typeof changedPageState.search === 'undefined'
             ? {}
             : { search: pageState.search }),
-          ...(typeof changedPageState.filterTagId === 'undefined'
-            ? {}
-            : { filterTagId: pageState.filterTagId }),
         })}`,
       )
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    pageState,
-    pageSize,
-    location.pathname,
-    params.search,
-    params.filterTagId,
-  ])
+  }, [pageState, pageSize, location.pathname, queryParams])
 
   const refreshView = React.useCallback(() => {
     if (tileContainerRef.current) {
@@ -1013,12 +1008,12 @@ export const FolderDetailScreen = () => {
 
   // update focused object references
   React.useEffect(() => {
-    if (params.objectKey) {
+    if (focusedObjectKeyFromParams) {
       if (
         !focusedObjectKeyRef.current ||
-        focusedObjectKeyRef.current !== params.objectKey
+        focusedObjectKeyRef.current !== focusedObjectKeyFromParams
       ) {
-        focusedObjectKeyRef.current = params.objectKey
+        focusedObjectKeyRef.current = focusedObjectKeyFromParams
         setFocusedObjectKey(focusedObjectKeyRef.current)
       }
     } else if (focusedObjectKeyRef.current) {
@@ -1026,7 +1021,7 @@ export const FolderDetailScreen = () => {
       setFocusedObjectKey(focusedObjectKeyRef.current)
       void fetchFolderObjects(0).then(() => handleScroll())
     }
-  }, [params.objectKey, fetchFolderObjects, handleScroll])
+  }, [focusedObjectKeyFromParams, fetchFolderObjects, handleScroll])
 
   const startOrContinueFolderRefresh = React.useCallback(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1089,7 +1084,7 @@ export const FolderDetailScreen = () => {
   }, [])
 
   const _handleSearchValueUpdate = (value?: string) => {
-    setSearchTerm(value)
+    setSearchTerm(value ?? undefined)
     setObjectsViewContext(undefined)
     setPageState((s) => ({ ...s, search: value }))
   }

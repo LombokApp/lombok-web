@@ -32,7 +32,7 @@ export default tseslint.config(
     languageOptions: {
       ecmaVersion: 2022,
       parserOptions: {
-        tsconfigRootDir: import.meta.dirname,
+        tsconfigRootDir: __dirname,
         projectService: true,
       },
     },
@@ -43,7 +43,7 @@ export default tseslint.config(
         projectService: {
           allowDefaultProject: ['*.js', '*.mjs'],
         },
-        tsconfigRootDir: import.meta.dirname,
+        tsconfigRootDir: __dirname,
       },
     },
   },

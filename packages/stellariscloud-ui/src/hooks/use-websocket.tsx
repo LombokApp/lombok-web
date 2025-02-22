@@ -1,9 +1,8 @@
+import { useAuthContext } from '@stellariscloud/auth-utils'
 import type { FolderPushMessage } from '@stellariscloud/types'
 import React from 'react'
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
-
-import { useAuthContext } from '@stellariscloud/auth-utils'
 
 type MessageCallback = (msg: {
   name: FolderPushMessage
@@ -29,7 +28,7 @@ export const useWebsocket = (
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       setSocketBaseURL(
-        `${window.location.protocol === 'https:' ? 'wss' : 'ws'}//${window.location.host}`,
+        `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`,
       )
     }
   }, [])

@@ -40,7 +40,7 @@ export class Authenticator {
         return
       }
       this.state = { isAuthenticated: false, isLoaded: true }
-    }, 1)
+    })
   }
 
   // getAccessToken returns valid accessToken if it exists

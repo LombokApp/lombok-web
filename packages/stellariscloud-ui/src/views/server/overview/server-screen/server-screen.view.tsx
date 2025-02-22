@@ -32,6 +32,8 @@ import { ServerUsersScreen } from '../../users/server-users-screen/server-users-
 export function ServerScreen({ serverPage }: { serverPage: string[] }) {
   const navigate = useNavigate()
   const params = useParams()
+  const paramParts = params['*']?.split('/') ?? []
+  console.log('params:', { params, paramParts })
   return (
     <div className={cn('flex h-full flex-1 flex-col items-center')}>
       <div className="container flex flex-1 flex-col">
@@ -127,8 +129,8 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     <ServerTasksScreen />
                   </TabsContent>
                   <TabsContent value="config">
-                    {params.serverPage?.[0] === 'config' && (
-                      <ServerConfigScreen tab={params.serverPage[1]} />
+                    {paramParts[0] === 'config' && (
+                      <ServerConfigScreen tab={paramParts[1] ?? 'general'} />
                     )}
                   </TabsContent>
                   <TabsContent value="overview">

@@ -35,7 +35,7 @@ export const AuthContextProvider = ({
   const [authState, setAuthState] = React.useState<AuthenticatorStateType>(
     {} as AuthenticatorStateType,
   )
-  const viewerRequested = React.useRef<{ [key: string]: boolean }>({
+  const viewerRequested = React.useRef<Record<string, boolean>>({
     ___: false,
   })
   const [viewerRefreshKey, _setViewerRefreshKey] = React.useState('___')
@@ -47,24 +47,29 @@ export const AuthContextProvider = ({
 
   React.useEffect(() => {
     // Refresh the token to verify authentication state.
-    authenticator.getAccessToken().catch((err) => setError(err as AuthError))
+    authenticator
+      .getAccessToken()
+      .finally(() => {
+        setAuthState(authenticator.state)
+        const authStateSetter = (
+          event: CustomEvent<AuthenticatorStateType>,
+        ) => {
+          setAuthState(event.detail)
+        }
 
-    setAuthState(authenticator.state)
-    const authStateSetter = (event: CustomEvent<AuthenticatorStateType>) => {
-      setAuthState(event.detail)
-    }
+        authenticator.addEventListener(
+          'onStateChanged',
+          authStateSetter as EventListener,
+        )
 
-    authenticator.addEventListener(
-      'onStateChanged',
-      authStateSetter as EventListener,
-    )
-
-    return () => {
-      authenticator.removeEventListener(
-        'onStateChanged',
-        authStateSetter as EventListener,
-      )
-    }
+        return () => {
+          authenticator.removeEventListener(
+            'onStateChanged',
+            authStateSetter as EventListener,
+          )
+        }
+      })
+      .catch((err) => setError(err as AuthError))
   }, [])
 
   const login = async (loginParams: LoginCredentialsDTO) => {

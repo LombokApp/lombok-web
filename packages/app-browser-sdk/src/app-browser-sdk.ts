@@ -34,13 +34,7 @@ export type StellarisCloudAPI = {
 export class AppBrowserSdk {
   public apiClient: StellarisCloudAPI
   public authenticator: Authenticator
-  constructor({
-    basePath,
-  }: {
-    basePath: string
-    // sessionToken: string,
-    // private _document: Document,
-  }) {
+  constructor({ basePath }: { basePath: string }) {
     this.authenticator = new Authenticator({
       basePath,
     })
