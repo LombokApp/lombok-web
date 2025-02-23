@@ -10,3 +10,5 @@
 /packages/api-client/src/** -diff -merge linguist-generated=true
 /packages/api-client/dist/** -diff -merge linguist-generated=true
 /packages/api/src/generated/** -diff -merge linguist-generated=true
+
+*.lockb binary diff=lockb

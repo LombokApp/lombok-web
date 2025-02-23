@@ -9,7 +9,7 @@ export const folderObjectSchema = z.object({
   id: z.string(),
   objectKey: z.string(),
   folderId: z.string(),
-  hash: z.string().nullish(),
+  hash: z.string().optional(),
   lastModified: z.number(),
   eTag: z.string(),
   sizeBytes: z.number(),

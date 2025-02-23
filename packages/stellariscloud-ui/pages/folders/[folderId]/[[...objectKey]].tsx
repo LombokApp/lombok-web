@@ -14,35 +14,33 @@ const FolderDetailInner = () => {
   const router = useRouter()
   const folderContext = useFolderContext()
   return (
-    <FolderContextProvider folderId={router.query.folderId as string}>
-      <ContentLayout
-        titleIcon={Folder}
-        description={`ID: ${router.query.folderId}`}
-        breadcrumbs={(
-          [
-            { label: 'Folders', href: '/folders' },
-            {
-              label: `Folder: ${folderContext.folder?.name}`,
-              href: router.query.objectKey
-                ? `/folders/${folderContext.folder?.id}`
-                : undefined,
-            },
-          ] as { href?: string; label: string }[]
-        ).concat(
-          router.query.objectKey
-            ? [
-                {
-                  label: router.query.objectKey as string,
-                },
-              ]
-            : [],
-        )}
-      >
-        <div className="flex flex-col flex-1 h-full gap-4 w-full">
-          {router.query.folderId && <FolderDetailScreen />}
-        </div>
-      </ContentLayout>
-    </FolderContextProvider>
+    <ContentLayout
+      titleIcon={Folder}
+      description={`ID: ${router.query.folderId}`}
+      breadcrumbs={(
+        [
+          { label: 'Folders', href: '/folders' },
+          {
+            label: folderContext.folder?.name ?? 'Folder',
+            href: router.query.objectKey
+              ? `/folders/${folderContext.folder?.id}`
+              : undefined,
+          },
+        ] as { href?: string; label: string }[]
+      ).concat(
+        router.query.objectKey
+          ? [
+              {
+                label: router.query.objectKey as string,
+              },
+            ]
+          : [],
+      )}
+    >
+      <div className="flex flex-col flex-1 h-full gap-4 w-full">
+        {router.query.folderId && <FolderDetailScreen />}
+      </div>
+    </ContentLayout>
   )
 }
 

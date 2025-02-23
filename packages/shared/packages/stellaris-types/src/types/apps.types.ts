@@ -1,22 +1,20 @@
-export interface AppAction {
-  key: string
-  description: string
-}
-
-export interface AppMenuItem {
+import z from 'zod'
+import {
+  appConfigSchema,
+  appMenuItemConfigSchema,
+  taskConfigSchema,
+} from '../schemas'
+export interface AppTaskTrigger {
+  taskKey: string
   label: string
-  iconPath?: string
-  uiName: string
+  description: string
 }
 
-export interface AppConfig {
-  publicKey: string
-  description: string
-  subscribedEvents: string[]
-  emitEvents: string[]
-  actions: { folder: AppAction[]; object: AppAction[] }
-  menuItems: AppMenuItem[]
-}
+export type AppTaskConfig = z.infer<typeof taskConfigSchema>
+
+export type AppMenuItem = z.infer<typeof appMenuItemConfigSchema>
+
+export type AppConfig = z.infer<typeof appConfigSchema>
 
 export interface ConnectedAppInstancesMap {
   [appIdentifier: string]: ConnectedAppInstance[] | undefined

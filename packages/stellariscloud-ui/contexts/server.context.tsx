@@ -1,5 +1,5 @@
 import type {
-  AppAction,
+  AppTaskTrigger,
   AppMenuItem,
   AppPushMessage,
 } from '@stellariscloud/types'
@@ -9,7 +9,6 @@ import type { Socket } from 'socket.io-client'
 
 import { useWebsocket } from '../hooks/use-websocket'
 import { apiClient } from '../services/api'
-import { useLocalFileCacheContext } from './local-file-cache.context'
 import type { LogLevel } from './logging.context'
 import {
   AppListResponse,
@@ -21,7 +20,14 @@ export interface IServerContext {
   refreshApps: () => Promise<void>
   refreshSettings: () => Promise<void>
   menuItems: AppMenuItemAndHref[]
-  appFolderActions: { action: AppAction; appIdentifier: string }[]
+  appFolderTaskTriggers: {
+    taskTrigger: AppTaskTrigger
+    appIdentifier: string
+  }[]
+  appFolderObjectTaskTriggers: {
+    taskTrigger: AppTaskTrigger
+    appIdentifier: string
+  }[]
   settings?: SettingsGetResponseSettings
   apps?: AppListResponse
   subscribeToMessages: (handler: SocketMessageHandler) => void
@@ -56,13 +62,13 @@ export const ServerContextProvider = ({
 }: {
   children: React.ReactNode
 }) => {
-  const _localFileCacheContext = useLocalFileCacheContext()
-  //   const loggingContext = useLoggingContext()
   const [serverSettings, setServerSettings] =
     React.useState<SettingsGetResponseSettings>()
   const [menuItems, setMenuItems] = React.useState<AppMenuItemAndHref[]>()
   const [appFolderActions, setAppFolderActions] =
-    React.useState<{ action: AppAction; appIdentifier: string }[]>()
+    React.useState<{ taskTrigger: AppTaskTrigger; appIdentifier: string }[]>()
+  const [appFolderObjectActions, setAppFolderObjectActions] =
+    React.useState<{ taskTrigger: AppTaskTrigger; appIdentifier: string }[]>()
   const [serverApps, setServerApps] = React.useState<AppListResponse>()
   const authContext = useAuthContext()
 
@@ -96,13 +102,37 @@ export const ServerContextProvider = ({
         )
         setAppFolderActions(
           response.data.installed.result.reduce<
-            { action: AppAction; appIdentifier: string }[]
+            { taskTrigger: AppTaskTrigger; appIdentifier: string }[]
           >((acc, next) => {
             return acc.concat(
-              next.config.actions.object.map((item) => ({
-                action: item,
-                appIdentifier: next.identifier,
-              })),
+              next.config.tasks
+                .filter((item) => item.folderAction)
+                .map((item) => ({
+                  taskTrigger: {
+                    description: item.description,
+                    label: item.label,
+                    taskKey: item.key,
+                  },
+                  appIdentifier: next.identifier,
+                })),
+            )
+          }, []),
+        )
+        setAppFolderObjectActions(
+          response.data.installed.result.reduce<
+            { taskTrigger: AppTaskTrigger; appIdentifier: string }[]
+          >((acc, next) => {
+            return acc.concat(
+              next.config.tasks
+                .filter((item) => item.objectAction)
+                .map((item) => ({
+                  taskTrigger: {
+                    description: item.description,
+                    label: item.label,
+                    taskKey: item.key,
+                  },
+                  appIdentifier: next.identifier,
+                })),
             )
           }, []),
         )
@@ -146,7 +176,8 @@ export const ServerContextProvider = ({
         refreshSettings: fetchServerSettings,
         socketConnected,
         menuItems: menuItems ?? [],
-        appFolderActions: appFolderActions ?? [],
+        appFolderTaskTriggers: appFolderActions ?? [],
+        appFolderObjectTaskTriggers: appFolderObjectActions ?? [],
         settings: serverSettings,
         apps: serverApps,
         subscribeToMessages,

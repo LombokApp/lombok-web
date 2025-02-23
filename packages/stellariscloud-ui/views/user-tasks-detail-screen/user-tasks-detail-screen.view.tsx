@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import React from 'react'
 import { apiClient } from '../../services/api'
 import { PageHeading } from '../../design-system/page-heading/page-heading'
+import { TaskAttributeList } from '../../components/task-attributes-list/task-attributes-list'
 
 export function UserTaskDetailScreen() {
   const router = useRouter()
@@ -55,6 +56,7 @@ export function UserTaskDetailScreen() {
               `User Access Key: ${accessKey?.accessKeyId} (${accessKey?.endpointDomain})`,
             ]}
           />
+          <TaskAttributeList accessKey={accessKey} />
           <div className="flex flex-col">
             {accessKeyBuckets?.map(({ name, creationDate }, i) => (
               <div key={i}>{name}</div>

@@ -30,13 +30,13 @@ import { useLocalFileCacheContext } from '../../contexts/local-file-cache.contex
 import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
 import { apiClient } from '../../services/api'
-import { FolderDTO } from '@stellariscloud/api-client'
+import { FolderDTO, TaskDTO } from '@stellariscloud/api-client'
 import { FolderObjectDTO } from '@stellariscloud/api-client'
 import { FolderGetResponse } from '@stellariscloud/api-client'
 import { useServerContext } from '../../contexts/server.context'
-import { TasksList } from '../../components/tasks-list/tasks-list.component'
-import { ActionsList } from '../../components/actions-list/actions-list.component'
 import { Button, Card } from '@stellariscloud/ui-toolkit'
+import { ActionsList } from '../../components/actions-list/actions-list.component'
+import { TasksList } from '../../components/tasks-list/tasks-list.component'
 
 export const FolderObjectSidebar = ({
   folder,
@@ -55,6 +55,21 @@ export const FolderObjectSidebar = ({
   const [metadataContent, setMetadataContent] = React.useState<{
     [key: string]: string
   }>({})
+  const [tasks, setTasks] = React.useState<TaskDTO[]>()
+
+  const fetchTasks = React.useCallback(() => {
+    if (folder?.id) {
+      void apiClient.tasksApi
+        .listTasks({ folderId: folder?.id, objectKey })
+        .then((resp) => setTasks(resp.data.result))
+    }
+  }, [folder?.id])
+
+  React.useEffect(() => {
+    if (folder?.id && objectKey) {
+      void fetchTasks()
+    }
+  }, [folder?.id, objectKey])
 
   const serverContext = useServerContext()
 
@@ -100,23 +115,25 @@ export const FolderObjectSidebar = ({
     description: string
     icon: IconProps['icon']
     onExecute: () => void
-  }[] = serverContext.appFolderActions.map(({ action, appIdentifier }) => ({
-    description: action.description,
-    icon: CheckIcon,
-    id: action.key,
-    key: action.key,
-    label: action.key,
-    onExecute: () =>
-      apiClient.foldersApi.handleFolderAction({
-        folderId,
-        actionKey: action.key,
-        appIdentifier,
-        folderHandleActionInputDTO: {
-          actionParams: {},
-          objectKey,
-        },
-      }),
-  }))
+  }[] = serverContext.appFolderObjectTaskTriggers.map(
+    ({ taskTrigger, appIdentifier }) => ({
+      description: taskTrigger.description,
+      icon: CheckIcon,
+      id: taskTrigger.taskKey,
+      key: taskTrigger.taskKey,
+      label: taskTrigger.label,
+      onExecute: () =>
+        apiClient.foldersApi.handleAppTaskTrigger({
+          folderId,
+          taskKey: taskTrigger.taskKey,
+          appIdentifier,
+          triggerAppTaskInputDTO: {
+            inputParams: {},
+            objectKey,
+          },
+        }),
+    }),
+  )
 
   return (
     <div className="h-full min-w-full flex flex-col overflow-hidden">
@@ -356,6 +373,7 @@ export const FolderObjectSidebar = ({
             </div>
           </div>
           <div>{actionItems && <ActionsList actionItems={actionItems} />}</div>
+          <div>{tasks && <TasksList tasks={tasks} />}</div>
           {showRawMetadata && (
             <div className="text-xs p-4">
               <pre className="p-6 dark:bg-white/5 dark:text-gray-200">

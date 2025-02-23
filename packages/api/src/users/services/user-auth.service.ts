@@ -28,16 +28,12 @@ export class UserAuthService {
     })
 
     if (!user || !this.verifyPassword(user, password)) {
-      throw new LoginInvalidException(login)
+      throw new LoginInvalidException()
     }
 
     if (!user.emailVerified) {
       throw new UserEmailNotVerifiedException()
     }
-
-    // if (user.totpEnabled()) {
-    //   // TODO: Check 2FA
-    // }
 
     const { session, accessToken, refreshToken } =
       await this.sessionService.createSession(user)

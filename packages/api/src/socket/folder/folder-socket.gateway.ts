@@ -19,7 +19,7 @@ import { FolderSocketService } from './folder-socket.service'
 })
 export class FolderSocketGateway implements OnGatewayConnection, OnGatewayInit {
   @WebSocketServer()
-  public readonly namespace: Namespace
+  public readonly namespace: Namespace | undefined
 
   constructor(private readonly folderSocketService: FolderSocketService) {}
 
@@ -28,6 +28,12 @@ export class FolderSocketGateway implements OnGatewayConnection, OnGatewayInit {
   }
 
   async handleConnection(socket: Socket): Promise<void> {
-    await this.folderSocketService.handleConnection(socket)
+    try {
+      await this.folderSocketService.handleConnection(socket)
+    } catch (error: any) {
+      console.log('Folder socket connection error:', error)
+      // TODO: send some message to the client so they know what to do?
+      socket.disconnect()
+    }
   }
 }

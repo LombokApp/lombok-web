@@ -16,6 +16,7 @@ import type { SignupResponse } from '../dto/responses/signup-response.dto'
 import type { TokenRefreshResponse } from '../dto/responses/token-refresh-response.dto'
 import { SignupCredentialsDTO } from '../dto/signup-credentials.dto'
 import { AuthService } from '../services/auth.service'
+import { transformUserToDTO } from 'src/users/dto/transforms/user.transforms'
 
 @Controller('/api/v1/auth')
 @ApiTags('Auth')
@@ -43,7 +44,7 @@ export class AuthController {
   @Post('/signup')
   async signup(@Body() input: SignupCredentialsDTO): Promise<SignupResponse> {
     const user = await this.authService.signup(input)
-    return { user }
+    return { user: transformUserToDTO(user) }
   }
 
   /**

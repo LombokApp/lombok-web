@@ -19,7 +19,7 @@ import { UserSocketService } from './user-socket.service'
 })
 export class UserSocketGateway implements OnGatewayConnection, OnGatewayInit {
   @WebSocketServer()
-  public readonly namespace: Namespace
+  public readonly namespace: Namespace | undefined
 
   constructor(private readonly userSocketService: UserSocketService) {}
 
@@ -28,6 +28,12 @@ export class UserSocketGateway implements OnGatewayConnection, OnGatewayInit {
   }
 
   async handleConnection(socket: Socket): Promise<void> {
-    await this.userSocketService.handleConnection(socket)
+    try {
+      await this.userSocketService.handleConnection(socket)
+    } catch (error: any) {
+      console.log('User socket connection error:', error)
+      // TODO: send some message to the client so they know what to do?
+      socket.disconnect()
+    }
   }
 }

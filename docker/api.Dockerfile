@@ -1,6 +1,6 @@
 # use the official Bun image
 # see all versions at https://hub.docker.com/r/oven/bun/tags
-FROM oven/bun:1.1.21-alpine as local
+FROM oven/bun:1.1.29-alpine as local
 WORKDIR /usr/src/app
 RUN set -eux \
   & apk add \

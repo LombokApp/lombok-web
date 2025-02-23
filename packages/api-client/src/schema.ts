@@ -152,7 +152,7 @@ export const schema = {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateViewerInputDTO"
+                "$ref": "#/components/schemas/ViewerUpdateInputDTO"
               }
             }
           }
@@ -819,9 +819,9 @@ export const schema = {
         ]
       }
     },
-    "/api/v1/folders/{folderId}/apps/{appIdentifier}/actions/{actionKey}": {
+    "/api/v1/folders/{folderId}/apps/{appIdentifier}/trigger/{taskKey}": {
       "post": {
-        "operationId": "handleFolderAction",
+        "operationId": "handleAppTaskTrigger",
         "parameters": [
           {
             "name": "folderId",
@@ -840,7 +840,7 @@ export const schema = {
             }
           },
           {
-            "name": "actionKey",
+            "name": "taskKey",
             "required": true,
             "in": "path",
             "schema": {
@@ -853,14 +853,14 @@ export const schema = {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/FolderHandleActionInputDTO"
+                "$ref": "#/components/schemas/TriggerAppTaskInputDTO"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Handle folder action."
+            "description": "Handle app task trigger"
           }
         },
         "tags": [
@@ -1443,6 +1443,168 @@ export const schema = {
         ]
       }
     },
+    "/api/v1/{folderId}/tasks/{taskId}": {
+      "get": {
+        "operationId": "getTask",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get a folder task by id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Tasks"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/{folderId}/tasks": {
+      "get": {
+        "operationId": "listTasks",
+        "parameters": [
+          {
+            "name": "objectKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "createdAt-asc",
+                "createdAt-desc",
+                "updatedAt-asc",
+                "updatedAt-desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeWaiting",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "true"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeRunning",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "true"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeComplete",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "true"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeFailed",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "true"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "type": "number"
+            }
+          },
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List tasks.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskListResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Tasks"
+        ],
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/server/events/{eventId}": {
       "get": {
         "operationId": "getEvent",
@@ -1650,7 +1812,8 @@ export const schema = {
           },
           "email": {
             "type": "string",
-            "maxLength": 255
+            "minLength": 1,
+            "format": "email"
           },
           "password": {
             "type": "string",
@@ -1659,6 +1822,7 @@ export const schema = {
         },
         "required": [
           "username",
+          "email",
           "password"
         ]
       },
@@ -1672,16 +1836,10 @@ export const schema = {
                 "type": "string"
               },
               "name": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": "string"
               },
               "email": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": "string"
               },
               "emailVerified": {
                 "type": "boolean"
@@ -1755,16 +1913,10 @@ export const schema = {
                 "type": "string"
               },
               "name": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": "string"
               },
               "email": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": "string"
               },
               "emailVerified": {
                 "type": "boolean"
@@ -1805,7 +1957,7 @@ export const schema = {
           "user"
         ]
       },
-      "UpdateViewerInputDTO": {
+      "ViewerUpdateInputDTO": {
         "type": "object",
         "properties": {
           "name": {
@@ -1823,16 +1975,10 @@ export const schema = {
             "type": "string"
           },
           "name": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string"
           },
           "email": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string"
           },
           "emailVerified": {
             "type": "boolean"
@@ -1872,16 +2018,10 @@ export const schema = {
         "type": "object",
         "properties": {
           "name": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string"
           },
           "email": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string"
           },
           "emailVerified": {
             "type": "boolean"
@@ -1917,16 +2057,10 @@ export const schema = {
                 "type": "string"
               },
               "name": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": "string"
               },
               "email": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": "string"
               },
               "emailVerified": {
                 "type": "boolean"
@@ -1971,16 +2105,10 @@ export const schema = {
         "type": "object",
         "properties": {
           "name": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string"
           },
           "email": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string"
           },
           "emailVerified": {
             "type": "boolean"
@@ -2025,16 +2153,10 @@ export const schema = {
                   "type": "string"
                 },
                 "name": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string"
                 },
                 "email": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string"
                 },
                 "emailVerified": {
                   "type": "boolean"
@@ -2209,10 +2331,7 @@ export const schema = {
             "type": "string"
           },
           "hash": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string"
           },
           "lastModified": {
             "type": "number"
@@ -2976,10 +3095,7 @@ export const schema = {
                   "type": "string"
                 },
                 "hash": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                  "type": "string"
                 },
                 "lastModified": {
                   "type": "number"
@@ -3110,10 +3226,7 @@ export const schema = {
                 "type": "string"
               },
               "hash": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+                "type": "string"
               },
               "lastModified": {
                 "type": "number"
@@ -3263,13 +3376,13 @@ export const schema = {
           "urls"
         ]
       },
-      "FolderHandleActionInputDTO": {
+      "TriggerAppTaskInputDTO": {
         "type": "object",
         "properties": {
           "objectKey": {
             "type": "string"
           },
-          "actionParams": {}
+          "inputParams": {}
         }
       },
       "AccessKeyDTO": {
@@ -3721,6 +3834,331 @@ export const schema = {
           "provisionTypes"
         ]
       },
+      "TaskDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "taskKey": {
+            "type": "string"
+          },
+          "ownerIdentifier": {
+            "type": "string"
+          },
+          "triggeringEventId": {
+            "type": "string"
+          },
+          "subjectFolderId": {
+            "type": "string"
+          },
+          "subjectObjectKey": {
+            "type": "string"
+          },
+          "handlerId": {
+            "type": "string"
+          },
+          "inputData": {
+            "type": "object",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          },
+          "errorAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "errorCode": {
+            "type": "string"
+          },
+          "errorMessage": {
+            "type": "string"
+          },
+          "taskDescription": {
+            "type": "object",
+            "properties": {
+              "textKey": {
+                "type": "string"
+              },
+              "variables": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "textKey",
+              "variables"
+            ]
+          },
+          "updates": {
+            "type": "array",
+            "items": {}
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "taskKey",
+          "ownerIdentifier",
+          "triggeringEventId",
+          "inputData",
+          "taskDescription",
+          "updates",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "TaskGetResponse": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "taskKey": {
+                "type": "string"
+              },
+              "ownerIdentifier": {
+                "type": "string"
+              },
+              "triggeringEventId": {
+                "type": "string"
+              },
+              "subjectFolderId": {
+                "type": "string"
+              },
+              "subjectObjectKey": {
+                "type": "string"
+              },
+              "handlerId": {
+                "type": "string"
+              },
+              "inputData": {
+                "type": "object",
+                "additionalProperties": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              "errorAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "errorCode": {
+                "type": "string"
+              },
+              "errorMessage": {
+                "type": "string"
+              },
+              "taskDescription": {
+                "type": "object",
+                "properties": {
+                  "textKey": {
+                    "type": "string"
+                  },
+                  "variables": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "textKey",
+                  "variables"
+                ]
+              },
+              "updates": {
+                "type": "array",
+                "items": {}
+              },
+              "startedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "completedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "taskKey",
+              "ownerIdentifier",
+              "triggeringEventId",
+              "inputData",
+              "taskDescription",
+              "updates",
+              "createdAt",
+              "updatedAt"
+            ]
+          }
+        },
+        "required": [
+          "task"
+        ]
+      },
+      "TaskListResponse": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalCount"
+            ]
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "taskKey": {
+                  "type": "string"
+                },
+                "ownerIdentifier": {
+                  "type": "string"
+                },
+                "triggeringEventId": {
+                  "type": "string"
+                },
+                "subjectFolderId": {
+                  "type": "string"
+                },
+                "subjectObjectKey": {
+                  "type": "string"
+                },
+                "handlerId": {
+                  "type": "string"
+                },
+                "inputData": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                },
+                "errorAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "errorCode": {
+                  "type": "string"
+                },
+                "errorMessage": {
+                  "type": "string"
+                },
+                "taskDescription": {
+                  "type": "object",
+                  "properties": {
+                    "textKey": {
+                      "type": "string"
+                    },
+                    "variables": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "textKey",
+                    "variables"
+                  ]
+                },
+                "updates": {
+                  "type": "array",
+                  "items": {}
+                },
+                "startedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "completedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "id",
+                "taskKey",
+                "ownerIdentifier",
+                "triggeringEventId",
+                "inputData",
+                "taskDescription",
+                "updates",
+                "createdAt",
+                "updatedAt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "result"
+        ]
+      },
       "EventDTO": {
         "type": "object",
         "properties": {
@@ -3730,11 +4168,8 @@ export const schema = {
           "eventKey": {
             "type": "string"
           },
-          "appIdentifier": {
-            "type": [
-              "string",
-              "null"
-            ]
+          "emitterIdentifier": {
+            "type": "string"
           },
           "locationContext": {
             "type": "object",
@@ -3759,7 +4194,7 @@ export const schema = {
         "required": [
           "id",
           "eventKey",
-          "appIdentifier",
+          "emitterIdentifier",
           "createdAt"
         ]
       },
@@ -3775,11 +4210,8 @@ export const schema = {
               "eventKey": {
                 "type": "string"
               },
-              "appIdentifier": {
-                "type": [
-                  "string",
-                  "null"
-                ]
+              "emitterIdentifier": {
+                "type": "string"
               },
               "locationContext": {
                 "type": "object",
@@ -3804,7 +4236,7 @@ export const schema = {
             "required": [
               "id",
               "eventKey",
-              "appIdentifier",
+              "emitterIdentifier",
               "createdAt"
             ]
           }
@@ -3838,11 +4270,8 @@ export const schema = {
                 "eventKey": {
                   "type": "string"
                 },
-                "appIdentifier": {
-                  "type": [
-                    "string",
-                    "null"
-                  ]
+                "emitterIdentifier": {
+                  "type": "string"
                 },
                 "locationContext": {
                   "type": "object",
@@ -3867,7 +4296,7 @@ export const schema = {
               "required": [
                 "id",
                 "eventKey",
-                "appIdentifier",
+                "emitterIdentifier",
                 "createdAt"
               ]
             }
@@ -3893,62 +4322,96 @@ export const schema = {
               "description": {
                 "type": "string"
               },
-              "subscribedEvents": {
+              "emittableEvents": {
                 "type": "array",
                 "items": {
                   "type": "string"
                 }
               },
-              "emitEvents": {
+              "tasks": {
                 "type": "array",
                 "items": {
-                  "type": "string"
-                }
-              },
-              "actions": {
-                "type": "object",
-                "properties": {
-                  "folder": {
-                    "type": "array",
-                    "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "eventTriggers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "folderAction": {
                       "type": "object",
                       "properties": {
-                        "key": {
-                          "type": "string"
-                        },
                         "description": {
                           "type": "string"
                         }
                       },
                       "required": [
-                        "key",
                         "description"
                       ]
+                    },
+                    "objectAction": {
+                      "type": "object",
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "description"
+                      ]
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "inputParams": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "boolean",
+                              "string",
+                              "number"
+                            ]
+                          },
+                          "default": {
+                            "oneOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "boolean"
+                              }
+                            ],
+                            "type": "null"
+                          }
+                        },
+                        "required": [
+                          "type"
+                        ]
+                      }
                     }
                   },
-                  "object": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "key": {
-                          "type": "string"
-                        },
-                        "description": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "key",
-                        "description"
-                      ]
-                    }
-                  }
-                },
-                "required": [
-                  "folder",
-                  "object"
-                ]
+                  "required": [
+                    "key",
+                    "label",
+                    "eventTriggers",
+                    "description",
+                    "inputParams"
+                  ]
+                }
               },
               "menuItems": {
                 "type": "array",
@@ -3975,9 +4438,8 @@ export const schema = {
             "required": [
               "publicKey",
               "description",
-              "subscribedEvents",
-              "emitEvents",
-              "actions",
+              "emittableEvents",
+              "tasks",
               "menuItems"
             ]
           },
@@ -4059,62 +4521,96 @@ export const schema = {
                         "description": {
                           "type": "string"
                         },
-                        "subscribedEvents": {
+                        "emittableEvents": {
                           "type": "array",
                           "items": {
                             "type": "string"
                           }
                         },
-                        "emitEvents": {
+                        "tasks": {
                           "type": "array",
                           "items": {
-                            "type": "string"
-                          }
-                        },
-                        "actions": {
-                          "type": "object",
-                          "properties": {
-                            "folder": {
-                              "type": "array",
-                              "items": {
+                            "type": "object",
+                            "properties": {
+                              "key": {
+                                "type": "string"
+                              },
+                              "label": {
+                                "type": "string"
+                              },
+                              "eventTriggers": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              },
+                              "folderAction": {
                                 "type": "object",
                                 "properties": {
-                                  "key": {
-                                    "type": "string"
-                                  },
                                   "description": {
                                     "type": "string"
                                   }
                                 },
                                 "required": [
-                                  "key",
                                   "description"
                                 ]
+                              },
+                              "objectAction": {
+                                "type": "object",
+                                "properties": {
+                                  "description": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "description"
+                                ]
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "inputParams": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "boolean",
+                                        "string",
+                                        "number"
+                                      ]
+                                    },
+                                    "default": {
+                                      "oneOf": [
+                                        {
+                                          "type": "string"
+                                        },
+                                        {
+                                          "type": "number"
+                                        },
+                                        {
+                                          "type": "boolean"
+                                        }
+                                      ],
+                                      "type": "null"
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ]
+                                }
                               }
                             },
-                            "object": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "key": {
-                                    "type": "string"
-                                  },
-                                  "description": {
-                                    "type": "string"
-                                  }
-                                },
-                                "required": [
-                                  "key",
-                                  "description"
-                                ]
-                              }
-                            }
-                          },
-                          "required": [
-                            "folder",
-                            "object"
-                          ]
+                            "required": [
+                              "key",
+                              "label",
+                              "eventTriggers",
+                              "description",
+                              "inputParams"
+                            ]
+                          }
                         },
                         "menuItems": {
                           "type": "array",
@@ -4141,9 +4637,8 @@ export const schema = {
                       "required": [
                         "publicKey",
                         "description",
-                        "subscribedEvents",
-                        "emitEvents",
-                        "actions",
+                        "emittableEvents",
+                        "tasks",
                         "menuItems"
                       ]
                     },
@@ -4251,62 +4746,96 @@ export const schema = {
                   "description": {
                     "type": "string"
                   },
-                  "subscribedEvents": {
+                  "emittableEvents": {
                     "type": "array",
                     "items": {
                       "type": "string"
                     }
                   },
-                  "emitEvents": {
+                  "tasks": {
                     "type": "array",
                     "items": {
-                      "type": "string"
-                    }
-                  },
-                  "actions": {
-                    "type": "object",
-                    "properties": {
-                      "folder": {
-                        "type": "array",
-                        "items": {
+                      "type": "object",
+                      "properties": {
+                        "key": {
+                          "type": "string"
+                        },
+                        "label": {
+                          "type": "string"
+                        },
+                        "eventTriggers": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "folderAction": {
                           "type": "object",
                           "properties": {
-                            "key": {
-                              "type": "string"
-                            },
                             "description": {
                               "type": "string"
                             }
                           },
                           "required": [
-                            "key",
                             "description"
                           ]
+                        },
+                        "objectAction": {
+                          "type": "object",
+                          "properties": {
+                            "description": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "description"
+                          ]
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "inputParams": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "boolean",
+                                  "string",
+                                  "number"
+                                ]
+                              },
+                              "default": {
+                                "oneOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "boolean"
+                                  }
+                                ],
+                                "type": "null"
+                              }
+                            },
+                            "required": [
+                              "type"
+                            ]
+                          }
                         }
                       },
-                      "object": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "key": {
-                              "type": "string"
-                            },
-                            "description": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "key",
-                            "description"
-                          ]
-                        }
-                      }
-                    },
-                    "required": [
-                      "folder",
-                      "object"
-                    ]
+                      "required": [
+                        "key",
+                        "label",
+                        "eventTriggers",
+                        "description",
+                        "inputParams"
+                      ]
+                    }
                   },
                   "menuItems": {
                     "type": "array",
@@ -4333,9 +4862,8 @@ export const schema = {
                 "required": [
                   "publicKey",
                   "description",
-                  "subscribedEvents",
-                  "emitEvents",
-                  "actions",
+                  "emittableEvents",
+                  "tasks",
                   "menuItems"
                 ]
               },

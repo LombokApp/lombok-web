@@ -74,7 +74,6 @@ const AuthenticatedContent = ({ Component, pageProps }: AppProps) => {
         menuItems={menuItems}
         router={router}
       />
-
       <main
         className={cn(
           'flex-1 min-h-[calc(100vh_-_56px)] bg-background transition-[margin-left] ease-in-out duration-300',

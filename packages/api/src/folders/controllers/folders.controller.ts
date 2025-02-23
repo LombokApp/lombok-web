@@ -21,7 +21,7 @@ import { StorageLocationInputDTO } from 'src/storage/dto/storage-location-input.
 import { FolderDTO } from '../dto/folder.dto'
 import { FolderCreateInputDTO } from '../dto/folder-create-input.dto'
 import { FolderCreateSignedUrlInputDTO } from '../dto/folder-create-signed-url-input.dto'
-import { FolderHandleActionInputDTO } from '../dto/folder-handle-action-input.dto'
+import { TriggerAppTaskInputDTO } from '../dto/trigger-app-task-input.dto'
 import { FolderObjectDTO } from '../dto/folder-object.dto'
 import { FolderObjectContentAttributesDTO } from '../dto/folder-object-content-attributes.dto'
 import { FolderObjectContentMetadataDTO } from '../dto/folder-object-content-metadata.dto'
@@ -272,28 +272,28 @@ export class FoldersController {
       })
 
     return {
-      folderObject,
+      folderObject: transformFolderObjectToDTO(folderObject),
     }
   }
 
   /**
-   * Handle folder action.
+   * Handle app task trigger
    */
-  @Post('/:folderId/apps/:appIdentifier/actions/:actionKey')
-  async handleFolderAction(
+  @Post('/:folderId/apps/:appIdentifier/trigger/:taskKey')
+  async handleAppTaskTrigger(
     @Req() req: express.Request,
     @Param('folderId') folderId: string,
     @Param('appIdentifier') appIdentifier: string,
-    @Param('actionKey') actionKey: string,
-    @Body() body: FolderHandleActionInputDTO,
+    @Param('taskKey') taskKey: string,
+    @Body() body: TriggerAppTaskInputDTO,
   ): Promise<void> {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    await this.folderService.handleFolderAction(req.user, {
+    await this.folderService.handleAppTaskTrigger(req.user, {
       folderId,
-      actionKey,
-      actionParams: body.actionParams,
+      taskKey,
+      inputParams: body.inputParams,
       appIdentifier,
       objectKey: body.objectKey,
     })

@@ -1,15 +1,13 @@
 import { Global, Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
 
-import { redisConfig } from './redis.config'
-import { RedisService } from './redis.service'
+import { KVService } from './kv.service'
 
 @Global()
 @Module({
-  imports: [ConfigModule.forFeature(redisConfig)],
+  imports: [],
   controllers: [],
-  providers: [RedisService],
-  exports: [RedisService],
+  providers: [KVService],
+  exports: [KVService],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class CacheModule {}

@@ -102,11 +102,7 @@ export const waitForFileOnDisk = (
   })
 }
 
-export const downloadFileToDisk = async (
-  url: string,
-  filepath: string,
-  name: string,
-) => {
+export const downloadFileToDisk = async (url: string, filepath: string) => {
   let mimeType = ''
   await axios
     .get<fs.ReadStream>(url, {
@@ -122,7 +118,7 @@ export const downloadFileToDisk = async (
         ? (response.headers['content-type'] as string)
         : ''
       if (!mimeType) {
-        throw new Error(`Cannot resolve mimeType for ${name}`)
+        throw new Error(`Cannot resolve mimeType for ${url}`)
       }
       const downloadStream = response.data.pipe(fs.createWriteStream(filepath))
       let lastAnnounce = 0

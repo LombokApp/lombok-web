@@ -1,4 +1,3 @@
-import { z } from 'zod'
 import {
   forwardRef,
   Inject,
@@ -13,11 +12,9 @@ import { and, eq, inArray, isNull } from 'drizzle-orm'
 import fs from 'fs'
 import path from 'path'
 import * as r from 'runtypes'
-import { redisConfig } from 'src/cache/redis.config'
-import { RedisService } from 'src/cache/redis.service'
+import { KVService } from 'src/cache/kv.service'
 import { readDirRecursive } from 'src/core/utils/fs.util'
 import { eventsTable } from 'src/event/entities/event.entity'
-import { eventReceiptsTable } from 'src/event/entities/event-receipt.entity'
 import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
@@ -27,15 +24,14 @@ import { OrmService } from 'src/orm/orm.service'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
+import { tasksTable } from 'src/task/entities/task.entity'
 import { v4 as uuidV4 } from 'uuid'
+import { z } from 'zod'
 
 import { appConfig } from '../config'
-import {
-  AppSocketAPIRequest,
-  AppSocketMessageType,
-} from '../constants/app-api-messages'
+import { AppSocketAPIRequest } from '../constants/app-api-messages'
 
-const FROM_DISK_APP_TREE_REDIS_KEY = '__STELLARIS_FROM_DISK_APP_TREE'
+const FROM_DISK_APP_TREE_CACHE_KEY = '__STELLARIS_FROM_DISK_APP_TREE'
 
 export type MetadataUploadUrlsResponse = {
   folderId: string
@@ -76,8 +72,8 @@ const UpdateAttributesValidator = r.Record({
   eventId: r.String.optional(),
 })
 
-const AttemptStartHandleEventValidator = r.Record({
-  eventKeys: r.Array(r.String),
+const AttemptStartHandleTaskValidator = r.Record({
+  taskKeys: r.Array(r.String),
 })
 
 const GetContentSignedURLsValidator = r.Record({
@@ -92,7 +88,6 @@ const GetContentSignedURLsValidator = r.Record({
 })
 
 const GetMetadataSignedURLsValidator = r.Record({
-  eventId: r.String.optional(),
   requests: r.Array(
     r.Record({
       folderId: r.String,
@@ -122,8 +117,8 @@ const UpdateMetadataValidator = r.Record({
   eventId: r.String.optional(),
 })
 
-const FailHandleEventValidator = z.object({
-  eventReceiptId: z.string(),
+const FailHandleTaskValidator = z.object({
+  taskId: z.string(),
   error: z.object({
     message: z.string(),
     code: z.string(),
@@ -148,21 +143,11 @@ interface InstalledAppDefinitions {
 @Injectable()
 export class AppService {
   folderService: FolderService
-  _appsCache: {
-    apps: InstalledAppDefinitions | undefined
-    appAssetCache: { [key: string]: Buffer }
-  } = {
-    apps: undefined,
-    appAssetCache: {},
-  }
-
   constructor(
-    @Inject(redisConfig.KEY)
-    private readonly _redisConfig: nestJsConfig.ConfigType<typeof redisConfig>,
     @Inject(appConfig.KEY)
     private readonly _appConfig: nestJsConfig.ConfigType<typeof appConfig>,
     private readonly ormService: OrmService,
-    private readonly redisService: RedisService,
+    private readonly kvService: KVService,
     @Inject(forwardRef(() => FolderService)) _folderService,
     private readonly s3Service: S3Service,
   ) {
@@ -184,7 +169,29 @@ export class AppService {
     const now = new Date()
     if (AppSocketAPIRequest.guard(message)) {
       const requestData = message.data
-      switch (message.name as AppSocketMessageType) {
+      const appIdentifierPrefixed = `APP:${appIdentifier.toUpperCase()}`
+      switch (message.name) {
+        case 'SAVE_LOG_ENTRY':
+          if (LogEntryValidator.guard(requestData)) {
+            await this.ormService.db.insert(eventsTable).values([
+              {
+                ...requestData,
+                createdAt: now,
+                emitterIdentifier: appIdentifier,
+                eventKey: `${appIdentifierPrefixed}:LOG_ENTRY`,
+                id: uuidV4(),
+              },
+            ])
+          } else {
+            return {
+              error: {
+                code: 400,
+                message: 'Invalid request.',
+              },
+            }
+          }
+          break
+
         case 'GET_CONTENT_SIGNED_URLS': {
           if (GetContentSignedURLsValidator.guard(requestData)) {
             return { result: await this.createSignedContentUrls(requestData) }
@@ -245,20 +252,19 @@ export class AppService {
             }
           }
         }
-        case 'COMPLETE_HANDLE_EVENT': {
+        case 'COMPLETE_HANDLE_TASK': {
           if (r.String.guard(requestData)) {
-            const eventReceipt =
-              await this.ormService.db.query.eventReceiptsTable.findFirst({
-                where: and(
-                  eq(eventReceiptsTable.id, requestData),
-                  eq(eventReceiptsTable.appIdentifier, appIdentifier),
-                ),
-              })
+            const task = await this.ormService.db.query.tasksTable.findFirst({
+              where: and(
+                eq(tasksTable.id, requestData),
+                eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
+              ),
+            })
             if (
-              !eventReceipt ||
-              eventReceipt.completedAt ||
-              eventReceipt.handlerId !== handlerId ||
-              !eventReceipt.startedAt
+              !task ||
+              task.completedAt ||
+              task.handlerId !== handlerId ||
+              !task.startedAt
             ) {
               return {
                 error: {
@@ -269,32 +275,23 @@ export class AppService {
             }
             return {
               result: await this.ormService.db
-                .update(eventReceiptsTable)
+                .update(tasksTable)
                 .set({ completedAt: new Date() })
-                .where(eq(eventReceiptsTable.id, eventReceipt.id)),
+                .where(eq(tasksTable.id, task.id)),
             }
           }
           break
         }
-        case 'ATTEMPT_START_HANDLE_EVENT': {
-          if (AttemptStartHandleEventValidator.guard(requestData)) {
-            const eventReceipt =
-              await this.ormService.db.query.eventReceiptsTable.findFirst({
-                where: and(
-                  eq(eventReceiptsTable.appIdentifier, appIdentifier),
-                  inArray(eventReceiptsTable.eventKey, requestData.eventKeys),
-                  isNull(eventReceiptsTable.startedAt),
-                ),
-                with: {
-                  event: true,
-                },
-              })
-            if (
-              !eventReceipt ||
-              eventReceipt.completedAt ||
-              eventReceipt.handlerId ||
-              eventReceipt.startedAt
-            ) {
+        case 'ATTEMPT_START_HANDLE_TASK': {
+          if (AttemptStartHandleTaskValidator.guard(requestData)) {
+            const task = await this.ormService.db.query.tasksTable.findFirst({
+              where: and(
+                eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
+                inArray(tasksTable.taskKey, requestData.taskKeys),
+                isNull(tasksTable.startedAt),
+              ),
+            })
+            if (!task || task.completedAt || task.handlerId || task.startedAt) {
               return {
                 result: undefined,
                 error: {
@@ -308,38 +305,34 @@ export class AppService {
               result: {
                 ...(
                   await this.ormService.db
-                    .update(eventReceiptsTable)
+                    .update(tasksTable)
                     .set({ startedAt: new Date(), handlerId })
-                    .where(eq(eventReceiptsTable.id, eventReceipt.id))
+                    .where(eq(tasksTable.id, task.id))
                     .returning()
                 )[0],
                 data: {
-                  folderId: eventReceipt.event.folderId,
-                  objectKey: eventReceipt.event.objectKey,
+                  folderId: task.subjectFolderId,
+                  objectKey: task.subjectObjectKey,
                 },
               },
             }
           }
           break
         }
-        case 'FAIL_HANDLE_EVENT': {
-          if (FailHandleEventValidator.safeParse(requestData).success) {
-            const parsedFailHandleEventMessage =
-              FailHandleEventValidator.parse(requestData)
-            const eventReceipt =
-              await this.ormService.db.query.eventReceiptsTable.findFirst({
-                where: and(
-                  eq(
-                    eventReceiptsTable.id,
-                    parsedFailHandleEventMessage.eventReceiptId,
-                  ),
-                  eq(eventReceiptsTable.appIdentifier, appIdentifier),
-                ),
-              })
+        case 'FAIL_HANDLE_TASK': {
+          if (FailHandleTaskValidator.safeParse(requestData).success) {
+            const parsedFailHandleTaskMessage =
+              FailHandleTaskValidator.parse(requestData)
+            const task = await this.ormService.db.query.tasksTable.findFirst({
+              where: and(
+                eq(tasksTable.id, parsedFailHandleTaskMessage.taskId),
+                eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
+              ),
+            })
             if (
-              !eventReceipt?.startedAt ||
-              eventReceipt.completedAt ||
-              eventReceipt.handlerId !== handlerId
+              !task?.startedAt ||
+              task.completedAt ||
+              task.handlerId !== handlerId
             ) {
               return {
                 result: undefined,
@@ -352,29 +345,29 @@ export class AppService {
 
             return {
               result: await this.ormService.db
-                .update(eventReceiptsTable)
+                .update(tasksTable)
                 .set({
-                  errorCode: parsedFailHandleEventMessage.error.code,
-                  errorMessage: parsedFailHandleEventMessage.error.message,
+                  errorCode: parsedFailHandleTaskMessage.error.code,
+                  errorMessage: parsedFailHandleTaskMessage.error.message,
                   errorAt: new Date(),
                 })
                 .where(
                   and(
-                    eq(eventReceiptsTable.id, eventReceipt.id),
-                    eq(eventReceiptsTable.appIdentifier, appIdentifier),
+                    eq(tasksTable.id, task.id),
+                    eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
                   ),
                 ),
             }
           } else {
             console.log(
-              'FAIL_HANDLE_EVENT error:',
-              FailHandleEventValidator.safeParse(requestData).error,
+              'FAIL_HANDLE_TASK error:',
+              FailHandleTaskValidator.safeParse(requestData).error,
             )
             return {
               result: undefined,
               error: {
                 code: 400,
-                message: 'Malformed FAIL_HANDLE_EVENT request.',
+                message: 'Malformed FAIL_HANDLE_TASK request.',
               },
             }
           }
@@ -392,7 +385,6 @@ export class AppService {
   }
 
   async createSignedContentUrls(payload: {
-    eventId?: string
     requests: {
       folderId: string
       objectKey: string
@@ -407,7 +399,6 @@ export class AppService {
   }
 
   async createSignedMetadataUrls(payload: {
-    eventId?: string
     requests: {
       folderId: string
       objectKey: string
@@ -620,7 +611,7 @@ export class AppService {
     }))
   }
 
-  public async getContentForAppAsset(
+  public getContentForAppAsset(
     appIdentifier: string,
     appUi: string,
     filename: string,
@@ -630,11 +621,7 @@ export class AppService {
       appUi,
       filename,
     )
-    if (this._redisConfig.enabled) {
-      return this.redisService.client.GET(CACHE_KEY)
-    } else {
-      return this._appsCache.appAssetCache[CACHE_KEY]
-    }
+    return this.kvService.ops.get(CACHE_KEY)
   }
 
   public getCacheKeyForAppAsset(
@@ -645,12 +632,10 @@ export class AppService {
     return `APP_UI:${appIdentifier}:${appUi}:${filename}`
   }
 
-  public async updateAppsFromDisk(appsDirectory: string) {
+  public updateAppsFromDisk(appsDirectory: string) {
     // load the apps from disk
     const appsFromDisk = this.loadAppsFromDisk(appsDirectory)
-    // console.log('Loaded apps from disk:', JSON.stringify(appsFromDisk, null, 2))
-
-    // push all app UI file content into redis
+    // push all app UI file content into the cache
     for (const appIdentifier of Object.keys(appsFromDisk)) {
       if (appIdentifier in appsFromDisk) {
         for (const appUi of Object.keys(
@@ -667,37 +652,20 @@ export class AppService {
               filename,
             )
             const CACHE_KEY = `APP_UI:${appIdentifier}:${appUi}:${filename}`
-            if (this._redisConfig.enabled) {
-              await this.redisService.client.SET(
-                CACHE_KEY,
-                fs.readFileSync(fullFilePath),
-              )
-            } else {
-              this._appsCache.appAssetCache[CACHE_KEY] =
-                fs.readFileSync(fullFilePath)
-            }
+            this.kvService.ops.set(CACHE_KEY, fs.readFileSync(fullFilePath))
           }
         }
       }
     }
 
     // save parsed apps in memory
-    await this.setAppsInMemory(appsFromDisk)
+    this.setAppsInMemory(appsFromDisk)
     return appsFromDisk
   }
 
-  private async setAppsInMemory(
-    apps: ReturnType<typeof this.loadAppsFromDisk>,
-  ) {
+  private setAppsInMemory(apps: ReturnType<typeof this.loadAppsFromDisk>) {
     // save app configs in memory
-    if (this._redisConfig.enabled) {
-      await this.redisService.client.SET(
-        FROM_DISK_APP_TREE_REDIS_KEY,
-        JSON.stringify(apps),
-      )
-    } else {
-      this._appsCache.apps = apps
-    }
+    this.kvService.ops.set(FROM_DISK_APP_TREE_CACHE_KEY, apps)
   }
 
   public async getApps() {
@@ -713,14 +681,9 @@ export class AppService {
 
   public async getAppsInMemory(): Promise<InstalledAppDefinitions | undefined> {
     // get latest configs from memory
-    if (this._redisConfig.enabled) {
-      const redisContentRaw = await this.redisService.client.GET(
-        FROM_DISK_APP_TREE_REDIS_KEY,
-      )
-      return redisContentRaw ? JSON.parse(redisContentRaw) : undefined
-    } else {
-      return this._appsCache.apps
-    }
+    const cacheContent: InstalledAppDefinitions | undefined =
+      await this.kvService.ops.get(FROM_DISK_APP_TREE_CACHE_KEY)
+    return cacheContent
   }
 
   public loadAppsFromDisk(appsDirectory: string) {
@@ -769,47 +732,43 @@ export class AppService {
     return configs
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async getAppConnections(): Promise<{
     [key: string]: ConnectedAppInstance[]
   }> {
-    if (this._redisConfig.enabled) {
-      let cursor = 0
-      let started = false
-      let keys: string[] = []
-      while (!started || cursor !== 0) {
-        started = true
+    let cursor = 0
+    let started = false
+    let keys: string[] = []
+    while (!started || cursor !== 0) {
+      started = true
 
-        const scanResult = await this.redisService.client.scan(cursor, {
-          MATCH: 'APP_WORKER:*',
-          TYPE: 'string',
-          COUNT: 10000,
-        })
-        keys = keys.concat(scanResult.keys)
-        cursor = scanResult.cursor
-      }
+      const scanResult = this.kvService.ops.scan(cursor, 'APP_WORKER:*', 10000)
+      cursor = scanResult[0]
+      keys = keys.concat(scanResult[1])
+    }
 
-      return keys.length
-        ? (await this.redisService.client.mGet(keys))
-            .filter((_r) => _r)
-            .reduce<{ [k: string]: ConnectedAppInstance[] }>((acc, _r) => {
-              const parsedRecord: ConnectedAppInstance | undefined = _r
-                ? JSON.parse(_r)
-                : undefined
-              if (!parsedRecord) {
+    const result = keys.length
+      ? this.kvService.ops
+          .mget(...keys)
+          .filter((_r) => _r)
+          .reduce<{ [k: string]: ConnectedAppInstance[] }>(
+            (acc, _r: string | undefined) => {
+              const parsed = JSON.parse(_r ?? 'null')
+              if (!parsed) {
                 return acc
               }
               return {
                 ...acc,
-                [parsedRecord.appIdentifier]: (parsedRecord.appIdentifier in acc
-                  ? acc[parsedRecord.appIdentifier]
+                [parsed.appIdentifier]: (parsed.appIdentifier in acc
+                  ? acc[parsed.appIdentifier]
                   : []
-                ).concat([parsedRecord]),
+                ).concat([parsed]),
               }
-            }, {})
-        : {}
-    } else {
-      // TODO: replace this
-      return {}
-    }
+            },
+            {},
+          )
+      : {}
+
+    return result
   }
 }

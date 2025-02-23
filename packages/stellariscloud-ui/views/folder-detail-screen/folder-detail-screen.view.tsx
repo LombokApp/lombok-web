@@ -2,8 +2,8 @@ import {
   ArrowUpOnSquareIcon,
   ArrowPathIcon,
   TrashIcon,
-  FolderIcon,
 } from '@heroicons/react/24/outline'
+import { Folder } from 'lucide-react'
 import { FolderObjectDTO } from '@stellariscloud/api-client'
 import { FolderPermissionEnum } from '@stellariscloud/types'
 import { FolderPushMessage, MediaType } from '@stellariscloud/types'
@@ -295,7 +295,7 @@ const renderFolderObjectPreview = (
     </svg>`
     reindexButton.setAttribute(
       'class',
-      'text-sm p-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white focus-visible:outline-indigo-600',
+      'text-sm p-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white/75 focus-visible:outline-indigo-600',
     )
 
     buttonDiv.append(reindexButton)
@@ -1283,7 +1283,7 @@ export const FolderDetailScreen = () => {
                     <div className="h-full w-full flex flex-col justify-around items-center">
                       <div className="max-w-[30rem] min-w-[30rem]">
                         <EmptyState
-                          icon={FolderIcon}
+                          icon={Folder}
                           text={'No objects. Try refreshing the folder.'}
                           onButtonPress={handleRefreshFolder}
                           buttonText="Refresh folder"

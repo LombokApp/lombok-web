@@ -16,55 +16,53 @@ export const buildAppClient = (socket: Socket): CoreServerMessageInterface => {
         data: entry,
       })
     },
-    getContentSignedUrls(requests, eventId) {
+    getContentSignedUrls(requests) {
       return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
         name: 'GET_CONTENT_SIGNED_URLS',
-        data: { eventId, requests },
+        data: { requests },
       })
     },
-    getMetadataSignedUrls(requests, eventId) {
+    getMetadataSignedUrls(requests) {
       return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
         name: 'GET_METADATA_SIGNED_URLS',
         data: {
-          eventId,
           requests,
         },
       })
     },
-    updateContentAttributes(updates, eventId) {
+    updateContentAttributes(updates) {
       return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
         name: 'UPDATE_CONTENT_ATTRIBUTES',
         data: {
-          eventId,
           updates,
         },
       })
     },
-    updateContentMetadata(updates, eventId) {
+    updateContentMetadata(updates, taskId) {
       return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
         name: 'UPDATE_CONTENT_METADATA',
         data: {
-          eventId,
+          taskId,
           updates,
         },
       })
     },
-    completeHandleEvent(eventId) {
+    completeHandleTask(taskId) {
       return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
-        name: 'COMPLETE_HANDLE_EVENT',
-        data: eventId,
+        name: 'COMPLETE_HANDLE_TASK',
+        data: taskId,
       })
     },
-    attemptStartHandleEvent(eventKeys: string[]) {
+    attemptStartHandleTask(taskKeys: string[]) {
       return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
-        name: 'ATTEMPT_START_HANDLE_EVENT',
-        data: { eventKeys },
+        name: 'ATTEMPT_START_HANDLE_TASK',
+        data: { taskKeys },
       })
     },
-    failHandleEvent(eventId, error) {
+    failHandleTask(taskId, error) {
       return socket.emitWithAck('APP_API', {
-        name: 'FAIL_HANDLE_EVENT',
-        data: { eventReceiptId: eventId, error },
+        name: 'FAIL_HANDLE_TASK',
+        data: { taskId, error },
       })
     },
   }
@@ -76,14 +74,14 @@ interface AppAPIResponse<T> {
 }
 export interface CoreServerMessageInterface {
   saveLogEntry: (entry: AppLogEntry) => Promise<boolean>
-  attemptStartHandleEvent: (
-    eventKeys: string[],
-  ) => Promise<AppAPIResponse<AppEvent>>
-  failHandleEvent: (
-    eventId: string,
+  attemptStartHandleTask: (
+    taskKeys: string[],
+  ) => Promise<AppAPIResponse<AppTask>>
+  failHandleTask: (
+    taskId: string,
     error: { code: string; message: string },
   ) => Promise<void>
-  completeHandleEvent: (eventId: string) => Promise<AppAPIResponse<void>>
+  completeHandleTask: (taskId: string) => Promise<AppAPIResponse<void>>
   getMetadataSignedUrls: (
     objects: {
       folderId: string
@@ -92,7 +90,6 @@ export interface CoreServerMessageInterface {
       metadataHash: string
       method: 'GET' | 'PUT' | 'DELETE'
     }[],
-    eventId?: string,
   ) => Promise<
     AppAPIResponse<{
       urls: { url: string; folderId: string; objectKey: string }[]
@@ -130,9 +127,9 @@ export interface CoreServerMessageInterface {
   ) => Promise<AppAPIResponse<void>>
 }
 
-export interface AppEvent {
+export interface AppTask {
   id: string
-  eventKey: string
+  taskKey: string
   data: any
 }
 
@@ -149,21 +146,21 @@ export const connectAndPerformWork = (
   socketBaseUrl: string,
   appWorkerId: string,
   appToken: string,
-  eventHandlers: {
-    [eventName: string]: (
-      event: AppEvent,
+  taskHandlers: {
+    [taskKey: string]: (
+      task: AppTask,
       serverClient: CoreServerMessageInterface,
     ) => Promise<void>
   },
   _log: (entry: Partial<AppLogEntry>) => void,
 ) => {
   // TODO: send internal state back to the core via a message
-  const eventSubscriptionKeys = Object.keys(eventHandlers)
+  const taskKeys = Object.keys(taskHandlers)
   const socket = io(`${socketBaseUrl}/apps`, {
     auth: {
       appWorkerId,
       token: appToken,
-      eventSubscriptionKeys,
+      handledTaskKeys: taskKeys,
     },
     reconnection: false,
   })
@@ -194,27 +191,27 @@ export const connectAndPerformWork = (
       console.log('Got event in worker thread:', _data)
     })
 
-    socket.on('PENDING_EVENTS_NOTIFICATION', async (_data) => {
-      console.log('Worker for PENDING_EVENTS_NOTIFICATION!', _data)
+    socket.on('PENDING_TASKS_NOTIFICATION', async (_data) => {
+      console.log('Worker for PENDING_TASKS_NOTIFICATION!', _data)
       if (concurrentTasks < 10) {
         try {
           concurrentTasks++
           const attemptStartHandleResponse =
-            await serverClient.attemptStartHandleEvent(eventSubscriptionKeys)
-          const event = attemptStartHandleResponse.result
+            await serverClient.attemptStartHandleTask(taskKeys)
+          const task = attemptStartHandleResponse.result
           if (attemptStartHandleResponse.error) {
             const errorMessage = `${attemptStartHandleResponse.error.code} - ${attemptStartHandleResponse.error.message}`
             _log({ message: errorMessage, name: 'Error' })
           } else {
-            await eventHandlers[event.eventKey](event, serverClient)
-              .then(() => serverClient.completeHandleEvent(event.id))
+            await taskHandlers[task.taskKey](task, serverClient)
+              .then(() => serverClient.completeHandleTask(task.id))
               .catch((e) => {
                 console.log('APP_WORKER_EXECUTION_ERROR:', {
                   name: e.name,
                   message: e.message,
                   stack: e.stack,
                 })
-                return serverClient.failHandleEvent(event.id, {
+                return serverClient.failHandleTask(task.id, {
                   code:
                     e instanceof AppAPIError
                       ? e.errorCode

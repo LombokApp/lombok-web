@@ -45,8 +45,8 @@ export function AccessKeyRotateForm({
   return (
     <div className="flex items-end gap-4">
       <Input
-        label="Access Key ID"
-        placeholder="Access Key ID"
+        label="New Access Key ID"
+        placeholder="New Access Key ID"
         error={
           !form.state.fields.accessKeyId.valid
             ? form.state.fields.accessKeyId.error
@@ -56,8 +56,8 @@ export function AccessKeyRotateForm({
         onChange={(e) => form.setValue('accessKeyId', e.target.value)}
       />
       <Input
-        label="Secret Access Key"
-        placeholder="Secret Access Key"
+        label="New Secret Access Key"
+        placeholder="New Secret Access Key"
         error={
           !form.state.fields.secretAccessKey.valid
             ? form.state.fields.secretAccessKey.error

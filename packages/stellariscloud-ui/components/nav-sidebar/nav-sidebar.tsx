@@ -7,11 +7,11 @@ import {
   Cog6ToothIcon,
   CubeIcon,
   FolderIcon,
-  HomeIcon,
   KeyIcon,
   SignalIcon,
   Square3Stack3DIcon,
   UsersIcon,
+  AcademicCapIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -47,10 +47,10 @@ export const NavSidebar = ({
   ]
   const serverNavigation = [
     {
-      name: 'Overview',
-      href: '/server/overview',
-      icon: HomeIcon,
-      current: router.asPath.startsWith('/server/overview'),
+      name: 'Dashboard',
+      href: '/server/dashboard',
+      icon: AcademicCapIcon,
+      current: router.asPath.startsWith('/server/dashboard'),
     },
     { name: 'Users', href: '/server/users', icon: UsersIcon, current: false },
     {

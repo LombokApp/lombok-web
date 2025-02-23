@@ -32,6 +32,7 @@
     "postcss.config.mjs",
     "lint-staged.config.js",
     "tailwind.config.ts",
+    "jest.config.mjs",
     "next.config.mjs"
   ],
   "exclude": []

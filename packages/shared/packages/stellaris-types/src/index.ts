@@ -1,5 +1,2 @@
-export * from './types/folder.types'
-export * from './types/content.types'
-export * from './types/messages.types'
-export * from './types/apps.types'
-export * from './types/storage.types'
+export * from './types'
+export * from './schemas'

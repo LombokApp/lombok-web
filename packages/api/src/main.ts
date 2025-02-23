@@ -1,11 +1,8 @@
 import { NestFactory } from '@nestjs/core'
 
-import { redisConfig } from './cache/redis.config'
-import { RedisService } from './cache/redis.service'
-import { appReference, setApp, setAppInitializing } from './core/app-helper'
 import { CoreModule } from './core/core.module'
-import { HttpExceptionFilter } from './core/http-exception-filter'
-import { RedisIoAdapter } from './socket/redis-io-adapter'
+import { appReference, setApp, setAppInitializing } from './shared/app-helper'
+import { HttpExceptionFilter } from './shared/http-exception-filter'
 
 export async function buildApp() {
   if (appReference.app) {
@@ -23,17 +20,6 @@ export async function buildApp() {
   app.useGlobalFilters(new HttpExceptionFilter())
   app.enableShutdownHooks()
   app.enableCors()
-
-  // setup redis adapter for socket.io broadcasts
-  const _redisConfig = redisConfig()
-  if (_redisConfig.enabled) {
-    const redisIoAdapter = new RedisIoAdapter(
-      _redisConfig,
-      await app.resolve(RedisService),
-    )
-    redisIoAdapter.connectAdapter()
-    app.useWebSocketAdapter(redisIoAdapter)
-  }
 
   return app.listen(3001)
 }
