@@ -1,7 +1,5 @@
-import { getQueueToken } from '@nestjs/bullmq'
-import { StorageProvisionTypeEnum } from '@stellariscloud/types'
-import type { InMemoryQueue } from 'src/queue/InMemoryQueue'
-import { CoreTaskName } from 'src/task/task.constants'
+import { UserStorageProvisionTypeEnum } from '@stellariscloud/types'
+import { CoreTaskService } from 'src/task/services/core-task.service'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
@@ -10,6 +8,7 @@ import {
   rescanTestFolder,
   testS3Location,
   waitForTrue,
+  // waitForTrue,
 } from 'src/test/test.util'
 
 const TEST_MODULE_KEY = 'folders'
@@ -24,7 +23,7 @@ describe('Folders', () => {
   })
 
   afterEach(async () => {
-    await testModule?.resetDb()
+    await testModule?.resetAppState()
   })
 
   it(`should create a folder`, async () => {
@@ -243,10 +242,7 @@ describe('Folders', () => {
     expect(folderGetResponse.status).toEqual(200)
     expect(folderGetResponse.data.folder.id).toEqual(testFolder.folder.id)
 
-    const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
-      getQueueToken(CoreTaskName.RESCAN_FOLDER),
-    )
-    const jobsCompletedBefore = queue?.stats.completedJobs ?? 0
+    const coreTaskService = await testModule?.app.resolve(CoreTaskService)
 
     await rescanTestFolder({
       accessToken,
@@ -255,10 +251,10 @@ describe('Folders', () => {
     })
 
     // wait to see that a job was run (we know it's our job)
-    await waitForTrue(
-      () => (queue?.stats.completedJobs ?? 0) > jobsCompletedBefore,
-      { retryPeriod: 100, maxRetries: 10 },
-    )
+    await waitForTrue(() => coreTaskService?.runningTasksCount === 0, {
+      retryPeriod: 100,
+      maxRetries: 10,
+    })
     const listObjectsResponse = await apiClient
       .foldersApi({ accessToken })
       .listFolderObjects({ folderId: testFolder.folder.id })
@@ -275,7 +271,7 @@ describe('Folders', () => {
       admin: true,
     })
 
-    const storageProvisionInput = {
+    const userStorageProvisionInput = {
       label: 'Test Provision',
       description: 'This is a test provision',
       accessKeyId: 'testakid',
@@ -284,13 +280,13 @@ describe('Folders', () => {
       prefix: 'someserverprefix/',
       endpoint: 'https://endpointexample.com',
       region: 'auto',
-      provisionTypes: [StorageProvisionTypeEnum.CONTENT],
+      provisionTypes: [UserStorageProvisionTypeEnum.CONTENT],
     }
 
     const _storageProvision = await apiClient
-      .storageProvisionsApi({ accessToken })
-      .createServerProvision({
-        storageProvisionInputDTO: storageProvisionInput,
+      .userStorageProvisionsApi({ accessToken })
+      .createUserStorageProvision({
+        userStorageProvisionInputDTO: userStorageProvisionInput,
       })
 
     const folderCreateResponse = await apiClient
@@ -312,19 +308,19 @@ describe('Folders', () => {
       'SERVER',
     )
     expect(folderCreateResponse.data.folder.contentLocation.endpoint).toBe(
-      storageProvisionInput.endpoint,
+      userStorageProvisionInput.endpoint,
     )
     expect(folderCreateResponse.data.folder.contentLocation.bucket).toBe(
-      storageProvisionInput.bucket,
+      userStorageProvisionInput.bucket,
     )
     expect(folderCreateResponse.data.folder.contentLocation.region).toBe(
-      storageProvisionInput.region,
+      userStorageProvisionInput.region,
     )
     expect(folderCreateResponse.data.folder.contentLocation.accessKeyId).toBe(
-      storageProvisionInput.accessKeyId,
+      userStorageProvisionInput.accessKeyId,
     )
     expect(folderCreateResponse.data.folder.contentLocation.prefix).toBe(
-      `${storageProvisionInput.prefix}.stellaris_folder_content_${folderCreateResponse.data.folder.id}/`,
+      `${userStorageProvisionInput.prefix}.stellaris_folder_content_${folderCreateResponse.data.folder.id}/`,
     )
 
     // validate metadata location
@@ -332,19 +328,19 @@ describe('Folders', () => {
       'SERVER',
     )
     expect(folderCreateResponse.data.folder.metadataLocation.endpoint).toBe(
-      storageProvisionInput.endpoint,
+      userStorageProvisionInput.endpoint,
     )
     expect(folderCreateResponse.data.folder.metadataLocation.bucket).toBe(
-      storageProvisionInput.bucket,
+      userStorageProvisionInput.bucket,
     )
     expect(folderCreateResponse.data.folder.metadataLocation.region).toBe(
-      storageProvisionInput.region,
+      userStorageProvisionInput.region,
     )
     expect(folderCreateResponse.data.folder.metadataLocation.accessKeyId).toBe(
-      storageProvisionInput.accessKeyId,
+      userStorageProvisionInput.accessKeyId,
     )
     expect(folderCreateResponse.data.folder.metadataLocation.prefix).toBe(
-      `${storageProvisionInput.prefix}.stellaris_folder_metadata_${folderCreateResponse.data.folder.id}/`,
+      `${userStorageProvisionInput.prefix}.stellaris_folder_metadata_${folderCreateResponse.data.folder.id}/`,
     )
   })
 
@@ -439,13 +435,13 @@ describe('Folders', () => {
       prefix: 'someserverprefix/',
       endpoint: 'https://endpointexample.com',
       region: 'auto',
-      provisionTypes: [StorageProvisionTypeEnum.CONTENT],
+      provisionTypes: [UserStorageProvisionTypeEnum.CONTENT],
     }
 
     const _storageProvision = await apiClient
-      .storageProvisionsApi({ accessToken })
-      .createServerProvision({
-        storageProvisionInputDTO: storageProvisionInput,
+      .userStorageProvisionsApi({ accessToken })
+      .createUserStorageProvision({
+        userStorageProvisionInputDTO: storageProvisionInput,
       })
 
     const folderCreateResponse = await apiClient
@@ -760,11 +756,11 @@ describe('Folders', () => {
   })
 
   it(`should 401 on handleFolderAction without token`, async () => {
-    const response = await apiClient.foldersApi().handleFolderAction({
-      actionKey: '__dummy__',
+    const response = await apiClient.foldersApi().handleAppTaskTrigger({
+      taskKey: '__dummy__',
       appIdentifier: '__dummy__',
-      folderHandleActionInputDTO: {
-        actionParams: {},
+      triggerAppTaskInputDTO: {
+        inputParams: {},
       },
       folderId: '__dummy__',
     })

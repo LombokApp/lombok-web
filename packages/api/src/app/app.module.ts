@@ -8,6 +8,9 @@ import nestJSConfig, { ConfigModule } from '@nestjs/config'
 import { coreConfig } from 'src/core/config'
 import { EventModule } from 'src/event/event.module'
 import { FoldersModule } from 'src/folders/folders.module'
+import { OrmService } from 'src/orm/orm.service'
+import { ServerModule } from 'src/server/server.module'
+import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { S3Service } from 'src/storage/s3.service'
 import { StorageModule } from 'src/storage/storage.module'
 
@@ -23,22 +26,37 @@ import { AppService } from './services/app.service'
     ConfigModule.forFeature(coreConfig),
     EventModule,
     StorageModule,
+    ServerModule,
     forwardRef(() => FoldersModule),
   ],
   controllers: [AppsController],
-  providers: [AppService, CoreAppService, S3Service],
+  providers: [
+    AppService,
+    CoreAppService,
+    S3Service,
+    ServerConfigurationService,
+  ],
   exports: [AppService],
 })
 export class AppModule implements OnModuleInit, NestModule {
   constructor(
     private readonly coreAppService: CoreAppService,
+    private readonly ormService: OrmService,
     private readonly appService: AppService,
-    @Inject(appConfig.KEY)
-    private readonly _appConfig: nestJSConfig.ConfigType<typeof appConfig>,
+    @Inject(coreConfig.KEY)
+    private readonly _coreConfig: nestJSConfig.ConfigType<typeof coreConfig>,
   ) {}
-  async onModuleInit() {
-    await this.appService.updateAppsFromDisk(this._appConfig.appsLocalPath)
-    this.coreAppService.startCoreModuleThread('embedded_worker_1')
+  onModuleInit() {
+    void this.ormService
+      .waitForInit()
+      .then(() => {
+        if (this._coreConfig.installAppsOnStart) {
+          return this.appService.installAllAppsFromDisk()
+        }
+      })
+      .then(() =>
+        this.coreAppService.startCoreModuleThread('embedded_worker_1'),
+      )
   }
 
   configure(consumer: MiddlewareConsumer) {

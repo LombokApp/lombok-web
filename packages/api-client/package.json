@@ -2,14 +2,14 @@
   "name": "@stellariscloud/api-client",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc -p ./tsconfig.json",
+    "build": "bun build . --outdir dist",
     "build:clean": "bun clean && bun run build",
-    "clean": "(rm -rf ./*.tsbuildinfo ||  true) && rm -rf ./dist"
+    "clean": "rm -rf ./dist"
   },
   "devDependencies": {
-    "axios": "1.7.2"
+    "axios": "1.7.9"
   },
   "peerDependencies": {
-    "axios": "1.7.2"
+    "axios": "1.7.9"
   }
 }

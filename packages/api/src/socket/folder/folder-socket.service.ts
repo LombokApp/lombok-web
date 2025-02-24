@@ -16,12 +16,12 @@ const UserAuthPayload = r.Record({
 
 @Injectable()
 export class FolderSocketService implements OnModuleInit {
-  private readonly connectedClients: Map<string, Socket> = new Map()
+  private readonly connectedClients = new Map<string, Socket>()
   private namespace: Namespace | undefined
   setNamespace(namespace: Namespace) {
     this.namespace = namespace
   }
-  private folderService: FolderService
+  private readonly folderService: FolderService
 
   constructor(
     private readonly moduleRef: ModuleRef,
@@ -66,13 +66,14 @@ export class FolderSocketService implements OnModuleInit {
         } else {
           throw new UnauthorizedException()
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
+        // eslint-disable-next-line no-console
         console.log('SOCKET ERROR:', e)
         socket.conn.close()
-        throw e ?? new Error('Undefined Error.')
       }
     } else {
       // auth payload does not match expected
+      // eslint-disable-next-line no-console
       console.log('Bad auth payload.', auth)
       socket.disconnect(true)
       throw new UnauthorizedException()
@@ -91,7 +92,7 @@ export class FolderSocketService implements OnModuleInit {
     // this.folderService = this.moduleRef.get(FolderService)
   }
 
-  sendToFolderRoom(folderId: string, name: FolderPushMessage, msg: any) {
+  sendToFolderRoom(folderId: string, name: FolderPushMessage, msg: unknown) {
     // console.log('sendToFolderRoom:', { folderId, name, msg })
     // this.server?.to(this.getRoomId(folderId)).emit(name, msg)
     // console.log(
@@ -102,6 +103,7 @@ export class FolderSocketService implements OnModuleInit {
     if (this.namespace) {
       this.namespace.to(this.getRoomId(folderId)).emit(name, msg)
     } else {
+      // eslint-disable-next-line no-console
       console.log('Namespace not yet set when sending folder room message.')
     }
   }

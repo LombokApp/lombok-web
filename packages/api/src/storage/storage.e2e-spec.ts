@@ -21,7 +21,7 @@ describe('S3', () => {
   })
 
   afterEach(async () => {
-    await testModule?.resetDb()
+    await testModule?.resetAppState()
   })
 
   it(`it should be able to read from a bucket`, async () => {
@@ -52,7 +52,7 @@ describe('S3', () => {
     const files = await Promise.all(
       downloadUrls
         .map((downloadUrl) => axios.get(downloadUrl))
-        .map((response) => response.then((r) => r.data)),
+        .map((response) => response.then((r) => r.data as never)),
     )
 
     expect(files.length).toEqual(1)

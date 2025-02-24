@@ -5,22 +5,27 @@ import {
   NotFoundException,
 } from '@nestjs/common'
 import nestJsConfig from '@nestjs/config'
-import type { AppConfig, ConnectedAppInstance } from '@stellariscloud/types'
+import { hashLocalFile } from '@stellariscloud/core-worker'
+import type { AppConfig, ConnectedAppWorker } from '@stellariscloud/types'
 import { MediaType, SignedURLsRequestMethod } from '@stellariscloud/types'
 import { EnumType } from '@stellariscloud/utils'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
 import fs from 'fs'
+import mime from 'mime'
 import path from 'path'
 import * as r from 'runtypes'
 import { KVService } from 'src/cache/kv.service'
 import { readDirRecursive } from 'src/core/utils/fs.util'
-import { eventsTable } from 'src/event/entities/event.entity'
+import { EventLevel, eventsTable } from 'src/event/entities/event.entity'
 import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
 import { FolderNotFoundException } from 'src/folders/exceptions/folder-not-found.exception'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
+import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
+import { uploadLocalFile } from 'src/shared/utils'
+import { APP_WORKER_INFO_CACHE_KEY_PREFIX } from 'src/socket/app/app-socket.service'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
@@ -30,8 +35,13 @@ import { z } from 'zod'
 
 import { appConfig } from '../config'
 import { AppSocketAPIRequest } from '../constants/app-api-messages'
+import { App, appsTable } from '../entities/app.entity'
+import { AppAlreadyInstalledException } from '../exceptions/app-already-installed.exception'
+import { AppNotParsableException } from '../exceptions/app-not-parsable.exception'
+import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirements-not-satisfied.exception'
 
-const FROM_DISK_APP_TREE_CACHE_KEY = '__STELLARIS_FROM_DISK_APP_TREE'
+const MAX_APP_FILE_SIZE = 1024 * 1024 * 16
+const MAX_APP_TOTAL_SIZE = 1024 * 1024 * 32
 
 export type MetadataUploadUrlsResponse = {
   folderId: string
@@ -118,26 +128,29 @@ const UpdateMetadataValidator = r.Record({
 })
 
 const FailHandleTaskValidator = z.object({
-  taskId: z.string(),
+  taskId: z.string().uuid(),
   error: z.object({
     message: z.string(),
     code: z.string(),
   }),
 })
 
-interface InstalledAppDefinitions {
-  [key: string]:
-    | {
-        config: AppConfig
-        ui: {
-          [key: string]: {
-            path: string
-            name: string
-            files: { [key: string]: { size: number; hash: string } }
-          }
-        }
-      }
-    | undefined
+export interface AppDefinition {
+  config: AppConfig
+  ui: Record<
+    string,
+    {
+      name: string
+      files: Record<string, { size: number; hash: string }>
+    }
+  >
+  workers: Record<
+    string,
+    {
+      name: string
+      files: Record<string, { size: number; hash: string }>
+    }
+  >
 }
 
 @Injectable()
@@ -147,24 +160,24 @@ export class AppService {
     @Inject(appConfig.KEY)
     private readonly _appConfig: nestJsConfig.ConfigType<typeof appConfig>,
     private readonly ormService: OrmService,
+    private readonly serverConfigurationService: ServerConfigurationService,
     private readonly kvService: KVService,
     @Inject(forwardRef(() => FolderService)) _folderService,
     private readonly s3Service: S3Service,
   ) {
-    this.folderService = _folderService
+    this.folderService = _folderService as FolderService
   }
 
-  async getApp(appIdentifier: string): Promise<AppConfig | undefined> {
-    const installedApps = await this.getApps()
-    return appIdentifier in installedApps
-      ? installedApps[appIdentifier]?.config
-      : undefined
+  getApp(appIdentifier: string): Promise<App | undefined> {
+    return this.ormService.db.query.appsTable.findFirst({
+      where: eq(appsTable.identifier, appIdentifier),
+    })
   }
 
   async handleAppRequest(
     handlerId: string,
     appIdentifier: string,
-    message: any,
+    message: unknown,
   ) {
     const now = new Date()
     if (AppSocketAPIRequest.guard(message)) {
@@ -177,6 +190,7 @@ export class AppService {
               {
                 ...requestData,
                 createdAt: now,
+                level: EventLevel.INFO, // TODO: translate app log level to event level
                 emitterIdentifier: appIdentifier,
                 eventKey: `${appIdentifierPrefixed}:LOG_ENTRY`,
                 id: uuidV4(),
@@ -359,6 +373,7 @@ export class AppService {
                 ),
             }
           } else {
+            // eslint-disable-next-line no-console
             console.log(
               'FAIL_HANDLE_TASK error:',
               FailHandleTaskValidator.safeParse(requestData).error,
@@ -407,8 +422,7 @@ export class AppService {
       metadataHash: string
     }[]
   }) {
-    const folders: { [folderId: string]: FolderWithoutLocations | undefined } =
-      {}
+    const folders: Record<string, FolderWithoutLocations | undefined> = {}
 
     const urls: MetadataUploadUrlsResponse = createS3PresignedUrls(
       await Promise.all(
@@ -544,11 +558,12 @@ export class AppService {
       url: string
     }[]
   > {
-    const presignedUrlRequestsByFolderId = signedUrlRequests.reduce<{
-      [key: string]:
-        | { objectKey: string; method: SignedURLsRequestMethod }[]
-        | undefined
-    }>((acc, next) => {
+    const presignedUrlRequestsByFolderId = signedUrlRequests.reduce<
+      Record<
+        string,
+        { objectKey: string; method: SignedURLsRequestMethod }[] | undefined
+      >
+    >((acc, next) => {
       return {
         ...acc,
         [next.folderId]: (acc[next.folderId] ?? []).concat([
@@ -621,7 +636,7 @@ export class AppService {
       appUi,
       filename,
     )
-    return this.kvService.ops.get(CACHE_KEY)
+    return this.kvService.ops.get(CACHE_KEY) as string
   }
 
   public getCacheKeyForAppAsset(
@@ -632,117 +647,248 @@ export class AppService {
     return `APP_UI:${appIdentifier}:${appUi}:${filename}`
   }
 
-  public updateAppsFromDisk(appsDirectory: string) {
-    // load the apps from disk
-    const appsFromDisk = this.loadAppsFromDisk(appsDirectory)
-    // push all app UI file content into the cache
-    for (const appIdentifier of Object.keys(appsFromDisk)) {
-      if (appIdentifier in appsFromDisk) {
-        for (const appUi of Object.keys(
-          appsFromDisk[appIdentifier]?.ui ?? {},
-        )) {
-          for (const filename of Object.keys(
-            appsFromDisk[appIdentifier]?.ui[appUi]?.files ?? {},
-          )) {
-            const fullFilePath = path.join(
-              appsDirectory,
-              appIdentifier,
-              'ui',
-              appUi,
-              filename,
-            )
-            const CACHE_KEY = `APP_UI:${appIdentifier}:${appUi}:${filename}`
-            this.kvService.ops.set(CACHE_KEY, fs.readFileSync(fullFilePath))
-          }
+  public listApps() {
+    return this.ormService.db.query.appsTable.findMany({ limit: 100 })
+  }
+
+  public async uninstallApp(app: App) {
+    const serverStorageLocation =
+      await this.serverConfigurationService.getServerStorageLocation()
+    const appRequiresStorage =
+      app.config.requiresStorage ||
+      app.manifest.filter(
+        (manifestItem) =>
+          manifestItem.path.startsWith('/ui') ||
+          manifestItem.path.startsWith('/workers'),
+      ).length
+
+    if (appRequiresStorage && serverStorageLocation) {
+      const prefix = `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-storage/${app.identifier}/`
+      await this.s3Service.deleteAllWithPrefix({
+        ...serverStorageLocation,
+        prefix,
+      })
+    }
+
+    // remove app db record
+    await this.ormService.db
+      .delete(appsTable)
+      .where(eq(appsTable.identifier, app.identifier))
+  }
+
+  public async installApp(app: App, update = false) {
+    const now = new Date()
+    const installedApp = await this.getApp(app.identifier)
+    if (installedApp && !update) {
+      throw new AppAlreadyInstalledException()
+    }
+    const assetManifestEntries = app.manifest.filter(
+      (manifestItem) =>
+        manifestItem.path.startsWith('/ui') ||
+        manifestItem.path.startsWith('/workers'),
+    )
+
+    const serverStorageLocation =
+      await this.serverConfigurationService.getServerStorageLocation()
+    const appRequiresStorage =
+      app.config.requiresStorage || assetManifestEntries.length
+
+    if (appRequiresStorage && !serverStorageLocation) {
+      throw new AppRequirementsNotSatisfiedException()
+    }
+
+    if (installedApp) {
+      // uninstall currently installed app instance
+      await this.uninstallApp(app)
+    }
+
+    if (serverStorageLocation) {
+      for (const manifestEntry of assetManifestEntries) {
+        const fullFilepath = path.join(
+          this._appConfig.appsLocalPath,
+          app.identifier,
+          manifestEntry.path,
+        )
+        const objectKey = `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-storage/${app.identifier}${manifestEntry.path}`
+        // eslint-disable-next-line no-console
+        console.log('Uploading app file:', {
+          objectKey,
+          filepath: manifestEntry.path,
+          fullFilepath,
+        })
+
+        const [url] = this.s3Service.createS3PresignedUrls([
+          {
+            ...serverStorageLocation,
+            method: SignedURLsRequestMethod.PUT,
+            expirySeconds: 600,
+            objectKey,
+          },
+        ])
+
+        await uploadLocalFile(
+          fullFilepath,
+          url,
+          mime.getType(manifestEntry.path) ?? undefined,
+        )
+      }
+    }
+
+    // update app db record to match new app
+    if (installedApp) {
+      await this.ormService.db
+        .update(appsTable)
+        .set({ ...app, createdAt: installedApp.createdAt, updatedAt: now })
+        .where(eq(appsTable.identifier, installedApp.identifier))
+    } else {
+      await this.ormService.db.insert(appsTable).values({
+        ...app,
+        createdAt: now,
+        updatedAt: now,
+      })
+    }
+  }
+
+  public async installAllAppsFromDisk() {
+    // get potential app identifier from the directory structure
+    const allPotentialAppDirectoriesEntries =
+      this.getAllPotentialAppDirectories(this._appConfig.appsLocalPath)
+
+    // for each potential app, attempt to install it (without updating if its already installed)
+    for (const appIdentifier of allPotentialAppDirectoriesEntries) {
+      await this.attemptParseAndInstallAppFromDisk(appIdentifier, false)
+    }
+  }
+
+  public async attemptParseAndInstallAppFromDisk(
+    appIdentifier: string,
+    update: boolean,
+  ) {
+    const app = await this.parseAppFromDisk(appIdentifier)
+
+    if (app.valid) {
+      try {
+        await this.installApp(app.definition, update)
+      } catch (error) {
+        if (error instanceof AppAlreadyInstalledException) {
+          // eslint-disable-next-line no-console
+          console.log(
+            `APP INSTALL ERROR - APP[${appIdentifier}]: App is already installed.`,
+          )
+        } else if (error instanceof AppNotParsableException) {
+          // eslint-disable-next-line no-console
+          console.log(
+            `APP INSTALL ERROR - APP[${appIdentifier}]: App is not parsable.`,
+          )
+        } else if (error instanceof AppRequirementsNotSatisfiedException) {
+          // eslint-disable-next-line no-console
+          console.log(
+            `APP INSTALL ERROR - APP[${appIdentifier}]: App requirements are not met.`,
+          )
+        } else {
+          // eslint-disable-next-line no-console
+          console.log(`APP INSTALL ERROR - APP[${appIdentifier}]:`, error)
         }
       }
+    } else {
+      // eslint-disable-next-line no-console
+      console.log(`APP PARSE ERROR - APP[${appIdentifier}]: DEFINITION_INVALID`)
+    }
+  }
+
+  public getAllPotentialAppDirectories = (appsDirectoryPath: string) => {
+    if (!fs.existsSync(appsDirectoryPath)) {
+      console.log('Apps directory "%s" not found.', appsDirectoryPath)
+      return []
+    }
+    return fs
+      .readdirSync(appsDirectoryPath)
+      .filter((appIdentifier) =>
+        fs.lstatSync(path.join(appsDirectoryPath, appIdentifier)).isDirectory(),
+      )
+  }
+
+  public async parseAppFromDisk(
+    appIdentifier: string,
+  ): Promise<{ definition: App; valid: boolean }> {
+    const now = new Date()
+
+    let currentTotalSize = 0
+    const publicKeyPath = path.join(
+      this._appConfig.appsLocalPath,
+      appIdentifier,
+      '.publicKey',
+    )
+    const configPath = path.join(
+      this._appConfig.appsLocalPath,
+      appIdentifier,
+      'config.json',
+    )
+    const publicKey =
+      fs.existsSync(publicKeyPath) && !fs.lstatSync(publicKeyPath).isDirectory()
+        ? fs.readFileSync(publicKeyPath, 'utf-8')
+        : ''
+
+    const config = fs.existsSync(configPath)
+      ? (JSON.parse(fs.readFileSync(configPath, 'utf-8')) as AppConfig)
+      : undefined
+
+    if (!config) {
+      throw new Error(`Config file not found when parsing app.`)
     }
 
-    // save parsed apps in memory
-    this.setAppsInMemory(appsFromDisk)
-    return appsFromDisk
-  }
-
-  private setAppsInMemory(apps: ReturnType<typeof this.loadAppsFromDisk>) {
-    // save app configs in memory
-    this.kvService.ops.set(FROM_DISK_APP_TREE_CACHE_KEY, apps)
-  }
-
-  public async getApps() {
-    // get latest configs from memory
-    const inMemoryApps = await this.getAppsInMemory()
-
-    if (typeof inMemoryApps !== 'object') {
-      // load from disk and update in memory reference
-      return this.updateAppsFromDisk(this._appConfig.appsLocalPath)
-    }
-    return inMemoryApps
-  }
-
-  public async getAppsInMemory(): Promise<InstalledAppDefinitions | undefined> {
-    // get latest configs from memory
-    const cacheContent: InstalledAppDefinitions | undefined =
-      await this.kvService.ops.get(FROM_DISK_APP_TREE_CACHE_KEY)
-    return cacheContent
-  }
-
-  public loadAppsFromDisk(appsDirectory: string) {
-    const configs: InstalledAppDefinitions = {}
-
-    for (const appName of fs.readdirSync(appsDirectory)) {
-      const parentPath = path.join(appsDirectory, appName)
-      const configPath = path.join(appsDirectory, appName, 'config.json')
-      const uiDirPath = path.join(appsDirectory, appName, 'ui')
-      if (!fs.lstatSync(parentPath).isDirectory()) {
-        continue
-      }
-
-      if (fs.existsSync(configPath)) {
-        const configJson = fs.readFileSync(configPath, 'utf-8')
-        configs[appName] = { ui: {}, config: JSON.parse(configJson) }
-        // load all the frontend assets provided by the app
-        if (fs.existsSync(uiDirPath) && fs.lstatSync(uiDirPath).isDirectory()) {
-          for (const uiName of fs.readdirSync(uiDirPath)) {
-            const uiPayloadRoot = path.join(uiDirPath, uiName)
-            if (fs.lstatSync(uiPayloadRoot).isDirectory()) {
-              const uiPath = path.join(uiDirPath, uiName)
-              const appUiPath = path.join(uiDirPath, uiName)
-              const conf = configs[appName]
-              if (conf) {
-                conf.ui[uiName] = {
-                  name: uiName,
-                  path: uiPath,
-                  files: readDirRecursive(appUiPath).reduce(
-                    (acc, entryPath) => ({
-                      ...acc,
-                      [entryPath.slice(appUiPath.length)]: {
-                        hash: '',
-                        size: 1,
-                      },
-                    }),
-                    {},
-                  ),
-                }
-              }
-            }
-          }
+    // console.log('READ APP CONFIG', { config, configPath, publicKeyPath, publicKey })
+    const appRoot = path.join(this._appConfig.appsLocalPath, appIdentifier)
+    const manifest = await Promise.all(
+      readDirRecursive(appRoot).map(async (absoluteAssetPath) => {
+        const size = fs.statSync(absoluteAssetPath).size
+        if (size > MAX_APP_FILE_SIZE) {
+          throw new Error(`App file too large! MAX: ${MAX_APP_FILE_SIZE}`)
         }
-      }
+        currentTotalSize += size
+        if (currentTotalSize > MAX_APP_TOTAL_SIZE) {
+          throw new Error(
+            `Total app files size is too large! MAX: ${MAX_APP_TOTAL_SIZE}`,
+          )
+        }
+        const relativeAssetPath = absoluteAssetPath.slice(appRoot.length)
+
+        return {
+          size: fs.statSync(absoluteAssetPath).size,
+          path: relativeAssetPath,
+          hash: await hashLocalFile(absoluteAssetPath),
+        }
+      }),
+    )
+    // TODO: Validate app definition
+    const app = {
+      valid: true,
+      definition: {
+        identifier: appIdentifier,
+        manifest,
+        publicKey,
+        config,
+        createdAt: now,
+        updatedAt: now,
+        contentHash: '', // TODO: calculate the exact content hash
+        enabled: false,
+      },
     }
-    return configs
+    return app
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async getAppConnections(): Promise<{
-    [key: string]: ConnectedAppInstance[]
-  }> {
+  getAppConnections(): Record<string, ConnectedAppWorker[]> {
     let cursor = 0
     let started = false
     let keys: string[] = []
     while (!started || cursor !== 0) {
       started = true
 
-      const scanResult = this.kvService.ops.scan(cursor, 'APP_WORKER:*', 10000)
+      const scanResult = this.kvService.ops.scan(
+        cursor,
+        `${APP_WORKER_INFO_CACHE_KEY_PREFIX}:*`,
+        10000,
+      )
       cursor = scanResult[0]
       keys = keys.concat(scanResult[1])
     }
@@ -751,9 +897,11 @@ export class AppService {
       ? this.kvService.ops
           .mget(...keys)
           .filter((_r) => _r)
-          .reduce<{ [k: string]: ConnectedAppInstance[] }>(
+          .reduce<Record<string, ConnectedAppWorker[]>>(
             (acc, _r: string | undefined) => {
-              const parsed = JSON.parse(_r ?? 'null')
+              const parsed = JSON.parse(
+                _r ?? 'null',
+              ) as ConnectedAppWorker | null
               if (!parsed) {
                 return acc
               }
@@ -768,7 +916,6 @@ export class AppService {
             {},
           )
       : {}
-
     return result
   }
 }

@@ -1,7 +1,9 @@
+import { UnauthorizedException } from '@nestjs/common'
 import * as crypto from 'crypto'
+import * as z from 'zod'
 
 export const hashedTokenHelper = {
-  createSecretKey: (length: number = 32) => {
+  createSecretKey: (length = 32) => {
     return crypto.randomBytes(length)
   },
 
@@ -14,6 +16,13 @@ export const hashedTokenHelper = {
     let [id = '', secret = ''] = refreshToken.split(':')
 
     secret = secret.replace(/-/g, '+').replace(/_/g, '/')
+    if (
+      !id.length ||
+      !secret.length ||
+      !z.string().uuid().safeParse(id).success
+    ) {
+      throw new UnauthorizedException()
+    }
 
     while (secret.length % 4) {
       secret += '='

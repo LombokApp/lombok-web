@@ -1,5 +1,5 @@
 export const schema = {
-  "openapi": "3.0.0",
+  "openapi": "3.1.0",
   "paths": {
     "/api/v1/auth/login": {
       "post": {
@@ -17,7 +17,7 @@ export const schema = {
         },
         "responses": {
           "201": {
-            "description": "Authenticate the user and return access and refresh tokens.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -27,6 +27,7 @@ export const schema = {
             }
           }
         },
+        "summary": "Authenticate the user and return access and refresh tokens.",
         "tags": [
           "Auth"
         ]
@@ -48,7 +49,7 @@ export const schema = {
         },
         "responses": {
           "201": {
-            "description": "Register a new user.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -58,6 +59,7 @@ export const schema = {
             }
           }
         },
+        "summary": "Register a new user.",
         "tags": [
           "Auth"
         ]
@@ -69,7 +71,7 @@ export const schema = {
         "parameters": [],
         "responses": {
           "201": {
-            "description": "Logout. Kill the current session.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -79,13 +81,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Auth"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Logout. Kill the current session.",
+        "tags": [
+          "Auth"
         ]
       }
     },
@@ -104,7 +107,7 @@ export const schema = {
         ],
         "responses": {
           "201": {
-            "description": "Refresh a session with a refresh token.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -114,6 +117,7 @@ export const schema = {
             }
           }
         },
+        "summary": "Refresh a session with a refresh token.",
         "tags": [
           "Auth"
         ]
@@ -135,13 +139,13 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Viewer"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "tags": [
+          "Viewer"
         ]
       },
       "put": {
@@ -169,13 +173,13 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Viewer"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "tags": [
+          "Viewer"
         ]
       }
     },
@@ -195,7 +199,7 @@ export const schema = {
         },
         "responses": {
           "201": {
-            "description": "Create a user.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -205,13 +209,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Users"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Create a user.",
+        "tags": [
+          "Users"
         ]
       },
       "get": {
@@ -230,8 +235,6 @@ export const schema = {
             "required": false,
             "in": "query",
             "schema": {
-              "minimum": 0,
-              "exclusiveMinimum": true,
               "type": "number"
             }
           },
@@ -255,20 +258,26 @@ export const schema = {
                 "email-desc",
                 "name-asc",
                 "name-desc",
-                "role-asc",
-                "role-desc",
-                "status-asc",
-                "status-desc",
+                "username-asc",
+                "username-desc",
                 "updatedAt-asc",
                 "updatedAt-desc"
               ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
               "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "List the users.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -278,13 +287,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Users"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "List the users.",
+        "tags": [
+          "Users"
         ]
       }
     },
@@ -313,7 +323,7 @@ export const schema = {
         },
         "responses": {
           "200": {
-            "description": "Update a user.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -323,13 +333,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Users"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Update a user.",
+        "tags": [
+          "Users"
         ]
       },
       "get": {
@@ -346,7 +357,7 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "Get a user by id.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -356,13 +367,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Users"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Get a user by id.",
+        "tags": [
+          "Users"
         ]
       },
       "delete": {
@@ -379,16 +391,17 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "Delete a server user by id."
+            "description": ""
           }
         },
-        "tags": [
-          "Users"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Delete a server user by id.",
+        "tags": [
+          "Users"
         ]
       }
     },
@@ -407,7 +420,7 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "Get a folder by id.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -417,13 +430,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Folders"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Get a folder by id.",
+        "tags": [
+          "Folders"
         ]
       },
       "delete": {
@@ -440,16 +454,17 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "Delete a folder by id."
+            "description": ""
           }
         },
-        "tags": [
-          "Folders"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Delete a folder by id.",
+        "tags": [
+          "Folders"
         ]
       }
     },
@@ -468,7 +483,7 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "Get the metadata for a folder by id.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -478,13 +493,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Folders"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Get the metadata for a folder by id.",
+        "tags": [
+          "Folders"
         ]
       }
     },
@@ -505,15 +521,37 @@ export const schema = {
             "required": false,
             "in": "query",
             "schema": {
-              "minimum": 0,
-              "exclusiveMinimum": true,
               "type": "number"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "name-asc",
+                "name-desc",
+                "createdAt-asc",
+                "createdAt-desc",
+                "updatedAt-asc",
+                "updatedAt-desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "List folders.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -523,13 +561,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Folders"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "List folders.",
+        "tags": [
+          "Folders"
         ]
       },
       "post": {
@@ -547,7 +586,7 @@ export const schema = {
         },
         "responses": {
           "201": {
-            "description": "Create a folder.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -557,13 +596,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Folders"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Create a folder.",
+        "tags": [
+          "Folders"
         ]
       }
     },
@@ -582,16 +622,17 @@ export const schema = {
         ],
         "responses": {
           "201": {
-            "description": "Scan the underlying S3 location and update our local representation of it."
+            "description": ""
           }
         },
-        "tags": [
-          "Folders"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Scan the underlying S3 location and update our local representation of it.",
+        "tags": [
+          "Folders"
         ]
       }
     },
@@ -620,8 +661,6 @@ export const schema = {
             "required": false,
             "in": "query",
             "schema": {
-              "minimum": 0,
-              "exclusiveMinimum": true,
               "type": "number"
             }
           },
@@ -636,7 +675,7 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "List folder objects by folderId.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -646,13 +685,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Folders"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "List folder objects by folderId.",
+        "tags": [
+          "Folders"
         ]
       }
     },
@@ -679,7 +719,7 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "Get a folder object by folderId and objectKey.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -689,13 +729,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Folders"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Get a folder object by folderId and objectKey.",
+        "tags": [
+          "Folders"
         ]
       },
       "delete": {
@@ -720,16 +761,17 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "Delete a folder object by folderId and objectKey."
+            "description": ""
           }
         },
-        "tags": [
-          "Folders"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Delete a folder object by folderId and objectKey.",
+        "tags": [
+          "Folders"
         ]
       },
       "post": {
@@ -754,7 +796,7 @@ export const schema = {
         ],
         "responses": {
           "201": {
-            "description": "Scan the object again in the underlying storage, and update its state in our db.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -764,13 +806,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Folders"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Scan the object again in the underlying storage, and update its state in our db.",
+        "tags": [
+          "Folders"
         ]
       }
     },
@@ -799,7 +842,7 @@ export const schema = {
         },
         "responses": {
           "201": {
-            "description": "Create presigned urls for objects in a folder.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -809,13 +852,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Folders"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Create presigned urls for objects in a folder.",
+        "tags": [
+          "Folders"
         ]
       }
     },
@@ -860,16 +904,17 @@ export const schema = {
         },
         "responses": {
           "201": {
-            "description": "Handle app task trigger"
+            "description": ""
           }
         },
-        "tags": [
-          "Folders"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Handle app task trigger",
+        "tags": [
+          "Folders"
         ]
       }
     },
@@ -890,15 +935,33 @@ export const schema = {
             "required": false,
             "in": "query",
             "schema": {
-              "minimum": 0,
-              "exclusiveMinimum": true,
               "type": "number"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "accessKeyId-asc",
+                "accessKeyId-desc",
+                "accessKeyHashId-asc",
+                "accessKeyHashId-desc",
+                "endpoint-asc",
+                "endpoint-desc",
+                "region-asc",
+                "region-desc",
+                "updatedAt-asc",
+                "updatedAt-desc"
+              ],
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "List access keys.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -908,13 +971,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "AccessKeys"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "List access keys.",
+        "tags": [
+          "AccessKeys"
         ]
       }
     },
@@ -933,7 +997,7 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "Get an access key by id.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -943,13 +1007,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "AccessKeys"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Get an access key by id.",
+        "tags": [
+          "AccessKeys"
         ]
       },
       "post": {
@@ -976,7 +1041,7 @@ export const schema = {
         },
         "responses": {
           "201": {
-            "description": "Rotate an access key.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -986,13 +1051,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "AccessKeys"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Rotate an access key.",
+        "tags": [
+          "AccessKeys"
         ]
       }
     },
@@ -1011,7 +1077,7 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "List buckets for an access key.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -1021,13 +1087,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "AccessKeys"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "List buckets for an access key.",
+        "tags": [
+          "AccessKeys"
         ]
       }
     },
@@ -1048,15 +1115,33 @@ export const schema = {
             "required": false,
             "in": "query",
             "schema": {
-              "minimum": 0,
-              "exclusiveMinimum": true,
               "type": "number"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "accessKeyId-asc",
+                "accessKeyId-desc",
+                "accessKeyHashId-asc",
+                "accessKeyHashId-desc",
+                "endpoint-asc",
+                "endpoint-desc",
+                "region-asc",
+                "region-desc",
+                "updatedAt-asc",
+                "updatedAt-desc"
+              ],
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "List server access keys.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -1066,13 +1151,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "ServerAccessKeys"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "List server access keys.",
+        "tags": [
+          "ServerAccessKeys"
         ]
       }
     },
@@ -1091,7 +1177,7 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "Get server access key by id.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -1101,17 +1187,18 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "ServerAccessKeys"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Get server access key by id.",
+        "tags": [
+          "ServerAccessKeys"
         ]
       },
       "post": {
-        "operationId": "rotateAccessKey",
+        "operationId": "rotateServerAccessKey",
         "parameters": [
           {
             "name": "accessKeyHashId",
@@ -1134,7 +1221,7 @@ export const schema = {
         },
         "responses": {
           "201": {
-            "description": "Rotate a server access key.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -1144,13 +1231,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "ServerAccessKeys"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Rotate a server access key.",
+        "tags": [
+          "ServerAccessKeys"
         ]
       }
     },
@@ -1160,7 +1248,7 @@ export const schema = {
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Get the server settings object.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -1170,13 +1258,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Server"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Get the server settings object.",
+        "tags": [
+          "Server"
         ]
       }
     },
@@ -1205,7 +1294,7 @@ export const schema = {
         },
         "responses": {
           "200": {
-            "description": "Set a setting in the server settings objects.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -1215,13 +1304,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Server"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Set a setting in the server settings objects.",
+        "tags": [
+          "Server"
         ]
       },
       "delete": {
@@ -1238,7 +1328,7 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "Reset a setting in the server settings objects.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -1248,19 +1338,20 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Server"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Reset a setting in the server settings objects.",
+        "tags": [
+          "Server"
         ]
       }
     },
-    "/api/v1/server/storage-provisions": {
+    "/api/v1/server/user-storage-provisions": {
       "get": {
-        "operationId": "listStorageProvisions",
+        "operationId": "listUserStorageProvisions",
         "parameters": [
           {
             "name": "provisionType",
@@ -1270,7 +1361,7 @@ export const schema = {
               "enum": [
                 "CONTENT",
                 "METADATA",
-                "BACKUP"
+                "REDUNDANCY"
               ],
               "type": "string"
             }
@@ -1278,66 +1369,68 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "List the server provisions.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StorageProvisionListResponse"
+                  "$ref": "#/components/schemas/UserStorageProvisionListResponse"
                 }
               }
             }
           }
         },
-        "tags": [
-          "StorageProvisions"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "List the user storage provisions.",
+        "tags": [
+          "UserStorageProvisions"
         ]
       },
       "post": {
-        "operationId": "createServerProvision",
+        "operationId": "createUserStorageProvision",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/StorageProvisionInputDTO"
+                "$ref": "#/components/schemas/UserStorageProvisionInputDTO"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Create a new server provision.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StorageProvisionListResponse"
+                  "$ref": "#/components/schemas/UserStorageProvisionListResponse"
                 }
               }
             }
           }
         },
-        "tags": [
-          "StorageProvisions"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Create a new user storage provision.",
+        "tags": [
+          "UserStorageProvisions"
         ]
       }
     },
-    "/api/v1/server/storage-provisions/{storageProvisionId}": {
+    "/api/v1/server/user-storage-provisions/{userStorageProvisionId}": {
       "get": {
-        "operationId": "getStorageProvision",
+        "operationId": "getUserStorageProvision",
         "parameters": [
           {
-            "name": "storageProvisionId",
+            "name": "userStorageProvisionId",
             "required": true,
             "in": "path",
             "schema": {
@@ -1347,30 +1440,31 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "List the server provisions.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StorageProvisionGetResponse"
+                  "$ref": "#/components/schemas/UserStorageProvisionGetResponse"
                 }
               }
             }
           }
         },
-        "tags": [
-          "StorageProvisions"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Get a user storage provision by id.",
+        "tags": [
+          "UserStorageProvisions"
         ]
       },
       "put": {
-        "operationId": "updateStorageProvision",
+        "operationId": "updateUserStorageProvision",
         "parameters": [
           {
-            "name": "storageProvisionId",
+            "name": "userStorageProvisionId",
             "required": true,
             "in": "path",
             "schema": {
@@ -1383,37 +1477,38 @@ export const schema = {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/StorageProvisionInputDTO"
+                "$ref": "#/components/schemas/UserStorageProvisionInputDTO"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Update a server provision by id.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StorageProvisionListResponse"
+                  "$ref": "#/components/schemas/UserStorageProvisionListResponse"
                 }
               }
             }
           }
         },
-        "tags": [
-          "StorageProvisions"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Update a server provision by id.",
+        "tags": [
+          "UserStorageProvisions"
         ]
       },
       "delete": {
-        "operationId": "deleteStorageProvision",
+        "operationId": "deleteUserStorageProvision",
         "parameters": [
           {
-            "name": "storageProvisionId",
+            "name": "userStorageProvisionId",
             "required": true,
             "in": "path",
             "schema": {
@@ -1423,38 +1518,111 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "Delete a server provision by id.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StorageProvisionListResponse"
+                  "$ref": "#/components/schemas/UserStorageProvisionListResponse"
                 }
               }
             }
           }
         },
-        "tags": [
-          "StorageProvisions"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Delete a server provision by id.",
+        "tags": [
+          "UserStorageProvisions"
         ]
       }
     },
-    "/api/v1/{folderId}/tasks/{taskId}": {
+    "/api/v1/server/server-storage-location": {
+      "get": {
+        "operationId": "getServerStorageLocation",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerStorageLocationGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get the server storage location.",
+        "tags": [
+          "ServerStorageLocation"
+        ]
+      },
+      "post": {
+        "operationId": "setServerStorageLocation",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServerStorageLocationInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerStorageLocationGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new server provision.",
+        "tags": [
+          "ServerStorageLocation"
+        ]
+      },
+      "delete": {
+        "operationId": "deleteServerStorageLocation",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete any set server storage location.",
+        "tags": [
+          "ServerStorageLocation"
+        ]
+      }
+    },
+    "/api/v1/server/tasks/{taskId}": {
       "get": {
         "operationId": "getTask",
         "parameters": [
-          {
-            "name": "folderId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
           {
             "name": "taskId",
             "required": true,
@@ -1466,7 +1634,7 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "Get a folder task by id.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -1476,17 +1644,18 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Tasks"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Get a task by id.",
+        "tags": [
+          "ServerTasks"
         ]
       }
     },
-    "/api/v1/{folderId}/tasks": {
+    "/api/v1/server/tasks": {
       "get": {
         "operationId": "listTasks",
         "parameters": [
@@ -1509,6 +1678,14 @@ export const schema = {
                 "updatedAt-asc",
                 "updatedAt-desc"
               ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
               "type": "string"
             }
           },
@@ -1569,8 +1746,177 @@ export const schema = {
             "required": false,
             "in": "query",
             "schema": {
-              "minimum": 0,
-              "exclusiveMinimum": true,
+              "type": "number"
+            }
+          },
+          {
+            "name": "folderId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskListResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List tasks.",
+        "tags": [
+          "ServerTasks"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/tasks/{taskId}": {
+      "get": {
+        "operationId": "getFolderTask",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a folder task by id.",
+        "tags": [
+          "Tasks"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/tasks": {
+      "get": {
+        "operationId": "listFolderTasks",
+        "parameters": [
+          {
+            "name": "objectKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "createdAt-asc",
+                "createdAt-desc",
+                "updatedAt-asc",
+                "updatedAt-desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeWaiting",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "true"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeRunning",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "true"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeComplete",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "true"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeFailed",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "true"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
               "type": "number"
             }
           },
@@ -1585,7 +1931,7 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "List tasks.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -1595,13 +1941,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Tasks"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "List tasks.",
+        "tags": [
+          "Tasks"
         ]
       }
     },
@@ -1620,7 +1967,7 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": "Get an event by id.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -1630,13 +1977,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "ServerEvents"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "Get an event by id.",
+        "tags": [
+          "ServerEvents"
         ]
       }
     },
@@ -1644,6 +1992,100 @@ export const schema = {
       "get": {
         "operationId": "listEvents",
         "parameters": [
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "createdAt-asc",
+                "createdAt-desc",
+                "updatedAt-asc",
+                "updatedAt-desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "folderId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "objectKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeTrace",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "true"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeDebug",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "true"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeInfo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "true"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeWarning",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "true"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeError",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "true"
+              ],
+              "type": "string"
+            }
+          },
           {
             "name": "offset",
             "required": false,
@@ -1657,15 +2099,13 @@ export const schema = {
             "required": false,
             "in": "query",
             "schema": {
-              "minimum": 0,
-              "exclusiveMinimum": true,
               "type": "number"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "List events.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
@@ -1675,13 +2115,14 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "ServerEvents"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "summary": "List events.",
+        "tags": [
+          "ServerEvents"
         ]
       }
     },
@@ -1701,13 +2142,13 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Apps"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "tags": [
+          "Apps"
         ]
       }
     },
@@ -1736,13 +2177,13 @@ export const schema = {
             }
           }
         },
-        "tags": [
-          "Apps"
-        ],
         "security": [
           {
             "bearer": []
           }
+        ],
+        "tags": [
+          "Apps"
         ]
       }
     }
@@ -1790,11 +2231,16 @@ export const schema = {
               },
               "refreshToken": {
                 "type": "string"
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
               }
             },
             "required": [
               "accessToken",
-              "refreshToken"
+              "refreshToken",
+              "expiresAt"
             ]
           }
         },
@@ -1822,7 +2268,6 @@ export const schema = {
         },
         "required": [
           "username",
-          "email",
           "password"
         ]
       },
@@ -1833,13 +2278,25 @@ export const schema = {
             "type": "object",
             "properties": {
               "id": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "name": {
-                "type": "string"
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {}
+                ],
+                "nullable": true
               },
               "email": {
-                "type": "string"
+                "oneOf": [
+                  {
+                    "type": "string"
+                  }
+                ],
+                "nullable": true
               },
               "emailVerified": {
                 "type": "boolean"
@@ -1867,6 +2324,7 @@ export const schema = {
             },
             "required": [
               "id",
+              "email",
               "emailVerified",
               "isAdmin",
               "username",
@@ -1891,11 +2349,16 @@ export const schema = {
               },
               "refreshToken": {
                 "type": "string"
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time"
               }
             },
             "required": [
               "accessToken",
-              "refreshToken"
+              "refreshToken",
+              "expiresAt"
             ]
           }
         },
@@ -1910,13 +2373,25 @@ export const schema = {
             "type": "object",
             "properties": {
               "id": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "name": {
-                "type": "string"
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {}
+                ],
+                "nullable": true
               },
               "email": {
-                "type": "string"
+                "oneOf": [
+                  {
+                    "type": "string"
+                  }
+                ],
+                "nullable": true
               },
               "emailVerified": {
                 "type": "boolean"
@@ -1944,6 +2419,7 @@ export const schema = {
             },
             "required": [
               "id",
+              "email",
               "emailVerified",
               "isAdmin",
               "username",
@@ -1972,13 +2448,25 @@ export const schema = {
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           },
           "name": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {}
+            ],
+            "nullable": true
           },
           "email": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              }
+            ],
+            "nullable": true
           },
           "emailVerified": {
             "type": "boolean"
@@ -2006,6 +2494,7 @@ export const schema = {
         },
         "required": [
           "id",
+          "email",
           "emailVerified",
           "isAdmin",
           "username",
@@ -2054,13 +2543,25 @@ export const schema = {
             "type": "object",
             "properties": {
               "id": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "name": {
-                "type": "string"
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {}
+                ],
+                "nullable": true
               },
               "email": {
-                "type": "string"
+                "oneOf": [
+                  {
+                    "type": "string"
+                  }
+                ],
+                "nullable": true
               },
               "emailVerified": {
                 "type": "boolean"
@@ -2088,6 +2589,7 @@ export const schema = {
             },
             "required": [
               "id",
+              "email",
               "emailVerified",
               "isAdmin",
               "username",
@@ -2105,22 +2607,33 @@ export const schema = {
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              }
+            ],
+            "nullable": true
           },
           "email": {
-            "type": "string"
-          },
-          "emailVerified": {
-            "type": "boolean"
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "email"
+              }
+            ],
+            "nullable": true
           },
           "isAdmin": {
             "type": "boolean"
           },
           "username": {
-            "type": "string"
+            "type": "string",
+            "minLength": 2
           },
           "password": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "permissions": {
             "type": "array",
@@ -2150,13 +2663,25 @@ export const schema = {
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "uuid"
                 },
                 "name": {
-                  "type": "string"
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {}
+                  ],
+                  "nullable": true
                 },
                 "email": {
-                  "type": "string"
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    }
+                  ],
+                  "nullable": true
                 },
                 "emailVerified": {
                   "type": "boolean"
@@ -2184,6 +2709,7 @@ export const schema = {
               },
               "required": [
                 "id",
+                "email",
                 "emailVerified",
                 "isAdmin",
                 "username",
@@ -2203,10 +2729,12 @@ export const schema = {
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           },
           "ownerId": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           },
           "name": {
             "type": "string"
@@ -2215,10 +2743,12 @@ export const schema = {
             "type": "object",
             "properties": {
               "id": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "userId": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "providerType": {
                 "type": "string",
@@ -2264,10 +2794,12 @@ export const schema = {
             "type": "object",
             "properties": {
               "id": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "userId": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "providerType": {
                 "type": "string",
@@ -2308,6 +2840,14 @@ export const schema = {
               "accessKeyId",
               "accessKeyHashId"
             ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
@@ -2315,20 +2855,24 @@ export const schema = {
           "ownerId",
           "name",
           "metadataLocation",
-          "contentLocation"
+          "contentLocation",
+          "createdAt",
+          "updatedAt"
         ]
       },
       "FolderObjectDTO": {
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           },
           "objectKey": {
             "type": "string"
           },
           "folderId": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           },
           "hash": {
             "type": "string"
@@ -2507,10 +3051,12 @@ export const schema = {
         "type": "object",
         "properties": {
           "storageProvisionId": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           },
           "userLocationId": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           },
           "userLocationBucketOverride": {
             "type": "string"
@@ -2545,10 +3091,12 @@ export const schema = {
             "type": "object",
             "properties": {
               "id": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "ownerId": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "name": {
                 "type": "string"
@@ -2557,10 +3105,12 @@ export const schema = {
                 "type": "object",
                 "properties": {
                   "id": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   },
                   "userId": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   },
                   "providerType": {
                     "type": "string",
@@ -2606,10 +3156,12 @@ export const schema = {
                 "type": "object",
                 "properties": {
                   "id": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   },
                   "userId": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   },
                   "providerType": {
                     "type": "string",
@@ -2650,6 +3202,14 @@ export const schema = {
                   "accessKeyId",
                   "accessKeyHashId"
                 ]
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
               }
             },
             "required": [
@@ -2657,7 +3217,9 @@ export const schema = {
               "ownerId",
               "name",
               "metadataLocation",
-              "contentLocation"
+              "contentLocation",
+              "createdAt",
+              "updatedAt"
             ]
           },
           "permissions": {
@@ -2728,10 +3290,12 @@ export const schema = {
                   "type": "object",
                   "properties": {
                     "id": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "ownerId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "name": {
                       "type": "string"
@@ -2740,10 +3304,12 @@ export const schema = {
                       "type": "object",
                       "properties": {
                         "id": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "userId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "providerType": {
                           "type": "string",
@@ -2789,10 +3355,12 @@ export const schema = {
                       "type": "object",
                       "properties": {
                         "id": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "userId": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "uuid"
                         },
                         "providerType": {
                           "type": "string",
@@ -2833,6 +3401,14 @@ export const schema = {
                         "accessKeyId",
                         "accessKeyHashId"
                       ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
                     }
                   },
                   "required": [
@@ -2840,7 +3416,9 @@ export const schema = {
                     "ownerId",
                     "name",
                     "metadataLocation",
-                    "contentLocation"
+                    "contentLocation",
+                    "createdAt",
+                    "updatedAt"
                   ]
                 }
               },
@@ -2866,10 +3444,12 @@ export const schema = {
             "type": "object",
             "properties": {
               "storageProvisionId": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "userLocationId": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "userLocationBucketOverride": {
                 "type": "string"
@@ -2901,10 +3481,12 @@ export const schema = {
             "type": "object",
             "properties": {
               "storageProvisionId": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "userLocationId": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "userLocationBucketOverride": {
                 "type": "string"
@@ -2946,10 +3528,12 @@ export const schema = {
             "type": "object",
             "properties": {
               "id": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "ownerId": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "name": {
                 "type": "string"
@@ -2958,10 +3542,12 @@ export const schema = {
                 "type": "object",
                 "properties": {
                   "id": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   },
                   "userId": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   },
                   "providerType": {
                     "type": "string",
@@ -3007,10 +3593,12 @@ export const schema = {
                 "type": "object",
                 "properties": {
                   "id": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   },
                   "userId": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   },
                   "providerType": {
                     "type": "string",
@@ -3051,6 +3639,14 @@ export const schema = {
                   "accessKeyId",
                   "accessKeyHashId"
                 ]
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
               }
             },
             "required": [
@@ -3058,7 +3654,9 @@ export const schema = {
               "ownerId",
               "name",
               "metadataLocation",
-              "contentLocation"
+              "contentLocation",
+              "createdAt",
+              "updatedAt"
             ]
           }
         },
@@ -3086,13 +3684,15 @@ export const schema = {
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "uuid"
                 },
                 "objectKey": {
                   "type": "string"
                 },
                 "folderId": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "uuid"
                 },
                 "hash": {
                   "type": "string"
@@ -3217,13 +3817,15 @@ export const schema = {
             "type": "object",
             "properties": {
               "id": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "objectKey": {
                 "type": "string"
               },
               "folderId": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "hash": {
                 "type": "string"
@@ -3604,10 +4206,14 @@ export const schema = {
           "settingKey"
         ]
       },
-      "StorageProvisionDTO": {
+      "UserStorageProvisionDTO": {
         "type": "object",
         "properties": {
           "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accessKeyHashId": {
             "type": "string"
           },
           "endpoint": {
@@ -3632,7 +4238,7 @@ export const schema = {
               "enum": [
                 "CONTENT",
                 "METADATA",
-                "BACKUP"
+                "REDUNDANCY"
               ]
             },
             "minItems": 1
@@ -3648,6 +4254,7 @@ export const schema = {
         },
         "required": [
           "id",
+          "accessKeyHashId",
           "endpoint",
           "bucket",
           "region",
@@ -3657,7 +4264,7 @@ export const schema = {
           "description"
         ]
       },
-      "StorageProvisionListResponse": {
+      "UserStorageProvisionListResponse": {
         "type": "object",
         "properties": {
           "result": {
@@ -3666,15 +4273,11 @@ export const schema = {
               "type": "object",
               "properties": {
                 "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "accessKeyHashId": {
                   "type": "string"
-                },
-                "label": {
-                  "type": "string",
-                  "maxLength": 32
-                },
-                "description": {
-                  "type": "string",
-                  "maxLength": 128
                 },
                 "endpoint": {
                   "type": "string"
@@ -3698,20 +4301,30 @@ export const schema = {
                     "enum": [
                       "CONTENT",
                       "METADATA",
-                      "BACKUP"
+                      "REDUNDANCY"
                     ]
-                  }
+                  },
+                  "minItems": 1
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                "description": {
+                  "type": "string",
+                  "maxLength": 128
                 }
               },
               "required": [
                 "id",
-                "label",
-                "description",
+                "accessKeyHashId",
                 "endpoint",
                 "bucket",
                 "region",
                 "accessKeyId",
-                "provisionTypes"
+                "provisionTypes",
+                "label",
+                "description"
               ]
             }
           }
@@ -3720,13 +4333,17 @@ export const schema = {
           "result"
         ]
       },
-      "StorageProvisionGetResponse": {
+      "UserStorageProvisionGetResponse": {
         "type": "object",
         "properties": {
-          "storageProvision": {
+          "userStorageProvision": {
             "type": "object",
             "properties": {
               "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "accessKeyHashId": {
                 "type": "string"
               },
               "endpoint": {
@@ -3751,7 +4368,7 @@ export const schema = {
                   "enum": [
                     "CONTENT",
                     "METADATA",
-                    "BACKUP"
+                    "REDUNDANCY"
                   ]
                 },
                 "minItems": 1
@@ -3767,6 +4384,7 @@ export const schema = {
             },
             "required": [
               "id",
+              "accessKeyHashId",
               "endpoint",
               "bucket",
               "region",
@@ -3778,10 +4396,10 @@ export const schema = {
           }
         },
         "required": [
-          "storageProvision"
+          "userStorageProvision"
         ]
       },
-      "StorageProvisionInputDTO": {
+      "UserStorageProvisionInputDTO": {
         "type": "object",
         "properties": {
           "label": {
@@ -3817,7 +4435,7 @@ export const schema = {
               "enum": [
                 "CONTENT",
                 "METADATA",
-                "BACKUP"
+                "REDUNDANCY"
               ]
             },
             "minItems": 1
@@ -3834,102 +4452,123 @@ export const schema = {
           "provisionTypes"
         ]
       },
-      "TaskDTO": {
+      "ServerStorageLocationDTO": {
         "type": "object",
         "properties": {
-          "id": {
+          "accessKeyHashId": {
             "type": "string"
           },
-          "taskKey": {
+          "accessKeyId": {
             "type": "string"
           },
-          "ownerIdentifier": {
+          "endpoint": {
             "type": "string"
           },
-          "triggeringEventId": {
+          "bucket": {
             "type": "string"
           },
-          "subjectFolderId": {
+          "region": {
             "type": "string"
           },
-          "subjectObjectKey": {
-            "type": "string"
-          },
-          "handlerId": {
-            "type": "string"
-          },
-          "inputData": {
-            "type": "object",
-            "additionalProperties": {
-              "oneOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "number"
-                }
-              ]
-            }
-          },
-          "errorAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "errorCode": {
-            "type": "string"
-          },
-          "errorMessage": {
-            "type": "string"
-          },
-          "taskDescription": {
-            "type": "object",
-            "properties": {
-              "textKey": {
+          "prefix": {
+            "oneOf": [
+              {
                 "type": "string"
-              },
-              "variables": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "string"
-                }
               }
-            },
-            "required": [
-              "textKey",
-              "variables"
-            ]
-          },
-          "updates": {
-            "type": "array",
-            "items": {}
-          },
-          "startedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "completedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
+            ],
+            "nullable": true
           }
         },
         "required": [
-          "id",
-          "taskKey",
-          "ownerIdentifier",
-          "triggeringEventId",
-          "inputData",
-          "taskDescription",
-          "updates",
-          "createdAt",
-          "updatedAt"
+          "accessKeyHashId",
+          "accessKeyId",
+          "endpoint",
+          "bucket",
+          "region",
+          "prefix"
+        ]
+      },
+      "ServerStorageLocationGetResponse": {
+        "type": "object",
+        "properties": {
+          "serverStorageLocation": {
+            "type": "object",
+            "properties": {
+              "accessKeyHashId": {
+                "type": "string"
+              },
+              "accessKeyId": {
+                "type": "string"
+              },
+              "endpoint": {
+                "type": "string"
+              },
+              "bucket": {
+                "type": "string"
+              },
+              "region": {
+                "type": "string"
+              },
+              "prefix": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  }
+                ],
+                "nullable": true
+              }
+            },
+            "required": [
+              "accessKeyHashId",
+              "accessKeyId",
+              "endpoint",
+              "bucket",
+              "region",
+              "prefix"
+            ]
+          }
+        }
+      },
+      "ServerStorageLocationInputDTO": {
+        "type": "object",
+        "properties": {
+          "accessKeyId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "secretAccessKey": {
+            "type": "string",
+            "minLength": 1
+          },
+          "endpoint": {
+            "type": "string",
+            "format": "uri"
+          },
+          "bucket": {
+            "type": "string",
+            "minLength": 1
+          },
+          "region": {
+            "type": "string",
+            "minLength": 1
+          },
+          "prefix": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              }
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "accessKeyId",
+          "secretAccessKey",
+          "endpoint",
+          "bucket",
+          "region",
+          "prefix"
         ]
       },
       "TaskGetResponse": {
@@ -3939,7 +4578,8 @@ export const schema = {
             "type": "object",
             "properties": {
               "id": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "taskKey": {
                 "type": "string"
@@ -3948,10 +4588,12 @@ export const schema = {
                 "type": "string"
               },
               "triggeringEventId": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "subjectFolderId": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "subjectObjectKey": {
                 "type": "string"
@@ -4058,7 +4700,8 @@ export const schema = {
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "uuid"
                 },
                 "taskKey": {
                   "type": "string"
@@ -4067,10 +4710,12 @@ export const schema = {
                   "type": "string"
                 },
                 "triggeringEventId": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "uuid"
                 },
                 "subjectFolderId": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "uuid"
                 },
                 "subjectObjectKey": {
                   "type": "string"
@@ -4159,14 +4804,126 @@ export const schema = {
           "result"
         ]
       },
+      "TaskDTO": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "taskKey": {
+            "type": "string"
+          },
+          "ownerIdentifier": {
+            "type": "string"
+          },
+          "triggeringEventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subjectFolderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subjectObjectKey": {
+            "type": "string"
+          },
+          "handlerId": {
+            "type": "string"
+          },
+          "inputData": {
+            "type": "object",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          },
+          "errorAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "errorCode": {
+            "type": "string"
+          },
+          "errorMessage": {
+            "type": "string"
+          },
+          "taskDescription": {
+            "type": "object",
+            "properties": {
+              "textKey": {
+                "type": "string"
+              },
+              "variables": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "textKey",
+              "variables"
+            ]
+          },
+          "updates": {
+            "type": "array",
+            "items": {}
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "taskKey",
+          "ownerIdentifier",
+          "triggeringEventId",
+          "inputData",
+          "taskDescription",
+          "updates",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
       "EventDTO": {
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "format": "uuid"
           },
           "eventKey": {
             "type": "string"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "TRACE",
+              "DEBUG",
+              "INFO",
+              "WARN",
+              "ERROR"
+            ]
           },
           "emitterIdentifier": {
             "type": "string"
@@ -4175,7 +4932,8 @@ export const schema = {
             "type": "object",
             "properties": {
               "folderId": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "objectKey": {
                 "type": "string"
@@ -4194,6 +4952,7 @@ export const schema = {
         "required": [
           "id",
           "eventKey",
+          "level",
           "emitterIdentifier",
           "createdAt"
         ]
@@ -4205,10 +4964,21 @@ export const schema = {
             "type": "object",
             "properties": {
               "id": {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               "eventKey": {
                 "type": "string"
+              },
+              "level": {
+                "type": "string",
+                "enum": [
+                  "TRACE",
+                  "DEBUG",
+                  "INFO",
+                  "WARN",
+                  "ERROR"
+                ]
               },
               "emitterIdentifier": {
                 "type": "string"
@@ -4217,7 +4987,8 @@ export const schema = {
                 "type": "object",
                 "properties": {
                   "folderId": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                   },
                   "objectKey": {
                     "type": "string"
@@ -4236,6 +5007,7 @@ export const schema = {
             "required": [
               "id",
               "eventKey",
+              "level",
               "emitterIdentifier",
               "createdAt"
             ]
@@ -4265,10 +5037,21 @@ export const schema = {
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "uuid"
                 },
                 "eventKey": {
                   "type": "string"
+                },
+                "level": {
+                  "type": "string",
+                  "enum": [
+                    "TRACE",
+                    "DEBUG",
+                    "INFO",
+                    "WARN",
+                    "ERROR"
+                  ]
                 },
                 "emitterIdentifier": {
                   "type": "string"
@@ -4277,7 +5060,8 @@ export const schema = {
                   "type": "object",
                   "properties": {
                     "folderId": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "uuid"
                     },
                     "objectKey": {
                       "type": "string"
@@ -4296,6 +5080,7 @@ export const schema = {
               "required": [
                 "id",
                 "eventKey",
+                "level",
                 "emitterIdentifier",
                 "createdAt"
               ]
@@ -4313,14 +5098,17 @@ export const schema = {
           "identifier": {
             "type": "string"
           },
+          "publicKey": {
+            "type": "string"
+          },
           "config": {
             "type": "object",
             "properties": {
-              "publicKey": {
-                "type": "string"
-              },
               "description": {
                 "type": "string"
+              },
+              "requiresStorage": {
+                "type": "boolean"
               },
               "emittableEvents": {
                 "type": "array",
@@ -4395,7 +5183,7 @@ export const schema = {
                                 "type": "boolean"
                               }
                             ],
-                            "type": "null"
+                            "nullable": true
                           }
                         },
                         "required": [
@@ -4408,8 +5196,7 @@ export const schema = {
                     "key",
                     "label",
                     "eventTriggers",
-                    "description",
-                    "inputParams"
+                    "description"
                   ]
                 }
               },
@@ -4436,296 +5223,320 @@ export const schema = {
               }
             },
             "required": [
-              "publicKey",
               "description",
+              "requiresStorage",
               "emittableEvents",
               "tasks",
               "menuItems"
             ]
           },
-          "ui": {
-            "type": "object",
-            "additionalProperties": {
+          "manifest": {
+            "type": "array",
+            "items": {
               "type": "object",
               "properties": {
                 "path": {
                   "type": "string"
                 },
-                "name": {
+                "hash": {
                   "type": "string"
                 },
-                "files": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "object",
-                    "properties": {
-                      "size": {
-                        "type": "number"
-                      },
-                      "hash": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "size",
-                      "hash"
-                    ]
-                  }
+                "size": {
+                  "type": "number"
                 }
               },
               "required": [
                 "path",
-                "name",
-                "files"
+                "hash",
+                "size"
               ]
             }
+          },
+          "connectedWorkers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "appIdentifier": {
+                  "type": "string"
+                },
+                "workerId": {
+                  "type": "string"
+                },
+                "handledTaskKeys": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "socketClientId": {
+                  "type": "string"
+                },
+                "ip": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "appIdentifier",
+                "workerId",
+                "handledTaskKeys",
+                "socketClientId",
+                "ip"
+              ]
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
           "identifier",
+          "publicKey",
           "config",
-          "ui"
+          "manifest",
+          "connectedWorkers",
+          "createdAt",
+          "updatedAt"
         ]
       },
       "AppListResponse": {
         "type": "object",
         "properties": {
-          "installed": {
+          "meta": {
             "type": "object",
             "properties": {
-              "meta": {
-                "type": "object",
-                "properties": {
-                  "totalCount": {
-                    "type": "number"
-                  }
+              "totalCount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalCount"
+            ]
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "identifier": {
+                  "type": "string"
                 },
-                "required": [
-                  "totalCount"
-                ]
-              },
-              "result": {
-                "type": "array",
-                "items": {
+                "publicKey": {
+                  "type": "string"
+                },
+                "config": {
                   "type": "object",
                   "properties": {
-                    "identifier": {
+                    "description": {
                       "type": "string"
                     },
-                    "config": {
-                      "type": "object",
-                      "properties": {
-                        "publicKey": {
-                          "type": "string"
-                        },
-                        "description": {
-                          "type": "string"
-                        },
-                        "emittableEvents": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        },
-                        "tasks": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "key": {
-                                "type": "string"
-                              },
-                              "label": {
-                                "type": "string"
-                              },
-                              "eventTriggers": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string"
-                                }
-                              },
-                              "folderAction": {
-                                "type": "object",
-                                "properties": {
-                                  "description": {
-                                    "type": "string"
-                                  }
-                                },
-                                "required": [
-                                  "description"
-                                ]
-                              },
-                              "objectAction": {
-                                "type": "object",
-                                "properties": {
-                                  "description": {
-                                    "type": "string"
-                                  }
-                                },
-                                "required": [
-                                  "description"
-                                ]
-                              },
-                              "description": {
-                                "type": "string"
-                              },
-                              "inputParams": {
-                                "type": "object",
-                                "additionalProperties": {
-                                  "type": "object",
-                                  "properties": {
-                                    "type": {
-                                      "type": "string",
-                                      "enum": [
-                                        "boolean",
-                                        "string",
-                                        "number"
-                                      ]
-                                    },
-                                    "default": {
-                                      "oneOf": [
-                                        {
-                                          "type": "string"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "boolean"
-                                        }
-                                      ],
-                                      "type": "null"
-                                    }
-                                  },
-                                  "required": [
-                                    "type"
-                                  ]
-                                }
-                              }
-                            },
-                            "required": [
-                              "key",
-                              "label",
-                              "eventTriggers",
-                              "description",
-                              "inputParams"
-                            ]
-                          }
-                        },
-                        "menuItems": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "label": {
-                                "type": "string"
-                              },
-                              "iconPath": {
-                                "type": "string"
-                              },
-                              "uiName": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "label",
-                              "uiName"
-                            ]
-                          }
-                        }
-                      },
-                      "required": [
-                        "publicKey",
-                        "description",
-                        "emittableEvents",
-                        "tasks",
-                        "menuItems"
-                      ]
+                    "requiresStorage": {
+                      "type": "boolean"
                     },
-                    "ui": {
-                      "type": "object",
-                      "additionalProperties": {
+                    "emittableEvents": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "tasks": {
+                      "type": "array",
+                      "items": {
                         "type": "object",
                         "properties": {
-                          "path": {
+                          "key": {
                             "type": "string"
                           },
-                          "name": {
+                          "label": {
                             "type": "string"
                           },
-                          "files": {
+                          "eventTriggers": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "folderAction": {
+                            "type": "object",
+                            "properties": {
+                              "description": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "description"
+                            ]
+                          },
+                          "objectAction": {
+                            "type": "object",
+                            "properties": {
+                              "description": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "description"
+                            ]
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "inputParams": {
                             "type": "object",
                             "additionalProperties": {
                               "type": "object",
                               "properties": {
-                                "size": {
-                                  "type": "number"
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "boolean",
+                                    "string",
+                                    "number"
+                                  ]
                                 },
-                                "hash": {
-                                  "type": "string"
+                                "default": {
+                                  "oneOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "boolean"
+                                    }
+                                  ],
+                                  "nullable": true
                                 }
                               },
                               "required": [
-                                "size",
-                                "hash"
+                                "type"
                               ]
                             }
                           }
                         },
                         "required": [
-                          "path",
-                          "name",
-                          "files"
+                          "key",
+                          "label",
+                          "eventTriggers",
+                          "description"
+                        ]
+                      }
+                    },
+                    "menuItems": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string"
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          },
+                          "uiName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "label",
+                          "uiName"
                         ]
                       }
                     }
                   },
                   "required": [
-                    "identifier",
-                    "config",
-                    "ui"
+                    "description",
+                    "requiresStorage",
+                    "emittableEvents",
+                    "tasks",
+                    "menuItems"
                   ]
-                }
-              }
-            },
-            "required": [
-              "meta",
-              "result"
-            ]
-          },
-          "connected": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "appIdentifier": {
-                    "type": "string"
-                  },
-                  "socketClientId": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "ip": {
-                    "type": "string"
+                },
+                "manifest": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      },
+                      "hash": {
+                        "type": "string"
+                      },
+                      "size": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "hash",
+                      "size"
+                    ]
                   }
                 },
-                "required": [
-                  "appIdentifier",
-                  "socketClientId",
-                  "name",
-                  "ip"
-                ]
-              }
+                "connectedWorkers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "appIdentifier": {
+                        "type": "string"
+                      },
+                      "workerId": {
+                        "type": "string"
+                      },
+                      "handledTaskKeys": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "socketClientId": {
+                        "type": "string"
+                      },
+                      "ip": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "appIdentifier",
+                      "workerId",
+                      "handledTaskKeys",
+                      "socketClientId",
+                      "ip"
+                    ]
+                  }
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "identifier",
+                "publicKey",
+                "config",
+                "manifest",
+                "connectedWorkers",
+                "createdAt",
+                "updatedAt"
+              ]
             }
           }
         },
         "required": [
-          "installed",
-          "connected"
+          "meta",
+          "result"
         ]
       },
       "AppGetResponse": {
@@ -4737,14 +5548,17 @@ export const schema = {
               "identifier": {
                 "type": "string"
               },
+              "publicKey": {
+                "type": "string"
+              },
               "config": {
                 "type": "object",
                 "properties": {
-                  "publicKey": {
-                    "type": "string"
-                  },
                   "description": {
                     "type": "string"
+                  },
+                  "requiresStorage": {
+                    "type": "boolean"
                   },
                   "emittableEvents": {
                     "type": "array",
@@ -4819,7 +5633,7 @@ export const schema = {
                                     "type": "boolean"
                                   }
                                 ],
-                                "type": "null"
+                                "nullable": true
                               }
                             },
                             "required": [
@@ -4832,8 +5646,7 @@ export const schema = {
                         "key",
                         "label",
                         "eventTriggers",
-                        "description",
-                        "inputParams"
+                        "description"
                       ]
                     }
                   },
@@ -4860,55 +5673,85 @@ export const schema = {
                   }
                 },
                 "required": [
-                  "publicKey",
                   "description",
+                  "requiresStorage",
                   "emittableEvents",
                   "tasks",
                   "menuItems"
                 ]
               },
-              "ui": {
-                "type": "object",
-                "additionalProperties": {
+              "manifest": {
+                "type": "array",
+                "items": {
                   "type": "object",
                   "properties": {
                     "path": {
                       "type": "string"
                     },
-                    "name": {
+                    "hash": {
                       "type": "string"
                     },
-                    "files": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "object",
-                        "properties": {
-                          "size": {
-                            "type": "number"
-                          },
-                          "hash": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "size",
-                          "hash"
-                        ]
-                      }
+                    "size": {
+                      "type": "number"
                     }
                   },
                   "required": [
                     "path",
-                    "name",
-                    "files"
+                    "hash",
+                    "size"
                   ]
                 }
+              },
+              "connectedWorkers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "appIdentifier": {
+                      "type": "string"
+                    },
+                    "workerId": {
+                      "type": "string"
+                    },
+                    "handledTaskKeys": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "socketClientId": {
+                      "type": "string"
+                    },
+                    "ip": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "appIdentifier",
+                    "workerId",
+                    "handledTaskKeys",
+                    "socketClientId",
+                    "ip"
+                  ]
+                }
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
               }
             },
             "required": [
               "identifier",
+              "publicKey",
               "config",
-              "ui"
+              "manifest",
+              "connectedWorkers",
+              "createdAt",
+              "updatedAt"
             ]
           }
         },

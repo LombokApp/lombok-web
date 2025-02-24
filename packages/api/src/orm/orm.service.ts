@@ -5,9 +5,9 @@ import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import * as path from 'path'
 import postgres from 'postgres'
 
+import { appsTable } from '../app/entities/app.entity'
 import { sessionsTable } from '../auth/entities/session.entity'
 import { eventsTable } from '../event/entities/event.entity'
-import { tasksTable } from '../task/entities/task.entity'
 import {
   foldersRelations,
   foldersTable,
@@ -15,6 +15,7 @@ import {
 import { folderObjectsTable } from '../folders/entities/folder-object.entity'
 import { serverSettingsTable } from '../server/entities/server-configuration.entity'
 import { storageLocationsTable } from '../storage/entities/storage-location.entity'
+import { tasksTable } from '../task/entities/task.entity'
 import { usersTable } from '../users/entities/user.entity'
 import { ormConfig } from './config'
 
@@ -26,6 +27,7 @@ export const dbSchema = {
   foldersTable,
   foldersRelations,
   folderObjectsTable,
+  appsTable,
   eventsTable,
   tasksTable,
 }
@@ -54,7 +56,7 @@ export class OrmService {
     return this._client
   }
 
-  async runWithTestClient(func: (client: postgres.Sql<any>) => Promise<void>) {
+  async runWithTestClient(func: (client: postgres.Sql) => Promise<void>) {
     const c = postgres(
       `postgres://${this._ormConfig.dbUser}:${this._ormConfig.dbPassword}@${this._ormConfig.dbHost}:${this._ormConfig.dbPort}/postgres`,
       this._ormConfig.disableNoticeLogging
@@ -73,7 +75,12 @@ export class OrmService {
     return this._db
   }
 
+  initialized = false
+
   async initDatabase() {
+    if (this.initialized) {
+      return
+    }
     if (this._ormConfig.createDatabase) {
       await this.runWithTestClient(async (_c) => {
         const existsResult = await _c.unsafe(
@@ -90,6 +97,26 @@ export class OrmService {
     if (this._ormConfig.runMigrations) {
       await this.migrate()
     }
+
+    this.initialized = true
+  }
+
+  async waitForInit() {
+    const maxRetries = 50
+    const retryPeriod = 50
+    await new Promise<void>((resolve, reject) => {
+      let checkCount = 0
+      const interval = setInterval(() => {
+        if (checkCount >= maxRetries) {
+          clearInterval(interval)
+          reject(new Error('Timeout waiting for db to init.'))
+        } else if (this.initialized) {
+          clearInterval(interval)
+          resolve()
+        }
+        checkCount += 1
+      }, retryPeriod)
+    })
   }
 
   async migrate() {
@@ -102,18 +129,13 @@ export class OrmService {
     if (!this._ormConfig.dbName.startsWith(TEST_DB_PREFIX)) {
       throw new Error('Attempt to reset non-test db.')
     }
-    await this.truncateTestDatabase()
-    await this.migrate()
+    await this.truncateAllTestTables()
   }
 
-  async truncateTestDatabase() {
+  public async truncateAllTestTables() {
     if (!this._ormConfig.dbName.startsWith(TEST_DB_PREFIX)) {
       throw new Error('Attempt to truncate non-test database.')
     }
-    await this._truncateAllTables()
-  }
-
-  private async _truncateAllTables() {
     await this.runWithTestClient(async (_c) => {
       const existsResult = await _c.unsafe(
         `SELECT 1 FROM pg_database WHERE datname = '${this._ormConfig.dbName}'`,
@@ -126,16 +148,16 @@ export class OrmService {
 
       try {
         const tables = await this.client.unsafe(
-          `SELECT tablename,schemaname FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema');`,
+          `SELECT tablename,schemaname FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema', 'drizzle');`,
         )
 
         if (tables.length > 0) {
-          const schemaToTableMapping = tables.reduce(
+          const schemaToTableMapping = tables.reduce<Record<string, string[]>>(
             (acc, next) => ({
               ...acc,
-              [next.schemaname]: (acc[next.schemaname] ?? []).concat(
-                next.tablename,
-              ),
+              [next.schemaname]: (
+                acc[next.schemaname as unknown as string] ?? []
+              ).concat(next.tablename as unknown as string),
             }),
             {},
           )
@@ -156,6 +178,7 @@ export class OrmService {
           }
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to truncate tables:', error)
         throw error
       }

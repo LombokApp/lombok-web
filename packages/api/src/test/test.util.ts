@@ -1,19 +1,19 @@
 import { Test } from '@nestjs/testing'
+import type { FolderDTO } from '@stellariscloud/api-client'
 import { SignedURLsRequestMethod } from '@stellariscloud/types'
 import axios from 'axios'
 import { eq } from 'drizzle-orm'
 import fs from 'fs'
 import path from 'path'
-import type { LoginResponse } from 'src/auth/dto/responses/login-response.dto'
-import type { FolderDTO } from 'src/folders/dto/folder.dto'
+import { KVService } from 'src/cache/kv.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { configureS3Client } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { CoreTestModule } from 'src/test/core-test.module'
 import { usersTable } from 'src/users/entities/user.entity'
 
-import { setApp, setAppInitializing } from '../shared/app-helper'
 import { ormConfig } from '../orm/config'
+import { setApp, setAppInitializing } from '../shared/app-helper'
 import type { TestApiClient, TestModule } from './test.types'
 import { buildSupertestApiClient } from './test-api-client'
 
@@ -46,9 +46,10 @@ export async function buildTestModule({
   setApp(app)
 
   const ormService = await app.resolve(OrmService)
+  const kvService = await app.resolve(KVService)
 
   // truncate the db before running first init (which will migrate the db)
-  await ormService.truncateTestDatabase()
+  await ormService.truncateAllTestTables()
 
   await app.enableShutdownHooks().init()
 
@@ -67,7 +68,10 @@ export async function buildTestModule({
     getOrmService: () => {
       return ormService
     },
-    resetDb: () => ormService.resetTestDb(),
+    resetAppState: async () => {
+      kvService.ops.flushall()
+      await ormService.resetTestDb()
+    },
     testS3ClientConfig: () => ({
       accessKeyId: MINIO_ACCESS_KEY_ID,
       secretAccessKey: MINIO_SECRET_ACCESS_KEY,
@@ -154,10 +158,16 @@ export async function createTestUser(
     password: string
     admin?: boolean
   },
-): Promise<LoginResponse> {
-  const signupResponse = await testModule?.apiClient
-    .authApi()
-    .signup({ signupCredentialsDTO: { username, password, email } })
+): Promise<{
+  session: { expiresAt: string; accessToken: string; refreshToken: string }
+}> {
+  const signupResponse = await testModule?.apiClient.authApi().signup({
+    signupCredentialsDTO: {
+      username,
+      password,
+      email: email ?? `${username}@example.com`,
+    },
+  })
   if (admin) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     await testModule!

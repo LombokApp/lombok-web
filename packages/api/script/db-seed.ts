@@ -1,8 +1,8 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import { foldersTable } from 'src/folders/entities/folder.entity'
-import { STORAGE_PROVISIONS_KEY } from 'src/server/constants/server.constants'
-import type { StorageProvisionDTO } from 'src/server/dto/storage-provision.dto'
+import { USER_STORAGE_PROVISIONS_KEY } from 'src/server/constants/server.constants'
+import type { UserStorageProvisionDTO } from 'src/server/dto/user-storage-provision.dto'
 import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
 import type { NewStorageLocation } from 'src/storage/entities/storage-location.entity'
@@ -72,7 +72,7 @@ async function main(): Promise<void> {
 
   function buildDevSeedLocation(
     userId: string,
-    prefix: string = '',
+    prefix = '',
   ): NewStorageLocation {
     return {
       id: uuidV4(),
@@ -95,6 +95,7 @@ async function main(): Promise<void> {
     }
   }
 
+  // eslint-disable-next-line no-console
   console.log('Seed start')
 
   const locations = [
@@ -149,7 +150,7 @@ async function main(): Promise<void> {
     updatedAt: new Date('2023-11-01 22:49:00.93'),
   })
   // add server storage provisions
-  const storageProvision: StorageProvisionDTO = {
+  const storageProvision: UserStorageProvisionDTO = {
     ...S3_CREDENTIALS,
     id: uuidV4(),
     bucket: process.env.DEV_S3_BUCKET_NAME ?? '',
@@ -160,31 +161,28 @@ async function main(): Promise<void> {
     region: process.env.DEV_S3_REGION ?? '',
     prefix: process.env.DEV_S3_PREFIX,
     provisionTypes: ['CONTENT', 'METADATA'],
+    accessKeyHashId: buildAccessKeyHashId({
+      accessKeyId: S3_CREDENTIALS.accessKeyId,
+      secretAccessKey: S3_CREDENTIALS.secretAccessKey,
+      region: process.env.DEV_S3_REGION ?? '',
+      endpoint: process.env.DEV_S3_ENDPOINT ?? '',
+    }),
   }
-  const secondStorageProvision: StorageProvisionDTO = {
-    ...S3_CREDENTIALS,
-    id: uuidV4(),
-    bucket: process.env.DEV_S3_BUCKET_NAME ?? '',
-    description:
-      "An second special dev only S3 location. Don't store anything sensitive here.",
-    label: process.env.DEV_S3_LABEL ?? '',
-    endpoint: process.env.DEV_S3_ENDPOINT ?? '',
-    region: process.env.DEV_S3_REGION ?? '',
-    prefix: process.env.DEV_S3_PREFIX,
-    provisionTypes: ['CONTENT', 'METADATA'],
-  }
+
   await db.insert(serverSettingsTable).values({
-    key: STORAGE_PROVISIONS_KEY.key,
-    value: [storageProvision, secondStorageProvision],
+    key: USER_STORAGE_PROVISIONS_KEY.key,
+    value: [storageProvision],
     createdAt: new Date('2023-11-01 22:49:00.93'),
     updatedAt: new Date('2023-11-01 22:49:00.93'),
   })
+  // eslint-disable-next-line no-console
   console.log('Seed done')
 }
 
 main()
   .then(() => process.exit(0))
   .catch((error) => {
+    // eslint-disable-next-line no-console
     console.error(error)
     process.exit(1)
   })

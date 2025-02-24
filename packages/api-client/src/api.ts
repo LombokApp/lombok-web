@@ -14,14 +14,14 @@
 
 
 import type { Configuration } from './configuration';
-import type { AxiosPromise, AxiosInstance, AxiosRequestConfig } from 'axios';
+import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
 import globalAxios from 'axios';
 // Some imports not used depending on template conditions
 // @ts-ignore
 import { DUMMY_BASE_URL, assertParamExists, setApiKeyToObject, setBasicAuthToObject, setBearerAuthToObject, setOAuthToObject, setSearchParams, serializeDataIfNeeded, toPathString, createRequestFunction } from './common';
 import type { RequestArgs } from './base';
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError } from './base';
+import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base';
 
 /**
  * 
@@ -200,16 +200,40 @@ export interface AppDTO {
     'identifier': string;
     /**
      * 
+     * @type {string}
+     * @memberof AppDTO
+     */
+    'publicKey': string;
+    /**
+     * 
      * @type {AppDTOConfig}
      * @memberof AppDTO
      */
     'config': AppDTOConfig;
     /**
      * 
-     * @type {{ [key: string]: AppDTOUiValue | undefined; }}
+     * @type {Array<AppDTOManifestInner>}
      * @memberof AppDTO
      */
-    'ui': { [key: string]: AppDTOUiValue | undefined; };
+    'manifest': Array<AppDTOManifestInner>;
+    /**
+     * 
+     * @type {Array<AppDTOConnectedWorkersInner>}
+     * @memberof AppDTO
+     */
+    'connectedWorkers': Array<AppDTOConnectedWorkersInner>;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTO
+     */
+    'createdAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTO
+     */
+    'updatedAt': string;
 }
 /**
  * 
@@ -222,13 +246,13 @@ export interface AppDTOConfig {
      * @type {string}
      * @memberof AppDTOConfig
      */
-    'publicKey': string;
+    'description': string;
     /**
      * 
-     * @type {string}
+     * @type {boolean}
      * @memberof AppDTOConfig
      */
-    'description': string;
+    'requiresStorage': boolean;
     /**
      * 
      * @type {Array<string>}
@@ -317,10 +341,10 @@ export interface AppDTOConfigTasksInner {
     'description': string;
     /**
      * 
-     * @type {{ [key: string]: AppDTOConfigTasksInnerInputParamsValue | undefined; }}
+     * @type {{ [key: string]: AppDTOConfigTasksInnerInputParamsValue; }}
      * @memberof AppDTOConfigTasksInner
      */
-    'inputParams': { [key: string]: AppDTOConfigTasksInnerInputParamsValue | undefined; };
+    'inputParams'?: { [key: string]: AppDTOConfigTasksInnerInputParamsValue; };
 }
 /**
  * 
@@ -372,46 +396,64 @@ export type AppDTOConfigTasksInnerInputParamsValueDefault = boolean | number | s
 /**
  * 
  * @export
- * @interface AppDTOUiValue
+ * @interface AppDTOConnectedWorkersInner
  */
-export interface AppDTOUiValue {
+export interface AppDTOConnectedWorkersInner {
     /**
      * 
      * @type {string}
-     * @memberof AppDTOUiValue
+     * @memberof AppDTOConnectedWorkersInner
+     */
+    'appIdentifier': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConnectedWorkersInner
+     */
+    'workerId': string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof AppDTOConnectedWorkersInner
+     */
+    'handledTaskKeys': Array<string>;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConnectedWorkersInner
+     */
+    'socketClientId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConnectedWorkersInner
+     */
+    'ip': string;
+}
+/**
+ * 
+ * @export
+ * @interface AppDTOManifestInner
+ */
+export interface AppDTOManifestInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOManifestInner
      */
     'path': string;
     /**
      * 
      * @type {string}
-     * @memberof AppDTOUiValue
+     * @memberof AppDTOManifestInner
      */
-    'name': string;
-    /**
-     * 
-     * @type {{ [key: string]: AppDTOUiValueFilesValue | undefined; }}
-     * @memberof AppDTOUiValue
-     */
-    'files': { [key: string]: AppDTOUiValueFilesValue | undefined; };
-}
-/**
- * 
- * @export
- * @interface AppDTOUiValueFilesValue
- */
-export interface AppDTOUiValueFilesValue {
+    'hash': string;
     /**
      * 
      * @type {number}
-     * @memberof AppDTOUiValueFilesValue
+     * @memberof AppDTOManifestInner
      */
     'size': number;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppDTOUiValueFilesValue
-     */
-    'hash': string;
 }
 /**
  * 
@@ -421,10 +463,10 @@ export interface AppDTOUiValueFilesValue {
 export interface AppGetResponse {
     /**
      * 
-     * @type {AppListResponseInstalledResultInner}
+     * @type {AppListResponseResultInner}
      * @memberof AppGetResponse
      */
-    'app': AppListResponseInstalledResultInner;
+    'app': AppListResponseResultInner;
 }
 /**
  * 
@@ -434,91 +476,65 @@ export interface AppGetResponse {
 export interface AppListResponse {
     /**
      * 
-     * @type {AppListResponseInstalled}
-     * @memberof AppListResponse
-     */
-    'installed': AppListResponseInstalled;
-    /**
-     * 
-     * @type {{ [key: string]: Array<AppListResponseConnectedValueInner> | undefined; }}
-     * @memberof AppListResponse
-     */
-    'connected': { [key: string]: Array<AppListResponseConnectedValueInner> | undefined; };
-}
-/**
- * 
- * @export
- * @interface AppListResponseConnectedValueInner
- */
-export interface AppListResponseConnectedValueInner {
-    /**
-     * 
-     * @type {string}
-     * @memberof AppListResponseConnectedValueInner
-     */
-    'appIdentifier': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppListResponseConnectedValueInner
-     */
-    'socketClientId': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppListResponseConnectedValueInner
-     */
-    'name': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppListResponseConnectedValueInner
-     */
-    'ip': string;
-}
-/**
- * 
- * @export
- * @interface AppListResponseInstalled
- */
-export interface AppListResponseInstalled {
-    /**
-     * 
      * @type {UserListResponseMeta}
-     * @memberof AppListResponseInstalled
+     * @memberof AppListResponse
      */
     'meta': UserListResponseMeta;
     /**
      * 
-     * @type {Array<AppListResponseInstalledResultInner>}
-     * @memberof AppListResponseInstalled
+     * @type {Array<AppListResponseResultInner>}
+     * @memberof AppListResponse
      */
-    'result': Array<AppListResponseInstalledResultInner>;
+    'result': Array<AppListResponseResultInner>;
 }
 /**
  * 
  * @export
- * @interface AppListResponseInstalledResultInner
+ * @interface AppListResponseResultInner
  */
-export interface AppListResponseInstalledResultInner {
+export interface AppListResponseResultInner {
     /**
      * 
      * @type {string}
-     * @memberof AppListResponseInstalledResultInner
+     * @memberof AppListResponseResultInner
      */
     'identifier': string;
     /**
      * 
+     * @type {string}
+     * @memberof AppListResponseResultInner
+     */
+    'publicKey': string;
+    /**
+     * 
      * @type {AppDTOConfig}
-     * @memberof AppListResponseInstalledResultInner
+     * @memberof AppListResponseResultInner
      */
     'config': AppDTOConfig;
     /**
      * 
-     * @type {{ [key: string]: AppDTOUiValue | undefined; }}
-     * @memberof AppListResponseInstalledResultInner
+     * @type {Array<AppDTOManifestInner>}
+     * @memberof AppListResponseResultInner
      */
-    'ui': { [key: string]: AppDTOUiValue | undefined; };
+    'manifest': Array<AppDTOManifestInner>;
+    /**
+     * 
+     * @type {Array<AppDTOConnectedWorkersInner>}
+     * @memberof AppListResponseResultInner
+     */
+    'connectedWorkers': Array<AppDTOConnectedWorkersInner>;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppListResponseResultInner
+     */
+    'createdAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppListResponseResultInner
+     */
+    'updatedAt': string;
 }
 /**
  * 
@@ -538,6 +554,12 @@ export interface EventDTO {
      * @memberof EventDTO
      */
     'eventKey': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof EventDTO
+     */
+    'level': EventDTOLevelEnum;
     /**
      * 
      * @type {string}
@@ -563,6 +585,17 @@ export interface EventDTO {
      */
     'createdAt': string;
 }
+
+export const EventDTOLevelEnum = {
+    Trace: 'TRACE',
+    Debug: 'DEBUG',
+    Info: 'INFO',
+    Warn: 'WARN',
+    Error: 'ERROR'
+} as const;
+
+export type EventDTOLevelEnum = typeof EventDTOLevelEnum[keyof typeof EventDTOLevelEnum];
+
 /**
  * 
  * @export
@@ -618,6 +651,12 @@ export interface EventGetResponseEvent {
      * @type {string}
      * @memberof EventGetResponseEvent
      */
+    'level': EventGetResponseEventLevelEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof EventGetResponseEvent
+     */
     'emitterIdentifier': string;
     /**
      * 
@@ -638,6 +677,17 @@ export interface EventGetResponseEvent {
      */
     'createdAt': string;
 }
+
+export const EventGetResponseEventLevelEnum = {
+    Trace: 'TRACE',
+    Debug: 'DEBUG',
+    Info: 'INFO',
+    Warn: 'WARN',
+    Error: 'ERROR'
+} as const;
+
+export type EventGetResponseEventLevelEnum = typeof EventGetResponseEventLevelEnum[keyof typeof EventGetResponseEventLevelEnum];
+
 /**
  * 
  * @export
@@ -839,6 +889,18 @@ export interface FolderDTO {
      * @memberof FolderDTO
      */
     'contentLocation': FolderDTOMetadataLocation;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderDTO
+     */
+    'createdAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderDTO
+     */
+    'updatedAt': string;
 }
 /**
  * 
@@ -999,6 +1061,18 @@ export interface FolderGetResponseFolder {
      * @memberof FolderGetResponseFolder
      */
     'contentLocation': FolderDTOMetadataLocation;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderGetResponseFolder
+     */
+    'createdAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderGetResponseFolder
+     */
+    'updatedAt': string;
 }
 /**
  * 
@@ -1027,16 +1101,16 @@ export interface FolderListResponse {
 export interface FolderListResponseResultInner {
     /**
      * 
-     * @type {Array<string>}
-     * @memberof FolderListResponseResultInner
-     */
-    'permissions': Array<FolderListResponseResultInnerPermissionsEnum>;
-    /**
-     * 
      * @type {FolderGetResponseFolder}
      * @memberof FolderListResponseResultInner
      */
     'folder': FolderGetResponseFolder;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof FolderListResponseResultInner
+     */
+    'permissions': Array<FolderListResponseResultInnerPermissionsEnum>;
 }
 
 export const FolderListResponseResultInnerPermissionsEnum = {
@@ -1170,16 +1244,16 @@ export interface FolderObjectDTO {
     'mediaType': FolderObjectDTOMediaTypeEnum;
     /**
      * 
-     * @type {{ [key: string]: FolderObjectDTOContentAttributesValue | undefined; }}
+     * @type {{ [key: string]: FolderObjectDTOContentAttributesValue; }}
      * @memberof FolderObjectDTO
      */
-    'contentAttributes': { [key: string]: FolderObjectDTOContentAttributesValue | undefined; };
+    'contentAttributes': { [key: string]: FolderObjectDTOContentAttributesValue; };
     /**
      * 
-     * @type {{ [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue | undefined; } | undefined; }}
+     * @type {{ [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue; }; }}
      * @memberof FolderObjectDTO
      */
-    'contentMetadata': { [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue | undefined; } | undefined; };
+    'contentMetadata': { [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue; }; };
 }
 
 export const FolderObjectDTOMediaTypeEnum = {
@@ -1371,16 +1445,16 @@ export interface FolderObjectListResponseResultInner {
     'mediaType': FolderObjectListResponseResultInnerMediaTypeEnum;
     /**
      * 
-     * @type {{ [key: string]: FolderObjectDTOContentAttributesValue | undefined; }}
+     * @type {{ [key: string]: FolderObjectDTOContentAttributesValue; }}
      * @memberof FolderObjectListResponseResultInner
      */
-    'contentAttributes': { [key: string]: FolderObjectDTOContentAttributesValue | undefined; };
+    'contentAttributes': { [key: string]: FolderObjectDTOContentAttributesValue; };
     /**
      * 
-     * @type {{ [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue | undefined; } | undefined; }}
+     * @type {{ [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue; }; }}
      * @memberof FolderObjectListResponseResultInner
      */
-    'contentMetadata': { [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue | undefined; } | undefined; };
+    'contentMetadata': { [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue; }; };
 }
 
 export const FolderObjectListResponseResultInnerMediaTypeEnum = {
@@ -1443,6 +1517,12 @@ export interface LoginResponseSession {
      * @memberof LoginResponseSession
      */
     'refreshToken': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof LoginResponseSession
+     */
+    'expiresAt': string;
 }
 /**
  * 
@@ -1462,6 +1542,148 @@ export interface RotateAccessKeyInputDTO {
      * @memberof RotateAccessKeyInputDTO
      */
     'secretAccessKey': string;
+}
+/**
+ * 
+ * @export
+ * @interface ServerStorageLocationDTO
+ */
+export interface ServerStorageLocationDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerStorageLocationDTO
+     */
+    'accessKeyHashId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerStorageLocationDTO
+     */
+    'accessKeyId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerStorageLocationDTO
+     */
+    'endpoint': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerStorageLocationDTO
+     */
+    'bucket': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerStorageLocationDTO
+     */
+    'region': string;
+    /**
+     * 
+     * @type {SignupResponseUserEmail}
+     * @memberof ServerStorageLocationDTO
+     */
+    'prefix': SignupResponseUserEmail;
+}
+/**
+ * 
+ * @export
+ * @interface ServerStorageLocationGetResponse
+ */
+export interface ServerStorageLocationGetResponse {
+    /**
+     * 
+     * @type {ServerStorageLocationGetResponseServerStorageLocation}
+     * @memberof ServerStorageLocationGetResponse
+     */
+    'serverStorageLocation'?: ServerStorageLocationGetResponseServerStorageLocation;
+}
+/**
+ * 
+ * @export
+ * @interface ServerStorageLocationGetResponseServerStorageLocation
+ */
+export interface ServerStorageLocationGetResponseServerStorageLocation {
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerStorageLocationGetResponseServerStorageLocation
+     */
+    'accessKeyHashId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerStorageLocationGetResponseServerStorageLocation
+     */
+    'accessKeyId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerStorageLocationGetResponseServerStorageLocation
+     */
+    'endpoint': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerStorageLocationGetResponseServerStorageLocation
+     */
+    'bucket': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerStorageLocationGetResponseServerStorageLocation
+     */
+    'region': string;
+    /**
+     * 
+     * @type {SignupResponseUserEmail}
+     * @memberof ServerStorageLocationGetResponseServerStorageLocation
+     */
+    'prefix': SignupResponseUserEmail;
+}
+/**
+ * 
+ * @export
+ * @interface ServerStorageLocationInputDTO
+ */
+export interface ServerStorageLocationInputDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerStorageLocationInputDTO
+     */
+    'accessKeyId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerStorageLocationInputDTO
+     */
+    'secretAccessKey': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerStorageLocationInputDTO
+     */
+    'endpoint': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerStorageLocationInputDTO
+     */
+    'bucket': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerStorageLocationInputDTO
+     */
+    'region': string;
+    /**
+     * 
+     * @type {UserUpdateInputDTOName}
+     * @memberof ServerStorageLocationInputDTO
+     */
+    'prefix': UserUpdateInputDTOName;
 }
 /**
  * 
@@ -1550,7 +1772,7 @@ export interface SignupCredentialsDTO {
      * @type {string}
      * @memberof SignupCredentialsDTO
      */
-    'email': string;
+    'email'?: string;
     /**
      * 
      * @type {string}
@@ -1588,13 +1810,13 @@ export interface SignupResponseUser {
      * @type {string}
      * @memberof SignupResponseUser
      */
-    'name'?: string;
+    'name'?: string | null;
     /**
      * 
-     * @type {string}
+     * @type {SignupResponseUserEmail}
      * @memberof SignupResponseUser
      */
-    'email'?: string;
+    'email': SignupResponseUserEmail;
     /**
      * 
      * @type {boolean}
@@ -1632,6 +1854,12 @@ export interface SignupResponseUser {
      */
     'updatedAt': string;
 }
+/**
+ * @type SignupResponseUserEmail
+ * @export
+ */
+export type SignupResponseUserEmail = string;
+
 /**
  * 
  * @export
@@ -1702,312 +1930,6 @@ export interface StorageLocationInputDTO {
 /**
  * 
  * @export
- * @interface StorageProvisionDTO
- */
-export interface StorageProvisionDTO {
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'endpoint': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'bucket': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'region': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'accessKeyId': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'prefix'?: string;
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof StorageProvisionDTO
-     */
-    'provisionTypes': Array<StorageProvisionDTOProvisionTypesEnum>;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'label': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionDTO
-     */
-    'description': string;
-}
-
-export const StorageProvisionDTOProvisionTypesEnum = {
-    Content: 'CONTENT',
-    Metadata: 'METADATA',
-    Backup: 'BACKUP'
-} as const;
-
-export type StorageProvisionDTOProvisionTypesEnum = typeof StorageProvisionDTOProvisionTypesEnum[keyof typeof StorageProvisionDTOProvisionTypesEnum];
-
-/**
- * 
- * @export
- * @interface StorageProvisionGetResponse
- */
-export interface StorageProvisionGetResponse {
-    /**
-     * 
-     * @type {StorageProvisionGetResponseStorageProvision}
-     * @memberof StorageProvisionGetResponse
-     */
-    'storageProvision': StorageProvisionGetResponseStorageProvision;
-}
-/**
- * 
- * @export
- * @interface StorageProvisionGetResponseStorageProvision
- */
-export interface StorageProvisionGetResponseStorageProvision {
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'endpoint': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'bucket': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'region': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'accessKeyId': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'prefix'?: string;
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'provisionTypes': Array<StorageProvisionGetResponseStorageProvisionProvisionTypesEnum>;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'label': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionGetResponseStorageProvision
-     */
-    'description': string;
-}
-
-export const StorageProvisionGetResponseStorageProvisionProvisionTypesEnum = {
-    Content: 'CONTENT',
-    Metadata: 'METADATA',
-    Backup: 'BACKUP'
-} as const;
-
-export type StorageProvisionGetResponseStorageProvisionProvisionTypesEnum = typeof StorageProvisionGetResponseStorageProvisionProvisionTypesEnum[keyof typeof StorageProvisionGetResponseStorageProvisionProvisionTypesEnum];
-
-/**
- * 
- * @export
- * @interface StorageProvisionInputDTO
- */
-export interface StorageProvisionInputDTO {
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionInputDTO
-     */
-    'label': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionInputDTO
-     */
-    'description': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionInputDTO
-     */
-    'endpoint': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionInputDTO
-     */
-    'bucket': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionInputDTO
-     */
-    'region': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionInputDTO
-     */
-    'accessKeyId': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionInputDTO
-     */
-    'secretAccessKey': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionInputDTO
-     */
-    'prefix'?: string;
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof StorageProvisionInputDTO
-     */
-    'provisionTypes': Array<StorageProvisionInputDTOProvisionTypesEnum>;
-}
-
-export const StorageProvisionInputDTOProvisionTypesEnum = {
-    Content: 'CONTENT',
-    Metadata: 'METADATA',
-    Backup: 'BACKUP'
-} as const;
-
-export type StorageProvisionInputDTOProvisionTypesEnum = typeof StorageProvisionInputDTOProvisionTypesEnum[keyof typeof StorageProvisionInputDTOProvisionTypesEnum];
-
-/**
- * 
- * @export
- * @interface StorageProvisionListResponse
- */
-export interface StorageProvisionListResponse {
-    /**
-     * 
-     * @type {Array<StorageProvisionListResponseResultInner>}
-     * @memberof StorageProvisionListResponse
-     */
-    'result': Array<StorageProvisionListResponseResultInner>;
-}
-/**
- * 
- * @export
- * @interface StorageProvisionListResponseResultInner
- */
-export interface StorageProvisionListResponseResultInner {
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'id': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'label': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'description': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'endpoint': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'bucket': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'region': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'accessKeyId': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'prefix'?: string;
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof StorageProvisionListResponseResultInner
-     */
-    'provisionTypes': Array<StorageProvisionListResponseResultInnerProvisionTypesEnum>;
-}
-
-export const StorageProvisionListResponseResultInnerProvisionTypesEnum = {
-    Content: 'CONTENT',
-    Metadata: 'METADATA',
-    Backup: 'BACKUP'
-} as const;
-
-export type StorageProvisionListResponseResultInnerProvisionTypesEnum = typeof StorageProvisionListResponseResultInnerProvisionTypesEnum[keyof typeof StorageProvisionListResponseResultInnerProvisionTypesEnum];
-
-/**
- * 
- * @export
  * @interface TaskDTO
  */
 export interface TaskDTO {
@@ -2055,10 +1977,10 @@ export interface TaskDTO {
     'handlerId'?: string;
     /**
      * 
-     * @type {{ [key: string]: TaskDTOInputDataValue | undefined; }}
+     * @type {{ [key: string]: TaskGetResponseTaskInputDataValue; }}
      * @memberof TaskDTO
      */
-    'inputData': { [key: string]: TaskDTOInputDataValue | undefined; };
+    'inputData': { [key: string]: TaskGetResponseTaskInputDataValue; };
     /**
      * 
      * @type {string}
@@ -2079,10 +2001,10 @@ export interface TaskDTO {
     'errorMessage'?: string;
     /**
      * 
-     * @type {TaskDTOTaskDescription}
+     * @type {TaskGetResponseTaskTaskDescription}
      * @memberof TaskDTO
      */
-    'taskDescription': TaskDTOTaskDescription;
+    'taskDescription': TaskGetResponseTaskTaskDescription;
     /**
      * 
      * @type {Array<any>}
@@ -2113,31 +2035,6 @@ export interface TaskDTO {
      * @memberof TaskDTO
      */
     'updatedAt': string;
-}
-/**
- * @type TaskDTOInputDataValue
- * @export
- */
-export type TaskDTOInputDataValue = number | string;
-
-/**
- * 
- * @export
- * @interface TaskDTOTaskDescription
- */
-export interface TaskDTOTaskDescription {
-    /**
-     * 
-     * @type {string}
-     * @memberof TaskDTOTaskDescription
-     */
-    'textKey': string;
-    /**
-     * 
-     * @type {{ [key: string]: string | undefined; }}
-     * @memberof TaskDTOTaskDescription
-     */
-    'variables': { [key: string]: string | undefined; };
 }
 /**
  * 
@@ -2202,10 +2099,10 @@ export interface TaskGetResponseTask {
     'handlerId'?: string;
     /**
      * 
-     * @type {{ [key: string]: TaskDTOInputDataValue | undefined; }}
+     * @type {{ [key: string]: TaskGetResponseTaskInputDataValue; }}
      * @memberof TaskGetResponseTask
      */
-    'inputData': { [key: string]: TaskDTOInputDataValue | undefined; };
+    'inputData': { [key: string]: TaskGetResponseTaskInputDataValue; };
     /**
      * 
      * @type {string}
@@ -2226,10 +2123,10 @@ export interface TaskGetResponseTask {
     'errorMessage'?: string;
     /**
      * 
-     * @type {TaskDTOTaskDescription}
+     * @type {TaskGetResponseTaskTaskDescription}
      * @memberof TaskGetResponseTask
      */
-    'taskDescription': TaskDTOTaskDescription;
+    'taskDescription': TaskGetResponseTaskTaskDescription;
     /**
      * 
      * @type {Array<any>}
@@ -2260,6 +2157,31 @@ export interface TaskGetResponseTask {
      * @memberof TaskGetResponseTask
      */
     'updatedAt': string;
+}
+/**
+ * @type TaskGetResponseTaskInputDataValue
+ * @export
+ */
+export type TaskGetResponseTaskInputDataValue = number | string;
+
+/**
+ * 
+ * @export
+ * @interface TaskGetResponseTaskTaskDescription
+ */
+export interface TaskGetResponseTaskTaskDescription {
+    /**
+     * 
+     * @type {string}
+     * @memberof TaskGetResponseTaskTaskDescription
+     */
+    'textKey': string;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof TaskGetResponseTaskTaskDescription
+     */
+    'variables': { [key: string]: string; };
 }
 /**
  * 
@@ -2378,13 +2300,13 @@ export interface UserDTO {
      * @type {string}
      * @memberof UserDTO
      */
-    'name'?: string;
+    'name'?: string | null;
     /**
      * 
-     * @type {string}
+     * @type {SignupResponseUserEmail}
      * @memberof UserDTO
      */
-    'email'?: string;
+    'email': SignupResponseUserEmail;
     /**
      * 
      * @type {boolean}
@@ -2470,27 +2392,269 @@ export interface UserListResponseMeta {
 /**
  * 
  * @export
+ * @interface UserStorageProvisionDTO
+ */
+export interface UserStorageProvisionDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'accessKeyHashId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'endpoint': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'bucket': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'region': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'accessKeyId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'prefix'?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof UserStorageProvisionDTO
+     */
+    'provisionTypes': Array<UserStorageProvisionDTOProvisionTypesEnum>;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'label': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionDTO
+     */
+    'description': string;
+}
+
+export const UserStorageProvisionDTOProvisionTypesEnum = {
+    Content: 'CONTENT',
+    Metadata: 'METADATA',
+    Redundancy: 'REDUNDANCY'
+} as const;
+
+export type UserStorageProvisionDTOProvisionTypesEnum = typeof UserStorageProvisionDTOProvisionTypesEnum[keyof typeof UserStorageProvisionDTOProvisionTypesEnum];
+
+/**
+ * 
+ * @export
+ * @interface UserStorageProvisionGetResponse
+ */
+export interface UserStorageProvisionGetResponse {
+    /**
+     * 
+     * @type {UserStorageProvisionListResponseResultInner}
+     * @memberof UserStorageProvisionGetResponse
+     */
+    'userStorageProvision': UserStorageProvisionListResponseResultInner;
+}
+/**
+ * 
+ * @export
+ * @interface UserStorageProvisionInputDTO
+ */
+export interface UserStorageProvisionInputDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'label': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'description': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'endpoint': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'bucket': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'region': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'accessKeyId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'secretAccessKey': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'prefix'?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof UserStorageProvisionInputDTO
+     */
+    'provisionTypes': Array<UserStorageProvisionInputDTOProvisionTypesEnum>;
+}
+
+export const UserStorageProvisionInputDTOProvisionTypesEnum = {
+    Content: 'CONTENT',
+    Metadata: 'METADATA',
+    Redundancy: 'REDUNDANCY'
+} as const;
+
+export type UserStorageProvisionInputDTOProvisionTypesEnum = typeof UserStorageProvisionInputDTOProvisionTypesEnum[keyof typeof UserStorageProvisionInputDTOProvisionTypesEnum];
+
+/**
+ * 
+ * @export
+ * @interface UserStorageProvisionListResponse
+ */
+export interface UserStorageProvisionListResponse {
+    /**
+     * 
+     * @type {Array<UserStorageProvisionListResponseResultInner>}
+     * @memberof UserStorageProvisionListResponse
+     */
+    'result': Array<UserStorageProvisionListResponseResultInner>;
+}
+/**
+ * 
+ * @export
+ * @interface UserStorageProvisionListResponseResultInner
+ */
+export interface UserStorageProvisionListResponseResultInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'accessKeyHashId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'endpoint': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'bucket': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'region': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'accessKeyId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'prefix'?: string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'provisionTypes': Array<UserStorageProvisionListResponseResultInnerProvisionTypesEnum>;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'label': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionListResponseResultInner
+     */
+    'description': string;
+}
+
+export const UserStorageProvisionListResponseResultInnerProvisionTypesEnum = {
+    Content: 'CONTENT',
+    Metadata: 'METADATA',
+    Redundancy: 'REDUNDANCY'
+} as const;
+
+export type UserStorageProvisionListResponseResultInnerProvisionTypesEnum = typeof UserStorageProvisionListResponseResultInnerProvisionTypesEnum[keyof typeof UserStorageProvisionListResponseResultInnerProvisionTypesEnum];
+
+/**
+ * 
+ * @export
  * @interface UserUpdateInputDTO
  */
 export interface UserUpdateInputDTO {
     /**
      * 
-     * @type {string}
+     * @type {UserUpdateInputDTOName}
      * @memberof UserUpdateInputDTO
      */
-    'name'?: string;
+    'name'?: UserUpdateInputDTOName;
     /**
      * 
-     * @type {string}
+     * @type {UserUpdateInputDTOEmail}
      * @memberof UserUpdateInputDTO
      */
-    'email'?: string;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof UserUpdateInputDTO
-     */
-    'emailVerified'?: boolean;
+    'email'?: UserUpdateInputDTOEmail;
     /**
      * 
      * @type {boolean}
@@ -2516,6 +2680,18 @@ export interface UserUpdateInputDTO {
      */
     'permissions'?: Array<string>;
 }
+/**
+ * @type UserUpdateInputDTOEmail
+ * @export
+ */
+export type UserUpdateInputDTOEmail = string;
+
+/**
+ * @type UserUpdateInputDTOName
+ * @export
+ */
+export type UserUpdateInputDTOName = string;
+
 /**
  * 
  * @export
@@ -2551,11 +2727,12 @@ export const AccessKeysApiAxiosParamCreator = function (configuration?: Configur
     return {
         /**
          * 
+         * @summary Get an access key by id.
          * @param {string} accessKeyHashId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAccessKey: async (accessKeyHashId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getAccessKey: async (accessKeyHashId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'accessKeyHashId' is not null or undefined
             assertParamExists('getAccessKey', 'accessKeyHashId', accessKeyHashId)
             const localVarPath = `/api/v1/access-keys/{accessKeyHashId}`
@@ -2588,11 +2765,12 @@ export const AccessKeysApiAxiosParamCreator = function (configuration?: Configur
         },
         /**
          * 
+         * @summary List buckets for an access key.
          * @param {string} accessKeyHashId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listAccessKeyBuckets: async (accessKeyHashId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listAccessKeyBuckets: async (accessKeyHashId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'accessKeyHashId' is not null or undefined
             assertParamExists('listAccessKeyBuckets', 'accessKeyHashId', accessKeyHashId)
             const localVarPath = `/api/v1/access-keys/{accessKeyHashId}/buckets`
@@ -2625,12 +2803,14 @@ export const AccessKeysApiAxiosParamCreator = function (configuration?: Configur
         },
         /**
          * 
+         * @summary List access keys.
          * @param {number} [offset] 
          * @param {number} [limit] 
+         * @param {ListAccessKeysSortEnum} [sort] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listAccessKeys: async (offset?: number, limit?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listAccessKeys: async (offset?: number, limit?: number, sort?: ListAccessKeysSortEnum, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/v1/access-keys`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2655,6 +2835,10 @@ export const AccessKeysApiAxiosParamCreator = function (configuration?: Configur
                 localVarQueryParameter['limit'] = limit;
             }
 
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
+            }
+
 
     
             setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -2668,12 +2852,13 @@ export const AccessKeysApiAxiosParamCreator = function (configuration?: Configur
         },
         /**
          * 
+         * @summary Rotate an access key.
          * @param {string} accessKeyHashId 
          * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        rotateAccessKey: async (accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        rotateAccessKey: async (accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'accessKeyHashId' is not null or undefined
             assertParamExists('rotateAccessKey', 'accessKeyHashId', accessKeyHashId)
             // verify required parameter 'rotateAccessKeyInputDTO' is not null or undefined
@@ -2721,45 +2906,58 @@ export const AccessKeysApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @summary Get an access key by id.
          * @param {string} accessKeyHashId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getAccessKey(accessKeyHashId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>> {
+        async getAccessKey(accessKeyHashId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getAccessKey(accessKeyHashId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AccessKeysApi.getAccessKey']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary List buckets for an access key.
          * @param {string} accessKeyHashId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listAccessKeyBuckets(accessKeyHashId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyBucketsListResponse>> {
+        async listAccessKeyBuckets(accessKeyHashId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyBucketsListResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listAccessKeyBuckets(accessKeyHashId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AccessKeysApi.listAccessKeyBuckets']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary List access keys.
          * @param {number} [offset] 
          * @param {number} [limit] 
+         * @param {ListAccessKeysSortEnum} [sort] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listAccessKeys(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listAccessKeys(offset, limit, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        async listAccessKeys(offset?: number, limit?: number, sort?: ListAccessKeysSortEnum, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listAccessKeys(offset, limit, sort, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AccessKeysApi.listAccessKeys']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Rotate an access key.
          * @param {string} accessKeyHashId 
          * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async rotateAccessKey(accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyRotateResponse>> {
+        async rotateAccessKey(accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyRotateResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.rotateAccessKey(accessKeyHashId, rotateAccessKeyInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AccessKeysApi.rotateAccessKey']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
@@ -2773,38 +2971,42 @@ export const AccessKeysApiFactory = function (configuration?: Configuration, bas
     return {
         /**
          * 
+         * @summary Get an access key by id.
          * @param {AccessKeysApiGetAccessKeyRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyGetResponse> {
+        getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyGetResponse> {
             return localVarFp.getAccessKey(requestParameters.accessKeyHashId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary List buckets for an access key.
          * @param {AccessKeysApiListAccessKeyBucketsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyBucketsListResponse> {
+        listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyBucketsListResponse> {
             return localVarFp.listAccessKeyBuckets(requestParameters.accessKeyHashId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary List access keys.
          * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listAccessKeys(requestParameters: AccessKeysApiListAccessKeysRequest = {}, options?: AxiosRequestConfig): AxiosPromise<AccessKeyListResponse> {
-            return localVarFp.listAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        listAccessKeys(requestParameters: AccessKeysApiListAccessKeysRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyListResponse> {
+            return localVarFp.listAccessKeys(requestParameters.offset, requestParameters.limit, requestParameters.sort, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Rotate an access key.
          * @param {AccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyRotateResponse> {
+        rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyRotateResponse> {
             return localVarFp.rotateAccessKey(requestParameters.accessKeyHashId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(axios, basePath));
         },
     };
@@ -2857,6 +3059,13 @@ export interface AccessKeysApiListAccessKeysRequest {
      * @memberof AccessKeysApiListAccessKeys
      */
     readonly limit?: number
+
+    /**
+     * 
+     * @type {'accessKeyId-asc' | 'accessKeyId-desc' | 'accessKeyHashId-asc' | 'accessKeyHashId-desc' | 'endpoint-asc' | 'endpoint-desc' | 'region-asc' | 'region-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @memberof AccessKeysApiListAccessKeys
+     */
+    readonly sort?: ListAccessKeysSortEnum
 }
 
 /**
@@ -2889,49 +3098,69 @@ export interface AccessKeysApiRotateAccessKeyRequest {
 export class AccessKeysApi extends BaseAPI {
     /**
      * 
+     * @summary Get an access key by id.
      * @param {AccessKeysApiGetAccessKeyRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AccessKeysApi
      */
-    public getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: AxiosRequestConfig) {
+    public getAccessKey(requestParameters: AccessKeysApiGetAccessKeyRequest, options?: RawAxiosRequestConfig) {
         return AccessKeysApiFp(this.configuration).getAccessKey(requestParameters.accessKeyHashId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary List buckets for an access key.
      * @param {AccessKeysApiListAccessKeyBucketsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AccessKeysApi
      */
-    public listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: AxiosRequestConfig) {
+    public listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: RawAxiosRequestConfig) {
         return AccessKeysApiFp(this.configuration).listAccessKeyBuckets(requestParameters.accessKeyHashId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary List access keys.
      * @param {AccessKeysApiListAccessKeysRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AccessKeysApi
      */
-    public listAccessKeys(requestParameters: AccessKeysApiListAccessKeysRequest = {}, options?: AxiosRequestConfig) {
-        return AccessKeysApiFp(this.configuration).listAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    public listAccessKeys(requestParameters: AccessKeysApiListAccessKeysRequest = {}, options?: RawAxiosRequestConfig) {
+        return AccessKeysApiFp(this.configuration).listAccessKeys(requestParameters.offset, requestParameters.limit, requestParameters.sort, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Rotate an access key.
      * @param {AccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AccessKeysApi
      */
-    public rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig) {
+    public rotateAccessKey(requestParameters: AccessKeysApiRotateAccessKeyRequest, options?: RawAxiosRequestConfig) {
         return AccessKeysApiFp(this.configuration).rotateAccessKey(requestParameters.accessKeyHashId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
+/**
+ * @export
+ */
+export const ListAccessKeysSortEnum = {
+    AccessKeyIdAsc: 'accessKeyId-asc',
+    AccessKeyIdDesc: 'accessKeyId-desc',
+    AccessKeyHashIdAsc: 'accessKeyHashId-asc',
+    AccessKeyHashIdDesc: 'accessKeyHashId-desc',
+    EndpointAsc: 'endpoint-asc',
+    EndpointDesc: 'endpoint-desc',
+    RegionAsc: 'region-asc',
+    RegionDesc: 'region-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
+} as const;
+export type ListAccessKeysSortEnum = typeof ListAccessKeysSortEnum[keyof typeof ListAccessKeysSortEnum];
 
 
 /**
@@ -2946,7 +3175,7 @@ export const AppsApiAxiosParamCreator = function (configuration?: Configuration)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getApp: async (appIdentifier: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getApp: async (appIdentifier: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'appIdentifier' is not null or undefined
             assertParamExists('getApp', 'appIdentifier', appIdentifier)
             const localVarPath = `/api/v1/server/apps/{appIdentifier}`
@@ -2982,7 +3211,7 @@ export const AppsApiAxiosParamCreator = function (configuration?: Configuration)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listApps: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listApps: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/v1/server/apps`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -3026,18 +3255,22 @@ export const AppsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getApp(appIdentifier: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppGetResponse>> {
+        async getApp(appIdentifier: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getApp(appIdentifier, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AppsApi.getApp']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listApps(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppListResponse>> {
+        async listApps(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppListResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listApps(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AppsApi.listApps']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
@@ -3055,7 +3288,7 @@ export const AppsApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getApp(requestParameters: AppsApiGetAppRequest, options?: AxiosRequestConfig): AxiosPromise<AppGetResponse> {
+        getApp(requestParameters: AppsApiGetAppRequest, options?: RawAxiosRequestConfig): AxiosPromise<AppGetResponse> {
             return localVarFp.getApp(requestParameters.appIdentifier, options).then((request) => request(axios, basePath));
         },
         /**
@@ -3063,7 +3296,7 @@ export const AppsApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listApps(options?: AxiosRequestConfig): AxiosPromise<AppListResponse> {
+        listApps(options?: RawAxiosRequestConfig): AxiosPromise<AppListResponse> {
             return localVarFp.listApps(options).then((request) => request(axios, basePath));
         },
     };
@@ -3097,7 +3330,7 @@ export class AppsApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof AppsApi
      */
-    public getApp(requestParameters: AppsApiGetAppRequest, options?: AxiosRequestConfig) {
+    public getApp(requestParameters: AppsApiGetAppRequest, options?: RawAxiosRequestConfig) {
         return AppsApiFp(this.configuration).getApp(requestParameters.appIdentifier, options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -3107,7 +3340,7 @@ export class AppsApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof AppsApi
      */
-    public listApps(options?: AxiosRequestConfig) {
+    public listApps(options?: RawAxiosRequestConfig) {
         return AppsApiFp(this.configuration).listApps(options).then((request) => request(this.axios, this.basePath));
     }
 }
@@ -3122,11 +3355,12 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
     return {
         /**
          * 
+         * @summary Authenticate the user and return access and refresh tokens.
          * @param {LoginCredentialsDTO} loginCredentialsDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login: async (loginCredentialsDTO: LoginCredentialsDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        login: async (loginCredentialsDTO: LoginCredentialsDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'loginCredentialsDTO' is not null or undefined
             assertParamExists('login', 'loginCredentialsDTO', loginCredentialsDTO)
             const localVarPath = `/api/v1/auth/login`;
@@ -3157,10 +3391,11 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
         },
         /**
          * 
+         * @summary Logout. Kill the current session.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        logout: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        logout: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/v1/auth/logout`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -3190,11 +3425,12 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
         },
         /**
          * 
+         * @summary Refresh a session with a refresh token.
          * @param {string} refreshToken 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        refreshToken: async (refreshToken: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        refreshToken: async (refreshToken: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'refreshToken' is not null or undefined
             assertParamExists('refreshToken', 'refreshToken', refreshToken)
             const localVarPath = `/api/v1/auth/{refreshToken}`
@@ -3223,11 +3459,12 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
         },
         /**
          * 
+         * @summary Register a new user.
          * @param {SignupCredentialsDTO} signupCredentialsDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        signup: async (signupCredentialsDTO: SignupCredentialsDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        signup: async (signupCredentialsDTO: SignupCredentialsDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'signupCredentialsDTO' is not null or undefined
             assertParamExists('signup', 'signupCredentialsDTO', signupCredentialsDTO)
             const localVarPath = `/api/v1/auth/signup`;
@@ -3268,42 +3505,54 @@ export const AuthApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @summary Authenticate the user and return access and refresh tokens.
          * @param {LoginCredentialsDTO} loginCredentialsDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async login(loginCredentialsDTO: LoginCredentialsDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<LoginResponse>> {
+        async login(loginCredentialsDTO: LoginCredentialsDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<LoginResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.login(loginCredentialsDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.login']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Logout. Kill the current session.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async logout(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+        async logout(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.logout(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.logout']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Refresh a session with a refresh token.
          * @param {string} refreshToken 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async refreshToken(refreshToken: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TokenRefreshResponse>> {
+        async refreshToken(refreshToken: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TokenRefreshResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.refreshToken(refreshToken, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.refreshToken']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Register a new user.
          * @param {SignupCredentialsDTO} signupCredentialsDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async signup(signupCredentialsDTO: SignupCredentialsDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SignupResponse>> {
+        async signup(signupCredentialsDTO: SignupCredentialsDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SignupResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.signup(signupCredentialsDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.signup']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
@@ -3317,37 +3566,41 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
     return {
         /**
          * 
+         * @summary Authenticate the user and return access and refresh tokens.
          * @param {AuthApiLoginRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig): AxiosPromise<LoginResponse> {
+        login(requestParameters: AuthApiLoginRequest, options?: RawAxiosRequestConfig): AxiosPromise<LoginResponse> {
             return localVarFp.login(requestParameters.loginCredentialsDTO, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Logout. Kill the current session.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        logout(options?: AxiosRequestConfig): AxiosPromise<boolean> {
+        logout(options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
             return localVarFp.logout(options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Refresh a session with a refresh token.
          * @param {AuthApiRefreshTokenRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        refreshToken(requestParameters: AuthApiRefreshTokenRequest, options?: AxiosRequestConfig): AxiosPromise<TokenRefreshResponse> {
+        refreshToken(requestParameters: AuthApiRefreshTokenRequest, options?: RawAxiosRequestConfig): AxiosPromise<TokenRefreshResponse> {
             return localVarFp.refreshToken(requestParameters.refreshToken, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Register a new user.
          * @param {AuthApiSignupRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        signup(requestParameters: AuthApiSignupRequest, options?: AxiosRequestConfig): AxiosPromise<SignupResponse> {
+        signup(requestParameters: AuthApiSignupRequest, options?: RawAxiosRequestConfig): AxiosPromise<SignupResponse> {
             return localVarFp.signup(requestParameters.signupCredentialsDTO, options).then((request) => request(axios, basePath));
         },
     };
@@ -3404,44 +3657,48 @@ export interface AuthApiSignupRequest {
 export class AuthApi extends BaseAPI {
     /**
      * 
+     * @summary Authenticate the user and return access and refresh tokens.
      * @param {AuthApiLoginRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthApi
      */
-    public login(requestParameters: AuthApiLoginRequest, options?: AxiosRequestConfig) {
+    public login(requestParameters: AuthApiLoginRequest, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).login(requestParameters.loginCredentialsDTO, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Logout. Kill the current session.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthApi
      */
-    public logout(options?: AxiosRequestConfig) {
+    public logout(options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).logout(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Refresh a session with a refresh token.
      * @param {AuthApiRefreshTokenRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthApi
      */
-    public refreshToken(requestParameters: AuthApiRefreshTokenRequest, options?: AxiosRequestConfig) {
+    public refreshToken(requestParameters: AuthApiRefreshTokenRequest, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).refreshToken(requestParameters.refreshToken, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Register a new user.
      * @param {AuthApiSignupRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthApi
      */
-    public signup(requestParameters: AuthApiSignupRequest, options?: AxiosRequestConfig) {
+    public signup(requestParameters: AuthApiSignupRequest, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).signup(requestParameters.signupCredentialsDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
@@ -3456,11 +3713,12 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
     return {
         /**
          * 
+         * @summary Create a folder.
          * @param {FolderCreateInputDTO} folderCreateInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createFolder: async (folderCreateInputDTO: FolderCreateInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        createFolder: async (folderCreateInputDTO: FolderCreateInputDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderCreateInputDTO' is not null or undefined
             assertParamExists('createFolder', 'folderCreateInputDTO', folderCreateInputDTO)
             const localVarPath = `/api/v1/folders`;
@@ -3495,12 +3753,13 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
+         * @summary Create presigned urls for objects in a folder.
          * @param {string} folderId 
          * @param {Array<FolderCreateSignedUrlInputDTOInner>} folderCreateSignedUrlInputDTOInner 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createPresignedUrls: async (folderId: string, folderCreateSignedUrlInputDTOInner: Array<FolderCreateSignedUrlInputDTOInner>, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        createPresignedUrls: async (folderId: string, folderCreateSignedUrlInputDTOInner: Array<FolderCreateSignedUrlInputDTOInner>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('createPresignedUrls', 'folderId', folderId)
             // verify required parameter 'folderCreateSignedUrlInputDTOInner' is not null or undefined
@@ -3538,11 +3797,12 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
+         * @summary Delete a folder by id.
          * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteFolder: async (folderId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        deleteFolder: async (folderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('deleteFolder', 'folderId', folderId)
             const localVarPath = `/api/v1/folders/{folderId}`
@@ -3575,12 +3835,13 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
+         * @summary Delete a folder object by folderId and objectKey.
          * @param {string} folderId 
          * @param {string} objectKey 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteFolderObject: async (folderId: string, objectKey: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        deleteFolderObject: async (folderId: string, objectKey: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('deleteFolderObject', 'folderId', folderId)
             // verify required parameter 'objectKey' is not null or undefined
@@ -3616,11 +3877,12 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
+         * @summary Get a folder by id.
          * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getFolder: async (folderId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getFolder: async (folderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('getFolder', 'folderId', folderId)
             const localVarPath = `/api/v1/folders/{folderId}`
@@ -3653,11 +3915,12 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
+         * @summary Get the metadata for a folder by id.
          * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getFolderMetadata: async (folderId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getFolderMetadata: async (folderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('getFolderMetadata', 'folderId', folderId)
             const localVarPath = `/api/v1/folders/{folderId}/metadata`
@@ -3690,12 +3953,13 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
+         * @summary Get a folder object by folderId and objectKey.
          * @param {string} folderId 
          * @param {string} objectKey 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getFolderObject: async (folderId: string, objectKey: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getFolderObject: async (folderId: string, objectKey: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('getFolderObject', 'folderId', folderId)
             // verify required parameter 'objectKey' is not null or undefined
@@ -3731,6 +3995,7 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
+         * @summary Handle app task trigger
          * @param {string} folderId 
          * @param {string} appIdentifier 
          * @param {string} taskKey 
@@ -3738,7 +4003,7 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        handleAppTaskTrigger: async (folderId: string, appIdentifier: string, taskKey: string, triggerAppTaskInputDTO: TriggerAppTaskInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        handleAppTaskTrigger: async (folderId: string, appIdentifier: string, taskKey: string, triggerAppTaskInputDTO: TriggerAppTaskInputDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('handleAppTaskTrigger', 'folderId', folderId)
             // verify required parameter 'appIdentifier' is not null or undefined
@@ -3782,6 +4047,7 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
+         * @summary List folder objects by folderId.
          * @param {string} folderId 
          * @param {number} [offset] 
          * @param {number} [limit] 
@@ -3789,7 +4055,7 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listFolderObjects: async (folderId: string, offset?: number, limit?: number, search?: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listFolderObjects: async (folderId: string, offset?: number, limit?: number, search?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('listFolderObjects', 'folderId', folderId)
             const localVarPath = `/api/v1/folders/{folderId}/objects`
@@ -3834,12 +4100,15 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
+         * @summary List folders.
          * @param {number} [offset] 
          * @param {number} [limit] 
+         * @param {ListFoldersSortEnum} [sort] 
+         * @param {string} [search] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listFolders: async (offset?: number, limit?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listFolders: async (offset?: number, limit?: number, sort?: ListFoldersSortEnum, search?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/v1/folders`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -3864,6 +4133,14 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
                 localVarQueryParameter['limit'] = limit;
             }
 
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
 
     
             setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -3877,12 +4154,13 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
+         * @summary Scan the object again in the underlying storage, and update its state in our db.
          * @param {string} folderId 
          * @param {string} objectKey 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        refreshFolderObjectS3Metadata: async (folderId: string, objectKey: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        refreshFolderObjectS3Metadata: async (folderId: string, objectKey: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('refreshFolderObjectS3Metadata', 'folderId', folderId)
             // verify required parameter 'objectKey' is not null or undefined
@@ -3918,11 +4196,12 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
+         * @summary Scan the underlying S3 location and update our local representation of it.
          * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        rescanFolder: async (folderId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        rescanFolder: async (folderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('rescanFolder', 'folderId', folderId)
             const localVarPath = `/api/v1/folders/{folderId}/rescan`
@@ -3965,79 +4244,101 @@ export const FoldersApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @summary Create a folder.
          * @param {FolderCreateInputDTO} folderCreateInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createFolder(folderCreateInputDTO: FolderCreateInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderCreateResponse>> {
+        async createFolder(folderCreateInputDTO: FolderCreateInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderCreateResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.createFolder(folderCreateInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.createFolder']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Create presigned urls for objects in a folder.
          * @param {string} folderId 
          * @param {Array<FolderCreateSignedUrlInputDTOInner>} folderCreateSignedUrlInputDTOInner 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createPresignedUrls(folderId: string, folderCreateSignedUrlInputDTOInner: Array<FolderCreateSignedUrlInputDTOInner>, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderCreateSignedUrlsResponse>> {
+        async createPresignedUrls(folderId: string, folderCreateSignedUrlInputDTOInner: Array<FolderCreateSignedUrlInputDTOInner>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderCreateSignedUrlsResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.createPresignedUrls(folderId, folderCreateSignedUrlInputDTOInner, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.createPresignedUrls']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Delete a folder by id.
          * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async deleteFolder(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async deleteFolder(folderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.deleteFolder(folderId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.deleteFolder']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Delete a folder object by folderId and objectKey.
          * @param {string} folderId 
          * @param {string} objectKey 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async deleteFolderObject(folderId: string, objectKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async deleteFolderObject(folderId: string, objectKey: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.deleteFolderObject(folderId, objectKey, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.deleteFolderObject']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Get a folder by id.
          * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getFolder(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderGetResponse>> {
+        async getFolder(folderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getFolder(folderId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.getFolder']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Get the metadata for a folder by id.
          * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getFolderMetadata(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderGetMetadataResponse>> {
+        async getFolderMetadata(folderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderGetMetadataResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getFolderMetadata(folderId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.getFolderMetadata']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Get a folder object by folderId and objectKey.
          * @param {string} folderId 
          * @param {string} objectKey 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getFolderObject(folderId: string, objectKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectGetResponse>> {
+        async getFolderObject(folderId: string, objectKey: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getFolderObject(folderId, objectKey, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.getFolderObject']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Handle app task trigger
          * @param {string} folderId 
          * @param {string} appIdentifier 
          * @param {string} taskKey 
@@ -4045,12 +4346,15 @@ export const FoldersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async handleAppTaskTrigger(folderId: string, appIdentifier: string, taskKey: string, triggerAppTaskInputDTO: TriggerAppTaskInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async handleAppTaskTrigger(folderId: string, appIdentifier: string, taskKey: string, triggerAppTaskInputDTO: TriggerAppTaskInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.handleAppTaskTrigger(folderId, appIdentifier, taskKey, triggerAppTaskInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.handleAppTaskTrigger']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary List folder objects by folderId.
          * @param {string} folderId 
          * @param {number} [offset] 
          * @param {number} [limit] 
@@ -4058,41 +4362,54 @@ export const FoldersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listFolderObjects(folderId: string, offset?: number, limit?: number, search?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectListResponse>> {
+        async listFolderObjects(folderId: string, offset?: number, limit?: number, search?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectListResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderObjects(folderId, offset, limit, search, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.listFolderObjects']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary List folders.
          * @param {number} [offset] 
          * @param {number} [limit] 
+         * @param {ListFoldersSortEnum} [sort] 
+         * @param {string} [search] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listFolders(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolders(offset, limit, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        async listFolders(offset?: number, limit?: number, sort?: ListFoldersSortEnum, search?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolders(offset, limit, sort, search, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.listFolders']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Scan the object again in the underlying storage, and update its state in our db.
          * @param {string} folderId 
          * @param {string} objectKey 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async refreshFolderObjectS3Metadata(folderId: string, objectKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectGetResponse>> {
+        async refreshFolderObjectS3Metadata(folderId: string, objectKey: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.refreshFolderObjectS3Metadata(folderId, objectKey, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.refreshFolderObjectS3Metadata']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Scan the underlying S3 location and update our local representation of it.
          * @param {string} folderId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async rescanFolder(folderId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async rescanFolder(folderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.rescanFolder(folderId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.rescanFolder']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
@@ -4106,110 +4423,122 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
     return {
         /**
          * 
+         * @summary Create a folder.
          * @param {FoldersApiCreateFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createFolder(requestParameters: FoldersApiCreateFolderRequest, options?: AxiosRequestConfig): AxiosPromise<FolderCreateResponse> {
+        createFolder(requestParameters: FoldersApiCreateFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderCreateResponse> {
             return localVarFp.createFolder(requestParameters.folderCreateInputDTO, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Create presigned urls for objects in a folder.
          * @param {FoldersApiCreatePresignedUrlsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createPresignedUrls(requestParameters: FoldersApiCreatePresignedUrlsRequest, options?: AxiosRequestConfig): AxiosPromise<FolderCreateSignedUrlsResponse> {
+        createPresignedUrls(requestParameters: FoldersApiCreatePresignedUrlsRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderCreateSignedUrlsResponse> {
             return localVarFp.createPresignedUrls(requestParameters.folderId, requestParameters.folderCreateSignedUrlInputDTOInner, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Delete a folder by id.
          * @param {FoldersApiDeleteFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteFolder(requestParameters: FoldersApiDeleteFolderRequest, options?: AxiosRequestConfig): AxiosPromise<void> {
+        deleteFolder(requestParameters: FoldersApiDeleteFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.deleteFolder(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Delete a folder object by folderId and objectKey.
          * @param {FoldersApiDeleteFolderObjectRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteFolderObject(requestParameters: FoldersApiDeleteFolderObjectRequest, options?: AxiosRequestConfig): AxiosPromise<void> {
+        deleteFolderObject(requestParameters: FoldersApiDeleteFolderObjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.deleteFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Get a folder by id.
          * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getFolder(requestParameters: FoldersApiGetFolderRequest, options?: AxiosRequestConfig): AxiosPromise<FolderGetResponse> {
+        getFolder(requestParameters: FoldersApiGetFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderGetResponse> {
             return localVarFp.getFolder(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Get the metadata for a folder by id.
          * @param {FoldersApiGetFolderMetadataRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getFolderMetadata(requestParameters: FoldersApiGetFolderMetadataRequest, options?: AxiosRequestConfig): AxiosPromise<FolderGetMetadataResponse> {
+        getFolderMetadata(requestParameters: FoldersApiGetFolderMetadataRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderGetMetadataResponse> {
             return localVarFp.getFolderMetadata(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Get a folder object by folderId and objectKey.
          * @param {FoldersApiGetFolderObjectRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: AxiosRequestConfig): AxiosPromise<FolderObjectGetResponse> {
+        getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderObjectGetResponse> {
             return localVarFp.getFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Handle app task trigger
          * @param {FoldersApiHandleAppTaskTriggerRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        handleAppTaskTrigger(requestParameters: FoldersApiHandleAppTaskTriggerRequest, options?: AxiosRequestConfig): AxiosPromise<void> {
+        handleAppTaskTrigger(requestParameters: FoldersApiHandleAppTaskTriggerRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.handleAppTaskTrigger(requestParameters.folderId, requestParameters.appIdentifier, requestParameters.taskKey, requestParameters.triggerAppTaskInputDTO, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary List folder objects by folderId.
          * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: AxiosRequestConfig): AxiosPromise<FolderObjectListResponse> {
+        listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderObjectListResponse> {
             return localVarFp.listFolderObjects(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary List folders.
          * @param {FoldersApiListFoldersRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listFolders(requestParameters: FoldersApiListFoldersRequest = {}, options?: AxiosRequestConfig): AxiosPromise<FolderListResponse> {
-            return localVarFp.listFolders(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        listFolders(requestParameters: FoldersApiListFoldersRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<FolderListResponse> {
+            return localVarFp.listFolders(requestParameters.offset, requestParameters.limit, requestParameters.sort, requestParameters.search, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Scan the object again in the underlying storage, and update its state in our db.
          * @param {FoldersApiRefreshFolderObjectS3MetadataRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        refreshFolderObjectS3Metadata(requestParameters: FoldersApiRefreshFolderObjectS3MetadataRequest, options?: AxiosRequestConfig): AxiosPromise<FolderObjectGetResponse> {
+        refreshFolderObjectS3Metadata(requestParameters: FoldersApiRefreshFolderObjectS3MetadataRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderObjectGetResponse> {
             return localVarFp.refreshFolderObjectS3Metadata(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Scan the underlying S3 location and update our local representation of it.
          * @param {FoldersApiRescanFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        rescanFolder(requestParameters: FoldersApiRescanFolderRequest, options?: AxiosRequestConfig): AxiosPromise<void> {
+        rescanFolder(requestParameters: FoldersApiRescanFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.rescanFolder(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
     };
@@ -4423,6 +4752,20 @@ export interface FoldersApiListFoldersRequest {
      * @memberof FoldersApiListFolders
      */
     readonly limit?: number
+
+    /**
+     * 
+     * @type {'name-asc' | 'name-desc' | 'createdAt-asc' | 'createdAt-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @memberof FoldersApiListFolders
+     */
+    readonly sort?: ListFoldersSortEnum
+
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiListFolders
+     */
+    readonly search?: string
 }
 
 /**
@@ -4469,137 +4812,161 @@ export interface FoldersApiRescanFolderRequest {
 export class FoldersApi extends BaseAPI {
     /**
      * 
+     * @summary Create a folder.
      * @param {FoldersApiCreateFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    public createFolder(requestParameters: FoldersApiCreateFolderRequest, options?: AxiosRequestConfig) {
+    public createFolder(requestParameters: FoldersApiCreateFolderRequest, options?: RawAxiosRequestConfig) {
         return FoldersApiFp(this.configuration).createFolder(requestParameters.folderCreateInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Create presigned urls for objects in a folder.
      * @param {FoldersApiCreatePresignedUrlsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    public createPresignedUrls(requestParameters: FoldersApiCreatePresignedUrlsRequest, options?: AxiosRequestConfig) {
+    public createPresignedUrls(requestParameters: FoldersApiCreatePresignedUrlsRequest, options?: RawAxiosRequestConfig) {
         return FoldersApiFp(this.configuration).createPresignedUrls(requestParameters.folderId, requestParameters.folderCreateSignedUrlInputDTOInner, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Delete a folder by id.
      * @param {FoldersApiDeleteFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    public deleteFolder(requestParameters: FoldersApiDeleteFolderRequest, options?: AxiosRequestConfig) {
+    public deleteFolder(requestParameters: FoldersApiDeleteFolderRequest, options?: RawAxiosRequestConfig) {
         return FoldersApiFp(this.configuration).deleteFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Delete a folder object by folderId and objectKey.
      * @param {FoldersApiDeleteFolderObjectRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    public deleteFolderObject(requestParameters: FoldersApiDeleteFolderObjectRequest, options?: AxiosRequestConfig) {
+    public deleteFolderObject(requestParameters: FoldersApiDeleteFolderObjectRequest, options?: RawAxiosRequestConfig) {
         return FoldersApiFp(this.configuration).deleteFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Get a folder by id.
      * @param {FoldersApiGetFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    public getFolder(requestParameters: FoldersApiGetFolderRequest, options?: AxiosRequestConfig) {
+    public getFolder(requestParameters: FoldersApiGetFolderRequest, options?: RawAxiosRequestConfig) {
         return FoldersApiFp(this.configuration).getFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Get the metadata for a folder by id.
      * @param {FoldersApiGetFolderMetadataRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    public getFolderMetadata(requestParameters: FoldersApiGetFolderMetadataRequest, options?: AxiosRequestConfig) {
+    public getFolderMetadata(requestParameters: FoldersApiGetFolderMetadataRequest, options?: RawAxiosRequestConfig) {
         return FoldersApiFp(this.configuration).getFolderMetadata(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Get a folder object by folderId and objectKey.
      * @param {FoldersApiGetFolderObjectRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    public getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: AxiosRequestConfig) {
+    public getFolderObject(requestParameters: FoldersApiGetFolderObjectRequest, options?: RawAxiosRequestConfig) {
         return FoldersApiFp(this.configuration).getFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Handle app task trigger
      * @param {FoldersApiHandleAppTaskTriggerRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    public handleAppTaskTrigger(requestParameters: FoldersApiHandleAppTaskTriggerRequest, options?: AxiosRequestConfig) {
+    public handleAppTaskTrigger(requestParameters: FoldersApiHandleAppTaskTriggerRequest, options?: RawAxiosRequestConfig) {
         return FoldersApiFp(this.configuration).handleAppTaskTrigger(requestParameters.folderId, requestParameters.appIdentifier, requestParameters.taskKey, requestParameters.triggerAppTaskInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary List folder objects by folderId.
      * @param {FoldersApiListFolderObjectsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    public listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: AxiosRequestConfig) {
+    public listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: RawAxiosRequestConfig) {
         return FoldersApiFp(this.configuration).listFolderObjects(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary List folders.
      * @param {FoldersApiListFoldersRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    public listFolders(requestParameters: FoldersApiListFoldersRequest = {}, options?: AxiosRequestConfig) {
-        return FoldersApiFp(this.configuration).listFolders(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    public listFolders(requestParameters: FoldersApiListFoldersRequest = {}, options?: RawAxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).listFolders(requestParameters.offset, requestParameters.limit, requestParameters.sort, requestParameters.search, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Scan the object again in the underlying storage, and update its state in our db.
      * @param {FoldersApiRefreshFolderObjectS3MetadataRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    public refreshFolderObjectS3Metadata(requestParameters: FoldersApiRefreshFolderObjectS3MetadataRequest, options?: AxiosRequestConfig) {
+    public refreshFolderObjectS3Metadata(requestParameters: FoldersApiRefreshFolderObjectS3MetadataRequest, options?: RawAxiosRequestConfig) {
         return FoldersApiFp(this.configuration).refreshFolderObjectS3Metadata(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Scan the underlying S3 location and update our local representation of it.
      * @param {FoldersApiRescanFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    public rescanFolder(requestParameters: FoldersApiRescanFolderRequest, options?: AxiosRequestConfig) {
+    public rescanFolder(requestParameters: FoldersApiRescanFolderRequest, options?: RawAxiosRequestConfig) {
         return FoldersApiFp(this.configuration).rescanFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
+/**
+ * @export
+ */
+export const ListFoldersSortEnum = {
+    NameAsc: 'name-asc',
+    NameDesc: 'name-desc',
+    CreatedAtAsc: 'createdAt-asc',
+    CreatedAtDesc: 'createdAt-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
+} as const;
+export type ListFoldersSortEnum = typeof ListFoldersSortEnum[keyof typeof ListFoldersSortEnum];
 
 
 /**
@@ -4610,10 +4977,11 @@ export const ServerApiAxiosParamCreator = function (configuration?: Configuratio
     return {
         /**
          * 
+         * @summary Get the server settings object.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getServerSettings: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getServerSettings: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/v1/server/settings`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -4643,11 +5011,12 @@ export const ServerApiAxiosParamCreator = function (configuration?: Configuratio
         },
         /**
          * 
+         * @summary Reset a setting in the server settings objects.
          * @param {string} settingKey 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        resetServerSetting: async (settingKey: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        resetServerSetting: async (settingKey: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'settingKey' is not null or undefined
             assertParamExists('resetServerSetting', 'settingKey', settingKey)
             const localVarPath = `/api/v1/server/settings/{settingKey}`
@@ -4680,12 +5049,13 @@ export const ServerApiAxiosParamCreator = function (configuration?: Configuratio
         },
         /**
          * 
+         * @summary Set a setting in the server settings objects.
          * @param {string} settingKey 
          * @param {SetSettingInputDTO} setSettingInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        setServerSetting: async (settingKey: string, setSettingInputDTO: SetSettingInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        setServerSetting: async (settingKey: string, setSettingInputDTO: SetSettingInputDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'settingKey' is not null or undefined
             assertParamExists('setServerSetting', 'settingKey', settingKey)
             // verify required parameter 'setSettingInputDTO' is not null or undefined
@@ -4733,33 +5103,42 @@ export const ServerApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @summary Get the server settings object.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getServerSettings(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingsGetResponse>> {
+        async getServerSettings(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingsGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getServerSettings(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerApi.getServerSettings']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Reset a setting in the server settings objects.
          * @param {string} settingKey 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async resetServerSetting(settingKey: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingSetResponse>> {
+        async resetServerSetting(settingKey: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingSetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.resetServerSetting(settingKey, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerApi.resetServerSetting']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Set a setting in the server settings objects.
          * @param {string} settingKey 
          * @param {SetSettingInputDTO} setSettingInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async setServerSetting(settingKey: string, setSettingInputDTO: SetSettingInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingSetResponse>> {
+        async setServerSetting(settingKey: string, setSettingInputDTO: SetSettingInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SettingSetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.setServerSetting(settingKey, setSettingInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerApi.setServerSetting']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
@@ -4773,28 +5152,31 @@ export const ServerApiFactory = function (configuration?: Configuration, basePat
     return {
         /**
          * 
+         * @summary Get the server settings object.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getServerSettings(options?: AxiosRequestConfig): AxiosPromise<SettingsGetResponse> {
+        getServerSettings(options?: RawAxiosRequestConfig): AxiosPromise<SettingsGetResponse> {
             return localVarFp.getServerSettings(options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Reset a setting in the server settings objects.
          * @param {ServerApiResetServerSettingRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        resetServerSetting(requestParameters: ServerApiResetServerSettingRequest, options?: AxiosRequestConfig): AxiosPromise<SettingSetResponse> {
+        resetServerSetting(requestParameters: ServerApiResetServerSettingRequest, options?: RawAxiosRequestConfig): AxiosPromise<SettingSetResponse> {
             return localVarFp.resetServerSetting(requestParameters.settingKey, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Set a setting in the server settings objects.
          * @param {ServerApiSetServerSettingRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        setServerSetting(requestParameters: ServerApiSetServerSettingRequest, options?: AxiosRequestConfig): AxiosPromise<SettingSetResponse> {
+        setServerSetting(requestParameters: ServerApiSetServerSettingRequest, options?: RawAxiosRequestConfig): AxiosPromise<SettingSetResponse> {
             return localVarFp.setServerSetting(requestParameters.settingKey, requestParameters.setSettingInputDTO, options).then((request) => request(axios, basePath));
         },
     };
@@ -4844,33 +5226,36 @@ export interface ServerApiSetServerSettingRequest {
 export class ServerApi extends BaseAPI {
     /**
      * 
+     * @summary Get the server settings object.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerApi
      */
-    public getServerSettings(options?: AxiosRequestConfig) {
+    public getServerSettings(options?: RawAxiosRequestConfig) {
         return ServerApiFp(this.configuration).getServerSettings(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Reset a setting in the server settings objects.
      * @param {ServerApiResetServerSettingRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerApi
      */
-    public resetServerSetting(requestParameters: ServerApiResetServerSettingRequest, options?: AxiosRequestConfig) {
+    public resetServerSetting(requestParameters: ServerApiResetServerSettingRequest, options?: RawAxiosRequestConfig) {
         return ServerApiFp(this.configuration).resetServerSetting(requestParameters.settingKey, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Set a setting in the server settings objects.
      * @param {ServerApiSetServerSettingRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerApi
      */
-    public setServerSetting(requestParameters: ServerApiSetServerSettingRequest, options?: AxiosRequestConfig) {
+    public setServerSetting(requestParameters: ServerApiSetServerSettingRequest, options?: RawAxiosRequestConfig) {
         return ServerApiFp(this.configuration).setServerSetting(requestParameters.settingKey, requestParameters.setSettingInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
@@ -4885,11 +5270,12 @@ export const ServerAccessKeysApiAxiosParamCreator = function (configuration?: Co
     return {
         /**
          * 
+         * @summary Get server access key by id.
          * @param {string} accessKeyHashId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getServerAccessKey: async (accessKeyHashId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getServerAccessKey: async (accessKeyHashId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'accessKeyHashId' is not null or undefined
             assertParamExists('getServerAccessKey', 'accessKeyHashId', accessKeyHashId)
             const localVarPath = `/api/v1/server/access-keys/{accessKeyHashId}`
@@ -4922,12 +5308,14 @@ export const ServerAccessKeysApiAxiosParamCreator = function (configuration?: Co
         },
         /**
          * 
+         * @summary List server access keys.
          * @param {number} [offset] 
          * @param {number} [limit] 
+         * @param {ListServerAccessKeysSortEnum} [sort] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listServerAccessKeys: async (offset?: number, limit?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listServerAccessKeys: async (offset?: number, limit?: number, sort?: ListServerAccessKeysSortEnum, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/v1/server/access-keys`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -4952,6 +5340,10 @@ export const ServerAccessKeysApiAxiosParamCreator = function (configuration?: Co
                 localVarQueryParameter['limit'] = limit;
             }
 
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
+            }
+
 
     
             setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -4965,16 +5357,17 @@ export const ServerAccessKeysApiAxiosParamCreator = function (configuration?: Co
         },
         /**
          * 
+         * @summary Rotate a server access key.
          * @param {string} accessKeyHashId 
          * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        rotateAccessKey: async (accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        rotateServerAccessKey: async (accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'accessKeyHashId' is not null or undefined
-            assertParamExists('rotateAccessKey', 'accessKeyHashId', accessKeyHashId)
+            assertParamExists('rotateServerAccessKey', 'accessKeyHashId', accessKeyHashId)
             // verify required parameter 'rotateAccessKeyInputDTO' is not null or undefined
-            assertParamExists('rotateAccessKey', 'rotateAccessKeyInputDTO', rotateAccessKeyInputDTO)
+            assertParamExists('rotateServerAccessKey', 'rotateAccessKeyInputDTO', rotateAccessKeyInputDTO)
             const localVarPath = `/api/v1/server/access-keys/{accessKeyHashId}`
                 .replace(`{${"accessKeyHashId"}}`, encodeURIComponent(String(accessKeyHashId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -5018,35 +5411,45 @@ export const ServerAccessKeysApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @summary Get server access key by id.
          * @param {string} accessKeyHashId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getServerAccessKey(accessKeyHashId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>> {
+        async getServerAccessKey(accessKeyHashId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getServerAccessKey(accessKeyHashId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerAccessKeysApi.getServerAccessKey']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary List server access keys.
          * @param {number} [offset] 
          * @param {number} [limit] 
+         * @param {ListServerAccessKeysSortEnum} [sort] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listServerAccessKeys(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listServerAccessKeys(offset, limit, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        async listServerAccessKeys(offset?: number, limit?: number, sort?: ListServerAccessKeysSortEnum, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listServerAccessKeys(offset, limit, sort, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerAccessKeysApi.listServerAccessKeys']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Rotate a server access key.
          * @param {string} accessKeyHashId 
          * @param {RotateAccessKeyInputDTO} rotateAccessKeyInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async rotateAccessKey(accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyRotateResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.rotateAccessKey(accessKeyHashId, rotateAccessKeyInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        async rotateServerAccessKey(accessKeyHashId: string, rotateAccessKeyInputDTO: RotateAccessKeyInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyRotateResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.rotateServerAccessKey(accessKeyHashId, rotateAccessKeyInputDTO, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerAccessKeysApi.rotateServerAccessKey']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
@@ -5060,30 +5463,33 @@ export const ServerAccessKeysApiFactory = function (configuration?: Configuratio
     return {
         /**
          * 
+         * @summary Get server access key by id.
          * @param {ServerAccessKeysApiGetServerAccessKeyRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyGetResponse> {
+        getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyGetResponse> {
             return localVarFp.getServerAccessKey(requestParameters.accessKeyHashId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary List server access keys.
          * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listServerAccessKeys(requestParameters: ServerAccessKeysApiListServerAccessKeysRequest = {}, options?: AxiosRequestConfig): AxiosPromise<AccessKeyListResponse> {
-            return localVarFp.listServerAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        listServerAccessKeys(requestParameters: ServerAccessKeysApiListServerAccessKeysRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyListResponse> {
+            return localVarFp.listServerAccessKeys(requestParameters.offset, requestParameters.limit, requestParameters.sort, options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @param {ServerAccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+         * @summary Rotate a server access key.
+         * @param {ServerAccessKeysApiRotateServerAccessKeyRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig): AxiosPromise<AccessKeyRotateResponse> {
-            return localVarFp.rotateAccessKey(requestParameters.accessKeyHashId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(axios, basePath));
+        rotateServerAccessKey(requestParameters: ServerAccessKeysApiRotateServerAccessKeyRequest, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyRotateResponse> {
+            return localVarFp.rotateServerAccessKey(requestParameters.accessKeyHashId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -5121,25 +5527,32 @@ export interface ServerAccessKeysApiListServerAccessKeysRequest {
      * @memberof ServerAccessKeysApiListServerAccessKeys
      */
     readonly limit?: number
+
+    /**
+     * 
+     * @type {'accessKeyId-asc' | 'accessKeyId-desc' | 'accessKeyHashId-asc' | 'accessKeyHashId-desc' | 'endpoint-asc' | 'endpoint-desc' | 'region-asc' | 'region-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @memberof ServerAccessKeysApiListServerAccessKeys
+     */
+    readonly sort?: ListServerAccessKeysSortEnum
 }
 
 /**
- * Request parameters for rotateAccessKey operation in ServerAccessKeysApi.
+ * Request parameters for rotateServerAccessKey operation in ServerAccessKeysApi.
  * @export
- * @interface ServerAccessKeysApiRotateAccessKeyRequest
+ * @interface ServerAccessKeysApiRotateServerAccessKeyRequest
  */
-export interface ServerAccessKeysApiRotateAccessKeyRequest {
+export interface ServerAccessKeysApiRotateServerAccessKeyRequest {
     /**
      * 
      * @type {string}
-     * @memberof ServerAccessKeysApiRotateAccessKey
+     * @memberof ServerAccessKeysApiRotateServerAccessKey
      */
     readonly accessKeyHashId: string
 
     /**
      * 
      * @type {RotateAccessKeyInputDTO}
-     * @memberof ServerAccessKeysApiRotateAccessKey
+     * @memberof ServerAccessKeysApiRotateServerAccessKey
      */
     readonly rotateAccessKeyInputDTO: RotateAccessKeyInputDTO
 }
@@ -5153,38 +5566,57 @@ export interface ServerAccessKeysApiRotateAccessKeyRequest {
 export class ServerAccessKeysApi extends BaseAPI {
     /**
      * 
+     * @summary Get server access key by id.
      * @param {ServerAccessKeysApiGetServerAccessKeyRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerAccessKeysApi
      */
-    public getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: AxiosRequestConfig) {
+    public getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: RawAxiosRequestConfig) {
         return ServerAccessKeysApiFp(this.configuration).getServerAccessKey(requestParameters.accessKeyHashId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary List server access keys.
      * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerAccessKeysApi
      */
-    public listServerAccessKeys(requestParameters: ServerAccessKeysApiListServerAccessKeysRequest = {}, options?: AxiosRequestConfig) {
-        return ServerAccessKeysApiFp(this.configuration).listServerAccessKeys(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    public listServerAccessKeys(requestParameters: ServerAccessKeysApiListServerAccessKeysRequest = {}, options?: RawAxiosRequestConfig) {
+        return ServerAccessKeysApiFp(this.configuration).listServerAccessKeys(requestParameters.offset, requestParameters.limit, requestParameters.sort, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @param {ServerAccessKeysApiRotateAccessKeyRequest} requestParameters Request parameters.
+     * @summary Rotate a server access key.
+     * @param {ServerAccessKeysApiRotateServerAccessKeyRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerAccessKeysApi
      */
-    public rotateAccessKey(requestParameters: ServerAccessKeysApiRotateAccessKeyRequest, options?: AxiosRequestConfig) {
-        return ServerAccessKeysApiFp(this.configuration).rotateAccessKey(requestParameters.accessKeyHashId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(this.axios, this.basePath));
+    public rotateServerAccessKey(requestParameters: ServerAccessKeysApiRotateServerAccessKeyRequest, options?: RawAxiosRequestConfig) {
+        return ServerAccessKeysApiFp(this.configuration).rotateServerAccessKey(requestParameters.accessKeyHashId, requestParameters.rotateAccessKeyInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
+/**
+ * @export
+ */
+export const ListServerAccessKeysSortEnum = {
+    AccessKeyIdAsc: 'accessKeyId-asc',
+    AccessKeyIdDesc: 'accessKeyId-desc',
+    AccessKeyHashIdAsc: 'accessKeyHashId-asc',
+    AccessKeyHashIdDesc: 'accessKeyHashId-desc',
+    EndpointAsc: 'endpoint-asc',
+    EndpointDesc: 'endpoint-desc',
+    RegionAsc: 'region-asc',
+    RegionDesc: 'region-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
+} as const;
+export type ListServerAccessKeysSortEnum = typeof ListServerAccessKeysSortEnum[keyof typeof ListServerAccessKeysSortEnum];
 
 
 /**
@@ -5195,11 +5627,12 @@ export const ServerEventsApiAxiosParamCreator = function (configuration?: Config
     return {
         /**
          * 
+         * @summary Get an event by id.
          * @param {string} eventId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEvent: async (eventId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getEvent: async (eventId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'eventId' is not null or undefined
             assertParamExists('getEvent', 'eventId', eventId)
             const localVarPath = `/api/v1/server/events/{eventId}`
@@ -5232,12 +5665,22 @@ export const ServerEventsApiAxiosParamCreator = function (configuration?: Config
         },
         /**
          * 
+         * @summary List events.
+         * @param {ListEventsSortEnum} [sort] 
+         * @param {string} [folderId] 
+         * @param {string} [objectKey] 
+         * @param {string} [search] 
+         * @param {ListEventsIncludeTraceEnum} [includeTrace] 
+         * @param {ListEventsIncludeDebugEnum} [includeDebug] 
+         * @param {ListEventsIncludeInfoEnum} [includeInfo] 
+         * @param {ListEventsIncludeWarningEnum} [includeWarning] 
+         * @param {ListEventsIncludeErrorEnum} [includeError] 
          * @param {number} [offset] 
          * @param {number} [limit] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listEvents: async (offset?: number, limit?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listEvents: async (sort?: ListEventsSortEnum, folderId?: string, objectKey?: string, search?: string, includeTrace?: ListEventsIncludeTraceEnum, includeDebug?: ListEventsIncludeDebugEnum, includeInfo?: ListEventsIncludeInfoEnum, includeWarning?: ListEventsIncludeWarningEnum, includeError?: ListEventsIncludeErrorEnum, offset?: number, limit?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/v1/server/events`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -5253,6 +5696,42 @@ export const ServerEventsApiAxiosParamCreator = function (configuration?: Config
             // authentication bearer required
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
+            }
+
+            if (folderId !== undefined) {
+                localVarQueryParameter['folderId'] = folderId;
+            }
+
+            if (objectKey !== undefined) {
+                localVarQueryParameter['objectKey'] = objectKey;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+            if (includeTrace !== undefined) {
+                localVarQueryParameter['includeTrace'] = includeTrace;
+            }
+
+            if (includeDebug !== undefined) {
+                localVarQueryParameter['includeDebug'] = includeDebug;
+            }
+
+            if (includeInfo !== undefined) {
+                localVarQueryParameter['includeInfo'] = includeInfo;
+            }
+
+            if (includeWarning !== undefined) {
+                localVarQueryParameter['includeWarning'] = includeWarning;
+            }
+
+            if (includeError !== undefined) {
+                localVarQueryParameter['includeError'] = includeError;
+            }
 
             if (offset !== undefined) {
                 localVarQueryParameter['offset'] = offset;
@@ -5285,24 +5764,39 @@ export const ServerEventsApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @summary Get an event by id.
          * @param {string} eventId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getEvent(eventId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventGetResponse>> {
+        async getEvent(eventId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getEvent(eventId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerEventsApi.getEvent']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary List events.
+         * @param {ListEventsSortEnum} [sort] 
+         * @param {string} [folderId] 
+         * @param {string} [objectKey] 
+         * @param {string} [search] 
+         * @param {ListEventsIncludeTraceEnum} [includeTrace] 
+         * @param {ListEventsIncludeDebugEnum} [includeDebug] 
+         * @param {ListEventsIncludeInfoEnum} [includeInfo] 
+         * @param {ListEventsIncludeWarningEnum} [includeWarning] 
+         * @param {ListEventsIncludeErrorEnum} [includeError] 
          * @param {number} [offset] 
          * @param {number} [limit] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listEvents(offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listEvents(offset, limit, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        async listEvents(sort?: ListEventsSortEnum, folderId?: string, objectKey?: string, search?: string, includeTrace?: ListEventsIncludeTraceEnum, includeDebug?: ListEventsIncludeDebugEnum, includeInfo?: ListEventsIncludeInfoEnum, includeWarning?: ListEventsIncludeWarningEnum, includeError?: ListEventsIncludeErrorEnum, offset?: number, limit?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listEvents(sort, folderId, objectKey, search, includeTrace, includeDebug, includeInfo, includeWarning, includeError, offset, limit, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerEventsApi.listEvents']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
@@ -5316,21 +5810,23 @@ export const ServerEventsApiFactory = function (configuration?: Configuration, b
     return {
         /**
          * 
+         * @summary Get an event by id.
          * @param {ServerEventsApiGetEventRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getEvent(requestParameters: ServerEventsApiGetEventRequest, options?: AxiosRequestConfig): AxiosPromise<EventGetResponse> {
+        getEvent(requestParameters: ServerEventsApiGetEventRequest, options?: RawAxiosRequestConfig): AxiosPromise<EventGetResponse> {
             return localVarFp.getEvent(requestParameters.eventId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary List events.
          * @param {ServerEventsApiListEventsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listEvents(requestParameters: ServerEventsApiListEventsRequest = {}, options?: AxiosRequestConfig): AxiosPromise<EventListResponse> {
-            return localVarFp.listEvents(requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        listEvents(requestParameters: ServerEventsApiListEventsRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<EventListResponse> {
+            return localVarFp.listEvents(requestParameters.sort, requestParameters.folderId, requestParameters.objectKey, requestParameters.search, requestParameters.includeTrace, requestParameters.includeDebug, requestParameters.includeInfo, requestParameters.includeWarning, requestParameters.includeError, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -5357,6 +5853,69 @@ export interface ServerEventsApiGetEventRequest {
 export interface ServerEventsApiListEventsRequest {
     /**
      * 
+     * @type {'createdAt-asc' | 'createdAt-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly sort?: ListEventsSortEnum
+
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly folderId?: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly objectKey?: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly search?: string
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly includeTrace?: ListEventsIncludeTraceEnum
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly includeDebug?: ListEventsIncludeDebugEnum
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly includeInfo?: ListEventsIncludeInfoEnum
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly includeWarning?: ListEventsIncludeWarningEnum
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof ServerEventsApiListEvents
+     */
+    readonly includeError?: ListEventsIncludeErrorEnum
+
+    /**
+     * 
      * @type {number}
      * @memberof ServerEventsApiListEvents
      */
@@ -5379,85 +5938,90 @@ export interface ServerEventsApiListEventsRequest {
 export class ServerEventsApi extends BaseAPI {
     /**
      * 
+     * @summary Get an event by id.
      * @param {ServerEventsApiGetEventRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerEventsApi
      */
-    public getEvent(requestParameters: ServerEventsApiGetEventRequest, options?: AxiosRequestConfig) {
+    public getEvent(requestParameters: ServerEventsApiGetEventRequest, options?: RawAxiosRequestConfig) {
         return ServerEventsApiFp(this.configuration).getEvent(requestParameters.eventId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary List events.
      * @param {ServerEventsApiListEventsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServerEventsApi
      */
-    public listEvents(requestParameters: ServerEventsApiListEventsRequest = {}, options?: AxiosRequestConfig) {
-        return ServerEventsApiFp(this.configuration).listEvents(requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    public listEvents(requestParameters: ServerEventsApiListEventsRequest = {}, options?: RawAxiosRequestConfig) {
+        return ServerEventsApiFp(this.configuration).listEvents(requestParameters.sort, requestParameters.folderId, requestParameters.objectKey, requestParameters.search, requestParameters.includeTrace, requestParameters.includeDebug, requestParameters.includeInfo, requestParameters.includeWarning, requestParameters.includeError, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
+/**
+ * @export
+ */
+export const ListEventsSortEnum = {
+    CreatedAtAsc: 'createdAt-asc',
+    CreatedAtDesc: 'createdAt-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
+} as const;
+export type ListEventsSortEnum = typeof ListEventsSortEnum[keyof typeof ListEventsSortEnum];
+/**
+ * @export
+ */
+export const ListEventsIncludeTraceEnum = {
+    True: 'true'
+} as const;
+export type ListEventsIncludeTraceEnum = typeof ListEventsIncludeTraceEnum[keyof typeof ListEventsIncludeTraceEnum];
+/**
+ * @export
+ */
+export const ListEventsIncludeDebugEnum = {
+    True: 'true'
+} as const;
+export type ListEventsIncludeDebugEnum = typeof ListEventsIncludeDebugEnum[keyof typeof ListEventsIncludeDebugEnum];
+/**
+ * @export
+ */
+export const ListEventsIncludeInfoEnum = {
+    True: 'true'
+} as const;
+export type ListEventsIncludeInfoEnum = typeof ListEventsIncludeInfoEnum[keyof typeof ListEventsIncludeInfoEnum];
+/**
+ * @export
+ */
+export const ListEventsIncludeWarningEnum = {
+    True: 'true'
+} as const;
+export type ListEventsIncludeWarningEnum = typeof ListEventsIncludeWarningEnum[keyof typeof ListEventsIncludeWarningEnum];
+/**
+ * @export
+ */
+export const ListEventsIncludeErrorEnum = {
+    True: 'true'
+} as const;
+export type ListEventsIncludeErrorEnum = typeof ListEventsIncludeErrorEnum[keyof typeof ListEventsIncludeErrorEnum];
 
 
 /**
- * StorageProvisionsApi - axios parameter creator
+ * ServerStorageLocationApi - axios parameter creator
  * @export
  */
-export const StorageProvisionsApiAxiosParamCreator = function (configuration?: Configuration) {
+export const ServerStorageLocationApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
          * 
-         * @param {StorageProvisionInputDTO} storageProvisionInputDTO 
+         * @summary Delete any set server storage location.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createServerProvision: async (storageProvisionInputDTO: StorageProvisionInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'storageProvisionInputDTO' is not null or undefined
-            assertParamExists('createServerProvision', 'storageProvisionInputDTO', storageProvisionInputDTO)
-            const localVarPath = `/api/v1/server/storage-provisions`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-
-    
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(storageProvisionInputDTO, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {string} storageProvisionId 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        deleteStorageProvision: async (storageProvisionId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'storageProvisionId' is not null or undefined
-            assertParamExists('deleteStorageProvision', 'storageProvisionId', storageProvisionId)
-            const localVarPath = `/api/v1/server/storage-provisions/{storageProvisionId}`
-                .replace(`{${"storageProvisionId"}}`, encodeURIComponent(String(storageProvisionId)));
+        deleteServerStorageLocation: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/server/server-storage-location`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -5486,15 +6050,12 @@ export const StorageProvisionsApiAxiosParamCreator = function (configuration?: C
         },
         /**
          * 
-         * @param {string} storageProvisionId 
+         * @summary Get the server storage location.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getStorageProvision: async (storageProvisionId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'storageProvisionId' is not null or undefined
-            assertParamExists('getStorageProvision', 'storageProvisionId', storageProvisionId)
-            const localVarPath = `/api/v1/server/storage-provisions/{storageProvisionId}`
-                .replace(`{${"storageProvisionId"}}`, encodeURIComponent(String(storageProvisionId)));
+        getServerStorageLocation: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/server/server-storage-location`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -5523,12 +6084,15 @@ export const StorageProvisionsApiAxiosParamCreator = function (configuration?: C
         },
         /**
          * 
-         * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType] 
+         * @summary Create a new server provision.
+         * @param {ServerStorageLocationInputDTO} serverStorageLocationInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listStorageProvisions: async (provisionType?: ListStorageProvisionsProvisionTypeEnum, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/v1/server/storage-provisions`;
+        setServerStorageLocation: async (serverStorageLocationInputDTO: ServerStorageLocationInputDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'serverStorageLocationInputDTO' is not null or undefined
+            assertParamExists('setServerStorageLocation', 'serverStorageLocationInputDTO', serverStorageLocationInputDTO)
+            const localVarPath = `/api/v1/server/server-storage-location`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -5536,51 +6100,7 @@ export const StorageProvisionsApiAxiosParamCreator = function (configuration?: C
                 baseOptions = configuration.baseOptions;
             }
 
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication bearer required
-            // http bearer authentication required
-            await setBearerAuthToObject(localVarHeaderParameter, configuration)
-
-            if (provisionType !== undefined) {
-                localVarQueryParameter['provisionType'] = provisionType;
-            }
-
-
-    
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {string} storageProvisionId 
-         * @param {StorageProvisionInputDTO} storageProvisionInputDTO 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        updateStorageProvision: async (storageProvisionId: string, storageProvisionInputDTO: StorageProvisionInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'storageProvisionId' is not null or undefined
-            assertParamExists('updateStorageProvision', 'storageProvisionId', storageProvisionId)
-            // verify required parameter 'storageProvisionInputDTO' is not null or undefined
-            assertParamExists('updateStorageProvision', 'storageProvisionInputDTO', storageProvisionInputDTO)
-            const localVarPath = `/api/v1/server/storage-provisions/{storageProvisionId}`
-                .replace(`{${"storageProvisionId"}}`, encodeURIComponent(String(storageProvisionId)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -5595,7 +6115,7 @@ export const StorageProvisionsApiAxiosParamCreator = function (configuration?: C
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(storageProvisionInputDTO, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(serverStorageLocationInputDTO, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -5606,270 +6126,515 @@ export const StorageProvisionsApiAxiosParamCreator = function (configuration?: C
 };
 
 /**
- * StorageProvisionsApi - functional programming interface
+ * ServerStorageLocationApi - functional programming interface
  * @export
  */
-export const StorageProvisionsApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = StorageProvisionsApiAxiosParamCreator(configuration)
+export const ServerStorageLocationApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ServerStorageLocationApiAxiosParamCreator(configuration)
     return {
         /**
          * 
-         * @param {StorageProvisionInputDTO} storageProvisionInputDTO 
+         * @summary Delete any set server storage location.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createServerProvision(storageProvisionInputDTO: StorageProvisionInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.createServerProvision(storageProvisionInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        async deleteServerStorageLocation(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteServerStorageLocation(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerStorageLocationApi.deleteServerStorageLocation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
-         * @param {string} storageProvisionId 
+         * @summary Get the server storage location.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async deleteStorageProvision(storageProvisionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteStorageProvision(storageProvisionId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        async getServerStorageLocation(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ServerStorageLocationGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getServerStorageLocation(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerStorageLocationApi.getServerStorageLocation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
-         * @param {string} storageProvisionId 
+         * @summary Create a new server provision.
+         * @param {ServerStorageLocationInputDTO} serverStorageLocationInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getStorageProvision(storageProvisionId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionGetResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getStorageProvision(storageProvisionId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * 
-         * @param {ListStorageProvisionsProvisionTypeEnum} [provisionType] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async listStorageProvisions(provisionType?: ListStorageProvisionsProvisionTypeEnum, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listStorageProvisions(provisionType, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-        },
-        /**
-         * 
-         * @param {string} storageProvisionId 
-         * @param {StorageProvisionInputDTO} storageProvisionInputDTO 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async updateStorageProvision(storageProvisionId: string, storageProvisionInputDTO: StorageProvisionInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StorageProvisionListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateStorageProvision(storageProvisionId, storageProvisionInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        async setServerStorageLocation(serverStorageLocationInputDTO: ServerStorageLocationInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ServerStorageLocationGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.setServerStorageLocation(serverStorageLocationInputDTO, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerStorageLocationApi.setServerStorageLocation']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
 
 /**
- * StorageProvisionsApi - factory interface
+ * ServerStorageLocationApi - factory interface
  * @export
  */
-export const StorageProvisionsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = StorageProvisionsApiFp(configuration)
+export const ServerStorageLocationApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ServerStorageLocationApiFp(configuration)
     return {
         /**
          * 
-         * @param {StorageProvisionsApiCreateServerProvisionRequest} requestParameters Request parameters.
+         * @summary Delete any set server storage location.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createServerProvision(requestParameters: StorageProvisionsApiCreateServerProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionListResponse> {
-            return localVarFp.createServerProvision(requestParameters.storageProvisionInputDTO, options).then((request) => request(axios, basePath));
+        deleteServerStorageLocation(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.deleteServerStorageLocation(options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @param {StorageProvisionsApiDeleteStorageProvisionRequest} requestParameters Request parameters.
+         * @summary Get the server storage location.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteStorageProvision(requestParameters: StorageProvisionsApiDeleteStorageProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionListResponse> {
-            return localVarFp.deleteStorageProvision(requestParameters.storageProvisionId, options).then((request) => request(axios, basePath));
+        getServerStorageLocation(options?: RawAxiosRequestConfig): AxiosPromise<ServerStorageLocationGetResponse> {
+            return localVarFp.getServerStorageLocation(options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @param {StorageProvisionsApiGetStorageProvisionRequest} requestParameters Request parameters.
+         * @summary Create a new server provision.
+         * @param {ServerStorageLocationApiSetServerStorageLocationRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getStorageProvision(requestParameters: StorageProvisionsApiGetStorageProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionGetResponse> {
-            return localVarFp.getStorageProvision(requestParameters.storageProvisionId, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @param {StorageProvisionsApiListStorageProvisionsRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        listStorageProvisions(requestParameters: StorageProvisionsApiListStorageProvisionsRequest = {}, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionListResponse> {
-            return localVarFp.listStorageProvisions(requestParameters.provisionType, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @param {StorageProvisionsApiUpdateStorageProvisionRequest} requestParameters Request parameters.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        updateStorageProvision(requestParameters: StorageProvisionsApiUpdateStorageProvisionRequest, options?: AxiosRequestConfig): AxiosPromise<StorageProvisionListResponse> {
-            return localVarFp.updateStorageProvision(requestParameters.storageProvisionId, requestParameters.storageProvisionInputDTO, options).then((request) => request(axios, basePath));
+        setServerStorageLocation(requestParameters: ServerStorageLocationApiSetServerStorageLocationRequest, options?: RawAxiosRequestConfig): AxiosPromise<ServerStorageLocationGetResponse> {
+            return localVarFp.setServerStorageLocation(requestParameters.serverStorageLocationInputDTO, options).then((request) => request(axios, basePath));
         },
     };
 };
 
 /**
- * Request parameters for createServerProvision operation in StorageProvisionsApi.
+ * Request parameters for setServerStorageLocation operation in ServerStorageLocationApi.
  * @export
- * @interface StorageProvisionsApiCreateServerProvisionRequest
+ * @interface ServerStorageLocationApiSetServerStorageLocationRequest
  */
-export interface StorageProvisionsApiCreateServerProvisionRequest {
+export interface ServerStorageLocationApiSetServerStorageLocationRequest {
     /**
      * 
-     * @type {StorageProvisionInputDTO}
-     * @memberof StorageProvisionsApiCreateServerProvision
+     * @type {ServerStorageLocationInputDTO}
+     * @memberof ServerStorageLocationApiSetServerStorageLocation
      */
-    readonly storageProvisionInputDTO: StorageProvisionInputDTO
+    readonly serverStorageLocationInputDTO: ServerStorageLocationInputDTO
 }
 
 /**
- * Request parameters for deleteStorageProvision operation in StorageProvisionsApi.
+ * ServerStorageLocationApi - object-oriented interface
  * @export
- * @interface StorageProvisionsApiDeleteStorageProvisionRequest
- */
-export interface StorageProvisionsApiDeleteStorageProvisionRequest {
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionsApiDeleteStorageProvision
-     */
-    readonly storageProvisionId: string
-}
-
-/**
- * Request parameters for getStorageProvision operation in StorageProvisionsApi.
- * @export
- * @interface StorageProvisionsApiGetStorageProvisionRequest
- */
-export interface StorageProvisionsApiGetStorageProvisionRequest {
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionsApiGetStorageProvision
-     */
-    readonly storageProvisionId: string
-}
-
-/**
- * Request parameters for listStorageProvisions operation in StorageProvisionsApi.
- * @export
- * @interface StorageProvisionsApiListStorageProvisionsRequest
- */
-export interface StorageProvisionsApiListStorageProvisionsRequest {
-    /**
-     * 
-     * @type {'CONTENT' | 'METADATA' | 'BACKUP'}
-     * @memberof StorageProvisionsApiListStorageProvisions
-     */
-    readonly provisionType?: ListStorageProvisionsProvisionTypeEnum
-}
-
-/**
- * Request parameters for updateStorageProvision operation in StorageProvisionsApi.
- * @export
- * @interface StorageProvisionsApiUpdateStorageProvisionRequest
- */
-export interface StorageProvisionsApiUpdateStorageProvisionRequest {
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageProvisionsApiUpdateStorageProvision
-     */
-    readonly storageProvisionId: string
-
-    /**
-     * 
-     * @type {StorageProvisionInputDTO}
-     * @memberof StorageProvisionsApiUpdateStorageProvision
-     */
-    readonly storageProvisionInputDTO: StorageProvisionInputDTO
-}
-
-/**
- * StorageProvisionsApi - object-oriented interface
- * @export
- * @class StorageProvisionsApi
+ * @class ServerStorageLocationApi
  * @extends {BaseAPI}
  */
-export class StorageProvisionsApi extends BaseAPI {
+export class ServerStorageLocationApi extends BaseAPI {
     /**
      * 
-     * @param {StorageProvisionsApiCreateServerProvisionRequest} requestParameters Request parameters.
+     * @summary Delete any set server storage location.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof StorageProvisionsApi
+     * @memberof ServerStorageLocationApi
      */
-    public createServerProvision(requestParameters: StorageProvisionsApiCreateServerProvisionRequest, options?: AxiosRequestConfig) {
-        return StorageProvisionsApiFp(this.configuration).createServerProvision(requestParameters.storageProvisionInputDTO, options).then((request) => request(this.axios, this.basePath));
+    public deleteServerStorageLocation(options?: RawAxiosRequestConfig) {
+        return ServerStorageLocationApiFp(this.configuration).deleteServerStorageLocation(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @param {StorageProvisionsApiDeleteStorageProvisionRequest} requestParameters Request parameters.
+     * @summary Get the server storage location.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof StorageProvisionsApi
+     * @memberof ServerStorageLocationApi
      */
-    public deleteStorageProvision(requestParameters: StorageProvisionsApiDeleteStorageProvisionRequest, options?: AxiosRequestConfig) {
-        return StorageProvisionsApiFp(this.configuration).deleteStorageProvision(requestParameters.storageProvisionId, options).then((request) => request(this.axios, this.basePath));
+    public getServerStorageLocation(options?: RawAxiosRequestConfig) {
+        return ServerStorageLocationApiFp(this.configuration).getServerStorageLocation(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @param {StorageProvisionsApiGetStorageProvisionRequest} requestParameters Request parameters.
+     * @summary Create a new server provision.
+     * @param {ServerStorageLocationApiSetServerStorageLocationRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof StorageProvisionsApi
+     * @memberof ServerStorageLocationApi
      */
-    public getStorageProvision(requestParameters: StorageProvisionsApiGetStorageProvisionRequest, options?: AxiosRequestConfig) {
-        return StorageProvisionsApiFp(this.configuration).getStorageProvision(requestParameters.storageProvisionId, options).then((request) => request(this.axios, this.basePath));
+    public setServerStorageLocation(requestParameters: ServerStorageLocationApiSetServerStorageLocationRequest, options?: RawAxiosRequestConfig) {
+        return ServerStorageLocationApiFp(this.configuration).setServerStorageLocation(requestParameters.serverStorageLocationInputDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * ServerTasksApi - axios parameter creator
+ * @export
+ */
+export const ServerTasksApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary Get a task by id.
+         * @param {string} taskId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTask: async (taskId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'taskId' is not null or undefined
+            assertParamExists('getTask', 'taskId', taskId)
+            const localVarPath = `/api/v1/server/tasks/{taskId}`
+                .replace(`{${"taskId"}}`, encodeURIComponent(String(taskId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary List tasks.
+         * @param {string} [objectKey] 
+         * @param {ListTasksSortEnum} [sort] 
+         * @param {string} [search] 
+         * @param {ListTasksIncludeWaitingEnum} [includeWaiting] 
+         * @param {ListTasksIncludeRunningEnum} [includeRunning] 
+         * @param {ListTasksIncludeCompleteEnum} [includeComplete] 
+         * @param {ListTasksIncludeFailedEnum} [includeFailed] 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {string} [folderId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listTasks: async (objectKey?: string, sort?: ListTasksSortEnum, search?: string, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, folderId?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/server/tasks`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (objectKey !== undefined) {
+                localVarQueryParameter['objectKey'] = objectKey;
+            }
+
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+            if (includeWaiting !== undefined) {
+                localVarQueryParameter['includeWaiting'] = includeWaiting;
+            }
+
+            if (includeRunning !== undefined) {
+                localVarQueryParameter['includeRunning'] = includeRunning;
+            }
+
+            if (includeComplete !== undefined) {
+                localVarQueryParameter['includeComplete'] = includeComplete;
+            }
+
+            if (includeFailed !== undefined) {
+                localVarQueryParameter['includeFailed'] = includeFailed;
+            }
+
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+            if (folderId !== undefined) {
+                localVarQueryParameter['folderId'] = folderId;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ServerTasksApi - functional programming interface
+ * @export
+ */
+export const ServerTasksApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ServerTasksApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary Get a task by id.
+         * @param {string} taskId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTask(taskId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTask(taskId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerTasksApi.getTask']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary List tasks.
+         * @param {string} [objectKey] 
+         * @param {ListTasksSortEnum} [sort] 
+         * @param {string} [search] 
+         * @param {ListTasksIncludeWaitingEnum} [includeWaiting] 
+         * @param {ListTasksIncludeRunningEnum} [includeRunning] 
+         * @param {ListTasksIncludeCompleteEnum} [includeComplete] 
+         * @param {ListTasksIncludeFailedEnum} [includeFailed] 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {string} [folderId] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listTasks(objectKey?: string, sort?: ListTasksSortEnum, search?: string, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, folderId?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listTasks(objectKey, sort, search, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, folderId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerTasksApi.listTasks']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * ServerTasksApi - factory interface
+ * @export
+ */
+export const ServerTasksApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ServerTasksApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary Get a task by id.
+         * @param {ServerTasksApiGetTaskRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTask(requestParameters: ServerTasksApiGetTaskRequest, options?: RawAxiosRequestConfig): AxiosPromise<TaskGetResponse> {
+            return localVarFp.getTask(requestParameters.taskId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary List tasks.
+         * @param {ServerTasksApiListTasksRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listTasks(requestParameters: ServerTasksApiListTasksRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<TaskListResponse> {
+            return localVarFp.listTasks(requestParameters.objectKey, requestParameters.sort, requestParameters.search, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, requestParameters.folderId, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for getTask operation in ServerTasksApi.
+ * @export
+ * @interface ServerTasksApiGetTaskRequest
+ */
+export interface ServerTasksApiGetTaskRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerTasksApiGetTask
+     */
+    readonly taskId: string
+}
+
+/**
+ * Request parameters for listTasks operation in ServerTasksApi.
+ * @export
+ * @interface ServerTasksApiListTasksRequest
+ */
+export interface ServerTasksApiListTasksRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly objectKey?: string
+
+    /**
+     * 
+     * @type {'createdAt-asc' | 'createdAt-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly sort?: ListTasksSortEnum
+
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly search?: string
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly includeWaiting?: ListTasksIncludeWaitingEnum
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly includeRunning?: ListTasksIncludeRunningEnum
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly includeComplete?: ListTasksIncludeCompleteEnum
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly includeFailed?: ListTasksIncludeFailedEnum
+
+    /**
+     * 
+     * @type {number}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly offset?: number
+
+    /**
+     * 
+     * @type {number}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly limit?: number
+
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerTasksApiListTasks
+     */
+    readonly folderId?: string
+}
+
+/**
+ * ServerTasksApi - object-oriented interface
+ * @export
+ * @class ServerTasksApi
+ * @extends {BaseAPI}
+ */
+export class ServerTasksApi extends BaseAPI {
+    /**
+     * 
+     * @summary Get a task by id.
+     * @param {ServerTasksApiGetTaskRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerTasksApi
+     */
+    public getTask(requestParameters: ServerTasksApiGetTaskRequest, options?: RawAxiosRequestConfig) {
+        return ServerTasksApiFp(this.configuration).getTask(requestParameters.taskId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @param {StorageProvisionsApiListStorageProvisionsRequest} requestParameters Request parameters.
+     * @summary List tasks.
+     * @param {ServerTasksApiListTasksRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
-     * @memberof StorageProvisionsApi
+     * @memberof ServerTasksApi
      */
-    public listStorageProvisions(requestParameters: StorageProvisionsApiListStorageProvisionsRequest = {}, options?: AxiosRequestConfig) {
-        return StorageProvisionsApiFp(this.configuration).listStorageProvisions(requestParameters.provisionType, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @param {StorageProvisionsApiUpdateStorageProvisionRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof StorageProvisionsApi
-     */
-    public updateStorageProvision(requestParameters: StorageProvisionsApiUpdateStorageProvisionRequest, options?: AxiosRequestConfig) {
-        return StorageProvisionsApiFp(this.configuration).updateStorageProvision(requestParameters.storageProvisionId, requestParameters.storageProvisionInputDTO, options).then((request) => request(this.axios, this.basePath));
+    public listTasks(requestParameters: ServerTasksApiListTasksRequest = {}, options?: RawAxiosRequestConfig) {
+        return ServerTasksApiFp(this.configuration).listTasks(requestParameters.objectKey, requestParameters.sort, requestParameters.search, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
 /**
  * @export
  */
-export const ListStorageProvisionsProvisionTypeEnum = {
-    Content: 'CONTENT',
-    Metadata: 'METADATA',
-    Backup: 'BACKUP'
+export const ListTasksSortEnum = {
+    CreatedAtAsc: 'createdAt-asc',
+    CreatedAtDesc: 'createdAt-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
 } as const;
-export type ListStorageProvisionsProvisionTypeEnum = typeof ListStorageProvisionsProvisionTypeEnum[keyof typeof ListStorageProvisionsProvisionTypeEnum];
+export type ListTasksSortEnum = typeof ListTasksSortEnum[keyof typeof ListTasksSortEnum];
+/**
+ * @export
+ */
+export const ListTasksIncludeWaitingEnum = {
+    True: 'true'
+} as const;
+export type ListTasksIncludeWaitingEnum = typeof ListTasksIncludeWaitingEnum[keyof typeof ListTasksIncludeWaitingEnum];
+/**
+ * @export
+ */
+export const ListTasksIncludeRunningEnum = {
+    True: 'true'
+} as const;
+export type ListTasksIncludeRunningEnum = typeof ListTasksIncludeRunningEnum[keyof typeof ListTasksIncludeRunningEnum];
+/**
+ * @export
+ */
+export const ListTasksIncludeCompleteEnum = {
+    True: 'true'
+} as const;
+export type ListTasksIncludeCompleteEnum = typeof ListTasksIncludeCompleteEnum[keyof typeof ListTasksIncludeCompleteEnum];
+/**
+ * @export
+ */
+export const ListTasksIncludeFailedEnum = {
+    True: 'true'
+} as const;
+export type ListTasksIncludeFailedEnum = typeof ListTasksIncludeFailedEnum[keyof typeof ListTasksIncludeFailedEnum];
 
 
 /**
@@ -5880,17 +6645,18 @@ export const TasksApiAxiosParamCreator = function (configuration?: Configuration
     return {
         /**
          * 
+         * @summary Get a folder task by id.
          * @param {string} folderId 
          * @param {string} taskId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getTask: async (folderId: string, taskId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getFolderTask: async (folderId: string, taskId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
-            assertParamExists('getTask', 'folderId', folderId)
+            assertParamExists('getFolderTask', 'folderId', folderId)
             // verify required parameter 'taskId' is not null or undefined
-            assertParamExists('getTask', 'taskId', taskId)
-            const localVarPath = `/api/v1/{folderId}/tasks/{taskId}`
+            assertParamExists('getFolderTask', 'taskId', taskId)
+            const localVarPath = `/api/v1/folders/{folderId}/tasks/{taskId}`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
                 .replace(`{${"taskId"}}`, encodeURIComponent(String(taskId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -5921,22 +6687,24 @@ export const TasksApiAxiosParamCreator = function (configuration?: Configuration
         },
         /**
          * 
+         * @summary List tasks.
          * @param {string} folderId 
          * @param {string} [objectKey] 
-         * @param {ListTasksSortEnum} [sort] 
-         * @param {ListTasksIncludeWaitingEnum} [includeWaiting] 
-         * @param {ListTasksIncludeRunningEnum} [includeRunning] 
-         * @param {ListTasksIncludeCompleteEnum} [includeComplete] 
-         * @param {ListTasksIncludeFailedEnum} [includeFailed] 
+         * @param {ListFolderTasksSortEnum} [sort] 
+         * @param {string} [search] 
+         * @param {ListFolderTasksIncludeWaitingEnum} [includeWaiting] 
+         * @param {ListFolderTasksIncludeRunningEnum} [includeRunning] 
+         * @param {ListFolderTasksIncludeCompleteEnum} [includeComplete] 
+         * @param {ListFolderTasksIncludeFailedEnum} [includeFailed] 
          * @param {number} [offset] 
          * @param {number} [limit] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listTasks: async (folderId: string, objectKey?: string, sort?: ListTasksSortEnum, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listFolderTasks: async (folderId: string, objectKey?: string, sort?: ListFolderTasksSortEnum, search?: string, includeWaiting?: ListFolderTasksIncludeWaitingEnum, includeRunning?: ListFolderTasksIncludeRunningEnum, includeComplete?: ListFolderTasksIncludeCompleteEnum, includeFailed?: ListFolderTasksIncludeFailedEnum, offset?: number, limit?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
-            assertParamExists('listTasks', 'folderId', folderId)
-            const localVarPath = `/api/v1/{folderId}/tasks`
+            assertParamExists('listFolderTasks', 'folderId', folderId)
+            const localVarPath = `/api/v1/folders/{folderId}/tasks`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -5959,6 +6727,10 @@ export const TasksApiAxiosParamCreator = function (configuration?: Configuration
 
             if (sort !== undefined) {
                 localVarQueryParameter['sort'] = sort;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
             }
 
             if (includeWaiting !== undefined) {
@@ -6008,32 +6780,39 @@ export const TasksApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @summary Get a folder task by id.
          * @param {string} folderId 
          * @param {string} taskId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getTask(folderId: string, taskId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskGetResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.getTask(folderId, taskId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        async getFolderTask(folderId: string, taskId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getFolderTask(folderId, taskId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TasksApi.getFolderTask']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary List tasks.
          * @param {string} folderId 
          * @param {string} [objectKey] 
-         * @param {ListTasksSortEnum} [sort] 
-         * @param {ListTasksIncludeWaitingEnum} [includeWaiting] 
-         * @param {ListTasksIncludeRunningEnum} [includeRunning] 
-         * @param {ListTasksIncludeCompleteEnum} [includeComplete] 
-         * @param {ListTasksIncludeFailedEnum} [includeFailed] 
+         * @param {ListFolderTasksSortEnum} [sort] 
+         * @param {string} [search] 
+         * @param {ListFolderTasksIncludeWaitingEnum} [includeWaiting] 
+         * @param {ListFolderTasksIncludeRunningEnum} [includeRunning] 
+         * @param {ListFolderTasksIncludeCompleteEnum} [includeComplete] 
+         * @param {ListFolderTasksIncludeFailedEnum} [includeFailed] 
          * @param {number} [offset] 
          * @param {number} [limit] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listTasks(folderId: string, objectKey?: string, sort?: ListTasksSortEnum, includeWaiting?: ListTasksIncludeWaitingEnum, includeRunning?: ListTasksIncludeRunningEnum, includeComplete?: ListTasksIncludeCompleteEnum, includeFailed?: ListTasksIncludeFailedEnum, offset?: number, limit?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listTasks(folderId, objectKey, sort, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        async listFolderTasks(folderId: string, objectKey?: string, sort?: ListFolderTasksSortEnum, search?: string, includeWaiting?: ListFolderTasksIncludeWaitingEnum, includeRunning?: ListFolderTasksIncludeRunningEnum, includeComplete?: ListFolderTasksIncludeCompleteEnum, includeFailed?: ListFolderTasksIncludeFailedEnum, offset?: number, limit?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderTasks(folderId, objectKey, sort, search, includeWaiting, includeRunning, includeComplete, includeFailed, offset, limit, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TasksApi.listFolderTasks']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
@@ -6047,112 +6826,121 @@ export const TasksApiFactory = function (configuration?: Configuration, basePath
     return {
         /**
          * 
-         * @param {TasksApiGetTaskRequest} requestParameters Request parameters.
+         * @summary Get a folder task by id.
+         * @param {TasksApiGetFolderTaskRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getTask(requestParameters: TasksApiGetTaskRequest, options?: AxiosRequestConfig): AxiosPromise<TaskGetResponse> {
-            return localVarFp.getTask(requestParameters.folderId, requestParameters.taskId, options).then((request) => request(axios, basePath));
+        getFolderTask(requestParameters: TasksApiGetFolderTaskRequest, options?: RawAxiosRequestConfig): AxiosPromise<TaskGetResponse> {
+            return localVarFp.getFolderTask(requestParameters.folderId, requestParameters.taskId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
-         * @param {TasksApiListTasksRequest} requestParameters Request parameters.
+         * @summary List tasks.
+         * @param {TasksApiListFolderTasksRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listTasks(requestParameters: TasksApiListTasksRequest, options?: AxiosRequestConfig): AxiosPromise<TaskListResponse> {
-            return localVarFp.listTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.sort, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        listFolderTasks(requestParameters: TasksApiListFolderTasksRequest, options?: RawAxiosRequestConfig): AxiosPromise<TaskListResponse> {
+            return localVarFp.listFolderTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.sort, requestParameters.search, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
         },
     };
 };
 
 /**
- * Request parameters for getTask operation in TasksApi.
+ * Request parameters for getFolderTask operation in TasksApi.
  * @export
- * @interface TasksApiGetTaskRequest
+ * @interface TasksApiGetFolderTaskRequest
  */
-export interface TasksApiGetTaskRequest {
+export interface TasksApiGetFolderTaskRequest {
     /**
      * 
      * @type {string}
-     * @memberof TasksApiGetTask
+     * @memberof TasksApiGetFolderTask
      */
     readonly folderId: string
 
     /**
      * 
      * @type {string}
-     * @memberof TasksApiGetTask
+     * @memberof TasksApiGetFolderTask
      */
     readonly taskId: string
 }
 
 /**
- * Request parameters for listTasks operation in TasksApi.
+ * Request parameters for listFolderTasks operation in TasksApi.
  * @export
- * @interface TasksApiListTasksRequest
+ * @interface TasksApiListFolderTasksRequest
  */
-export interface TasksApiListTasksRequest {
+export interface TasksApiListFolderTasksRequest {
     /**
      * 
      * @type {string}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
     readonly folderId: string
 
     /**
      * 
      * @type {string}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
     readonly objectKey?: string
 
     /**
      * 
      * @type {'createdAt-asc' | 'createdAt-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
-    readonly sort?: ListTasksSortEnum
+    readonly sort?: ListFolderTasksSortEnum
+
+    /**
+     * 
+     * @type {string}
+     * @memberof TasksApiListFolderTasks
+     */
+    readonly search?: string
 
     /**
      * 
      * @type {'true'}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
-    readonly includeWaiting?: ListTasksIncludeWaitingEnum
+    readonly includeWaiting?: ListFolderTasksIncludeWaitingEnum
 
     /**
      * 
      * @type {'true'}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
-    readonly includeRunning?: ListTasksIncludeRunningEnum
+    readonly includeRunning?: ListFolderTasksIncludeRunningEnum
 
     /**
      * 
      * @type {'true'}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
-    readonly includeComplete?: ListTasksIncludeCompleteEnum
+    readonly includeComplete?: ListFolderTasksIncludeCompleteEnum
 
     /**
      * 
      * @type {'true'}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
-    readonly includeFailed?: ListTasksIncludeFailedEnum
+    readonly includeFailed?: ListFolderTasksIncludeFailedEnum
 
     /**
      * 
      * @type {number}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
     readonly offset?: number
 
     /**
      * 
      * @type {number}
-     * @memberof TasksApiListTasks
+     * @memberof TasksApiListFolderTasks
      */
     readonly limit?: number
 }
@@ -6166,65 +6954,567 @@ export interface TasksApiListTasksRequest {
 export class TasksApi extends BaseAPI {
     /**
      * 
-     * @param {TasksApiGetTaskRequest} requestParameters Request parameters.
+     * @summary Get a folder task by id.
+     * @param {TasksApiGetFolderTaskRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TasksApi
      */
-    public getTask(requestParameters: TasksApiGetTaskRequest, options?: AxiosRequestConfig) {
-        return TasksApiFp(this.configuration).getTask(requestParameters.folderId, requestParameters.taskId, options).then((request) => request(this.axios, this.basePath));
+    public getFolderTask(requestParameters: TasksApiGetFolderTaskRequest, options?: RawAxiosRequestConfig) {
+        return TasksApiFp(this.configuration).getFolderTask(requestParameters.folderId, requestParameters.taskId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
-     * @param {TasksApiListTasksRequest} requestParameters Request parameters.
+     * @summary List tasks.
+     * @param {TasksApiListFolderTasksRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TasksApi
      */
-    public listTasks(requestParameters: TasksApiListTasksRequest, options?: AxiosRequestConfig) {
-        return TasksApiFp(this.configuration).listTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.sort, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    public listFolderTasks(requestParameters: TasksApiListFolderTasksRequest, options?: RawAxiosRequestConfig) {
+        return TasksApiFp(this.configuration).listFolderTasks(requestParameters.folderId, requestParameters.objectKey, requestParameters.sort, requestParameters.search, requestParameters.includeWaiting, requestParameters.includeRunning, requestParameters.includeComplete, requestParameters.includeFailed, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
 /**
  * @export
  */
-export const ListTasksSortEnum = {
+export const ListFolderTasksSortEnum = {
     CreatedAtAsc: 'createdAt-asc',
     CreatedAtDesc: 'createdAt-desc',
     UpdatedAtAsc: 'updatedAt-asc',
     UpdatedAtDesc: 'updatedAt-desc'
 } as const;
-export type ListTasksSortEnum = typeof ListTasksSortEnum[keyof typeof ListTasksSortEnum];
+export type ListFolderTasksSortEnum = typeof ListFolderTasksSortEnum[keyof typeof ListFolderTasksSortEnum];
 /**
  * @export
  */
-export const ListTasksIncludeWaitingEnum = {
+export const ListFolderTasksIncludeWaitingEnum = {
     True: 'true'
 } as const;
-export type ListTasksIncludeWaitingEnum = typeof ListTasksIncludeWaitingEnum[keyof typeof ListTasksIncludeWaitingEnum];
+export type ListFolderTasksIncludeWaitingEnum = typeof ListFolderTasksIncludeWaitingEnum[keyof typeof ListFolderTasksIncludeWaitingEnum];
 /**
  * @export
  */
-export const ListTasksIncludeRunningEnum = {
+export const ListFolderTasksIncludeRunningEnum = {
     True: 'true'
 } as const;
-export type ListTasksIncludeRunningEnum = typeof ListTasksIncludeRunningEnum[keyof typeof ListTasksIncludeRunningEnum];
+export type ListFolderTasksIncludeRunningEnum = typeof ListFolderTasksIncludeRunningEnum[keyof typeof ListFolderTasksIncludeRunningEnum];
 /**
  * @export
  */
-export const ListTasksIncludeCompleteEnum = {
+export const ListFolderTasksIncludeCompleteEnum = {
     True: 'true'
 } as const;
-export type ListTasksIncludeCompleteEnum = typeof ListTasksIncludeCompleteEnum[keyof typeof ListTasksIncludeCompleteEnum];
+export type ListFolderTasksIncludeCompleteEnum = typeof ListFolderTasksIncludeCompleteEnum[keyof typeof ListFolderTasksIncludeCompleteEnum];
 /**
  * @export
  */
-export const ListTasksIncludeFailedEnum = {
+export const ListFolderTasksIncludeFailedEnum = {
     True: 'true'
 } as const;
-export type ListTasksIncludeFailedEnum = typeof ListTasksIncludeFailedEnum[keyof typeof ListTasksIncludeFailedEnum];
+export type ListFolderTasksIncludeFailedEnum = typeof ListFolderTasksIncludeFailedEnum[keyof typeof ListFolderTasksIncludeFailedEnum];
+
+
+/**
+ * UserStorageProvisionsApi - axios parameter creator
+ * @export
+ */
+export const UserStorageProvisionsApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary Create a new user storage provision.
+         * @param {UserStorageProvisionInputDTO} userStorageProvisionInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createUserStorageProvision: async (userStorageProvisionInputDTO: UserStorageProvisionInputDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userStorageProvisionInputDTO' is not null or undefined
+            assertParamExists('createUserStorageProvision', 'userStorageProvisionInputDTO', userStorageProvisionInputDTO)
+            const localVarPath = `/api/v1/server/user-storage-provisions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(userStorageProvisionInputDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Delete a server provision by id.
+         * @param {string} userStorageProvisionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteUserStorageProvision: async (userStorageProvisionId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userStorageProvisionId' is not null or undefined
+            assertParamExists('deleteUserStorageProvision', 'userStorageProvisionId', userStorageProvisionId)
+            const localVarPath = `/api/v1/server/user-storage-provisions/{userStorageProvisionId}`
+                .replace(`{${"userStorageProvisionId"}}`, encodeURIComponent(String(userStorageProvisionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Get a user storage provision by id.
+         * @param {string} userStorageProvisionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getUserStorageProvision: async (userStorageProvisionId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userStorageProvisionId' is not null or undefined
+            assertParamExists('getUserStorageProvision', 'userStorageProvisionId', userStorageProvisionId)
+            const localVarPath = `/api/v1/server/user-storage-provisions/{userStorageProvisionId}`
+                .replace(`{${"userStorageProvisionId"}}`, encodeURIComponent(String(userStorageProvisionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary List the user storage provisions.
+         * @param {ListUserStorageProvisionsProvisionTypeEnum} [provisionType] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listUserStorageProvisions: async (provisionType?: ListUserStorageProvisionsProvisionTypeEnum, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/v1/server/user-storage-provisions`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (provisionType !== undefined) {
+                localVarQueryParameter['provisionType'] = provisionType;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Update a server provision by id.
+         * @param {string} userStorageProvisionId 
+         * @param {UserStorageProvisionInputDTO} userStorageProvisionInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateUserStorageProvision: async (userStorageProvisionId: string, userStorageProvisionInputDTO: UserStorageProvisionInputDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userStorageProvisionId' is not null or undefined
+            assertParamExists('updateUserStorageProvision', 'userStorageProvisionId', userStorageProvisionId)
+            // verify required parameter 'userStorageProvisionInputDTO' is not null or undefined
+            assertParamExists('updateUserStorageProvision', 'userStorageProvisionInputDTO', userStorageProvisionInputDTO)
+            const localVarPath = `/api/v1/server/user-storage-provisions/{userStorageProvisionId}`
+                .replace(`{${"userStorageProvisionId"}}`, encodeURIComponent(String(userStorageProvisionId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(userStorageProvisionInputDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * UserStorageProvisionsApi - functional programming interface
+ * @export
+ */
+export const UserStorageProvisionsApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = UserStorageProvisionsApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary Create a new user storage provision.
+         * @param {UserStorageProvisionInputDTO} userStorageProvisionInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createUserStorageProvision(userStorageProvisionInputDTO: UserStorageProvisionInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserStorageProvisionListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createUserStorageProvision(userStorageProvisionInputDTO, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UserStorageProvisionsApi.createUserStorageProvision']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Delete a server provision by id.
+         * @param {string} userStorageProvisionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteUserStorageProvision(userStorageProvisionId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserStorageProvisionListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteUserStorageProvision(userStorageProvisionId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UserStorageProvisionsApi.deleteUserStorageProvision']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Get a user storage provision by id.
+         * @param {string} userStorageProvisionId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getUserStorageProvision(userStorageProvisionId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserStorageProvisionGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getUserStorageProvision(userStorageProvisionId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UserStorageProvisionsApi.getUserStorageProvision']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary List the user storage provisions.
+         * @param {ListUserStorageProvisionsProvisionTypeEnum} [provisionType] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listUserStorageProvisions(provisionType?: ListUserStorageProvisionsProvisionTypeEnum, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserStorageProvisionListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listUserStorageProvisions(provisionType, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UserStorageProvisionsApi.listUserStorageProvisions']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Update a server provision by id.
+         * @param {string} userStorageProvisionId 
+         * @param {UserStorageProvisionInputDTO} userStorageProvisionInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateUserStorageProvision(userStorageProvisionId: string, userStorageProvisionInputDTO: UserStorageProvisionInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserStorageProvisionListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateUserStorageProvision(userStorageProvisionId, userStorageProvisionInputDTO, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UserStorageProvisionsApi.updateUserStorageProvision']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * UserStorageProvisionsApi - factory interface
+ * @export
+ */
+export const UserStorageProvisionsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = UserStorageProvisionsApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary Create a new user storage provision.
+         * @param {UserStorageProvisionsApiCreateUserStorageProvisionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createUserStorageProvision(requestParameters: UserStorageProvisionsApiCreateUserStorageProvisionRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserStorageProvisionListResponse> {
+            return localVarFp.createUserStorageProvision(requestParameters.userStorageProvisionInputDTO, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Delete a server provision by id.
+         * @param {UserStorageProvisionsApiDeleteUserStorageProvisionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteUserStorageProvision(requestParameters: UserStorageProvisionsApiDeleteUserStorageProvisionRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserStorageProvisionListResponse> {
+            return localVarFp.deleteUserStorageProvision(requestParameters.userStorageProvisionId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Get a user storage provision by id.
+         * @param {UserStorageProvisionsApiGetUserStorageProvisionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getUserStorageProvision(requestParameters: UserStorageProvisionsApiGetUserStorageProvisionRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserStorageProvisionGetResponse> {
+            return localVarFp.getUserStorageProvision(requestParameters.userStorageProvisionId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary List the user storage provisions.
+         * @param {UserStorageProvisionsApiListUserStorageProvisionsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listUserStorageProvisions(requestParameters: UserStorageProvisionsApiListUserStorageProvisionsRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<UserStorageProvisionListResponse> {
+            return localVarFp.listUserStorageProvisions(requestParameters.provisionType, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Update a server provision by id.
+         * @param {UserStorageProvisionsApiUpdateUserStorageProvisionRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateUserStorageProvision(requestParameters: UserStorageProvisionsApiUpdateUserStorageProvisionRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserStorageProvisionListResponse> {
+            return localVarFp.updateUserStorageProvision(requestParameters.userStorageProvisionId, requestParameters.userStorageProvisionInputDTO, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for createUserStorageProvision operation in UserStorageProvisionsApi.
+ * @export
+ * @interface UserStorageProvisionsApiCreateUserStorageProvisionRequest
+ */
+export interface UserStorageProvisionsApiCreateUserStorageProvisionRequest {
+    /**
+     * 
+     * @type {UserStorageProvisionInputDTO}
+     * @memberof UserStorageProvisionsApiCreateUserStorageProvision
+     */
+    readonly userStorageProvisionInputDTO: UserStorageProvisionInputDTO
+}
+
+/**
+ * Request parameters for deleteUserStorageProvision operation in UserStorageProvisionsApi.
+ * @export
+ * @interface UserStorageProvisionsApiDeleteUserStorageProvisionRequest
+ */
+export interface UserStorageProvisionsApiDeleteUserStorageProvisionRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionsApiDeleteUserStorageProvision
+     */
+    readonly userStorageProvisionId: string
+}
+
+/**
+ * Request parameters for getUserStorageProvision operation in UserStorageProvisionsApi.
+ * @export
+ * @interface UserStorageProvisionsApiGetUserStorageProvisionRequest
+ */
+export interface UserStorageProvisionsApiGetUserStorageProvisionRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionsApiGetUserStorageProvision
+     */
+    readonly userStorageProvisionId: string
+}
+
+/**
+ * Request parameters for listUserStorageProvisions operation in UserStorageProvisionsApi.
+ * @export
+ * @interface UserStorageProvisionsApiListUserStorageProvisionsRequest
+ */
+export interface UserStorageProvisionsApiListUserStorageProvisionsRequest {
+    /**
+     * 
+     * @type {'CONTENT' | 'METADATA' | 'REDUNDANCY'}
+     * @memberof UserStorageProvisionsApiListUserStorageProvisions
+     */
+    readonly provisionType?: ListUserStorageProvisionsProvisionTypeEnum
+}
+
+/**
+ * Request parameters for updateUserStorageProvision operation in UserStorageProvisionsApi.
+ * @export
+ * @interface UserStorageProvisionsApiUpdateUserStorageProvisionRequest
+ */
+export interface UserStorageProvisionsApiUpdateUserStorageProvisionRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof UserStorageProvisionsApiUpdateUserStorageProvision
+     */
+    readonly userStorageProvisionId: string
+
+    /**
+     * 
+     * @type {UserStorageProvisionInputDTO}
+     * @memberof UserStorageProvisionsApiUpdateUserStorageProvision
+     */
+    readonly userStorageProvisionInputDTO: UserStorageProvisionInputDTO
+}
+
+/**
+ * UserStorageProvisionsApi - object-oriented interface
+ * @export
+ * @class UserStorageProvisionsApi
+ * @extends {BaseAPI}
+ */
+export class UserStorageProvisionsApi extends BaseAPI {
+    /**
+     * 
+     * @summary Create a new user storage provision.
+     * @param {UserStorageProvisionsApiCreateUserStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UserStorageProvisionsApi
+     */
+    public createUserStorageProvision(requestParameters: UserStorageProvisionsApiCreateUserStorageProvisionRequest, options?: RawAxiosRequestConfig) {
+        return UserStorageProvisionsApiFp(this.configuration).createUserStorageProvision(requestParameters.userStorageProvisionInputDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Delete a server provision by id.
+     * @param {UserStorageProvisionsApiDeleteUserStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UserStorageProvisionsApi
+     */
+    public deleteUserStorageProvision(requestParameters: UserStorageProvisionsApiDeleteUserStorageProvisionRequest, options?: RawAxiosRequestConfig) {
+        return UserStorageProvisionsApiFp(this.configuration).deleteUserStorageProvision(requestParameters.userStorageProvisionId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Get a user storage provision by id.
+     * @param {UserStorageProvisionsApiGetUserStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UserStorageProvisionsApi
+     */
+    public getUserStorageProvision(requestParameters: UserStorageProvisionsApiGetUserStorageProvisionRequest, options?: RawAxiosRequestConfig) {
+        return UserStorageProvisionsApiFp(this.configuration).getUserStorageProvision(requestParameters.userStorageProvisionId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary List the user storage provisions.
+     * @param {UserStorageProvisionsApiListUserStorageProvisionsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UserStorageProvisionsApi
+     */
+    public listUserStorageProvisions(requestParameters: UserStorageProvisionsApiListUserStorageProvisionsRequest = {}, options?: RawAxiosRequestConfig) {
+        return UserStorageProvisionsApiFp(this.configuration).listUserStorageProvisions(requestParameters.provisionType, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Update a server provision by id.
+     * @param {UserStorageProvisionsApiUpdateUserStorageProvisionRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UserStorageProvisionsApi
+     */
+    public updateUserStorageProvision(requestParameters: UserStorageProvisionsApiUpdateUserStorageProvisionRequest, options?: RawAxiosRequestConfig) {
+        return UserStorageProvisionsApiFp(this.configuration).updateUserStorageProvision(requestParameters.userStorageProvisionId, requestParameters.userStorageProvisionInputDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+/**
+ * @export
+ */
+export const ListUserStorageProvisionsProvisionTypeEnum = {
+    Content: 'CONTENT',
+    Metadata: 'METADATA',
+    Redundancy: 'REDUNDANCY'
+} as const;
+export type ListUserStorageProvisionsProvisionTypeEnum = typeof ListUserStorageProvisionsProvisionTypeEnum[keyof typeof ListUserStorageProvisionsProvisionTypeEnum];
 
 
 /**
@@ -6235,11 +7525,12 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
     return {
         /**
          * 
+         * @summary Create a user.
          * @param {UserCreateInputDTO} userCreateInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createUser: async (userCreateInputDTO: UserCreateInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        createUser: async (userCreateInputDTO: UserCreateInputDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'userCreateInputDTO' is not null or undefined
             assertParamExists('createUser', 'userCreateInputDTO', userCreateInputDTO)
             const localVarPath = `/api/v1/server/users`;
@@ -6274,11 +7565,12 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
         },
         /**
          * 
+         * @summary Delete a server user by id.
          * @param {string} userId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteUser: async (userId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        deleteUser: async (userId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'userId' is not null or undefined
             assertParamExists('deleteUser', 'userId', userId)
             const localVarPath = `/api/v1/server/users/{userId}`
@@ -6311,11 +7603,12 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
         },
         /**
          * 
+         * @summary Get a user by id.
          * @param {string} userId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getUser: async (userId: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getUser: async (userId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'userId' is not null or undefined
             assertParamExists('getUser', 'userId', userId)
             const localVarPath = `/api/v1/server/users/{userId}`
@@ -6348,14 +7641,16 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
         },
         /**
          * 
+         * @summary List the users.
          * @param {number} [offset] 
          * @param {number} [limit] 
          * @param {boolean} [isAdmin] 
          * @param {ListUsersSortEnum} [sort] 
+         * @param {string} [search] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listUsers: async (offset?: number, limit?: number, isAdmin?: boolean, sort?: ListUsersSortEnum, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listUsers: async (offset?: number, limit?: number, isAdmin?: boolean, sort?: ListUsersSortEnum, search?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/v1/server/users`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -6388,6 +7683,10 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
                 localVarQueryParameter['sort'] = sort;
             }
 
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
 
     
             setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -6401,12 +7700,13 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
         },
         /**
          * 
+         * @summary Update a user.
          * @param {string} userId 
          * @param {UserUpdateInputDTO} userUpdateInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateUser: async (userId: string, userUpdateInputDTO: UserUpdateInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        updateUser: async (userId: string, userUpdateInputDTO: UserUpdateInputDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'userId' is not null or undefined
             assertParamExists('updateUser', 'userId', userId)
             // verify required parameter 'userUpdateInputDTO' is not null or undefined
@@ -6454,57 +7754,73 @@ export const UsersApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @summary Create a user.
          * @param {UserCreateInputDTO} userCreateInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createUser(userCreateInputDTO: UserCreateInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>> {
+        async createUser(userCreateInputDTO: UserCreateInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.createUser(userCreateInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.createUser']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Delete a server user by id.
          * @param {string} userId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async deleteUser(userId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async deleteUser(userId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.deleteUser(userId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.deleteUser']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Get a user by id.
          * @param {string} userId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getUser(userId: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>> {
+        async getUser(userId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getUser(userId, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.getUser']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary List the users.
          * @param {number} [offset] 
          * @param {number} [limit] 
          * @param {boolean} [isAdmin] 
          * @param {ListUsersSortEnum} [sort] 
+         * @param {string} [search] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listUsers(offset?: number, limit?: number, isAdmin?: boolean, sort?: ListUsersSortEnum, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listUsers(offset, limit, isAdmin, sort, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        async listUsers(offset?: number, limit?: number, isAdmin?: boolean, sort?: ListUsersSortEnum, search?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listUsers(offset, limit, isAdmin, sort, search, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.listUsers']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
+         * @summary Update a user.
          * @param {string} userId 
          * @param {UserUpdateInputDTO} userUpdateInputDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateUser(userId: string, userUpdateInputDTO: UserUpdateInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>> {
+        async updateUser(userId: string, userUpdateInputDTO: UserUpdateInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.updateUser(userId, userUpdateInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.updateUser']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
@@ -6518,47 +7834,52 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
     return {
         /**
          * 
+         * @summary Create a user.
          * @param {UsersApiCreateUserRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createUser(requestParameters: UsersApiCreateUserRequest, options?: AxiosRequestConfig): AxiosPromise<UserGetResponse> {
+        createUser(requestParameters: UsersApiCreateUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserGetResponse> {
             return localVarFp.createUser(requestParameters.userCreateInputDTO, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Delete a server user by id.
          * @param {UsersApiDeleteUserRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteUser(requestParameters: UsersApiDeleteUserRequest, options?: AxiosRequestConfig): AxiosPromise<void> {
+        deleteUser(requestParameters: UsersApiDeleteUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.deleteUser(requestParameters.userId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Get a user by id.
          * @param {UsersApiGetUserRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getUser(requestParameters: UsersApiGetUserRequest, options?: AxiosRequestConfig): AxiosPromise<UserGetResponse> {
+        getUser(requestParameters: UsersApiGetUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserGetResponse> {
             return localVarFp.getUser(requestParameters.userId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary List the users.
          * @param {UsersApiListUsersRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listUsers(requestParameters: UsersApiListUsersRequest = {}, options?: AxiosRequestConfig): AxiosPromise<UserListResponse> {
-            return localVarFp.listUsers(requestParameters.offset, requestParameters.limit, requestParameters.isAdmin, requestParameters.sort, options).then((request) => request(axios, basePath));
+        listUsers(requestParameters: UsersApiListUsersRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<UserListResponse> {
+            return localVarFp.listUsers(requestParameters.offset, requestParameters.limit, requestParameters.isAdmin, requestParameters.sort, requestParameters.search, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary Update a user.
          * @param {UsersApiUpdateUserRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateUser(requestParameters: UsersApiUpdateUserRequest, options?: AxiosRequestConfig): AxiosPromise<UserGetResponse> {
+        updateUser(requestParameters: UsersApiUpdateUserRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserGetResponse> {
             return localVarFp.updateUser(requestParameters.userId, requestParameters.userUpdateInputDTO, options).then((request) => request(axios, basePath));
         },
     };
@@ -6635,10 +7956,17 @@ export interface UsersApiListUsersRequest {
 
     /**
      * 
-     * @type {'createdAt-asc' | 'createdAt-desc' | 'email-asc' | 'email-desc' | 'name-asc' | 'name-desc' | 'role-asc' | 'role-desc' | 'status-asc' | 'status-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @type {'createdAt-asc' | 'createdAt-desc' | 'email-asc' | 'email-desc' | 'name-asc' | 'name-desc' | 'username-asc' | 'username-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
      * @memberof UsersApiListUsers
      */
     readonly sort?: ListUsersSortEnum
+
+    /**
+     * 
+     * @type {string}
+     * @memberof UsersApiListUsers
+     */
+    readonly search?: string
 }
 
 /**
@@ -6671,56 +7999,61 @@ export interface UsersApiUpdateUserRequest {
 export class UsersApi extends BaseAPI {
     /**
      * 
+     * @summary Create a user.
      * @param {UsersApiCreateUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UsersApi
      */
-    public createUser(requestParameters: UsersApiCreateUserRequest, options?: AxiosRequestConfig) {
+    public createUser(requestParameters: UsersApiCreateUserRequest, options?: RawAxiosRequestConfig) {
         return UsersApiFp(this.configuration).createUser(requestParameters.userCreateInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Delete a server user by id.
      * @param {UsersApiDeleteUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UsersApi
      */
-    public deleteUser(requestParameters: UsersApiDeleteUserRequest, options?: AxiosRequestConfig) {
+    public deleteUser(requestParameters: UsersApiDeleteUserRequest, options?: RawAxiosRequestConfig) {
         return UsersApiFp(this.configuration).deleteUser(requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Get a user by id.
      * @param {UsersApiGetUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UsersApi
      */
-    public getUser(requestParameters: UsersApiGetUserRequest, options?: AxiosRequestConfig) {
+    public getUser(requestParameters: UsersApiGetUserRequest, options?: RawAxiosRequestConfig) {
         return UsersApiFp(this.configuration).getUser(requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary List the users.
      * @param {UsersApiListUsersRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UsersApi
      */
-    public listUsers(requestParameters: UsersApiListUsersRequest = {}, options?: AxiosRequestConfig) {
-        return UsersApiFp(this.configuration).listUsers(requestParameters.offset, requestParameters.limit, requestParameters.isAdmin, requestParameters.sort, options).then((request) => request(this.axios, this.basePath));
+    public listUsers(requestParameters: UsersApiListUsersRequest = {}, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).listUsers(requestParameters.offset, requestParameters.limit, requestParameters.isAdmin, requestParameters.sort, requestParameters.search, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
      * 
+     * @summary Update a user.
      * @param {UsersApiUpdateUserRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof UsersApi
      */
-    public updateUser(requestParameters: UsersApiUpdateUserRequest, options?: AxiosRequestConfig) {
+    public updateUser(requestParameters: UsersApiUpdateUserRequest, options?: RawAxiosRequestConfig) {
         return UsersApiFp(this.configuration).updateUser(requestParameters.userId, requestParameters.userUpdateInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
@@ -6735,10 +8068,8 @@ export const ListUsersSortEnum = {
     EmailDesc: 'email-desc',
     NameAsc: 'name-asc',
     NameDesc: 'name-desc',
-    RoleAsc: 'role-asc',
-    RoleDesc: 'role-desc',
-    StatusAsc: 'status-asc',
-    StatusDesc: 'status-desc',
+    UsernameAsc: 'username-asc',
+    UsernameDesc: 'username-desc',
     UpdatedAtAsc: 'updatedAt-asc',
     UpdatedAtDesc: 'updatedAt-desc'
 } as const;
@@ -6756,7 +8087,7 @@ export const ViewerApiAxiosParamCreator = function (configuration?: Configuratio
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getViewer: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getViewer: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/v1/viewer`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -6790,7 +8121,7 @@ export const ViewerApiAxiosParamCreator = function (configuration?: Configuratio
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateViewer: async (viewerUpdateInputDTO: ViewerUpdateInputDTO, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        updateViewer: async (viewerUpdateInputDTO: ViewerUpdateInputDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'viewerUpdateInputDTO' is not null or undefined
             assertParamExists('updateViewer', 'viewerUpdateInputDTO', viewerUpdateInputDTO)
             const localVarPath = `/api/v1/viewer`;
@@ -6838,9 +8169,11 @@ export const ViewerApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getViewer(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ViewerGetResponse>> {
+        async getViewer(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ViewerGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getViewer(options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ViewerApi.getViewer']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
          * 
@@ -6848,9 +8181,11 @@ export const ViewerApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateViewer(viewerUpdateInputDTO: ViewerUpdateInputDTO, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ViewerGetResponse>> {
+        async updateViewer(viewerUpdateInputDTO: ViewerUpdateInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ViewerGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.updateViewer(viewerUpdateInputDTO, options);
-            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ViewerApi.updateViewer']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
 };
@@ -6867,7 +8202,7 @@ export const ViewerApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getViewer(options?: AxiosRequestConfig): AxiosPromise<ViewerGetResponse> {
+        getViewer(options?: RawAxiosRequestConfig): AxiosPromise<ViewerGetResponse> {
             return localVarFp.getViewer(options).then((request) => request(axios, basePath));
         },
         /**
@@ -6876,7 +8211,7 @@ export const ViewerApiFactory = function (configuration?: Configuration, basePat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig): AxiosPromise<ViewerGetResponse> {
+        updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: RawAxiosRequestConfig): AxiosPromise<ViewerGetResponse> {
             return localVarFp.updateViewer(requestParameters.viewerUpdateInputDTO, options).then((request) => request(axios, basePath));
         },
     };
@@ -6909,7 +8244,7 @@ export class ViewerApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof ViewerApi
      */
-    public getViewer(options?: AxiosRequestConfig) {
+    public getViewer(options?: RawAxiosRequestConfig) {
         return ViewerApiFp(this.configuration).getViewer(options).then((request) => request(this.axios, this.basePath));
     }
 
@@ -6920,7 +8255,7 @@ export class ViewerApi extends BaseAPI {
      * @throws {RequiredError}
      * @memberof ViewerApi
      */
-    public updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: AxiosRequestConfig) {
+    public updateViewer(requestParameters: ViewerApiUpdateViewerRequest, options?: RawAxiosRequestConfig) {
         return ViewerApiFp(this.configuration).updateViewer(requestParameters.viewerUpdateInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }

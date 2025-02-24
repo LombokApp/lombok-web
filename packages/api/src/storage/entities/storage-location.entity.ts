@@ -1,12 +1,10 @@
-import { pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { usersTable } from 'src/users/entities/user.entity'
-
-export const providerTypeEnum = pgEnum('providerType', ['SERVER', 'USER'])
 
 export const storageLocationsTable = pgTable('storage_locations', {
   id: uuid('id').primaryKey(),
   accessKeyHashId: text('accessKeyHashId').notNull(),
-  providerType: providerTypeEnum('providerType').notNull(),
+  providerType: text('providerType').notNull().$type<'SERVER' | 'USER'>(),
   label: text('label').notNull(),
   endpoint: text('endpoint').notNull(),
   endpointDomain: text('endpointDomain').notNull(),

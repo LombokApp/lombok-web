@@ -1,10 +1,10 @@
 'use client'
 
-import React from 'react'
-
 import { Cross2Icon } from '@radix-ui/react-icons'
-import { Button } from '@stellariscloud/ui-toolkit'
-import { Table } from '@tanstack/react-table'
+import { Button, Input, TypographyH3 } from '@stellariscloud/ui-toolkit'
+import type { Table } from '@tanstack/react-table'
+import { Filter } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
 
 import { DataTableFacetedFilter } from './data-table-faceted-filter'
 
@@ -17,18 +17,57 @@ export interface ColumnFilterOptions {
   }[]
 }
 interface DataTableToolbarProps<TData> {
+  title?: string
   table: Table<TData>
   filterOptions: Record<string, ColumnFilterOptions>
+  enableSearch?: boolean
+  searchColumn?: string
+  searchPlaceholder?: string
 }
 
 export function DataTableToolbar<TData>({
+  title,
   table,
   filterOptions,
+  enableSearch = false,
+  searchColumn,
+  searchPlaceholder,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
+
+  const _filterValue = searchColumn
+    ? ((table.getColumn(searchColumn)?.getFilterValue() as
+        | string
+        | undefined) ?? '')
+    : ''
+
+  if (enableSearch && !searchColumn) {
+    throw new Error('Must set `searchColumn` if `enableSearch` is true.')
+  }
+
+  const [filterValue, setFilterValue] = useState(_filterValue)
+
+  useEffect(() => {
+    setFilterValue(_filterValue)
+  }, [_filterValue])
+
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex flex-1 items-center space-x-2">
+    <div className="flex items-center gap-6">
+      {title && <TypographyH3>{title}</TypographyH3>}
+      <div className="flex items-center space-x-2 rounded-md border border-foreground/10 bg-card p-2">
+        <div className="flex items-center pl-2 pr-1">
+          <Filter className="size-5 text-foreground/30" />
+        </div>
+        {enableSearch && searchColumn && (
+          <Input
+            placeholder={searchPlaceholder ?? 'Search...'}
+            value={filterValue}
+            onChange={(event) =>
+              table.getColumn(searchColumn)?.setFilterValue(event.target.value)
+            }
+            className="h-8 w-[150px] lg:w-[250px]"
+          />
+        )}
         {Object.keys(filterOptions)
           .filter((filterOption) => table.getColumn(filterOption))
           .map((filterOption, i) => (
@@ -46,7 +85,7 @@ export function DataTableToolbar<TData>({
             className="h-8 px-2 lg:px-3"
           >
             Reset
-            <Cross2Icon className="ml-2 h-4 w-4" />
+            <Cross2Icon className="ml-2 size-4" />
           </Button>
         )}
       </div>

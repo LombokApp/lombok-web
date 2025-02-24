@@ -1,5 +1,3 @@
-import React from 'react'
-
 import type { Meta, StoryObj } from '@storybook/react'
 import { AlertCircle, Terminal } from 'lucide-react'
 
@@ -23,7 +21,7 @@ export const DefaultVariantWithIcon: Story = {
   args: {},
   render: () => (
     <Alert>
-      <Terminal className="h-4 w-4" />
+      <Terminal className="size-4" />
       <AlertTitle>Important Information</AlertTitle>
       <AlertDescription>
         This is an important informational message
@@ -36,7 +34,7 @@ export const DestructiveVariant: Story = {
   args: {},
   render: () => (
     <Alert variant="destructive">
-      <AlertCircle className="h-4 w-4" />
+      <AlertCircle className="size-4" />
       <AlertTitle>Error</AlertTitle>
       <AlertDescription>You have been logged out.</AlertDescription>
     </Alert>

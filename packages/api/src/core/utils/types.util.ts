@@ -16,7 +16,7 @@ export type PartialWritable<T extends object> = {
   [K in keyof T as MutableKeys<T>]?: T[K]
 }
 
-export const EnumType = <T>(e: { [key: string]: T }): r.Runtype<T> => {
+export const EnumType = <T>(e: Record<string, T>): r.Runtype<T> => {
   const values: unknown[] = Object.values(e)
 
   return r.Unknown.withConstraint<T>(
@@ -34,8 +34,9 @@ export const propertyOf = <T>(propertyName: string & keyof T): string => {
   return propertyName
 }
 
-export type ShapeOf<T> = Record<keyof T, any>
+export type ShapeOf<T> = Record<keyof T, unknown>
 
+// eslint-disable-next-line no-use-before-define
 export type AssertKeysEqual<X extends ShapeOf<Y>, Y extends ShapeOf<X>> = never
 
 export type Concrete<Type> = {

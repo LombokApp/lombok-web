@@ -21,7 +21,12 @@ export async function buildApp() {
   app.enableShutdownHooks()
   app.enableCors()
 
-  return app.listen(3001)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const httpServer = await app.listen(3000, () => {
+    console.log('API started and listening on port 3000')
+  })
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return httpServer
 }
 
 void buildApp()

@@ -1,6 +1,6 @@
 {
-  "publicKey": "-----BEGIN PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAtYSAYBS3ANkW2p9atsU9\nmZrnUdVJZWMAR/pPSyizstlc2zqnYqIqHFX0p0KBRzOB7+3bxqazbJFY2ufOtUAd\nLWAt9ZdPUf4001eju5cTjb6WwARuU0h2x+ct6Rw3QFJdvOIvwFm4oX9H1c50vUSz\n/Dc0pqTwPT6dS8ZPGi7jrxREPCLTX2qnrgDPlYDrCTSAKYlPIqLaSqu+65obLcGp\noC4buvdSysmRpqlr7iquLppf29tG4Slc+gp29qbUerBonzU8f5EIVX9+2+taQ78N\naK0ouMMWE8J53KQm5tdgHAowPo0b/hJ/QQg3Y2Mdp4MaDuNQDQkALlzG3eaXZaMW\nWTHTpxqhXHp9OC5LcqblHma75tK45kpmbRXgv047SjQWrVamyQkYx6+hpNmy9s5M\npGv5ZpONOPhDp3T9k8H6DlQI9UdpRHURWHvwp+DXTo4ou7Wq1OmPbkfp7RxVN4FM\nViRz8N9srZazpl/yHwiVk5lN8ARMNSSVFxWrhl2um1Zq2UvFQIWNgFg3NKd+60yF\nFiBkJg1cAiK/ICPaCQChnZYLfK5mOedh4tlf1FEcYktPH6xDHiUBpSUWjVQruPOY\nxdRScaQw8vd9THlzacbaBULe4UXxQqzJN1WvFPlmgVj5oDJYOP6Kd8S63ni0InLN\ng+ylDEDIpQzqcRaTjkG/qrECAwEAAQ==\n-----END PUBLIC KEY-----\n",
   "description": "An app implementing core functionality. This is a separate node process and can be run alongside the core app or deployed on another host.",
+  "requiresStorage": false,
   "tasks": [
     {
       "key": "ANALYZE_OBJECT",
@@ -24,6 +24,13 @@
         "folderId": { "type": "string" },
         "generatePreviews": { "type": "boolean", "default": true }
       }
+    },
+    {
+      "key": "RUN_WORKER_SCRIPT",
+      "label": "Run Worker",
+      "eventTriggers": [],
+      "description": "Run a worker script.",
+      "folderAction": { "description": "Test the dummy worker script" }
     }
   ],
   "emittableEvents": ["OBJECT_ANALYZED"],

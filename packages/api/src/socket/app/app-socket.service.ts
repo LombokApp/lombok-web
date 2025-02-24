@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
+import { ConnectedAppWorker } from '@stellariscloud/types'
 import * as r from 'runtypes'
 import type { Namespace, Socket } from 'socket.io'
 import { AppService } from 'src/app/services/app.service'
@@ -13,20 +14,11 @@ const AppAuthPayload = r.Record({
   handledTaskKeys: r.Array(r.String),
 })
 
-const APP_WORKER_INFO_CACHE_KEY_PREFIX = 'APP_WORKER'
+export const APP_WORKER_INFO_CACHE_KEY_PREFIX = 'APP_WORKER'
 
 @Injectable()
 export class AppSocketService {
-  private readonly connectedClients: Map<string, Socket> = new Map()
-  private readonly connectedAppWorkers: Map<
-    string,
-    {
-      appIdentifier: string
-      socketClientId: string
-      name: string
-      ip: string
-    }
-  > = new Map()
+  private readonly connectedClients = new Map<string, Socket>()
 
   private namespace: Namespace | undefined
   setNamespace(namespace: Namespace) {
@@ -44,10 +36,10 @@ export class AppSocketService {
   }
 
   async handleConnection(socket: Socket): Promise<void> {
-    console.log(
-      'AppSocketService handleConnection from:',
-      socket.client.conn.remoteAddress,
-    )
+    // console.log(
+    //   'AppSocketService handleConnection from:',
+    //   socket.client.conn.remoteAddress,
+    // )
 
     const clientId = socket.id
     this.connectedClients.set(clientId, socket)
@@ -65,12 +57,14 @@ export class AppSocketService {
         : undefined
 
       if (!appIdentifier) {
+        // eslint-disable-next-line no-console
         console.log('No app identifier in jwt')
         socket.disconnect(true)
         throw new UnauthorizedException()
       }
       const app = await this.appService.getApp(appIdentifier)
       if (!app) {
+        // eslint-disable-next-line no-console
         console.log('App "%s" not recognised. Disconnecting...', appIdentifier)
         socket.disconnect(true)
         throw new UnauthorizedException()
@@ -78,21 +72,23 @@ export class AppSocketService {
 
       try {
         // verifies the token using the publicKey we have on file for this app
-        const _verifiedJwt = this.jwtService.verifyAppJWT({
+        this.jwtService.verifyAppJWT({
           appIdentifier,
           publicKey: app.publicKey,
           token: auth.token,
         })
         // console.log('verifiedJwt:', _verifiedJwt)
-      } catch (e: any) {
+      } catch (e: unknown) {
+        // eslint-disable-next-line no-console
         console.log('SOCKET JWT VERIFY ERROR:', e)
         socket.disconnect(true)
         throw new UnauthorizedException()
       }
-      const workerInfo = {
+      const workerInfo: ConnectedAppWorker = {
         appIdentifier,
         socketClientId: socket.id,
-        name: auth.appWorkerId,
+        handledTaskKeys: auth.handledTaskKeys, // TODO: validate worker reported task keys to match their config
+        workerId: auth.appWorkerId,
         ip: socket.handshake.address,
       }
       const workerCacheKey = `${appIdentifier}:${auth.appWorkerId}`
@@ -103,43 +99,50 @@ export class AppSocketService {
       )
 
       // register listener for requests from the app
-      socket.on('APP_API', async (message, ack) => {
-        console.log('APP Message Request:', {
-          message,
-          auth,
-          appIdentifier,
-        })
-        const response = await this.appService
-          .handleAppRequest(auth.appWorkerId, appIdentifier, message)
-          .catch((error) => {
-            console.log('Unexpected error during message handling:', {
-              message,
-              error,
+      socket.on(
+        'APP_API',
+        async (message: string, ack: (response: unknown) => void) => {
+          // eslint-disable-next-line no-console
+          console.log('APP Message Request:', {
+            message,
+            auth,
+            appIdentifier,
+          })
+          const response = await this.appService
+            .handleAppRequest(auth.appWorkerId, appIdentifier, message)
+            .catch((error: unknown) => {
+              // eslint-disable-next-line no-console
+              console.log('Unexpected error during message handling:', {
+                message,
+                error,
+              })
+              return {
+                error: {
+                  code: '500',
+                  message: 'Unexpected error.',
+                },
+              }
             })
-            return {
-              error: {
-                code: '500',
-                message: 'Unexpected error.',
-              },
-            }
-          })
-        if (response?.error) {
-          console.log('APP Message Error:', {
-            message,
-            auth,
-            appIdentifier,
-            error: response.error,
-          })
-        } else {
-          console.log('APP Message Response:', {
-            message,
-            auth,
-            appIdentifier,
-            response,
-          })
-        }
-        return ack(response)
-      })
+          if (response?.error) {
+            // eslint-disable-next-line no-console
+            console.log('APP Message Error:', {
+              message,
+              auth,
+              appIdentifier,
+              error: response.error,
+            })
+          } else {
+            // eslint-disable-next-line no-console
+            console.log('APP Message Response:', {
+              message,
+              auth,
+              appIdentifier,
+              response,
+            })
+          }
+          ack(response)
+        },
+      )
 
       socket.on('disconnect', () => {
         void this.kvService.ops.del(
@@ -150,12 +153,12 @@ export class AppSocketService {
       await Promise.all(
         auth.handledTaskKeys.map((taskKey) => {
           const roomKey = this.getRoomKeyForAppAndTask(appIdentifier, taskKey)
-          console.log('App worker joining room:', roomKey)
           return socket.join(roomKey)
         }),
       )
     } else {
       // auth payload does not match expected
+      // eslint-disable-next-line no-console
       console.log('Bad auth payload.', auth)
       socket.disconnect(true)
       throw new UnauthorizedException()
@@ -171,6 +174,7 @@ export class AppSocketService {
     taskKey: string,
     count: number,
   ) {
+    // eslint-disable-next-line no-console
     console.log('Broadcasting pending tasks message:', {
       appIdentifier,
       taskKey,
@@ -181,6 +185,7 @@ export class AppSocketService {
         .to(this.getRoomKeyForAppAndTask(appIdentifier, taskKey))
         .emit('PENDING_TASKS_NOTIFICATION', { taskKey, count })
     } else {
+      // eslint-disable-next-line no-console
       console.log(
         'Namespace not yet set when emitting PENDING_TASKS_NOTIFICATION.',
       )

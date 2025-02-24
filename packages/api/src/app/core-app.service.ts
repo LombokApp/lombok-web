@@ -5,7 +5,7 @@ import { coreConfig } from 'src/core/config'
 
 @Injectable()
 export class CoreAppService {
-  workers: { [workerKey: string]: Worker | undefined } = {}
+  workers: Record<string, Worker | undefined> = {}
 
   constructor(
     @Inject(coreConfig.KEY)
@@ -31,22 +31,26 @@ export class CoreAppService {
 
       // send the config as the first message
       worker.postMessage({
-        socketBaseUrl: `http://127.0.0.1:${this._coreConfig.port}`,
+        socketBaseUrl: '', // TODO FIX
         appToken: embeddedCoreAppToken,
         appWorkerId,
       })
 
+      // eslint-disable-next-line no-console
       console.log('Embedded core app worker thread started')
 
       worker.addEventListener('error', (err) => {
+        // eslint-disable-next-line no-console
         console.log('Worker thread error:', err)
       })
 
       worker.addEventListener('exit', (err) => {
+        // eslint-disable-next-line no-console
         console.log('Worker thread exit:', err)
       })
 
       worker.addEventListener('message', (msg) => {
+        // eslint-disable-next-line no-console
         console.log('Embedded core app worker thread message:', msg)
       })
     }

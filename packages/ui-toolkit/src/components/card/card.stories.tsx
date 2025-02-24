@@ -1,6 +1,5 @@
-import React from 'react'
-
 import type { Meta, StoryObj } from '@storybook/react'
+import React from 'react'
 
 import { Button, Label } from '..'
 import {
@@ -34,11 +33,11 @@ export const BasicUsage: Story = {
           <div className="grid w-full items-center gap-4">
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="name">Name</Label>
-              <div className="bg-gray-200 w-full h-12 rounded-lg"></div>
+              <div className="h-12 w-full rounded-lg bg-gray-200"></div>
             </div>
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="framework">Framework</Label>
-              <div className="bg-gray-200 w-full h-12 rounded-lg"></div>
+              <div className="h-12 w-full rounded-lg bg-gray-200"></div>
             </div>
           </div>
         </form>

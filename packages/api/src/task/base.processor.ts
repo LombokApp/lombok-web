@@ -19,21 +19,20 @@ export abstract class BaseProcessor<K extends CoreTaskName> {
     setTimeout(() => void this.registerProcessor(), 100)
   }
 
-  _run(inputData: { [key: string]: string | number }) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return this.run(inputData as any)
+  _run(inputData: Record<string, string | number>) {
+    return this.run(inputData as never)
   }
 
   abstract run(inputData: CoreTaskInputData<K>): Promise<void>
 
   async registerProcessor() {
-    console.log('Trying to register...')
     const app = await getApp()
     if (!app) {
+      // eslint-disable-next-line no-console
       console.log('App did not exist when registering processor.')
       return
     }
     const coreTaskService = await app.resolve(CoreTaskService)
-    await coreTaskService.registerProcessor(this.coreTaskName, this)
+    coreTaskService.registerProcessor(this.coreTaskName, this)
   }
 }

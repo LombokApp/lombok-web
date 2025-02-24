@@ -1,8 +1,4 @@
 {
-  "plugins": [
-    "prettier-plugin-tailwindcss",
-    "@ianvs/prettier-plugin-sort-imports"
-  ],
   "semi": false,
   "singleQuote": true,
   "printWidth": 80,

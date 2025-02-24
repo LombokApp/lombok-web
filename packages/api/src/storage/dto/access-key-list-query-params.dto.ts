@@ -1,6 +1,8 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
+import { AccessKeySort } from '../storage-location.service'
+
 export const accessKeyListQueryParamsSchema = z.object({
   offset: z
     .preprocess(
@@ -9,8 +11,12 @@ export const accessKeyListQueryParamsSchema = z.object({
     )
     .optional(),
   limit: z
-    .preprocess((a) => parseInt(a as string, 10), z.number().positive())
+    .preprocess(
+      (a) => parseInt(a as string, 10),
+      z.number().refine((a) => a > 0),
+    )
     .optional(),
+  sort: z.nativeEnum(AccessKeySort).optional(),
 })
 
 export class AccessKeyListQueryParamsDTO extends createZodDto(

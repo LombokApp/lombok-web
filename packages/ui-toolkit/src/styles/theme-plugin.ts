@@ -1,20 +1,21 @@
-import { colorMix } from '@/utils'
 import plugin from 'tailwindcss/plugin'
 
+import { colorMix } from '../utils'
 import { baseTheme } from './themes'
 
 export const themePlugin = plugin(
-  ({ addBase }) => {
+  (pluginAPI) => {
     // Add html base styles
-    addBase({
+    pluginAPI.addBase({
       html: {
         color: 'var(--foreground)',
         backgroundColor: 'var(--background)',
       },
     })
     // Add light theme
-    addBase({
+    pluginAPI.addBase({
       ':root': {
+        '--border-input': baseTheme.light.inputBorder,
         '--background': baseTheme.light.background,
         '--foreground': baseTheme.light.foreground,
         '--card': baseTheme.light.card,
@@ -43,8 +44,9 @@ export const themePlugin = plugin(
       },
     })
     // Add dark theme
-    addBase({
+    pluginAPI.addBase({
       '[data-mode="dark"]': {
+        '--border-input': baseTheme.dark.inputBorder,
         '--background': baseTheme.dark.background,
         '--foreground': baseTheme.dark.foreground,
         '--card': baseTheme.dark.card,
@@ -79,6 +81,7 @@ export const themePlugin = plugin(
         borderColor: {
           DEFAULT: colorMix('border'),
           foreground: colorMix('border'),
+          input: colorMix('border-input'),
         },
         colors: {
           input: colorMix('input'),
@@ -113,6 +116,20 @@ export const themePlugin = plugin(
             DEFAULT: colorMix('card'),
             foreground: colorMix('card-foreground'),
           },
+        },
+        keyframes: {
+          'accordion-down': {
+            from: { height: '0' },
+            to: { height: 'var(--radix-accordion-content-height)' },
+          },
+          'accordion-up': {
+            from: { height: 'var(--radix-accordion-content-height)' },
+            to: { height: '0' },
+          },
+        },
+        animation: {
+          'accordion-down': 'accordion-down 0.2s ease-out',
+          'accordion-up': 'accordion-up 0.2s ease-out',
         },
       },
     },

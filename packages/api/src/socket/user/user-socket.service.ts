@@ -1,4 +1,3 @@
-import type { OnModuleInit } from '@nestjs/common'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import type { UserPushMessage } from '@stellariscloud/types'
 import * as r from 'runtypes'
@@ -11,8 +10,8 @@ const UserAuthPayload = r.Record({
 })
 
 @Injectable()
-export class UserSocketService implements OnModuleInit {
-  private readonly connectedClients: Map<string, Socket> = new Map()
+export class UserSocketService {
+  private readonly connectedClients = new Map<string, Socket>()
 
   private namespace: Namespace | undefined
   setNamespace(namespace: Namespace) {
@@ -46,26 +45,25 @@ export class UserSocketService implements OnModuleInit {
         } else {
           throw new UnauthorizedException()
         }
-      } catch (e: any) {
-        console.log('SOCKET ERROR:', e)
+      } catch (error: unknown) {
+        // eslint-disable-next-line no-console
+        console.log('SOCKET ERROR:', error)
         socket.conn.close()
-        // throw e
-        throw e ?? new Error('Undefined error?')
       }
     } else {
       // auth payload does not match expected
+      // eslint-disable-next-line no-console
       console.log('Bad auth payload.', auth)
       socket.disconnect(true)
       throw new UnauthorizedException()
     }
   }
 
-  onModuleInit() {}
-
-  sendToUserRoom(userId: string, name: UserPushMessage, msg: any) {
+  sendToUserRoom(userId: string, name: UserPushMessage, msg: unknown) {
     if (this.namespace) {
       this.namespace.to(`user:${userId}`).emit(name, msg)
     } else {
+      // eslint-disable-next-line no-console
       console.log('Namespace not yet set when sending user room message.')
     }
   }

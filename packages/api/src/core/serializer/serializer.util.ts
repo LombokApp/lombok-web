@@ -16,7 +16,7 @@ import { createZodSerializationException } from './exception'
 @Injectable()
 export class ZodSerializerInterceptor implements NestInterceptor {
   nestJSMetadata = nestJSMetadataLoader()
-  controllers: { [key: string]: Controller } = {}
+  controllers: Record<string, Controller> = {}
   initialized = false
 
   constructor() {
@@ -36,6 +36,7 @@ export class ZodSerializerInterceptor implements NestInterceptor {
         ).reduce(
           (acc, handlerName) => ({
             ...acc,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
             [handlerName]: c[1][controllerName][handlerName],
           }),
           {},
@@ -48,13 +49,19 @@ export class ZodSerializerInterceptor implements NestInterceptor {
   async intercept(
     context: ExecutionContext,
     next: CallHandler,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ): Promise<Observable<any>> {
     await this.init()
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    type ZodObjectAny = ZodObject<any>
+
     return next.handle().pipe(
       map((res: object | object[]) => {
         const cls = context.getClass()
         const handler = context.getHandler()
-        const handlerDefinition: { type: any } | undefined =
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const handlerDefinition: { type: unknown } | undefined =
           this.controllers[cls.name][handler.name]
 
         if (typeof res !== 'object' || res instanceof StreamableFile) {
@@ -62,18 +69,21 @@ export class ZodSerializerInterceptor implements NestInterceptor {
         }
 
         const responseType = handlerDefinition?.type
+
         if (!responseType) {
           return res
         }
-
-        const schema: ZodObject<any> | undefined = responseType.zodSchema
+        const schema: ZodObjectAny | undefined =
+          typeof responseType === 'function' && 'zodSchema' in responseType
+            ? (responseType.zodSchema as ZodObjectAny)
+            : undefined
         if (!schema) {
           return res
         }
 
         try {
           return Array.isArray(res)
-            ? res.map((item: any) => schema.parse(item))
+            ? res.map((item: unknown) => schema.parse(item))
             : schema.parse(res)
         } catch (error) {
           if (error instanceof z.ZodError) {

@@ -3,8 +3,8 @@ import { z } from 'zod'
 
 // TODO: Improve this with some form of "OR" type
 export const storageLocationInputSchema = z.object({
-  storageProvisionId: z.string().optional(),
-  userLocationId: z.string().optional(),
+  storageProvisionId: z.string().uuid().optional(),
+  userLocationId: z.string().uuid().optional(),
   userLocationBucketOverride: z.string().optional(),
   userLocationPrefixOverride: z.string().optional(),
   accessKeyId: z.string().optional(),

@@ -6,13 +6,13 @@ import {
 } from '@nestjs/common'
 import { addMs, earliest } from '@stellariscloud/utils'
 import { eq, or } from 'drizzle-orm'
-import { AccessTokenJWT, JWTService } from 'src/auth/services/jwt.service'
+import { JWTService } from 'src/auth/services/jwt.service'
 import { OrmService } from 'src/orm/orm.service'
 import type { NewUser, User } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
-import { AuthDurationMs } from '../constants/duration.constants'
+import { AuthDurationMilliseconds } from '../constants/duration.constants'
 import type { LoginCredentialsDTO } from '../dto/login-credentials.dto'
 import type { SignupCredentialsDTO } from '../dto/signup-credentials.dto'
 import type { Session } from '../entities/session.entity'
@@ -27,8 +27,8 @@ import { SessionService } from './session.service'
  */
 export const sessionExpiresAt = (createdAt: Date) =>
   earliest(
-    addMs(new Date(), AuthDurationMs.SessionSliding),
-    addMs(createdAt, AuthDurationMs.SessionAbsolute),
+    addMs(new Date(), AuthDurationMilliseconds.SessionSliding),
+    addMs(createdAt, AuthDurationMilliseconds.SessionAbsolute),
   )
 
 @Injectable()
@@ -40,7 +40,7 @@ export class AuthService {
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => SessionService)) _sessionService,
   ) {
-    this.sessionService = _sessionService
+    this.sessionService = _sessionService as SessionService
   }
 
   async signup(data: SignupCredentialsDTO) {
@@ -133,29 +133,7 @@ export class AuthService {
     )
   }
 
-  async verifySessionWithAccessToken(
-    tokenString: string,
-  ): Promise<{ user: User; session: Session }> {
-    const accessToken = AccessTokenJWT.parse(
-      this.jwtService.verifyUserJWT(tokenString),
-    )
-    const session =
-      await this.sessionService.verifySessionWithAccessToken(accessToken)
-    const user = await this.ormService.db.query.usersTable.findFirst({
-      where: eq(usersTable.id, session.userId),
-    })
-
-    if (!user) {
-      throw new SessionInvalidException()
-    }
-
-    return {
-      user,
-      session,
-    }
-  }
-
-  async verifySessionWithRefreshToken(refreshToken: string): Promise<{
+  async extendSessionWithRefreshToken(refreshToken: string): Promise<{
     user: User
     session: Session
     accessToken: string
@@ -172,17 +150,13 @@ export class AuthService {
       throw new SessionInvalidException()
     }
 
-    const {
-      session: newSession,
-      refreshToken: newRefreshToken,
-      accessToken: newAccessToken,
-    } = await this.sessionService.createSession(user)
+    const updated = await this.sessionService.extendSession(session)
 
     return {
       user,
-      session: newSession,
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken,
+      session: updated.session,
+      accessToken: updated.accessToken,
+      refreshToken: updated.refreshToken,
     }
   }
 }

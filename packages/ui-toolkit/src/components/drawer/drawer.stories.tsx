@@ -1,5 +1,3 @@
-import React from 'react'
-
 import type { Meta, StoryObj } from '@storybook/react'
 
 import {
@@ -28,7 +26,7 @@ export const BasicUsage: Story = {
   render: () => (
     <Drawer>
       <DrawerTrigger>Open drawer</DrawerTrigger>
-      <DrawerContent className="max-w-[30em] mx-auto">
+      <DrawerContent className="mx-auto max-w-[30em]">
         <DrawerHeader>
           <DrawerTitle>Are you absolutely sure?</DrawerTitle>
           <DrawerDescription>This action cannot be undone.</DrawerDescription>

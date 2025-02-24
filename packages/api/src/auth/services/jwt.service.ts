@@ -2,6 +2,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
 import { eq } from 'drizzle-orm'
@@ -27,6 +28,7 @@ export const USER_JWT_SUB_PREFIX = 'USER'
 export const APP_USER_JWT_SUB_PREFIX = 'APP_USER'
 export const APP_JWT_SUB_PREFIX = 'APP'
 
+// eslint-disable-next-line no-use-before-define
 export const accessTokenType: r.Runtype<AccessTokenJWT> = r.Record({
   aud: r.String,
   jti: r.String,
@@ -41,7 +43,7 @@ export class AuthTokenParseError extends Error {
   readonly details
 
   constructor(
-    readonly token: any,
+    readonly token: unknown,
     failure: r.Failure,
   ) {
     super()
@@ -71,7 +73,7 @@ export class AccessTokenJWT {
   }
 }
 
-export class AuthTokenInvalidError extends Error {
+export class AuthTokenInvalidError extends UnauthorizedException {
   name = AuthTokenInvalidError.name
 
   readonly inner
@@ -85,7 +87,7 @@ export class AuthTokenInvalidError extends Error {
   }
 }
 
-export class AuthTokenExpiredError extends Error {
+export class AuthTokenExpiredError extends UnauthorizedException {
   name = AuthTokenExpiredError.name
 
   readonly inner
@@ -129,7 +131,7 @@ export class JWTService {
 
     const token = jwt.sign(payload, this._authConfig.authJwtSecret, {
       algorithm: ALGORITHM,
-      expiresIn: AuthDurationSeconds.AccessToken,
+      expiresIn: AuthDurationSeconds.SessionSliding, // session validity is managed by the db row, so the token should be valid at least as long as the session
     })
 
     AccessTokenJWT.parse(this.verifyUserJWT(token))

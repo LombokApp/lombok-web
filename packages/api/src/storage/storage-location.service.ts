@@ -14,6 +14,18 @@ import { AccessKeyDTO } from './dto/access-key.dto'
 import { RotateAccessKeyInputDTO } from './dto/rotate-access-key-input.dto'
 import { storageLocationsTable } from './entities/storage-location.entity'
 
+export enum AccessKeySort {
+  AccessKeyIdAsc = 'accessKeyId-asc',
+  AccessKeyIdDesc = 'accessKeyId-desc',
+  AccessKeyHashIdAsc = 'accessKeyHashId-asc',
+  AccessKeyHashIdDesc = 'accessKeyHashId-desc',
+  EndpointAsc = 'endpoint-asc',
+  EndpointDesc = 'endpoint-desc',
+  RegionAsc = 'region-asc',
+  RegionDesc = 'region-desc',
+  UpdatedAtAsc = 'updatedAt-asc',
+  UpdatedAtDesc = 'updatedAt-desc',
+}
 @Injectable()
 export class StorageLocationService {
   constructor(
@@ -21,7 +33,7 @@ export class StorageLocationService {
     private readonly s3Service: S3Service,
   ) {}
 
-  async testS3Connection({
+  testS3Connection({
     // userId,
     body,
   }: {
@@ -132,7 +144,10 @@ export class StorageLocationService {
     return {
       result: accessKeys.map((accessKey) => ({
         ...accessKey,
-        folderCount: mappedFolderCounts[accessKey.accessKeyHashId] ?? 0,
+        folderCount:
+          (mappedFolderCounts[accessKey.accessKeyHashId] as
+            | number
+            | undefined) ?? 0,
       })),
       meta: { totalCount: accessKeysCountResult[0].count },
     }
@@ -374,7 +389,10 @@ export class StorageLocationService {
     return {
       result: accessKeys.map((accessKey) => ({
         ...accessKey,
-        folderCount: mappedFolderCounts[accessKey.accessKeyHashId] ?? 0,
+        folderCount:
+          (mappedFolderCounts[accessKey.accessKeyHashId] as
+            | number
+            | undefined) ?? 0,
       })),
       meta: { totalCount: accessKeysCountResult[0].count },
     }

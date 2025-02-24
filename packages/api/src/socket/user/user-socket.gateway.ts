@@ -30,7 +30,8 @@ export class UserSocketGateway implements OnGatewayConnection, OnGatewayInit {
   async handleConnection(socket: Socket): Promise<void> {
     try {
       await this.userSocketService.handleConnection(socket)
-    } catch (error: any) {
+    } catch (error: unknown) {
+      // eslint-disable-next-line no-console
       console.log('User socket connection error:', error)
       // TODO: send some message to the client so they know what to do?
       socket.disconnect()

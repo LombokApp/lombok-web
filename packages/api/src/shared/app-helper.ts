@@ -10,6 +10,7 @@ export const appReference: {
 
 export async function getApp() {
   if (!appReference.appInitializing && !appReference.app) {
+    // eslint-disable-next-line no-console
     console.log(
       'WARNING: App reference does not exist. You may have called this function too early.',
     )
@@ -21,6 +22,8 @@ export function setApp(app: INestApplication) {
   appReference.app = app
 }
 
-export function setAppInitializing(initPromise: Promise<any>) {
+export function setAppInitializing(
+  initPromise: Promise<INestApplication<unknown>>,
+) {
   appReference.appInitializing = initPromise
 }

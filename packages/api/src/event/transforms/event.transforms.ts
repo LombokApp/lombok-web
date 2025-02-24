@@ -6,6 +6,7 @@ export function transformEventToDTO(event: Event): EventDTO {
     id: event.id,
     emitterIdentifier: event.emitterIdentifier,
     eventKey: event.eventKey,
+    level: event.level,
     locationContext: event.folderId
       ? {
           folderId: event.folderId,

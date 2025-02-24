@@ -11,6 +11,7 @@ export const runExitHandlers = async () => {
     try {
       await handler()
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(error)
     }
   }

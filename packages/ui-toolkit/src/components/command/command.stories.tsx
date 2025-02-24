@@ -1,5 +1,3 @@
-import React from 'react'
-
 import {
   CalendarIcon,
   EnvelopeClosedIcon,
@@ -9,6 +7,7 @@ import {
   RocketIcon,
 } from '@radix-ui/react-icons'
 import type { Meta, StoryObj } from '@storybook/react'
+import React from 'react'
 
 import {
   Command,
@@ -41,7 +40,7 @@ export const BasicUsage: Story = {
       const down = (e: KeyboardEvent) => {
         if (e.key === 'j' && (e.metaKey || e.ctrlKey)) {
           e.preventDefault()
-          setOpen((open) => !open)
+          setOpen((currentOpenState) => !currentOpenState)
         }
       }
 
@@ -63,32 +62,32 @@ export const BasicUsage: Story = {
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup heading="Suggestions">
               <CommandItem>
-                <CalendarIcon className="mr-2 h-4 w-4" />
+                <CalendarIcon className="mr-2 size-4" />
                 <span>Calendar</span>
               </CommandItem>
               <CommandItem>
-                <FaceIcon className="mr-2 h-4 w-4" />
+                <FaceIcon className="mr-2 size-4" />
                 <span>Search Emoji</span>
               </CommandItem>
               <CommandItem>
-                <RocketIcon className="mr-2 h-4 w-4" />
+                <RocketIcon className="mr-2 size-4" />
                 <span>Launch</span>
               </CommandItem>
             </CommandGroup>
             <CommandSeparator />
             <CommandGroup heading="Settings">
               <CommandItem>
-                <PersonIcon className="mr-2 h-4 w-4" />
+                <PersonIcon className="mr-2 size-4" />
                 <span>Profile</span>
                 <CommandShortcut>⌘P</CommandShortcut>
               </CommandItem>
               <CommandItem>
-                <EnvelopeClosedIcon className="mr-2 h-4 w-4" />
+                <EnvelopeClosedIcon className="mr-2 size-4" />
                 <span>Mail</span>
                 <CommandShortcut>⌘B</CommandShortcut>
               </CommandItem>
               <CommandItem>
-                <GearIcon className="mr-2 h-4 w-4" />
+                <GearIcon className="mr-2 size-4" />
                 <span>Settings</span>
                 <CommandShortcut>⌘S</CommandShortcut>
               </CommandItem>

@@ -10,7 +10,7 @@ describe('Viewer', () => {
   })
 
   afterEach(async () => {
-    await testModule?.resetDb()
+    await testModule?.resetAppState()
   })
 
   it(`should get viewer`, async () => {
@@ -18,7 +18,7 @@ describe('Viewer', () => {
       session: { accessToken },
     } = await createTestUser(testModule, {
       username: 'testuser',
-      password: '123',
+      password: '123' ,
     })
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -45,7 +45,7 @@ describe('Viewer', () => {
     const viewerUpdateResponse = await testModule!.apiClient
       .viewerApi({ accessToken })
       .updateViewer({
-        updateViewerInputDTO: { name: '__NewName__' },
+        viewerUpdateInputDTO: { name: '__NewName__' },
       })
 
     expect(viewerUpdateResponse.status).toEqual(200)
@@ -57,7 +57,7 @@ describe('Viewer', () => {
     const viewerUpdateResponse = await testModule!.apiClient
       .viewerApi()
       .updateViewer({
-        updateViewerInputDTO: { name: '__NewName__' },
+        viewerUpdateInputDTO: { name: '__NewName__' },
       })
 
     expect(viewerUpdateResponse.status).toEqual(401)

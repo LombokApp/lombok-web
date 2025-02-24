@@ -1,6 +1,7 @@
 import {
-  connectAndPerformWork,
   analyzeObjectTaskHandler,
+  connectAndPerformWork,
+  runWorkerScriptHandler,
 } from '@stellariscloud/core-worker'
 import type { AppLogEntry } from '@stellariscloud/types'
 import * as r from 'runtypes'
@@ -47,35 +48,49 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
       workerData.appToken,
       {
         ['ANALYZE_OBJECT']: analyzeObjectTaskHandler,
+        ['RUN_WORKER_SCRIPT']: runWorkerScriptHandler,
       },
       sendLogEntry,
     )
 
     void wait
       .then(() => {
+        // eslint-disable-next-line no-console
         console.log('Done work.')
       })
-      .catch((e) => {
+      .catch((e: unknown) => {
+        // eslint-disable-next-line no-console
         console.log('Reporting Error:', e)
-        sendLogEntry({
-          message: 'Core app worker thread error.',
-          level: 'error',
-          name: 'CoreAppWorkerError',
-          data: {
-            name: e.name,
-            message: e.message,
-            stacktrace: e.stacktrace,
-            appWorkerId: workerData.appWorkerId,
-          },
-        })
+        if (
+          e &&
+          typeof e === 'object' &&
+          'name' in e &&
+          'message' in e &&
+          'stacktrace' in e
+        ) {
+          sendLogEntry({
+            message: 'Core app worker thread error.',
+            level: 'error',
+            name: 'CoreAppWorkerError',
+            data: {
+              name: e.name,
+              message: e.message,
+              stacktrace: e.stacktrace,
+              appWorkerId: workerData.appWorkerId,
+            },
+          })
+        }
         throw e
       })
       .finally(() => {
+        // eslint-disable-next-line no-console
         console.log('Shutting down.')
       })
   } else if (!workerThreads.isMainThread) {
     sendLogEntry({ message: `Didn't run.` })
+    // eslint-disable-next-line no-console
     console.log("Is not main thread but didn't run because { workerData }:", {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       workerData: workerThreads.workerData,
     })
   }

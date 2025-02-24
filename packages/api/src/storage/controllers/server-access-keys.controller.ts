@@ -75,7 +75,7 @@ export class ServerAccessKeysController {
    * Rotate a server access key.
    */
   @Post('/:accessKeyHashId')
-  async rotateAccessKey(
+  async rotateServerAccessKey(
     @Req() req: express.Request,
     @Param('accessKeyHashId') accessKeyHashId: string,
     @Body() body: RotateAccessKeyInputDTO,

@@ -31,6 +31,7 @@ void new Promise<{ publicKey: string; privateKey: string }>((resolve) =>
     },
   ),
 ).then((keys) => {
+  // eslint-disable-next-line no-console
   console.log('keys:', JSON.stringify(keys, null, 2))
 
   const ALGORITHM = 'RS512'
@@ -46,6 +47,7 @@ void new Promise<{ publicKey: string; privateKey: string }>((resolve) =>
     algorithm: ALGORITHM,
     expiresIn: 60 * 60 * 24 * 31,
   })
+  // eslint-disable-next-line no-console
   console.log('app token "%s"', token)
 
   jwt.verify(token, keys.publicKey)

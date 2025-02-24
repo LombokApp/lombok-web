@@ -1,5 +1,3 @@
-import React from 'react'
-
 import type { Meta, StoryObj } from '@storybook/react'
 
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '..'
@@ -16,7 +14,7 @@ type Story = StoryObj<typeof HoverCard>
 export const BasicUsage: Story = {
   args: {},
   render: () => (
-    <div className="min-h-[20rem]">
+    <div className="min-h-80">
       <HoverCard>
         <HoverCardTrigger>Hover</HoverCardTrigger>
         <HoverCardContent>

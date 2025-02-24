@@ -1,5 +1,4 @@
-import React from 'react'
-
+/* eslint-disable no-console */
 import type { Meta, StoryObj } from '@storybook/react'
 
 import {
@@ -46,3 +45,4 @@ export const BasicUsage: Story = {
     </Pagination>
   ),
 }
+/* eslint-enable no-console */

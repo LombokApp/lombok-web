@@ -1,25 +1,34 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common'
+import { forwardRef, Inject, Injectable } from '@nestjs/common'
+import { FolderPushMessage } from '@stellariscloud/types'
 import { and, count, eq, isNull } from 'drizzle-orm'
-import { eventsTable, NewEvent } from 'src/event/entities/event.entity'
+import {
+  EventLevel,
+  eventsTable,
+  NewEvent,
+} from 'src/event/entities/event.entity'
 import { OrmService } from 'src/orm/orm.service'
+import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { CoreTaskName } from 'src/task/task.constants'
 import { v4 as uuidV4 } from 'uuid'
 
 import { BaseProcessor, ProcessorError } from '../base.processor'
 import { NewTask, tasksTable } from '../entities/task.entity'
-import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
-import { FolderPushMessage } from '@stellariscloud/types'
 
 const MAX_CONCURRENT_CORE_TASKS = 10
 
+export type CoreTaskInputData<K extends CoreTaskName> =
+  K extends CoreTaskName.RESCAN_FOLDER
+    ? { folderId: string; userId: string }
+    : never
+
 @Injectable()
 export class CoreTaskService {
-  processors: { [key: string]: BaseProcessor<CoreTaskName> } = {}
+  processors: Record<string, BaseProcessor<CoreTaskName>> = {}
   runningTasksCount = 0
   draining = false
 
   get folderSocketService(): FolderSocketService {
-    return this._folderSocketService
+    return this._folderSocketService as FolderSocketService
   }
   constructor(
     private readonly ormService: OrmService,
@@ -34,7 +43,8 @@ export class CoreTaskService {
       }
       this.draining = true
       await this._drainCoreTasks()
-    } catch (error) {
+    } catch (error: unknown) {
+      // eslint-disable-next-line no-console
       console.log('Error draining core tasks. Error', error)
     } finally {
       this.draining = false
@@ -88,7 +98,7 @@ export class CoreTaskService {
       where: eq(tasksTable.id, taskId),
     })
     if (task?.startedAt) {
-      console.log('Task already started.')
+      // console.log('Task already started.')
     } else if (task?.ownerIdentifier === 'CORE') {
       const startedTimestamp = new Date()
       const updateResult = await this.ormService.db
@@ -145,14 +155,14 @@ export class CoreTaskService {
                 .findFirst({
                   where: eq(tasksTable.id, taskId),
                 })
-                .then((task) => {
+                .then((_task) => {
                   if (updateResult[0].subjectFolderId) {
                     // notify folder rooms of updated task
                     this.folderSocketService.sendToFolderRoom(
                       updateResult[0].subjectFolderId,
                       FolderPushMessage.TASK_UPDATED,
                       {
-                        task,
+                        task: _task,
                       },
                     )
                   }
@@ -183,7 +193,7 @@ export class CoreTaskService {
       folderId: context.folderId,
       objectKey: context.objectKey,
       userId: context.userId,
-      level: 'INFO',
+      level: EventLevel.INFO,
       createdAt: now,
     }
 
@@ -221,18 +231,12 @@ export class CoreTaskService {
     void this.drainCoreTasks()
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  registerProcessor = async <K extends CoreTaskName>(
+  registerProcessor = <K extends CoreTaskName>(
     taskName: K,
     // processorFunction: (inputData: CoreTaskInputData<K>) => Promise<void>,
     processorFunction: BaseProcessor<CoreTaskName>,
   ) => {
-    console.log('Registering processor for:', taskName)
+    // console.log('Registering processor for:', taskName)
     this.processors[taskName] = processorFunction
   }
 }
-
-export type CoreTaskInputData<K extends CoreTaskName> =
-  K extends CoreTaskName.RESCAN_FOLDER
-    ? { folderId: string; userId: string }
-    : never

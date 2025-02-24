@@ -1,7 +1,6 @@
-import React from 'react'
-
 import type { Meta, StoryObj } from '@storybook/react'
 import { Bold } from 'lucide-react'
+import React from 'react'
 
 import { Toggle } from '..'
 
@@ -18,7 +17,7 @@ export const BasicUsage: Story = {
   args: {},
   render: () => (
     <Toggle aria-label="Toggle bold">
-      <Bold className="h-4 w-4" />
+      <Bold className="size-4" />
     </Toggle>
   ),
 }

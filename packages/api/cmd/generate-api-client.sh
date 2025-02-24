@@ -34,12 +34,12 @@ buildclients() {
   # the cli requires Java on the host env).
   docker run --rm -u $(id -u ${USER}):$(id -g ${USER}) \
     -v ${ROOT_DIR}:/local \
-    openapitools/openapi-generator-cli:v7.0.0 generate \
+    openapitools/openapi-generator-cli:v7.10.0 generate \
     -i "/local/${SRC_PATH}src/${SPEC_FILENAME}" \
     --skip-validate-spec \
     -g typescript-axios \
     -o /local/${OUT_PATH}src \
-    --additional-properties useSingleRequestParameter=true,nullSafeAdditionalProps=true
+    --additional-properties useSingleRequestParameter=true
 
   # Clean up unwanted cruft created by the generator
   rm -r "${ROOT_DIR}${OUT_PATH}src/.openapi-generator"

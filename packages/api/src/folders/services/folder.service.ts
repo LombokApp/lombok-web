@@ -1,4 +1,3 @@
-import type { OnModuleInit } from '@nestjs/common'
 import {
   BadRequestException,
   forwardRef,
@@ -12,24 +11,25 @@ import type {
   ContentMetadataType,
   FolderPermissionName,
   S3ObjectInternal,
-  StorageProvisionType,
+  UserStorageProvisionType,
 } from '@stellariscloud/types'
 import {
   FolderPermissionEnum,
   FolderPushMessage,
   MediaType,
   SignedURLsRequestMethod,
-  StorageProvisionTypeEnum,
+  UserStorageProvisionTypeEnum,
 } from '@stellariscloud/types'
 import {
   mediaTypeFromExtension,
   objectIdentifierToObjectKey,
 } from '@stellariscloud/utils'
-import { and, eq, like, sql } from 'drizzle-orm'
+import { and, eq, ilike, SQL, sql } from 'drizzle-orm'
 import mime from 'mime'
 import * as r from 'runtypes'
 import { AppService } from 'src/app/services/app.service'
 import { parseSort } from 'src/core/utils/sort.util'
+import { EventLevel } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
@@ -47,7 +47,7 @@ import type { User } from 'src/users/entities/user.entity'
 import { UserService } from 'src/users/services/users.service'
 import { v4 as uuidV4 } from 'uuid'
 
-import type { FolderObjectDTO } from '../dto/folder-object.dto'
+import { FoldersListQueryParamsDTO } from '../dto/folders-list-query-params.dto'
 import type { Folder } from '../entities/folder.entity'
 import { foldersTable } from '../entities/folder.entity'
 import type { FolderObject } from '../entities/folder-object.entity'
@@ -141,14 +141,14 @@ const ServerLocationPayloadRunType = r.Record({
 })
 
 @Injectable()
-export class FolderService implements OnModuleInit {
+export class FolderService {
   eventService: EventService
   appService: AppService
   get folderSocketService(): FolderSocketService {
-    return this._folderSocketService
+    return this._folderSocketService as FolderSocketService
   }
   get coreTaskService(): CoreTaskService {
-    return this._coreTaskService
+    return this._coreTaskService as CoreTaskService
   }
 
   constructor(
@@ -165,8 +165,6 @@ export class FolderService implements OnModuleInit {
     this.eventService = this.moduleRef.get(EventService)
     this.appService = this.moduleRef.get(AppService)
   }
-
-  onModuleInit() {}
 
   async createFolder({
     userId,
@@ -190,7 +188,7 @@ export class FolderService implements OnModuleInit {
 
     const now = new Date()
     const buildLocation = async (
-      storageProvisionType: StorageProvisionType,
+      storageProvisionType: UserStorageProvisionType,
       locationInput: UserLocationInputDTO,
     ): Promise<StorageLocation> => {
       const withNewUserLocationConnection =
@@ -276,7 +274,7 @@ export class FolderService implements OnModuleInit {
       } else if (withExistingServerLocation.success) {
         // user has provided a server location reference
         const existingServerLocation =
-          await this.serverConfigurationService.getStorageProvisionById(
+          await this.serverConfigurationService.getUserStorageProvisionById(
             withExistingServerLocation.value.storageProvisionId,
           )
 
@@ -285,9 +283,9 @@ export class FolderService implements OnModuleInit {
         }
 
         const prefixSuffix =
-          storageProvisionType === StorageProvisionTypeEnum.METADATA
+          storageProvisionType === UserStorageProvisionTypeEnum.METADATA
             ? `.stellaris_folder_metadata_${prospectiveFolderId}/`
-            : storageProvisionType === StorageProvisionTypeEnum.CONTENT
+            : storageProvisionType === UserStorageProvisionTypeEnum.CONTENT
               ? `.stellaris_folder_content_${prospectiveFolderId}/`
               : `.stellaris_folder_backup_${prospectiveFolderId}/`
 
@@ -329,12 +327,12 @@ export class FolderService implements OnModuleInit {
     }
 
     const contentLocation = await buildLocation(
-      StorageProvisionTypeEnum.CONTENT,
+      UserStorageProvisionTypeEnum.CONTENT,
       body.contentLocation,
     )
 
     const metadataLocation = await buildLocation(
-      StorageProvisionTypeEnum.METADATA,
+      UserStorageProvisionTypeEnum.METADATA,
       body.metadataLocation,
     )
 
@@ -374,16 +372,24 @@ export class FolderService implements OnModuleInit {
     {
       offset,
       limit,
-    }: {
-      offset?: number
-      limit?: number
-    },
+      search,
+      sort = FolderSort.CreatedAtDesc,
+    }: FoldersListQueryParamsDTO,
   ) {
+    const conditions: (SQL | undefined)[] = [eq(foldersTable.ownerId, actor.id)]
+
+    if (search) {
+      conditions.push(ilike(foldersTable.name, `%${search}%`))
+    }
+
+    const where = and(...conditions)
+
     const folders: Folder[] =
       await this.ormService.db.query.foldersTable.findMany({
-        where: eq(foldersTable.ownerId, actor.id),
+        where,
         offset: offset ?? 0,
         limit: limit ?? 25,
+        orderBy: parseSort(foldersTable, sort),
         with: {
           contentLocation: true,
           metadataLocation: true,
@@ -392,6 +398,7 @@ export class FolderService implements OnModuleInit {
     const [foldersCount] = await this.ormService.db
       .select({ count: sql<string | null>`count(*)` })
       .from(foldersTable)
+      .where(where)
 
     return {
       result: folders.map((folder) => ({ folder, permissions: [] })),
@@ -464,7 +471,7 @@ export class FolderService implements OnModuleInit {
   }
 
   async getFolderMetadata(actor: User, folderId: string) {
-    const _folder = await this.getFolderAsUser(actor, folderId)
+    const { folder } = await this.getFolderAsUser(actor, folderId)
 
     const folderMetadata = await this.ormService.db
       .select({
@@ -474,7 +481,7 @@ export class FolderService implements OnModuleInit {
         >`sum(${folderObjectsTable.sizeBytes})`,
       })
       .from(folderObjectsTable)
-      .where(eq(folderObjectsTable.folderId, folderId))
+      .where(eq(folderObjectsTable.folderId, folder.id))
 
     return {
       totalCount: parseInt(folderMetadata[0].totalCount ?? '0', 10),
@@ -492,10 +499,10 @@ export class FolderService implements OnModuleInit {
       folderId: string
     },
   ) {
-    const _folder = await this.getFolderAsUser(actor, folderId)
+    const { folder } = await this.getFolderAsUser(actor, folderId)
     const obj = await this.ormService.db.query.folderObjectsTable.findFirst({
       where: and(
-        eq(folderObjectsTable.folderId, folderId),
+        eq(folderObjectsTable.folderId, folder.id),
         eq(folderObjectsTable.objectKey, objectKey),
       ),
     })
@@ -566,7 +573,7 @@ export class FolderService implements OnModuleInit {
       .where(
         and(
           ...[eq(folderObjectsTable.folderId, folder.id)].concat(
-            search ? [like(folderObjectsTable.objectKey, `%${search}%`)] : [],
+            search ? [ilike(folderObjectsTable.objectKey, `%${search}%`)] : [],
           ),
         ),
       )
@@ -637,8 +644,13 @@ export class FolderService implements OnModuleInit {
             objectKey: absoluteObjectKey,
             expirySeconds: 3600,
           }
-        } catch (e: any) {
-          if (e.constructor.name === 'BadObjectIdentifierError') {
+        } catch (e: unknown) {
+          if (
+            e &&
+            typeof e === 'object' &&
+            'constructor' in e &&
+            e.constructor.name === 'BadObjectIdentifierError'
+          ) {
             throw new FolderLocationNotFoundException()
           }
           throw e
@@ -705,6 +717,9 @@ export class FolderService implements OnModuleInit {
         const objectKey = folder.contentLocation.prefix.length
           ? obj.key.slice(folder.contentLocation.prefix.length + 1)
           : obj.key
+        if (objectKey.startsWith('.stellaris_')) {
+          continue
+        }
         if (obj.size > 0) {
           _contentCount++
           // console.log('Trying to update key metadata [%s]:', objectKey, obj)
@@ -782,7 +797,7 @@ export class FolderService implements OnModuleInit {
       folderId: string
       appIdentifier: string
       taskKey: string
-      inputParams: any // TODO: improve
+      inputParams: unknown // TODO: improve
       objectKey?: string
     },
   ): Promise<void> {
@@ -798,6 +813,7 @@ export class FolderService implements OnModuleInit {
       emitterIdentifier: `APP:${appIdentifier.toUpperCase()}`,
       locationContext: folderId ? { folderId, objectKey } : undefined,
       userId: actor.id,
+      level: EventLevel.INFO,
       data: { inputParams },
       eventKey: `TRIGGER_TASK:${appIdentifier.toUpperCase()}:${taskKey}`,
     })
@@ -849,7 +865,7 @@ export class FolderService implements OnModuleInit {
             mediaType: extension
               ? mediaTypeFromExtension(extension)
               : MediaType.Unknown,
-            mimeType: extension ? mime.getType(extension) ?? '' : '',
+            mimeType: extension ? (mime.getType(extension) ?? '') : '',
             createdAt: now,
             updatedAt: now,
           })
@@ -868,6 +884,7 @@ export class FolderService implements OnModuleInit {
     await this.eventService.emitEvent({
       emitterIdentifier: 'CORE',
       eventKey: previousRecord ? 'CORE:OBJECT_UPDATED' : 'CORE:OBJECT_ADDED',
+      level: EventLevel.INFO,
       locationContext: {
         folderId: record.folderId,
         objectKey: record.objectKey,

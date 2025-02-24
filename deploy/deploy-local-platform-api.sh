@@ -6,7 +6,7 @@ BRANCH=$(git rev-parse --symbolic-full-name --abbrev-ref HEAD | sed 's/[^A-Za-z0
 SHA1=$(git rev-parse --short HEAD)
 VERSION=$BRANCH-$SHA1-$(date +%s)
 NAME=stellariscloud-api
-DOCKER_REGISTRY="docker.wasteofpaper.com"
+DOCKER_REGISTRY="docker.phonk.tv"
 
 echo "Logging into docker registry: $DOCKER_REGISTRY"
 cat ./.docker-credentials | docker login $DOCKER_REGISTRY -u steven_peertjelabs --password-stdin

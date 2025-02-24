@@ -29,7 +29,7 @@ export class SessionService {
       id: uuidV4(),
       userId: user.id,
       hash: hashedTokenHelper.createHash(secret),
-      expiresAt: sessionExpiresAt(new Date()),
+      expiresAt: sessionExpiresAt(now),
       createdAt: now,
       updatedAt: now,
     }
@@ -123,9 +123,9 @@ export class SessionService {
     const refreshToken = hashedTokenHelper.encode(updatedSession.id, secret)
 
     return {
+      session: updatedSession,
       accessToken,
       refreshToken,
-      expiresAt: session.expiresAt,
     }
   }
 

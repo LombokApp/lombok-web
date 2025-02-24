@@ -17,10 +17,10 @@ import {
 } from 'src/auth/guards/auth.guard-config'
 
 import type { ViewerGetResponse } from '../dto/responses/viewer-get-response.dto'
-import { ViewerUpdateInputDTO } from '../dto/viewer-update-input.dto'
-import type { UserDTO } from '../dto/user.dto'
-import { UserService } from '../services/users.service'
 import { transformUserToDTO } from '../dto/transforms/user.transforms'
+import type { UserDTO } from '../dto/user.dto'
+import { ViewerUpdateInputDTO } from '../dto/viewer-update-input.dto'
+import { UserService } from '../services/users.service'
 
 @Controller('/api/v1/viewer')
 @ApiTags('Viewer')

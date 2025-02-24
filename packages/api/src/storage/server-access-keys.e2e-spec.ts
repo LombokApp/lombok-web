@@ -17,7 +17,7 @@ describe('Server Access Keys', () => {
   })
 
   afterEach(async () => {
-    await testModule?.resetDb()
+    await testModule?.resetAppState()
   })
 
   it(`should list DISTINCT server access keys`, async () => {
@@ -30,9 +30,9 @@ describe('Server Access Keys', () => {
     })
 
     const createStorageProvisionResponse = await apiClient
-      .storageProvisionsApi({ accessToken })
-      .createServerProvision({
-        storageProvisionInputDTO: {
+      .userStorageProvisionsApi({ accessToken })
+      .createUserStorageProvision({
+        userStorageProvisionInputDTO: {
           accessKeyId: '__dummyak__',
           secretAccessKey: '__dummysecret__',
           endpoint: 'http://dummyendpoint.com',

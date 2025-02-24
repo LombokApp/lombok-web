@@ -1,8 +1,8 @@
-import * as React from 'react'
-
-import { cn } from '@/utils'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
+import React from 'react'
+
+import { cn } from '@/utils'
 
 export const ButtonVariant = {
   default: 'default',
@@ -15,6 +15,7 @@ export const ButtonVariant = {
 
 export const ButtonSize = {
   default: 'default',
+  xs: 'xs',
   sm: 'sm',
   lg: 'lg',
   icon: 'icon',
@@ -39,9 +40,10 @@ const buttonVariants = cva(
       },
       size: {
         [ButtonSize.default]: 'h-10 px-4 py-2',
+        [ButtonSize.xs]: 'h-7 rounded-md px-2.5',
         [ButtonSize.sm]: 'h-9 rounded-md px-3',
         [ButtonSize.lg]: 'h-11 rounded-md px-8',
-        [ButtonSize.icon]: 'h-10 w-10',
+        [ButtonSize.icon]: 'size-10',
       },
     },
     defaultVariants: {

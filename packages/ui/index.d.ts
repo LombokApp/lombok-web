@@ -1,0 +1,7 @@
+declare module 'eslint-plugin-import'
+declare module 'eslint-plugin-eslint-comments'
+declare module 'eslint-plugin-promise'
+declare module 'eslint-plugin-simple-import-sort'
+declare module '@typescript-eslint/eslint-plugin'
+declare module 'eslint-plugin-jsx-a11y'
+declare module 'eslint-plugin-react-hooks'

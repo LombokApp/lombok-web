@@ -2,8 +2,8 @@ import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
 
 export const storageLocationSchema = z.object({
-  id: z.string(),
-  userId: z.string().optional(),
+  id: z.string().uuid(),
+  userId: z.string().uuid().optional(),
   providerType: z.enum(['SERVER', 'USER']),
   label: z.string(),
   endpoint: z.string(),

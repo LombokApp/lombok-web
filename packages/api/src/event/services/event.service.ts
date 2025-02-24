@@ -7,28 +7,37 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
-import { eq, sql } from 'drizzle-orm'
+import { CoreEvent, FolderPushMessage } from '@stellariscloud/types'
+import { and, eq, ilike, inArray, or, SQL, sql } from 'drizzle-orm'
+import { AppDTO } from 'src/app/dto/app.dto'
 import { AppService } from 'src/app/services/app.service'
+import { parseSort } from 'src/core/utils/sort.util'
 import { OrmService } from 'src/orm/orm.service'
+import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import type { NewTask } from 'src/task/entities/task.entity'
 import { tasksTable } from 'src/task/entities/task.entity'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
+import { EventsListQueryParamsDTO } from '../dto/events-list-query-params.dto'
 import type { Event } from '../entities/event.entity'
-import { eventsTable } from '../entities/event.entity'
-import { CoreEvent, FolderPushMessage } from '@stellariscloud/types'
-import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
-import { AppDTO } from 'src/app/dto/app.dto'
+import { EventLevel, eventsTable } from '../entities/event.entity'
+
+export enum EventSort {
+  CreatedAtAsc = 'createdAt-asc',
+  CreatedAtDesc = 'createdAt-desc',
+  UpdatedAtAsc = 'updatedAt-asc',
+  UpdatedAtDesc = 'updatedAt-desc',
+}
 
 @Injectable()
 export class EventService {
   get folderSocketService(): FolderSocketService {
-    return this._folderSocketService
+    return this._folderSocketService as FolderSocketService
   }
 
   get appService(): AppService {
-    return this._appService
+    return this._appService as AppService
   }
 
   constructor(
@@ -42,12 +51,14 @@ export class EventService {
     emitterIdentifier,
     eventKey,
     data,
+    level = EventLevel.INFO,
     locationContext,
     userId,
   }: {
     emitterIdentifier: string // "CORE" for internally emitted events, and "APP:<appIdentifier>" for app emitted events
     eventKey: CoreEvent | string
-    data: any
+    data: unknown
+    level: EventLevel
     locationContext?: { folderId: string; objectKey?: string }
     userId?: string
   }) {
@@ -65,13 +76,14 @@ export class EventService {
       ? await this.appService.getApp(appIdentifier.toLowerCase())
       : undefined
     const task = triggeringTaskKey
-      ? app?.tasks.find((t) => t.key === triggeringTaskKey)
+      ? app?.config.tasks.find((t) => t.key === triggeringTaskKey)
       : undefined
 
     const authorized =
       (isCoreEmitter ||
         (appIdentifier &&
-          (triggeringTaskKey || app?.emittableEvents.includes(eventKey)))) ??
+          (triggeringTaskKey ||
+            app?.config.emittableEvents.includes(eventKey)))) ??
       false
 
     if (triggeringTaskKey && !task) {
@@ -100,6 +112,7 @@ export class EventService {
             id: uuidV4(),
             eventKey,
             emitterIdentifier,
+            level,
             folderId: locationContext?.folderId,
             objectKey: locationContext?.objectKey,
             userId,
@@ -121,47 +134,48 @@ export class EventService {
           },
           taskKey: triggeringTaskKey,
           inputData: {},
-          ownerIdentifier: `APP:${(appIdentifier as string).toUpperCase()}`,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          ownerIdentifier: `APP:${appIdentifier!.toUpperCase()}`,
           createdAt: now,
           updatedAt: now,
         }
         await db.insert(tasksTable).values([triggeredTask])
       } else {
         // regular event, so we should lookup apps that have subscribed to this event
-        const tasks: NewTask[] = await this.appService.getApps().then((apps) =>
-          Object.keys(apps)
+        const tasks: NewTask[] = await this.appService.listApps().then((apps) =>
+          apps
             .reduce<
               {
                 appIdentifier: string
                 taskDefinition: AppDTO['config']['tasks'][0]
               }[]
-            >((acc, appIdentifier) => {
-              return acc.concat(
-                appIdentifier in apps
-                  ? apps[appIdentifier]?.config.tasks
-                      .filter((taskDefinition) =>
-                        taskDefinition.eventTriggers.includes(event.eventKey),
-                      )
-                      .map((taskDefinition) => ({
-                        appIdentifier,
-                        taskDefinition,
-                      })) ?? []
-                  : [],
-              )
-            }, [])
+            >(
+              (acc, _app) =>
+                acc.concat(
+                  _app.config.tasks
+                    .filter((taskDefinition) =>
+                      taskDefinition.eventTriggers.includes(event.eventKey),
+                    )
+                    .map((taskDefinition) => ({
+                      appIdentifier: _app.identifier,
+                      taskDefinition,
+                    })),
+                ),
+              [],
+            )
             .map(
-              ({ appIdentifier, taskDefinition }): NewTask => ({
+              (taskRequest): NewTask => ({
                 id: uuidV4(),
                 triggeringEventId: event.id,
                 subjectFolderId: locationContext?.folderId,
                 subjectObjectKey: locationContext?.objectKey,
                 taskDescription: {
-                  textKey: taskDefinition.key, // TODO: Determine task description based on app configs
+                  textKey: taskRequest.taskDefinition.key, // TODO: Determine task description based on app configs
                   variables: {},
                 },
-                taskKey: taskDefinition.key,
+                taskKey: taskRequest.taskDefinition.key,
                 inputData: {},
-                ownerIdentifier: `APP:${appIdentifier.toUpperCase()}`,
+                ownerIdentifier: `APP:${taskRequest.appIdentifier.toUpperCase()}`,
                 createdAt: now,
                 updatedAt: now,
               }),
@@ -172,12 +186,12 @@ export class EventService {
         }
 
         // notify folder rooms of new tasks
-        tasks.map((task) => {
-          if (task.subjectFolderId) {
-            void this.folderSocketService.sendToFolderRoom(
-              task.subjectFolderId,
+        tasks.forEach((_task) => {
+          if (_task.subjectFolderId) {
+            this.folderSocketService.sendToFolderRoom(
+              _task.subjectFolderId,
               FolderPushMessage.TASK_ADDED,
-              { task },
+              { task: _task },
             )
           }
         })
@@ -200,23 +214,70 @@ export class EventService {
     {
       offset,
       limit,
-    }: {
-      offset?: number
-      limit?: number
-    },
+      sort = EventSort.CreatedAtDesc,
+      search,
+      folderId,
+      objectKey,
+      includeDebug,
+      includeError,
+      includeInfo,
+      includeTrace,
+      includeWarning,
+    }: EventsListQueryParamsDTO,
   ): Promise<{ meta: { totalCount: number }; result: Event[] }> {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
+
+    const levelFilters: EventLevel[] = []
+    if (includeDebug) {
+      levelFilters.push(EventLevel.DEBUG)
+    }
+    if (includeTrace) {
+      levelFilters.push(EventLevel.TRACE)
+    }
+    if (includeInfo) {
+      levelFilters.push(EventLevel.INFO)
+    }
+    if (includeWarning) {
+      levelFilters.push(EventLevel.WARN)
+    }
+    if (includeError) {
+      levelFilters.push(EventLevel.ERROR)
+    }
+    const conditions: (SQL | undefined)[] = []
+    if (search) {
+      conditions.push(
+        or(
+          ilike(eventsTable.eventKey, `%${search}%`),
+          ilike(eventsTable.emitterIdentifier, `%${search}%`),
+        ),
+      )
+    }
+
+    if (levelFilters.length) {
+      conditions.push(inArray(eventsTable.level, levelFilters))
+    }
+
+    if (folderId) {
+      conditions.push(eq(tasksTable.subjectFolderId, folderId))
+      if (objectKey) {
+        conditions.push(eq(tasksTable.subjectObjectKey, objectKey))
+      }
+    }
+
     const events: Event[] = await this.ormService.db.query.eventsTable.findMany(
       {
-        offset: offset ?? 0,
-        limit: limit ?? 25,
+        offset: Math.max(offset ?? 0, 0),
+        limit: Math.min(100, limit ?? 25),
+        orderBy: parseSort(eventsTable, sort),
+        where: and(...conditions),
       },
     )
     const [eventsCount] = await this.ormService.db
       .select({ count: sql<string | null>`count(*)` })
       .from(eventsTable)
+      .where(and(...conditions))
 
     return {
       result: events,

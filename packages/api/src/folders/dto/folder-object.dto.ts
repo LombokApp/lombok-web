@@ -6,9 +6,9 @@ import { folderObjectContentAttributesSchema } from './folder-object-content-att
 import { folderObjectContentMetadataSchema } from './folder-object-content-metadata.dto'
 
 export const folderObjectSchema = z.object({
-  id: z.string(),
+  id: z.string().uuid(),
   objectKey: z.string(),
-  folderId: z.string(),
+  folderId: z.string().uuid(),
   hash: z.string().optional(),
   lastModified: z.number(),
   eTag: z.string(),

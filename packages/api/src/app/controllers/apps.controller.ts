@@ -17,6 +17,7 @@ import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { AppDTO } from '../dto/app.dto'
 import { AppGetResponse } from '../dto/responses/app-get-response.dto'
 import { AppListResponse } from '../dto/responses/app-list-response.dto'
+import { transformAppToDTO } from '../dto/transforms/app.transforms'
 
 @Controller('/api/v1/server/apps')
 @ApiTags('Apps')
@@ -32,19 +33,14 @@ export class AppsController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    const apps = await this.appService.getApps()
-    const connectedInstances = await this.appService.getAppConnections()
-    const result = Object.keys(apps).reduce<AppDTO[]>(
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      (acc, next) => acc.concat({ ...apps[next], identifier: next } as any),
-      [],
-    )
+    const apps = await this.appService.listApps()
+    const connectedInstances = this.appService.getAppConnections()
+    const result = apps.map((app) => {
+      return transformAppToDTO(app, connectedInstances[app.identifier] ?? [])
+    })
     return {
-      connected: connectedInstances,
-      installed: {
-        result,
-        meta: { totalCount: result.length },
-      },
+      result,
+      meta: { totalCount: result.length },
     }
   }
 
@@ -56,13 +52,17 @@ export class AppsController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    const apps = await this.appService.getApps()
-    const result = apps[appIdentifier]
-    if (!result) {
+    const app = await this.appService.getApp(appIdentifier)
+    if (!app) {
       throw new NotFoundException()
     }
+    const connectedInstances = this.appService.getAppConnections()
+
     return {
-      app: { ...result, identifier: appIdentifier },
+      app: {
+        ...app,
+        connectedWorkers: connectedInstances[appIdentifier] ?? [],
+      },
     }
   }
 }

@@ -1,5 +1,5 @@
 import { patchNestjsSwagger } from '@anatine/zod-nestjs'
-import { PluginMetadataGenerator } from '@nestjs/cli/lib/compiler/plugins'
+import { PluginMetadataGenerator } from '@nestjs/cli/lib/compiler/plugins/plugin-metadata-generator'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { ReadonlyVisitor } from '@nestjs/swagger/dist/plugin'
@@ -26,7 +26,7 @@ async function main() {
     filename: '../src/nestjs-metadata.ts',
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-member-access
   const metadata = require('../src/nestjs-metadata').default
 
   // necessary to integrate nestjs-zod with swagger such that
@@ -34,9 +34,10 @@ async function main() {
   patchNestjsSwagger()
 
   await SwaggerModule.loadPluginMetadata(
-    metadata as unknown as () => Promise<Record<string, any>>,
+    metadata as unknown as () => Promise<Record<string, unknown>>,
   )
   const options = new DocumentBuilder()
+    .setOpenAPIVersion('3.1.0')
     .setTitle('@stellariscloud/api')
     .setDescription('The Stellaris Cloud core API')
     .setVersion('1.0')
@@ -53,6 +54,7 @@ async function main() {
     JSON.stringify(document, null, 2),
   )
 
+  // eslint-disable-next-line no-console
   console.log('Generated OpenAPI spec:', JSON.stringify(document, null, 2))
 
   // for some reason the metadata generation (when run) stops this script from exiting automatically

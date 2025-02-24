@@ -1,11 +1,14 @@
 'use client'
 
-import * as React from 'react'
-
-import {
+import type {
   ColumnDef,
   ColumnFiltersState,
   FilterFn,
+  SortingState,
+  TableOptions,
+  VisibilityState,
+} from '@tanstack/react-table'
+import {
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -13,11 +16,9 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  SortingState,
-  TableOptions,
   useReactTable,
-  VisibilityState,
 } from '@tanstack/react-table'
+import * as React from 'react'
 
 import {
   Table,
@@ -28,32 +29,43 @@ import {
   TableRow,
 } from '../table'
 import { DataTablePagination } from './data-table-pagination'
-import { ColumnFilterOptions, DataTableToolbar } from './data-table-toolbar'
+import type { ColumnFilterOptions } from './data-table-toolbar'
+import { DataTableToolbar } from './data-table-toolbar'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  filterFns: Record<string, FilterFn<TValue>>
-  filterOptions: Record<string, ColumnFilterOptions>
+  title?: string
+  filterFns?: Record<string, FilterFn<TValue>>
+  filterOptions?: Record<string, ColumnFilterOptions>
   manualFiltering?: boolean
   manualSorting?: boolean
+  enableRowSelection?: boolean
+  enableSearch?: boolean
+  searchColumn?: string
+  searchPlaceholder?: string
 }
 
 interface TableHandlerProps<TData> {
-  onColumnFiltersChange: TableOptions<TData>['onColumnFiltersChange']
-  onSortingChange: TableOptions<TData>['onSortingChange']
-  onPaginationChange: TableOptions<TData>['onPaginationChange']
-  rowCount: TableOptions<TData>['rowCount']
+  onColumnFiltersChange?: TableOptions<TData>['onColumnFiltersChange']
+  onSortingChange?: TableOptions<TData>['onSortingChange']
+  onPaginationChange?: TableOptions<TData>['onPaginationChange']
+  rowCount?: TableOptions<TData>['rowCount']
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  title,
   filterFns,
-  filterOptions,
-  rowCount,
+  filterOptions = {},
+  rowCount = data.length,
   onColumnFiltersChange,
   onSortingChange,
+  enableRowSelection = false,
+  enableSearch = false,
+  searchColumn,
+  searchPlaceholder,
   manualFiltering = true,
   manualSorting = true,
 }: DataTableProps<TData, TValue> & TableHandlerProps<TData>) {
@@ -72,13 +84,14 @@ export function DataTable<TData, TValue>({
     manualSorting,
     columns,
     filterFns,
+    enableGlobalFilter: false,
     state: {
       sorting,
       columnVisibility,
       rowSelection,
       columnFilters,
     },
-    enableRowSelection: true,
+    enableRowSelection,
     onRowSelectionChange: setRowSelection,
     onSortingChange: (...args) => {
       if (onSortingChange) {
@@ -101,17 +114,38 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   })
 
+  if (enableSearch && !searchColumn) {
+    throw new Error('Must set `searchColumn` if `enableSearch` is true.')
+  }
+
   return (
-    <div className="space-y-4">
-      <DataTableToolbar filterOptions={filterOptions} table={table} />
-      <div className="rounded-md border">
+    <div className="w-full space-y-4">
+      {(Object.keys(filterOptions).length > 0 || enableSearch) && (
+        <DataTableToolbar
+          title={title}
+          enableSearch={enableSearch}
+          searchColumn={searchColumn}
+          searchPlaceholder={searchPlaceholder}
+          filterOptions={filterOptions}
+          table={table}
+        />
+      )}
+      <div className="rounded-md border border-foreground/10 bg-card">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} colSpan={header.colSpan}>
+                    <TableHead
+                      key={header.id}
+                      colSpan={header.colSpan}
+                      className={
+                        header.column.columnDef.id?.startsWith('__HIDDEN__')
+                          ? 'p-0'
+                          : undefined
+                      }
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -125,20 +159,35 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
+                  className="relative"
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
+                  {row.getVisibleCells().map((cell) => {
+                    return (
+                      <TableCell
+                        width={
+                          cell.column.columnDef.id?.startsWith('__HIDDEN__')
+                            ? 0
+                            : undefined
+                        }
+                        key={cell.id}
+                        className={
+                          cell.column.columnDef.id?.startsWith('__HIDDEN__')
+                            ? 'w-0 p-0'
+                            : undefined
+                        }
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    )
+                  })}
                 </TableRow>
               ))
             ) : (
@@ -154,7 +203,7 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      {rowCount > data.length && <DataTablePagination table={table} />}
     </div>
   )
 }

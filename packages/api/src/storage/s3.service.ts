@@ -103,6 +103,7 @@ export class S3Service {
         }),
       )
       .catch((e) => {
+        // eslint-disable-next-line no-console
         console.log('bucket list error', e)
         throw e
       })
@@ -183,6 +184,7 @@ export class S3Service {
     ])[0]
 
     const getObjectResponse = await axios.get(url).catch((e) => {
+      // eslint-disable-next-line no-console
       console.log('Error getting object:', e)
       throw e
     })
@@ -223,6 +225,7 @@ export class S3Service {
     ])[0]
 
     const deleteObjectResponse = await axios.delete(url).catch((e) => {
+      // eslint-disable-next-line no-console
       console.log('Error deleting object:', e)
       throw e
     })
@@ -241,7 +244,7 @@ export class S3Service {
       expirySeconds: number
     }[],
   ) {
-    const hostnames = requests.reduce<{ [key: string]: string }>(
+    const hostnames = requests.reduce<Record<string, string>>(
       (acc, next) =>
         next.endpoint in acc
           ? acc
@@ -291,6 +294,56 @@ export class S3Service {
     return urls
   }
 
+  async deleteAllWithPrefix({
+    accessKeyId,
+    secretAccessKey,
+    endpoint,
+    bucket,
+    prefix,
+    region,
+  }: {
+    endpoint: string
+    region: string
+    accessKeyId: string
+    secretAccessKey: string
+    bucket: string
+    prefix: string
+  }) {
+    const s3Client = configureS3Client({
+      accessKeyId,
+      secretAccessKey,
+      endpoint,
+      region,
+    })
+
+    let continuationToken: string | undefined = ''
+    let count = 0
+
+    while (continuationToken) {
+      const response = await this.s3ListBucketObjects({
+        s3Client,
+        bucketName: bucket,
+        prefix,
+        continuationToken,
+      })
+
+      for (const objectKey of response.result) {
+        await this.s3DeleteBucketObject({
+          accessKeyId,
+          secretAccessKey,
+          endpoint,
+          region,
+          bucket,
+          objectKey: objectKey.key,
+        })
+      }
+
+      count += response.result.length
+      continuationToken = response.continuationToken
+    }
+    return { count }
+  }
+
   async testS3Connection(input: {
     name: string
     accessKeyId: string
@@ -298,7 +351,7 @@ export class S3Service {
     endpoint: string
     region?: string
   }) {
-    let success
+    let success: boolean
     try {
       const s3Client = configureS3Client({
         ...input,
@@ -306,7 +359,7 @@ export class S3Service {
       })
       await this.s3ListBuckets({ s3Client })
       success = true
-    } catch (e) {
+    } catch {
       success = false
     }
 

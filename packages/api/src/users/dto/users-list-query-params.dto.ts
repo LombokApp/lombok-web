@@ -11,10 +11,14 @@ export const usersListQueryParamsSchema = z.object({
     )
     .optional(),
   limit: z
-    .preprocess((a) => parseInt(a as string, 10), z.number().positive())
+    .preprocess(
+      (a) => parseInt(a as string, 10),
+      z.number().refine((a) => a > 0),
+    )
     .optional(),
   isAdmin: z.preprocess((a) => a === 'true', z.boolean().optional()),
   sort: z.nativeEnum(UserSort).optional(),
+  search: z.string().optional(),
 })
 
 export class UsersListQueryParamsDTO extends createZodDto(
