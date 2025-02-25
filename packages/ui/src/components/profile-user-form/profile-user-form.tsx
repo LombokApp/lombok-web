@@ -1,61 +1,150 @@
-import { Input, Label } from '@stellariscloud/ui-toolkit'
-import { NAME_VALIDATORS_COMBINED } from '@stellariscloud/utils'
-import * as r from 'runtypes'
+'use client'
 
-import { useFormState } from '../../utils/forms'
+import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  Button,
+  cn,
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Icons,
+  Input,
+} from '@stellariscloud/ui-toolkit'
+import {
+  NAME_VALIDATORS_COMBINED,
+  PASSWORD_VALIDATORS_COMBINED,
+} from '@stellariscloud/utils'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
-export interface ProfileUserFormValues {
-  id: string
-  name: string
-  username: string
-  email: string
-  password: string
-}
+const formSchema = z.object({
+  name: z
+    .string()
+    .min(3, {
+      message: 'Name must be at least 3 characters.',
+    })
+    .refine((v) => NAME_VALIDATORS_COMBINED.safeParse(v).success),
+  email: z.string(),
+  username: z.string(),
+  password: z
+    .string()
+    .min(2, {
+      message: 'Password must be at least 2 characters.',
+    })
+    .refine((v) => PASSWORD_VALIDATORS_COMBINED.safeParse(v).success),
+  confirmPassword: z.string(),
+})
+export type ProfileUserFormValues = z.infer<typeof formSchema>
 
-export const ProfileUserForm = ({
-  onChange,
-  value = {},
+export function ProfileUserForm({
+  className,
+  onSubmit,
+  // value,
 }: {
-  onChange: (updatedFormValue: {
-    valid: boolean
-    value: ProfileUserFormValues
-  }) => void
+  className?: string
+  onSubmit: (values: ProfileUserFormValues) => Promise<void>
   value?: Partial<ProfileUserFormValues>
-}) => {
-  const form = useFormState(
-    {
-      name: { validator: NAME_VALIDATORS_COMBINED },
-      password: { validator: r.String.optional() },
+}) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async function handleSubmit(values: ProfileUserFormValues) {
+    void onSubmit(values)
+  }
+
+  const form = useForm<ProfileUserFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
     },
-    value,
-    onChange,
-  )
+  })
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <Label>Name</Label>
-        <Input
-          value={form.values.name}
-          onChange={(e) => form.setValue('name', e.target.value)}
-        />
-      </div>
-      <div>
-        <Label>Username</Label>
-        <Input disabled value={value.username} />
-      </div>
-      <div>
-        <Label>Email</Label>
-        <Input disabled value={value.email} />
-      </div>
-      <div>
-        <Label>{value.id ? 'Reset password' : 'Password'}</Label>
-        <Input
-          type="password"
-          value={form.values.password}
-          onChange={(e) => form.setValue('password', e.target.value)}
-        />
-      </div>
+    <div className={cn('grid gap-6', className)}>
+      <Form {...form}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            void form.handleSubmit(handleSubmit)(e)
+          }}
+          className="space-y-4"
+        >
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormDescription>
+                  This is only visible to server admins.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input {...field} type="password" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Confirm Password</FormLabel>
+                <FormControl>
+                  <Input {...field} type="password" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div>
+            <Button className="w-full py-1.5" type="submit">
+              {form.formState.isValid &&
+                !form.formState.isSubmitting &&
+                !form.formState.isSubmitted && (
+                  <Icons.spinner className="mr-2 size-5 animate-spin" />
+                )}
+              Save
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   )
 }

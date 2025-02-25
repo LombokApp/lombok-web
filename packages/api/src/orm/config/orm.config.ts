@@ -1,17 +1,17 @@
 import { registerAs } from '@nestjs/config'
-import * as r from 'runtypes'
 import { isBoolean, isInteger, parseEnv } from 'src/core/utils/config.util'
+import * as z from 'zod'
 
 export const ormConfig = registerAs('orm', () => {
   const env = parseEnv({
-    DB_HOST: r.String,
-    DB_USER: r.String,
-    DB_PORT: r.String.withConstraint(isInteger),
-    DB_NAME: r.String,
-    DB_PASSWORD: r.String,
-    DISABLE_NOTICE_LOGGING: r.String.withConstraint(isBoolean).optional(),
-    RUN_MIGRATIONS: r.String.withConstraint(isBoolean).optional(),
-    CREATE_DATABASE: r.String.withConstraint(isBoolean).optional(),
+    DB_HOST: z.string(),
+    DB_USER: z.string(),
+    DB_PORT: z.string().refine(isInteger),
+    DB_NAME: z.string(),
+    DB_PASSWORD: z.string(),
+    DISABLE_NOTICE_LOGGING: z.string().refine(isBoolean).optional(),
+    RUN_MIGRATIONS: z.string().refine(isBoolean).optional(),
+    CREATE_DATABASE: z.string().refine(isBoolean).optional(),
   })
   return {
     dbHost: env.DB_HOST,

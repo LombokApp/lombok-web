@@ -1,4 +1,3 @@
-import * as r from 'runtypes'
 import type { MutableKeys } from 'utility-types'
 
 /**
@@ -14,18 +13,6 @@ import type { MutableKeys } from 'utility-types'
  */
 export type PartialWritable<T extends object> = {
   [K in keyof T as MutableKeys<T>]?: T[K]
-}
-
-export const EnumType = <T>(e: Record<string, T>): r.Runtype<T> => {
-  const values: unknown[] = Object.values(e)
-
-  return r.Unknown.withConstraint<T>(
-    (v: unknown) =>
-      values.includes(v) ||
-      `Failed constraint check. Expected one of ${JSON.stringify(
-        values,
-      )}, but received ${JSON.stringify(v)}`,
-  )
 }
 
 // propertyOf enforces that the string value representation of property

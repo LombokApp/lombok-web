@@ -1,14 +1,26 @@
-import { Input, Label } from '@stellariscloud/ui-toolkit'
+import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  Button,
+  cn,
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Icons,
+  Input,
+} from '@stellariscloud/ui-toolkit'
 import {
   EMAIL_VALIDATORS_COMBINED,
   NAME_VALIDATORS_COMBINED,
   USERNAME_VALIDATORS_COMBINED,
 } from '@stellariscloud/utils'
-import React from 'react'
-import * as r from 'runtypes'
+import { useForm } from 'react-hook-form'
+import * as z from 'zod'
 
-import { useFormState } from '../../utils/forms'
-import { UserPermissions } from './user-permissions'
+// import { UserPermissions } from './user-permissions'
 
 export interface UserInput {
   name?: string
@@ -32,80 +44,140 @@ export interface UserFormValues {
   permissions: string[]
 }
 
+const formSchema = z.object({
+  name: z
+    .string()
+    .refine((v) => NAME_VALIDATORS_COMBINED.safeParse(v).success)
+    .optional(),
+  username: z
+    .string()
+    .min(2, {
+      message: 'Username must be at least 2 characters.',
+    })
+    .refine((v) => USERNAME_VALIDATORS_COMBINED.safeParse(v).success),
+  password: z.string().min(2, {
+    message: 'Password must be at least 2 characters.',
+  }),
+  emailVerified: z.boolean(),
+  isAdmin: z.boolean(),
+  email: z
+    .string()
+    .min(2, {
+      message: 'Email must be at least 2 characters.',
+    })
+    .refine((v) => EMAIL_VALIDATORS_COMBINED.safeParse(v).success)
+    .optional(),
+})
+export type CreateUserFormValues = z.infer<typeof formSchema>
+
 export const ServerUserForm = ({
-  onChange,
-  value = {
-    id: '',
-    username: '',
-    email: '',
-    password: '',
-    name: '',
-    emailVerified: false,
-    permissions: [],
-    isAdmin: false,
-  },
+  onSubmit,
+  // value = {
+  //   id: '',
+  //   username: '',
+  //   email: '',
+  //   password: '',
+  //   name: '',
+  //   emailVerified: false,
+  //   permissions: [],
+  //   isAdmin: false,
+  // },
+  className,
 }: {
-  onChange: (updatedFormValue: {
-    valid: boolean
-    value: UserFormValues
-  }) => void
+  onSubmit: (values: CreateUserFormValues) => Promise<void>
   value?: Partial<UserFormValues>
+  className?: string
 }) => {
-  const form = useFormState(
-    {
-      name: { validator: NAME_VALIDATORS_COMBINED },
-      username: { validator: USERNAME_VALIDATORS_COMBINED },
-      email: { validator: EMAIL_VALIDATORS_COMBINED },
-      password: value.id
-        ? { validator: r.String.optional() }
-        : { validator: r.String },
-      emailVerified: { validator: r.Boolean },
-      isAdmin: { validator: r.Boolean },
-      permissions: { validator: r.Array(r.String) },
+  const form = useForm<CreateUserFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      username: '',
+      email: '',
+      password: '',
     },
-    value,
-    onChange,
-  )
+  })
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async function handleSubmit(values: CreateUserFormValues) {
+    void onSubmit(values)
+  }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <Label>Name</Label>
-        <Input
-          value={form.values.name}
-          onChange={(e) => form.setValue('name', e.target.value)}
-        />
-      </div>
-      <div>
-        <Label>Username</Label>
-        <Input
-          value={form.values.username}
-          onChange={(e) => form.setValue('username', e.target.value)}
-        />
-      </div>
-      <div>
-        <Label>Email</Label>
-        <Input
-          value={form.values.email}
-          onChange={(e) => form.setValue('email', e.target.value)}
-        />
-      </div>
-      <div>
-        <Label>{value.id ? 'Reset password' : 'Password'}</Label>
-        <Input
-          type="password"
-          value={form.values.password}
-          onChange={(e) => form.setValue('password', e.target.value)}
-        />
-      </div>
-      <div>
-        <UserPermissions
-          onChange={(newValues) =>
-            form.setValue('permissions', newValues.values)
-          }
-          values={form.values.permissions}
-        />
-      </div>
+    <div className={cn('grid gap-6', className)}>
+      <Form {...form}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            void form.handleSubmit(handleSubmit)(e)
+          }}
+          className="space-y-4"
+        >
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Username</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormDescription>
+                  This is the user's public display name.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div>
+            <Button className="w-full py-1.5" type="submit">
+              {form.formState.isValid &&
+                !form.formState.isSubmitting &&
+                !form.formState.isSubmitted && (
+                  <Icons.spinner className="mr-2 size-5 animate-spin" />
+                )}
+              Create user
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   )
 }

@@ -8,12 +8,11 @@ import nestJsConfig from '@nestjs/config'
 import { hashLocalFile } from '@stellariscloud/core-worker'
 import type { AppConfig, ConnectedAppWorker } from '@stellariscloud/types'
 import { MediaType, SignedURLsRequestMethod } from '@stellariscloud/types'
-import { EnumType } from '@stellariscloud/utils'
+import { safeZodParse } from '@stellariscloud/utils'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
 import fs from 'fs'
 import mime from 'mime'
 import path from 'path'
-import * as r from 'runtypes'
 import { KVService } from 'src/cache/kv.service'
 import { readDirRecursive } from 'src/core/utils/fs.util'
 import { EventLevel, eventsTable } from 'src/event/entities/event.entity'
@@ -49,82 +48,82 @@ export type MetadataUploadUrlsResponse = {
   url: string
 }[]
 
-const LogEntryValidator = r.Record({
-  name: r.String,
-  message: r.String,
-  level: r.String,
-  locationContext: r
-    .Record({
-      folderId: r.String,
-      objectKey: r.String.optional(),
+const LogEntryValidator = z.object({
+  name: z.string(),
+  message: z.string(),
+  level: z.string(),
+  locationContext: z
+    .object({
+      folderId: z.string(),
+      objectKey: z.string().optional(),
     })
     .optional(),
-  data: r.Unknown.optional(),
+  data: z.unknown().optional(),
 })
 
-const UpdateAttributesValidator = r.Record({
-  updates: r.Array(
-    r.Record({
-      folderId: r.String,
-      objectKey: r.String,
-      hash: r.String,
-      attributes: r.Record({
-        mediaType: EnumType(MediaType),
-        mimeType: r.String,
-        height: r.Number,
-        width: r.Number,
-        orientation: r.Number,
-        lengthMs: r.Number,
-        bitrate: r.Number,
+const UpdateAttributesValidator = z.object({
+  updates: z.array(
+    z.object({
+      folderId: z.string(),
+      objectKey: z.string(),
+      hash: z.string(),
+      attributes: z.object({
+        mediaType: z.nativeEnum(MediaType),
+        mimeType: z.string(),
+        height: z.number(),
+        width: z.number(),
+        orientation: z.number(),
+        lengthMs: z.number(),
+        bitrate: z.number(),
       }),
     }),
   ),
-  eventId: r.String.optional(),
+  eventId: z.string().optional(),
 })
 
-const AttemptStartHandleTaskValidator = r.Record({
-  taskKeys: r.Array(r.String),
+const AttemptStartHandleTaskValidator = z.object({
+  taskKeys: z.array(z.string()),
 })
 
-const GetContentSignedURLsValidator = r.Record({
-  requests: r.Array(
-    r.Record({
-      folderId: r.String,
-      objectKey: r.String,
-      method: EnumType(SignedURLsRequestMethod),
+const GetContentSignedURLsValidator = z.object({
+  requests: z.array(
+    z.object({
+      folderId: z.string(),
+      objectKey: z.string(),
+      method: z.nativeEnum(SignedURLsRequestMethod),
     }),
   ),
-  eventId: r.String.optional(),
+  eventId: z.string().optional(),
 })
 
-const GetMetadataSignedURLsValidator = r.Record({
-  requests: r.Array(
-    r.Record({
-      folderId: r.String,
-      objectKey: r.String,
-      contentHash: r.String,
-      method: EnumType(SignedURLsRequestMethod),
-      metadataHash: r.String,
+const GetMetadataSignedURLsValidator = z.object({
+  requests: z.array(
+    z.object({
+      folderId: z.string(),
+      objectKey: z.string(),
+      contentHash: z.string(),
+      method: z.nativeEnum(SignedURLsRequestMethod),
+      metadataHash: z.string(),
     }),
   ),
 })
 
-const MetadataEntryRecord = r.Record({
-  mimeType: r.String,
-  size: r.Number,
-  hash: r.String,
+const MetadataEntryRecord = z.object({
+  mimeType: z.string(),
+  size: z.number(),
+  hash: z.string(),
 })
 
-const UpdateMetadataValidator = r.Record({
-  updates: r.Array(
-    r.Record({
-      folderId: r.String,
-      objectKey: r.String,
-      hash: r.String,
-      metadata: r.Dictionary(MetadataEntryRecord, r.String),
+const UpdateMetadataValidator = z.object({
+  updates: z.array(
+    z.object({
+      folderId: z.string(),
+      objectKey: z.string(),
+      hash: z.string(),
+      metadata: z.record(MetadataEntryRecord, z.string()),
     }),
   ),
-  eventId: r.String.optional(),
+  eventId: z.string().optional(),
 })
 
 const FailHandleTaskValidator = z.object({
@@ -180,12 +179,12 @@ export class AppService {
     message: unknown,
   ) {
     const now = new Date()
-    if (AppSocketAPIRequest.guard(message)) {
+    if (safeZodParse(message, AppSocketAPIRequest)) {
       const requestData = message.data
       const appIdentifierPrefixed = `APP:${appIdentifier.toUpperCase()}`
       switch (message.name) {
         case 'SAVE_LOG_ENTRY':
-          if (LogEntryValidator.guard(requestData)) {
+          if (safeZodParse(requestData, LogEntryValidator)) {
             await this.ormService.db.insert(eventsTable).values([
               {
                 ...requestData,
@@ -207,7 +206,7 @@ export class AppService {
           break
 
         case 'GET_CONTENT_SIGNED_URLS': {
-          if (GetContentSignedURLsValidator.guard(requestData)) {
+          if (safeZodParse(requestData, GetContentSignedURLsValidator)) {
             return { result: await this.createSignedContentUrls(requestData) }
           } else {
             return {
@@ -219,7 +218,7 @@ export class AppService {
           }
         }
         case 'GET_METADATA_SIGNED_URLS': {
-          if (GetMetadataSignedURLsValidator.guard(requestData)) {
+          if (safeZodParse(requestData, GetMetadataSignedURLsValidator)) {
             return {
               result: await this.createSignedMetadataUrls(requestData),
             }
@@ -233,7 +232,7 @@ export class AppService {
           }
         }
         case 'UPDATE_CONTENT_ATTRIBUTES': {
-          if (UpdateAttributesValidator.guard(requestData)) {
+          if (safeZodParse(requestData, UpdateAttributesValidator)) {
             await this.folderService.updateFolderObjectAttributes(
               requestData.updates,
             )
@@ -250,7 +249,7 @@ export class AppService {
           }
         }
         case 'UPDATE_CONTENT_METADATA': {
-          if (UpdateMetadataValidator.guard(requestData)) {
+          if (safeZodParse(requestData, UpdateMetadataValidator)) {
             await this.folderService.updateFolderObjectMetadata(
               requestData.updates,
             )
@@ -267,7 +266,7 @@ export class AppService {
           }
         }
         case 'COMPLETE_HANDLE_TASK': {
-          if (r.String.guard(requestData)) {
+          if (safeZodParse(requestData, z.string())) {
             const task = await this.ormService.db.query.tasksTable.findFirst({
               where: and(
                 eq(tasksTable.id, requestData),
@@ -297,7 +296,7 @@ export class AppService {
           break
         }
         case 'ATTEMPT_START_HANDLE_TASK': {
-          if (AttemptStartHandleTaskValidator.guard(requestData)) {
+          if (safeZodParse(requestData, AttemptStartHandleTaskValidator)) {
             const task = await this.ormService.db.query.tasksTable.findFirst({
               where: and(
                 eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),

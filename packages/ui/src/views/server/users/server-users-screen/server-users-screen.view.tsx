@@ -7,7 +7,6 @@ import type { PaginationState, SortingState } from '@tanstack/react-table'
 import React from 'react'
 
 import { apiClient } from '../../../../services/api'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ServerUserCreatePanel } from '../server-user-create-panel/server-user-create-panel.view'
 import { serverUsersTableColumns } from './server-users-table-columns'
 

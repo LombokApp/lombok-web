@@ -12,13 +12,13 @@ import type {
   TokenExpiredError,
 } from 'jsonwebtoken'
 import * as jwt from 'jsonwebtoken'
-import * as r from 'runtypes'
 import { authConfig } from 'src/auth/config'
 import { AuthDurationSeconds } from 'src/auth/constants/duration.constants'
 import type { Session } from 'src/auth/entities/session.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { usersTable } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
+import * as z from 'zod'
 
 import { coreConfig } from '../../core/config'
 
@@ -28,27 +28,28 @@ export const USER_JWT_SUB_PREFIX = 'USER'
 export const APP_USER_JWT_SUB_PREFIX = 'APP_USER'
 export const APP_JWT_SUB_PREFIX = 'APP'
 
-// eslint-disable-next-line no-use-before-define
-export const accessTokenType: r.Runtype<AccessTokenJWT> = r.Record({
-  aud: r.String,
-  jti: r.String,
-  sub: r.String,
-  scp: r.Array(r.String),
+export const accessTokenType = z.object({
+  aud: z.string(),
+  jti: z.string(),
+  sub: z.string(),
+  scp: z.array(z.string()),
 })
 
 export class AuthTokenParseError extends Error {
   name = AuthTokenParseError.name
 
-  readonly failureCode
-  readonly details
+  readonly failureMessage: string
+  readonly failureCode: string
+  readonly errors: z.ZodIssue[]
 
   constructor(
     readonly token: unknown,
-    failure: r.Failure,
+    failure: z.ZodError,
   ) {
     super()
-    this.failureCode = failure.code
-    this.details = failure.details
+    this.failureCode = failure.name
+    this.failureMessage = failure.message
+    this.errors = failure.errors
   }
 }
 
@@ -63,13 +64,13 @@ export class AccessTokenJWT {
   }
 
   static parse(decoded: unknown) {
-    const result = accessTokenType.validate(decoded)
+    const result = accessTokenType.safeParse(decoded)
 
     if (!result.success) {
-      throw new AuthTokenParseError(decoded, result)
+      throw new AuthTokenParseError(decoded, result.error)
     }
 
-    return new AccessTokenJWT(result.value)
+    return new AccessTokenJWT(result.data)
   }
 }
 

@@ -60,7 +60,6 @@
     "jsonwebtoken": "9.0.2",
     "mime": "4.0.6",
     "postgres": "3.4.5",
-    "runtypes": "6.7.0",
     "rxjs": "7.8.1",
     "socket.io": "4.8.1",
     "utility-types": "3.11.0",

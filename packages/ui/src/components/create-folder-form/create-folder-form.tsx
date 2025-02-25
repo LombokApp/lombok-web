@@ -1,189 +1,170 @@
-import type {
-  StorageLocationInputDTO,
-  UserStorageProvisionDTO,
-} from '@stellariscloud/api-client'
-import { Button, Input, Label } from '@stellariscloud/ui-toolkit'
-import { FOLDER_NAME_VALIDATORS_COMBINED } from '@stellariscloud/utils'
-import React from 'react'
-import * as r from 'runtypes'
+import { zodResolver } from '@hookform/resolvers/zod'
+import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
+import {
+  Button,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Input,
+} from '@stellariscloud/ui-toolkit'
+import { useForm } from 'react-hook-form'
+import * as z from 'zod'
 
-import { ButtonDropdown } from '../../design-system/button-dropdown/button-dropdown'
-import { useFormState } from '../../utils/forms'
-import type { FolderLocationFormValues } from './folder-location-form-fields'
-import { FolderLocationFormFields } from './folder-location-form-fields'
-
-interface CreateFolderFormValues {
-  name: string
-  contentLocation: StorageLocationInputDTO
-  metadataLocation: StorageLocationInputDTO
-}
-
-const StorageProvisionRecord = r.Record({
-  storageProvisionId: r.String,
+const StorageProvisionRecord = z.object({
+  storageProvisionId: z.string(),
 })
 
-const CustomLocationRecord = r.Record({
-  endpoint: r.String,
-  accessKeyId: r.String,
-  secretAccessKey: r.String,
-  region: r.String,
-  prefix: r.String,
+const CustomLocationRecord = z.object({
+  endpoint: z.string(),
+  accessKeyId: z.string(),
+  secretAccessKey: z.string(),
+  region: z.string(),
+  prefix: z.string(),
 })
+
+const formSchema = z.object({
+  name: z.string().min(1, {
+    message: 'Username must be at least 1 characters.',
+  }),
+  contentLocation: z.union([StorageProvisionRecord, CustomLocationRecord]),
+  metadataLocation: z
+    .union([StorageProvisionRecord, CustomLocationRecord])
+    .optional(),
+})
+export type FolderFormValues = z.infer<typeof formSchema>
 
 export const CreateFolderForm = ({
   onSubmit,
   onCancel,
-  userStorageProvisions,
+  // userStorageProvisions,
 }: {
-  onSubmit: (values: CreateFolderFormValues) => void
+  onSubmit: (values: FolderFormValues) => Promise<void>
   onCancel: () => void
   userStorageProvisions: UserStorageProvisionDTO[]
 }) => {
-  const [newMetadataLocation, setNewMetadataLocation] = React.useState(false)
-  const [newContentLocation, setNewContentLocation] = React.useState(false)
-  const form = useFormState({
-    name: { validator: FOLDER_NAME_VALIDATORS_COMBINED },
-    contentLocation: {
-      validator: StorageProvisionRecord.Or(CustomLocationRecord),
-    },
-    metadataLocation: {
-      validator: StorageProvisionRecord.Or(CustomLocationRecord).optional(),
+  const form = useForm<FolderFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      contentLocation: {
+        accessKeyId: '',
+        secretAccessKey: '',
+        endpoint: '',
+        region: '',
+        prefix: '',
+      },
+      metadataLocation: undefined,
     },
   })
 
-  const serverContentLocationValidation = StorageProvisionRecord.validate(
-    form.values.contentLocation,
-  )
-  const selectedContentServerLocation = serverContentLocationValidation.success
-    ? userStorageProvisions.find(
-        (l) =>
-          l.id === serverContentLocationValidation.value.storageProvisionId,
-      )
-    : undefined
-
-  const serverMetadataLocationValidation = StorageProvisionRecord.validate(
-    form.values.metadataLocation,
-  )
-  const selectedMetadataServerLocation =
-    serverMetadataLocationValidation.success
-      ? userStorageProvisions.find(
-          (l) =>
-            l.id === serverMetadataLocationValidation.value.storageProvisionId,
-        )
-      : undefined
-
   return (
     <div className="flex flex-col gap-4 lg:min-w-[28rem] lg:max-w-[30rem]">
-      <h3 className="text-3xl font-bold text-gray-600 dark:text-gray-200">
-        Create a new folder
-      </h3>
-      <div className="mb-4 font-medium text-gray-600 dark:text-gray-400">
-        Folders refer to an arbitrary storage location, potentially already
-        containing files
-      </div>
-      <div>
-        <Label>Name</Label>
-        <Input
-          placeholder="Choose a meaningful name for the folder"
-          value={form.values.name}
-          onChange={(e) => form.setValue('name', e.target.value)}
-        />
-      </div>
-      <div className="flex flex-col justify-stretch gap-4">
-        <h3 className="font-semibold dark:text-gray-200">
-          <div className="flex justify-between">Content Location</div>
-        </h3>
-        {newContentLocation ? (
-          <>
-            <FolderLocationFormFields
-              onChange={({ value }) =>
-                form.setValue(
-                  'contentLocation',
-                  value as FolderLocationFormValues,
-                )
-              }
-            />
-            <Button onClick={() => setNewContentLocation(false)}>Cancel</Button>
-          </>
-        ) : (
-          <ButtonDropdown
-            label={
-              selectedContentServerLocation
-                ? selectedContentServerLocation.label
-                : 'choose content location...'
-            }
-            items={userStorageProvisions
-              .map((l) => ({
-                name: l.label,
-                onClick: () =>
-                  form.setValue('contentLocation', {
-                    storageProvisionId: l.id,
-                  }),
-              }))
-              .concat([
-                {
-                  name: 'custom...',
-                  onClick: () => setNewContentLocation(true),
-                },
-              ])}
+      <Form {...form}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            void form.handleSubmit(onSubmit)(e)
+          }}
+          className="space-y-4"
+        >
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Folder Name</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        )}
-      </div>
-      <div className="flex flex-col justify-stretch gap-4">
-        <h3 className="font-semibold dark:text-gray-200">
-          <div className="flex justify-between">Metadata Location</div>
-        </h3>
-
-        {newMetadataLocation ? (
-          <>
-            <FolderLocationFormFields
-              onChange={({ value }) =>
-                form.setValue(
-                  'metadataLocation',
-                  value as FolderLocationFormValues,
-                )
-              }
-            />
-            <Button onClick={() => setNewMetadataLocation(false)}>
+          <FormField
+            control={form.control}
+            name="contentLocation.accessKeyId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Access Key Id</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="contentLocation.secretAccessKey"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Secret Access Key</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="contentLocation.endpoint"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Endpoint</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="contentLocation.region"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Region</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="contentLocation.prefix"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Prefix</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="flex justify-end gap-2">
+            <Button variant={'secondary'} onClick={onCancel}>
               Cancel
             </Button>
-          </>
-        ) : (
-          <ButtonDropdown
-            label={
-              selectedMetadataServerLocation
-                ? selectedMetadataServerLocation.label
-                : 'choose metadata location...'
-            }
-            items={userStorageProvisions
-              .map((l) => ({
-                name: l.label,
-                onClick: () =>
-                  form.setValue('metadataLocation', {
-                    storageProvisionId: l.id,
-                  }),
-              }))
-              .concat([
-                {
-                  name: 'add custom...',
-                  onClick: () => setNewMetadataLocation(true),
-                },
-              ])}
-          />
-        )}
-      </div>
-
-      <div className="flex justify-end gap-2">
-        <Button variant={'secondary'} onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button
-          onClick={() => onSubmit(form.values as CreateFolderFormValues)}
-          disabled={!form.state.valid}
-        >
-          Create
-        </Button>
-      </div>
+            <Button
+              type="submit"
+              disabled={
+                form.formState.isValid &&
+                !form.formState.isSubmitting &&
+                !form.formState.isSubmitted
+              }
+            >
+              Create
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   )
 }

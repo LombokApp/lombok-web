@@ -23,7 +23,6 @@
     "axios": "1.7.9",
     "fast-json-stable-stringify": "2.1.0",
     "fast-memoize": "2.5.2",
-    "runtypes": "6.7.0",
     "utility-types": "3.11.0"
   }
 }

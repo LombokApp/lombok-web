@@ -26,7 +26,6 @@ import {
 } from '@stellariscloud/utils'
 import { and, eq, ilike, SQL, sql } from 'drizzle-orm'
 import mime from 'mime'
-import * as r from 'runtypes'
 import { AppService } from 'src/app/services/app.service'
 import { parseSort } from 'src/core/utils/sort.util'
 import { EventLevel } from 'src/event/entities/event.entity'
@@ -46,6 +45,7 @@ import { CoreTaskName } from 'src/task/task.constants'
 import type { User } from 'src/users/entities/user.entity'
 import { UserService } from 'src/users/services/users.service'
 import { v4 as uuidV4 } from 'uuid'
+import * as z from 'zod'
 
 import { FoldersListQueryParamsDTO } from '../dto/folders-list-query-params.dto'
 import type { Folder } from '../entities/folder.entity'
@@ -118,26 +118,26 @@ export interface FolderObjectUpdate {
   eTag?: string
 }
 
-const NewUserLocationPayloadRunType = r.Record({
-  accessKeyId: r.String,
-  secretAccessKey: r.String,
-  endpoint: r.String.withConstraint((endpoint) => {
+const NewUserLocationPayloadRunType = z.object({
+  accessKeyId: z.string(),
+  secretAccessKey: z.string(),
+  endpoint: z.string().refine((endpoint) => {
     new URL(endpoint)
     return true
   }),
-  bucket: r.String,
-  region: r.String,
-  prefix: r.String,
+  bucket: z.string(),
+  region: z.string(),
+  prefix: z.string(),
 })
 
-const ExistingUserLocationPayloadRunType = r.Record({
-  userLocationId: r.String,
-  userLocationPrefixOverride: r.String,
-  userLocationBucketOverride: r.String,
+const ExistingUserLocationPayloadRunType = z.object({
+  userLocationId: z.string(),
+  userLocationPrefixOverride: z.string(),
+  userLocationBucketOverride: z.string(),
 })
 
-const ServerLocationPayloadRunType = r.Record({
-  storageProvisionId: r.String,
+const ServerLocationPayloadRunType = z.object({
+  storageProvisionId: z.string(),
 })
 
 @Injectable()
@@ -192,11 +192,11 @@ export class FolderService {
       locationInput: UserLocationInputDTO,
     ): Promise<StorageLocation> => {
       const withNewUserLocationConnection =
-        NewUserLocationPayloadRunType.validate(locationInput)
+        NewUserLocationPayloadRunType.safeParse(locationInput)
       const withExistingUserLocation =
-        ExistingUserLocationPayloadRunType.validate(locationInput)
+        ExistingUserLocationPayloadRunType.safeParse(locationInput)
       const withExistingServerLocation =
-        ServerLocationPayloadRunType.validate(locationInput)
+        ServerLocationPayloadRunType.safeParse(locationInput)
 
       let location: StorageLocation | undefined = undefined
 
@@ -206,19 +206,19 @@ export class FolderService {
           await this.ormService.db
             .insert(storageLocationsTable)
             .values({
-              ...withNewUserLocationConnection.value,
+              ...withNewUserLocationConnection.data,
               endpointDomain: new URL(
-                withNewUserLocationConnection.value.endpoint,
+                withNewUserLocationConnection.data.endpoint,
               ).host,
               accessKeyHashId: buildAccessKeyHashId({
-                accessKeyId: withNewUserLocationConnection.value.accessKeyId,
+                accessKeyId: withNewUserLocationConnection.data.accessKeyId,
                 secretAccessKey:
-                  withNewUserLocationConnection.value.secretAccessKey,
-                region: withNewUserLocationConnection.value.region,
-                endpoint: withNewUserLocationConnection.value.endpoint,
+                  withNewUserLocationConnection.data.secretAccessKey,
+                region: withNewUserLocationConnection.data.region,
+                endpoint: withNewUserLocationConnection.data.endpoint,
               }),
               id: uuidV4(),
-              label: `${withNewUserLocationConnection.value.endpoint} - ${withNewUserLocationConnection.value.accessKeyId}`,
+              label: `${withNewUserLocationConnection.data.endpoint} - ${withNewUserLocationConnection.data.accessKeyId}`,
               providerType: 'USER',
               userId,
               createdAt: now,
@@ -235,7 +235,7 @@ export class FolderService {
               eq(storageLocationsTable.userId, userId),
               eq(
                 storageLocationsTable.id,
-                withExistingUserLocation.value.userLocationId,
+                withExistingUserLocation.data.userLocationId,
               ),
             ),
           })
@@ -260,9 +260,9 @@ export class FolderService {
                 secretAccessKey: existingLocation.secretAccessKey,
                 region: existingLocation.region,
                 prefix:
-                  withExistingUserLocation.value.userLocationPrefixOverride,
+                  withExistingUserLocation.data.userLocationPrefixOverride,
                 bucket:
-                  withExistingUserLocation.value.userLocationBucketOverride,
+                  withExistingUserLocation.data.userLocationBucketOverride,
                 createdAt: now,
                 updatedAt: now,
               })
@@ -275,7 +275,7 @@ export class FolderService {
         // user has provided a server location reference
         const existingServerLocation =
           await this.serverConfigurationService.getUserStorageProvisionById(
-            withExistingServerLocation.value.storageProvisionId,
+            withExistingServerLocation.data.storageProvisionId,
           )
 
         if (!existingServerLocation) {

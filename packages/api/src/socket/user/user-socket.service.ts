@@ -1,12 +1,13 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import type { UserPushMessage } from '@stellariscloud/types'
-import * as r from 'runtypes'
+import { safeZodParse } from '@stellariscloud/utils'
 import type { Namespace, Socket } from 'socket.io'
+import * as z from 'zod'
 
 import { AccessTokenJWT, JWTService } from '../../auth/services/jwt.service'
 
-const UserAuthPayload = r.Record({
-  token: r.String,
+const UserAuthPayload = z.object({
+  token: z.string(),
 })
 
 @Injectable()
@@ -30,7 +31,7 @@ export class UserSocketService {
     })
 
     const auth = socket.handshake.auth
-    if (UserAuthPayload.guard(auth)) {
+    if (safeZodParse(auth, UserAuthPayload)) {
       const token = auth.token
       if (typeof token !== 'string') {
         throw new UnauthorizedException()
