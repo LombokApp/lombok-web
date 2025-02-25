@@ -57,7 +57,17 @@ FROM base AS release
 # copy in all the compiled application
 COPY --from=install /temp/dev ./
 
-
 # run the app
 EXPOSE 80/tcp
 ENTRYPOINT ["sh", "./entrypoint.sh"]
+
+FROM release AS pgrelease
+
+RUN apk add --no-cache postgresql postgresql-contrib
+
+# Set up PostgreSQL data directory
+RUN mkdir -p /var/lib/postgresql/data && \
+  chown -R postgres:postgres /var/lib/postgresql && \
+  mkdir /run/postgresql && \
+  chown -R postgres:postgres /run/postgresql && \
+  su-exec postgres initdb -D /var/lib/postgresql/data

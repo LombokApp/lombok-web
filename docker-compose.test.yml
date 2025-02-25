@@ -3,7 +3,7 @@ services:
     container_name: 'stellariscloud-api-test-watch'
     build:
       context: .
-      dockerfile: docker/api.Dockerfile
+      dockerfile: docker/app.Dockerfile
       target: local
     volumes:
       - ./:/usr/src/app
@@ -17,7 +17,7 @@ services:
     container_name: 'stellariscloud-api-test'
     build:
       context: .
-      dockerfile: docker/api.Dockerfile
+      dockerfile: docker/app.Dockerfile
       target: local
     volumes:
       - ./:/usr/src/app

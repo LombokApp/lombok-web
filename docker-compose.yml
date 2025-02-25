@@ -3,7 +3,7 @@ services:
     container_name: 'stellariscloud-api'
     build:
       context: .
-      dockerfile: docker/api.Dockerfile
+      dockerfile: docker/app.Dockerfile
       target: local
     volumes:
       - ./:/usr/src/app:cached
