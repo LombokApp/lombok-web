@@ -1,17 +1,16 @@
 import { registerAs } from '@nestjs/config'
-import * as r from 'runtypes'
+import * as z from 'zod'
 
 import { isBoolean, parseEnv } from '../utils/config.util'
 
 export const coreConfig = registerAs('core', () => {
   const env = parseEnv({
-    INSTALL_APPS_ON_START: r.String.withConstraint(isBoolean).optional(),
-    APP_HOST_ID: r.String,
-    INITIAL_USER: r.String.optional(),
-    DISABLE_EMBEDDED_CORE_APP_WORKER:
-      r.String.withConstraint(isBoolean).optional(),
-    INIT_EVENT_JOBS: r.String.withConstraint(isBoolean).optional(),
-    EMBEDDED_CORE_APP_TOKEN: r.String.optional(),
+    INSTALL_APPS_ON_START: z.string().refine(isBoolean).optional(),
+    APP_HOST_ID: z.string(),
+    INITIAL_USER: z.string().optional(),
+    DISABLE_EMBEDDED_CORE_APP_WORKER: z.string().refine(isBoolean).optional(),
+    INIT_EVENT_JOBS: z.string().refine(isBoolean).optional(),
+    EMBEDDED_CORE_APP_TOKEN: z.string().optional(),
   })
   return {
     installAppsOnStart: !!(

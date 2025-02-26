@@ -1,17 +1,18 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
 import { ConnectedAppWorker } from '@stellariscloud/types'
-import * as r from 'runtypes'
+import { safeZodParse } from '@stellariscloud/utils'
 import type { Namespace, Socket } from 'socket.io'
 import { AppService } from 'src/app/services/app.service'
 import { KVService } from 'src/cache/kv.service'
+import { z } from 'zod'
 
 import { JWTService } from '../../auth/services/jwt.service'
 
-const AppAuthPayload = r.Record({
-  appWorkerId: r.String,
-  token: r.String,
-  handledTaskKeys: r.Array(r.String),
+const AppAuthPayload = z.object({
+  appWorkerId: z.string(),
+  token: z.string(),
+  handledTaskKeys: z.array(z.string()),
 })
 
 export const APP_WORKER_INFO_CACHE_KEY_PREFIX = 'APP_WORKER'
@@ -49,7 +50,7 @@ export class AppSocketService {
 
     // Handle other messages from the client
     const auth = socket.handshake.auth
-    if (AppAuthPayload.guard(auth)) {
+    if (safeZodParse(auth, AppAuthPayload)) {
       const jwt = this.jwtService.decodeJWT(auth.token)
       const sub = jwt.payload.sub as string | undefined
       const appIdentifier = sub?.startsWith('APP:')

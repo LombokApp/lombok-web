@@ -1,5 +1,5 @@
 import type { UserDTO } from '@stellariscloud/api-client'
-import { Button, cn, TypographyH2 } from '@stellariscloud/ui-toolkit'
+import { cn, TypographyH2 } from '@stellariscloud/ui-toolkit'
 import type { NullablePartial } from '@stellariscloud/utils'
 import React from 'react'
 
@@ -19,19 +19,19 @@ export function UserProfileScreen() {
         password: '',
         name: u.data.user.name ?? '',
         username: u.data.user.username,
-        email: u.data.user.email ?? '',
-        id: u.data.user.id,
+        email: u.data.user.email,
+        // id: u.data.user.id,
+        confirmPassword: '',
       })
     })
   }, [])
 
-  const handleSubmitClick = React.useCallback(() => {
-    void apiClient.viewerApi.updateViewer({
-      viewerUpdateInputDTO: {
-        name: userFormState?.name ?? '',
-      },
-    })
-  }, [userFormState])
+  const handleSubmitClick = React.useCallback(
+    async (values: ProfileUserFormValues) => {
+      await apiClient.viewerApi.updateViewer({ viewerUpdateInputDTO: values })
+    },
+    [],
+  )
 
   return (
     <div className={cn('flex h-full flex-1 flex-col items-center')}>
@@ -46,13 +46,7 @@ export function UserProfileScreen() {
           </TypographyH2>
         </div>
         <div className="inline-block min-w-full py-2 align-middle">
-          <ProfileUserForm
-            onChange={(changedUser) => setUserFormState(changedUser.value)}
-            value={userFormState}
-          />
-          <div className="py-4">
-            <Button onClick={handleSubmitClick}>Update</Button>
-          </div>
+          <ProfileUserForm onSubmit={handleSubmitClick} value={userFormState} />
         </div>
       </div>
     </div>

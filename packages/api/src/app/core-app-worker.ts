@@ -4,8 +4,8 @@ import {
   runWorkerScriptHandler,
 } from '@stellariscloud/core-worker'
 import type { AppLogEntry } from '@stellariscloud/types'
-import * as r from 'runtypes'
 import workerThreads from 'worker_threads'
+import * as z from 'zod'
 
 const sendLogEntry = (logEntryProperties: Partial<AppLogEntry>) => {
   const logEntry: AppLogEntry = {
@@ -17,13 +17,13 @@ const sendLogEntry = (logEntryProperties: Partial<AppLogEntry>) => {
   workerThreads.parentPort?.postMessage(logEntry)
 }
 
-const WorkerDataPayloadRunType = r.Record({
-  appWorkerId: r.String,
-  appToken: r.String,
-  socketBaseUrl: r.String,
+const WorkerDataPayloadRunType = z.object({
+  appWorkerId: z.string(),
+  appToken: z.string(),
+  socketBaseUrl: z.string(),
 })
 
-type WorkerDataPayload = r.Static<typeof WorkerDataPayloadRunType>
+type WorkerDataPayload = z.infer<typeof WorkerDataPayloadRunType>
 
 let initialized = false
 
@@ -31,7 +31,7 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
   if (
     !workerThreads.isMainThread &&
     !initialized &&
-    WorkerDataPayloadRunType.validate(workerData).success
+    WorkerDataPayloadRunType.safeParse(workerData).success
   ) {
     initialized = true
     sendLogEntry({

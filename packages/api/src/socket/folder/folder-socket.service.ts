@@ -2,16 +2,17 @@ import type { OnModuleInit } from '@nestjs/common'
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
 import { FolderPushMessage } from '@stellariscloud/types'
-import * as r from 'runtypes'
+import { safeZodParse } from '@stellariscloud/utils'
 import { Namespace, Socket } from 'socket.io'
 import { FolderService } from 'src/folders/services/folder.service'
 import { UserService } from 'src/users/services/users.service'
+import * as z from 'zod'
 
 import { AccessTokenJWT, JWTService } from '../../auth/services/jwt.service'
 
-const UserAuthPayload = r.Record({
-  token: r.String,
-  folderId: r.String,
+const UserAuthPayload = z.object({
+  token: z.string(),
+  folderId: z.string(),
 })
 
 @Injectable()
@@ -44,7 +45,7 @@ export class FolderSocketService implements OnModuleInit {
     // Handle other events and messages from the client
     const auth = socket.handshake.auth
     // console.log('folder socket auth:', auth)
-    if (UserAuthPayload.guard(auth)) {
+    if (safeZodParse(auth, UserAuthPayload)) {
       const folderId = auth.folderId
       const token = auth.token
       if (typeof token !== 'string') {

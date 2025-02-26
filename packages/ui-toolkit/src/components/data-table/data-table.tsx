@@ -44,6 +44,7 @@ interface DataTableProps<TData, TValue> {
   enableSearch?: boolean
   searchColumn?: string
   searchPlaceholder?: string
+  actionComponent?: React.ReactNode
 }
 
 interface TableHandlerProps<TData> {
@@ -68,6 +69,7 @@ export function DataTable<TData, TValue>({
   searchPlaceholder,
   manualFiltering = true,
   manualSorting = true,
+  actionComponent,
 }: DataTableProps<TData, TValue> & TableHandlerProps<TData>) {
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
@@ -120,9 +122,12 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full space-y-4">
-      {(Object.keys(filterOptions).length > 0 || enableSearch) && (
+      {(Object.keys(filterOptions).length > 0 ||
+        enableSearch ||
+        actionComponent) && (
         <DataTableToolbar
           title={title}
+          actionComponent={actionComponent}
           enableSearch={enableSearch}
           searchColumn={searchColumn}
           searchPlaceholder={searchPlaceholder}

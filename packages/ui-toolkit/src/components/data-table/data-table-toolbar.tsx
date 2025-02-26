@@ -23,6 +23,7 @@ interface DataTableToolbarProps<TData> {
   enableSearch?: boolean
   searchColumn?: string
   searchPlaceholder?: string
+  actionComponent?: React.ReactNode
 }
 
 export function DataTableToolbar<TData>({
@@ -32,6 +33,7 @@ export function DataTableToolbar<TData>({
   enableSearch = false,
   searchColumn,
   searchPlaceholder,
+  actionComponent,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0
 
@@ -89,6 +91,7 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
+      {actionComponent ?? null}
     </div>
   )
 }

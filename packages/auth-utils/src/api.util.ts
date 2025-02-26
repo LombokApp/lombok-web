@@ -1,8 +1,9 @@
+import * as z from 'zod'
 import type { ConfigurationParameters } from '@stellariscloud/api-client'
 import { Configuration } from '@stellariscloud/api-client'
 import type { AxiosError, AxiosInstance, AxiosResponse } from 'axios'
 import type { UseQueryOptions, UseQueryResult } from 'react-query'
-import * as r from 'runtypes'
+import { safeZodParse } from '@stellariscloud/utils'
 
 export const isAxiosError = (
   error: unknown,
@@ -17,17 +18,23 @@ export const isAxiosError = (
 export const parseApiErrors = (error: unknown) => {
   if (
     isAxiosError(error) &&
-    r.Record({ errors: r.Array(r.Unknown) }).guard(error.response.data)
+    safeZodParse(
+      error.response.data,
+      z.object({ errors: z.array(z.unknown()) }),
+    )
   ) {
     return error.response.data.errors.filter(
       // eslint-disable-next-line @typescript-eslint/unbound-method
-      r.Record({
-        code: r.String.optional(),
-        title: r.String.optional(),
-        detail: r.String.optional(),
-        pointer: r.String.optional(),
-        meta: r.Dictionary(r.Unknown, r.String).optional(),
-      }).guard,
+      (e) =>
+        z
+          .object({
+            code: z.string().optional(),
+            title: z.string().optional(),
+            detail: z.string().optional(),
+            pointer: z.string().optional(),
+            meta: z.record(z.unknown(), z.string()).optional(),
+          })
+          .safeParse(e).success,
     )
   }
 
