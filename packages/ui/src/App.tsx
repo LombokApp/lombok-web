@@ -34,6 +34,7 @@ import { sdkInstance } from './services/api'
 const queryClient = new QueryClient()
 
 const UNAUTHENTICATED_PAGES = ['/', '/login', '/signup']
+const SIDEBAR_PAGES = ['/access-keys', '/folders', '/server']
 
 const Content = () => {
   return (
@@ -79,6 +80,11 @@ const AuthenticatedContent = () => {
       !UNAUTHENTICATED_PAGES.includes(location.pathname)
     ) {
       void navigate('/')
+    } else if (
+      authContext.authState.isAuthenticated &&
+      location.pathname === '/'
+    ) {
+      void navigate('/folders')
     }
   }, [
     authContext.authState.isAuthenticated,
@@ -92,18 +98,24 @@ const AuthenticatedContent = () => {
     return null
   }
   const { getOpenState, settings } = sidebar
-
+  const sidebarDisabled =
+    settings.disabled ||
+    !SIDEBAR_PAGES.find((pagePrefix) =>
+      location.pathname.startsWith(pagePrefix),
+    )
   return (
     <div className="flex h-full">
-      <Sidebar
-        onSignOut={authContext.logout}
-        authContext={authContext}
-        menuItems={menuItems}
-      />
+      {!sidebarDisabled && (
+        <Sidebar
+          onSignOut={authContext.logout}
+          authContext={authContext}
+          menuItems={menuItems}
+        />
+      )}
       <main
         className={cn(
           'bg-background min-h-[calc(100vh_-_56px)] flex-1 transition-[margin-left] duration-300 ease-in-out',
-          !settings.disabled && (!getOpenState() ? 'lg:ml-[70px]' : 'lg:ml-64'),
+          !sidebarDisabled && (!getOpenState() ? 'lg:ml-[70px]' : 'lg:ml-64'),
         )}
       >
         <Content />
