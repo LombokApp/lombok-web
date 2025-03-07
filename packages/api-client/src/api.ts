@@ -1680,10 +1680,10 @@ export interface ServerStorageLocationInputDTO {
     'region': string;
     /**
      * 
-     * @type {UserUpdateInputDTOName}
+     * @type {string}
      * @memberof ServerStorageLocationInputDTO
      */
-    'prefix': UserUpdateInputDTOName;
+    'prefix'?: string;
 }
 /**
  * 

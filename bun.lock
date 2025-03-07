@@ -32,7 +32,7 @@
     "packages/api": {
       "name": "@stellariscloud/api",
       "dependencies": {
-        "@anatine/zod-nestjs": "2.0.9",
+        "@anatine/zod-nestjs": "2.0.10",
         "@aws-sdk/client-s3": "3.723.0",
         "@heyputer/kv.js": "0.1.8",
         "@nestjs/common": "10.4.15",
@@ -343,7 +343,7 @@
 
     "@ampproject/remapping": ["@ampproject/remapping@2.3.0", "", { "dependencies": { "@jridgewell/gen-mapping": "^0.3.5", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw=="],
 
-    "@anatine/zod-nestjs": ["@anatine/zod-nestjs@2.0.9", "", { "dependencies": { "ts-deepmerge": "^6.1.0" }, "peerDependencies": { "@anatine/zod-openapi": "^2.0.1", "@nestjs/common": "^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0", "@nestjs/swagger": "^6.0.0 || ^7.0.0", "openapi3-ts": "^4.1.2", "zod": "^3.20.0" } }, "sha512-XEK+7wMXAxc4tOkzOpH/vav1MVZrVYeOwKpXmn7aFiTUoB08G1FzAP7rDQ90ZrIFOGSoC0hpJA9izPQxBRAIDg=="],
+    "@anatine/zod-nestjs": ["@anatine/zod-nestjs@2.0.10", "", { "dependencies": { "ts-deepmerge": "^6.1.0" }, "peerDependencies": { "@anatine/zod-openapi": "^2.0.1", "@nestjs/common": "^7.0.0 || ^8.0.0 || ^9.0.0 || ^10.0.0", "@nestjs/swagger": "^6.0.0 || ^7.0.0", "openapi3-ts": "^4.1.2", "zod": "^3.20.0" } }, "sha512-90TVowUCqlz7IwNf6EkrtHSTILeSwFnwWIhVDIEYPCdgfO+vVkASiT8RO+Q/olwuo3OxNef9fBDimIDxZMWzcg=="],
 
     "@anatine/zod-openapi": ["@anatine/zod-openapi@2.2.7", "", { "dependencies": { "ts-deepmerge": "^6.0.3" }, "peerDependencies": { "openapi3-ts": "^4.1.2", "zod": "^3.20.0" } }, "sha512-kv/bGowgSGHNY2d/KIzx941ym0/elc7xoBiPri31qEUqbDPOSIppiMOZ88AedaTtLk5J1K96++h0CEsHkgFFyQ=="],
 

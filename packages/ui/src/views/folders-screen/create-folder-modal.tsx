@@ -7,7 +7,6 @@ import type {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@stellariscloud/ui-toolkit'
@@ -22,7 +21,7 @@ export interface CreateFolderModalData {
 const CreateFolderModal = ({
   modalData,
   setModalData,
-  // onSubmit,
+  onSubmit,
 }: {
   modalData: CreateFolderModalData
   setModalData: (modalData: CreateFolderModalData) => void
@@ -40,16 +39,13 @@ const CreateFolderModal = ({
         aria-describedby={undefined}
       >
         <DialogHeader className="text-left">
-          <DialogTitle>Create a folder storage provision.</DialogTitle>
-          <DialogDescription>
-            This creates a new folder, of course.
-          </DialogDescription>
+          <DialogTitle>Create a folder</DialogTitle>
         </DialogHeader>
         <div className="w-full">
           <CreateFolderForm
             onCancel={() => setModalData({ ...modalData, isOpen: false })}
-            onSubmit={() => Promise.reject(new Error('Not Implemented'))}
-            userStorageProvisions={[]}
+            onSubmit={(v) => onSubmit(v)}
+            userStorageProvisions={modalData.userStorageProvisions}
           />
         </div>
       </DialogContent>

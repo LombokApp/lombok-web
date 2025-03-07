@@ -4553,13 +4553,8 @@ export const schema = {
             "minLength": 1
           },
           "prefix": {
-            "oneOf": [
-              {
-                "type": "string",
-                "minLength": 1
-              }
-            ],
-            "nullable": true
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
@@ -4567,8 +4562,7 @@ export const schema = {
           "secretAccessKey",
           "endpoint",
           "bucket",
-          "region",
-          "prefix"
+          "region"
         ]
       },
       "TaskGetResponse": {

@@ -9,7 +9,7 @@
     "test:unit": "bun test ./src/**/*.unit-spec.ts",
     "test:cov": "yarn test --coverage",
     "test:e2e:watch": "bun ./test/e2e.setup.ts && bun test ./src/**/*.e2e-spec.ts --watch",
-    "test:e2e": "bun ./test/e2e.setup.ts && bun test ./src/**/auth.e2e-spec.ts",
+    "test:e2e": "bun ./test/e2e.setup.ts && bun test ./src/**/*.e2e-spec.ts",
     "reset:sdk": "(rm -rf ./node_modules/@stellariscloud/app-worker-sdk || true)",
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
@@ -36,7 +36,7 @@
     "prettier:write": "prettier --write \"./**/*.(ts|tsx)\""
   },
   "dependencies": {
-    "@anatine/zod-nestjs": "2.0.9",
+    "@anatine/zod-nestjs": "2.0.10",
     "@aws-sdk/client-s3": "3.723.0",
     "@heyputer/kv.js": "0.1.8",
     "@nestjs/common": "10.4.15",

@@ -10,8 +10,6 @@ import { PlusIcon } from 'lucide-react'
 import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
-// import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
-// import { CreateFolderStartPanel } from '../../components/create-folder-start-panel/create-folder-start-panel'
 import { apiClient, foldersApiHooks } from '../../services/api'
 import type { CreateFolderModalData } from './create-folder-modal'
 import { CreateFolderModal } from './create-folder-modal'
@@ -69,14 +67,13 @@ export const FoldersScreen = () => {
     [forgetFolderConfirmationOpen, folders?.result],
   )
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleStartCreate = () => {
-    void apiClient.userStorageProvisionsApi
+  const fetchUserProvisions = () =>
+    apiClient.userStorageProvisionsApi
       .listUserStorageProvisions()
-      .then((resp) => setUserStorageProvisions(resp.data.result))
-
-    void navigate(`${location.pathname}?add=true`)
-  }
+      .then((resp) => {
+        setUserStorageProvisions(resp.data.result)
+        return resp.data.result
+      })
 
   const listFolders = foldersApiHooks.useListFolders(
     {
@@ -120,11 +117,19 @@ export const FoldersScreen = () => {
     folder: FoldersApiCreateFolderRequest['folderCreateInputDTO'],
   ) => {
     return apiClient.foldersApi
-      .createFolder({ folderCreateInputDTO: folder })
-      .then(async () => {
-        await listFolders.refetch()
-        void navigate(location.pathname)
+      .createFolder({
+        folderCreateInputDTO: folder,
       })
+      .then(
+        async ({
+          data: {
+            folder: { id },
+          },
+        }) => {
+          await listFolders.refetch()
+          void navigate(`/folders/${id}`)
+        },
+      )
   }
 
   return (
@@ -156,12 +161,15 @@ export const FoldersScreen = () => {
           <div>
             <Button
               variant={'outline'}
-              onClick={() =>
-                setCreateFolderModalData({
-                  ...createFolderModalData,
-                  isOpen: true,
+              onClick={() => {
+                void fetchUserProvisions().then((_userStorageProvisions) => {
+                  setCreateFolderModalData({
+                    ...createFolderModalData,
+                    userStorageProvisions: _userStorageProvisions,
+                    isOpen: true,
+                  })
                 })
-              }
+              }}
             >
               <div className="flex items-center gap-2">
                 <PlusIcon className="size-5" />
