@@ -56,7 +56,7 @@ export const CustomLocationForm = ({
         className="space-y-4"
       >
         <div className="flex flex-col gap-4">
-          <div className="grid gap-6">
+          <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="accessKeyId"
@@ -144,7 +144,7 @@ export const CustomLocationForm = ({
             >
               Test
             </Button>
-            <Button size="sm" variant="outline" type="submit">
+            <Button size="sm" type="submit" disabled={!form.formState.isValid}>
               Done
             </Button>
             <Button size="sm" variant="link" onClick={onCancel}>

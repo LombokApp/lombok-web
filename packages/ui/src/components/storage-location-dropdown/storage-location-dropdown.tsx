@@ -21,7 +21,7 @@ export function StorageLocationDropdown({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline">{'Select storage location'}</Button>
+        <Button variant="default">{'Select location'}</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>Available storage locations</DropdownMenuLabel>
