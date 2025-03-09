@@ -36,7 +36,5 @@ export const s3LocationSchema = z.object({
     ),
   bucket: z.string().min(1),
   region: z.string().min(1),
-  prefix: z.string().min(1).optional(),
+  prefix: z.string().nonempty().optional(),
 })
-
-export const serverStorageLocationInputSchema = s3LocationSchema

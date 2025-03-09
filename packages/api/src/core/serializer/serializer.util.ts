@@ -3,7 +3,7 @@ import type {
   ExecutionContext,
   NestInterceptor,
 } from '@nestjs/common'
-import { Injectable, StreamableFile } from '@nestjs/common'
+import { BadRequestException, Injectable, StreamableFile } from '@nestjs/common'
 import type { Controller } from '@nestjs/common/interfaces'
 import type { Observable } from 'rxjs'
 import { map } from 'rxjs'
@@ -87,7 +87,9 @@ export class ZodSerializerInterceptor implements NestInterceptor {
             : schema.parse(res)
         } catch (error) {
           if (error instanceof z.ZodError) {
-            throw createZodSerializationException(error)
+            throw new BadRequestException(
+              createZodSerializationException(error),
+            )
           }
           throw error
         }

@@ -96,7 +96,7 @@ export const FoldersScreen = () => {
   const refreshFolders = React.useCallback(() => {
     void listFolders
       .refetch()
-      .then((response) => setFolders(response.data ?? undefined))
+      .then((response) => response.data && setFolders(response.data))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listFolders.refetch, pagination, filters, sorting])
 

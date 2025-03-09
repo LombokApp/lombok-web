@@ -34,7 +34,7 @@ describe('Server - Server Storage Location', () => {
           bucket: 'dummybucket',
           endpoint: 'http://dummyendpoint',
           region: 'auto',
-          prefix: '',
+          prefix: null,
         },
       })
     expect(setServerStorageLocationResponse.status).toEqual(201)

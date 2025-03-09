@@ -1,5 +1,5 @@
 import type {
-  AppListResponse,
+  AppListResponseDTO,
   SettingsGetResponseSettings,
 } from '@stellariscloud/api-client'
 import { useAuthContext } from '@stellariscloud/auth-utils'
@@ -46,7 +46,7 @@ export interface IServerContext {
     appIdentifier: string
   }[]
   settings?: SettingsGetResponseSettings
-  apps?: AppListResponse
+  apps?: AppListResponseDTO
   subscribeToMessages: (handler: SocketMessageHandler) => void
   unsubscribeFromMessages: (handler: SocketMessageHandler) => void
   socketConnected: boolean
@@ -69,7 +69,7 @@ export const ServerContextProvider = ({
     React.useState<{ taskTrigger: AppTaskTrigger; appIdentifier: string }[]>()
   const [appFolderObjectActions, setAppFolderObjectActions] =
     React.useState<{ taskTrigger: AppTaskTrigger; appIdentifier: string }[]>()
-  const [serverApps, setServerApps] = React.useState<AppListResponse>()
+  const [serverApps, setServerApps] = React.useState<AppListResponseDTO>()
   const authContext = useAuthContext()
 
   const fetchServerSettings = React.useCallback(async () => {

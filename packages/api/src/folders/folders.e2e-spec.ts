@@ -203,6 +203,7 @@ describe('Folders', () => {
       })
 
     expect(folderCreateResponse.status).toEqual(201)
+    expect(folderCreateResponse.data.folder.id).toBeDefined()
 
     const folderGetResponse = await apiClient
       .foldersApi({ accessToken: secondUserAccessToken })

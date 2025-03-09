@@ -35,7 +35,7 @@ import { OrmService } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
-import type { UserLocationInputDTO } from 'src/storage/dto/user-location-input.dto'
+import { StorageLocationInputDTO } from 'src/storage/dto/storage-location-input.dto'
 import type { StorageLocation } from 'src/storage/entities/storage-location.entity'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { StorageLocationNotFoundException } from 'src/storage/exceptions/storage-location-not-found.exceptions'
@@ -177,8 +177,8 @@ export class FolderService {
       //  - A location id of another of the user's locations, plus a bucket & prefix to replace the ones of that location
       //  - A reference to a server storage provision (in which case no overrides are allowed)
       name: string
-      contentLocation: UserLocationInputDTO
-      metadataLocation: UserLocationInputDTO
+      contentLocation: StorageLocationInputDTO
+      metadataLocation: StorageLocationInputDTO
     }
     userId: string
   }): Promise<Folder> {
@@ -189,7 +189,7 @@ export class FolderService {
     const now = new Date()
     const buildLocation = async (
       storageProvisionType: UserStorageProvisionType,
-      locationInput: UserLocationInputDTO,
+      locationInput: StorageLocationInputDTO,
     ): Promise<StorageLocation> => {
       let location: StorageLocation | undefined = undefined
       if (safeZodParse(locationInput, customLocationPayloadSchema)) {
@@ -305,10 +305,13 @@ export class FolderService {
             .returning()
         )[0]
       } else {
-        console.log('Got bad location input:', {
-          locationInput,
-          storageProvisionType,
-        })
+        console.log(
+          'Got bad folder create %s location input:',
+          storageProvisionType.toLowerCase(),
+          {
+            locationInput,
+          },
+        )
         throw new BadRequestException()
       }
 

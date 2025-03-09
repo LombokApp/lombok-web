@@ -4789,6 +4789,7 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "createdAt-asc",
                 "createdAt-desc",
@@ -4800,8 +4801,7 @@ var schema = {
                 "username-desc",
                 "updatedAt-asc",
                 "updatedAt-desc"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -5067,6 +5067,7 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "name-asc",
                 "name-desc",
@@ -5074,8 +5075,7 @@ var schema = {
                 "createdAt-desc",
                 "updatedAt-asc",
                 "updatedAt-desc"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -5481,6 +5481,7 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "accessKeyId-asc",
                 "accessKeyId-desc",
@@ -5492,8 +5493,7 @@ var schema = {
                 "region-desc",
                 "updatedAt-asc",
                 "updatedAt-desc"
-              ],
-              type: "string"
+              ]
             }
           }
         ],
@@ -5619,7 +5619,7 @@ var schema = {
             content: {
               "application/json": {
                 schema: {
-                  $ref: "#/components/schemas/AccessKeyBucketsListResponse"
+                  $ref: "#/components/schemas/AccessKeyBucketsListResponseDTO"
                 }
               }
             }
@@ -5661,6 +5661,7 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "accessKeyId-asc",
                 "accessKeyId-desc",
@@ -5672,8 +5673,7 @@ var schema = {
                 "region-desc",
                 "updatedAt-asc",
                 "updatedAt-desc"
-              ],
-              type: "string"
+              ]
             }
           }
         ],
@@ -5896,12 +5896,12 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "CONTENT",
                 "METADATA",
                 "REDUNDANCY"
-              ],
-              type: "string"
+              ]
             }
           }
         ],
@@ -6210,13 +6210,13 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "createdAt-asc",
                 "createdAt-desc",
                 "updatedAt-asc",
                 "updatedAt-desc"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6232,10 +6232,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6243,10 +6243,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6254,10 +6254,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6265,10 +6265,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6381,13 +6381,13 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "createdAt-asc",
                 "createdAt-desc",
                 "updatedAt-asc",
                 "updatedAt-desc"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6403,10 +6403,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6414,10 +6414,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6425,10 +6425,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6436,10 +6436,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6535,13 +6535,13 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "createdAt-asc",
                 "createdAt-desc",
                 "updatedAt-asc",
                 "updatedAt-desc"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6574,10 +6574,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6585,10 +6585,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6596,10 +6596,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6607,10 +6607,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6618,10 +6618,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6820,20 +6820,11 @@ var schema = {
                 format: "uuid"
               },
               name: {
-                oneOf: [
-                  {
-                    type: "string"
-                  },
-                  {}
-                ],
+                type: "string",
                 nullable: true
               },
               email: {
-                oneOf: [
-                  {
-                    type: "string"
-                  }
-                ],
+                type: "string",
                 nullable: true
               },
               emailVerified: {
@@ -6862,6 +6853,7 @@ var schema = {
             },
             required: [
               "id",
+              "name",
               "email",
               "emailVerified",
               "isAdmin",
@@ -6915,20 +6907,11 @@ var schema = {
                 format: "uuid"
               },
               name: {
-                oneOf: [
-                  {
-                    type: "string"
-                  },
-                  {}
-                ],
+                type: "string",
                 nullable: true
               },
               email: {
-                oneOf: [
-                  {
-                    type: "string"
-                  }
-                ],
+                type: "string",
                 nullable: true
               },
               emailVerified: {
@@ -6957,6 +6940,7 @@ var schema = {
             },
             required: [
               "id",
+              "name",
               "email",
               "emailVerified",
               "isAdmin",
@@ -6990,20 +6974,11 @@ var schema = {
             format: "uuid"
           },
           name: {
-            oneOf: [
-              {
-                type: "string"
-              },
-              {}
-            ],
+            type: "string",
             nullable: true
           },
           email: {
-            oneOf: [
-              {
-                type: "string"
-              }
-            ],
+            type: "string",
             nullable: true
           },
           emailVerified: {
@@ -7032,6 +7007,7 @@ var schema = {
         },
         required: [
           "id",
+          "name",
           "email",
           "emailVerified",
           "isAdmin",
@@ -7045,10 +7021,12 @@ var schema = {
         type: "object",
         properties: {
           name: {
-            type: "string"
+            type: "string",
+            minLength: 1
           },
           email: {
-            type: "string"
+            type: "string",
+            minLength: 1
           },
           emailVerified: {
             type: "boolean"
@@ -7085,20 +7063,11 @@ var schema = {
                 format: "uuid"
               },
               name: {
-                oneOf: [
-                  {
-                    type: "string"
-                  },
-                  {}
-                ],
+                type: "string",
                 nullable: true
               },
               email: {
-                oneOf: [
-                  {
-                    type: "string"
-                  }
-                ],
+                type: "string",
                 nullable: true
               },
               emailVerified: {
@@ -7127,6 +7096,7 @@ var schema = {
             },
             required: [
               "id",
+              "name",
               "email",
               "emailVerified",
               "isAdmin",
@@ -7145,22 +7115,12 @@ var schema = {
         type: "object",
         properties: {
           name: {
-            oneOf: [
-              {
-                type: "string",
-                minLength: 1
-              }
-            ],
-            nullable: true
+            type: "string",
+            minLength: 1
           },
           email: {
-            oneOf: [
-              {
-                type: "string",
-                format: "email"
-              }
-            ],
-            nullable: true
+            type: "string",
+            minLength: 1
           },
           isAdmin: {
             type: "boolean"
@@ -7586,41 +7546,69 @@ var schema = {
         ]
       },
       StorageLocationInputDTO: {
-        type: "object",
-        properties: {
-          storageProvisionId: {
-            type: "string",
-            format: "uuid"
+        oneOf: [
+          {
+            type: "object",
+            properties: {
+              accessKeyId: {
+                type: "string"
+              },
+              secretAccessKey: {
+                type: "string"
+              },
+              endpoint: {
+                type: "string"
+              },
+              bucket: {
+                type: "string"
+              },
+              region: {
+                type: "string"
+              },
+              prefix: {
+                type: "string"
+              }
+            },
+            required: [
+              "accessKeyId",
+              "secretAccessKey",
+              "endpoint",
+              "bucket",
+              "region"
+            ]
           },
-          userLocationId: {
-            type: "string",
-            format: "uuid"
+          {
+            type: "object",
+            properties: {
+              storageProvisionId: {
+                type: "string",
+                format: "uuid"
+              }
+            },
+            required: [
+              "storageProvisionId"
+            ]
           },
-          userLocationBucketOverride: {
-            type: "string"
-          },
-          userLocationPrefixOverride: {
-            type: "string"
-          },
-          accessKeyId: {
-            type: "string"
-          },
-          secretAccessKey: {
-            type: "string"
-          },
-          endpoint: {
-            type: "string"
-          },
-          bucket: {
-            type: "string"
-          },
-          region: {
-            type: "string"
-          },
-          prefix: {
-            type: "string"
+          {
+            type: "object",
+            properties: {
+              userLocationId: {
+                type: "string",
+                format: "uuid"
+              },
+              userLocationBucketOverride: {
+                type: "string"
+              },
+              userLocationPrefixOverride: {
+                type: "string"
+              }
+            },
+            required: [
+              "userLocationId",
+              "userLocationBucketOverride"
+            ]
           }
-        }
+        ]
       },
       FolderGetResponse: {
         type: "object",
@@ -7979,78 +7967,134 @@ var schema = {
             type: "string"
           },
           metadataLocation: {
-            type: "object",
-            properties: {
-              storageProvisionId: {
-                type: "string",
-                format: "uuid"
+            oneOf: [
+              {
+                type: "object",
+                properties: {
+                  accessKeyId: {
+                    type: "string"
+                  },
+                  secretAccessKey: {
+                    type: "string"
+                  },
+                  endpoint: {
+                    type: "string"
+                  },
+                  bucket: {
+                    type: "string"
+                  },
+                  region: {
+                    type: "string"
+                  },
+                  prefix: {
+                    type: "string"
+                  }
+                },
+                required: [
+                  "accessKeyId",
+                  "secretAccessKey",
+                  "endpoint",
+                  "bucket",
+                  "region"
+                ]
               },
-              userLocationId: {
-                type: "string",
-                format: "uuid"
+              {
+                type: "object",
+                properties: {
+                  storageProvisionId: {
+                    type: "string",
+                    format: "uuid"
+                  }
+                },
+                required: [
+                  "storageProvisionId"
+                ]
               },
-              userLocationBucketOverride: {
-                type: "string"
-              },
-              userLocationPrefixOverride: {
-                type: "string"
-              },
-              accessKeyId: {
-                type: "string"
-              },
-              secretAccessKey: {
-                type: "string"
-              },
-              endpoint: {
-                type: "string"
-              },
-              bucket: {
-                type: "string"
-              },
-              region: {
-                type: "string"
-              },
-              prefix: {
-                type: "string"
+              {
+                type: "object",
+                properties: {
+                  userLocationId: {
+                    type: "string",
+                    format: "uuid"
+                  },
+                  userLocationBucketOverride: {
+                    type: "string"
+                  },
+                  userLocationPrefixOverride: {
+                    type: "string"
+                  }
+                },
+                required: [
+                  "userLocationId",
+                  "userLocationBucketOverride"
+                ]
               }
-            }
+            ]
           },
           contentLocation: {
-            type: "object",
-            properties: {
-              storageProvisionId: {
-                type: "string",
-                format: "uuid"
+            oneOf: [
+              {
+                type: "object",
+                properties: {
+                  accessKeyId: {
+                    type: "string"
+                  },
+                  secretAccessKey: {
+                    type: "string"
+                  },
+                  endpoint: {
+                    type: "string"
+                  },
+                  bucket: {
+                    type: "string"
+                  },
+                  region: {
+                    type: "string"
+                  },
+                  prefix: {
+                    type: "string"
+                  }
+                },
+                required: [
+                  "accessKeyId",
+                  "secretAccessKey",
+                  "endpoint",
+                  "bucket",
+                  "region"
+                ]
               },
-              userLocationId: {
-                type: "string",
-                format: "uuid"
+              {
+                type: "object",
+                properties: {
+                  storageProvisionId: {
+                    type: "string",
+                    format: "uuid"
+                  }
+                },
+                required: [
+                  "storageProvisionId"
+                ]
               },
-              userLocationBucketOverride: {
-                type: "string"
-              },
-              userLocationPrefixOverride: {
-                type: "string"
-              },
-              accessKeyId: {
-                type: "string"
-              },
-              secretAccessKey: {
-                type: "string"
-              },
-              endpoint: {
-                type: "string"
-              },
-              bucket: {
-                type: "string"
-              },
-              region: {
-                type: "string"
-              },
-              prefix: {
-                type: "string"
+              {
+                type: "object",
+                properties: {
+                  userLocationId: {
+                    type: "string",
+                    format: "uuid"
+                  },
+                  userLocationBucketOverride: {
+                    type: "string"
+                  },
+                  userLocationPrefixOverride: {
+                    type: "string"
+                  }
+                },
+                required: [
+                  "userLocationId",
+                  "userLocationBucketOverride"
+                ]
               }
-            }
+            ]
           }
         },
         required: [
@@ -8675,7 +8719,7 @@ var schema = {
           "accessKeyHashId"
         ]
       },
-      AccessKeyBucketsListResponse: {
+      AccessKeyBucketsListResponseDTO: {
         type: "object",
         properties: {
           result: {
@@ -9009,11 +9053,8 @@ var schema = {
             type: "string"
           },
           prefix: {
-            oneOf: [
-              {
-                type: "string"
-              }
-            ],
+            type: "string",
+            minLength: 1,
             nullable: true
           }
         },
@@ -9048,11 +9089,8 @@ var schema = {
                 type: "string"
               },
               prefix: {
-                oneOf: [
-                  {
-                    type: "string"
-                  }
-                ],
+                type: "string",
+                minLength: 1,
                 nullable: true
               }
             },
@@ -9091,8 +9129,14 @@ var schema = {
             minLength: 1
           },
           prefix: {
-            type: "string",
-            minLength: 1
+            oneOf: [
+              {
+                type: "string",
+                minLength: 1,
+                nullable: true
+              },
+              {}
+            ]
           }
         },
         required: [

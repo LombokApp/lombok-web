@@ -2,8 +2,13 @@ import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common'
 import { Catch, HttpException } from '@nestjs/common'
 import type { Request, Response } from 'express'
 
+type LoggingMode = 'DEBUG' | 'NONE'
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
+  loggingMode: LoggingMode
+  constructor(loggingMode: LoggingMode = 'NONE') {
+    this.loggingMode = loggingMode
+  }
   catch(exception: HttpException, host: ArgumentsHost) {
     // Get the response object from the arguments host
     const ctx = host.switchToHttp()
@@ -12,12 +17,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
     // Get the request object from the arguments host
     const request = ctx.getRequest<Request>()
 
-    // eslint-disable-next-line no-console
-    console.log(
-      'API EXCEPTION (%s):',
-      request.url,
-      JSON.stringify(exception, null, 2),
-    )
+    if (this.loggingMode === 'DEBUG') {
+      console.log(
+        'API EXCEPTION (%s %s):',
+        request.method,
+        request.url,
+        JSON.stringify(exception, null, 2),
+      )
+    }
 
     // Get the status code from the exception
     const status = exception.getStatus()
@@ -36,6 +43,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       typeof exceptionResponse === 'object' && 'message' in exceptionResponse
         ? (exceptionResponse['message'] as string)
         : undefined
+
     // Send a JSON response using the response object
     response.status(status).json({
       statusCode: status,
