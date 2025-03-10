@@ -4,7 +4,7 @@ import type {
   FoldersApiListFoldersRequest,
   UserStorageProvisionDTO,
 } from '@stellariscloud/api-client'
-import { Button, DataTable } from '@stellariscloud/ui-toolkit'
+import { Button, DataTable, useToast } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import React from 'react'
@@ -94,11 +94,11 @@ export const FoldersScreen = () => {
   )
 
   const refreshFolders = React.useCallback(() => {
-    void listFolders
-      .refetch()
-      .then((response) => response.data && setFolders(response.data))
+    void listFolders.refetch().then((response) => setFolders(response.data))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listFolders.refetch, pagination, filters, sorting])
+
+  const { toast } = useToast()
 
   // reflect add query flag state
   React.useEffect(() => {
@@ -126,7 +126,12 @@ export const FoldersScreen = () => {
             folder: { id },
           },
         }) => {
+          toast({
+            title: 'Folder created',
+            description: 'Navigating there now...',
+          })
           await listFolders.refetch()
+          await new Promise((resolve) => setTimeout(resolve, 1000))
           void navigate(`/folders/${id}`)
         },
       )

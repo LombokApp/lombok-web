@@ -28,16 +28,10 @@ const storageProvisionSelectionSchema = z.object({
   storageProvisionId: z.string(),
 })
 
-const storageProvisionDescriptionSchema =
-  storageProvisionSelectionSchema.extend({
-    label: z.string(),
-  })
 const formSchema = z.object({
   name: z.string().min(1, {
     message: 'Name must be at least 1 characters.',
   }),
-  contentLocationStorageProvision: storageProvisionDescriptionSchema,
-  metadataLocationStorageProvision: storageProvisionDescriptionSchema,
   contentLocation: s3LocationSchema.or(storageProvisionSelectionSchema),
   metadataLocation: s3LocationSchema.or(storageProvisionSelectionSchema),
 })
@@ -99,7 +93,7 @@ export const CreateFolderForm = ({
   const [customMetadataLocationFormOpen, setCustomMetadataLocationFormOpen] =
     useState(false)
 
-  const handleStorageProvisionContentLocationRemove = useCallback(() => {
+  const handleContentLocationRemove = useCallback(() => {
     setFormConfig((_c) => ({
       ..._c,
       useCustomContentLocation: false,
@@ -108,25 +102,7 @@ export const CreateFolderForm = ({
     form.resetField('contentLocation')
   }, [form])
 
-  const handleStorageProvisionMetadataLocationRemove = useCallback(() => {
-    setFormConfig((_c) => ({
-      ..._c,
-      useCustomMetadataLocation: false,
-      useStorageProvisionMetadataLocation: false,
-    }))
-    form.resetField('metadataLocationStorageProvision')
-  }, [form])
-
-  const handleCustomContentLocationRemove = useCallback(() => {
-    setFormConfig((_c) => ({
-      ..._c,
-      useCustomContentLocation: false,
-      useStorageProvisionContentLocation: false,
-    }))
-    form.resetField('contentLocation')
-  }, [form])
-
-  const handleCustomMetadataLocationRemove = useCallback(() => {
+  const handleMetadataLocationRemove = useCallback(() => {
     setFormConfig((_c) => ({
       ..._c,
       useCustomMetadataLocation: false,
@@ -274,10 +250,7 @@ export const CreateFolderForm = ({
                 <Badge variant={'outline'} className="p-2 px-3">
                   {customContentLocationDescription}
                 </Badge>
-                <Button
-                  variant="link"
-                  onClick={handleCustomContentLocationRemove}
-                >
+                <Button variant="link" onClick={handleContentLocationRemove}>
                   <XMarkIcon className="size-4 opacity-50" />
                 </Button>
               </div>
@@ -286,10 +259,7 @@ export const CreateFolderForm = ({
                 <Badge variant={'outline'} className="p-2 px-3">
                   {serverProvisionContentLocationLabel}
                 </Badge>
-                <Button
-                  variant="link"
-                  onClick={handleStorageProvisionContentLocationRemove}
-                >
+                <Button variant="link" onClick={handleContentLocationRemove}>
                   <XMarkIcon className="size-4 opacity-50" />
                 </Button>
               </div>
@@ -344,10 +314,7 @@ export const CreateFolderForm = ({
               <Badge variant={'outline'} className="p-2 px-3">
                 {customMetadataLocationDescription}
               </Badge>
-              <Button
-                variant="link"
-                onClick={handleCustomMetadataLocationRemove}
-              >
+              <Button variant="link" onClick={handleMetadataLocationRemove}>
                 <XMarkIcon className="size-4 opacity-50" />
               </Button>
             </div>
@@ -356,10 +323,7 @@ export const CreateFolderForm = ({
               <Badge variant={'outline'} className="p-2 px-3">
                 {serverProvisionMetadataLocationLabel}
               </Badge>
-              <Button
-                variant="link"
-                onClick={handleStorageProvisionMetadataLocationRemove}
-              >
+              <Button variant="link" onClick={handleMetadataLocationRemove}>
                 <XMarkIcon className="size-4 opacity-50" />
               </Button>
             </div>
