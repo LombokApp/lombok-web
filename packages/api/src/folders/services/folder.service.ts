@@ -23,6 +23,7 @@ import {
 import {
   mediaTypeFromExtension,
   objectIdentifierToObjectKey,
+  safeZodParse,
 } from '@stellariscloud/utils'
 import { and, eq, ilike, SQL, sql } from 'drizzle-orm'
 import mime from 'mime'
@@ -34,7 +35,7 @@ import { OrmService } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
-import type { UserLocationInputDTO } from 'src/storage/dto/user-location-input.dto'
+import { StorageLocationInputDTO } from 'src/storage/dto/storage-location-input.dto'
 import type { StorageLocation } from 'src/storage/entities/storage-location.entity'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { StorageLocationNotFoundException } from 'src/storage/exceptions/storage-location-not-found.exceptions'
@@ -118,7 +119,7 @@ export interface FolderObjectUpdate {
   eTag?: string
 }
 
-const NewUserLocationPayloadRunType = z.object({
+const customLocationPayloadSchema = z.object({
   accessKeyId: z.string(),
   secretAccessKey: z.string(),
   endpoint: z.string().refine((endpoint) => {
@@ -127,16 +128,16 @@ const NewUserLocationPayloadRunType = z.object({
   }),
   bucket: z.string(),
   region: z.string(),
-  prefix: z.string(),
+  prefix: z.string().optional(),
 })
 
-const ExistingUserLocationPayloadRunType = z.object({
+const existingUserLocationSchema = z.object({
   userLocationId: z.string(),
   userLocationPrefixOverride: z.string(),
   userLocationBucketOverride: z.string(),
 })
 
-const ServerLocationPayloadRunType = z.object({
+const serverProvisionPayloadSchema = z.object({
   storageProvisionId: z.string(),
 })
 
@@ -176,8 +177,8 @@ export class FolderService {
       //  - A location id of another of the user's locations, plus a bucket & prefix to replace the ones of that location
       //  - A reference to a server storage provision (in which case no overrides are allowed)
       name: string
-      contentLocation: UserLocationInputDTO
-      metadataLocation: UserLocationInputDTO
+      contentLocation: StorageLocationInputDTO
+      metadataLocation: StorageLocationInputDTO
     }
     userId: string
   }): Promise<Folder> {
@@ -185,40 +186,29 @@ export class FolderService {
     // it in the prefix of the folders data location
     // (in the case of a Server provided location for a user folder)
     const prospectiveFolderId = uuidV4()
-
     const now = new Date()
     const buildLocation = async (
       storageProvisionType: UserStorageProvisionType,
-      locationInput: UserLocationInputDTO,
+      locationInput: StorageLocationInputDTO,
     ): Promise<StorageLocation> => {
-      const withNewUserLocationConnection =
-        NewUserLocationPayloadRunType.safeParse(locationInput)
-      const withExistingUserLocation =
-        ExistingUserLocationPayloadRunType.safeParse(locationInput)
-      const withExistingServerLocation =
-        ServerLocationPayloadRunType.safeParse(locationInput)
-
       let location: StorageLocation | undefined = undefined
-
-      if (withNewUserLocationConnection.success) {
-        // user has input all new location info
+      if (safeZodParse(locationInput, customLocationPayloadSchema)) {
+        // user has input a custom location
         location = (
           await this.ormService.db
             .insert(storageLocationsTable)
             .values({
-              ...withNewUserLocationConnection.data,
-              endpointDomain: new URL(
-                withNewUserLocationConnection.data.endpoint,
-              ).host,
+              ...locationInput,
+              endpointDomain: new URL(locationInput.endpoint).host,
               accessKeyHashId: buildAccessKeyHashId({
-                accessKeyId: withNewUserLocationConnection.data.accessKeyId,
-                secretAccessKey:
-                  withNewUserLocationConnection.data.secretAccessKey,
-                region: withNewUserLocationConnection.data.region,
-                endpoint: withNewUserLocationConnection.data.endpoint,
+                accessKeyId: locationInput.accessKeyId,
+                secretAccessKey: locationInput.secretAccessKey,
+                region: locationInput.region,
+                endpoint: locationInput.endpoint,
               }),
+              prefix: locationInput.prefix ?? '',
               id: uuidV4(),
-              label: `${withNewUserLocationConnection.data.endpoint} - ${withNewUserLocationConnection.data.accessKeyId}`,
+              label: `${locationInput.endpoint} - ${locationInput.accessKeyId}`,
               providerType: 'USER',
               userId,
               createdAt: now,
@@ -226,17 +216,14 @@ export class FolderService {
             })
             .returning()
         )[0]
-      } else if (withExistingUserLocation.success) {
+      } else if (safeZodParse(locationInput, existingUserLocationSchema)) {
         // user has provided another location ID they apparently own, and a bucket + prefix override
         const existingLocation =
           await this.ormService.db.query.storageLocationsTable.findFirst({
             where: and(
               eq(storageLocationsTable.providerType, 'USER'),
               eq(storageLocationsTable.userId, userId),
-              eq(
-                storageLocationsTable.id,
-                withExistingUserLocation.data.userLocationId,
-              ),
+              eq(storageLocationsTable.id, locationInput.userLocationId),
             ),
           })
         if (existingLocation) {
@@ -259,10 +246,8 @@ export class FolderService {
                 accessKeyId: existingLocation.accessKeyId,
                 secretAccessKey: existingLocation.secretAccessKey,
                 region: existingLocation.region,
-                prefix:
-                  withExistingUserLocation.data.userLocationPrefixOverride,
-                bucket:
-                  withExistingUserLocation.data.userLocationBucketOverride,
+                prefix: locationInput.userLocationPrefixOverride,
+                bucket: locationInput.userLocationBucketOverride,
                 createdAt: now,
                 updatedAt: now,
               })
@@ -271,11 +256,11 @@ export class FolderService {
         } else {
           throw new StorageLocationNotFoundException()
         }
-      } else if (withExistingServerLocation.success) {
-        // user has provided a server location reference
+      } else if (safeZodParse(locationInput, serverProvisionPayloadSchema)) {
+        // user has provided a reference to a server supplied storage provision
         const existingServerLocation =
           await this.serverConfigurationService.getUserStorageProvisionById(
-            withExistingServerLocation.data.storageProvisionId,
+            locationInput.storageProvisionId,
           )
 
         if (!existingServerLocation) {
@@ -320,6 +305,13 @@ export class FolderService {
             .returning()
         )[0]
       } else {
+        console.log(
+          'Got bad folder create %s location input:',
+          storageProvisionType.toLowerCase(),
+          {
+            locationInput,
+          },
+        )
         throw new BadRequestException()
       }
 

@@ -7,6 +7,7 @@ import fs from 'fs'
 import path from 'path'
 import { KVService } from 'src/cache/kv.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
+import { HttpExceptionFilter } from 'src/shared/http-exception-filter'
 import { configureS3Client } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { CoreTestModule } from 'src/test/core-test.module'
@@ -43,6 +44,8 @@ export async function buildTestModule({
   setAppInitializing(appPromise)
 
   const app = await appPromise
+  app.useGlobalFilters(new HttpExceptionFilter('NONE'))
+
   setApp(app)
 
   const ormService = await app.resolve(OrmService)

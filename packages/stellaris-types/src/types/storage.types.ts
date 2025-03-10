@@ -16,7 +16,7 @@ export type UserStorageProvisionType = z.infer<
 >
 export const UserStorageProvisionTypeEnum = UserStorageProvisionTypeZodEnum.Enum
 
-export const serverStorageLocationInputSchema = z.object({
+export const s3LocationSchema = z.object({
   accessKeyId: z.string().min(1),
   secretAccessKey: z.string().min(1),
   endpoint: z
@@ -36,5 +36,5 @@ export const serverStorageLocationInputSchema = z.object({
     ),
   bucket: z.string().min(1),
   region: z.string().min(1),
-  prefix: z.union([z.string().min(1), z.null()]),
+  prefix: z.string().nonempty().optional(),
 })

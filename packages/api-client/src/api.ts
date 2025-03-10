@@ -26,32 +26,32 @@ import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerM
 /**
  * 
  * @export
- * @interface AccessKeyBucketsListResponse
+ * @interface AccessKeyBucketsListResponseDTO
  */
-export interface AccessKeyBucketsListResponse {
+export interface AccessKeyBucketsListResponseDTO {
     /**
      * 
-     * @type {Array<AccessKeyBucketsListResponseResultInner>}
-     * @memberof AccessKeyBucketsListResponse
+     * @type {Array<AccessKeyBucketsListResponseDTOResultInner>}
+     * @memberof AccessKeyBucketsListResponseDTO
      */
-    'result': Array<AccessKeyBucketsListResponseResultInner>;
+    'result': Array<AccessKeyBucketsListResponseDTOResultInner>;
 }
 /**
  * 
  * @export
- * @interface AccessKeyBucketsListResponseResultInner
+ * @interface AccessKeyBucketsListResponseDTOResultInner
  */
-export interface AccessKeyBucketsListResponseResultInner {
+export interface AccessKeyBucketsListResponseDTOResultInner {
     /**
      * 
      * @type {string}
-     * @memberof AccessKeyBucketsListResponseResultInner
+     * @memberof AccessKeyBucketsListResponseDTOResultInner
      */
     'name': string;
     /**
      * 
      * @type {string}
-     * @memberof AccessKeyBucketsListResponseResultInner
+     * @memberof AccessKeyBucketsListResponseDTOResultInner
      */
     'createdDate'?: string;
 }
@@ -733,72 +733,11 @@ export interface FolderCreateInputDTO {
     'contentLocation': FolderCreateInputDTOMetadataLocation;
 }
 /**
- * 
+ * @type FolderCreateInputDTOMetadataLocation
  * @export
- * @interface FolderCreateInputDTOMetadataLocation
  */
-export interface FolderCreateInputDTOMetadataLocation {
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderCreateInputDTOMetadataLocation
-     */
-    'storageProvisionId'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderCreateInputDTOMetadataLocation
-     */
-    'userLocationId'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderCreateInputDTOMetadataLocation
-     */
-    'userLocationBucketOverride'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderCreateInputDTOMetadataLocation
-     */
-    'userLocationPrefixOverride'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderCreateInputDTOMetadataLocation
-     */
-    'accessKeyId'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderCreateInputDTOMetadataLocation
-     */
-    'secretAccessKey'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderCreateInputDTOMetadataLocation
-     */
-    'endpoint'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderCreateInputDTOMetadataLocation
-     */
-    'bucket'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderCreateInputDTOMetadataLocation
-     */
-    'region'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderCreateInputDTOMetadataLocation
-     */
-    'prefix'?: string;
-}
+export type FolderCreateInputDTOMetadataLocation = StorageLocationInputDTOOneOf | StorageLocationInputDTOOneOf1 | StorageLocationInputDTOOneOf2;
+
 /**
  * 
  * @export
@@ -1581,10 +1520,10 @@ export interface ServerStorageLocationDTO {
     'region': string;
     /**
      * 
-     * @type {SignupResponseUserEmail}
+     * @type {string}
      * @memberof ServerStorageLocationDTO
      */
-    'prefix': SignupResponseUserEmail;
+    'prefix': string;
 }
 /**
  * 
@@ -1637,10 +1576,10 @@ export interface ServerStorageLocationGetResponseServerStorageLocation {
     'region': string;
     /**
      * 
-     * @type {SignupResponseUserEmail}
+     * @type {string}
      * @memberof ServerStorageLocationGetResponseServerStorageLocation
      */
-    'prefix': SignupResponseUserEmail;
+    'prefix': string;
 }
 /**
  * 
@@ -1680,10 +1619,10 @@ export interface ServerStorageLocationInputDTO {
     'region': string;
     /**
      * 
-     * @type {UserUpdateInputDTOName}
+     * @type {string}
      * @memberof ServerStorageLocationInputDTO
      */
-    'prefix': UserUpdateInputDTOName;
+    'prefix'?: string | null;
 }
 /**
  * 
@@ -1810,13 +1749,13 @@ export interface SignupResponseUser {
      * @type {string}
      * @memberof SignupResponseUser
      */
-    'name'?: string | null;
+    'name': string;
     /**
      * 
-     * @type {SignupResponseUserEmail}
+     * @type {string}
      * @memberof SignupResponseUser
      */
-    'email': SignupResponseUserEmail;
+    'email': string;
     /**
      * 
      * @type {boolean}
@@ -1855,77 +1794,91 @@ export interface SignupResponseUser {
     'updatedAt': string;
 }
 /**
- * @type SignupResponseUserEmail
+ * @type StorageLocationInputDTO
  * @export
  */
-export type SignupResponseUserEmail = string;
+export type StorageLocationInputDTO = StorageLocationInputDTOOneOf | StorageLocationInputDTOOneOf1 | StorageLocationInputDTOOneOf2;
 
 /**
  * 
  * @export
- * @interface StorageLocationInputDTO
+ * @interface StorageLocationInputDTOOneOf
  */
-export interface StorageLocationInputDTO {
+export interface StorageLocationInputDTOOneOf {
     /**
      * 
      * @type {string}
-     * @memberof StorageLocationInputDTO
+     * @memberof StorageLocationInputDTOOneOf
      */
-    'storageProvisionId'?: string;
+    'accessKeyId': string;
     /**
      * 
      * @type {string}
-     * @memberof StorageLocationInputDTO
+     * @memberof StorageLocationInputDTOOneOf
      */
-    'userLocationId'?: string;
+    'secretAccessKey': string;
     /**
      * 
      * @type {string}
-     * @memberof StorageLocationInputDTO
+     * @memberof StorageLocationInputDTOOneOf
      */
-    'userLocationBucketOverride'?: string;
+    'endpoint': string;
     /**
      * 
      * @type {string}
-     * @memberof StorageLocationInputDTO
+     * @memberof StorageLocationInputDTOOneOf
      */
-    'userLocationPrefixOverride'?: string;
+    'bucket': string;
     /**
      * 
      * @type {string}
-     * @memberof StorageLocationInputDTO
+     * @memberof StorageLocationInputDTOOneOf
      */
-    'accessKeyId'?: string;
+    'region': string;
     /**
      * 
      * @type {string}
-     * @memberof StorageLocationInputDTO
-     */
-    'secretAccessKey'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageLocationInputDTO
-     */
-    'endpoint'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageLocationInputDTO
-     */
-    'bucket'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageLocationInputDTO
-     */
-    'region'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof StorageLocationInputDTO
+     * @memberof StorageLocationInputDTOOneOf
      */
     'prefix'?: string;
+}
+/**
+ * 
+ * @export
+ * @interface StorageLocationInputDTOOneOf1
+ */
+export interface StorageLocationInputDTOOneOf1 {
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageLocationInputDTOOneOf1
+     */
+    'storageProvisionId': string;
+}
+/**
+ * 
+ * @export
+ * @interface StorageLocationInputDTOOneOf2
+ */
+export interface StorageLocationInputDTOOneOf2 {
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageLocationInputDTOOneOf2
+     */
+    'userLocationId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageLocationInputDTOOneOf2
+     */
+    'userLocationBucketOverride': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof StorageLocationInputDTOOneOf2
+     */
+    'userLocationPrefixOverride'?: string;
 }
 /**
  * 
@@ -2300,13 +2253,13 @@ export interface UserDTO {
      * @type {string}
      * @memberof UserDTO
      */
-    'name'?: string | null;
+    'name': string;
     /**
      * 
-     * @type {SignupResponseUserEmail}
+     * @type {string}
      * @memberof UserDTO
      */
-    'email': SignupResponseUserEmail;
+    'email': string;
     /**
      * 
      * @type {boolean}
@@ -2371,10 +2324,10 @@ export interface UserListResponse {
     'meta': UserListResponseMeta;
     /**
      * 
-     * @type {Array<SignupResponseUser>}
+     * @type {Array<UserListResponseResultInner>}
      * @memberof UserListResponse
      */
-    'result': Array<SignupResponseUser>;
+    'result': Array<UserListResponseResultInner>;
 }
 /**
  * 
@@ -2389,6 +2342,73 @@ export interface UserListResponseMeta {
      */
     'totalCount': number;
 }
+/**
+ * 
+ * @export
+ * @interface UserListResponseResultInner
+ */
+export interface UserListResponseResultInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof UserListResponseResultInner
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserListResponseResultInner
+     */
+    'name'?: string | null;
+    /**
+     * 
+     * @type {UserListResponseResultInnerEmail}
+     * @memberof UserListResponseResultInner
+     */
+    'email': UserListResponseResultInnerEmail;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UserListResponseResultInner
+     */
+    'emailVerified': boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UserListResponseResultInner
+     */
+    'isAdmin': boolean;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserListResponseResultInner
+     */
+    'username': string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof UserListResponseResultInner
+     */
+    'permissions': Array<string>;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserListResponseResultInner
+     */
+    'createdAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserListResponseResultInner
+     */
+    'updatedAt': string;
+}
+/**
+ * @type UserListResponseResultInnerEmail
+ * @export
+ */
+export type UserListResponseResultInnerEmail = string;
+
 /**
  * 
  * @export
@@ -2645,16 +2665,16 @@ export type UserStorageProvisionListResponseResultInnerProvisionTypesEnum = type
 export interface UserUpdateInputDTO {
     /**
      * 
-     * @type {UserUpdateInputDTOName}
+     * @type {string}
      * @memberof UserUpdateInputDTO
      */
-    'name'?: UserUpdateInputDTOName;
+    'name'?: string;
     /**
      * 
-     * @type {UserUpdateInputDTOEmail}
+     * @type {string}
      * @memberof UserUpdateInputDTO
      */
-    'email'?: UserUpdateInputDTOEmail;
+    'email'?: string;
     /**
      * 
      * @type {boolean}
@@ -2680,18 +2700,6 @@ export interface UserUpdateInputDTO {
      */
     'permissions'?: Array<string>;
 }
-/**
- * @type UserUpdateInputDTOEmail
- * @export
- */
-export type UserUpdateInputDTOEmail = string;
-
-/**
- * @type UserUpdateInputDTOName
- * @export
- */
-export type UserUpdateInputDTOName = string;
-
 /**
  * 
  * @export
@@ -2924,7 +2932,7 @@ export const AccessKeysApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listAccessKeyBuckets(accessKeyHashId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyBucketsListResponse>> {
+        async listAccessKeyBuckets(accessKeyHashId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyBucketsListResponseDTO>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listAccessKeyBuckets(accessKeyHashId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AccessKeysApi.listAccessKeyBuckets']?.[localVarOperationServerIndex]?.url;
@@ -2986,7 +2994,7 @@ export const AccessKeysApiFactory = function (configuration?: Configuration, bas
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyBucketsListResponse> {
+        listAccessKeyBuckets(requestParameters: AccessKeysApiListAccessKeyBucketsRequest, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyBucketsListResponseDTO> {
             return localVarFp.listAccessKeyBuckets(requestParameters.accessKeyHashId, options).then((request) => request(axios, basePath));
         },
         /**

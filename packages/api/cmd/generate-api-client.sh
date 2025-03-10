@@ -1,20 +1,5 @@
 #!/usr/bin/env sh
 
-# Ensure the generated spec is up to date
-bun run metadata:generate
-if [[ $? -eq 0 ]]; then
-  echo "Metadata generation SUCCESS"
-else
-  echo "Metadata generation FAILURE"
-  exit 1
-fi
-result=$?
-
-# Check the result
-if [ $result -ne 0 ]; then
-    exit $result
-fi
-
 ROOT_DIR="${PWD}/../../"
 SRC_PATH="packages/api/"
 PUBLIC_API_OUT_PATH="packages/api-client/"

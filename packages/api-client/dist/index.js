@@ -9,14 +9,14 @@ var __export = (target, all) => {
     });
 };
 
-// ../../node_modules/axios/lib/helpers/bind.js
+// node_modules/axios/lib/helpers/bind.js
 function bind(fn, thisArg) {
   return function wrap() {
     return fn.apply(thisArg, arguments);
   };
 }
 
-// ../../node_modules/axios/lib/utils.js
+// node_modules/axios/lib/utils.js
 var { toString } = Object.prototype;
 var { getPrototypeOf } = Object;
 var kindOf = ((cache) => (thing) => {
@@ -316,23 +316,6 @@ var toJSONObject = (obj) => {
 };
 var isAsyncFn = kindOfTest("AsyncFunction");
 var isThenable = (thing) => thing && (isObject(thing) || isFunction(thing)) && isFunction(thing.then) && isFunction(thing.catch);
-var _setImmediate = ((setImmediateSupported, postMessageSupported) => {
-  if (setImmediateSupported) {
-    return setImmediate;
-  }
-  return postMessageSupported ? ((token, callbacks) => {
-    _global.addEventListener("message", ({ source, data }) => {
-      if (source === _global && data === token) {
-        callbacks.length && callbacks.shift()();
-      }
-    }, false);
-    return (cb) => {
-      callbacks.push(cb);
-      _global.postMessage(token, "*");
-    };
-  })(`axios@${Math.random()}`, []) : (cb) => setTimeout(cb);
-})(typeof setImmediate === "function", isFunction(_global.postMessage));
-var asap = typeof queueMicrotask !== "undefined" ? queueMicrotask.bind(_global) : typeof process !== "undefined" && process.nextTick || _setImmediate;
 var utils_default = {
   isArray,
   isArrayBuffer,
@@ -388,12 +371,10 @@ var utils_default = {
   isSpecCompliantForm,
   toJSONObject,
   isAsyncFn,
-  isThenable,
-  setImmediate: _setImmediate,
-  asap
+  isThenable
 };
 
-// ../../node_modules/axios/lib/core/AxiosError.js
+// node_modules/axios/lib/core/AxiosError.js
 function AxiosError(message, code, config, request, response) {
   Error.call(this);
   if (Error.captureStackTrace) {
@@ -406,10 +387,7 @@ function AxiosError(message, code, config, request, response) {
   code && (this.code = code);
   config && (this.config = config);
   request && (this.request = request);
-  if (response) {
-    this.response = response;
-    this.status = response.status ? response.status : null;
-  }
+  response && (this.response = response);
 }
 utils_default.inherits(AxiosError, Error, {
   toJSON: function toJSON() {
@@ -424,7 +402,7 @@ utils_default.inherits(AxiosError, Error, {
       stack: this.stack,
       config: utils_default.toJSONObject(this.config),
       code: this.code,
-      status: this.status
+      status: this.response && this.response.status ? this.response.status : null
     };
   }
 });
@@ -463,10 +441,10 @@ AxiosError.from = (error, code, config, request, response, customProps) => {
 };
 var AxiosError_default = AxiosError;
 
-// ../../node_modules/axios/lib/helpers/null.js
+// node_modules/axios/lib/helpers/null.js
 var null_default = null;
 
-// ../../node_modules/axios/lib/helpers/toFormData.js
+// node_modules/axios/lib/helpers/toFormData.js
 function isVisitable(thing) {
   return utils_default.isPlainObject(thing) || utils_default.isArray(thing);
 }
@@ -571,7 +549,7 @@ function toFormData(obj, formData, options) {
 }
 var toFormData_default = toFormData;
 
-// ../../node_modules/axios/lib/helpers/AxiosURLSearchParams.js
+// node_modules/axios/lib/helpers/AxiosURLSearchParams.js
 function encode(str) {
   const charMap = {
     "!": "%21",
@@ -604,7 +582,7 @@ prototype2.toString = function toString2(encoder) {
 };
 var AxiosURLSearchParams_default = AxiosURLSearchParams;
 
-// ../../node_modules/axios/lib/helpers/buildURL.js
+// node_modules/axios/lib/helpers/buildURL.js
 function encode2(val) {
   return encodeURIComponent(val).replace(/%3A/gi, ":").replace(/%24/g, "$").replace(/%2C/gi, ",").replace(/%20/g, "+").replace(/%5B/gi, "[").replace(/%5D/gi, "]");
 }
@@ -613,11 +591,6 @@ function buildURL(url, params, options) {
     return url;
   }
   const _encode = options && options.encode || encode2;
-  if (utils_default.isFunction(options)) {
-    options = {
-      serialize: options
-    };
-  }
   const serializeFn = options && options.serialize;
   let serializedParams;
   if (serializeFn) {
@@ -635,7 +608,7 @@ function buildURL(url, params, options) {
   return url;
 }
 
-// ../../node_modules/axios/lib/core/InterceptorManager.js
+// node_modules/axios/lib/core/InterceptorManager.js
 class InterceptorManager {
   constructor() {
     this.handlers = [];
@@ -669,23 +642,23 @@ class InterceptorManager {
 }
 var InterceptorManager_default = InterceptorManager;
 
-// ../../node_modules/axios/lib/defaults/transitional.js
+// node_modules/axios/lib/defaults/transitional.js
 var transitional_default = {
   silentJSONParsing: true,
   forcedJSONParsing: true,
   clarifyTimeoutError: false
 };
 
-// ../../node_modules/axios/lib/platform/browser/classes/URLSearchParams.js
+// node_modules/axios/lib/platform/browser/classes/URLSearchParams.js
 var URLSearchParams_default = typeof URLSearchParams !== "undefined" ? URLSearchParams : AxiosURLSearchParams_default;
 
-// ../../node_modules/axios/lib/platform/browser/classes/FormData.js
+// node_modules/axios/lib/platform/browser/classes/FormData.js
 var FormData_default = typeof FormData !== "undefined" ? FormData : null;
 
-// ../../node_modules/axios/lib/platform/browser/classes/Blob.js
+// node_modules/axios/lib/platform/browser/classes/Blob.js
 var Blob_default = typeof Blob !== "undefined" ? Blob : null;
 
-// ../../node_modules/axios/lib/platform/browser/index.js
+// node_modules/axios/lib/platform/browser/index.js
 var browser_default = {
   isBrowser: true,
   classes: {
@@ -696,30 +669,30 @@ var browser_default = {
   protocols: ["http", "https", "file", "blob", "url", "data"]
 };
 
-// ../../node_modules/axios/lib/platform/common/utils.js
+// node_modules/axios/lib/platform/common/utils.js
 var exports_utils = {};
 __export(exports_utils, {
   origin: () => origin,
-  navigator: () => _navigator,
   hasStandardBrowserWebWorkerEnv: () => hasStandardBrowserWebWorkerEnv,
   hasStandardBrowserEnv: () => hasStandardBrowserEnv,
   hasBrowserEnv: () => hasBrowserEnv
 });
 var hasBrowserEnv = typeof window !== "undefined" && typeof document !== "undefined";
-var _navigator = typeof navigator === "object" && navigator || undefined;
-var hasStandardBrowserEnv = hasBrowserEnv && (!_navigator || ["ReactNative", "NativeScript", "NS"].indexOf(_navigator.product) < 0);
+var hasStandardBrowserEnv = ((product) => {
+  return hasBrowserEnv && ["ReactNative", "NativeScript", "NS"].indexOf(product) < 0;
+})(typeof navigator !== "undefined" && navigator.product);
 var hasStandardBrowserWebWorkerEnv = (() => {
   return typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope && typeof self.importScripts === "function";
 })();
 var origin = hasBrowserEnv && window.location.href || "http://localhost";
 
-// ../../node_modules/axios/lib/platform/index.js
+// node_modules/axios/lib/platform/index.js
 var platform_default = {
   ...exports_utils,
   ...browser_default
 };
 
-// ../../node_modules/axios/lib/helpers/toURLEncodedForm.js
+// node_modules/axios/lib/helpers/toURLEncodedForm.js
 function toURLEncodedForm(data, options) {
   return toFormData_default(data, new platform_default.classes.URLSearchParams, Object.assign({
     visitor: function(value, key, path, helpers) {
@@ -732,7 +705,7 @@ function toURLEncodedForm(data, options) {
   }, options));
 }
 
-// ../../node_modules/axios/lib/helpers/formDataToJSON.js
+// node_modules/axios/lib/helpers/formDataToJSON.js
 function parsePropPath(name) {
   return utils_default.matchAll(/\w+|\[(\w*)]/g, name).map((match) => {
     return match[0] === "[]" ? "" : match[1] || match[0];
@@ -786,7 +759,7 @@ function formDataToJSON(formData) {
 }
 var formDataToJSON_default = formDataToJSON;
 
-// ../../node_modules/axios/lib/defaults/index.js
+// node_modules/axios/lib/defaults/index.js
 function stringifySafely(rawValue, parser, encoder) {
   if (utils_default.isString(rawValue)) {
     try {
@@ -887,7 +860,7 @@ utils_default.forEach(["delete", "get", "head", "post", "put", "patch"], (method
 });
 var defaults_default = defaults;
 
-// ../../node_modules/axios/lib/helpers/parseHeaders.js
+// node_modules/axios/lib/helpers/parseHeaders.js
 var ignoreDuplicateOf = utils_default.toObjectSet([
   "age",
   "authorization",
@@ -933,7 +906,7 @@ var parseHeaders_default = (rawHeaders) => {
   return parsed;
 };
 
-// ../../node_modules/axios/lib/core/AxiosHeaders.js
+// node_modules/axios/lib/core/AxiosHeaders.js
 var $internals = Symbol("internals");
 function normalizeHeader(header) {
   return header && String(header).trim().toLowerCase();
@@ -1157,7 +1130,7 @@ utils_default.reduceDescriptors(AxiosHeaders.prototype, ({ value }, key) => {
 utils_default.freezeMethods(AxiosHeaders);
 var AxiosHeaders_default = AxiosHeaders;
 
-// ../../node_modules/axios/lib/core/transformData.js
+// node_modules/axios/lib/core/transformData.js
 function transformData(fns, response) {
   const config = this || defaults_default;
   const context = response || config;
@@ -1170,12 +1143,12 @@ function transformData(fns, response) {
   return data;
 }
 
-// ../../node_modules/axios/lib/cancel/isCancel.js
+// node_modules/axios/lib/cancel/isCancel.js
 function isCancel(value) {
   return !!(value && value.__CANCEL__);
 }
 
-// ../../node_modules/axios/lib/cancel/CanceledError.js
+// node_modules/axios/lib/cancel/CanceledError.js
 function CanceledError(message, config, request) {
   AxiosError_default.call(this, message == null ? "canceled" : message, AxiosError_default.ERR_CANCELED, config, request);
   this.name = "CanceledError";
@@ -1185,7 +1158,7 @@ utils_default.inherits(CanceledError, AxiosError_default, {
 });
 var CanceledError_default = CanceledError;
 
-// ../../node_modules/axios/lib/core/settle.js
+// node_modules/axios/lib/core/settle.js
 function settle(resolve, reject, response) {
   const validateStatus2 = response.config.validateStatus;
   if (!response.status || !validateStatus2 || validateStatus2(response.status)) {
@@ -1195,13 +1168,13 @@ function settle(resolve, reject, response) {
   }
 }
 
-// ../../node_modules/axios/lib/helpers/parseProtocol.js
+// node_modules/axios/lib/helpers/parseProtocol.js
 function parseProtocol(url) {
   const match = /^([-+\w]{1,25})(:?\/\/|:)/.exec(url);
   return match && match[1] || "";
 }
 
-// ../../node_modules/axios/lib/helpers/speedometer.js
+// node_modules/axios/lib/helpers/speedometer.js
 function speedometer(samplesCount, min) {
   samplesCount = samplesCount || 10;
   const bytes = new Array(samplesCount);
@@ -1237,43 +1210,35 @@ function speedometer(samplesCount, min) {
 }
 var speedometer_default = speedometer;
 
-// ../../node_modules/axios/lib/helpers/throttle.js
+// node_modules/axios/lib/helpers/throttle.js
 function throttle(fn, freq) {
   let timestamp = 0;
-  let threshold = 1000 / freq;
-  let lastArgs;
-  let timer;
-  const invoke = (args, now = Date.now()) => {
-    timestamp = now;
-    lastArgs = null;
-    if (timer) {
-      clearTimeout(timer);
-      timer = null;
-    }
-    fn.apply(null, args);
-  };
-  const throttled = (...args) => {
+  const threshold = 1000 / freq;
+  let timer = null;
+  return function throttled() {
+    const force = this === true;
     const now = Date.now();
-    const passed = now - timestamp;
-    if (passed >= threshold) {
-      invoke(args, now);
-    } else {
-      lastArgs = args;
-      if (!timer) {
-        timer = setTimeout(() => {
-          timer = null;
-          invoke(lastArgs);
-        }, threshold - passed);
+    if (force || now - timestamp > threshold) {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
       }
+      timestamp = now;
+      return fn.apply(null, arguments);
+    }
+    if (!timer) {
+      timer = setTimeout(() => {
+        timer = null;
+        timestamp = Date.now();
+        return fn.apply(null, arguments);
+      }, threshold - (now - timestamp));
     }
   };
-  const flush = () => lastArgs && invoke(lastArgs);
-  return [throttled, flush];
 }
 var throttle_default = throttle;
 
-// ../../node_modules/axios/lib/helpers/progressEventReducer.js
-var progressEventReducer = (listener, isDownloadStream, freq = 3) => {
+// node_modules/axios/lib/helpers/progressEventReducer.js
+var progressEventReducer_default = (listener, isDownloadStream, freq = 3) => {
   let bytesNotified = 0;
   const _speedometer = speedometer_default(50, 250);
   return throttle_default((e) => {
@@ -1291,29 +1256,48 @@ var progressEventReducer = (listener, isDownloadStream, freq = 3) => {
       rate: rate ? rate : undefined,
       estimated: rate && total && inRange ? (total - loaded) / rate : undefined,
       event: e,
-      lengthComputable: total != null,
-      [isDownloadStream ? "download" : "upload"]: true
+      lengthComputable: total != null
     };
+    data[isDownloadStream ? "download" : "upload"] = true;
     listener(data);
   }, freq);
 };
-var progressEventDecorator = (total, throttled) => {
-  const lengthComputable = total != null;
-  return [(loaded) => throttled[0]({
-    lengthComputable,
-    total,
-    loaded
-  }), throttled[1]];
-};
-var asyncDecorator = (fn) => (...args) => utils_default.asap(() => fn(...args));
 
-// ../../node_modules/axios/lib/helpers/isURLSameOrigin.js
-var isURLSameOrigin_default = platform_default.hasStandardBrowserEnv ? ((origin2, isMSIE) => (url) => {
-  url = new URL(url, platform_default.origin);
-  return origin2.protocol === url.protocol && origin2.host === url.host && (isMSIE || origin2.port === url.port);
-})(new URL(platform_default.origin), platform_default.navigator && /(msie|trident)/i.test(platform_default.navigator.userAgent)) : () => true;
+// node_modules/axios/lib/helpers/isURLSameOrigin.js
+var isURLSameOrigin_default = platform_default.hasStandardBrowserEnv ? function standardBrowserEnv() {
+  const msie = /(msie|trident)/i.test(navigator.userAgent);
+  const urlParsingNode = document.createElement("a");
+  let originURL;
+  function resolveURL(url) {
+    let href = url;
+    if (msie) {
+      urlParsingNode.setAttribute("href", href);
+      href = urlParsingNode.href;
+    }
+    urlParsingNode.setAttribute("href", href);
+    return {
+      href: urlParsingNode.href,
+      protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, "") : "",
+      host: urlParsingNode.host,
+      search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, "") : "",
+      hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, "") : "",
+      hostname: urlParsingNode.hostname,
+      port: urlParsingNode.port,
+      pathname: urlParsingNode.pathname.charAt(0) === "/" ? urlParsingNode.pathname : "/" + urlParsingNode.pathname
+    };
+  }
+  originURL = resolveURL(window.location.href);
+  return function isURLSameOrigin(requestURL) {
+    const parsed = utils_default.isString(requestURL) ? resolveURL(requestURL) : requestURL;
+    return parsed.protocol === originURL.protocol && parsed.host === originURL.host;
+  };
+}() : function nonStandardBrowserEnv() {
+  return function isURLSameOrigin() {
+    return true;
+  };
+}();
 
-// ../../node_modules/axios/lib/helpers/cookies.js
+// node_modules/axios/lib/helpers/cookies.js
 var cookies_default = platform_default.hasStandardBrowserEnv ? {
   write(name, value, expires, path, domain, secure) {
     const cookie = [name + "=" + encodeURIComponent(value)];
@@ -1340,17 +1324,17 @@ var cookies_default = platform_default.hasStandardBrowserEnv ? {
   }
 };
 
-// ../../node_modules/axios/lib/helpers/isAbsoluteURL.js
+// node_modules/axios/lib/helpers/isAbsoluteURL.js
 function isAbsoluteURL(url) {
   return /^([a-z][a-z\d+\-.]*:)?\/\//i.test(url);
 }
 
-// ../../node_modules/axios/lib/helpers/combineURLs.js
+// node_modules/axios/lib/helpers/combineURLs.js
 function combineURLs(baseURL, relativeURL) {
   return relativeURL ? baseURL.replace(/\/?\/$/, "") + "/" + relativeURL.replace(/^\/+/, "") : baseURL;
 }
 
-// ../../node_modules/axios/lib/core/buildFullPath.js
+// node_modules/axios/lib/core/buildFullPath.js
 function buildFullPath(baseURL, requestedURL) {
   if (baseURL && !isAbsoluteURL(requestedURL)) {
     return combineURLs(baseURL, requestedURL);
@@ -1358,12 +1342,12 @@ function buildFullPath(baseURL, requestedURL) {
   return requestedURL;
 }
 
-// ../../node_modules/axios/lib/core/mergeConfig.js
+// node_modules/axios/lib/core/mergeConfig.js
 var headersToObject = (thing) => thing instanceof AxiosHeaders_default ? { ...thing } : thing;
 function mergeConfig(config1, config2) {
   config2 = config2 || {};
   const config = {};
-  function getMergedValue(target, source, prop, caseless) {
+  function getMergedValue(target, source, caseless) {
     if (utils_default.isPlainObject(target) && utils_default.isPlainObject(source)) {
       return utils_default.merge.call({ caseless }, target, source);
     } else if (utils_default.isPlainObject(source)) {
@@ -1373,11 +1357,11 @@ function mergeConfig(config1, config2) {
     }
     return source;
   }
-  function mergeDeepProperties(a, b, prop, caseless) {
+  function mergeDeepProperties(a, b, caseless) {
     if (!utils_default.isUndefined(b)) {
-      return getMergedValue(a, b, prop, caseless);
+      return getMergedValue(a, b, caseless);
     } else if (!utils_default.isUndefined(a)) {
-      return getMergedValue(undefined, a, prop, caseless);
+      return getMergedValue(undefined, a, caseless);
     }
   }
   function valueFromConfig2(a, b) {
@@ -1428,7 +1412,7 @@ function mergeConfig(config1, config2) {
     socketPath: defaultToConfig2,
     responseEncoding: defaultToConfig2,
     validateStatus: mergeDirectKeys,
-    headers: (a, b, prop) => mergeDeepProperties(headersToObject(a), headersToObject(b), prop, true)
+    headers: (a, b) => mergeDeepProperties(headersToObject(a), headersToObject(b), true)
   };
   utils_default.forEach(Object.keys(Object.assign({}, config1, config2)), function computeConfigValue(prop) {
     const merge2 = mergeMap[prop] || mergeDeepProperties;
@@ -1438,7 +1422,7 @@ function mergeConfig(config1, config2) {
   return config;
 }
 
-// ../../node_modules/axios/lib/helpers/resolveConfig.js
+// node_modules/axios/lib/helpers/resolveConfig.js
 var resolveConfig_default = (config) => {
   const newConfig = mergeConfig({}, config);
   let { data, withXSRFToken, xsrfHeaderName, xsrfCookieName, headers, auth } = newConfig;
@@ -1468,22 +1452,22 @@ var resolveConfig_default = (config) => {
   return newConfig;
 };
 
-// ../../node_modules/axios/lib/adapters/xhr.js
+// node_modules/axios/lib/adapters/xhr.js
 var isXHRAdapterSupported = typeof XMLHttpRequest !== "undefined";
 var xhr_default = isXHRAdapterSupported && function(config) {
   return new Promise(function dispatchXhrRequest(resolve, reject) {
     const _config = resolveConfig_default(config);
     let requestData = _config.data;
     const requestHeaders = AxiosHeaders_default.from(_config.headers).normalize();
-    let { responseType, onUploadProgress, onDownloadProgress } = _config;
+    let { responseType } = _config;
     let onCanceled;
-    let uploadThrottled, downloadThrottled;
-    let flushUpload, flushDownload;
     function done() {
-      flushUpload && flushUpload();
-      flushDownload && flushDownload();
-      _config.cancelToken && _config.cancelToken.unsubscribe(onCanceled);
-      _config.signal && _config.signal.removeEventListener("abort", onCanceled);
+      if (_config.cancelToken) {
+        _config.cancelToken.unsubscribe(onCanceled);
+      }
+      if (_config.signal) {
+        _config.signal.removeEventListener("abort", onCanceled);
+      }
     }
     let request = new XMLHttpRequest;
     request.open(_config.method.toUpperCase(), _config.url, true);
@@ -1528,11 +1512,11 @@ var xhr_default = isXHRAdapterSupported && function(config) {
       if (!request) {
         return;
       }
-      reject(new AxiosError_default("Request aborted", AxiosError_default.ECONNABORTED, config, request));
+      reject(new AxiosError_default("Request aborted", AxiosError_default.ECONNABORTED, _config, request));
       request = null;
     };
     request.onerror = function handleError() {
-      reject(new AxiosError_default("Network Error", AxiosError_default.ERR_NETWORK, config, request));
+      reject(new AxiosError_default("Network Error", AxiosError_default.ERR_NETWORK, _config, request));
       request = null;
     };
     request.ontimeout = function handleTimeout() {
@@ -1541,7 +1525,7 @@ var xhr_default = isXHRAdapterSupported && function(config) {
       if (_config.timeoutErrorMessage) {
         timeoutErrorMessage = _config.timeoutErrorMessage;
       }
-      reject(new AxiosError_default(timeoutErrorMessage, transitional.clarifyTimeoutError ? AxiosError_default.ETIMEDOUT : AxiosError_default.ECONNABORTED, config, request));
+      reject(new AxiosError_default(timeoutErrorMessage, transitional.clarifyTimeoutError ? AxiosError_default.ETIMEDOUT : AxiosError_default.ECONNABORTED, _config, request));
       request = null;
     };
     requestData === undefined && requestHeaders.setContentType(null);
@@ -1556,14 +1540,11 @@ var xhr_default = isXHRAdapterSupported && function(config) {
     if (responseType && responseType !== "json") {
       request.responseType = _config.responseType;
     }
-    if (onDownloadProgress) {
-      [downloadThrottled, flushDownload] = progressEventReducer(onDownloadProgress, true);
-      request.addEventListener("progress", downloadThrottled);
+    if (typeof _config.onDownloadProgress === "function") {
+      request.addEventListener("progress", progressEventReducer_default(_config.onDownloadProgress, true));
     }
-    if (onUploadProgress && request.upload) {
-      [uploadThrottled, flushUpload] = progressEventReducer(onUploadProgress);
-      request.upload.addEventListener("progress", uploadThrottled);
-      request.upload.addEventListener("loadend", flushUpload);
+    if (typeof _config.onUploadProgress === "function" && request.upload) {
+      request.upload.addEventListener("progress", progressEventReducer_default(_config.onUploadProgress));
     }
     if (_config.cancelToken || _config.signal) {
       onCanceled = (cancel) => {
@@ -1588,43 +1569,42 @@ var xhr_default = isXHRAdapterSupported && function(config) {
   });
 };
 
-// ../../node_modules/axios/lib/helpers/composeSignals.js
+// node_modules/axios/lib/helpers/composeSignals.js
 var composeSignals = (signals, timeout) => {
-  const { length } = signals = signals ? signals.filter(Boolean) : [];
-  if (timeout || length) {
-    let controller = new AbortController;
-    let aborted;
-    const onabort = function(reason) {
-      if (!aborted) {
-        aborted = true;
-        unsubscribe();
-        const err = reason instanceof Error ? reason : this.reason;
-        controller.abort(err instanceof AxiosError_default ? err : new CanceledError_default(err instanceof Error ? err.message : err));
-      }
-    };
-    let timer = timeout && setTimeout(() => {
+  let controller = new AbortController;
+  let aborted;
+  const onabort = function(cancel) {
+    if (!aborted) {
+      aborted = true;
+      unsubscribe();
+      const err = cancel instanceof Error ? cancel : this.reason;
+      controller.abort(err instanceof AxiosError_default ? err : new CanceledError_default(err instanceof Error ? err.message : err));
+    }
+  };
+  let timer = timeout && setTimeout(() => {
+    onabort(new AxiosError_default(`timeout ${timeout} of ms exceeded`, AxiosError_default.ETIMEDOUT));
+  }, timeout);
+  const unsubscribe = () => {
+    if (signals) {
+      timer && clearTimeout(timer);
       timer = null;
-      onabort(new AxiosError_default(`timeout ${timeout} of ms exceeded`, AxiosError_default.ETIMEDOUT));
-    }, timeout);
-    const unsubscribe = () => {
-      if (signals) {
-        timer && clearTimeout(timer);
-        timer = null;
-        signals.forEach((signal2) => {
-          signal2.unsubscribe ? signal2.unsubscribe(onabort) : signal2.removeEventListener("abort", onabort);
-        });
-        signals = null;
-      }
-    };
-    signals.forEach((signal2) => signal2.addEventListener("abort", onabort));
-    const { signal } = controller;
-    signal.unsubscribe = () => utils_default.asap(unsubscribe);
-    return signal;
-  }
+      signals.forEach((signal2) => {
+        signal2 && (signal2.removeEventListener ? signal2.removeEventListener("abort", onabort) : signal2.unsubscribe(onabort));
+      });
+      signals = null;
+    }
+  };
+  signals.forEach((signal2) => signal2 && signal2.addEventListener && signal2.addEventListener("abort", onabort));
+  const { signal } = controller;
+  signal.unsubscribe = unsubscribe;
+  return [signal, () => {
+    timer && clearTimeout(timer);
+    timer = null;
+  }];
 };
 var composeSignals_default = composeSignals;
 
-// ../../node_modules/axios/lib/helpers/trackStream.js
+// node_modules/axios/lib/helpers/trackStream.js
 var streamChunk = function* (chunk, chunkSize) {
   let len = chunk.byteLength;
   if (!chunkSize || len < chunkSize) {
@@ -1639,61 +1619,29 @@ var streamChunk = function* (chunk, chunkSize) {
     pos = end;
   }
 };
-var readBytes = async function* (iterable, chunkSize) {
-  for await (const chunk of readStream(iterable)) {
-    yield* streamChunk(chunk, chunkSize);
+var readBytes = async function* (iterable, chunkSize, encode3) {
+  for await (const chunk of iterable) {
+    yield* streamChunk(ArrayBuffer.isView(chunk) ? chunk : await encode3(String(chunk)), chunkSize);
   }
 };
-var readStream = async function* (stream) {
-  if (stream[Symbol.asyncIterator]) {
-    yield* stream;
-    return;
-  }
-  const reader = stream.getReader();
-  try {
-    for (;; ) {
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
-      }
-      yield value;
-    }
-  } finally {
-    await reader.cancel();
-  }
-};
-var trackStream = (stream, chunkSize, onProgress, onFinish) => {
-  const iterator = readBytes(stream, chunkSize);
+var trackStream = (stream, chunkSize, onProgress, onFinish, encode3) => {
+  const iterator = readBytes(stream, chunkSize, encode3);
   let bytes = 0;
-  let done;
-  let _onFinish = (e) => {
-    if (!done) {
-      done = true;
-      onFinish && onFinish(e);
-    }
-  };
   return new ReadableStream({
+    type: "bytes",
     async pull(controller) {
-      try {
-        const { done: done2, value } = await iterator.next();
-        if (done2) {
-          _onFinish();
-          controller.close();
-          return;
-        }
-        let len = value.byteLength;
-        if (onProgress) {
-          let loadedBytes = bytes += len;
-          onProgress(loadedBytes);
-        }
-        controller.enqueue(new Uint8Array(value));
-      } catch (err) {
-        _onFinish(err);
-        throw err;
+      const { done, value } = await iterator.next();
+      if (done) {
+        controller.close();
+        onFinish();
+        return;
       }
+      let len = value.byteLength;
+      onProgress && onProgress(bytes += len);
+      controller.enqueue(new Uint8Array(value));
     },
     cancel(reason) {
-      _onFinish(reason);
+      onFinish(reason);
       return iterator.return();
     }
   }, {
@@ -1701,18 +1649,19 @@ var trackStream = (stream, chunkSize, onProgress, onFinish) => {
   });
 };
 
-// ../../node_modules/axios/lib/adapters/fetch.js
+// node_modules/axios/lib/adapters/fetch.js
+var fetchProgressDecorator = (total, fn) => {
+  const lengthComputable = total != null;
+  return (loaded) => setTimeout(() => fn({
+    lengthComputable,
+    total,
+    loaded
+  }));
+};
 var isFetchSupported = typeof fetch === "function" && typeof Request === "function" && typeof Response === "function";
 var isReadableStreamSupported = isFetchSupported && typeof ReadableStream === "function";
 var encodeText = isFetchSupported && (typeof TextEncoder === "function" ? ((encoder) => (str) => encoder.encode(str))(new TextEncoder) : async (str) => new Uint8Array(await new Response(str).arrayBuffer()));
-var test = (fn, ...args) => {
-  try {
-    return !!fn(...args);
-  } catch (e) {
-    return false;
-  }
-};
-var supportsRequestStream = isReadableStreamSupported && test(() => {
+var supportsRequestStream = isReadableStreamSupported && (() => {
   let duplexAccessed = false;
   const hasContentType = new Request(platform_default.origin, {
     body: new ReadableStream,
@@ -1723,9 +1672,14 @@ var supportsRequestStream = isReadableStreamSupported && test(() => {
     }
   }).headers.has("Content-Type");
   return duplexAccessed && !hasContentType;
-});
+})();
 var DEFAULT_CHUNK_SIZE = 64 * 1024;
-var supportsResponseStream = isReadableStreamSupported && test(() => utils_default.isReadableStream(new Response("").body));
+var supportsResponseStream = isReadableStreamSupported && !!(() => {
+  try {
+    return utils_default.isReadableStream(new Response("").body);
+  } catch (err) {
+  }
+})();
 var resolvers = {
   stream: supportsResponseStream && ((res) => res.body)
 };
@@ -1744,13 +1698,9 @@ var getBodyLength = async (body) => {
     return body.size;
   }
   if (utils_default.isSpecCompliantForm(body)) {
-    const _request = new Request(platform_default.origin, {
-      method: "POST",
-      body
-    });
-    return (await _request.arrayBuffer()).byteLength;
+    return (await new Request(body).arrayBuffer()).byteLength;
   }
-  if (utils_default.isArrayBufferView(body) || utils_default.isArrayBuffer(body)) {
+  if (utils_default.isArrayBufferView(body)) {
     return body.byteLength;
   }
   if (utils_default.isURLSearchParams(body)) {
@@ -1780,11 +1730,14 @@ var fetch_default = isFetchSupported && (async (config) => {
     fetchOptions
   } = resolveConfig_default(config);
   responseType = responseType ? (responseType + "").toLowerCase() : "text";
-  let composedSignal = composeSignals_default([signal, cancelToken && cancelToken.toAbortSignal()], timeout);
-  let request;
-  const unsubscribe = composedSignal && composedSignal.unsubscribe && (() => {
-    composedSignal.unsubscribe();
-  });
+  let [composedSignal, stopTimeout] = signal || cancelToken || timeout ? composeSignals_default([signal, cancelToken], timeout) : [];
+  let finished, request;
+  const onFinish = () => {
+    !finished && setTimeout(() => {
+      composedSignal && composedSignal.unsubscribe();
+    });
+    finished = true;
+  };
   let requestContentLength;
   try {
     if (onUploadProgress && supportsRequestStream && method !== "get" && method !== "head" && (requestContentLength = await resolveBodyLength(headers, data)) !== 0) {
@@ -1798,14 +1751,12 @@ var fetch_default = isFetchSupported && (async (config) => {
         headers.setContentType(contentTypeHeader);
       }
       if (_request.body) {
-        const [onProgress, flush] = progressEventDecorator(requestContentLength, progressEventReducer(asyncDecorator(onUploadProgress)));
-        data = trackStream(_request.body, DEFAULT_CHUNK_SIZE, onProgress, flush);
+        data = trackStream(_request.body, DEFAULT_CHUNK_SIZE, fetchProgressDecorator(requestContentLength, progressEventReducer_default(onUploadProgress)), null, encodeText);
       }
     }
     if (!utils_default.isString(withCredentials)) {
-      withCredentials = withCredentials ? "include" : "omit";
+      withCredentials = withCredentials ? "cors" : "omit";
     }
-    const isCredentialsSupported = "credentials" in Request.prototype;
     request = new Request(url, {
       ...fetchOptions,
       signal: composedSignal,
@@ -1813,25 +1764,22 @@ var fetch_default = isFetchSupported && (async (config) => {
       headers: headers.normalize().toJSON(),
       body: data,
       duplex: "half",
-      credentials: isCredentialsSupported ? withCredentials : undefined
+      withCredentials
     });
     let response = await fetch(request);
     const isStreamResponse = supportsResponseStream && (responseType === "stream" || responseType === "response");
-    if (supportsResponseStream && (onDownloadProgress || isStreamResponse && unsubscribe)) {
+    if (supportsResponseStream && (onDownloadProgress || isStreamResponse)) {
       const options = {};
       ["status", "statusText", "headers"].forEach((prop) => {
         options[prop] = response[prop];
       });
       const responseContentLength = utils_default.toFiniteNumber(response.headers.get("content-length"));
-      const [onProgress, flush] = onDownloadProgress && progressEventDecorator(responseContentLength, progressEventReducer(asyncDecorator(onDownloadProgress), true)) || [];
-      response = new Response(trackStream(response.body, DEFAULT_CHUNK_SIZE, onProgress, () => {
-        flush && flush();
-        unsubscribe && unsubscribe();
-      }), options);
+      response = new Response(trackStream(response.body, DEFAULT_CHUNK_SIZE, onDownloadProgress && fetchProgressDecorator(responseContentLength, progressEventReducer_default(onDownloadProgress, true)), isStreamResponse && onFinish, encodeText), options);
     }
     responseType = responseType || "text";
     let responseData = await resolvers[utils_default.findKey(resolvers, responseType) || "text"](response, config);
-    !isStreamResponse && unsubscribe && unsubscribe();
+    !isStreamResponse && onFinish();
+    stopTimeout && stopTimeout();
     return await new Promise((resolve, reject) => {
       settle(resolve, reject, {
         data: responseData,
@@ -1843,7 +1791,7 @@ var fetch_default = isFetchSupported && (async (config) => {
       });
     });
   } catch (err) {
-    unsubscribe && unsubscribe();
+    onFinish();
     if (err && err.name === "TypeError" && /fetch/i.test(err.message)) {
       throw Object.assign(new AxiosError_default("Network Error", AxiosError_default.ERR_NETWORK, config, request), {
         cause: err.cause || err
@@ -1853,7 +1801,7 @@ var fetch_default = isFetchSupported && (async (config) => {
   }
 });
 
-// ../../node_modules/axios/lib/adapters/adapters.js
+// node_modules/axios/lib/adapters/adapters.js
 var knownAdapters = {
   http: null_default,
   xhr: xhr_default,
@@ -1904,7 +1852,7 @@ var adapters_default = {
   adapters: knownAdapters
 };
 
-// ../../node_modules/axios/lib/core/dispatchRequest.js
+// node_modules/axios/lib/core/dispatchRequest.js
 function throwIfCancellationRequested(config) {
   if (config.cancelToken) {
     config.cancelToken.throwIfRequested();
@@ -1938,10 +1886,10 @@ function dispatchRequest(config) {
   });
 }
 
-// ../../node_modules/axios/lib/env/data.js
-var VERSION = "1.7.9";
+// node_modules/axios/lib/env/data.js
+var VERSION = "1.7.2";
 
-// ../../node_modules/axios/lib/helpers/validator.js
+// node_modules/axios/lib/helpers/validator.js
 var validators = {};
 ["object", "boolean", "number", "function", "string", "symbol"].forEach((type, i) => {
   validators[type] = function validator(thing) {
@@ -1962,12 +1910,6 @@ validators.transitional = function transitional(validator, version, message) {
       console.warn(formatMessage(opt, " has been deprecated since v" + version + " and will be removed in the near future"));
     }
     return validator ? validator(value, opt, opts) : true;
-  };
-};
-validators.spelling = function spelling(correctSpelling) {
-  return (value, opt) => {
-    console.warn(`${opt} is likely a misspelling of ${correctSpelling}`);
-    return true;
   };
 };
 function assertOptions(options, schema, allowUnknown) {
@@ -1997,7 +1939,7 @@ var validator_default = {
   validators
 };
 
-// ../../node_modules/axios/lib/core/Axios.js
+// node_modules/axios/lib/core/Axios.js
 var validators2 = validator_default.validators;
 
 class Axios {
@@ -2013,8 +1955,8 @@ class Axios {
       return await this._request(configOrUrl, config);
     } catch (err) {
       if (err instanceof Error) {
-        let dummy = {};
-        Error.captureStackTrace ? Error.captureStackTrace(dummy) : dummy = new Error;
+        let dummy;
+        Error.captureStackTrace ? Error.captureStackTrace(dummy = {}) : dummy = new Error;
         const stack = dummy.stack ? dummy.stack.replace(/^.+\n/, "") : "";
         try {
           if (!err.stack) {
@@ -2057,10 +1999,6 @@ class Axios {
         }, true);
       }
     }
-    validator_default.assertOptions(config, {
-      baseUrl: validators2.spelling("baseURL"),
-      withXsrfToken: validators2.spelling("withXSRFToken")
-    }, true);
     config.method = (config.method || this.defaults.method || "get").toLowerCase();
     let contextHeaders = headers && utils_default.merge(headers.common, headers[config.method]);
     headers && utils_default.forEach(["delete", "get", "head", "post", "put", "patch", "common"], (method) => {
@@ -2152,7 +2090,7 @@ utils_default.forEach(["post", "put", "patch"], function forEachMethodWithData(m
 });
 var Axios_default = Axios;
 
-// ../../node_modules/axios/lib/cancel/CancelToken.js
+// node_modules/axios/lib/cancel/CancelToken.js
 class CancelToken {
   constructor(executor) {
     if (typeof executor !== "function") {
@@ -2216,15 +2154,6 @@ class CancelToken {
       this._listeners.splice(index, 1);
     }
   }
-  toAbortSignal() {
-    const controller = new AbortController;
-    const abort = (err) => {
-      controller.abort(err);
-    };
-    this.subscribe(abort);
-    controller.signal.unsubscribe = () => this.unsubscribe(abort);
-    return controller.signal;
-  }
   static source() {
     let cancel;
     const token = new CancelToken(function executor(c) {
@@ -2238,19 +2167,19 @@ class CancelToken {
 }
 var CancelToken_default = CancelToken;
 
-// ../../node_modules/axios/lib/helpers/spread.js
+// node_modules/axios/lib/helpers/spread.js
 function spread(callback) {
   return function wrap(arr) {
     return callback.apply(null, arr);
   };
 }
 
-// ../../node_modules/axios/lib/helpers/isAxiosError.js
+// node_modules/axios/lib/helpers/isAxiosError.js
 function isAxiosError(payload) {
   return utils_default.isObject(payload) && payload.isAxiosError === true;
 }
 
-// ../../node_modules/axios/lib/helpers/HttpStatusCode.js
+// node_modules/axios/lib/helpers/HttpStatusCode.js
 var HttpStatusCode = {
   Continue: 100,
   SwitchingProtocols: 101,
@@ -2321,7 +2250,7 @@ Object.entries(HttpStatusCode).forEach(([key, value]) => {
 });
 var HttpStatusCode_default = HttpStatusCode;
 
-// ../../node_modules/axios/lib/axios.js
+// node_modules/axios/lib/axios.js
 function createInstance(defaultConfig) {
   const context = new Axios_default(defaultConfig);
   const instance = bind(Axios_default.prototype.request, context);
@@ -4860,6 +4789,7 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "createdAt-asc",
                 "createdAt-desc",
@@ -4871,8 +4801,7 @@ var schema = {
                 "username-desc",
                 "updatedAt-asc",
                 "updatedAt-desc"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -5138,6 +5067,7 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "name-asc",
                 "name-desc",
@@ -5145,8 +5075,7 @@ var schema = {
                 "createdAt-desc",
                 "updatedAt-asc",
                 "updatedAt-desc"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -5552,6 +5481,7 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "accessKeyId-asc",
                 "accessKeyId-desc",
@@ -5563,8 +5493,7 @@ var schema = {
                 "region-desc",
                 "updatedAt-asc",
                 "updatedAt-desc"
-              ],
-              type: "string"
+              ]
             }
           }
         ],
@@ -5690,7 +5619,7 @@ var schema = {
             content: {
               "application/json": {
                 schema: {
-                  $ref: "#/components/schemas/AccessKeyBucketsListResponse"
+                  $ref: "#/components/schemas/AccessKeyBucketsListResponseDTO"
                 }
               }
             }
@@ -5732,6 +5661,7 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "accessKeyId-asc",
                 "accessKeyId-desc",
@@ -5743,8 +5673,7 @@ var schema = {
                 "region-desc",
                 "updatedAt-asc",
                 "updatedAt-desc"
-              ],
-              type: "string"
+              ]
             }
           }
         ],
@@ -5967,12 +5896,12 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "CONTENT",
                 "METADATA",
                 "REDUNDANCY"
-              ],
-              type: "string"
+              ]
             }
           }
         ],
@@ -6281,13 +6210,13 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "createdAt-asc",
                 "createdAt-desc",
                 "updatedAt-asc",
                 "updatedAt-desc"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6303,10 +6232,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6314,10 +6243,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6325,10 +6254,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6336,10 +6265,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6452,13 +6381,13 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "createdAt-asc",
                 "createdAt-desc",
                 "updatedAt-asc",
                 "updatedAt-desc"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6474,10 +6403,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6485,10 +6414,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6496,10 +6425,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6507,10 +6436,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6606,13 +6535,13 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "createdAt-asc",
                 "createdAt-desc",
                 "updatedAt-asc",
                 "updatedAt-desc"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6645,10 +6574,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6656,10 +6585,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6667,10 +6596,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6678,10 +6607,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6689,10 +6618,10 @@ var schema = {
             required: false,
             in: "query",
             schema: {
+              type: "string",
               enum: [
                 "true"
-              ],
-              type: "string"
+              ]
             }
           },
           {
@@ -6891,20 +6820,11 @@ var schema = {
                 format: "uuid"
               },
               name: {
-                oneOf: [
-                  {
-                    type: "string"
-                  },
-                  {}
-                ],
+                type: "string",
                 nullable: true
               },
               email: {
-                oneOf: [
-                  {
-                    type: "string"
-                  }
-                ],
+                type: "string",
                 nullable: true
               },
               emailVerified: {
@@ -6933,6 +6853,7 @@ var schema = {
             },
             required: [
               "id",
+              "name",
               "email",
               "emailVerified",
               "isAdmin",
@@ -6986,20 +6907,11 @@ var schema = {
                 format: "uuid"
               },
               name: {
-                oneOf: [
-                  {
-                    type: "string"
-                  },
-                  {}
-                ],
+                type: "string",
                 nullable: true
               },
               email: {
-                oneOf: [
-                  {
-                    type: "string"
-                  }
-                ],
+                type: "string",
                 nullable: true
               },
               emailVerified: {
@@ -7028,6 +6940,7 @@ var schema = {
             },
             required: [
               "id",
+              "name",
               "email",
               "emailVerified",
               "isAdmin",
@@ -7061,20 +6974,11 @@ var schema = {
             format: "uuid"
           },
           name: {
-            oneOf: [
-              {
-                type: "string"
-              },
-              {}
-            ],
+            type: "string",
             nullable: true
           },
           email: {
-            oneOf: [
-              {
-                type: "string"
-              }
-            ],
+            type: "string",
             nullable: true
           },
           emailVerified: {
@@ -7103,6 +7007,7 @@ var schema = {
         },
         required: [
           "id",
+          "name",
           "email",
           "emailVerified",
           "isAdmin",
@@ -7116,10 +7021,12 @@ var schema = {
         type: "object",
         properties: {
           name: {
-            type: "string"
+            type: "string",
+            minLength: 1
           },
           email: {
-            type: "string"
+            type: "string",
+            minLength: 1
           },
           emailVerified: {
             type: "boolean"
@@ -7156,20 +7063,11 @@ var schema = {
                 format: "uuid"
               },
               name: {
-                oneOf: [
-                  {
-                    type: "string"
-                  },
-                  {}
-                ],
+                type: "string",
                 nullable: true
               },
               email: {
-                oneOf: [
-                  {
-                    type: "string"
-                  }
-                ],
+                type: "string",
                 nullable: true
               },
               emailVerified: {
@@ -7198,6 +7096,7 @@ var schema = {
             },
             required: [
               "id",
+              "name",
               "email",
               "emailVerified",
               "isAdmin",
@@ -7216,22 +7115,12 @@ var schema = {
         type: "object",
         properties: {
           name: {
-            oneOf: [
-              {
-                type: "string",
-                minLength: 1
-              }
-            ],
-            nullable: true
+            type: "string",
+            minLength: 1
           },
           email: {
-            oneOf: [
-              {
-                type: "string",
-                format: "email"
-              }
-            ],
-            nullable: true
+            type: "string",
+            minLength: 1
           },
           isAdmin: {
             type: "boolean"
@@ -7657,41 +7546,69 @@ var schema = {
         ]
       },
       StorageLocationInputDTO: {
-        type: "object",
-        properties: {
-          storageProvisionId: {
-            type: "string",
-            format: "uuid"
+        oneOf: [
+          {
+            type: "object",
+            properties: {
+              accessKeyId: {
+                type: "string"
+              },
+              secretAccessKey: {
+                type: "string"
+              },
+              endpoint: {
+                type: "string"
+              },
+              bucket: {
+                type: "string"
+              },
+              region: {
+                type: "string"
+              },
+              prefix: {
+                type: "string"
+              }
+            },
+            required: [
+              "accessKeyId",
+              "secretAccessKey",
+              "endpoint",
+              "bucket",
+              "region"
+            ]
           },
-          userLocationId: {
-            type: "string",
-            format: "uuid"
+          {
+            type: "object",
+            properties: {
+              storageProvisionId: {
+                type: "string",
+                format: "uuid"
+              }
+            },
+            required: [
+              "storageProvisionId"
+            ]
           },
-          userLocationBucketOverride: {
-            type: "string"
-          },
-          userLocationPrefixOverride: {
-            type: "string"
-          },
-          accessKeyId: {
-            type: "string"
-          },
-          secretAccessKey: {
-            type: "string"
-          },
-          endpoint: {
-            type: "string"
-          },
-          bucket: {
-            type: "string"
-          },
-          region: {
-            type: "string"
-          },
-          prefix: {
-            type: "string"
+          {
+            type: "object",
+            properties: {
+              userLocationId: {
+                type: "string",
+                format: "uuid"
+              },
+              userLocationBucketOverride: {
+                type: "string"
+              },
+              userLocationPrefixOverride: {
+                type: "string"
+              }
+            },
+            required: [
+              "userLocationId",
+              "userLocationBucketOverride"
+            ]
           }
-        }
+        ]
       },
       FolderGetResponse: {
         type: "object",
@@ -8050,78 +7967,134 @@ var schema = {
             type: "string"
           },
           metadataLocation: {
-            type: "object",
-            properties: {
-              storageProvisionId: {
-                type: "string",
-                format: "uuid"
+            oneOf: [
+              {
+                type: "object",
+                properties: {
+                  accessKeyId: {
+                    type: "string"
+                  },
+                  secretAccessKey: {
+                    type: "string"
+                  },
+                  endpoint: {
+                    type: "string"
+                  },
+                  bucket: {
+                    type: "string"
+                  },
+                  region: {
+                    type: "string"
+                  },
+                  prefix: {
+                    type: "string"
+                  }
+                },
+                required: [
+                  "accessKeyId",
+                  "secretAccessKey",
+                  "endpoint",
+                  "bucket",
+                  "region"
+                ]
               },
-              userLocationId: {
-                type: "string",
-                format: "uuid"
+              {
+                type: "object",
+                properties: {
+                  storageProvisionId: {
+                    type: "string",
+                    format: "uuid"
+                  }
+                },
+                required: [
+                  "storageProvisionId"
+                ]
               },
-              userLocationBucketOverride: {
-                type: "string"
-              },
-              userLocationPrefixOverride: {
-                type: "string"
-              },
-              accessKeyId: {
-                type: "string"
-              },
-              secretAccessKey: {
-                type: "string"
-              },
-              endpoint: {
-                type: "string"
-              },
-              bucket: {
-                type: "string"
-              },
-              region: {
-                type: "string"
-              },
-              prefix: {
-                type: "string"
+              {
+                type: "object",
+                properties: {
+                  userLocationId: {
+                    type: "string",
+                    format: "uuid"
+                  },
+                  userLocationBucketOverride: {
+                    type: "string"
+                  },
+                  userLocationPrefixOverride: {
+                    type: "string"
+                  }
+                },
+                required: [
+                  "userLocationId",
+                  "userLocationBucketOverride"
+                ]
               }
-            }
+            ]
           },
           contentLocation: {
-            type: "object",
-            properties: {
-              storageProvisionId: {
-                type: "string",
-                format: "uuid"
+            oneOf: [
+              {
+                type: "object",
+                properties: {
+                  accessKeyId: {
+                    type: "string"
+                  },
+                  secretAccessKey: {
+                    type: "string"
+                  },
+                  endpoint: {
+                    type: "string"
+                  },
+                  bucket: {
+                    type: "string"
+                  },
+                  region: {
+                    type: "string"
+                  },
+                  prefix: {
+                    type: "string"
+                  }
+                },
+                required: [
+                  "accessKeyId",
+                  "secretAccessKey",
+                  "endpoint",
+                  "bucket",
+                  "region"
+                ]
               },
-              userLocationId: {
-                type: "string",
-                format: "uuid"
+              {
+                type: "object",
+                properties: {
+                  storageProvisionId: {
+                    type: "string",
+                    format: "uuid"
+                  }
+                },
+                required: [
+                  "storageProvisionId"
+                ]
               },
-              userLocationBucketOverride: {
-                type: "string"
-              },
-              userLocationPrefixOverride: {
-                type: "string"
-              },
-              accessKeyId: {
-                type: "string"
-              },
-              secretAccessKey: {
-                type: "string"
-              },
-              endpoint: {
-                type: "string"
-              },
-              bucket: {
-                type: "string"
-              },
-              region: {
-                type: "string"
-              },
-              prefix: {
-                type: "string"
+              {
+                type: "object",
+                properties: {
+                  userLocationId: {
+                    type: "string",
+                    format: "uuid"
+                  },
+                  userLocationBucketOverride: {
+                    type: "string"
+                  },
+                  userLocationPrefixOverride: {
+                    type: "string"
+                  }
+                },
+                required: [
+                  "userLocationId",
+                  "userLocationBucketOverride"
+                ]
               }
-            }
+            ]
           }
         },
         required: [
@@ -8746,7 +8719,7 @@ var schema = {
           "accessKeyHashId"
         ]
       },
-      AccessKeyBucketsListResponse: {
+      AccessKeyBucketsListResponseDTO: {
         type: "object",
         properties: {
           result: {
@@ -9080,11 +9053,8 @@ var schema = {
             type: "string"
           },
           prefix: {
-            oneOf: [
-              {
-                type: "string"
-              }
-            ],
+            type: "string",
+            minLength: 1,
             nullable: true
           }
         },
@@ -9119,11 +9089,8 @@ var schema = {
                 type: "string"
               },
               prefix: {
-                oneOf: [
-                  {
-                    type: "string"
-                  }
-                ],
+                type: "string",
+                minLength: 1,
                 nullable: true
               }
             },
@@ -9165,10 +9132,11 @@ var schema = {
             oneOf: [
               {
                 type: "string",
-                minLength: 1
-              }
-            ],
-            nullable: true
+                minLength: 1,
+                nullable: true
+              },
+              {}
+            ]
           }
         },
         required: [
@@ -9176,8 +9144,7 @@ var schema = {
           "secretAccessKey",
           "endpoint",
           "bucket",
-          "region",
-          "prefix"
+          "region"
         ]
       },
       TaskGetResponse: {

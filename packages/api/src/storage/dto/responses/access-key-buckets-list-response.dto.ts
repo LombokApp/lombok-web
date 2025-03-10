@@ -10,6 +10,6 @@ export const accessKeyBucketsListResponseSchema = z.object({
   ),
 })
 
-export class AccessKeyBucketsListResponse extends createZodDto(
+export class AccessKeyBucketsListResponseDTO extends createZodDto(
   accessKeyBucketsListResponseSchema,
 ) {}

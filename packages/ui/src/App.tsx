@@ -2,7 +2,7 @@ import './styles/globals.css'
 import './fonts/inter/inter.css'
 
 import { AuthContextProvider, useAuthContext } from '@stellariscloud/auth-utils'
-import { cn } from '@stellariscloud/ui-toolkit'
+import { cn, Toaster } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import {
@@ -119,6 +119,7 @@ const AuthenticatedContent = () => {
         )}
       >
         <Content />
+        <Toaster />
       </main>
     </div>
   )

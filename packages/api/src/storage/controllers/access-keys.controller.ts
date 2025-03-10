@@ -17,7 +17,7 @@ import { AuthGuard } from 'src/auth/guards/auth.guard'
 
 import { AccessKeyDTO } from '../dto/access-key.dto'
 import { AccessKeyListQueryParamsDTO } from '../dto/access-key-list-query-params.dto'
-import type { AccessKeyBucketsListResponse } from '../dto/responses/access-key-buckets-list-response.dto'
+import type { AccessKeyBucketsListResponseDTO } from '../dto/responses/access-key-buckets-list-response.dto'
 import type { AccessKeyGetResponse } from '../dto/responses/access-key-get-response.dto'
 import type { AccessKeyListResponse } from '../dto/responses/access-key-list-response.dto'
 import type { AccessKeyRotateResponse } from '../dto/responses/access-key-rotate-response.dto'
@@ -101,7 +101,7 @@ export class AccessKeysController {
   async listAccessKeyBuckets(
     @Req() req: express.Request,
     @Param('accessKeyHashId') accessKeyHashId: string,
-  ): Promise<AccessKeyBucketsListResponse> {
+  ): Promise<AccessKeyBucketsListResponseDTO> {
     if (!req.user) {
       throw new UnauthorizedException()
     }

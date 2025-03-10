@@ -1,75 +1,202 @@
+import { XMarkIcon } from '@heroicons/react/24/outline'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
+import { s3LocationSchema } from '@stellariscloud/types'
 import {
+  Badge,
   Button,
+  cn,
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
   Input,
 } from '@stellariscloud/ui-toolkit'
+import { safeZodParse } from '@stellariscloud/utils'
+import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
-const StorageProvisionRecord = z.object({
-  storageProvisionId: z.string(),
-})
+import type { CustomLocationFormValues } from '../custom-location-form/custom-location-form'
+import { CustomLocationForm } from '../custom-location-form/custom-location-form'
+import { StorageLocationDropdown } from '../storage-location-dropdown/storage-location-dropdown'
 
-const CustomLocationRecord = z.object({
-  endpoint: z.string(),
-  accessKeyId: z.string(),
-  secretAccessKey: z.string(),
-  region: z.string(),
-  prefix: z.string(),
+const storageProvisionSelectionSchema = z.object({
+  storageProvisionId: z.string(),
 })
 
 const formSchema = z.object({
   name: z.string().min(1, {
-    message: 'Username must be at least 1 characters.',
+    message: 'Name must be at least 1 characters.',
   }),
-  contentLocation: z.union([StorageProvisionRecord, CustomLocationRecord]),
-  metadataLocation: z
-    .union([StorageProvisionRecord, CustomLocationRecord])
-    .optional(),
+  contentLocation: s3LocationSchema.or(storageProvisionSelectionSchema),
+  metadataLocation: s3LocationSchema.or(storageProvisionSelectionSchema),
 })
+
 export type FolderFormValues = z.infer<typeof formSchema>
 
 export const CreateFolderForm = ({
   onSubmit,
   onCancel,
-  // userStorageProvisions,
+  userStorageProvisions,
 }: {
   onSubmit: (values: FolderFormValues) => Promise<void>
   onCancel: () => void
   userStorageProvisions: UserStorageProvisionDTO[]
 }) => {
+  const [formConfig, setFormConfig] = useState({
+    useCustomContentLocation: false,
+    useCustomMetadataLocation: false,
+    useStorageProvisionContentLocation: false,
+    useStorageProvisionMetadataLocation: false,
+  })
   const form = useForm<FolderFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      contentLocation: {
-        accessKeyId: '',
-        secretAccessKey: '',
-        endpoint: '',
-        region: '',
-        prefix: '',
-      },
-      metadataLocation: undefined,
     },
   })
 
+  const handleContentLocationStorageProvisionSelection = useCallback(
+    (storageProvision: UserStorageProvisionDTO) => {
+      setFormConfig((_c) => ({
+        ..._c,
+        useCustomContentLocation: false,
+        useStorageProvisionContentLocation: true,
+      }))
+      form.setValue('contentLocation', {
+        storageProvisionId: storageProvision.id,
+      })
+    },
+    [form],
+  )
+
+  const handleMetadataLocationStorageProvisionSelection = useCallback(
+    (storageProvision: UserStorageProvisionDTO) => {
+      setFormConfig((_c) => ({
+        ..._c,
+        useCustomMetadataLocation: false,
+        useStorageProvisionMetadataLocation: true,
+      }))
+      form.setValue('metadataLocation', {
+        storageProvisionId: storageProvision.id,
+      })
+    },
+    [form],
+  )
+
+  const [customContentLocationFormOpen, setCustomContentLocationFormOpen] =
+    useState(false)
+  const [customMetadataLocationFormOpen, setCustomMetadataLocationFormOpen] =
+    useState(false)
+
+  const handleContentLocationRemove = useCallback(() => {
+    setFormConfig((_c) => ({
+      ..._c,
+      useCustomContentLocation: false,
+      useStorageProvisionContentLocation: false,
+    }))
+    form.resetField('contentLocation')
+  }, [form])
+
+  const handleMetadataLocationRemove = useCallback(() => {
+    setFormConfig((_c) => ({
+      ..._c,
+      useCustomMetadataLocation: false,
+      useStorageProvision: false,
+    }))
+    form.resetField('metadataLocation')
+  }, [form])
+
+  const handleCustomMetadataLocationCancel = useCallback(() => {
+    setCustomMetadataLocationFormOpen(false)
+  }, [])
+
+  const handleCustomContentLocationCancel = useCallback(() => {
+    setCustomContentLocationFormOpen(false)
+  }, [])
+
+  const handleCustomContentLocationEditStart = useCallback(() => {
+    setCustomContentLocationFormOpen(true)
+  }, [])
+
+  const handleCustomMetadataLocationEditStart = useCallback(() => {
+    setCustomMetadataLocationFormOpen(true)
+  }, [])
+
+  const handleCustomContentLocationSubmit = useCallback(
+    (newCustomLocation: CustomLocationFormValues) => {
+      form.setValue('contentLocation', newCustomLocation)
+      setCustomContentLocationFormOpen(false)
+      setFormConfig((_c) => ({
+        ..._c,
+        useCustomContentLocation: true,
+        useStorageProvisionContentLocation: false,
+      }))
+    },
+    [form],
+  )
+
+  const handleCustomMetadataLocationSubmit = useCallback(
+    (newCustomLocation: CustomLocationFormValues) => {
+      form.setValue('metadataLocation', newCustomLocation)
+      setCustomMetadataLocationFormOpen(false)
+      setFormConfig((_c) => ({
+        ..._c,
+        useCustomMetadataLocation: true,
+        useStorageProvisionMetadataLocation: false,
+      }))
+    },
+    [form],
+  )
+  const formValues = form.getValues()
+
+  const serverProvisionMetadataLocationId = safeZodParse(
+    formValues.metadataLocation,
+    storageProvisionSelectionSchema,
+  )
+    ? formValues.metadataLocation.storageProvisionId
+    : undefined
+
+  const serverProvisionMetadataLocationLabel = serverProvisionMetadataLocationId
+    ? (userStorageProvisions.find(
+        (l) => (l.id = serverProvisionMetadataLocationId),
+      )?.label ?? '')
+    : ''
+  const serverProvisionContentLocationId = safeZodParse(
+    formValues.contentLocation,
+    storageProvisionSelectionSchema,
+  )
+    ? formValues.contentLocation.storageProvisionId
+    : undefined
+
+  const serverProvisionContentLocationLabel = serverProvisionContentLocationId
+    ? (userStorageProvisions.find(
+        (l) => (l.id = serverProvisionContentLocationId),
+      )?.label ?? '')
+    : ''
+
+  const metadataLocation = form.getValues().metadataLocation
+  const customMetadataLocationDescription: string =
+    formConfig.useCustomMetadataLocation &&
+    safeZodParse(metadataLocation, s3LocationSchema)
+      ? `${metadataLocation.endpoint}/${metadataLocation.bucket}${metadataLocation.prefix ? '/' : ''}${metadataLocation.prefix}`
+      : ''
+
+  const contentLocation = form.getValues().contentLocation
+  const customContentLocationDescription: string =
+    formConfig.useCustomContentLocation &&
+    safeZodParse(contentLocation, s3LocationSchema)
+      ? `${contentLocation.endpoint}/${contentLocation.bucket}${contentLocation.prefix ? '/' : ''}${contentLocation.prefix}`
+      : ''
+
   return (
-    <div className="flex flex-col gap-4 lg:min-w-[28rem] lg:max-w-[30rem]">
+    <div className="flex flex-col gap-6 lg:min-w-[28rem] lg:max-w-[30rem]">
       <Form {...form}>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            void form.handleSubmit(onSubmit)(e)
-          }}
-          className="space-y-4"
-        >
+        <form className="space-y-4">
           <FormField
             control={form.control}
             name="name"
@@ -83,88 +210,167 @@ export const CreateFolderForm = ({
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="contentLocation.accessKeyId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Access Key Id</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="contentLocation.secretAccessKey"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Secret Access Key</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="contentLocation.endpoint"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Endpoint</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="contentLocation.region"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Region</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="contentLocation.prefix"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Prefix</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="flex justify-end gap-2">
-            <Button variant={'secondary'} onClick={onCancel}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={
-                form.formState.isValid &&
-                !form.formState.isSubmitting &&
-                !form.formState.isSubmitted
-              }
-            >
-              Create
-            </Button>
-          </div>
         </form>
       </Form>
+
+      <div
+        className={cn(
+          'flex flex-col',
+          !customMetadataLocationFormOpen && !customContentLocationFormOpen
+            ? 'gap-10'
+            : '',
+        )}
+      >
+        <div
+          className={cn(
+            !customMetadataLocationFormOpen ? '' : 'h-0 overflow-hidden',
+            'flex flex-col gap-4 duration-200',
+          )}
+        >
+          <div className="flex flex-col gap-4">
+            <Form {...form}>
+              <FormField
+                control={form.control}
+                name="contentLocation"
+                render={() => (
+                  <FormItem>
+                    <div className="flex flex-col gap-1">
+                      <FormLabel>Content storage location</FormLabel>
+                      <FormDescription>
+                        Where this folder's content is stored
+                      </FormDescription>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </Form>
+            {formConfig.useCustomContentLocation ? (
+              <div className="flex items-center">
+                <Badge variant={'outline'} className="p-2 px-3">
+                  {customContentLocationDescription}
+                </Badge>
+                <Button variant="link" onClick={handleContentLocationRemove}>
+                  <XMarkIcon className="size-4 opacity-50" />
+                </Button>
+              </div>
+            ) : formConfig.useStorageProvisionContentLocation ? (
+              <div className="flex items-center">
+                <Badge variant={'outline'} className="p-2 px-3">
+                  {serverProvisionContentLocationLabel}
+                </Badge>
+                <Button variant="link" onClick={handleContentLocationRemove}>
+                  <XMarkIcon className="size-4 opacity-50" />
+                </Button>
+              </div>
+            ) : customContentLocationFormOpen ? (
+              <CustomLocationForm
+                onCancel={handleCustomContentLocationCancel}
+                // eslint-disable-next-line @typescript-eslint/require-await
+                onSubmit={async (location) => {
+                  handleCustomContentLocationSubmit(location)
+                }}
+              />
+            ) : (
+              <div>
+                <StorageLocationDropdown
+                  storageProvisions={userStorageProvisions.filter((p) =>
+                    p.provisionTypes.includes('CONTENT'),
+                  )}
+                  onSelectCustom={handleCustomContentLocationEditStart}
+                  onSelectStorageProvision={
+                    handleContentLocationStorageProvisionSelection
+                  }
+                />
+              </div>
+            )}
+          </div>
+        </div>
+        <div
+          className={cn(
+            !customContentLocationFormOpen ? '' : 'h-0 overflow-hidden',
+            'flex flex-col gap-4 duration-200',
+          )}
+        >
+          <Form {...form}>
+            <FormField
+              control={form.control}
+              name="metadataLocation"
+              render={() => (
+                <FormItem>
+                  <div className="flex flex-col gap-1">
+                    <FormLabel>Metadata storage location</FormLabel>
+                    <FormDescription>
+                      Where this folder's metadata is stored
+                    </FormDescription>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </Form>
+          {formConfig.useCustomMetadataLocation ? (
+            <div className="flex items-center">
+              <Badge variant={'outline'} className="p-2 px-3">
+                {customMetadataLocationDescription}
+              </Badge>
+              <Button variant="link" onClick={handleMetadataLocationRemove}>
+                <XMarkIcon className="size-4 opacity-50" />
+              </Button>
+            </div>
+          ) : formConfig.useStorageProvisionMetadataLocation ? (
+            <div className="flex items-center">
+              <Badge variant={'outline'} className="p-2 px-3">
+                {serverProvisionMetadataLocationLabel}
+              </Badge>
+              <Button variant="link" onClick={handleMetadataLocationRemove}>
+                <XMarkIcon className="size-4 opacity-50" />
+              </Button>
+            </div>
+          ) : customMetadataLocationFormOpen ? (
+            <CustomLocationForm
+              onCancel={handleCustomMetadataLocationCancel}
+              // eslint-disable-next-line @typescript-eslint/require-await
+              onSubmit={async (location) => {
+                handleCustomMetadataLocationSubmit(location)
+              }}
+            />
+          ) : (
+            <div>
+              <StorageLocationDropdown
+                storageProvisions={userStorageProvisions.filter((p) =>
+                  p.provisionTypes.includes('METADATA'),
+                )}
+                onSelectCustom={handleCustomMetadataLocationEditStart}
+                onSelectStorageProvision={
+                  handleMetadataLocationStorageProvisionSelection
+                }
+              />
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button variant={'secondary'} onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          onClick={(e) => {
+            void form.trigger().then(() => {
+              if (form.formState.isValid) {
+                void form.handleSubmit(onSubmit)(e)
+              } else {
+                // TODO: make sure some feedback shows for all cases
+              }
+            })
+          }}
+          disabled={
+            customContentLocationFormOpen || customContentLocationFormOpen
+          }
+        >
+          Create
+        </Button>
+      </div>
     </div>
   )
 }

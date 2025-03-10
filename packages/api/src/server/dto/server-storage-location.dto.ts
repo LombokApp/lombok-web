@@ -7,7 +7,7 @@ export const serverStorageLocationSchema = z.object({
   endpoint: z.string(),
   bucket: z.string(),
   region: z.string(),
-  prefix: z.union([z.null(), z.string()]),
+  prefix: z.string().nonempty().nullable(),
 })
 
 export class ServerStorageLocationDTO extends createZodDto(

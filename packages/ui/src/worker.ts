@@ -1,9 +1,9 @@
 import { FoldersApi } from '@stellariscloud/api-client'
+import { bindApiConfig } from '@stellariscloud/auth-utils'
 import { SignedURLsRequestMethod } from '@stellariscloud/types'
 import { objectIdentifierToObjectKey } from '@stellariscloud/utils'
 import axios from 'axios'
 
-import { bindApiConfig } from '@stellariscloud/auth-utils'
 import { LogLevel } from './contexts/logging.context'
 import { indexedDb } from './services/indexed-db'
 import { addFileToLocalFileStorage } from './services/local-cache/local-cache.service'
@@ -219,9 +219,9 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
   const message = event.data
   // console.log('WORKER event.data', event.data)
   if (message[0] === 'UPLOAD') {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const folderId: string = message[1].folderId
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const objectIdentifier: string = message[1].objectIdentifier
     log({
       level: LogLevel.INFO,
@@ -230,7 +230,7 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
       message: `Upload of '${objectIdentifier}' started`,
     })
     // TODO: type check this with zod
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const uploadFile: File = message[1].uploadFile
     void foldersApi
       .createPresignedUrls({
@@ -277,9 +277,12 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
         })
       })
   } else if (message[0] === 'DOWNLOAD') {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const folderIdAndKey = `${message[1].folderId}:${message[1].objectIdentifier}`
     void downloadLocally(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       message[1].folderId as string,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       message[1].objectIdentifier as string,
     )
       .then(() => {
@@ -287,9 +290,9 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
           'DOWNLOAD_COMPLETED',
           {
             // TODO: type check this with zod
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
             folderId: message[1].folderId,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
             objectIdentifier: message[1].objectIdentifier,
           },
         ])
@@ -301,9 +304,9 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
           'DOWNLOAD_FAILED',
           {
             // TODO: type check this with zod
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
             folderId: message[1].folderId,
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
             objectIdentifier: message[1].objectIdentifier,
           },
         ])
