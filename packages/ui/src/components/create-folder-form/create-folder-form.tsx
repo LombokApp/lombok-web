@@ -5,16 +5,15 @@ import { s3LocationSchema } from '@stellariscloud/types'
 import {
   Badge,
   Button,
-  CardDescription,
   cn,
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
   Input,
-  Label,
 } from '@stellariscloud/ui-toolkit'
 import { safeZodParse } from '@stellariscloud/utils'
 import { useCallback, useState } from 'react'
@@ -37,9 +36,8 @@ const formSchema = z.object({
   name: z.string().min(1, {
     message: 'Name must be at least 1 characters.',
   }),
-  contentLocationStorageProvision: storageProvisionDescriptionSchema.optional(),
-  metadataLocationStorageProvision:
-    storageProvisionDescriptionSchema.optional(),
+  contentLocationStorageProvision: storageProvisionDescriptionSchema,
+  metadataLocationStorageProvision: storageProvisionDescriptionSchema,
   contentLocation: s3LocationSchema.or(storageProvisionSelectionSchema),
   metadataLocation: s3LocationSchema.or(storageProvisionSelectionSchema),
 })
@@ -116,7 +114,7 @@ export const CreateFolderForm = ({
       useCustomMetadataLocation: false,
       useStorageProvisionMetadataLocation: false,
     }))
-    form.setValue('metadataLocationStorageProvision', undefined)
+    form.resetField('metadataLocationStorageProvision')
   }, [form])
 
   const handleCustomContentLocationRemove = useCallback(() => {
@@ -254,12 +252,23 @@ export const CreateFolderForm = ({
           )}
         >
           <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1">
-              <Label>Content storage location</Label>
-              <CardDescription>
-                Where this folder's content is stored
-              </CardDescription>
-            </div>
+            <Form {...form}>
+              <FormField
+                control={form.control}
+                name="contentLocation"
+                render={() => (
+                  <FormItem>
+                    <div className="flex flex-col gap-1">
+                      <FormLabel>Content storage location</FormLabel>
+                      <FormDescription>
+                        Where this folder's content is stored
+                      </FormDescription>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </Form>
             {formConfig.useCustomContentLocation ? (
               <div className="flex items-center">
                 <Badge variant={'outline'} className="p-2 px-3">
@@ -313,61 +322,68 @@ export const CreateFolderForm = ({
             'flex flex-col gap-4 duration-200',
           )}
         >
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1">
-              <Label>Metadata storage location</Label>
-              <CardDescription>
-                Where this folder's metadata is stored
-              </CardDescription>
+          <Form {...form}>
+            <FormField
+              control={form.control}
+              name="metadataLocation"
+              render={() => (
+                <FormItem>
+                  <div className="flex flex-col gap-1">
+                    <FormLabel>Metadata storage location</FormLabel>
+                    <FormDescription>
+                      Where this folder's metadata is stored
+                    </FormDescription>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </Form>
+          {formConfig.useCustomMetadataLocation ? (
+            <div className="flex items-center">
+              <Badge variant={'outline'} className="p-2 px-3">
+                {customMetadataLocationDescription}
+              </Badge>
+              <Button
+                variant="link"
+                onClick={handleCustomMetadataLocationRemove}
+              >
+                <XMarkIcon className="size-4 opacity-50" />
+              </Button>
             </div>
-          </div>
-          <div className="flex flex-col gap-4">
-            {formConfig.useCustomMetadataLocation ? (
-              <div className="flex items-center">
-                <Badge variant={'outline'} className="p-2 px-3">
-                  {customMetadataLocationDescription}
-                </Badge>
-                <Button
-                  variant="link"
-                  onClick={handleCustomMetadataLocationRemove}
-                >
-                  <XMarkIcon className="size-4 opacity-50" />
-                </Button>
-              </div>
-            ) : formConfig.useStorageProvisionMetadataLocation ? (
-              <div className="flex items-center">
-                <Badge variant={'outline'} className="p-2 px-3">
-                  {serverProvisionMetadataLocationLabel}
-                </Badge>
-                <Button
-                  variant="link"
-                  onClick={handleStorageProvisionMetadataLocationRemove}
-                >
-                  <XMarkIcon className="size-4 opacity-50" />
-                </Button>
-              </div>
-            ) : customMetadataLocationFormOpen ? (
-              <CustomLocationForm
-                onCancel={handleCustomMetadataLocationCancel}
-                // eslint-disable-next-line @typescript-eslint/require-await
-                onSubmit={async (location) => {
-                  handleCustomMetadataLocationSubmit(location)
-                }}
+          ) : formConfig.useStorageProvisionMetadataLocation ? (
+            <div className="flex items-center">
+              <Badge variant={'outline'} className="p-2 px-3">
+                {serverProvisionMetadataLocationLabel}
+              </Badge>
+              <Button
+                variant="link"
+                onClick={handleStorageProvisionMetadataLocationRemove}
+              >
+                <XMarkIcon className="size-4 opacity-50" />
+              </Button>
+            </div>
+          ) : customMetadataLocationFormOpen ? (
+            <CustomLocationForm
+              onCancel={handleCustomMetadataLocationCancel}
+              // eslint-disable-next-line @typescript-eslint/require-await
+              onSubmit={async (location) => {
+                handleCustomMetadataLocationSubmit(location)
+              }}
+            />
+          ) : (
+            <div>
+              <StorageLocationDropdown
+                storageProvisions={userStorageProvisions.filter((p) =>
+                  p.provisionTypes.includes('METADATA'),
+                )}
+                onSelectCustom={handleCustomMetadataLocationEditStart}
+                onSelectStorageProvision={
+                  handleMetadataLocationStorageProvisionSelection
+                }
               />
-            ) : (
-              <div>
-                <StorageLocationDropdown
-                  storageProvisions={userStorageProvisions.filter((p) =>
-                    p.provisionTypes.includes('METADATA'),
-                  )}
-                  onSelectCustom={handleCustomMetadataLocationEditStart}
-                  onSelectStorageProvision={
-                    handleMetadataLocationStorageProvisionSelection
-                  }
-                />
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
       <div className="flex justify-end gap-2">
