@@ -1,17 +1,16 @@
 'use client'
 
-import type {
-  ServerStorageLocationInputDTO,
-  UserStorageProvisionDTO,
-} from '@stellariscloud/api-client'
+import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  useToast,
 } from '@stellariscloud/ui-toolkit'
 
+import type { UserStorageProvisionFormValues } from './user-storage-provision-form/user-storage-provision-form'
 import { UserStorageProvisionForm } from './user-storage-provision-form/user-storage-provision-form'
 
 export type MutationType = 'CREATE' | 'UPDATE'
@@ -29,9 +28,11 @@ const UserStorageProvisionModal = ({
   setModalData: (modalData: ModalData) => void
   onSubmit: (
     mutationType: MutationType,
-    values: ServerStorageLocationInputDTO,
+    values: UserStorageProvisionFormValues,
   ) => Promise<void>
 }) => {
+  const { toast } = useToast()
+
   return (
     <Dialog
       open={!!modalData.userStorageProvision}
@@ -62,6 +63,10 @@ const UserStorageProvisionModal = ({
             }
             onSubmit={(userStorageProvision) => {
               void onSubmit(modalData.mutationType, userStorageProvision)
+              setModalData({ ...modalData, userStorageProvision: undefined })
+              toast({
+                title: 'User storage provision created.',
+              })
             }}
           />
         </div>
