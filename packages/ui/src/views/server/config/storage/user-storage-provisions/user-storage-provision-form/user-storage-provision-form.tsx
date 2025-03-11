@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { UserStorageProvisionInputDTO } from '@stellariscloud/api-client'
 import {
+  s3LocationEndpointSchema,
   UserStorageProvisionTypeEnum,
   UserStorageProvisionTypeZodEnum,
 } from '@stellariscloud/types'
@@ -21,15 +22,13 @@ import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
 const formSchema = z.object({
-  label: z.string().min(1, {
-    message: 'Label must be at least 1 characters.',
-  }),
-  endpoint: z.string(),
-  accessKeyId: z.string(),
-  secretAccessKey: z.string(),
-  description: z.string(),
+  label: z.string().nonempty(),
+  endpoint: s3LocationEndpointSchema,
+  accessKeyId: z.string().nonempty(),
+  secretAccessKey: z.string().nonempty(),
+  description: z.string().nonempty(),
   provisionTypes: z.array(UserStorageProvisionTypeZodEnum),
-  bucket: z.string(),
+  bucket: z.string().nonempty(),
   region: z.string(),
   prefix: z.string(),
 })
@@ -37,14 +36,12 @@ const formSchema = z.object({
 export type UserStorageProvisionFormValues = z.infer<typeof formSchema>
 
 export const UserStorageProvisionForm = ({
-  titleText = 'Create New User Storage Provision',
-  submitText = 'Create',
   onSubmit,
   onCancel,
   // value = {},
   className,
+  submitText = 'Save',
 }: {
-  titleText?: string
   submitText?: string
   onSubmit: (values: UserStorageProvisionFormValues) => void
   onCancel: () => void
@@ -62,47 +59,84 @@ export const UserStorageProvisionForm = ({
       ],
       accessKeyId: '',
       secretAccessKey: '',
+      bucket: '',
+      endpoint: '',
       prefix: '',
       region: '',
     },
   })
 
   return (
-    <div className="dark:bg-white/5 flex size-full flex-col gap-4 rounded-lg bg-gray-50 p-6 py-10">
-      <h2 className="dark:text-gray-200 text-3xl font-bold text-gray-800">
-        {titleText}
-      </h2>
-      <div className={cn('grid gap-6', className)}>
-        <Form {...form}>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              void form.handleSubmit(onSubmit)(e)
-            }}
-            className="space-y-4"
-          >
-            <FormField
-              control={form.control}
-              name="label"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Label</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    This is how your users will identify the storage location.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+    <div className={cn('grid gap-6', className)}>
+      <Form {...form}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            void form.trigger().then(() => {
+              console.log('form.formState.isValid:', {
+                valid: form.formState.isValid,
+                errors: form.formState.errors,
+              })
+              if (form.formState.isValid) {
+                void form.handleSubmit(onSubmit)(e)
+              }
+            })
+          }}
+          className="space-y-4"
+        >
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <FormField
+                control={form.control}
+                name="label"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Label</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      This is how your users will identify the storage location.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="col-span-2">
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <FormField
               control={form.control}
               name="accessKeyId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Access Key Id</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="secretAccessKey"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Secret Access Key</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -162,23 +196,21 @@ export const UserStorageProvisionForm = ({
                 </FormItem>
               )}
             />
-          </form>
-        </Form>
-      </div>
-
-      <div className="flex justify-end gap-2">
-        <Button variant={'secondary'} onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button className="w-full py-1.5" type="submit">
-          {form.formState.isValid &&
-            !form.formState.isSubmitting &&
-            !form.formState.isSubmitted && (
-              <Icons.spinner className="mr-2 size-5 animate-spin" />
-            )}
-          {submitText}
-        </Button>
-      </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant={'secondary'} onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button type="submit">
+              {form.formState.isSubmitting ||
+                (form.formState.isSubmitted && (
+                  <Icons.spinner className="mr-2 size-5 animate-spin" />
+                ))}
+              {submitText}
+            </Button>
+          </div>
+        </form>
+      </Form>
     </div>
   )
 }

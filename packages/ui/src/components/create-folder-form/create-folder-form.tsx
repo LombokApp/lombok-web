@@ -359,13 +359,11 @@ export const CreateFolderForm = ({
             void form.trigger().then(() => {
               if (form.formState.isValid) {
                 void form.handleSubmit(onSubmit)(e)
-              } else {
-                // TODO: make sure some feedback shows for all cases
               }
             })
           }}
           disabled={
-            customContentLocationFormOpen || customContentLocationFormOpen
+            customContentLocationFormOpen || customMetadataLocationFormOpen
           }
         >
           Create

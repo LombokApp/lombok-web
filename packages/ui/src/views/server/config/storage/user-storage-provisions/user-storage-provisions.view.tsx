@@ -22,7 +22,6 @@ export function UserStorageProvisions() {
     mutationType: 'CREATE',
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleAddStorageProvision = React.useCallback(
     (input: UserStorageProvisionFormValues) =>
       apiClient.userStorageProvisionsApi
@@ -77,12 +76,15 @@ export function UserStorageProvisions() {
   return (
     <div className="w-full">
       <UserStorageProvisionModal
-        // eslint-disable-next-line @typescript-eslint/require-await
-        onSubmit={async () => undefined}
+        onSubmit={async (mutationType, values) => {
+          if (mutationType === 'CREATE') {
+            await handleAddStorageProvision(values)
+          }
+        }}
         setModalData={setModalData}
         modalData={modalData}
       />
-      <dl className="dark:divide-gray-700 divide-y divide-gray-100">
+      <dl className="divide-y divide-gray-100 dark:divide-gray-700">
         <div className="flex flex-col sm:gap-4">
           <dd className="mt-1 text-sm leading-6 sm:col-span-5 sm:mt-0">
             {(userStorageProvisions?.length ?? 0) > 0 ? (

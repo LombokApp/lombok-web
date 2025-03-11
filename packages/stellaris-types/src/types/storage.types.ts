@@ -16,24 +16,26 @@ export type UserStorageProvisionType = z.infer<
 >
 export const UserStorageProvisionTypeEnum = UserStorageProvisionTypeZodEnum.Enum
 
+export const s3LocationEndpointSchema = z
+  .string()
+  .url()
+  .refine(
+    (e) => {
+      try {
+        return new URL(e).pathname === '/'
+      } catch (error) {
+        return false
+      }
+    },
+    {
+      message: 'Expected hostname.',
+    },
+  )
+
 export const s3LocationSchema = z.object({
   accessKeyId: z.string().min(1),
   secretAccessKey: z.string().min(1),
-  endpoint: z
-    .string()
-    .url()
-    .refine(
-      (e) => {
-        try {
-          return new URL(e).pathname === '/'
-        } catch (error) {
-          return false
-        }
-      },
-      {
-        message: 'Expected hostname but got URL.',
-      },
-    ),
+  endpoint: s3LocationEndpointSchema,
   bucket: z.string().min(1),
   region: z.string().min(1),
   prefix: z.string().nonempty().optional(),
