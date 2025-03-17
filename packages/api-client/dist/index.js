@@ -269,8 +269,7 @@ var toObjectSet = (arrayOrString, delimiter) => {
   isArray(arrayOrString) ? define(arrayOrString) : define(String(arrayOrString).split(delimiter));
   return obj;
 };
-var noop = () => {
-};
+var noop = () => {};
 var toFiniteNumber = (value, defaultValue) => {
   return value != null && Number.isFinite(value = +value) ? value : defaultValue;
 };
@@ -1315,13 +1314,11 @@ var cookies_default = platform_default.hasStandardBrowserEnv ? {
     this.write(name, "", Date.now() - 86400000);
   }
 } : {
-  write() {
-  },
+  write() {},
   read() {
     return null;
   },
-  remove() {
-  }
+  remove() {}
 };
 
 // node_modules/axios/lib/helpers/isAbsoluteURL.js
@@ -1677,8 +1674,7 @@ var DEFAULT_CHUNK_SIZE = 64 * 1024;
 var supportsResponseStream = isReadableStreamSupported && !!(() => {
   try {
     return utils_default.isReadableStream(new Response("").body);
-  } catch (err) {
-  }
+  } catch (err) {}
 })();
 var resolvers = {
   stream: supportsResponseStream && ((res) => res.body)
@@ -1811,8 +1807,7 @@ utils_default.forEach(knownAdapters, (fn, value) => {
   if (fn) {
     try {
       Object.defineProperty(fn, "name", { value });
-    } catch (e) {
-    }
+    } catch (e) {}
     Object.defineProperty(fn, "adapterName", { value });
   }
 });
@@ -1965,8 +1960,7 @@ class Axios {
             err.stack += `
 ` + stack;
           }
-        } catch (e) {
-        }
+        } catch (e) {}
       }
       throw err;
     }
@@ -3010,7 +3004,7 @@ var FoldersApiAxiosParamCreator = function(configuration) {
         options: localVarRequestOptions
       };
     },
-    listFolderObjects: async (folderId, offset, limit, search, options = {}) => {
+    listFolderObjects: async (folderId, offset, limit, search, sort, options = {}) => {
       assertParamExists("listFolderObjects", "folderId", folderId);
       const localVarPath = `/api/v1/folders/{folderId}/objects`.replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -3030,6 +3024,9 @@ var FoldersApiAxiosParamCreator = function(configuration) {
       }
       if (search !== undefined) {
         localVarQueryParameter["search"] = search;
+      }
+      if (sort !== undefined) {
+        localVarQueryParameter["sort"] = sort;
       }
       setSearchParams(localVarUrlObj, localVarQueryParameter);
       let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
@@ -3164,8 +3161,8 @@ var FoldersApiFp = function(configuration) {
       const localVarOperationServerBasePath = operationServerMap["FoldersApi.handleAppTaskTrigger"]?.[localVarOperationServerIndex]?.url;
       return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
     },
-    async listFolderObjects(folderId, offset, limit, search, options) {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderObjects(folderId, offset, limit, search, options);
+    async listFolderObjects(folderId, offset, limit, search, sort, options) {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderObjects(folderId, offset, limit, search, sort, options);
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
       const localVarOperationServerBasePath = operationServerMap["FoldersApi.listFolderObjects"]?.[localVarOperationServerIndex]?.url;
       return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
@@ -3218,7 +3215,7 @@ var FoldersApiFactory = function(configuration, basePath, axios2) {
       return localVarFp.handleAppTaskTrigger(requestParameters.folderId, requestParameters.appIdentifier, requestParameters.taskKey, requestParameters.triggerAppTaskInputDTO, options).then((request) => request(axios2, basePath));
     },
     listFolderObjects(requestParameters, options) {
-      return localVarFp.listFolderObjects(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, options).then((request) => request(axios2, basePath));
+      return localVarFp.listFolderObjects(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, requestParameters.sort, options).then((request) => request(axios2, basePath));
     },
     listFolders(requestParameters = {}, options) {
       return localVarFp.listFolders(requestParameters.offset, requestParameters.limit, requestParameters.sort, requestParameters.search, options).then((request) => request(axios2, basePath));
@@ -3258,7 +3255,7 @@ class FoldersApi extends BaseAPI {
     return FoldersApiFp(this.configuration).handleAppTaskTrigger(requestParameters.folderId, requestParameters.appIdentifier, requestParameters.taskKey, requestParameters.triggerAppTaskInputDTO, options).then((request) => request(this.axios, this.basePath));
   }
   listFolderObjects(requestParameters, options) {
-    return FoldersApiFp(this.configuration).listFolderObjects(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, options).then((request) => request(this.axios, this.basePath));
+    return FoldersApiFp(this.configuration).listFolderObjects(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, requestParameters.sort, options).then((request) => request(this.axios, this.basePath));
   }
   listFolders(requestParameters = {}, options) {
     return FoldersApiFp(this.configuration).listFolders(requestParameters.offset, requestParameters.limit, requestParameters.sort, requestParameters.search, options).then((request) => request(this.axios, this.basePath));
@@ -3270,6 +3267,18 @@ class FoldersApi extends BaseAPI {
     return FoldersApiFp(this.configuration).rescanFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
   }
 }
+var ListFolderObjectsSortEnum = {
+  SizeAsc: "size-asc",
+  SizeDesc: "size-desc",
+  FilenameAsc: "filename-asc",
+  FilenameDesc: "filename-desc",
+  ObjectKeyAsc: "objectKey-asc",
+  ObjectKeyDesc: "objectKey-desc",
+  CreatedAtAsc: "createdAt-asc",
+  CreatedAtDesc: "createdAt-desc",
+  UpdatedAtAsc: "updatedAt-asc",
+  UpdatedAtDesc: "updatedAt-desc"
+};
 var ListFoldersSortEnum = {
   NameAsc: "name-asc",
   NameDesc: "name-desc",
@@ -5208,6 +5217,26 @@ var schema = {
             in: "query",
             schema: {
               type: "string"
+            }
+          },
+          {
+            name: "sort",
+            required: false,
+            in: "query",
+            schema: {
+              type: "string",
+              enum: [
+                "size-asc",
+                "size-desc",
+                "filename-asc",
+                "filename-desc",
+                "objectKey-asc",
+                "objectKey-desc",
+                "createdAt-asc",
+                "createdAt-desc",
+                "updatedAt-asc",
+                "updatedAt-desc"
+              ]
             }
           }
         ],
@@ -10393,6 +10422,7 @@ export {
   ListFolderTasksIncludeRunningEnum,
   ListFolderTasksIncludeFailedEnum,
   ListFolderTasksIncludeCompleteEnum,
+  ListFolderObjectsSortEnum,
   ListEventsSortEnum,
   ListEventsIncludeWarningEnum,
   ListEventsIncludeTraceEnum,

@@ -671,6 +671,26 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "size-asc",
+                "size-desc",
+                "filename-asc",
+                "filename-desc",
+                "objectKey-asc",
+                "objectKey-desc",
+                "createdAt-asc",
+                "createdAt-desc",
+                "updatedAt-asc",
+                "updatedAt-desc"
+              ]
+            }
           }
         ],
         "responses": {

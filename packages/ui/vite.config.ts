@@ -4,7 +4,11 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react({
+      // exclude: [/worker\.ts$/],
+    }),
+  ],
   resolve: {
     alias: {
       '@/utils': path.resolve(__dirname, '../ui-toolkit/src/utils'),

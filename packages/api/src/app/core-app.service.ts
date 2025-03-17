@@ -29,12 +29,14 @@ export class CoreAppService {
         },
       ))
 
-      // send the config as the first message
-      worker.postMessage({
-        socketBaseUrl: '', // TODO FIX
-        appToken: embeddedCoreAppToken,
-        appWorkerId,
-      })
+      setTimeout(() => {
+        // send the config as the first message
+        worker.postMessage({
+          socketBaseUrl: `http://127.0.0.1:3000`, // TODO FIX
+          appToken: embeddedCoreAppToken,
+          appWorkerId,
+        })
+      }, 500)
 
       // eslint-disable-next-line no-console
       console.log('Embedded core app worker thread started')
@@ -49,9 +51,9 @@ export class CoreAppService {
         console.log('Worker thread exit:', err)
       })
 
-      worker.addEventListener('message', (msg) => {
+      worker.addEventListener('message', (event) => {
         // eslint-disable-next-line no-console
-        console.log('Embedded core app worker thread message:', msg)
+        console.log('Embedded core worker event:', event)
       })
     }
   }

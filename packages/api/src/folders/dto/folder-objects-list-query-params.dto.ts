@@ -1,5 +1,6 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import { z } from 'zod'
+import { FolderObjectSort } from '../services/folder.service'
 
 export const folderObjectsListQueryParamsSchema = z.object({
   offset: z
@@ -15,6 +16,7 @@ export const folderObjectsListQueryParamsSchema = z.object({
     )
     .optional(),
   search: z.string().optional(),
+  sort: z.nativeEnum(FolderObjectSort).optional(),
 })
 
 export class FolderObjectsListQueryParamsDTO extends createZodDto(

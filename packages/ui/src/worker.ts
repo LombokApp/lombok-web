@@ -10,14 +10,8 @@ import { addFileToLocalFileStorage } from './services/local-cache/local-cache.se
 
 const downloading: Record<string, { progressPercent: number } | undefined> = {}
 
-// we receive the token updates from the main thread so here we just use the latest reference
-let accessToken = ''
-const defaultConfig = {
-  basePath: process.env.NEXT_PUBLIC_API_BASE_URL,
-  accessToken: () => accessToken,
-}
-
-const foldersApi = bindApiConfig(defaultConfig, FoldersApi)()
+// updated on incoming auth udpate message
+let foldersApi: FoldersApi
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AsyncWorkerMessage = [string, any]
@@ -217,7 +211,7 @@ const downloadLocally = async (
 
 const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
   const message = event.data
-  // console.log('WORKER event.data', event.data)
+  console.log('WORKER event.data', event.data)
   if (message[0] === 'UPLOAD') {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const folderId: string = message[1].folderId
@@ -317,7 +311,13 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
       })
   } else if (message[0] === 'AUTH_UPDATED') {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    accessToken = message[1]
+    foldersApi = bindApiConfig(
+      {
+        basePath: message[1].basePath,
+        accessToken: message[1].accessToken,
+      },
+      FoldersApi,
+    )()
   }
 }
 

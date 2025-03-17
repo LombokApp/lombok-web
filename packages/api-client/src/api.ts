@@ -4060,10 +4060,11 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
          * @param {number} [offset] 
          * @param {number} [limit] 
          * @param {string} [search] 
+         * @param {ListFolderObjectsSortEnum} [sort] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listFolderObjects: async (folderId: string, offset?: number, limit?: number, search?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        listFolderObjects: async (folderId: string, offset?: number, limit?: number, search?: string, sort?: ListFolderObjectsSortEnum, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
             assertParamExists('listFolderObjects', 'folderId', folderId)
             const localVarPath = `/api/v1/folders/{folderId}/objects`
@@ -4093,6 +4094,10 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
 
             if (search !== undefined) {
                 localVarQueryParameter['search'] = search;
+            }
+
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
             }
 
 
@@ -4367,11 +4372,12 @@ export const FoldersApiFp = function(configuration?: Configuration) {
          * @param {number} [offset] 
          * @param {number} [limit] 
          * @param {string} [search] 
+         * @param {ListFolderObjectsSortEnum} [sort] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listFolderObjects(folderId: string, offset?: number, limit?: number, search?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderObjects(folderId, offset, limit, search, options);
+        async listFolderObjects(folderId: string, offset?: number, limit?: number, search?: string, sort?: ListFolderObjectsSortEnum, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderObjectListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderObjects(folderId, offset, limit, search, sort, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['FoldersApi.listFolderObjects']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -4517,7 +4523,7 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
          * @throws {RequiredError}
          */
         listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderObjectListResponse> {
-            return localVarFp.listFolderObjects(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, options).then((request) => request(axios, basePath));
+            return localVarFp.listFolderObjects(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, requestParameters.sort, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -4739,6 +4745,13 @@ export interface FoldersApiListFolderObjectsRequest {
      * @memberof FoldersApiListFolderObjects
      */
     readonly search?: string
+
+    /**
+     * 
+     * @type {'size-asc' | 'size-desc' | 'filename-asc' | 'filename-desc' | 'objectKey-asc' | 'objectKey-desc' | 'createdAt-asc' | 'createdAt-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @memberof FoldersApiListFolderObjects
+     */
+    readonly sort?: ListFolderObjectsSortEnum
 }
 
 /**
@@ -4923,7 +4936,7 @@ export class FoldersApi extends BaseAPI {
      * @memberof FoldersApi
      */
     public listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: RawAxiosRequestConfig) {
-        return FoldersApiFp(this.configuration).listFolderObjects(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, options).then((request) => request(this.axios, this.basePath));
+        return FoldersApiFp(this.configuration).listFolderObjects(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, requestParameters.sort, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -4963,6 +4976,22 @@ export class FoldersApi extends BaseAPI {
     }
 }
 
+/**
+ * @export
+ */
+export const ListFolderObjectsSortEnum = {
+    SizeAsc: 'size-asc',
+    SizeDesc: 'size-desc',
+    FilenameAsc: 'filename-asc',
+    FilenameDesc: 'filename-desc',
+    ObjectKeyAsc: 'objectKey-asc',
+    ObjectKeyDesc: 'objectKey-desc',
+    CreatedAtAsc: 'createdAt-asc',
+    CreatedAtDesc: 'createdAt-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
+} as const;
+export type ListFolderObjectsSortEnum = typeof ListFolderObjectsSortEnum[keyof typeof ListFolderObjectsSortEnum];
 /**
  * @export
  */
