@@ -6,8 +6,7 @@ import { getDataFromDisk } from '../services/local-cache/local-cache.service'
 import { downloadData } from '../utils/file'
 import type { LogLine } from './logging.context'
 import { useLoggingContext } from './logging.context'
-import stellarisWorkerUrl from '../worker.ts?worker&url'
-import StellarisWorker from '../worker.ts?worker'
+import StellarisWorker from '../.worker.ts?worker'
 
 export type LocalFileCache = Record<string, { size: number; type: string }>
 
@@ -129,15 +128,7 @@ export const LocalFileCacheContextProvider = ({
 
   React.useEffect(() => {
     if (!workerRef.current) {
-      // "...?worker_file&url" suffix is required for import in dev without react-refresh being injected
-      // const url = new URL('../worker.ts?worker&url', import.meta.url)
-      // console.log({ StellarisWorker })
-
       workerRef.current = new StellarisWorker()
-      // workerRef.current = new Worker(
-      //   new URL(stellarisWorkerUrl, import.meta.url),
-      // )
-
       sdkInstance.authenticator.addEventListener('onStateChanged', () => {
         updateWorkerWithAuth()
       })
