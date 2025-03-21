@@ -61,17 +61,27 @@ export const analyzeObjectTaskHandler = async (
   if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir)
   }
-  const { mimeType } = await downloadFileToDisk(
-    response.result.urls[0].url,
-    inFilepath,
-  )
-
-  if (!mimeType) {
-    throw new AppAPIError(
-      'UNRECOGNIZED_MIME_TYPE',
-      `Cannot resolve mimeType for objectKey ${task.data.objectKey}`,
+  let mimeType = ''
+  try {
+    const downloadResult = await downloadFileToDisk(
+      response.result.urls[0].url,
+      inFilepath,
     )
+    mimeType = downloadResult.mimeType
+    if (!mimeType) {
+      throw new AppAPIError(
+        'UNRECOGNIZED_MIME_TYPE',
+        `Cannot resolve mimeType for objectKey ${task.data.objectKey}`,
+      )
+    }
+  } catch (e: unknown) {
+    throw new AppAPIError(
+      'STORAGE_ACCESS_FAILURE',
+      `Failure accessing underlying storage: ${JSON.stringify(task.data)}`,
+    )
+    throw e
   }
+
   const mediaType = mediaTypeFromMimeType(mimeType)
   const [outMimeType, outExtension] =
     mediaType === MediaType.Image
@@ -206,7 +216,10 @@ export const analyzeObjectTaskHandler = async (
   )
 
   if (metadataUpdateResponse.error) {
-    throw new AppAPIError('UPDATE_CONTENT_METADATA_FAILED')
+    throw new AppAPIError(
+      metadataUpdateResponse.error.code,
+      metadataUpdateResponse.error.message,
+    )
   }
 
   // remove the temporary directory

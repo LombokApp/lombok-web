@@ -150,7 +150,7 @@ export class IndexedDb {
 
   public async putData(
     folderId: string,
-    key: string,
+    objectIdentifier: string,
     value: { dataURL: string; type: string },
   ) {
     await this.initDb()
@@ -158,9 +158,9 @@ export class IndexedDb {
       ?.transaction(LOCAL_DB_FILE_CACHE_TABLE, 'readwrite')
       .objectStore(LOCAL_DB_FILE_CACHE_TABLE)
       .put({
-        id: `${folderId}:${key}`,
+        id: `${folderId}:${objectIdentifier}`,
         folderId,
-        objectKey: key,
+        objectIdentifier,
         ...value,
       })
 
@@ -168,9 +168,9 @@ export class IndexedDb {
       ?.transaction(LOCAL_DB_FILE_CACHE_METADATA_TABLE, 'readwrite')
       .objectStore(LOCAL_DB_FILE_CACHE_METADATA_TABLE)
       .put({
-        id: `${folderId}:${key}`,
+        id: `${folderId}:${objectIdentifier}`,
         folderId,
-        objectKey: key,
+        objectIdentifier,
         size: value.dataURL.length,
         type: value.type,
       })
@@ -179,27 +179,29 @@ export class IndexedDb {
 
   public async getData(
     folderId: string,
-    objectKey: string,
+    objectIdentifier: string,
   ): Promise<FileContentDBSchema | undefined> {
     await this.initDb()
     const result = (await this.db
       ?.transaction(LOCAL_DB_FILE_CACHE_TABLE, 'readwrite')
       .objectStore(LOCAL_DB_FILE_CACHE_TABLE)
-      .get(`${folderId}:${objectKey}`)) as FileContentDBSchema | undefined
+      .get(`${folderId}:${objectIdentifier}`)) as
+      | FileContentDBSchema
+      | undefined
 
     return result
   }
 
-  public async delete(folderId: string, key: string) {
+  public async delete(folderId: string, objectIdentifier: string) {
     await this.initDb()
     await this.db
       ?.transaction(LOCAL_DB_FILE_CACHE_TABLE, 'readwrite')
       .objectStore(LOCAL_DB_FILE_CACHE_TABLE)
-      .delete(`${folderId}:${key}`)
+      .delete(`${folderId}:${objectIdentifier}`)
 
     await this.db
       ?.transaction(LOCAL_DB_FILE_CACHE_METADATA_TABLE, 'readwrite')
       .objectStore(LOCAL_DB_FILE_CACHE_METADATA_TABLE)
-      .delete(`${folderId}:${key}`)
+      .delete(`${folderId}:${objectIdentifier}`)
   }
 }

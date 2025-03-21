@@ -61,7 +61,7 @@ export const FolderObjectPreview = ({
   }, [file, folderId, getData, previewObjectKey])
 
   if (file === undefined) {
-    return <></>
+    return null
   }
 
   const contentAttributes =

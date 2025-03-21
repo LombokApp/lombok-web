@@ -152,11 +152,13 @@ export const connectAndPerformWork = (
       serverClient: CoreServerMessageInterface,
     ) => Promise<void>
   },
-  _log: (entry: Partial<AppLogEntry>) => void,
+  log: (entry: Partial<AppLogEntry>) => void,
 ) => {
   // TODO: send internal state back to the core via a message
+  const connectURL = `${socketBaseUrl}/apps`
   const taskKeys = Object.keys(taskHandlers)
-  const socket = io(`${socketBaseUrl}/apps`, {
+  log({ message: 'Connecting...', data: { connectURL, taskKeys } })
+  const socket = io(connectURL, {
     auth: {
       appWorkerId,
       token: appToken,
@@ -164,6 +166,7 @@ export const connectAndPerformWork = (
     },
     reconnection: false,
   })
+  log({ message: 'Connected.' })
   let concurrentTasks = 0
 
   const serverClient = buildAppClient(socket)
@@ -174,25 +177,25 @@ export const connectAndPerformWork = (
 
   const wait = new Promise<void>((resolve, reject) => {
     socket.on('connect', () => {
-      console.log('App Worker "%s" connected.', appWorkerId)
+      log({ message: `App Worker "${appWorkerId}" connected.` })
     })
+
     socket.on('disconnect', (reason) => {
-      console.log('Worker disconnected. Reason:', reason)
-      _log({
-        message: 'Core app worker websocket disconnected.',
-        name: 'CoreAppWorkerDisconnect',
+      log({
+        level: 'warning',
+        message: `Worker disconnected. Reason: ${reason}`,
         data: {
           appWorkerId,
         },
       })
       resolve()
     })
+
     socket.onAny((_data) => {
-      console.log('Got event in worker thread:', _data)
+      log({ message: 'Got event in worker thread', data: _data })
     })
 
     socket.on('PENDING_TASKS_NOTIFICATION', async (_data) => {
-      console.log('Worker for PENDING_TASKS_NOTIFICATION!', _data)
       if (concurrentTasks < 10) {
         try {
           concurrentTasks++
@@ -201,30 +204,30 @@ export const connectAndPerformWork = (
           const task = attemptStartHandleResponse.result
           if (attemptStartHandleResponse.error) {
             const errorMessage = `${attemptStartHandleResponse.error.code} - ${attemptStartHandleResponse.error.message}`
-            _log({ message: errorMessage, name: 'Error' })
+            log({ message: errorMessage, name: 'Error' })
           } else {
             await taskHandlers[task.taskKey](task, serverClient)
               .then(() => serverClient.completeHandleTask(task.id))
               .catch((e) => {
-                console.log('APP_WORKER_EXECUTION_ERROR:', {
-                  name: e.name,
-                  message: e.message,
-                  stack: e.stack,
-                })
                 return serverClient.failHandleTask(task.id, {
-                  code:
+                  code: String(
                     e instanceof AppAPIError
                       ? e.errorCode
                       : 'APP_WORKER_EXECUTION_ERROR',
+                  ),
                   message: `${e.name}: ${e.message}`,
                 })
               })
           }
         } catch (error: any) {
-          console.log('Unexpected error during app worker execution', {
-            name: error?.name ?? '',
-            message: error?.message ?? '',
-            stack: error?.stack ?? '',
+          log({
+            level: 'error',
+            message: 'Unexpected error during app worker execution',
+            data: {
+              name: error?.name ?? '',
+              message: error?.message ?? '',
+              stack: error?.stack ?? '',
+            },
           })
         } finally {
           concurrentTasks--
@@ -234,8 +237,8 @@ export const connectAndPerformWork = (
 
     socket.on('error', (error) => {
       console.log('Socket error:', error, appWorkerId)
-      _log({
-        message: 'Core app worker websocket disconnected.',
+      log({
+        message: 'Core app worker websocket error.',
         name: 'CoreAppWorkerSocketError',
         level: 'error',
         data: {

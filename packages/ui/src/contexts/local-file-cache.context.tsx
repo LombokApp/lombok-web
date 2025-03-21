@@ -4,9 +4,9 @@ import { sdkInstance } from '../services/api'
 import { indexedDb } from '../services/indexed-db'
 import { getDataFromDisk } from '../services/local-cache/local-cache.service'
 import { downloadData } from '../utils/file'
-// import Worker from '../worker.ts?worker'
 import type { LogLine } from './logging.context'
 import { useLoggingContext } from './logging.context'
+import StellarisWorker from '../.worker.ts?worker'
 
 export type LocalFileCache = Record<string, { size: number; type: string }>
 
@@ -114,18 +114,21 @@ export const LocalFileCacheContextProvider = ({
 
   const updateWorkerWithAuth = React.useCallback(() => {
     void sdkInstance.authenticator.getAccessToken().then((t) => {
-      workerRef.current?.postMessage(['AUTH_UPDATED', t])
+      workerRef.current?.postMessage([
+        'AUTH_UPDATED',
+        {
+          basePath:
+            (import.meta.env.API_BASE_URL as string | undefined) ??
+            window.location.origin,
+          accessToken: t,
+        },
+      ])
     })
   }, [])
 
   React.useEffect(() => {
     if (!workerRef.current) {
-      updateWorkerWithAuth()
-
-      workerRef.current = new Worker(new URL('../worker.ts', import.meta.url), {
-        type: 'module',
-      })
-
+      workerRef.current = new StellarisWorker()
       sdkInstance.authenticator.addEventListener('onStateChanged', () => {
         updateWorkerWithAuth()
       })

@@ -1,3 +1,4 @@
+import { PlayIcon } from '@heroicons/react/24/outline'
 import {
   ArrowPathIcon,
   KeyIcon,
@@ -75,7 +76,7 @@ export const FolderSidebar = ({
   return (
     <div className="flex h-full flex-col overflow-y-auto">
       <div className="flex flex-1 flex-col gap-6 px-3 pb-3">
-        <Card className="bg-transparent">
+        <Card>
           <CardHeader className="p-4 pt-3">
             <TypographyH3>
               <div className="flex items-center gap-2">
@@ -145,7 +146,21 @@ export const FolderSidebar = ({
             </dl>
           </CardContent>
         </Card>
-        {<ActionsList actionItems={actionItems} />}
+        {
+          <Card>
+            <CardHeader>
+              <div className="flex flex-1 flex-col gap-1 rounded-md bg-foreground/5">
+                <div className="flex items-center gap-2">
+                  <Icon icon={PlayIcon} size="md" />
+                  <div className="text-lg font-bold">Actions</div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ActionsList actionItems={actionItems} />
+            </CardContent>
+          </Card>
+        }
         <FolderTasksList {...{ folderAndPermission }} />
       </div>
     </div>

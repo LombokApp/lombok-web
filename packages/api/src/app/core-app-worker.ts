@@ -7,7 +7,7 @@ import type { AppLogEntry } from '@stellariscloud/types'
 import workerThreads from 'worker_threads'
 import * as z from 'zod'
 
-const sendLogEntry = (logEntryProperties: Partial<AppLogEntry>) => {
+const log = (logEntryProperties: Partial<AppLogEntry>) => {
   const logEntry: AppLogEntry = {
     data: logEntryProperties.data ?? {},
     name: logEntryProperties.name ?? 'info',
@@ -34,14 +34,13 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
     WorkerDataPayloadRunType.safeParse(workerData).success
   ) {
     initialized = true
-    sendLogEntry({
+    log({
       message: 'Core app worker thread started...',
       name: 'CoreAppWorkerStartup',
       data: {
-        appWorkerId: workerData.appWorkerId,
+        workerData: workerData,
       },
     })
-
     const { wait } = connectAndPerformWork(
       workerData.socketBaseUrl,
       workerData.appWorkerId,
@@ -50,17 +49,17 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
         ['ANALYZE_OBJECT']: analyzeObjectTaskHandler,
         ['RUN_WORKER_SCRIPT']: runWorkerScriptHandler,
       },
-      sendLogEntry,
+      log,
     )
 
     void wait
       .then(() => {
         // eslint-disable-next-line no-console
-        console.log('Done work.')
+        log({ message: 'Done work.', level: 'info' })
       })
       .catch((e: unknown) => {
         // eslint-disable-next-line no-console
-        console.log('Reporting Error:', e)
+        log({ level: 'error', message: e instanceof Error ? e.message : '' })
         if (
           e &&
           typeof e === 'object' &&
@@ -68,7 +67,7 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
           'message' in e &&
           'stacktrace' in e
         ) {
-          sendLogEntry({
+          log({
             message: 'Core app worker thread error.',
             level: 'error',
             name: 'CoreAppWorkerError',
@@ -84,14 +83,15 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
       })
       .finally(() => {
         // eslint-disable-next-line no-console
-        console.log('Shutting down.')
+        log({ level: 'info', message: 'Shutting down.' })
       })
   } else if (!workerThreads.isMainThread) {
-    sendLogEntry({ message: `Didn't run.` })
+    log({ message: `Didn't run.` })
     // eslint-disable-next-line no-console
-    console.log("Is not main thread but didn't run because { workerData }:", {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      workerData: workerThreads.workerData,
+    log({
+      level: 'error',
+      message: "Is not main thread but didn\'t run because { workerData }:",
+      data: { workerData: workerThreads.workerData },
     })
   }
 })

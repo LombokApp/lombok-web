@@ -164,6 +164,19 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
                         : !task.startedAt
                           ? 'Pending'
                           : 'Running'}
+
+                    {task.errorAt ? (
+                      <div>
+                        {JSON.stringify(
+                          {
+                            code: task.errorCode,
+                            message: task.errorMessage,
+                          },
+                          null,
+                          2,
+                        )}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               )}

@@ -36,7 +36,7 @@ export const FolderTasksList = ({
   }, [fetchTasks, folder?.id])
 
   return (
-    <Card className="bg-transparent">
+    <Card>
       <CardHeader className="p-4 pb-1 pt-3">
         <div className="flex flex-col">
           <TypographyH3>

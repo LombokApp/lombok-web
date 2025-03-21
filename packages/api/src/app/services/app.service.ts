@@ -108,25 +108,25 @@ const GetMetadataSignedURLsValidator = z.object({
   ),
 })
 
-const MetadataEntryRecord = z.object({
+const metadataEntrySchema = z.object({
   mimeType: z.string(),
   size: z.number(),
   hash: z.string(),
 })
 
-const UpdateMetadataValidator = z.object({
+const updateMetadataSchema = z.object({
   updates: z.array(
     z.object({
       folderId: z.string(),
       objectKey: z.string(),
       hash: z.string(),
-      metadata: z.record(MetadataEntryRecord, z.string()),
+      metadata: z.record(z.string(), metadataEntrySchema),
     }),
   ),
   eventId: z.string().optional(),
 })
 
-const FailHandleTaskValidator = z.object({
+const failHandleTaskSchema = z.object({
   taskId: z.string().uuid(),
   error: z.object({
     message: z.string(),
@@ -249,7 +249,22 @@ export class AppService {
           }
         }
         case 'UPDATE_CONTENT_METADATA': {
-          if (safeZodParse(requestData, UpdateMetadataValidator)) {
+          const parseResult = safeZodParse(requestData, updateMetadataSchema)
+          console.log(
+            'UPDATE_CONTENT_METADATA:',
+            JSON.stringify(
+              {
+                requestData,
+                parseResult,
+                error: parseResult
+                  ? undefined
+                  : updateMetadataSchema.safeParse(requestData).error,
+              },
+              null,
+              2,
+            ),
+          )
+          if (parseResult) {
             await this.folderService.updateFolderObjectMetadata(
               requestData.updates,
             )
@@ -333,9 +348,9 @@ export class AppService {
           break
         }
         case 'FAIL_HANDLE_TASK': {
-          if (FailHandleTaskValidator.safeParse(requestData).success) {
+          if (failHandleTaskSchema.safeParse(requestData).success) {
             const parsedFailHandleTaskMessage =
-              FailHandleTaskValidator.parse(requestData)
+              failHandleTaskSchema.parse(requestData)
             const task = await this.ormService.db.query.tasksTable.findFirst({
               where: and(
                 eq(tasksTable.id, parsedFailHandleTaskMessage.taskId),
@@ -375,7 +390,8 @@ export class AppService {
             // eslint-disable-next-line no-console
             console.log(
               'FAIL_HANDLE_TASK error:',
-              FailHandleTaskValidator.safeParse(requestData).error,
+              requestData,
+              failHandleTaskSchema.safeParse(requestData).error,
             )
             return {
               result: undefined,
