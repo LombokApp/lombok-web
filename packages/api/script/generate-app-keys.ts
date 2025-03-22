@@ -4,9 +4,13 @@ import jwt from 'jsonwebtoken'
 import { v4 as uuidV4 } from 'uuid'
 
 const appIdentifier = process.argv[2]
+const host = process.argv[3]
 
 if (!appIdentifier) {
   throw new Error('Missing appIdentifier arg.')
+}
+if (!host) {
+  throw new Error('Missing host arg.')
 }
 
 void new Promise<{ publicKey: string; privateKey: string }>((resolve) =>
@@ -37,7 +41,7 @@ void new Promise<{ publicKey: string; privateKey: string }>((resolve) =>
   const ALGORITHM = 'RS512'
 
   const payload: JwtPayload = {
-    aud: 'stellariscloud.localhost',
+    aud: host,
     jti: uuidV4(),
     scp: [],
     sub: `APP:${appIdentifier}`,
@@ -45,7 +49,7 @@ void new Promise<{ publicKey: string; privateKey: string }>((resolve) =>
 
   const token = jwt.sign(payload, keys.privateKey, {
     algorithm: ALGORITHM,
-    expiresIn: 60 * 60 * 24 * 31,
+    // expiresIn: 60 * 60 * 24 * 31,
   })
   // eslint-disable-next-line no-console
   console.log('app token "%s"', token)
