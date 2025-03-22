@@ -3,20 +3,13 @@ import {
   ArrowUpOnSquareIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline'
-import type {
-  FolderObjectDTO,
-  FoldersApiListFolderObjectsRequest,
-} from '@stellariscloud/api-client'
+import type { FolderObjectDTO } from '@stellariscloud/api-client'
 import { FolderPermissionEnum, FolderPushMessage } from '@stellariscloud/types'
 import { Button, cn, DataTable } from '@stellariscloud/ui-toolkit'
+import type { PaginationState, SortingState } from '@tanstack/table-core'
 import { Folder } from 'lucide-react'
 import React from 'react'
-import {
-  useLocation,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
 import { ConfirmRefreshFolderModal } from '../../components/confirm-refresh-folder-modal/confirm-refresh-folder-modal'
@@ -24,23 +17,22 @@ import { UploadModal } from '../../components/upload-modal/upload-modal'
 import { useFolderContext } from '../../contexts/folder.context'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { EmptyState } from '../../design-system/empty-state/empty-state'
-import { apiClient } from '../../services/api'
+import { apiClient, foldersApiHooks } from '../../services/api'
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
 import { folderObjectsTableColumns } from './folder-objects-table-columns'
-import { PaginationState, SortingState } from '@tanstack/table-core'
 
 export const FolderDetailScreen = () => {
   const navigate = useNavigate()
 
   const params = useParams()
   const [folderId, focusedObjectKeyFromParams] = params['*']?.split('/') ?? []
-  const [queryParams] = useSearchParams()
-  const location = useLocation()
+  // const [queryParams] = useSearchParams()
+  // const location = useLocation()
   const [filters, setFilters] = React.useState<
     { id: string; value: unknown }[]
   >([])
 
-  const searchFilter = filters.find((f) => f.id === 'objectKey')
+  const _searchFilter = filters.find((f) => f.id === 'objectKey')
 
   const [refreshFolderConfirmationOpen, setRefreshFolderConfirmationOpen] =
     React.useState(false)
@@ -50,26 +42,19 @@ export const FolderDetailScreen = () => {
 
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
 
-  const [pageState, setPageState] = React.useState<{
-    search?: string
-  }>({
-    search: queryParams.get('search') ?? undefined,
-  })
+  // const [pageState, setPageState] = React.useState<{
+  //   search?: string
+  // }>({
+  //   search: queryParams.get('search') ?? undefined,
+  // })
 
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [_sorting, setSorting] = React.useState<SortingState>([])
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   })
 
-  const [folderObjects, setFolderObjects] = React.useState<{
-    results: FolderObjectDTO[] | undefined
-    startIndex: number
-    totalCount?: number
-    searchTerm?: string
-  }>({ results: [], startIndex: 0, totalCount: 0 })
-
-  const { getData, uploadFile, uploadingProgress } = useLocalFileCacheContext()
+  const { uploadFile, uploadingProgress } = useLocalFileCacheContext()
 
   const messageHandler = React.useCallback(
     (name: FolderPushMessage, payload: unknown) => {
@@ -81,13 +66,12 @@ export const FolderDetailScreen = () => {
           FolderPushMessage.OBJECT_REMOVED,
         ].includes(name)
       ) {
-        setFolderObjects({
-          results: [],
-          startIndex: 0,
-          searchTerm: searchFilter?.value as string,
-        })
+        // setFolderObjects({
+        //   results: [],
+        //   searchTerm: searchFilter?.value as string,
+        // })
       } else if (FolderPushMessage.OBJECT_UPDATED === name) {
-        const folderObject = payload as FolderObjectDTO
+        const _folderObject = payload as FolderObjectDTO
       }
     },
     [],
@@ -137,50 +121,19 @@ export const FolderDetailScreen = () => {
     setUploadOpen(true)
   }, [])
 
-  const fetchFolderObjects = React.useCallback(() => {
-    if (folderId) {
-      void apiClient.foldersApi
-        .listFolderObjects({
-          folderId: folderId,
-          limit: pagination.pageSize,
-          offset: pagination.pageSize * pagination.pageIndex,
-          search:
-            typeof searchFilter?.value === 'string'
-              ? searchFilter.value
-              : undefined,
-          ...(sorting[0]
-            ? {
-                sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as FoldersApiListFolderObjectsRequest['sort'],
-              }
-            : {}),
-          ...(typeof searchFilter?.value === 'string'
-            ? {
-                search: searchFilter.value,
-              }
-            : {}),
-        })
-        .then((resp) =>
-          setFolderObjects({
-            totalCount: resp.data.meta.totalCount,
-            startIndex: 0,
-            results: resp.data.result,
-          }),
-        )
-    }
-  }, [
-    filters,
+  const listFolderObjectsQuery = foldersApiHooks.useListFolderObjects({
     folderId,
-    pagination.pageSize,
-    pagination.pageIndex,
-    sorting,
-    searchFilter?.value,
-  ])
+    limit: pagination.pageSize,
+    offset: pagination.pageIndex * pagination.pageSize,
+    // sort: sorting[0].id,
+  })
 
-  React.useEffect(() => {
-    if (folderId) {
-      fetchFolderObjects()
-    }
-  }, [folderId, filters, sorting, pagination, fetchFolderObjects])
+  const handlePaginationChange = React.useCallback(
+    (newPagination: PaginationState) => {
+      setPagination(newPagination)
+    },
+    [],
+  )
 
   return (
     <>
@@ -271,14 +224,10 @@ export const FolderDetailScreen = () => {
                           updater instanceof Function ? updater(old) : updater,
                         )
                       }}
-                      rowCount={folderContext.folderMetadata?.totalCount}
-                      data={folderObjects.results ?? []}
+                      rowCount={folderContext.folderMetadata?.totalCount ?? 0}
+                      data={listFolderObjectsQuery.data?.result ?? []}
                       columns={folderObjectsTableColumns}
-                      onPaginationChange={(updater) => {
-                        setPagination((old) =>
-                          updater instanceof Function ? updater(old) : updater,
-                        )
-                      }}
+                      onPaginationChange={handlePaginationChange}
                       onSortingChange={(updater) => {
                         setSorting((old) =>
                           updater instanceof Function ? updater(old) : updater,

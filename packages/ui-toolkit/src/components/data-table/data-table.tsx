@@ -4,6 +4,7 @@ import type {
   ColumnDef,
   ColumnFiltersState,
   FilterFn,
+  PaginationState,
   SortingState,
   TableOptions,
   VisibilityState,
@@ -50,7 +51,7 @@ interface DataTableProps<TData, TValue> {
 interface TableHandlerProps<TData> {
   onColumnFiltersChange?: TableOptions<TData>['onColumnFiltersChange']
   onSortingChange?: TableOptions<TData>['onSortingChange']
-  onPaginationChange?: TableOptions<TData>['onPaginationChange']
+  onPaginationChange?: (paginationState: PaginationState) => void
   rowCount?: TableOptions<TData>['rowCount']
 }
 
@@ -63,6 +64,7 @@ export function DataTable<TData, TValue>({
   rowCount = data.length,
   onColumnFiltersChange,
   onSortingChange,
+  onPaginationChange,
   enableRowSelection = false,
   enableSearch = false,
   searchColumn,
@@ -78,12 +80,17 @@ export function DataTable<TData, TValue>({
     [],
   )
   const [sorting, setSorting] = React.useState<SortingState>([])
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  })
 
   const table = useReactTable({
     data,
     rowCount,
     manualFiltering,
     manualSorting,
+    manualPagination: true,
     columns,
     filterFns,
     enableGlobalFilter: false,
@@ -92,21 +99,34 @@ export function DataTable<TData, TValue>({
       columnVisibility,
       rowSelection,
       columnFilters,
+      pagination,
     },
     enableRowSelection,
     onRowSelectionChange: setRowSelection,
-    onSortingChange: (...args) => {
+    onSortingChange: (updater) => {
+      const updated = updater instanceof Function ? updater(sorting) : updater
       if (onSortingChange) {
-        onSortingChange(...args)
+        onSortingChange(updated)
       }
-      setSorting(...args)
+      setSorting(updated)
     },
-    onColumnFiltersChange: (...args) => {
+    onPaginationChange: (updater) => {
+      const updated =
+        updater instanceof Function ? updater(pagination) : updater
+      if (onPaginationChange) {
+        onPaginationChange(updated)
+      }
+      setPagination(updated)
+    },
+    onColumnFiltersChange: (updater) => {
+      const updated =
+        updater instanceof Function ? updater(columnFilters) : updater
       if (onColumnFiltersChange) {
-        onColumnFiltersChange(...args)
+        onColumnFiltersChange(updated)
       }
-      setColumnFilters(...args)
+      setColumnFilters(updated)
     },
+    autoResetPageIndex: false,
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
