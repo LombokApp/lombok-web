@@ -1,4 +1,4 @@
-import type { FolderGetResponse, TaskDTO } from '@stellariscloud/api-client'
+import type { FolderGetResponse } from '@stellariscloud/api-client'
 import {
   Card,
   CardContent,
@@ -6,12 +6,12 @@ import {
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
 import { ListChecks } from 'lucide-react'
-import React from 'react'
 import { Link } from 'react-router-dom'
 
 import { TasksList } from '../../components/tasks-list/tasks-list.component'
 import { Icon } from '../../design-system/icon'
-import { apiClient } from '../../services/api'
+import { useFolderContext } from '../../pages/folders/folder.context'
+import { tasksApiHooks } from '../../services/api'
 
 export const FolderTasksList = ({
   folderAndPermission,
@@ -19,21 +19,13 @@ export const FolderTasksList = ({
   folderAndPermission?: FolderGetResponse
 }) => {
   const { folder } = folderAndPermission ?? {}
-  const [tasks, setTasks] = React.useState<TaskDTO[]>()
-
-  const fetchTasks = React.useCallback(() => {
-    if (folder?.id) {
-      void apiClient.tasksApi
-        .listFolderTasks({ folderId: folder.id })
-        .then((resp) => setTasks(resp.data.result))
-    }
-  }, [folder?.id])
-
-  React.useEffect(() => {
-    if (folder?.id) {
-      fetchTasks()
-    }
-  }, [fetchTasks, folder?.id])
+  const { folderId } = useFolderContext()
+  const listFolderTasksQuery = tasksApiHooks.useListFolderTasks(
+    {
+      folderId,
+    },
+    {},
+  )
 
   return (
     <Card>
@@ -54,7 +46,9 @@ export const FolderTasksList = ({
         </div>
       </CardHeader>
       <CardContent className="p-4">
-        {tasks && <TasksList tasks={tasks} />}
+        {listFolderTasksQuery.data && (
+          <TasksList tasks={listFolderTasksQuery.data.result} />
+        )}
       </CardContent>
     </Card>
   )

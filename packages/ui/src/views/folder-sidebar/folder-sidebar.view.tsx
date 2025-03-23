@@ -1,8 +1,8 @@
-import { PlayIcon } from '@heroicons/react/24/outline'
 import {
   ArrowPathIcon,
   KeyIcon,
   MagnifyingGlassIcon,
+  PlayIcon,
 } from '@heroicons/react/24/outline'
 import type { FolderGetResponse } from '@stellariscloud/api-client'
 import type { FolderMetadata } from '@stellariscloud/types'

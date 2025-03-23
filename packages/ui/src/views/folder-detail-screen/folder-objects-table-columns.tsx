@@ -2,15 +2,16 @@
 
 import type { FolderObjectDTO } from '@stellariscloud/api-client'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
+import { toMetadataObjectIdentifier } from '@stellariscloud/utils'
 import type { ColumnDef } from '@tanstack/react-table'
 import { Link } from 'react-router-dom'
+
 import { FolderObjectPreview } from '../folder-object-preview/folder-object-preview.view'
-import { toMetadataObjectIdentifier } from '@stellariscloud/utils'
 
 function previewObjectKeyForFolderObject(folderObject: FolderObjectDTO) {
   if (
     folderObject.hash &&
-    folderObject.contentMetadata[folderObject.hash]?.['compressedVersion']
+    folderObject.contentMetadata[folderObject.hash]['compressedVersion']
   ) {
     return toMetadataObjectIdentifier(
       folderObject.objectKey,
@@ -60,7 +61,9 @@ export const folderObjectsTableColumns: ColumnDef<FolderObjectDTO>[] = [
       <div className="flex items-center gap-2">
         <div className="flex flex-col">
           <span className="truncate text-xs text-muted-foreground">
-            <Link to={row.original.objectKey}>{row.original.objectKey}</Link>
+            <Link to={`objects/${row.original.objectKey}`}>
+              {row.original.objectKey}
+            </Link>
           </span>
         </div>
       </div>

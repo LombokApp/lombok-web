@@ -1,11 +1,8 @@
 import { useParams } from 'react-router-dom'
 
 import { ContentLayout } from '../../components/sidebar/components/content-layout'
-import {
-  FolderContextProvider,
-  useFolderContext,
-} from '../../contexts/folder.context'
 import { FolderDetailScreen } from '../../views/folder-detail-screen/folder-detail-screen.view'
+import { FolderContextProvider, useFolderContext } from './folder.context'
 
 const FolderDetailInner = ({ paramParts }: { paramParts: string[] }) => {
   const folderId = paramParts[0]

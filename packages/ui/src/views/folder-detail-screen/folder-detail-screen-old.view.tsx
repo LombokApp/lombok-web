@@ -36,10 +36,10 @@ import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder
 import { ConfirmRefreshFolderModal } from '../../components/confirm-refresh-folder-modal/confirm-refresh-folder-modal'
 import { FolderScroll } from '../../components/folder-scroll/folder-scroll'
 import { UploadModal } from '../../components/upload-modal/upload-modal'
-import { useFolderContext } from '../../contexts/folder.context'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { EmptyState } from '../../design-system/empty-state/empty-state'
 import { useWindowDimensions } from '../../hooks/use-window-dimensions'
+import { useFolderContext } from '../../pages/folders/folder.context'
 import { apiClient } from '../../services/api'
 import { FolderObjectDetailScreen } from '../folder-object-detail-screen/folder-object-detail-screen.view'
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
@@ -1268,7 +1268,7 @@ export const FolderDetailScreenOld = () => {
                     >
                       <div
                         ref={tileContainerRef}
-                        className="ml-[4px] flex flex-wrap content-start justify-start overflow-hidden"
+                        className="ml-[4px] flex flex-wrap place-content-start overflow-hidden"
                         style={{
                           height: `${INITIAL_SCROLL_HEIGHT}px`,
                         }}

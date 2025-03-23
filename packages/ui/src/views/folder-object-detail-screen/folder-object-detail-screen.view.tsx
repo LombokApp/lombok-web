@@ -1,5 +1,4 @@
 import { ArrowDownTrayIcon, TrashIcon } from '@heroicons/react/24/outline'
-import type { FolderObjectDTO } from '@stellariscloud/api-client'
 import {
   FolderPermissionEnum,
   FolderPushMessage,
@@ -10,9 +9,10 @@ import { ArrowLeft, ArrowRight } from 'lucide-react'
 import React from 'react'
 
 import { ConfirmDeleteModal } from '../../components/confirm-delete-modal/confirm-delete-modal'
-import { useFolderContext } from '../../contexts/folder.context'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { LogLevel, useLoggingContext } from '../../contexts/logging.context'
+import { useFocusedFolderObjectContext } from '../../pages/folders/focused-folder-object.context'
+import { useFolderContext } from '../../pages/folders/folder.context'
 import { apiClient } from '../../services/api'
 import { FolderObjectPreview } from '../folder-object-preview/folder-object-preview.view'
 import { FolderObjectSidebar } from '../folder-object-sidebar/folder-object-sidebar.view'
@@ -26,13 +26,14 @@ export const FolderObjectDetailScreen = ({
 }: {
   folderId: string
   objectKey: string
-  onFolderLinkClick: () => void
+  onFolderLinkClick?: () => void
   onNextClick?: () => void
   onPreviousClick?: () => void
 }) => {
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
   const [showDeleteModal, setShowDeleteModal] = React.useState(false)
-  const [folderObject, setFolderObject] = React.useState<FolderObjectDTO>()
+  const { focusedFolderObject: folderObject, refetch: refetchFolderObject } =
+    useFocusedFolderObjectContext()
   const logging = useLoggingContext()
   const [displaySize, setDisplaySize] = React.useState('compressed')
   const [displayObjectKey, setDisplayObjectKey] = React.useState<string>()
@@ -74,12 +75,6 @@ export const FolderObjectDetailScreen = ({
     )
   }, [folderObject?.sizeBytes])
 
-  const fetchKeyMetadata = React.useCallback(() => {
-    void apiClient.foldersApi
-      .getFolderObject({ folderId, objectKey })
-      .then((response) => setFolderObject(response.data.folderObject))
-  }, [folderId, objectKey])
-
   const handleIndexFolderObject = () => {
     // void apiClient.foldersApi.rescanFolderObject({
     //   folderId,
@@ -103,10 +98,10 @@ export const FolderObjectDetailScreen = ({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
         (payload as any).objectKey === objectKey
       ) {
-        setFolderObject(payload as FolderObjectDTO)
+        void refetchFolderObject()
       }
     },
-    [objectKey],
+    [refetchFolderObject, objectKey],
   )
   const folderContext = useFolderContext(messageHandler)
 
@@ -114,7 +109,7 @@ export const FolderObjectDetailScreen = ({
     (e?: React.MouseEvent) => {
       e?.preventDefault()
       e?.stopPropagation()
-      onFolderLinkClick()
+      onFolderLinkClick?.()
     },
     [onFolderLinkClick],
   )
@@ -137,10 +132,6 @@ export const FolderObjectDetailScreen = ({
         })
     }
   }
-
-  React.useEffect(() => {
-    fetchKeyMetadata()
-  }, [fetchKeyMetadata])
 
   return (
     <>
