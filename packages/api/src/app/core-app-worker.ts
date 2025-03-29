@@ -38,7 +38,7 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
       message: 'Core app worker thread started...',
       name: 'CoreAppWorkerStartup',
       data: {
-        workerData: workerData,
+        workerData,
       },
     })
     const { wait } = connectAndPerformWork(
@@ -81,16 +81,13 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
         }
         throw e
       })
-      .finally(() => {
-        // eslint-disable-next-line no-console
-        log({ level: 'info', message: 'Shutting down.' })
-      })
+      .finally(() => log({ level: 'info', message: 'Shutting down.' }))
   } else if (!workerThreads.isMainThread) {
     log({ message: `Didn't run.` })
     // eslint-disable-next-line no-console
     log({
       level: 'error',
-      message: "Is not main thread but didn\'t run because { workerData }:",
+      message: "Is not main thread but didn't run because { workerData }:",
       data: { workerData: workerThreads.workerData },
     })
   }

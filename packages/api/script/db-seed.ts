@@ -167,7 +167,7 @@ async function main(): Promise<void> {
     id: ADMIN_1_BIG_FOLDER_TEST_FOLDER_ID,
     name: 'Big Folder Test',
     contentLocationId: locationsMap.admin1BigFolderContent.id,
-    metadataLocationId: locationsMap.admin1BigFolderContent.id,
+    metadataLocationId: locationsMap.admin1BigFolderMetadata.id,
     ownerId: ADMIN_1_ID,
     createdAt: new Date('2023-11-01 22:49:00.93'),
     updatedAt: new Date('2023-11-01 22:49:00.93'),
