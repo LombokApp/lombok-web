@@ -166,41 +166,6 @@ export const FolderDetailScreen = () => {
           )}
         >
           <div className="flex size-full flex-1 flex-col">
-            <div className="px-4 py-2">
-              <div className="flex gap-2 pt-2">
-                {folderContext.folderPermissions?.includes(
-                  FolderPermissionEnum.OBJECT_EDIT,
-                ) && (
-                  <Button size="sm" onClick={handleUploadStart}>
-                    <div className="flex items-center gap-1">
-                      <ArrowUpOnSquareIcon className="size-5" />
-                      Upload
-                    </div>
-                  </Button>
-                )}
-                {folderContext.folderPermissions?.includes(
-                  FolderPermissionEnum.FOLDER_RESCAN,
-                ) && (
-                  <Button size="sm" onClick={handleRefreshFolder}>
-                    <div className="flex items-center gap-1">
-                      <ArrowPathIcon className="size-5" />
-                      Refresh
-                    </div>
-                  </Button>
-                )}
-                {folderContext.folderPermissions?.includes(
-                  FolderPermissionEnum.FOLDER_FORGET,
-                ) && (
-                  <Button
-                    variant={'destructive'}
-                    size="sm"
-                    onClick={handleForgetFolder}
-                  >
-                    <TrashIcon className="size-5" />
-                  </Button>
-                )}
-              </div>
-            </div>
             <div className="flex flex-1 overflow-hidden">
               <div className="flex flex-1 overflow-hidden">
                 <div className="h-full flex-1 overflow-hidden">
@@ -217,6 +182,50 @@ export const FolderDetailScreen = () => {
                     </div>
                   ) : (
                     <DataTable
+                      title={folderContext.folder?.name}
+                      actionComponent={
+                        <div className="flex gap-2">
+                          {folderContext.folderPermissions?.includes(
+                            FolderPermissionEnum.OBJECT_EDIT,
+                          ) && (
+                            <Button
+                              size="sm"
+                              onClick={handleUploadStart}
+                              variant={'outline'}
+                            >
+                              <div className="flex items-center gap-1">
+                                <ArrowUpOnSquareIcon className="size-5" />
+                                Upload
+                              </div>
+                            </Button>
+                          )}
+                          {folderContext.folderPermissions?.includes(
+                            FolderPermissionEnum.FOLDER_RESCAN,
+                          ) && (
+                            <Button
+                              size="sm"
+                              onClick={handleRefreshFolder}
+                              variant={'outline'}
+                            >
+                              <div className="flex items-center gap-1">
+                                <ArrowPathIcon className="size-5" />
+                                Refresh
+                              </div>
+                            </Button>
+                          )}
+                          {folderContext.folderPermissions?.includes(
+                            FolderPermissionEnum.FOLDER_FORGET,
+                          ) && (
+                            <Button
+                              variant={'destructive'}
+                              size="sm"
+                              onClick={handleForgetFolder}
+                            >
+                              <TrashIcon className="size-5" />
+                            </Button>
+                          )}
+                        </div>
+                      }
                       enableSearch={true}
                       searchColumn={'objectKey'}
                       onColumnFiltersChange={(updater) => {

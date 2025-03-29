@@ -54,44 +54,50 @@ export function DataTableToolbar<TData>({
   }, [_filterValue])
 
   return (
-    <div className="flex items-center gap-6">
-      {title && <TypographyH3>{title}</TypographyH3>}
-      <div className="flex items-center space-x-2 rounded-md border border-foreground/10 bg-card p-2">
-        <div className="flex items-center pl-2 pr-1">
-          <Filter className="size-5 text-foreground/30" />
+    <div className="flex items-start justify-between">
+      <div className="flex items-center gap-6">
+        {title && <TypographyH3>{title}</TypographyH3>}
+        <div className="flex items-center space-x-2 rounded-md p-1">
+          <div className="flex items-center pl-2">
+            <Filter className="size-5 text-foreground/40" />
+          </div>
+          {enableSearch && searchColumn && (
+            <div className="bg-card">
+              <Input
+                placeholder={searchPlaceholder ?? 'Search...'}
+                value={filterValue}
+                onChange={(event) =>
+                  table
+                    .getColumn(searchColumn)
+                    ?.setFilterValue(event.target.value)
+                }
+                className="h-8 w-[150px] lg:w-[250px]"
+              />
+            </div>
+          )}
+          {Object.keys(filterOptions)
+            .filter((filterOption) => table.getColumn(filterOption))
+            .map((filterOption, i) => (
+              <DataTableFacetedFilter
+                key={i}
+                column={table.getColumn(filterOption)}
+                title={filterOptions[filterOption].label}
+                options={filterOptions[filterOption].options}
+              />
+            ))}
+          {isFiltered && (
+            <Button
+              variant="ghost"
+              onClick={() => table.resetColumnFilters()}
+              className="h-8 px-2 lg:px-3"
+            >
+              Reset
+              <Cross2Icon className="ml-2 size-4" />
+            </Button>
+          )}
         </div>
-        {enableSearch && searchColumn && (
-          <Input
-            placeholder={searchPlaceholder ?? 'Search...'}
-            value={filterValue}
-            onChange={(event) =>
-              table.getColumn(searchColumn)?.setFilterValue(event.target.value)
-            }
-            className="h-8 w-[150px] lg:w-[250px]"
-          />
-        )}
-        {Object.keys(filterOptions)
-          .filter((filterOption) => table.getColumn(filterOption))
-          .map((filterOption, i) => (
-            <DataTableFacetedFilter
-              key={i}
-              column={table.getColumn(filterOption)}
-              title={filterOptions[filterOption].label}
-              options={filterOptions[filterOption].options}
-            />
-          ))}
-        {isFiltered && (
-          <Button
-            variant="ghost"
-            onClick={() => table.resetColumnFilters()}
-            className="h-8 px-2 lg:px-3"
-          >
-            Reset
-            <Cross2Icon className="ml-2 size-4" />
-          </Button>
-        )}
       </div>
-      {actionComponent ?? null}
+      {actionComponent ? <div>{actionComponent}</div> : null}
     </div>
   )
 }
