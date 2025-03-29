@@ -32,7 +32,7 @@ export const baseTheme = {
   dark: {
     background: palette.neutral[900],
     foreground: palette.neutral[50],
-    card: palette.neutral[800],
+    card: palette.neutral[850],
     cardForeground: palette.neutral[50],
     inputBorder: palette.neutral[600],
     popover: palette.neutral[950],
@@ -47,7 +47,7 @@ export const baseTheme = {
     accentForeground: palette.neutral[50],
     destructive: palette.red[900],
     destructiveForeground: palette.red[50],
-    border: palette.neutral[50],
+    border: palette.neutral[800],
     input: palette.neutral[800],
     ring: palette.neutral[50],
     chart1: palette.amber[50],

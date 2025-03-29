@@ -10,18 +10,18 @@ import {
   DialogTitle,
 } from '@stellariscloud/ui-toolkit'
 
-export interface ForgetFolderModalData {
+export interface ReindexFolderModalData {
   isOpen: boolean
 }
 
-const ForgetFolderModal = ({
+const RescanFolderModal = ({
   modalData,
   setModalData,
-  onConfirm,
+  onSubmit,
 }: {
-  modalData: ForgetFolderModalData
-  setModalData: (modalData: ForgetFolderModalData) => void
-  onConfirm: () => Promise<void>
+  modalData: ReindexFolderModalData
+  setModalData: (modalData: ReindexFolderModalData) => void
+  onSubmit: () => Promise<void>
 }) => {
   return (
     <Dialog
@@ -35,11 +35,10 @@ const ForgetFolderModal = ({
         aria-describedby={undefined}
       >
         <DialogHeader className="text-left">
-          <DialogTitle>Remove the folder</DialogTitle>
+          <DialogTitle>Reindex folder</DialogTitle>
         </DialogHeader>
         <DialogDescription>
-          This will remove all reference to the folder, but leave the underlying
-          data intact.
+          This will reindex the entire folder, and may take some time.
         </DialogDescription>
         <DialogFooter>
           <div className="flex gap-4">
@@ -49,8 +48,8 @@ const ForgetFolderModal = ({
             >
               Cancel
             </Button>
-            <Button variant={'destructive'} onClick={() => void onConfirm()}>
-              Forget
+            <Button variant={'outline'} onClick={() => void onSubmit()}>
+              Reindex
             </Button>
           </div>
         </DialogFooter>
@@ -59,4 +58,4 @@ const ForgetFolderModal = ({
   )
 }
 
-export { ForgetFolderModal }
+export { RescanFolderModal }

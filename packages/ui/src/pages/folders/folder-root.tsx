@@ -48,6 +48,7 @@ function FolderRootInner() {
 
   return (
     <ContentLayout
+      contentPadding={false}
       breadcrumbs={[
         { label: 'Folders', href: '/folders' },
         {
@@ -65,20 +66,23 @@ function FolderRootInner() {
           : [],
       )}
     >
-      {focusedFolderObjectKey ? (
-        <FolderObjectRootInner />
-      ) : isFolderDetailPage ? (
-        <FolderDetailScreen />
-      ) : isTaskListPage ? (
-        <FolderTasksScreen />
-      ) : isTaskDetailPage ? (
-        <FolderTaskDetailScreen />
-      ) : (
-        <></>
-      )}
+      <div className="flex size-full p-2">
+        {focusedFolderObjectKey ? (
+          <FolderObjectRootInner />
+        ) : isFolderDetailPage ? (
+          <FolderDetailScreen />
+        ) : isTaskListPage ? (
+          <FolderTasksScreen />
+        ) : isTaskDetailPage ? (
+          <FolderTaskDetailScreen />
+        ) : (
+          <></>
+        )}
+      </div>
     </ContentLayout>
   )
 }
+
 export const FolderRoot = () => {
   const params = useParams()
   const paramParts = params['*']?.split('/') ?? []

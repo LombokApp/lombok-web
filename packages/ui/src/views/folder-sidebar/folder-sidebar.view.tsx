@@ -1,9 +1,4 @@
-import {
-  ArrowPathIcon,
-  KeyIcon,
-  MagnifyingGlassIcon,
-  PlayIcon,
-} from '@heroicons/react/24/outline'
+import { KeyIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import type { FolderGetResponse } from '@stellariscloud/api-client'
 import type { FolderMetadata } from '@stellariscloud/types'
 import {
@@ -17,65 +12,21 @@ import {
 import { formatBytes } from '@stellariscloud/utils'
 import { Calculator, Globe } from 'lucide-react'
 
-import { ActionsList } from '../../components/actions-list/actions-list.component'
-import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
-import { useServerContext } from '../../hooks/use-server-context'
-import { apiClient } from '../../services/api'
 import { FolderTasksList } from '../folder-tasks-list/folder-tasks-list.view'
 
 export const FolderSidebar = ({
-  onRescan,
   folderAndPermission,
   folderMetadata,
 }: {
-  onRescan: () => void
   folderAndPermission?: FolderGetResponse
   folderMetadata?: FolderMetadata
 }) => {
-  const serverContext = useServerContext()
   const { folder } = folderAndPermission ?? {}
-  const actionItems: {
-    id: string
-    key: string
-    label: string
-    description: string
-    icon: IconProps['icon']
-    onExecute: () => void
-  }[] = [
-    {
-      id: 'rescan',
-      key: 'RESCAN_FOLDER',
-      label: 'Refresh folder',
-      description: 'Scan the underlying storage for content changes',
-      icon: ArrowPathIcon,
-      onExecute: onRescan,
-    },
-  ].concat(
-    serverContext.appFolderTaskTriggers.map(
-      ({ taskTrigger, appIdentifier }) => ({
-        id: `${appIdentifier}__${taskTrigger.taskKey}`,
-        key: taskTrigger.taskKey,
-        label: taskTrigger.label,
-        description: taskTrigger.description,
-        icon: ArrowPathIcon,
-        onExecute: () =>
-          folder?.id &&
-          apiClient.foldersApi.handleAppTaskTrigger({
-            folderId: folder.id,
-            taskKey: taskTrigger.taskKey,
-            appIdentifier,
-            triggerAppTaskInputDTO: {
-              inputParams: {},
-            },
-          }),
-      }),
-    ),
-  )
 
   return (
-    <div className="flex h-full flex-col overflow-y-auto">
-      <div className="flex flex-1 flex-col gap-6 px-3 pb-3">
+    <div className="flex h-full flex-col">
+      <div className="flex flex-1 flex-col gap-4">
         <Card>
           <CardHeader className="p-4 pt-3">
             <TypographyH3>
@@ -146,21 +97,6 @@ export const FolderSidebar = ({
             </dl>
           </CardContent>
         </Card>
-        {
-          <Card>
-            <CardHeader>
-              <div className="flex flex-1 flex-col gap-1 rounded-md bg-foreground/5">
-                <div className="flex items-center gap-2">
-                  <Icon icon={PlayIcon} size="md" />
-                  <div className="text-lg font-bold">Actions</div>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ActionsList actionItems={actionItems} />
-            </CardContent>
-          </Card>
-        }
         <FolderTasksList {...{ folderAndPermission }} />
       </div>
     </div>

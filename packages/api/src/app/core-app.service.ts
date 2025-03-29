@@ -1,10 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
 import path from 'path'
 import { coreConfig } from 'src/core/config'
 
 @Injectable()
 export class CoreAppService {
+  private readonly logger = new Logger(CoreAppService.name)
   workers: Record<string, Worker | undefined> = {}
 
   constructor(
@@ -38,22 +39,18 @@ export class CoreAppService {
         })
       }, 500)
 
-      // eslint-disable-next-line no-console
-      console.log('Embedded core app worker thread started')
+      this.logger.debug('Embedded core app worker thread started')
 
       worker.addEventListener('error', (err) => {
-        // eslint-disable-next-line no-console
-        console.log('Worker thread error:', err)
+        this.logger.error('Worker thread error:', err)
       })
 
       worker.addEventListener('exit', (err) => {
-        // eslint-disable-next-line no-console
-        console.log('Worker thread exit:', err)
+        this.logger.log('Worker thread exit:', err)
       })
 
       worker.addEventListener('message', (event) => {
-        // eslint-disable-next-line no-console
-        console.log('Embedded core worker event:', event)
+        this.logger.debug('Embedded core worker event:', event.data)
       })
     }
   }

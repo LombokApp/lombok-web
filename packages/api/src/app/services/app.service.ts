@@ -250,20 +250,6 @@ export class AppService {
         }
         case 'UPDATE_CONTENT_METADATA': {
           const parseResult = safeZodParse(requestData, updateMetadataSchema)
-          console.log(
-            'UPDATE_CONTENT_METADATA:',
-            JSON.stringify(
-              {
-                requestData,
-                parseResult,
-                error: parseResult
-                  ? undefined
-                  : updateMetadataSchema.safeParse(requestData).error,
-              },
-              null,
-              2,
-            ),
-          )
           if (parseResult) {
             await this.folderService.updateFolderObjectMetadata(
               requestData.updates,

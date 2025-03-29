@@ -158,7 +158,7 @@ async function main(): Promise<void> {
     id: ADMIN_1_FOLDER_1_ID,
     name: 'Admin1 Folder',
     contentLocationId: locationsMap.admin1Folder1Content.id,
-    metadataLocationId: locationsMap.admin1Folder1Content.id,
+    metadataLocationId: locationsMap.admin1Folder1Metadata.id,
     ownerId: ADMIN_1_ID,
     createdAt: new Date('2023-11-01 22:49:00.93'),
     updatedAt: new Date('2023-11-01 22:49:00.93'),

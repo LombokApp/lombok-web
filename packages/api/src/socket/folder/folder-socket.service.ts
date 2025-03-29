@@ -1,5 +1,5 @@
 import type { OnModuleInit } from '@nestjs/common'
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
 import { FolderPushMessage } from '@stellariscloud/types'
 import { safeZodParse } from '@stellariscloud/utils'
@@ -17,6 +17,7 @@ const UserAuthPayload = z.object({
 
 @Injectable()
 export class FolderSocketService implements OnModuleInit {
+  private readonly logger = new Logger(FolderSocketService.name)
   private readonly connectedClients = new Map<string, Socket>()
   private namespace: Namespace | undefined
   setNamespace(namespace: Namespace) {
@@ -39,6 +40,7 @@ export class FolderSocketService implements OnModuleInit {
     const clientId = socket.id
     this.connectedClients.set(clientId, socket)
     socket.on('disconnect', () => {
+      this.logger.debug(`Socket disconnect: ${socket.id}`)
       this.connectedClients.delete(clientId)
     })
 
@@ -55,15 +57,17 @@ export class FolderSocketService implements OnModuleInit {
         const verifiedToken = AccessTokenJWT.parse(
           this.jwtService.verifyUserJWT(token),
         )
-        // console.log('verifiedToken:', verifiedToken)
 
         if (verifiedToken.sub.startsWith('USER')) {
           // folder event subscribe
           const userId = verifiedToken.sub.split(':')[1]
           const user = await this.userService.getUserById({ id: userId })
-          await this.folderService
-            .getFolderAsUser(user, folderId)
-            .then(({ folder }) => socket.join(`folder:${folder.id}`))
+          const roomId = `folder:${folderId}`
+
+          await this.folderService.getFolderAsUser(user, folderId).then(() => {
+            this.logger.debug(`Adding socket to folder room: ${roomId}`)
+            return socket.join(roomId)
+          })
         } else {
           throw new UnauthorizedException()
         }
@@ -94,12 +98,7 @@ export class FolderSocketService implements OnModuleInit {
   }
 
   sendToFolderRoom(folderId: string, name: FolderPushMessage, msg: unknown) {
-    // console.log('sendToFolderRoom:', { folderId, name, msg })
-    // this.server?.to(this.getRoomId(folderId)).emit(name, msg)
-    // console.log(
-    //   'folderSocketGateway:',
-    //   this.folderSocketGateway.namespace.server,
-    // )
+    this.logger.debug('sendToFolderRoom:', { folderId, name, msg })
 
     if (this.namespace) {
       this.namespace.to(this.getRoomId(folderId)).emit(name, msg)

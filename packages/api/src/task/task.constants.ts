@@ -1,3 +1,3 @@
 export enum CoreTaskName {
-  RESCAN_FOLDER = 'RESCAN_FOLDER',
+  REINDEX_FOLDER = 'REINDEX_FOLDER',
 }

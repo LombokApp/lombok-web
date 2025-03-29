@@ -1,3 +1,4 @@
+import { ConsoleLogger } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 
 import { CoreModule } from './core/core.module'
@@ -8,7 +9,12 @@ export async function buildApp() {
   if (appReference.app) {
     return appReference.app
   }
-  const creationPromise = NestFactory.create(CoreModule)
+  const creationPromise = NestFactory.create(CoreModule, {
+    logger: new ConsoleLogger({
+      prefix: 'Stellaris Cloud',
+      // json: true,
+    }),
+  })
   // set the app init promise reference
   setAppInitializing(creationPromise)
 

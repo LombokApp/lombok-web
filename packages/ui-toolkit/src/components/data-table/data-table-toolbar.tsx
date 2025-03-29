@@ -56,7 +56,9 @@ export function DataTableToolbar<TData>({
   return (
     <div className="flex items-start justify-between">
       <div className="flex items-center gap-6">
-        {title && <TypographyH3>{title}</TypographyH3>}
+        <div className="pl-2">
+          {title && <TypographyH3>{title}</TypographyH3>}
+        </div>
         <div className="flex items-center space-x-2 rounded-md p-1">
           <div className="flex items-center pl-2">
             <Filter className="size-5 text-foreground/40" />

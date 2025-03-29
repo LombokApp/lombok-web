@@ -154,8 +154,8 @@ export class FoldersController {
   /**
    * Scan the underlying S3 location and update our local representation of it.
    */
-  @Post('/:folderId/rescan')
-  async rescanFolder(
+  @Post('/:folderId/reindex')
+  async reindexFolder(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
   ): Promise<void> {
@@ -166,7 +166,7 @@ export class FoldersController {
     const result = await this.folderService.getFolderAsUser(req.user, folderId)
 
     if (result.permissions.includes(FolderPermissionEnum.FOLDER_RESCAN)) {
-      await this.folderService.queueRescanFolder(result.folder.id, req.user.id)
+      await this.folderService.queueReindexFolder(result.folder.id, req.user.id)
     } else {
       throw new FolderPermissionUnauthorizedException()
     }

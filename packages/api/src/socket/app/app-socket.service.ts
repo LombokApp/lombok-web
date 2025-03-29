@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
 import { ConnectedAppWorker } from '@stellariscloud/types'
 import { safeZodParse } from '@stellariscloud/utils'
@@ -27,6 +27,7 @@ export class AppSocketService {
   }
 
   private readonly appService: AppService
+  private readonly logger = new Logger(AppSocketService.name)
 
   constructor(
     private readonly moduleRef: ModuleRef,
@@ -37,10 +38,9 @@ export class AppSocketService {
   }
 
   async handleConnection(socket: Socket): Promise<void> {
-    // console.log(
-    //   'AppSocketService handleConnection from:',
-    //   socket.client.conn.remoteAddress,
-    // )
+    this.logger.debug(
+      `handleConnection from: ${socket.client.conn.remoteAddress}`,
+    )
 
     const clientId = socket.id
     this.connectedClients.set(clientId, socket)
@@ -103,10 +103,9 @@ export class AppSocketService {
       socket.on(
         'APP_API',
         async (message: string, ack: (response: unknown) => void) => {
-          // eslint-disable-next-line no-console
-          console.log('APP Message Request:', {
+          this.logger.log('APP Message Request:', {
             message,
-            auth,
+            appWorkerId: auth.appWorkerId,
             appIdentifier,
           })
           const response = await this.appService

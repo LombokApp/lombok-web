@@ -552,9 +552,14 @@ export class FolderService {
     },
   ) {
     const { folder } = await this.getFolderAsUser(actor, folderId)
+    const where = and(
+      ...[eq(folderObjectsTable.folderId, folder.id)].concat(
+        search ? [ilike(folderObjectsTable.objectKey, `%${search}%`)] : [],
+      ),
+    )
     const folderObjects =
       await this.ormService.db.query.folderObjectsTable.findMany({
-        where: eq(folderObjectsTable.folderId, folder.id),
+        where,
         offset,
         limit,
         orderBy: parseSort(folderObjectsTable, sort),
@@ -562,13 +567,7 @@ export class FolderService {
     const [folderObjectsCount] = await this.ormService.db
       .select({ count: sql<string | null>`count(*)` })
       .from(folderObjectsTable)
-      .where(
-        and(
-          ...[eq(folderObjectsTable.folderId, folder.id)].concat(
-            search ? [ilike(folderObjectsTable.objectKey, `%${search}%`)] : [],
-          ),
-        ),
-      )
+      .where(where)
 
     return {
       result: folderObjects,
@@ -651,9 +650,9 @@ export class FolderService {
     )
   }
 
-  queueRescanFolder(folderId: string, userId: string) {
+  queueReindexFolder(folderId: string, userId: string) {
     return this.coreTaskService.addAsyncTask(
-      CoreTaskName.RESCAN_FOLDER,
+      CoreTaskName.REINDEX_FOLDER,
       {
         folderId,
         userId,

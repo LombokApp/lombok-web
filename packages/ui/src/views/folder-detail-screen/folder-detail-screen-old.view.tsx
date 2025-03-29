@@ -33,9 +33,9 @@ import {
 import useDebounce from 'react-use/lib/useDebounce'
 
 import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
-import { ConfirmRefreshFolderModal } from '../../components/confirm-refresh-folder-modal/confirm-refresh-folder-modal'
+import { ConfirmRefreshFolderModal } from '../../components/confirm-reindex-folder-modal/confirm-refresh-folder-modal'
 import { FolderScroll } from '../../components/folder-scroll/folder-scroll'
-import { UploadModal } from '../../components/upload-modal/upload-modal'
+import { UploadModal } from '../../components/upload-modal-old/upload-modal'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { EmptyState } from '../../design-system/empty-state/empty-state'
 import { useWindowDimensions } from '../../hooks/use-window-dimensions'

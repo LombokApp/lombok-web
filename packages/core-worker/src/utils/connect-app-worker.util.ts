@@ -236,7 +236,6 @@ export const connectAndPerformWork = (
     })
 
     socket.on('error', (error) => {
-      console.log('Socket error:', error, appWorkerId)
       log({
         message: 'Core app worker websocket error.',
         name: 'CoreAppWorkerSocketError',

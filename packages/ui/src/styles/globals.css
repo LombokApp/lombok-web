@@ -21,19 +21,6 @@
   * {
     box-sizing: border-box;
   }
-
-  ::-webkit-scrollbar {
-    border-radius: 6px;
-    width: 6px;
-    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-    background-color: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    border-radius: 6px;
-    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
-    background-color: #666;
-  }
 }
 
 @tailwind base;

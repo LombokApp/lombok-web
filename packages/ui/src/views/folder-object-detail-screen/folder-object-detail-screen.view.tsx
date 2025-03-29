@@ -4,8 +4,7 @@ import {
   FolderPushMessage,
   MediaType,
 } from '@stellariscloud/types'
-import { Button, ButtonGroup } from '@stellariscloud/ui-toolkit'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { Button, cn, TypographyH3 } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 
 import { ConfirmDeleteModal } from '../../components/confirm-delete-modal/confirm-delete-modal'
@@ -21,14 +20,10 @@ export const FolderObjectDetailScreen = ({
   folderId,
   objectKey,
   onFolderLinkClick,
-  onNextClick,
-  onPreviousClick,
 }: {
   folderId: string
   objectKey: string
   onFolderLinkClick?: () => void
-  onNextClick?: () => void
-  onPreviousClick?: () => void
 }) => {
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
   const [showDeleteModal, setShowDeleteModal] = React.useState(false)
@@ -144,59 +139,51 @@ export const FolderObjectDetailScreen = ({
       )}
       <div className="flex size-full flex-1 justify-end">
         <div
-          className="relative flex size-full flex-col items-center"
+          className="relative flex size-full flex-col"
           key={displayObjectKey}
         >
-          {folderObject?.objectKey && (
-            <div className="w-full px-4 py-2">
-              <div className="flex gap-2 pt-2">
-                {folderContext.folderPermissions?.includes(
-                  FolderPermissionEnum.OBJECT_EDIT,
-                ) && (
+          <div className="flex items-center justify-between pb-2">
+            <div className="pl-2">
+              <TypographyH3>{objectKey}</TypographyH3>
+            </div>
+
+            {folderObject?.objectKey && (
+              <div className="px-4">
+                <div className="flex gap-2">
+                  {folderContext.folderPermissions?.includes(
+                    FolderPermissionEnum.OBJECT_EDIT,
+                  ) && (
+                    <Button
+                      size="sm"
+                      onClick={handleDelete}
+                      variant={'outline'}
+                    >
+                      <TrashIcon className="size-5" />
+                    </Button>
+                  )}
                   <Button
                     size="sm"
-                    onClick={handleDelete}
-                    variant={'destructive'}
+                    variant={'outline'}
+                    onClick={() =>
+                      downloadToFile(
+                        folderId,
+                        `content:${objectKey}`,
+                        objectKey.split('/').at(-1) ?? objectKey,
+                      )
+                    }
                   >
-                    <TrashIcon className="size-5" />
-                    Delete
+                    <ArrowDownTrayIcon className="size-5" />
                   </Button>
-                )}
-                <Button
-                  size="sm"
-                  onClick={() =>
-                    downloadToFile(
-                      folderId,
-                      `content:${objectKey}`,
-                      objectKey.split('/').at(-1) ?? objectKey,
-                    )
-                  }
-                >
-                  <ArrowDownTrayIcon className="size-5" />
-                  Download
-                </Button>
-                <ButtonGroup>
-                  <Button
-                    onClick={() => {
-                      onNextClick?.()
-                      setDisplayObjectKey(undefined)
-                    }}
-                  >
-                    <ArrowLeft />
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      onPreviousClick?.()
-                      setDisplayObjectKey(undefined)
-                    }}
-                  >
-                    <ArrowRight />
-                  </Button>
-                </ButtonGroup>
+                </div>
               </div>
-            </div>
-          )}
-          <div className="flex w-full flex-1 overflow-hidden">
+            )}
+          </div>
+          <div
+            className={cn(
+              'flex w-full flex-1 overflow-hidden',
+              sidebarOpen && 'pr-2',
+            )}
+          >
             {folderObject && (
               <div className={'flex flex-1 flex-col justify-around'}>
                 {folderObject.hash ? (
@@ -215,23 +202,23 @@ export const FolderObjectDetailScreen = ({
                 )}
               </div>
             )}
-            {sidebarOpen && folderObject && folderContext.folder && (
-              <div className="xs:w-full md:w-[1/2] lg:w-[1/2] xl:w-2/5 2xl:w-[35%] 2xl:max-w-[35rem]">
-                <FolderObjectSidebar
-                  folderAndPermission={
-                    folderContext.folderPermissions && {
-                      folder: folderContext.folder,
-                      permissions: folderContext.folderPermissions,
-                    }
-                  }
-                  folder={folderContext.folder}
-                  objectKey={objectKey}
-                  folderObject={folderObject}
-                />
-              </div>
-            )}
           </div>
         </div>
+        {sidebarOpen && folderObject && folderContext.folder && (
+          <div className="xs:w-full md:w-[1/2] lg:w-[1/2] xl:w-2/5 2xl:w-[35%] 2xl:max-w-[35rem]">
+            <FolderObjectSidebar
+              folderAndPermission={
+                folderContext.folderPermissions && {
+                  folder: folderContext.folder,
+                  permissions: folderContext.folderPermissions,
+                }
+              }
+              folder={folderContext.folder}
+              objectKey={objectKey}
+              folderObject={folderObject}
+            />
+          </div>
+        )}
       </div>
     </>
   )

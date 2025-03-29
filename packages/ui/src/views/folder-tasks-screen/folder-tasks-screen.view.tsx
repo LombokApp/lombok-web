@@ -74,11 +74,7 @@ export function FolderTasksScreen() {
             <DataTable
               enableSearch={true}
               searchColumn={'taskKey'}
-              onColumnFiltersChange={(updater) => {
-                setFilters((old) =>
-                  updater instanceof Function ? updater(old) : updater,
-                )
-              }}
+              onColumnFiltersChange={setFilters}
               rowCount={listFolderTasksQuery.data?.meta.totalCount}
               data={listFolderTasksQuery.data?.result ?? []}
               columns={folderTasksTableColumns}

@@ -6,9 +6,14 @@ function createReactPluginWithWorkerExclusion(workerFileNames: string[] = []) {
   const [basePlugin] = react()
 
   return {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     ...basePlugin,
     name: 'react-swc-with-worker-filter',
-    transform(code: string, id: string, ...rest: any[]) {
+    transform(
+      code: string,
+      id: string,
+      ...rest: ({ ssr?: boolean | undefined } | undefined)[]
+    ) {
       if (workerFileNames.some((name) => id.endsWith(name))) {
         return null // Skip transforming this file entirely
       }
@@ -17,6 +22,7 @@ function createReactPluginWithWorkerExclusion(workerFileNames: string[] = []) {
         'transform' in basePlugin &&
         typeof basePlugin.transform === 'function'
       ) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
         return basePlugin.transform.call(this as any, code, id, ...rest)
       }
       return null
@@ -40,8 +46,13 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://stellaris.localhost:3000',
         changeOrigin: true,
+      },
+      '/socket.io': {
+        target: 'http://stellaris.localhost:3000',
+        ws: true,
+        rewriteWsOrigin: true,
       },
     },
   },
