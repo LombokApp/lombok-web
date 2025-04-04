@@ -5,7 +5,7 @@ import { eventsTable } from '../../event/entities/event.entity'
 
 export const tasksTable = pgTable('tasks', {
   id: uuid('id').primaryKey(),
-  ownerIdentifier: text('ownerIdentifier').notNull(), // CORE, APP:CORE, APP:OTHER, ...
+  ownerIdentifier: text('ownerIdentifier').notNull(), // core, app:core, app:other, ...
   taskKey: text('taskKey').notNull(),
   taskDescription: jsonb('taskDescription')
     .$type<{

@@ -3,11 +3,11 @@ import { ModuleRef } from '@nestjs/core'
 import { ConnectedAppWorker } from '@stellariscloud/types'
 import { safeZodParse } from '@stellariscloud/utils'
 import type { Namespace, Socket } from 'socket.io'
-import { AppService } from 'src/app/services/app.service'
+import { APP_NS_PREFIX, AppService } from 'src/app/services/app.service'
 import { KVService } from 'src/cache/kv.service'
 import { z } from 'zod'
 
-import { JWTService } from '../../auth/services/jwt.service'
+import { APP_JWT_SUB_PREFIX, JWTService } from '../../auth/services/jwt.service'
 
 const AppAuthPayload = z.object({
   appWorkerId: z.string(),
@@ -53,8 +53,8 @@ export class AppSocketService {
     if (safeZodParse(auth, AppAuthPayload)) {
       const jwt = this.jwtService.decodeJWT(auth.token)
       const sub = jwt.payload.sub as string | undefined
-      const appIdentifier = sub?.startsWith('APP:')
-        ? sub.slice('APP:'.length)
+      const appIdentifier = sub?.startsWith(APP_JWT_SUB_PREFIX)
+        ? sub.slice(APP_NS_PREFIX.length)
         : undefined
 
       if (!appIdentifier) {
@@ -166,7 +166,7 @@ export class AppSocketService {
   }
 
   getRoomKeyForAppAndTask(appIdentifier: string, taskKey: string) {
-    return `app:${appIdentifier.toLowerCase()}__task:${taskKey}`
+    return `${APP_NS_PREFIX}${appIdentifier.toLowerCase()}__task:${taskKey}`
   }
 
   notifyAppWorkersOfPendingTasks(

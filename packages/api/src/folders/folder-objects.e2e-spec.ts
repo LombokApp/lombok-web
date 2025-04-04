@@ -80,12 +80,12 @@ describe('Folder Objects', () => {
 
   //   expect(testFolder.folder.id).toBeTruthy()
   //   const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
-  //     getQueueToken(CoreTaskName.RESCAN_FOLDER),
+  //     getQueueToken(CoreTaskName.REINDEX_FOLDER),
   //   )
 
   //   const jobsCompletedBefore = queue?.stats.completedJobs ?? 0
 
-  //   await rescanTestFolder({
+  //   await reindexTestFolder({
   //     accessToken,
   //     apiClient,
   //     folderId: testFolder.folder.id,
@@ -140,11 +140,11 @@ describe('Folder Objects', () => {
   //   expect(folderGetResponse.data.folder.id).toEqual(testFolder.folder.id)
 
   //   const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
-  //     getQueueToken(CoreTaskName.RESCAN_FOLDER),
+  //     getQueueToken(CoreTaskName.REINDEX_FOLDER),
   //   )
   //   const jobsCompletedBefore = queue?.stats.completedJobs ?? 0
 
-  //   await rescanTestFolder({
+  //   await reindexTestFolder({
   //     accessToken,
   //     apiClient,
   //     folderId: testFolder.folder.id,
@@ -192,11 +192,11 @@ describe('Folder Objects', () => {
   //   expect(folderGetResponse.data.folder.id).toEqual(testFolder.folder.id)
 
   //   const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
-  //     getQueueToken(CoreTaskName.RESCAN_FOLDER),
+  //     getQueueToken(CoreTaskName.REINDEX_FOLDER),
   //   )
   //   const jobsCompletedBefore = queue?.stats.completedJobs ?? 0
 
-  //   await rescanTestFolder({
+  //   await reindexTestFolder({
   //     accessToken,
   //     apiClient,
   //     folderId: testFolder.folder.id,

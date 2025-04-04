@@ -5,7 +5,7 @@ import {
   buildTestModule,
   createTestFolder,
   createTestUser,
-  rescanTestFolder,
+  reindexTestFolder,
   testS3Location,
   waitForTrue,
   // waitForTrue,
@@ -245,7 +245,7 @@ describe('Folders', () => {
 
     const coreTaskService = await testModule?.app.resolve(CoreTaskService)
 
-    await rescanTestFolder({
+    await reindexTestFolder({
       accessToken,
       apiClient,
       folderId: testFolder.folder.id,
@@ -721,10 +721,10 @@ describe('Folders', () => {
     expect(response.status).toEqual(401)
   })
 
-  it(`should 401 on rescan folder without token`, async () => {
+  it(`should 401 on reindex folder without token`, async () => {
     const response = await apiClient
       .foldersApi()
-      .rescanFolder({ folderId: '__dummy__' })
+      .reindexFolder({ folderId: '__dummy__' })
 
     expect(response.status).toEqual(401)
   })

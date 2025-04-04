@@ -6,7 +6,7 @@ import { CoreTaskName } from 'src/task/task.constants'
 import { FolderService } from '../services/folder.service'
 
 @Injectable()
-export class RescanFolderProcessor<
+export class ReindexFolderProcessor<
   T extends CoreTaskName.REINDEX_FOLDER,
   K extends CoreTaskInputData<T>,
 > extends BaseProcessor<CoreTaskName.REINDEX_FOLDER> {
@@ -17,6 +17,6 @@ export class RescanFolderProcessor<
   }
 
   async run(data: K) {
-    await this.folderService.rescanFolder(data)
+    await this.folderService.reindexFolder(data)
   }
 }

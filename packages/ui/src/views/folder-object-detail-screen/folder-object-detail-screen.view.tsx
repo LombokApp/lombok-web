@@ -71,7 +71,7 @@ export const FolderObjectDetailScreen = ({
   }, [folderObject?.sizeBytes])
 
   const handleIndexFolderObject = () => {
-    // void apiClient.foldersApi.rescanFolderObject({
+    // void apiClient.foldersApi.reindexFolderObject({
     //   folderId,
     //   folderOperationRequestPayload: {
     //     operationName: FolderOperationName.IndexFolderObject,

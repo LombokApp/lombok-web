@@ -30,6 +30,8 @@ export enum EventSort {
   UpdatedAtDesc = 'updatedAt-desc',
 }
 
+export const APP_NS_PREFIX = 'app:'
+
 @Injectable()
 export class EventService {
   get folderSocketService(): FolderSocketService {
@@ -55,7 +57,7 @@ export class EventService {
     locationContext,
     userId,
   }: {
-    emitterIdentifier: string // "CORE" for internally emitted events, and "APP:<appIdentifier>" for app emitted events
+    emitterIdentifier: string // "CORE" for internally emitted events, and "app:<appIdentifier>" for app emitted events
     eventKey: CoreEvent | string
     data: unknown
     level: EventLevel
@@ -66,10 +68,10 @@ export class EventService {
     const triggeringTaskKey = eventKey.startsWith('TRIGGER_TASK:')
       ? eventKey.split(':').at(-1)
       : undefined
-    const isAppEmitter = emitterIdentifier.startsWith('APP:')
+    const isAppEmitter = emitterIdentifier.startsWith(APP_NS_PREFIX)
     const isCoreEmitter = emitterIdentifier === 'CORE'
     const appIdentifier = isAppEmitter
-      ? emitterIdentifier.slice('APP:'.length)
+      ? emitterIdentifier.slice(APP_NS_PREFIX.length)
       : undefined
 
     const app = appIdentifier
@@ -135,7 +137,7 @@ export class EventService {
           taskKey: triggeringTaskKey,
           inputData: {},
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          ownerIdentifier: `APP:${appIdentifier!.toUpperCase()}`,
+          ownerIdentifier: `${APP_NS_PREFIX}${appIdentifier!.toUpperCase()}`,
           createdAt: now,
           updatedAt: now,
         }
@@ -175,7 +177,7 @@ export class EventService {
                 },
                 taskKey: taskRequest.taskDefinition.key,
                 inputData: {},
-                ownerIdentifier: `APP:${taskRequest.appIdentifier.toUpperCase()}`,
+                ownerIdentifier: `${APP_NS_PREFIX}${taskRequest.appIdentifier.toUpperCase()}`,
                 createdAt: now,
                 updatedAt: now,
               }),

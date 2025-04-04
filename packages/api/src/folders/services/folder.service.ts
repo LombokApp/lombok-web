@@ -27,7 +27,7 @@ import {
 } from '@stellariscloud/utils'
 import { and, eq, ilike, SQL, sql } from 'drizzle-orm'
 import mime from 'mime'
-import { AppService } from 'src/app/services/app.service'
+import { APP_NS_PREFIX, AppService } from 'src/app/services/app.service'
 import { parseSort } from 'src/core/utils/sort.util'
 import { EventLevel } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
@@ -108,7 +108,7 @@ export enum FolderSort {
 
 const OWNER_PERMISSIONS = [
   FolderPermissionEnum.FOLDER_FORGET,
-  FolderPermissionEnum.FOLDER_RESCAN,
+  FolderPermissionEnum.FOLDER_REINDEX,
   FolderPermissionEnum.OBJECT_EDIT,
   FolderPermissionEnum.OBJECT_MANAGE,
 ]
@@ -596,7 +596,9 @@ export class FolderService {
           !urlRequest.objectIdentifier.startsWith('content:') &&
           !urlRequest.objectIdentifier.startsWith('metadata:')
         ) {
-          throw new FolderObjectNotFoundException()
+          throw new BadRequestException(
+            'In createS3PresignedUrls, objectIdentifier should start with "content:" or "metadata:"',
+          )
         }
         try {
           const { isMetadataIdentifier, objectKey, metadataHash } =
@@ -661,7 +663,7 @@ export class FolderService {
     )
   }
 
-  async rescanFolder({
+  async reindexFolder({
     folderId,
     userId,
   }: {
@@ -678,7 +680,7 @@ export class FolderService {
       endpoint: contentStorageLocation.endpoint,
       region: contentStorageLocation.region,
     })
-    if (!permissions.includes(FolderPermissionEnum.FOLDER_RESCAN)) {
+    if (!permissions.includes(FolderPermissionEnum.FOLDER_REINDEX)) {
       throw new FolderPermissionUnauthorizedException()
     }
 
@@ -705,9 +707,7 @@ export class FolderService {
         prefix: contentStorageLocation.prefix,
       })
       for (const obj of response.result) {
-        const objectKey = folder.contentLocation.prefix.length
-          ? obj.key.slice(folder.contentLocation.prefix.length + 1)
-          : obj.key
+        const objectKey = obj.key.slice(folder.contentLocation.prefix.length)
         if (objectKey.startsWith('.stellaris_')) {
           continue
         }
@@ -801,7 +801,7 @@ export class FolderService {
     //   objectKey,
     // })
     await this.eventService.emitEvent({
-      emitterIdentifier: `APP:${appIdentifier.toUpperCase()}`,
+      emitterIdentifier: `${APP_NS_PREFIX}${appIdentifier.toUpperCase()}`,
       locationContext: folderId ? { folderId, objectKey } : undefined,
       userId: actor.id,
       level: EventLevel.INFO,

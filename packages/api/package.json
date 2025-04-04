@@ -4,7 +4,7 @@
   "scripts": {
     "start": "bun --bun dist/src/main.js",
     "dev": "bun --watch --bun src/main.ts",
-    "build": "nest build -p tsconfig.build.json",
+    "build": "bun --bun nest build -p tsconfig.build.json",
     "test:unit:watch": "bun test $(find src -type f -name '*.unit-spec.ts' | sed 's|^|./|') --watch",
     "test:unit": "bun test $(find src -type f -name '*.unit-spec.ts' | sed 's|^|./|')",
     "test:e2e:watch": "bun ./test/e2e.setup.ts && bun test $(find src -type f -name '*.e2e-spec.ts' | sed 's|^|./|') --watch",

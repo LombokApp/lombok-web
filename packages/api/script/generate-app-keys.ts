@@ -44,7 +44,7 @@ void new Promise<{ publicKey: string; privateKey: string }>((resolve) =>
     aud: host,
     jti: uuidV4(),
     scp: [],
-    sub: `APP:${appIdentifier}`,
+    sub: `app:${appIdentifier}`,
   }
 
   const token = jwt.sign(payload, keys.privateKey, {

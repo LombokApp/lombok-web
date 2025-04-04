@@ -24,9 +24,9 @@ import { coreConfig } from '../../core/config'
 
 const ALGORITHM = 'HS256'
 
-export const USER_JWT_SUB_PREFIX = 'USER'
-export const APP_USER_JWT_SUB_PREFIX = 'APP_USER'
-export const APP_JWT_SUB_PREFIX = 'APP'
+export const USER_JWT_SUB_PREFIX = 'user:'
+export const APP_USER_JWT_SUB_PREFIX = 'app_user:'
+export const APP_JWT_SUB_PREFIX = 'app:'
 
 export const accessTokenType = z.object({
   aud: z.string(),
@@ -167,7 +167,7 @@ export class JWTService {
     try {
       return jwt.verify(token, this._authConfig.authJwtSecret, {
         algorithms: ['RS512'],
-        subject: `${APP_USER_JWT_SUB_PREFIX}:${appIdentifier}`,
+        subject: `${APP_USER_JWT_SUB_PREFIX}${appIdentifier}`,
       }) as JwtPayload
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
@@ -192,7 +192,7 @@ export class JWTService {
     try {
       return jwt.verify(token, publicKey, {
         algorithms: ['RS512'],
-        subject: `${APP_JWT_SUB_PREFIX}:${appIdentifier}`,
+        subject: `${APP_JWT_SUB_PREFIX}${appIdentifier}`,
       }) as JwtPayload
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {

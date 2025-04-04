@@ -80,10 +80,10 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
                     )}
                   </div>
                   <div>
-                    {task.ownerIdentifier.startsWith('APP:') ? (
+                    {task.ownerIdentifier.startsWith('app:') ? (
                       <Link
                         className="underline"
-                        to={`/server/apps/${task.ownerIdentifier.slice('APP:'.length)}`}
+                        to={`/server/apps/${task.ownerIdentifier.slice('app:'.length)}`}
                       >
                         {task.ownerIdentifier}
                       </Link>

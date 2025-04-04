@@ -16,6 +16,7 @@ import {
   SQL,
   sql,
 } from 'drizzle-orm'
+import { APP_NS_PREFIX } from 'src/app/services/app.service'
 import { parseSort } from 'src/core/utils/sort.util'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
@@ -186,7 +187,7 @@ export class TaskService {
     const pendingTasksByApp = pendingTasks.reduce<
       Record<string, Record<string, number>>
     >((acc, next) => {
-      const appIdentifier = next.ownerIdentifier.slice('APP:'.length)
+      const appIdentifier = next.ownerIdentifier.slice(APP_NS_PREFIX.length)
       return {
         ...acc,
         [appIdentifier]: {

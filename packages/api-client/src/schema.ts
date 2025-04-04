@@ -3235,7 +3235,7 @@ export const schema = {
             "items": {
               "type": "string",
               "enum": [
-                "FOLDER_RESCAN",
+                "FOLDER_REINDEX",
                 "FOLDER_FORGET",
                 "OBJECT_EDIT",
                 "OBJECT_MANAGE"
@@ -3287,7 +3287,7 @@ export const schema = {
                   "items": {
                     "type": "string",
                     "enum": [
-                      "FOLDER_RESCAN",
+                      "FOLDER_REINDEX",
                       "FOLDER_FORGET",
                       "OBJECT_EDIT",
                       "OBJECT_MANAGE"
