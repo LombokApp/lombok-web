@@ -7,12 +7,12 @@ import { FolderService } from '../services/folder.service'
 
 @Injectable()
 export class RescanFolderProcessor<
-  T extends CoreTaskName.RESCAN_FOLDER,
+  T extends CoreTaskName.REINDEX_FOLDER,
   K extends CoreTaskInputData<T>,
-> extends BaseProcessor<CoreTaskName.RESCAN_FOLDER> {
+> extends BaseProcessor<CoreTaskName.REINDEX_FOLDER> {
   private readonly folderService: FolderService
   constructor(@Inject(forwardRef(() => FolderService)) _folderService) {
-    super(CoreTaskName.RESCAN_FOLDER)
+    super(CoreTaskName.REINDEX_FOLDER)
     this.folderService = _folderService as FolderService
   }
 

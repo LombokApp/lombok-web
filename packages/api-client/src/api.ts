@@ -4214,10 +4214,10 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        rescanFolder: async (folderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        reindexFolder: async (folderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'folderId' is not null or undefined
-            assertParamExists('rescanFolder', 'folderId', folderId)
-            const localVarPath = `/api/v1/folders/{folderId}/rescan`
+            assertParamExists('reindexFolder', 'folderId', folderId)
+            const localVarPath = `/api/v1/folders/{folderId}/reindex`
                 .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -4419,10 +4419,10 @@ export const FoldersApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async rescanFolder(folderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.rescanFolder(folderId, options);
+        async reindexFolder(folderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.reindexFolder(folderId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['FoldersApi.rescanFolder']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.reindexFolder']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -4548,12 +4548,12 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
         /**
          * 
          * @summary Scan the underlying S3 location and update our local representation of it.
-         * @param {FoldersApiRescanFolderRequest} requestParameters Request parameters.
+         * @param {FoldersApiReindexFolderRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        rescanFolder(requestParameters: FoldersApiRescanFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.rescanFolder(requestParameters.folderId, options).then((request) => request(axios, basePath));
+        reindexFolder(requestParameters: FoldersApiReindexFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.reindexFolder(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -4811,15 +4811,15 @@ export interface FoldersApiRefreshFolderObjectS3MetadataRequest {
 }
 
 /**
- * Request parameters for rescanFolder operation in FoldersApi.
+ * Request parameters for reindexFolder operation in FoldersApi.
  * @export
- * @interface FoldersApiRescanFolderRequest
+ * @interface FoldersApiReindexFolderRequest
  */
-export interface FoldersApiRescanFolderRequest {
+export interface FoldersApiReindexFolderRequest {
     /**
      * 
      * @type {string}
-     * @memberof FoldersApiRescanFolder
+     * @memberof FoldersApiReindexFolder
      */
     readonly folderId: string
 }
@@ -4966,13 +4966,13 @@ export class FoldersApi extends BaseAPI {
     /**
      * 
      * @summary Scan the underlying S3 location and update our local representation of it.
-     * @param {FoldersApiRescanFolderRequest} requestParameters Request parameters.
+     * @param {FoldersApiReindexFolderRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof FoldersApi
      */
-    public rescanFolder(requestParameters: FoldersApiRescanFolderRequest, options?: RawAxiosRequestConfig) {
-        return FoldersApiFp(this.configuration).rescanFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
+    public reindexFolder(requestParameters: FoldersApiReindexFolderRequest, options?: RawAxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).reindexFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

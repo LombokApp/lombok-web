@@ -4,10 +4,10 @@ import React from 'react'
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
 
-type MessageCallback = (msg: {
-  name: FolderPushMessage
-  payload: Record<string, string>
-}) => void
+type MessageCallback = (
+  name: FolderPushMessage,
+  payload: Record<string, string>,
+) => void
 
 export const useWebsocket = (
   namespace: string,
@@ -16,11 +16,9 @@ export const useWebsocket = (
 ) => {
   const [socketState, setSocketState] = React.useState<{
     socket?: Socket
-    connected: boolean
     reconnectKey: string
   }>({
     socket: undefined,
-    connected: false,
     reconnectKey: '___',
   })
   const [socketBaseURL, setSocketBaseURL] = React.useState<string>()
@@ -28,7 +26,8 @@ export const useWebsocket = (
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       setSocketBaseURL(
-        `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`,
+        (import.meta.env.VITE_BACKEND_HOST as string | undefined) ??
+          `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`,
       )
     }
   }, [])
@@ -45,59 +44,55 @@ export const useWebsocket = (
   }, [socketState.socket, onMessage])
 
   React.useEffect(() => {
-    if (
-      socketBaseURL &&
-      !socketState.socket?.active &&
-      authContext.viewer?.id
-    ) {
+    if (socketBaseURL && !socketState.socket) {
       void authContext.getAccessToken().then((token) => {
-        const s = io(`${socketBaseURL}/${namespace}`, {
+        const socketUrl = `${socketBaseURL}/${namespace}`
+        const s = io(socketUrl, {
           auth: {
-            // userId: authContext.viewer?.id,
+            userId: authContext.viewer?.id,
             ...authParams,
             token,
           },
           reconnection: false,
         })
+
         setSocketState({
           socket: s,
-          connected: false,
           reconnectKey: socketState.reconnectKey,
         })
 
         s.on('connect', () => {
+          console.log(`socket connected ns(${namespace}):`, {
+            ...s,
+          })
           setSocketState({
             socket: s,
-            connected: true,
             reconnectKey: socketState.reconnectKey,
           })
         })
 
         s.on('disconnect', () => {
+          console.log(`socket disconnected ns(${namespace}):`, {
+            ...s,
+          })
+
           setSocketState({
-            connected: false,
             reconnectKey: socketState.reconnectKey,
           })
         })
 
         s.on('error', () => {
+          console.log('socket error:', socketState.socket)
           s.close()
           setSocketState({
-            connected: false,
-            reconnectKey: socketState.reconnectKey,
-          })
-        })
-        s.on('close', () => {
-          setSocketState({
-            connected: false,
             reconnectKey: socketState.reconnectKey,
           })
         })
       })
     }
   }, [
-    socketState.socket?.active,
     socketState.reconnectKey,
+    socketState,
     authContext.viewer?.id,
     authContext,
     namespace,

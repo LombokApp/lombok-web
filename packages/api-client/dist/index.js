@@ -3088,9 +3088,9 @@ var FoldersApiAxiosParamCreator = function(configuration) {
         options: localVarRequestOptions
       };
     },
-    rescanFolder: async (folderId, options = {}) => {
-      assertParamExists("rescanFolder", "folderId", folderId);
-      const localVarPath = `/api/v1/folders/{folderId}/rescan`.replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+    reindexFolder: async (folderId, options = {}) => {
+      assertParamExists("reindexFolder", "folderId", folderId);
+      const localVarPath = `/api/v1/folders/{folderId}/reindex`.replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
       let baseOptions;
       if (configuration) {
@@ -3179,10 +3179,10 @@ var FoldersApiFp = function(configuration) {
       const localVarOperationServerBasePath = operationServerMap["FoldersApi.refreshFolderObjectS3Metadata"]?.[localVarOperationServerIndex]?.url;
       return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
     },
-    async rescanFolder(folderId, options) {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.rescanFolder(folderId, options);
+    async reindexFolder(folderId, options) {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.reindexFolder(folderId, options);
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-      const localVarOperationServerBasePath = operationServerMap["FoldersApi.rescanFolder"]?.[localVarOperationServerIndex]?.url;
+      const localVarOperationServerBasePath = operationServerMap["FoldersApi.reindexFolder"]?.[localVarOperationServerIndex]?.url;
       return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
     }
   };
@@ -3223,8 +3223,8 @@ var FoldersApiFactory = function(configuration, basePath, axios2) {
     refreshFolderObjectS3Metadata(requestParameters, options) {
       return localVarFp.refreshFolderObjectS3Metadata(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(axios2, basePath));
     },
-    rescanFolder(requestParameters, options) {
-      return localVarFp.rescanFolder(requestParameters.folderId, options).then((request) => request(axios2, basePath));
+    reindexFolder(requestParameters, options) {
+      return localVarFp.reindexFolder(requestParameters.folderId, options).then((request) => request(axios2, basePath));
     }
   };
 };
@@ -3263,8 +3263,8 @@ class FoldersApi extends BaseAPI {
   refreshFolderObjectS3Metadata(requestParameters, options) {
     return FoldersApiFp(this.configuration).refreshFolderObjectS3Metadata(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(this.axios, this.basePath));
   }
-  rescanFolder(requestParameters, options) {
-    return FoldersApiFp(this.configuration).rescanFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
+  reindexFolder(requestParameters, options) {
+    return FoldersApiFp(this.configuration).reindexFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
   }
 }
 var ListFolderObjectsSortEnum = {
@@ -5154,9 +5154,9 @@ var schema = {
         ]
       }
     },
-    "/api/v1/folders/{folderId}/rescan": {
+    "/api/v1/folders/{folderId}/reindex": {
       post: {
-        operationId: "rescanFolder",
+        operationId: "reindexFolder",
         parameters: [
           {
             name: "folderId",

@@ -37,7 +37,9 @@ async function main(): Promise<void> {
   const USER_1_FOLDER_1_ID = '67137165-2df6-46a4-8770-ecc0deab39b5'
   const USER_1_FOLDER_2_ID = 'ea09b961-f7e0-4a24-899d-fe398edabe01'
   const ADMIN_1_ID = '3bc93392-d38f-4a59-8668-c16c5a9f3250'
-  const ADMIN_1_FOLDER_ID = 'b85646a9-3c5c-40c6-afe8-6035fdb827da'
+  const ADMIN_1_FOLDER_1_ID = 'b85646a9-3c5c-40c6-afe8-6035fdb827da'
+  const ADMIN_1_BIG_FOLDER_TEST_FOLDER_ID =
+    'ddc0674b-2826-4bdd-aa9d-b0a3eed55a57'
   const db = drizzle(sql)
   const admin: NewUser = {
     id: ADMIN_1_ID,
@@ -97,36 +99,48 @@ async function main(): Promise<void> {
 
   // eslint-disable-next-line no-console
   console.log('Seed start')
-
-  const locations = [
-    buildDevSeedLocation(USER_1_ID, 'user-1-folder-1-prefix'),
-    buildDevSeedLocation(
+  const locationsMap = {
+    user1Folder1Content: buildDevSeedLocation(
+      USER_1_ID,
+      'user-1-folder-1-prefix',
+    ),
+    user1Folder1Metadata: buildDevSeedLocation(
       USER_1_ID,
       `user-1-folder-1-prefix/.stellaris_folder_metadata_${USER_1_FOLDER_1_ID}`,
     ),
-    buildDevSeedLocation(USER_1_ID, 'user-1-folder-2-prefix'),
-    buildDevSeedLocation(
+    user1Folder2Content: buildDevSeedLocation(
+      USER_1_ID,
+      'user-1-folder-2-prefix',
+    ),
+    user1Folder2Metadata: buildDevSeedLocation(
       USER_1_ID,
       `user-1-folder-2-prefix/.stellaris_folder_metadata_${USER_1_FOLDER_2_ID}`,
     ),
-    buildDevSeedLocation(ADMIN_1_ID, 'admin-1-folder-1-prefix'),
-    buildDevSeedLocation(
+    admin1Folder1Content: buildDevSeedLocation(
       ADMIN_1_ID,
-      `admin-1-folder-1-prefix/.stellaris_folder_metadata_${ADMIN_1_FOLDER_ID}`,
+      'admin-1-folder-1-prefix',
     ),
-    {
-      ...buildDevSeedLocation(ADMIN_1_ID, 'admin-1-folder-1-prefix'),
-      prefix: `.stellaris_folder_metadata_${ADMIN_1_FOLDER_ID}`,
-    },
-  ]
+    admin1Folder1Metadata: buildDevSeedLocation(
+      ADMIN_1_ID,
+      `admin-1-folder-1-prefix/.stellaris_folder_metadata_${ADMIN_1_FOLDER_1_ID}`,
+    ),
+    admin1BigFolderContent: buildDevSeedLocation(ADMIN_1_ID, 'big-folder-test'),
+    admin1BigFolderMetadata: buildDevSeedLocation(
+      ADMIN_1_ID,
+      `big-folder-test/.stellaris_folder_metadata_${ADMIN_1_BIG_FOLDER_TEST_FOLDER_ID}`,
+    ),
+  }
+  const locations = Object.keys(locationsMap).map(
+    (locationName) => locationsMap[locationName as keyof typeof locationsMap],
+  )
 
   await db.insert(usersTable).values(data)
   await db.insert(storageLocationsTable).values(locations)
   await db.insert(foldersTable).values({
     id: USER_1_FOLDER_1_ID,
     name: 'User1 Folder 1',
-    contentLocationId: locations[0].id,
-    metadataLocationId: locations[1].id,
+    contentLocationId: locationsMap.user1Folder1Content.id,
+    metadataLocationId: locationsMap.user1Folder1Metadata.id,
     ownerId: USER_1_ID,
     createdAt: new Date('2023-11-01 22:49:00.93'),
     updatedAt: new Date('2023-11-01 22:49:00.93'),
@@ -134,17 +148,26 @@ async function main(): Promise<void> {
   await db.insert(foldersTable).values({
     id: USER_1_FOLDER_2_ID,
     name: 'User1 Folder 2',
-    contentLocationId: locations[2].id,
-    metadataLocationId: locations[3].id,
+    contentLocationId: locationsMap.user1Folder2Content.id,
+    metadataLocationId: locationsMap.user1Folder2Metadata.id,
     ownerId: USER_1_ID,
     createdAt: new Date('2023-11-01 22:49:00.93'),
     updatedAt: new Date('2023-11-01 22:49:00.93'),
   })
   await db.insert(foldersTable).values({
-    id: ADMIN_1_FOLDER_ID,
+    id: ADMIN_1_FOLDER_1_ID,
     name: 'Admin1 Folder',
-    contentLocationId: locations[4].id,
-    metadataLocationId: locations[5].id,
+    contentLocationId: locationsMap.admin1Folder1Content.id,
+    metadataLocationId: locationsMap.admin1Folder1Metadata.id,
+    ownerId: ADMIN_1_ID,
+    createdAt: new Date('2023-11-01 22:49:00.93'),
+    updatedAt: new Date('2023-11-01 22:49:00.93'),
+  })
+  await db.insert(foldersTable).values({
+    id: ADMIN_1_BIG_FOLDER_TEST_FOLDER_ID,
+    name: 'Big Folder Test',
+    contentLocationId: locationsMap.admin1BigFolderContent.id,
+    metadataLocationId: locationsMap.admin1BigFolderMetadata.id,
     ownerId: ADMIN_1_ID,
     createdAt: new Date('2023-11-01 22:49:00.93'),
     updatedAt: new Date('2023-11-01 22:49:00.93'),

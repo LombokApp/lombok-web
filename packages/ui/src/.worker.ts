@@ -211,7 +211,7 @@ const downloadLocally = async (
 
 const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
   const message = event.data
-  console.log('WORKER event.data', event.data)
+  // console.log('WORKER event.data', event.data)
   if (message[0] === 'UPLOAD') {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const folderId: string = message[1].folderId

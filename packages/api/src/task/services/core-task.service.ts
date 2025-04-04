@@ -17,7 +17,7 @@ import { NewTask, tasksTable } from '../entities/task.entity'
 const MAX_CONCURRENT_CORE_TASKS = 10
 
 export type CoreTaskInputData<K extends CoreTaskName> =
-  K extends CoreTaskName.RESCAN_FOLDER
+  K extends CoreTaskName.REINDEX_FOLDER
     ? { folderId: string; userId: string }
     : never
 

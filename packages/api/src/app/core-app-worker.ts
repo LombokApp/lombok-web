@@ -38,7 +38,7 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
       message: 'Core app worker thread started...',
       name: 'CoreAppWorkerStartup',
       data: {
-        workerData: workerData,
+        workerData,
       },
     })
     const { wait } = connectAndPerformWork(
@@ -54,11 +54,9 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
 
     void wait
       .then(() => {
-        // eslint-disable-next-line no-console
         log({ message: 'Done work.', level: 'info' })
       })
       .catch((e: unknown) => {
-        // eslint-disable-next-line no-console
         log({ level: 'error', message: e instanceof Error ? e.message : '' })
         if (
           e &&
@@ -81,16 +79,14 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
         }
         throw e
       })
-      .finally(() => {
-        // eslint-disable-next-line no-console
-        log({ level: 'info', message: 'Shutting down.' })
-      })
+      .finally(() => log({ level: 'info', message: 'Shutting down.' }))
   } else if (!workerThreads.isMainThread) {
     log({ message: `Didn't run.` })
-    // eslint-disable-next-line no-console
+
     log({
       level: 'error',
-      message: "Is not main thread but didn\'t run because { workerData }:",
+      message: "Is not main thread but didn't run because { workerData }:",
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       data: { workerData: workerThreads.workerData },
     })
   }

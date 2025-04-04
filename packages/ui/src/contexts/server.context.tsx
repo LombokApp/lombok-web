@@ -138,20 +138,17 @@ export const ServerContextProvider = ({
   )
 
   const messageHandler = React.useCallback(
-    (message: { name: AppPushMessage; payload: Record<string, unknown> }) => {
-      if (ServerPushMessage.APPS_UPDATED === message.name) {
+    (name: AppPushMessage) => {
+      if (ServerPushMessage.APPS_UPDATED === name) {
         void fetchServerApps()
-      } else if (ServerPushMessage.SETTINGS_UPDATED === message.name) {
+      } else if (ServerPushMessage.SETTINGS_UPDATED === name) {
         void fetchServerSettings()
       }
     },
     [fetchServerApps, fetchServerSettings],
   )
 
-  const { socket, connected: socketConnected } = useWebsocket(
-    'user',
-    messageHandler,
-  )
+  const { socket } = useWebsocket('user', messageHandler)
 
   React.useEffect(() => {
     void fetchServerApps()
@@ -171,7 +168,7 @@ export const ServerContextProvider = ({
       value={{
         refreshApps: fetchServerApps,
         refreshSettings: fetchServerSettings,
-        socketConnected,
+        socketConnected: socket?.connected ?? false,
         menuItems: menuItems ?? [],
         appFolderTaskTriggers: appFolderActions ?? [],
         appFolderObjectTaskTriggers: appFolderObjectActions ?? [],

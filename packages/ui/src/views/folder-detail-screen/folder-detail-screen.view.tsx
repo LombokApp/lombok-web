@@ -3,102 +3,109 @@ import {
   ArrowUpOnSquareIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline'
-import type {
-  FolderObjectDTO,
-  FoldersApiListFolderObjectsRequest,
-} from '@stellariscloud/api-client'
+import type { FolderObjectDTO } from '@stellariscloud/api-client'
 import { FolderPermissionEnum, FolderPushMessage } from '@stellariscloud/types'
 import { Button, cn, DataTable } from '@stellariscloud/ui-toolkit'
+import type {
+  ColumnFiltersState,
+  PaginationState,
+  SortingState,
+} from '@tanstack/table-core'
 import { Folder } from 'lucide-react'
 import React from 'react'
-import {
-  useLocation,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
-import { ConfirmForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
-import { ConfirmRefreshFolderModal } from '../../components/confirm-refresh-folder-modal/confirm-refresh-folder-modal'
-import { UploadModal } from '../../components/upload-modal/upload-modal'
-import { useFolderContext } from '../../contexts/folder.context'
+import type { ForgetFolderModalData } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
+import { ForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
+import type { ReindexFolderModalData } from '../../components/confirm-reindex-folder-modal/reindex-folder-modal'
+import { RescanFolderModal } from '../../components/confirm-reindex-folder-modal/reindex-folder-modal'
+import {
+  UploadModal,
+  type UploadModalData,
+} from '../../components/upload-modal/upload-modal'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { EmptyState } from '../../design-system/empty-state/empty-state'
-import { apiClient } from '../../services/api'
+import { useFolderContext } from '../../pages/folders/folder.context'
+import { apiClient, foldersApiHooks } from '../../services/api'
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
 import { folderObjectsTableColumns } from './folder-objects-table-columns'
-import { PaginationState, SortingState } from '@tanstack/table-core'
 
 export const FolderDetailScreen = () => {
   const navigate = useNavigate()
+  // const query = useQuery()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const params = useParams()
   const [folderId, focusedObjectKeyFromParams] = params['*']?.split('/') ?? []
-  const [queryParams] = useSearchParams()
-  const location = useLocation()
+  // const [queryParams] = useSearchParams()
   const [filters, setFilters] = React.useState<
     { id: string; value: unknown }[]
-  >([])
-
+  >(
+    searchParams.get('search')
+      ? [{ id: 'search', value: searchParams.get('search') }]
+      : [],
+  )
   const searchFilter = filters.find((f) => f.id === 'objectKey')
-
-  const [refreshFolderConfirmationOpen, setRefreshFolderConfirmationOpen] =
-    React.useState(false)
-  const [uploadOpen, setUploadOpen] = React.useState(false)
-  const [forgetFolderConfirmationOpen, setForgetFolderConfirmationOpen] =
-    React.useState(false)
-
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
+  const { uploadFile, uploadingProgress } = useLocalFileCacheContext()
 
-  const [pageState, setPageState] = React.useState<{
-    search?: string
-  }>({
-    search: queryParams.get('search') ?? undefined,
+  const [uploadModalData, setUploadModalData] = React.useState<UploadModalData>(
+    {
+      isOpen: false,
+      uploadingProgress,
+    },
+  )
+  const [reindexFolderModalData, setReindexFolderModalData] =
+    React.useState<ReindexFolderModalData>({
+      isOpen: false,
+    })
+  const [
+    forgetFolderConfirmationModelData,
+    setForgetFolderConfirmationModelData,
+  ] = React.useState<ForgetFolderModalData>({
+    isOpen: false,
   })
-
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [_sorting, setSorting] = React.useState<SortingState>([])
+  const pageFromUrl = searchParams.get('page')
   const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: 0,
+    pageIndex: pageFromUrl ? parseInt(pageFromUrl, 10) - 1 : 0,
     pageSize: 10,
   })
 
-  const [folderObjects, setFolderObjects] = React.useState<{
-    results: FolderObjectDTO[] | undefined
-    startIndex: number
-    totalCount?: number
-    searchTerm?: string
-  }>({ results: [], startIndex: 0, totalCount: 0 })
-
-  const { getData, uploadFile, uploadingProgress } = useLocalFileCacheContext()
+  const listFolderObjectsQuery = foldersApiHooks.useListFolderObjects({
+    folderId,
+    limit: pagination.pageSize,
+    offset: pagination.pageIndex * pagination.pageSize,
+    ...(searchFilter?.value ? { search: searchFilter.value as string } : {}),
+    // sort: sorting[0].id,
+  })
 
   const messageHandler = React.useCallback(
     (name: FolderPushMessage, payload: unknown) => {
+      // console.log('folder socker messageHandler message:', { name, payload })
       if (
         [
           FolderPushMessage.OBJECTS_ADDED,
           FolderPushMessage.OBJECTS_REMOVED,
           FolderPushMessage.OBJECT_ADDED,
           FolderPushMessage.OBJECT_REMOVED,
+          FolderPushMessage.OBJECT_UPDATED,
         ].includes(name)
       ) {
-        setFolderObjects({
-          results: [],
-          startIndex: 0,
-          searchTerm: searchFilter?.value as string,
-        })
+        void listFolderObjectsQuery.refetch()
       } else if (FolderPushMessage.OBJECT_UPDATED === name) {
-        const folderObject = payload as FolderObjectDTO
+        const _folderObject = payload as FolderObjectDTO
+        void listFolderObjectsQuery.refetch()
       }
     },
-    [],
+    [listFolderObjectsQuery],
   )
   const folderContext = useFolderContext(messageHandler)
 
-  const startOrContinueFolderRefresh = React.useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    (t?: string) => {
+  const startOrContinueFolderReindex = React.useCallback(
+    (_t?: string) => {
       if (folderContext.folderMetadata) {
-        void apiClient.foldersApi.rescanFolder({
+        void apiClient.foldersApi.reindexFolder({
           folderId: folderContext.folderId,
         })
       }
@@ -106,179 +113,170 @@ export const FolderDetailScreen = () => {
     [folderContext.folderId, folderContext.folderMetadata],
   )
 
-  const handleForgetFolder = () => {
-    if (!forgetFolderConfirmationOpen) {
-      setForgetFolderConfirmationOpen(true)
-    } else {
-      setForgetFolderConfirmationOpen(false)
-      void apiClient.foldersApi
-        .deleteFolder({ folderId: folderContext.folderId })
-        .then(() => navigate('/folders'))
-    }
-  }
+  const handleForgetFolder = React.useCallback(async () => {
+    setForgetFolderConfirmationModelData({ isOpen: false })
+    await apiClient.foldersApi
+      .deleteFolder({ folderId: folderContext.folderId })
+      .then(() => navigate('/folders'))
+  }, [folderContext.folderId, navigate])
 
-  const handleRefreshFolder = React.useCallback(() => {
-    if (!refreshFolderConfirmationOpen) {
-      setRefreshFolderConfirmationOpen(true)
+  // eslint-disable-next-line @typescript-eslint/require-await
+  const handleReindexFolder = React.useCallback(async () => {
+    if (!reindexFolderModalData.isOpen) {
+      setReindexFolderModalData({ isOpen: true })
     } else {
-      startOrContinueFolderRefresh(
+      startOrContinueFolderReindex(
         folderContext.folderMetadata?.indexingJobContext
           ?.indexingContinuationKey,
       )
-      setRefreshFolderConfirmationOpen(false)
+      setReindexFolderModalData({ isOpen: false })
     }
   }, [
-    startOrContinueFolderRefresh,
-    refreshFolderConfirmationOpen,
+    startOrContinueFolderReindex,
+    reindexFolderModalData,
     folderContext.folderMetadata?.indexingJobContext?.indexingContinuationKey,
   ])
 
-  const handleUploadStart = React.useCallback(() => {
-    setUploadOpen(true)
-  }, [])
+  const handlePaginationChange = React.useCallback(
+    (newPagination: PaginationState) => {
+      setPagination(newPagination)
+      setSearchParams({
+        ...searchParams,
+        page: `${newPagination.pageIndex + 1}`,
+      })
+    },
+    [searchParams, setSearchParams],
+  )
 
-  const fetchFolderObjects = React.useCallback(() => {
-    if (folderId) {
-      void apiClient.foldersApi
-        .listFolderObjects({
-          folderId: folderId,
-          limit: pagination.pageSize,
-          offset: pagination.pageSize * pagination.pageIndex,
-          search:
-            typeof searchFilter?.value === 'string'
-              ? searchFilter.value
-              : undefined,
-          ...(sorting[0]
-            ? {
-                sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as FoldersApiListFolderObjectsRequest['sort'],
-              }
-            : {}),
-          ...(typeof searchFilter?.value === 'string'
-            ? {
-                search: searchFilter.value,
-              }
-            : {}),
-        })
-        .then((resp) =>
-          setFolderObjects({
-            totalCount: resp.data.meta.totalCount,
-            startIndex: 0,
-            results: resp.data.result,
-          }),
-        )
-    }
-  }, [
-    filters,
-    folderId,
-    pagination.pageSize,
-    pagination.pageIndex,
-    sorting,
-    searchFilter?.value,
-  ])
+  const handleFiltersChange = React.useCallback(
+    (newFilters: ColumnFiltersState) => {
+      setFilters(newFilters)
+      setSearchParams({
+        ...searchParams,
+        ...('search' in newFilters ? { search: newFilters.search } : {}),
+      })
+      const newSearchParams = {}
 
-  React.useEffect(() => {
-    if (folderId) {
-      fetchFolderObjects()
-    }
-  }, [folderId, filters, sorting, pagination, fetchFolderObjects])
+      // newSearchParams[]
+      setSearchParams(newSearchParams)
+    },
+    [setSearchParams, searchParams],
+  )
 
   return (
     <>
-      {uploadOpen && (
+      {uploadModalData.isOpen && (
         <UploadModal
-          uploadingProgress={uploadingProgress}
           onUpload={(file: File) =>
             uploadFile(folderContext.folderId, file.name, file)
           }
-          onCancel={() => setUploadOpen(false)}
+          modalData={uploadModalData}
+          setModalData={setUploadModalData}
         />
       )}
-      {forgetFolderConfirmationOpen && (
-        <ConfirmForgetFolderModal
-          onConfirm={() => handleForgetFolder()}
-          onCancel={() => setForgetFolderConfirmationOpen(false)}
+      {forgetFolderConfirmationModelData.isOpen && (
+        <ForgetFolderModal
+          onConfirm={handleForgetFolder}
+          modalData={forgetFolderConfirmationModelData}
+          setModalData={setForgetFolderConfirmationModelData}
         />
       )}
-      {refreshFolderConfirmationOpen && (
-        <ConfirmRefreshFolderModal
-          onConfirm={() => handleRefreshFolder()}
-          onCancel={() => setRefreshFolderConfirmationOpen(false)}
+      {reindexFolderModalData.isOpen && (
+        <RescanFolderModal
+          modalData={reindexFolderModalData}
+          setModalData={setReindexFolderModalData}
+          onSubmit={handleReindexFolder}
         />
       )}
-      <div className="relative flex size-full flex-1">
+      <div className="relative flex size-full flex-1 justify-around">
         <div
           className={cn(
-            'z-10 flex size-full flex-1 pl-4',
+            'z-10 flex size-full flex-1',
+            'container',
             focusedObjectKeyFromParams && 'opacity-0',
           )}
         >
           <div className="flex size-full flex-1 flex-col">
-            <div className="px-4 py-2">
-              <div className="flex gap-2 pt-2">
-                {folderContext.folderPermissions?.includes(
-                  FolderPermissionEnum.OBJECT_EDIT,
-                ) && (
-                  <Button size="sm" onClick={handleUploadStart}>
-                    <div className="flex items-center gap-1">
-                      <ArrowUpOnSquareIcon className="size-5" />
-                      Upload
-                    </div>
-                  </Button>
-                )}
-                {folderContext.folderPermissions?.includes(
-                  FolderPermissionEnum.FOLDER_RESCAN,
-                ) && (
-                  <Button size="sm" onClick={handleRefreshFolder}>
-                    <div className="flex items-center gap-1">
-                      <ArrowPathIcon className="size-5" />
-                      Refresh
-                    </div>
-                  </Button>
-                )}
-                {folderContext.folderPermissions?.includes(
-                  FolderPermissionEnum.FOLDER_FORGET,
-                ) && (
-                  <Button
-                    variant={'destructive'}
-                    size="sm"
-                    onClick={handleForgetFolder}
-                  >
-                    <TrashIcon className="size-5" />
-                  </Button>
-                )}
-              </div>
-            </div>
             <div className="flex flex-1 overflow-hidden">
               <div className="flex flex-1 overflow-hidden">
-                <div className="h-full flex-1 overflow-hidden">
+                <div className="h-full flex-1 overflow-hidden pr-2">
                   {folderContext.folderMetadata?.totalCount === 0 ? (
                     <div className="flex size-full flex-col items-center justify-around">
                       <div className="min-w-[30rem] max-w-[30rem]">
                         <EmptyState
                           icon={Folder}
-                          text={'No objects. Try refreshing the folder.'}
-                          onButtonPress={handleRefreshFolder}
-                          buttonText="Refresh folder"
+                          text={'No objects. Try reindexing the folder.'}
+                          onButtonPress={() => void handleReindexFolder()}
+                          buttonText="Reindex folder"
                         />
                       </div>
                     </div>
                   ) : (
                     <DataTable
+                      fullHeight={true}
+                      cellPadding={'p-1.5'}
+                      hideHeader={true}
+                      title={folderContext.folder?.name}
+                      actionComponent={
+                        <div className="flex gap-2">
+                          {folderContext.folderPermissions?.includes(
+                            FolderPermissionEnum.OBJECT_EDIT,
+                          ) && (
+                            <Button
+                              size="sm"
+                              onClick={() =>
+                                setUploadModalData({
+                                  ...uploadModalData,
+                                  isOpen: true,
+                                })
+                              }
+                              variant={'outline'}
+                            >
+                              <div className="flex items-center gap-1">
+                                <ArrowUpOnSquareIcon className="size-5" />
+                                Upload
+                              </div>
+                            </Button>
+                          )}
+                          {folderContext.folderPermissions?.includes(
+                            FolderPermissionEnum.FOLDER_RESCAN,
+                          ) && (
+                            <Button
+                              size="sm"
+                              onClick={() => void handleReindexFolder()}
+                              variant={'outline'}
+                            >
+                              <div className="flex items-center gap-1">
+                                <ArrowPathIcon className="size-5" />
+                                Reindex
+                              </div>
+                            </Button>
+                          )}
+                          {folderContext.folderPermissions?.includes(
+                            FolderPermissionEnum.FOLDER_FORGET,
+                          ) && (
+                            <Button
+                              variant={'outline'}
+                              size="sm"
+                              onClick={() =>
+                                setForgetFolderConfirmationModelData({
+                                  isOpen: true,
+                                })
+                              }
+                            >
+                              <TrashIcon className="size-5" />
+                            </Button>
+                          )}
+                        </div>
+                      }
                       enableSearch={true}
-                      searchColumn={'objectKey'}
-                      onColumnFiltersChange={(updater) => {
-                        setFilters((old) =>
-                          updater instanceof Function ? updater(old) : updater,
-                        )
-                      }}
-                      rowCount={folderContext.folderMetadata?.totalCount}
-                      data={folderObjects.results ?? []}
+                      searchColumn={'main'}
+                      onColumnFiltersChange={handleFiltersChange}
+                      rowCount={folderContext.folderMetadata?.totalCount ?? 0}
+                      data={listFolderObjectsQuery.data?.result ?? []}
                       columns={folderObjectsTableColumns}
-                      onPaginationChange={(updater) => {
-                        setPagination((old) =>
-                          updater instanceof Function ? updater(old) : updater,
-                        )
-                      }}
+                      onPaginationChange={handlePaginationChange}
+                      pageIndex={pagination.pageIndex}
                       onSortingChange={(updater) => {
                         setSorting((old) =>
                           updater instanceof Function ? updater(old) : updater,
@@ -293,7 +291,6 @@ export const FolderDetailScreen = () => {
                 folderContext.folderPermissions && (
                   <div className="xs:w-full md:w-[1/2] lg:w-[1/2] xl:w-2/5 2xl:w-[35%] 2xl:max-w-[35rem]">
                     <FolderSidebar
-                      onRescan={() => setRefreshFolderConfirmationOpen(true)}
                       folderMetadata={folderContext.folderMetadata}
                       folderAndPermission={{
                         folder: folderContext.folder,

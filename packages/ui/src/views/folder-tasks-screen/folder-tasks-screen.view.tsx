@@ -1,7 +1,4 @@
-import type {
-  ServerTasksApiListTasksRequest,
-  TaskDTO,
-} from '@stellariscloud/api-client'
+import type { ServerTasksApiListTasksRequest } from '@stellariscloud/api-client'
 import {
   Card,
   CardContent,
@@ -15,16 +12,12 @@ import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
 import React from 'react'
 
-import { useFolderContext } from '../../contexts/folder.context'
-import { apiClient } from '../../services/api'
+import { useFolderContext } from '../../pages/folders/folder.context'
+import { tasksApiHooks } from '../../services/api'
 import { folderTasksTableColumns } from './folder-tasks-table-columns'
 
 export function FolderTasksScreen() {
-  const [tasks, setTasks] = React.useState<{
-    meta: { totalCount: number }
-    result: TaskDTO[]
-  }>()
-  const { folder } = useFolderContext()
+  const { folderId, folder } = useFolderContext()
   const [filters, setFilters] = React.useState<
     { id: string; value: unknown }[]
   >([])
@@ -36,54 +29,38 @@ export function FolderTasksScreen() {
   })
 
   const searchFilter = filters.find((f) => f.id === 'taskKey')
-  const fetchTasks = React.useCallback(() => {
-    const statusFilterValue =
-      filters.find((f) => f.id === 'status')?.value ?? []
-    if (folder?.id) {
-      void apiClient.tasksApi
-        .listFolderTasks({
-          folderId: folder.id,
-          limit: pagination.pageSize,
-          offset: pagination.pageSize * pagination.pageIndex,
-          ...(sorting[0]
-            ? {
-                sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ServerTasksApiListTasksRequest['sort'],
-              }
-            : {}),
-          ...(typeof searchFilter?.value === 'string'
-            ? {
-                search: searchFilter.value,
-              }
-            : {}),
-          ...((statusFilterValue as string[]).includes('COMPLETE')
-            ? { includeComplete: 'true' }
-            : {}),
-          ...((statusFilterValue as string[]).includes('FAILED')
-            ? { includeFailed: 'true' }
-            : {}),
-          ...((statusFilterValue as string[]).includes('RUNNING')
-            ? { includeRunning: 'true' }
-            : {}),
-          ...((statusFilterValue as string[]).includes('WAITING')
-            ? { includeWaiting: 'true' }
-            : {}),
-        })
-        .then((resp) => setTasks(resp.data))
-    }
-  }, [
-    filters,
-    folder?.id,
-    pagination.pageSize,
-    pagination.pageIndex,
-    sorting,
-    searchFilter?.value,
-  ])
+  const statusFilterValue = filters.find((f) => f.id === 'status')?.value ?? []
 
-  React.useEffect(() => {
-    if (folder?.id) {
-      fetchTasks()
-    }
-  }, [folder?.id, filters, sorting, pagination, fetchTasks])
+  const listFolderTasksQuery = tasksApiHooks.useListFolderTasks(
+    {
+      folderId,
+      limit: pagination.pageSize,
+      offset: pagination.pageSize * pagination.pageIndex,
+      ...(sorting[0]
+        ? {
+            sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ServerTasksApiListTasksRequest['sort'],
+          }
+        : {}),
+      ...(typeof searchFilter?.value === 'string'
+        ? {
+            search: searchFilter.value,
+          }
+        : {}),
+      ...((statusFilterValue as string[]).includes('COMPLETE')
+        ? { includeComplete: 'true' }
+        : {}),
+      ...((statusFilterValue as string[]).includes('FAILED')
+        ? { includeFailed: 'true' }
+        : {}),
+      ...((statusFilterValue as string[]).includes('RUNNING')
+        ? { includeRunning: 'true' }
+        : {}),
+      ...((statusFilterValue as string[]).includes('WAITING')
+        ? { includeWaiting: 'true' }
+        : {}),
+    },
+    { enabled: !!folderId },
+  )
 
   return (
     <div className={cn('flex h-full flex-1 flex-col items-center')}>
@@ -97,19 +74,11 @@ export function FolderTasksScreen() {
             <DataTable
               enableSearch={true}
               searchColumn={'taskKey'}
-              onColumnFiltersChange={(updater) => {
-                setFilters((old) =>
-                  updater instanceof Function ? updater(old) : updater,
-                )
-              }}
-              rowCount={tasks?.meta.totalCount}
-              data={tasks?.result ?? []}
+              onColumnFiltersChange={setFilters}
+              rowCount={listFolderTasksQuery.data?.meta.totalCount}
+              data={listFolderTasksQuery.data?.result ?? []}
               columns={folderTasksTableColumns}
-              onPaginationChange={(updater) => {
-                setPagination((old) =>
-                  updater instanceof Function ? updater(old) : updater,
-                )
-              }}
+              onPaginationChange={setPagination}
               onSortingChange={(updater) => {
                 setSorting((old) =>
                   updater instanceof Function ? updater(old) : updater,

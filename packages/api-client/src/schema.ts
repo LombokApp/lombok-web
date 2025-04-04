@@ -607,9 +607,9 @@ export const schema = {
         ]
       }
     },
-    "/api/v1/folders/{folderId}/rescan": {
+    "/api/v1/folders/{folderId}/reindex": {
       "post": {
-        "operationId": "rescanFolder",
+        "operationId": "reindexFolder",
         "parameters": [
           {
             "name": "folderId",

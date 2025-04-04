@@ -143,25 +143,13 @@ export const FoldersScreen = () => {
         title="Folders"
         enableSearch={true}
         searchColumn="name"
-        onColumnFiltersChange={(updater) => {
-          setFilters((old) =>
-            updater instanceof Function ? updater(old) : updater,
-          )
-        }}
+        onColumnFiltersChange={setFilters}
         searchPlaceholder="Search Folders..."
         rowCount={folders?.meta.totalCount}
         data={folders?.result ?? []}
         columns={foldersTableColumns}
-        onPaginationChange={(updater) => {
-          setPagination((old) =>
-            updater instanceof Function ? updater(old) : updater,
-          )
-        }}
-        onSortingChange={(updater) => {
-          setSorting((old) =>
-            updater instanceof Function ? updater(old) : updater,
-          )
-        }}
+        onPaginationChange={setPagination}
+        onSortingChange={setSorting}
         actionComponent={
           <div>
             <Button

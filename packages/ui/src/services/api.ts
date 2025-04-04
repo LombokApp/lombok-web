@@ -7,7 +7,7 @@ import type { QueryFunctionContext } from 'react-query'
 import { useQuery } from 'react-query'
 
 export const sdkInstance = new StellarisCloudAppBrowserSdk({
-  basePath: (import.meta.env.API_BASE_URL as string | undefined) ?? '',
+  basePath: (import.meta.env.VITE_BACKEND_HOST as string | undefined) ?? '',
 })
 
 export const createQueryHooks = <
@@ -54,5 +54,6 @@ export const authApiHooks = createQueryHooks(sdkInstance.apiClient.authApi)
 export const foldersApiHooks = createQueryHooks(
   sdkInstance.apiClient.foldersApi,
 )
+export const tasksApiHooks = createQueryHooks(sdkInstance.apiClient.tasksApi)
 
 export const apiClient = sdkInstance.apiClient
