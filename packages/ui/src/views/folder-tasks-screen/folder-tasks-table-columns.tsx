@@ -47,7 +47,7 @@ export const folderTasksTableColumns: ColumnDef<TaskDTO>[] = [
               : undefined,
           }}
         >
-          {row.original.ownerIdentifier === 'CORE' ? (
+          {row.original.ownerIdentifier === 'core' ? (
             <img width={30} height={30} alt="Core" src="/stellariscloud.png" />
           ) : (
             <span className="uppercase">

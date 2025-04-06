@@ -873,7 +873,7 @@ export class FolderService {
     )
 
     await this.eventService.emitEvent({
-      emitterIdentifier: 'CORE',
+      emitterIdentifier: 'core',
       eventKey: previousRecord ? 'CORE:OBJECT_UPDATED' : 'CORE:OBJECT_ADDED',
       level: EventLevel.INFO,
       locationContext: {

@@ -62,7 +62,7 @@ export function ServerEventAttributesList({ event }: { event?: EventDTO }) {
                       ),
                     }}
                   >
-                    {event.emitterIdentifier === 'CORE' ? (
+                    {event.emitterIdentifier === 'core' ? (
                       <img
                         width={30}
                         height={30}

@@ -27,5 +27,5 @@
     }
 
   },
-  "include": ["vite.config.ts", "tailwind.config.ts", "postcss.config.ts", "eslint.config.ts", "index.d.ts"]
+  "include": ["vite.config.ts", "tailwind.config.ts", "postcss.config.ts", "eslint.config.ts", "index.d.ts", "src/.worker.ts"]
 }

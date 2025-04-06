@@ -57,7 +57,7 @@ export class EventService {
     locationContext,
     userId,
   }: {
-    emitterIdentifier: string // "CORE" for internally emitted events, and "app:<appIdentifier>" for app emitted events
+    emitterIdentifier: string // "core" for internally emitted events, and "app:<appIdentifier>" for app emitted events
     eventKey: CoreEvent | string
     data: unknown
     level: EventLevel
@@ -69,7 +69,7 @@ export class EventService {
       ? eventKey.split(':').at(-1)
       : undefined
     const isAppEmitter = emitterIdentifier.startsWith(APP_NS_PREFIX)
-    const isCoreEmitter = emitterIdentifier === 'CORE'
+    const isCoreEmitter = emitterIdentifier === 'core'
     const appIdentifier = isAppEmitter
       ? emitterIdentifier.slice(APP_NS_PREFIX.length)
       : undefined

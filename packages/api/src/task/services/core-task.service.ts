@@ -16,6 +16,8 @@ import { NewTask, tasksTable } from '../entities/task.entity'
 
 const MAX_CONCURRENT_CORE_TASKS = 10
 
+const CORE_IDENTIFIER = 'core'
+
 export type CoreTaskInputData<K extends CoreTaskName> =
   K extends CoreTaskName.REINDEX_FOLDER
     ? { folderId: string; userId: string }
@@ -63,7 +65,7 @@ export class CoreTaskService {
         .where(
           and(
             isNull(tasksTable.startedAt),
-            eq(tasksTable.ownerIdentifier, 'CORE'),
+            eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
           ),
         )
         .limit(taskExecutionLimit)
@@ -87,7 +89,7 @@ export class CoreTaskService {
       .where(
         and(
           isNull(tasksTable.startedAt),
-          eq(tasksTable.ownerIdentifier, 'CORE'),
+          eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
         ),
       )
     return coreTaskCount
@@ -99,7 +101,7 @@ export class CoreTaskService {
     })
     if (task?.startedAt) {
       // console.log('Task already started.')
-    } else if (task?.ownerIdentifier === 'CORE') {
+    } else if (task?.ownerIdentifier === CORE_IDENTIFIER) {
       const startedTimestamp = new Date()
       const updateResult = await this.ormService.db
         .update(tasksTable)
@@ -189,7 +191,7 @@ export class CoreTaskService {
       id: uuidV4(),
       eventKey: `TRIGGER_CORE_TASK_${taskKey}`,
       data: inputData,
-      emitterIdentifier: 'CORE',
+      emitterIdentifier: 'core',
       folderId: context.folderId,
       objectKey: context.objectKey,
       userId: context.userId,
@@ -200,7 +202,7 @@ export class CoreTaskService {
     const task: NewTask = {
       id: uuidV4(),
       inputData,
-      ownerIdentifier: 'CORE',
+      ownerIdentifier: 'core',
       taskDescription: {
         textKey: `Task '${taskKey}'`,
         variables: {},

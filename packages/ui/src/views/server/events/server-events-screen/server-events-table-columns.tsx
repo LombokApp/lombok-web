@@ -43,7 +43,7 @@ export const serverEventsTableColumns: ColumnDef<EventDTO>[] = [
             color: invertColour(stringToColour(row.original.emitterIdentifier)),
           }}
         >
-          {row.original.emitterIdentifier === 'CORE' ? (
+          {row.original.emitterIdentifier === 'core' ? (
             <img width={30} height={30} alt="Core" src="/stellariscloud.png" />
           ) : (
             <span className="uppercase">

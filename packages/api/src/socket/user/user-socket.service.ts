@@ -4,7 +4,11 @@ import { safeZodParse } from '@stellariscloud/utils'
 import type { Namespace, Socket } from 'socket.io'
 import * as z from 'zod'
 
-import { AccessTokenJWT, JWTService } from '../../auth/services/jwt.service'
+import {
+  AccessTokenJWT,
+  JWTService,
+  USER_JWT_SUB_PREFIX,
+} from '../../auth/services/jwt.service'
 
 const UserAuthPayload = z.object({
   token: z.string(),
@@ -40,7 +44,7 @@ export class UserSocketService {
         const verifiedToken = AccessTokenJWT.parse(
           this.jwtService.verifyUserJWT(token),
         )
-        if (verifiedToken.sub.startsWith('USER')) {
+        if (verifiedToken.sub.startsWith(USER_JWT_SUB_PREFIX)) {
           const userId = verifiedToken.sub.split(':')[1]
           await socket.join(`user:${userId}`)
         } else {

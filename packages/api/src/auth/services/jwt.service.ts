@@ -119,7 +119,7 @@ export class JWTService {
       aud: this._coreConfig.hostId,
       jti: `${session.id}:${uuidV4()}`,
       scp: [],
-      sub: `USER:${session.userId}`,
+      sub: `${USER_JWT_SUB_PREFIX}${session.userId}`,
     }
 
     const user = await this.ormService.db.query.usersTable.findFirst({

@@ -1,12 +1,12 @@
 import React from 'react'
 
+import StellarisWorker from '../.worker.ts?worker'
 import { sdkInstance } from '../services/api'
 import { indexedDb } from '../services/indexed-db'
 import { getDataFromDisk } from '../services/local-cache/local-cache.service'
 import { downloadData } from '../utils/file'
 import type { LogLine } from './logging.context'
 import { useLoggingContext } from './logging.context'
-import StellarisWorker from '../.worker.ts?worker'
 
 export type LocalFileCache = Record<string, { size: number; type: string }>
 
@@ -293,7 +293,7 @@ export const LocalFileCacheContextProvider = ({
   )
 
   const isLocal = React.useCallback(async (folderId: string, key: string) => {
-    return !!(await indexedDb?.getMetadata(`${folderId}:${key}`))?.result
+    return !!(await indexedDb.getMetadata(`${folderId}:${key}`)).result
   }, [])
 
   const isDownloading = (folderId: string, key: string) => {
@@ -301,9 +301,6 @@ export const LocalFileCacheContextProvider = ({
   }
 
   const recalculateLocalStorageFolderSizes = React.useCallback(async () => {
-    if (!indexedDb) {
-      throw Error('Db not loaded.')
-    }
     const result = await indexedDb.measureFolderSizes()
     setLocalStorageFolderSizes(result)
     return true
@@ -311,9 +308,6 @@ export const LocalFileCacheContextProvider = ({
 
   const purgeLocalStorageForFolder = React.useCallback(
     async (folderId: string) => {
-      if (!indexedDb) {
-        throw Error('Db not loaded.')
-      }
       const { result, err } = await indexedDb.purgeStorageForFolderId(folderId)
       if (err) {
         throw err
@@ -347,7 +341,7 @@ export const LocalFileCacheContextProvider = ({
         isDownloading,
         downloadToFile,
         downloadLocally,
-        initialized: indexedDb?.initialized ?? false,
+        initialized: true,
       }}
     >
       {children}

@@ -66,7 +66,7 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
                         : undefined,
                     }}
                   >
-                    {task.ownerIdentifier === 'CORE' ? (
+                    {task.ownerIdentifier === 'core' ? (
                       <img
                         width={30}
                         height={30}
