@@ -47,17 +47,17 @@ export class CoreAppService {
 
       this.logger.debug('Embedded core app worker thread started')
 
-      worker.addEventListener('error', (err) => {
-        this.logger.error('Worker thread error:', err)
-      })
+      // worker.addEventListener('error', (err) => {
+      //   this.logger.error('Worker thread error:', err)
+      // })
 
-      worker.addEventListener('exit', (err) => {
-        this.logger.log('Worker thread exit:', err)
-      })
+      // worker.addEventListener('exit', (err) => {
+      //   this.logger.log('Worker thread exit:', err)
+      // })
 
-      worker.addEventListener('message', (event) => {
-        this.logger.debug('Embedded core worker event:', event.data)
-      })
+      // worker.addEventListener('message', (event) => {
+      //   this.logger.debug('Embedded core worker event:', event.data)
+      // })
     }
   }
 

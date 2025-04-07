@@ -694,6 +694,13 @@ export class FolderService {
     let continuationToken: string | undefined = ''
     while (typeof continuationToken === 'string') {
       // list objects in the bucket, with the given prefix
+      console.log(
+        'Listing objects in bucket',
+        contentStorageLocation.bucket,
+        'with prefix',
+        contentStorageLocation.prefix,
+        folder.contentLocation,
+      )
       const response: {
         result: S3ObjectInternal[]
         continuationToken: string | undefined
@@ -707,7 +714,9 @@ export class FolderService {
         prefix: contentStorageLocation.prefix,
       })
       for (const obj of response.result) {
-        const objectKey = obj.key.slice(folder.contentLocation.prefix.length)
+        const objectKey = folder.contentLocation.prefix.length
+          ? obj.key.slice(folder.contentLocation.prefix.length + 1)
+          : obj.key
         if (objectKey.startsWith('.stellaris_')) {
           continue
         }

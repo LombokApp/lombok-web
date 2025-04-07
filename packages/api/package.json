@@ -24,6 +24,7 @@
     "db:reset:docker": "docker exec -it stellariscloud-api bun --bun --cwd ./packages/api db:reset",
     "db:reset:dev": "bun --bun db:reset:docker && bun --bun db:seed:docker",
     "dev:docker:api": "docker compose --env-file \"./.env\" up api",
+    "dev:docker:api:build": "docker compose --env-file \"./.env\" up api --build",
     "dev:docker:services": "docker compose --env-file \"./.env\" up db",
     "dev:docker:e2e:services": "docker compose -f ../../docker-compose.test.yml --env-file \"./.env.test\" up dbtest miniotest minioclienttest",
     "dev:docker:e2e:down": "docker compose -f ../../docker-compose.test.yml --env-file \"./.env.test\" down",

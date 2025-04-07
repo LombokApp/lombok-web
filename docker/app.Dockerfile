@@ -3,7 +3,7 @@ FROM oven/bun:1.2.8-alpine AS base
 WORKDIR /usr/src/app
 
 # Install necessary dependencies
-RUN set -eux && apk add --no-cache ffmpeg nginx su-exec
+RUN set -eux && apk add --no-cache ffmpeg nginx libheif-tools su-exec
 
 FROM base AS local
 

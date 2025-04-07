@@ -1,4 +1,5 @@
 import { ArrowDownTrayIcon, TrashIcon } from '@heroicons/react/24/outline'
+import type { FolderObjectDTOContentMetadataValueValue } from '@stellariscloud/api-client'
 import {
   FolderPermissionEnum,
   FolderPushMessage,
@@ -37,9 +38,12 @@ export const FolderObjectDetailScreen = ({
   const currentVersionMetadata = React.useMemo(
     () =>
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      folderObject?.hash && folderObject.contentMetadata[folderObject.hash]
+      (folderObject?.hash && folderObject.contentMetadata[folderObject.hash]
         ? (folderObject.contentMetadata[folderObject.hash] ?? {})
-        : {},
+        : {}) as Record<
+        string,
+        FolderObjectDTOContentMetadataValueValue | undefined
+      >,
     [folderObject?.contentMetadata, folderObject?.hash],
   )
 
@@ -49,7 +53,7 @@ export const FolderObjectDetailScreen = ({
         ? `content:${objectKey}`
         : displaySize === 'compressed' &&
             folderObject?.hash &&
-            currentVersionMetadata['compressedVersion'].hash
+            currentVersionMetadata['compressedVersion']?.hash
           ? `metadata:${objectKey}:${currentVersionMetadata['compressedVersion'].hash}`
           : undefined,
     )

@@ -22,6 +22,7 @@
     "dev:check-all": "sh ./cmd/dev-check-all.sh",
     "ui:dev": "bun --cwd packages/ui dev",
     "services:dev": "bun --cwd packages/api dev:docker:services",
+    "api:dev:build": "bun --cwd packages/api dev:docker:api:build",
     "api:dev": "bun --cwd packages/api dev:docker:api"
   },
   "devDependencies": {
