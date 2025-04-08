@@ -830,7 +830,7 @@ export class FolderService {
     const previousRecord =
       await this.ormService.db.query.folderObjectsTable.findFirst({
         where: and(
-          eq(folderObjectsTable.id, folderId),
+          eq(folderObjectsTable.folderId, folderId),
           eq(folderObjectsTable.objectKey, objectKey),
         ),
       })
