@@ -27,7 +27,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
 
     // Get the status code from the exception
-    const status = exception.getStatus()
+    const status =
+      typeof exception.getStatus === 'function' ? exception.getStatus() : 500
+
+    const exceptionResponse =
+      typeof exception.getResponse === 'function'
+        ? exception.getResponse()
+        : undefined
 
     const serviceErrorKey =
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
@@ -38,7 +44,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
           ((exception as any).serviceErrorkey as unknown)
         : undefined
 
-    const exceptionResponse = exception.getResponse()
     const responseMessage: string | undefined =
       typeof exceptionResponse === 'object' && 'message' in exceptionResponse
         ? (exceptionResponse['message'] as string)

@@ -13,7 +13,7 @@ import { StorageModule } from 'src/storage/storage.module'
 import { TaskModule } from 'src/task/task.module'
 
 import { FoldersController } from './controllers/folders.controller'
-import { RescanFolderProcessor } from './processors/rescan-folder.task-processor'
+import { ReindexFolderProcessor } from './processors/reindex-folder.task-processor'
 import { FolderService } from './services/folder.service'
 
 @Module({
@@ -33,9 +33,9 @@ import { FolderService } from './services/folder.service'
     UserSocketService,
     AppService,
     ServerConfigurationService,
-    RescanFolderProcessor,
+    ReindexFolderProcessor,
   ],
-  exports: [FolderService, RescanFolderProcessor],
+  exports: [FolderService, ReindexFolderProcessor],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class FoldersModule {}

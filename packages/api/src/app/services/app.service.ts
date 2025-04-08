@@ -42,6 +42,8 @@ import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirem
 const MAX_APP_FILE_SIZE = 1024 * 1024 * 16
 const MAX_APP_TOTAL_SIZE = 1024 * 1024 * 32
 
+export const APP_NS_PREFIX = 'app:'
+
 export type MetadataUploadUrlsResponse = {
   folderId: string
   objectKey: string
@@ -181,7 +183,7 @@ export class AppService {
     const now = new Date()
     if (safeZodParse(message, AppSocketAPIRequest)) {
       const requestData = message.data
-      const appIdentifierPrefixed = `APP:${appIdentifier.toUpperCase()}`
+      const appIdentifierPrefixed = `${APP_NS_PREFIX}${appIdentifier.toUpperCase()}`
       switch (message.name) {
         case 'SAVE_LOG_ENTRY':
           if (safeZodParse(requestData, LogEntryValidator)) {

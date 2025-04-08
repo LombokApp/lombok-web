@@ -2,7 +2,7 @@
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "target": "ES2022",
-    "lib": ["ES2023"],
+    "lib": ["ES2023", "WebWorker"],
     "module": "ESNext",
     "skipLibCheck": true,
 
@@ -27,5 +27,5 @@
     }
 
   },
-  "include": ["vite.config.ts", "tailwind.config.ts", "postcss.config.ts", "eslint.config.ts", "index.d.ts"]
+  "include": ["vite.config.ts", "tailwind.config.ts", "postcss.config.ts", "eslint.config.ts", "index.d.ts", "src/.worker.ts"]
 }

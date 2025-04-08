@@ -14,7 +14,7 @@ export interface ReindexFolderModalData {
   isOpen: boolean
 }
 
-const RescanFolderModal = ({
+const ReindexFolderModal = ({
   modalData,
   setModalData,
   onSubmit,
@@ -58,4 +58,4 @@ const RescanFolderModal = ({
   )
 }
 
-export { RescanFolderModal }
+export { ReindexFolderModal }

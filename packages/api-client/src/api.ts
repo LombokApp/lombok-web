@@ -956,7 +956,7 @@ export interface FolderGetResponse {
 }
 
 export const FolderGetResponsePermissionsEnum = {
-    FolderRescan: 'FOLDER_RESCAN',
+    FolderReindex: 'FOLDER_REINDEX',
     FolderForget: 'FOLDER_FORGET',
     ObjectEdit: 'OBJECT_EDIT',
     ObjectManage: 'OBJECT_MANAGE'
@@ -1053,7 +1053,7 @@ export interface FolderListResponseResultInner {
 }
 
 export const FolderListResponseResultInnerPermissionsEnum = {
-    FolderRescan: 'FOLDER_RESCAN',
+    FolderReindex: 'FOLDER_REINDEX',
     FolderForget: 'FOLDER_FORGET',
     ObjectEdit: 'OBJECT_EDIT',
     ObjectManage: 'OBJECT_MANAGE'

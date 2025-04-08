@@ -5,20 +5,29 @@ import {
 } from '@heroicons/react/24/outline'
 import type { FolderObjectDTO } from '@stellariscloud/api-client'
 import { FolderPermissionEnum, FolderPushMessage } from '@stellariscloud/types'
-import { Button, cn, DataTable } from '@stellariscloud/ui-toolkit'
+import {
+  cn,
+  DataTable,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@stellariscloud/ui-toolkit'
 import type {
   ColumnFiltersState,
   PaginationState,
   SortingState,
 } from '@tanstack/table-core'
-import { Folder } from 'lucide-react'
+import { Ellipsis, Folder } from 'lucide-react'
 import React from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import type { ForgetFolderModalData } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
 import { ForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
-import type { ReindexFolderModalData } from '../../components/confirm-reindex-folder-modal/reindex-folder-modal'
-import { RescanFolderModal } from '../../components/confirm-reindex-folder-modal/reindex-folder-modal'
+import {
+  ReindexFolderModal,
+  type ReindexFolderModalData,
+} from '../../components/reindex-folder-modal/reindex-folder-modal'
 import {
   UploadModal,
   type UploadModalData,
@@ -182,7 +191,7 @@ export const FolderDetailScreen = () => {
         />
       )}
       {reindexFolderModalData.isOpen && (
-        <RescanFolderModal
+        <ReindexFolderModal
           modalData={reindexFolderModalData}
           setModalData={setReindexFolderModalData}
           onSubmit={handleReindexFolder}
@@ -192,7 +201,7 @@ export const FolderDetailScreen = () => {
         <div
           className={cn(
             'z-10 flex size-full flex-1',
-            'container',
+            'lg:container',
             focusedObjectKeyFromParams && 'opacity-0',
           )}
         >
@@ -218,56 +227,63 @@ export const FolderDetailScreen = () => {
                       hideHeader={true}
                       title={folderContext.folder?.name}
                       actionComponent={
-                        <div className="flex gap-2">
-                          {folderContext.folderPermissions?.includes(
-                            FolderPermissionEnum.OBJECT_EDIT,
-                          ) && (
-                            <Button
-                              size="sm"
-                              onClick={() =>
-                                setUploadModalData({
-                                  ...uploadModalData,
-                                  isOpen: true,
-                                })
-                              }
-                              variant={'outline'}
-                            >
-                              <div className="flex items-center gap-1">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger className="m-1 rounded-full">
+                            <div className="flex size-8 items-center justify-around rounded-full border">
+                              <Ellipsis className="size-5 shrink-0" />
+                            </div>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            {folderContext.folderPermissions?.includes(
+                              FolderPermissionEnum.OBJECT_EDIT,
+                            ) && (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  setUploadModalData({
+                                    ...uploadModalData,
+                                    isOpen: true,
+                                  })
+                                }
+                                className="gap-2"
+                              >
                                 <ArrowUpOnSquareIcon className="size-5" />
                                 Upload
-                              </div>
-                            </Button>
-                          )}
-                          {folderContext.folderPermissions?.includes(
-                            FolderPermissionEnum.FOLDER_RESCAN,
-                          ) && (
-                            <Button
-                              size="sm"
-                              onClick={() => void handleReindexFolder()}
-                              variant={'outline'}
-                            >
-                              <div className="flex items-center gap-1">
+                              </DropdownMenuItem>
+                            )}
+                            {folderContext.folderPermissions?.includes(
+                              FolderPermissionEnum.FOLDER_REINDEX,
+                            ) && (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  setReindexFolderModalData({
+                                    ...reindexFolderModalData,
+                                    isOpen: true,
+                                  })
+                                }
+                                className="gap-2"
+                              >
                                 <ArrowPathIcon className="size-5" />
                                 Reindex
-                              </div>
-                            </Button>
-                          )}
-                          {folderContext.folderPermissions?.includes(
-                            FolderPermissionEnum.FOLDER_FORGET,
-                          ) && (
-                            <Button
-                              variant={'outline'}
-                              size="sm"
-                              onClick={() =>
-                                setForgetFolderConfirmationModelData({
-                                  isOpen: true,
-                                })
-                              }
-                            >
-                              <TrashIcon className="size-5" />
-                            </Button>
-                          )}
-                        </div>
+                              </DropdownMenuItem>
+                            )}
+                            {folderContext.folderPermissions?.includes(
+                              FolderPermissionEnum.FOLDER_FORGET,
+                            ) && (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  setUploadModalData({
+                                    ...uploadModalData,
+                                    isOpen: true,
+                                  })
+                                }
+                                className="gap-2"
+                              >
+                                <TrashIcon className="size-5" />
+                                Delete
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       }
                       enableSearch={true}
                       searchColumn={'main'}

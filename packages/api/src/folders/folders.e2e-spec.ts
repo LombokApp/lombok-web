@@ -5,10 +5,9 @@ import {
   buildTestModule,
   createTestFolder,
   createTestUser,
-  rescanTestFolder,
+  reindexTestFolder,
   testS3Location,
   waitForTrue,
-  // waitForTrue,
 } from 'src/test/test.util'
 
 const TEST_MODULE_KEY = 'folders'
@@ -245,7 +244,7 @@ describe('Folders', () => {
 
     const coreTaskService = await testModule?.app.resolve(CoreTaskService)
 
-    await rescanTestFolder({
+    await reindexTestFolder({
       accessToken,
       apiClient,
       folderId: testFolder.folder.id,
@@ -278,7 +277,7 @@ describe('Folders', () => {
       accessKeyId: 'testakid',
       secretAccessKey: 'testsak',
       bucket: 'somebucket',
-      prefix: 'someserverprefix/',
+      prefix: 'someserverprefix',
       endpoint: 'https://endpointexample.com',
       region: 'auto',
       provisionTypes: [UserStorageProvisionTypeEnum.CONTENT],
@@ -321,7 +320,7 @@ describe('Folders', () => {
       userStorageProvisionInput.accessKeyId,
     )
     expect(folderCreateResponse.data.folder.contentLocation.prefix).toBe(
-      `${userStorageProvisionInput.prefix}.stellaris_folder_content_${folderCreateResponse.data.folder.id}/`,
+      `${userStorageProvisionInput.prefix}/.stellaris_folder_content_${folderCreateResponse.data.folder.id}`,
     )
 
     // validate metadata location
@@ -341,7 +340,7 @@ describe('Folders', () => {
       userStorageProvisionInput.accessKeyId,
     )
     expect(folderCreateResponse.data.folder.metadataLocation.prefix).toBe(
-      `${userStorageProvisionInput.prefix}.stellaris_folder_metadata_${folderCreateResponse.data.folder.id}/`,
+      `${userStorageProvisionInput.prefix}/.stellaris_folder_metadata_${folderCreateResponse.data.folder.id}`,
     )
   })
 
@@ -358,7 +357,7 @@ describe('Folders', () => {
       accessKeyId: 'testakid',
       secretAccessKey: 'testsak',
       bucket: 'somebucket',
-      prefix: 'someserverprefix/',
+      prefix: 'someserverprefix',
       endpoint: 'https://endpointexample.com',
       region: 'auto',
     }
@@ -373,7 +372,7 @@ describe('Folders', () => {
           },
           metadataLocation: {
             ...storageLocationInput,
-            prefix: 'someserverprefixmetadata/',
+            prefix: 'someserverprefixmetadata',
           },
         },
       })
@@ -414,7 +413,7 @@ describe('Folders', () => {
       storageLocationInput.accessKeyId,
     )
     expect(folderCreateResponse.data.folder.metadataLocation.prefix).toBe(
-      `someserverprefixmetadata/`,
+      `someserverprefixmetadata`,
     )
   })
 
@@ -433,7 +432,7 @@ describe('Folders', () => {
       accessKeyId: 'testakid',
       secretAccessKey: 'testsak',
       bucket: 'somebucket',
-      prefix: 'someserverprefix/',
+      prefix: 'someserverprefix',
       endpoint: 'https://endpointexample.com',
       region: 'auto',
       provisionTypes: [UserStorageProvisionTypeEnum.CONTENT],
@@ -478,12 +477,12 @@ describe('Folders', () => {
 
     expect(presignedUrls.status).toBe(201)
 
-    const expectedContentUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}.stellaris_folder_content_${folderCreateResponse.data.folder.id}/someobjectkey?`
+    const expectedContentUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}/.stellaris_folder_content_${folderCreateResponse.data.folder.id}/someobjectkey?`
     expect(
       presignedUrls.data.urls[0].slice(0, expectedContentUrlPrefix.length),
     ).toBe(expectedContentUrlPrefix)
 
-    const expectedMetadataUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}.stellaris_folder_metadata_${folderCreateResponse.data.folder.id}/someobjectkey/somehash`
+    const expectedMetadataUrlPrefix = `${storageProvisionInput.endpoint}/${storageProvisionInput.bucket}/${storageProvisionInput.prefix}/.stellaris_folder_metadata_${folderCreateResponse.data.folder.id}/someobjectkey/somehash`
     expect(
       presignedUrls.data.urls[1].slice(0, expectedMetadataUrlPrefix.length),
     ).toBe(expectedMetadataUrlPrefix)
@@ -721,10 +720,10 @@ describe('Folders', () => {
     expect(response.status).toEqual(401)
   })
 
-  it(`should 401 on rescan folder without token`, async () => {
+  it(`should 401 on reindex folder without token`, async () => {
     const response = await apiClient
       .foldersApi()
-      .rescanFolder({ folderId: '__dummy__' })
+      .reindexFolder({ folderId: '__dummy__' })
 
     expect(response.status).toEqual(401)
   })

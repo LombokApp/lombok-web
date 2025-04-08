@@ -1,9 +1,9 @@
-FROM oven/bun:1.2.3-alpine AS base
+FROM oven/bun:1.2.8-alpine AS base
 
 WORKDIR /usr/src/app
 
 # Install necessary dependencies
-RUN set -eux && apk add --no-cache ffmpeg nginx su-exec
+RUN set -eux && apk add --no-cache ffmpeg nginx libheif-tools su-exec
 
 FROM base AS local
 
@@ -15,6 +15,7 @@ FROM base AS install
 
 COPY package.json bun.lock /temp/dev/
 COPY packages /temp/dev/packages
+COPY apps/core /temp/dev/apps/core
 COPY eslint-config /temp/dev/eslint-config
 
 RUN cd /temp/dev && \
@@ -29,11 +30,10 @@ RUN cd /temp/dev && \
   bun --cwd ./packages/stellaris-types build && \
   bun --cwd ./packages/stellaris-utils build && \
   # bun --cwd ./packages/ui-toolkit build && \
+  rm ./packages/ui/.env.*.local && \
   bun --cwd ./packages/ui build && mv ./packages/ui/dist ./frontend && \
   # copy the sql migration files over (which were ignored by the build... maybe fix that)
   cp ./packages/api/src/orm/migrations/*.sql ./packages/api/dist/src/orm/migrations/ && \
-  # delete the .next/cache directory (+500mb)
-  rm -rf ./packages/ui/.next/cache && \
   # install the production api packages only
   rm -rf ./node_modules && \
   bun install --production --filter ./packages/api && \
@@ -63,6 +63,7 @@ ENTRYPOINT ["sh", "./entrypoint.sh"]
 
 FROM release AS pgrelease
 
+ENV EMBEDDED_POSTGRES=true
 RUN apk add --no-cache postgresql postgresql-contrib
 
 # Set up PostgreSQL data directory

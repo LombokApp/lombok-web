@@ -24,7 +24,7 @@ export const FolderDetailSidePanel = ({
   websocketConnected: boolean
 }) => {
   return (
-    <div className="flex min-w-[25rem] flex-col gap-4 p-6 pt-20 text-gray-800 dark:text-white">
+    <div className="dark:text-white flex min-w-[25rem] flex-col gap-4 p-6 pt-20 text-gray-800">
       <div className="flex flex-col">
         <div className="opacity-50">Total files</div>
         <div>
@@ -59,7 +59,7 @@ export const FolderDetailSidePanel = ({
         <div className="opacity-50">Actions</div>
         <div className="flex flex-col gap-2 pt-2">
           {folderAndPermissions?.permissions.includes(
-            FolderPermissionEnum.FOLDER_RESCAN,
+            FolderPermissionEnum.FOLDER_REINDEX,
           ) && (
             <Button size="md" onClick={onRefreshFolder}>
               {!folderIndex?.indexingJobContext

@@ -2383,13 +2383,13 @@ var FolderDTOMetadataLocationProviderTypeEnum = {
   User: "USER"
 };
 var FolderGetResponsePermissionsEnum = {
-  FolderRescan: "FOLDER_RESCAN",
+  FolderReindex: "FOLDER_REINDEX",
   FolderForget: "FOLDER_FORGET",
   ObjectEdit: "OBJECT_EDIT",
   ObjectManage: "OBJECT_MANAGE"
 };
 var FolderListResponseResultInnerPermissionsEnum = {
-  FolderRescan: "FOLDER_RESCAN",
+  FolderReindex: "FOLDER_REINDEX",
   FolderForget: "FOLDER_FORGET",
   ObjectEdit: "OBJECT_EDIT",
   ObjectManage: "OBJECT_MANAGE"
@@ -7782,7 +7782,7 @@ var schema = {
             items: {
               type: "string",
               enum: [
-                "FOLDER_RESCAN",
+                "FOLDER_REINDEX",
                 "FOLDER_FORGET",
                 "OBJECT_EDIT",
                 "OBJECT_MANAGE"
@@ -7834,7 +7834,7 @@ var schema = {
                   items: {
                     type: "string",
                     enum: [
-                      "FOLDER_RESCAN",
+                      "FOLDER_REINDEX",
                       "FOLDER_FORGET",
                       "OBJECT_EDIT",
                       "OBJECT_MANAGE"

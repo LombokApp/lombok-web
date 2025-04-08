@@ -11,7 +11,7 @@ function previewObjectKeyForFolderObject(folderObject: FolderObjectDTO) {
   if (
     folderObject.hash &&
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    folderObject.contentMetadata[folderObject.hash]['compressedVersion']
+    folderObject.contentMetadata[folderObject.hash]?.['compressedVersion']
   ) {
     return toMetadataObjectIdentifier(
       folderObject.objectKey,

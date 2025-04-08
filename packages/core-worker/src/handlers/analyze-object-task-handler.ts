@@ -11,8 +11,11 @@ import type {
   AppTask,
 } from '../utils/connect-app-worker.util'
 import { AppAPIError } from '../utils/connect-app-worker.util'
-import type { FFMpegOutput } from '../utils/ffmpeg.util'
-import { resizeWithFFmpeg } from '../utils/ffmpeg.util'
+import type {
+  ImageOperationOutput,
+  VideoOperationOutput,
+} from '../utils/ffmpeg.util'
+import { resizeImage, resizeVideo } from '../utils/ffmpeg.util'
 import {
   downloadFileToDisk,
   hashLocalFile,
@@ -88,7 +91,7 @@ export const analyzeObjectTaskHandler = async (
       ? ['image/webp', 'webp']
       : ['video/webm', 'webm']
 
-  let ffmpegResult: FFMpegOutput | undefined
+  let scaleResult: VideoOperationOutput | ImageOperationOutput | undefined
   let metadataDescription: { [key: string]: MetadataEntry } = {}
   const contentHash = await hashLocalFile(inFilepath)
   if ([MediaType.Image, MediaType.Video].includes(mediaType)) {
@@ -96,14 +99,16 @@ export const analyzeObjectTaskHandler = async (
     const smThumbnailOutFilePath = path.join(tempDir, `sm.${outExtension}`)
     const lgThumbnailOutFilePath = path.join(tempDir, `md.${outExtension}`)
 
-    ffmpegResult = await resizeWithFFmpeg(
+    const resize = mediaType === MediaType.Video ? resizeVideo : resizeImage
+    scaleResult = await resize(
       inFilepath,
       compressedOutFilePath,
       mimeType,
       2000,
     )
-    await resizeWithFFmpeg(inFilepath, lgThumbnailOutFilePath, mimeType, 500)
-    await resizeWithFFmpeg(inFilepath, smThumbnailOutFilePath, mimeType, 150)
+    await resize(inFilepath, lgThumbnailOutFilePath, mimeType, 500)
+    await resize(inFilepath, smThumbnailOutFilePath, mimeType, 150)
+    console.log('after resize')
 
     // get the upload URLs for the metadata files
     const metadataHashes = {
@@ -111,6 +116,8 @@ export const analyzeObjectTaskHandler = async (
       thumbnailSm: await hashLocalFile(smThumbnailOutFilePath),
       thumbnailLg: await hashLocalFile(lgThumbnailOutFilePath),
     }
+    console.log('metadataHashes:', metadataHashes)
+
     const metadataKeys = Object.keys(metadataHashes)
     const metadtaSignedUrlsResponse = await server
       .getMetadataSignedUrls(
@@ -189,10 +196,10 @@ export const analyzeObjectTaskHandler = async (
           mimeType,
           mediaType: MediaType.Image,
           bitrate: 0,
-          height: ffmpegResult?.originalHeight ?? 0,
-          width: ffmpegResult?.originalWidth ?? 0,
-          lengthMs: ffmpegResult?.lengthMs ?? 0,
-          orientation: ffmpegResult?.originalOrientation ?? 0,
+          height: scaleResult?.originalHeight ?? 0,
+          width: scaleResult?.originalWidth ?? 0,
+          lengthMs: (scaleResult as any | undefined)?.lengthMs ?? 0,
+          orientation: scaleResult?.originalOrientation ?? 0,
         },
       },
     ],

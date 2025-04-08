@@ -243,7 +243,7 @@ export async function createTestFolder({
   }
 }
 
-export async function rescanTestFolder({
+export async function reindexTestFolder({
   accessToken,
   folderId,
   apiClient,
@@ -252,7 +252,7 @@ export async function rescanTestFolder({
   accessToken: string
   apiClient: TestApiClient
 }): Promise<void> {
-  await apiClient.foldersApi({ accessToken }).rescanFolder({ folderId })
+  await apiClient.foldersApi({ accessToken }).reindexFolder({ folderId })
 }
 
 export async function waitForTrue(

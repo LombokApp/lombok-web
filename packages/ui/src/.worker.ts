@@ -4,7 +4,14 @@ import { SignedURLsRequestMethod } from '@stellariscloud/types'
 import { objectIdentifierToObjectKey } from '@stellariscloud/utils'
 import axios from 'axios'
 
-import { LogLevel } from './contexts/logging.context'
+export enum LogLevel {
+  TRACE = 'TRACE',
+  INFO = 'INFO',
+  DEBUG = 'DEBUG',
+  WARNING = 'WARNING',
+  ERROR = 'ERROR',
+}
+
 import { indexedDb } from './services/indexed-db'
 import { addFileToLocalFileStorage } from './services/local-cache/local-cache.service'
 
@@ -27,8 +34,8 @@ const log = (logMessage: {
 }
 
 const isLocal = async (folderId: string, objectIdentifier: string) => {
-  return !!(await indexedDb?.getMetadata(`${folderId}:${objectIdentifier}`))
-    ?.result
+  return !!(await indexedDb.getMetadata(`${folderId}:${objectIdentifier}`))
+    .result
 }
 
 const recentlyRequested: Record<
@@ -310,10 +317,11 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
         delete downloading[folderIdAndKey]
       })
   } else if (message[0] === 'AUTH_UPDATED') {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     foldersApi = bindApiConfig(
       {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         basePath: message[1].basePath,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         accessToken: message[1].accessToken,
       },
       FoldersApi,

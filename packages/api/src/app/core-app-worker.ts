@@ -81,8 +81,6 @@ workerThreads.parentPort?.once('message', (workerData: WorkerDataPayload) => {
       })
       .finally(() => log({ level: 'info', message: 'Shutting down.' }))
   } else if (!workerThreads.isMainThread) {
-    log({ message: `Didn't run.` })
-
     log({
       level: 'error',
       message: "Is not main thread but didn't run because { workerData }:",

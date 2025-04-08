@@ -1,9 +1,31 @@
+import os from 'os'
+import path from 'path'
+import fs from 'fs'
+import { spawn } from 'bun'
+import { v4 as uuidV4 } from 'uuid'
 import ffmpegBase from 'fluent-ffmpeg'
+import sharp from 'sharp'
+
+export async function getMediaDimensionsWithSharp(
+  filePath: string,
+): Promise<{ width: number; height: number }> {
+  const metadata = await sharp(filePath).metadata()
+
+  if (!metadata.width || !metadata.height) {
+    throw new Error('Failed to get image dimensions')
+  }
+
+  return {
+    width: metadata.width,
+    height: metadata.height,
+  }
+}
 
 import {
   getExifTagsFromImage,
   previewDimensionsForMaxDimension,
 } from './image.util'
+import { MediaType } from '@stellariscloud/types'
 
 export const ffmpeg = ffmpegBase
 
@@ -11,6 +33,7 @@ export const getMediaDimensionsWithFFMpeg = async (filepath: string) => {
   return new Promise<{ width: number; height: number; lengthMs: number }>(
     (resolve, reject) => {
       ffmpeg.ffprobe(filepath, (err, probeResult) => {
+        console.log('probeResult:', probeResult)
         const lengthMs = probeResult.streams[0].duration
           ? parseInt(probeResult.streams[0].duration, 10) * 1000
           : 0
@@ -32,7 +55,7 @@ export const getMediaDimensionsWithFFMpeg = async (filepath: string) => {
   )
 }
 
-export interface FFMpegOutput {
+export interface VideoOperationOutput {
   height: number
   width: number
   originalHeight: number
@@ -41,13 +64,25 @@ export interface FFMpegOutput {
   originalOrientation: number
 }
 
-export const resizeWithFFmpeg = async (
+export interface ImageOperationOutput {
+  height: number
+  width: number
+  originalHeight: number
+  originalWidth: number
+  originalOrientation: number
+}
+
+export const resizeVideo = async (
   inFilepath: string,
   outFilepath: string,
   mimeType: string,
   maxDimension: number,
-): Promise<FFMpegOutput> => {
+): Promise<VideoOperationOutput> => {
+  console.log('resizeVideo')
+  // const isVideo = mediaType === MediaType.Video
   const dimensions = await getMediaDimensionsWithFFMpeg(inFilepath)
+  console.log('dimensions:', dimensions)
+
   let command = ffmpeg().addInput(inFilepath).addOutput(outFilepath)
 
   let finalWidth = dimensions.width
@@ -62,24 +97,6 @@ export const resizeWithFFmpeg = async (
     finalWidth = previewDimensions.width
     finalHeight = previewDimensions.height
   }
-  // load Exif tags (jpeg only)
-  const exifTags =
-    mimeType === 'image/jpeg'
-      ? await getExifTagsFromImage(inFilepath)
-      : undefined
-  // console.log('exif:', JSON.stringify(exifTags?.image.Orientation, null, 2))
-  // generate previews using ffmpeg, and accouting for the "Orientation" exif tag
-  const imageOrientation = exifTags?.image['Orientation']
-
-  switch (imageOrientation) {
-    case 8:
-    case 6:
-      command = command.videoFilter(`scale=${finalHeight}:${finalWidth}`)
-      ;[finalHeight, finalWidth] = [finalWidth, finalHeight]
-      break
-    default:
-      command = command.videoFilter(`scale=${finalWidth}:${finalHeight}`)
-  }
 
   // execute the command
   command.run()
@@ -89,7 +106,7 @@ export const resizeWithFFmpeg = async (
     width: finalWidth,
     originalHeight: dimensions.height,
     originalWidth: dimensions.width,
-    originalOrientation: imageOrientation ?? 0,
+    originalOrientation: 0,
     lengthMs: dimensions.lengthMs,
   }
 
@@ -102,6 +119,68 @@ export const resizeWithFFmpeg = async (
       reject(e)
     })
   })
+
+  return returnValue
+}
+
+export const resizeImage = async (
+  inFilepath: string,
+  outFilepath: string,
+  mimeType: string,
+  maxDimension: number,
+): Promise<ImageOperationOutput> => {
+  console.log('resizeImage')
+  // const isVideo = mediaType === MediaType.Video
+  const dimensions = await getMediaDimensionsWithSharp(inFilepath)
+  console.log('dimensions:', dimensions)
+
+  let finalWidth = dimensions.width
+  let finalHeight = dimensions.height
+
+  if (maxDimension < Math.max(dimensions.height, dimensions.width)) {
+    const previewDimensions = previewDimensionsForMaxDimension({
+      height: finalHeight,
+      width: finalWidth,
+      maxDimension,
+    })
+    finalWidth = previewDimensions.width
+    finalHeight = previewDimensions.height
+  }
+
+  let finalInFilepath = inFilepath
+
+  const tempDir = path.join(os.tmpdir(), `stellaris_resize_image_${uuidV4()}`)
+  if (mimeType === 'image/heic') {
+    fs.mkdirSync(tempDir)
+    finalInFilepath = path.join(tempDir, 'converted.jpg')
+    await convertHeicToJpeg(inFilepath, finalInFilepath)
+  }
+
+  await sharp(finalInFilepath).rotate().resize(finalWidth).toFile(outFilepath)
+
+  if (fs.existsSync(tempDir)) {
+    fs.rmSync(finalInFilepath)
+    fs.rmdirSync(tempDir)
+  }
+  // load Exif tags (jpeg only)
+  const exifTags =
+    mimeType === 'image/jpeg'
+      ? await getExifTagsFromImage(inFilepath)
+      : undefined
+
+  console.log('exifTags:', exifTags)
+
+  const imageOrientation = exifTags?.image['Orientation']
+
+  console.log('imageOrientation:', imageOrientation)
+
+  const returnValue = {
+    height: finalHeight,
+    width: finalWidth,
+    originalHeight: dimensions.height,
+    originalWidth: dimensions.width,
+    originalOrientation: imageOrientation ?? 0,
+  }
 
   return returnValue
 }
@@ -177,4 +256,44 @@ export const generateMpegDashWithFFmpeg = async (
       reject(e)
     })
   })
+}
+
+export async function convertHeicToJpeg(input: string, output: string) {
+  console.log('Calling heif-convert:', { input, output })
+
+  const child = spawn(['heif-convert', input, output], {
+    stdout: 'pipe',
+    stderr: 'pipe',
+  })
+
+  const stdoutText = await readStreamToString(child.stdout)
+  const stderrText = await readStreamToString(child.stderr)
+
+  const exitCode = await child.exited
+
+  if (exitCode === 0) {
+    console.log('✅ Conversion complete')
+    if (stdoutText) console.log('stdout:', stdoutText.trim())
+    if (stderrText) console.warn('stderr:', stderrText.trim())
+  } else {
+    console.error('❌ Conversion failed with exit code', exitCode)
+    if (stderrText) console.error('stderr:', stderrText.trim())
+  }
+}
+
+async function readStreamToString(
+  stream: ReadableStream<Uint8Array> | null,
+): Promise<string> {
+  if (!stream) return ''
+
+  const reader = stream.getReader()
+  const decoder = new TextDecoder()
+  let result = ''
+  while (true) {
+    const { value, done } = await reader.read()
+    if (done) break
+    result += decoder.decode(value, { stream: true })
+  }
+  result += decoder.decode() // flush remaining
+  return result
 }
