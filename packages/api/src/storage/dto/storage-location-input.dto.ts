@@ -8,7 +8,13 @@ export const storageLocationInputSchema = z.union([
     endpoint: z.string(),
     bucket: z.string(),
     region: z.string(),
-    prefix: z.string().optional(),
+    prefix: z
+      .string()
+      .refine(
+        (prefix) => prefix.at(0) !== '/' && prefix.at(-1) !== '/',
+        'Prefix cannot start or end with "/".',
+      )
+      .optional(),
   }),
   z.object({
     storageProvisionId: z.string().uuid(),

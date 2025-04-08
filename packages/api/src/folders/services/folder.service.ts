@@ -269,10 +269,10 @@ export class FolderService {
 
         const prefixSuffix =
           storageProvisionType === UserStorageProvisionTypeEnum.METADATA
-            ? `.stellaris_folder_metadata_${prospectiveFolderId}/`
+            ? `.stellaris_folder_metadata_${prospectiveFolderId}`
             : storageProvisionType === UserStorageProvisionTypeEnum.CONTENT
-              ? `.stellaris_folder_content_${prospectiveFolderId}/`
-              : `.stellaris_folder_backup_${prospectiveFolderId}/`
+              ? `.stellaris_folder_content_${prospectiveFolderId}`
+              : `.stellaris_folder_backup_${prospectiveFolderId}`
 
         location = (
           await this.ormService.db
@@ -694,13 +694,6 @@ export class FolderService {
     let continuationToken: string | undefined = ''
     while (typeof continuationToken === 'string') {
       // list objects in the bucket, with the given prefix
-      console.log(
-        'Listing objects in bucket',
-        contentStorageLocation.bucket,
-        'with prefix',
-        contentStorageLocation.prefix,
-        folder.contentLocation,
-      )
       const response: {
         result: S3ObjectInternal[]
         continuationToken: string | undefined
@@ -715,7 +708,10 @@ export class FolderService {
       })
       for (const obj of response.result) {
         const objectKey = folder.contentLocation.prefix.length
-          ? obj.key.slice(folder.contentLocation.prefix.length + 1)
+          ? obj.key.slice(
+              folder.contentLocation.prefix.length +
+                (folder.contentLocation.prefix.endsWith('/') ? 0 : 1),
+            )
           : obj.key
         if (objectKey.startsWith('.stellaris_')) {
           continue
