@@ -37,3 +37,4 @@ env.dev
 .rollup.cache
 .test-data
 .env
+.aider*
