@@ -1,27 +1,10 @@
-import type { ExifData } from 'exif'
-import { ExifImage } from 'exif'
+import exifr from 'exifr'
 
-export const getExifTagsFromImage = (
+export async function getExifTagsFromImage(
   filePath: string,
-): Promise<ExifData | undefined> => {
-  return new Promise<ExifData>((resolve, reject) => {
-    new ExifImage({ image: filePath }, (error, exifData) => {
-      if (error) {
-        if ((error as any)?.code === 'NO_EXIF_SEGMENT') {
-          resolve({
-            exif: {},
-            gps: {},
-            image: {},
-            interoperability: {},
-            makernote: {},
-            thumbnail: {},
-          })
-        }
-        reject(error)
-      } else {
-        resolve(exifData)
-      }
-    })
+): Promise<Record<string, any>> {
+  return exifr.parse(filePath).then((output) => {
+    return output
   })
 }
 

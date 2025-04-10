@@ -2,8 +2,8 @@ import os from 'os'
 import path from 'path'
 import fs from 'fs'
 import { spawn } from 'bun'
-import { v4 as uuidV4 } from 'uuid'
-import ffmpegBase from 'fluent-ffmpeg'
+import { v5 as uuidV5 } from 'uuid'
+import ffmpegBase, { FfmpegCommand } from 'fluent-ffmpeg'
 import sharp from 'sharp'
 
 export async function getMediaDimensionsWithSharp(
@@ -25,6 +25,7 @@ import {
   getExifTagsFromImage,
   previewDimensionsForMaxDimension,
 } from './image.util'
+import { mediaTypeFromMimeType } from '@stellariscloud/utils'
 import { MediaType } from '@stellariscloud/types'
 
 export const ffmpeg = ffmpegBase
@@ -33,7 +34,6 @@ export const getMediaDimensionsWithFFMpeg = async (filepath: string) => {
   return new Promise<{ width: number; height: number; lengthMs: number }>(
     (resolve, reject) => {
       ffmpeg.ffprobe(filepath, (err, probeResult) => {
-        console.log('probeResult:', probeResult)
         const lengthMs = probeResult.streams[0].duration
           ? parseInt(probeResult.streams[0].duration, 10) * 1000
           : 0
@@ -69,47 +69,10 @@ export interface ImageOperationOutput {
   width: number
   originalHeight: number
   originalWidth: number
-  originalOrientation: number
 }
 
-export const resizeVideo = async (
-  inFilepath: string,
-  outFilepath: string,
-  mimeType: string,
-  maxDimension: number,
-): Promise<VideoOperationOutput> => {
-  console.log('resizeVideo')
-  // const isVideo = mediaType === MediaType.Video
-  const dimensions = await getMediaDimensionsWithFFMpeg(inFilepath)
-  console.log('dimensions:', dimensions)
-
-  let command = ffmpeg().addInput(inFilepath).addOutput(outFilepath)
-
-  let finalWidth = dimensions.width
-  let finalHeight = dimensions.height
-
-  if (maxDimension < Math.max(dimensions.height, dimensions.width)) {
-    const previewDimensions = previewDimensionsForMaxDimension({
-      height: finalHeight,
-      width: finalWidth,
-      maxDimension,
-    })
-    finalWidth = previewDimensions.width
-    finalHeight = previewDimensions.height
-  }
-
-  // execute the command
+async function waitForFFmpegCommand(command: FfmpegCommand) {
   command.run()
-
-  const returnValue = {
-    height: finalHeight,
-    width: finalWidth,
-    originalHeight: dimensions.height,
-    originalWidth: dimensions.width,
-    originalOrientation: 0,
-    lengthMs: dimensions.lengthMs,
-  }
-
   // wait for end or error
   await new Promise((resolve, reject) => {
     command.on('end', () => {
@@ -119,20 +82,26 @@ export const resizeVideo = async (
       reject(e)
     })
   })
-
-  return returnValue
 }
 
-export const resizeImage = async (
-  inFilepath: string,
-  outFilepath: string,
-  mimeType: string,
-  maxDimension: number,
-): Promise<ImageOperationOutput> => {
-  console.log('resizeImage')
-  // const isVideo = mediaType === MediaType.Video
-  const dimensions = await getMediaDimensionsWithSharp(inFilepath)
-  console.log('dimensions:', dimensions)
+export const resizeContent = async ({
+  inFilepath,
+  outFilepath,
+  maxDimension,
+  rotation,
+  mimeType,
+}: {
+  inFilepath: string
+  outFilepath: string
+  maxDimension: number
+  rotation?: number
+  mimeType: string
+}): Promise<ImageOperationOutput> => {
+  const mediaType = mediaTypeFromMimeType(mimeType)
+  const dimensions =
+    mediaType === MediaType.Image
+      ? await getMediaDimensionsWithSharp(inFilepath)
+      : await getMediaDimensionsWithFFMpeg(inFilepath)
 
   let finalWidth = dimensions.width
   let finalHeight = dimensions.height
@@ -149,40 +118,90 @@ export const resizeImage = async (
 
   let finalInFilepath = inFilepath
 
-  const tempDir = path.join(os.tmpdir(), `stellaris_resize_image_${uuidV4()}`)
+  const tempDir = path.join(
+    os.tmpdir(),
+    `stellaris_resize_image_${uuidV5(inFilepath, uuidV5.URL)}`,
+  )
   if (mimeType === 'image/heic') {
-    fs.mkdirSync(tempDir)
     finalInFilepath = path.join(tempDir, 'converted.jpg')
-    await convertHeicToJpeg(inFilepath, finalInFilepath)
+    if (!fs.existsSync(finalInFilepath)) {
+      fs.mkdirSync(tempDir)
+      await convertHeicToJpeg(inFilepath, finalInFilepath)
+    }
   }
 
-  await sharp(finalInFilepath).rotate().resize(finalWidth).toFile(outFilepath)
+  mediaType === MediaType.Video
+    ? await waitForFFmpegCommand(
+        ffmpeg()
+          .addInput(finalInFilepath)
+          .size(`${finalWidth}x${finalHeight}`)
+          .autopad()
+          .addOutput(outFilepath)
+          .outputOptions(
+            rotation ? [`-metadata:s:v rotate="${rotation}"`] : [],
+          ),
+      )
+    : await sharp(finalInFilepath)
+        .rotate(mimeType === 'image/heic' ? 0 : rotation)
+        .resize(finalWidth)
+        .toFile(outFilepath)
 
   if (fs.existsSync(tempDir)) {
     fs.rmSync(finalInFilepath)
     fs.rmdirSync(tempDir)
   }
-  // load Exif tags (jpeg only)
-  const exifTags =
-    mimeType === 'image/jpeg'
-      ? await getExifTagsFromImage(inFilepath)
-      : undefined
-
-  console.log('exifTags:', exifTags)
-
-  const imageOrientation = exifTags?.image['Orientation']
-
-  console.log('imageOrientation:', imageOrientation)
 
   const returnValue = {
     height: finalHeight,
     width: finalWidth,
     originalHeight: dimensions.height,
     originalWidth: dimensions.width,
-    originalOrientation: imageOrientation ?? 0,
   }
 
   return returnValue
+}
+
+export function parseOrientationToPosition(orientation: string): number {
+  if (!orientation) {
+    return 0
+  }
+
+  // Extract the rotation value from the orientation string
+  const rotationMatch = orientation.match(/Rotate (\d+) (CW|CCW)/)
+  if (!rotationMatch) return 0
+
+  const degrees = parseInt(rotationMatch[1], 10)
+  const direction = rotationMatch[2]
+
+  // Convert to position number (0-359)
+  let position = 0
+  if (direction === 'CW') {
+    position = degrees
+  } else if (direction === 'CCW') {
+    position = 360 - degrees
+  }
+
+  // Ensure the position is within 0-259
+  return Math.min(Math.max(position, 0), 359)
+}
+
+export async function getNecessaryContentRotation(
+  filepath: string,
+  mimeType: string,
+): Promise<number> {
+  if (mimeType.startsWith('image/')) {
+    const metadata = await getExifTagsFromImage(filepath)
+    if (
+      metadata &&
+      typeof metadata === 'object' &&
+      'Orientation' in metadata &&
+      typeof metadata.Orientation === 'string'
+    ) {
+      // stellariscloud-api  |   Orientation: "Rotate 270 CW",
+      return parseOrientationToPosition(metadata?.Orientation)
+    }
+  }
+  return 0
 }
 
 export const generateM3u8WithFFmpeg = async (
@@ -221,7 +240,6 @@ export const generateMpegDashWithFFmpeg = async (
   outFilepath: string,
 ): Promise<void> => {
   // const command = ffmpeg().addInput(inFilepath).addOutput(outFilepath)
-  console.log('outFilepath:', outFilepath)
   // execute the command
   const command = ffmpeg(inFilepath)
     .videoCodec('libx264')
@@ -259,8 +277,6 @@ export const generateMpegDashWithFFmpeg = async (
 }
 
 export async function convertHeicToJpeg(input: string, output: string) {
-  console.log('Calling heif-convert:', { input, output })
-
   const child = spawn(['heif-convert', input, output], {
     stdout: 'pipe',
     stderr: 'pipe',
@@ -271,13 +287,9 @@ export async function convertHeicToJpeg(input: string, output: string) {
 
   const exitCode = await child.exited
 
-  if (exitCode === 0) {
-    console.log('✅ Conversion complete')
-    if (stdoutText) console.log('stdout:', stdoutText.trim())
-    if (stderrText) console.warn('stderr:', stderrText.trim())
-  } else {
-    console.error('❌ Conversion failed with exit code', exitCode)
+  if (exitCode === 1) {
     if (stderrText) console.error('stderr:', stderrText.trim())
+    throw new Error('Failed to convert heic to jpeg')
   }
 }
 

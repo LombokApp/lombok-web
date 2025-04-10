@@ -15,7 +15,10 @@ import type {
   ImageOperationOutput,
   VideoOperationOutput,
 } from '../utils/ffmpeg.util'
-import { resizeImage, resizeVideo } from '../utils/ffmpeg.util'
+import {
+  getNecessaryContentRotation,
+  resizeContent,
+} from '../utils/ffmpeg.util'
 import {
   downloadFileToDisk,
   hashLocalFile,
@@ -26,7 +29,7 @@ export const analyzeObjectTaskHandler = async (
   task: AppTask,
   server: CoreServerMessageInterface,
 ) => {
-  console.log('Starting work for task:', task)
+  // console.log('Starting work for task:', task)
   if (!task.id) {
     throw new AppAPIError('INVALID_TASK', 'Missing task id.')
   }
@@ -94,21 +97,34 @@ export const analyzeObjectTaskHandler = async (
   let scaleResult: VideoOperationOutput | ImageOperationOutput | undefined
   let metadataDescription: { [key: string]: MetadataEntry } = {}
   const contentHash = await hashLocalFile(inFilepath)
+  const rotation = await getNecessaryContentRotation(inFilepath, mimeType)
   if ([MediaType.Image, MediaType.Video].includes(mediaType)) {
     const compressedOutFilePath = path.join(tempDir, `comp.${outExtension}`)
     const smThumbnailOutFilePath = path.join(tempDir, `sm.${outExtension}`)
     const lgThumbnailOutFilePath = path.join(tempDir, `md.${outExtension}`)
 
-    const resize = mediaType === MediaType.Video ? resizeVideo : resizeImage
-    scaleResult = await resize(
+    scaleResult = await resizeContent({
       inFilepath,
-      compressedOutFilePath,
+      outFilepath: compressedOutFilePath,
       mimeType,
-      2000,
-    )
-    await resize(inFilepath, lgThumbnailOutFilePath, mimeType, 500)
-    await resize(inFilepath, smThumbnailOutFilePath, mimeType, 150)
-    console.log('after resize')
+      maxDimension: 2000,
+      rotation,
+    })
+
+    await resizeContent({
+      inFilepath,
+      outFilepath: lgThumbnailOutFilePath,
+      mimeType,
+      maxDimension: 500,
+      rotation,
+    })
+    await resizeContent({
+      inFilepath,
+      outFilepath: smThumbnailOutFilePath,
+      mimeType,
+      maxDimension: 150,
+      rotation,
+    })
 
     // get the upload URLs for the metadata files
     const metadataHashes = {
@@ -116,7 +132,7 @@ export const analyzeObjectTaskHandler = async (
       thumbnailSm: await hashLocalFile(smThumbnailOutFilePath),
       thumbnailLg: await hashLocalFile(lgThumbnailOutFilePath),
     }
-    console.log('metadataHashes:', metadataHashes)
+    // console.log('metadataHashes:', metadataHashes)
 
     const metadataKeys = Object.keys(metadataHashes)
     const metadtaSignedUrlsResponse = await server
@@ -199,7 +215,7 @@ export const analyzeObjectTaskHandler = async (
           height: scaleResult?.originalHeight ?? 0,
           width: scaleResult?.originalWidth ?? 0,
           lengthMs: (scaleResult as any | undefined)?.lengthMs ?? 0,
-          orientation: scaleResult?.originalOrientation ?? 0,
+          orientation: rotation ?? 0,
         },
       },
     ],
