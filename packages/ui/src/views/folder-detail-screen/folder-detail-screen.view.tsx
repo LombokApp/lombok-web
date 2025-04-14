@@ -61,9 +61,31 @@ export const FolderDetailScreen = () => {
   const [uploadModalData, setUploadModalData] = React.useState<UploadModalData>(
     {
       isOpen: false,
-      uploadingProgress,
+      uploadingProgress: {},
     },
   )
+
+  // Create a reference to the current uploadingProgress for the modal
+  const uploadModalRef = React.useRef<UploadModalData>({
+    isOpen: false,
+    uploadingProgress: {},
+  })
+
+  // Update the modal data when uploadingProgress changes
+  React.useEffect(() => {
+    if (uploadModalRef.current.isOpen) {
+      setUploadModalData({
+        isOpen: true,
+        uploadingProgress,
+      })
+    }
+  }, [uploadingProgress])
+
+  // Update the ref when the modal state changes
+  React.useEffect(() => {
+    uploadModalRef.current = uploadModalData
+  }, [uploadModalData])
+
   const [reindexFolderModalData, setReindexFolderModalData] =
     React.useState<ReindexFolderModalData>({
       isOpen: false,
@@ -240,8 +262,8 @@ export const FolderDetailScreen = () => {
                               <DropdownMenuItem
                                 onClick={() =>
                                   setUploadModalData({
-                                    ...uploadModalData,
                                     isOpen: true,
+                                    uploadingProgress,
                                   })
                                 }
                                 className="gap-2"
@@ -271,8 +293,8 @@ export const FolderDetailScreen = () => {
                             ) && (
                               <DropdownMenuItem
                                 onClick={() =>
-                                  setUploadModalData({
-                                    ...uploadModalData,
+                                  setForgetFolderConfirmationModelData({
+                                    ...forgetFolderConfirmationModelData,
                                     isOpen: true,
                                   })
                                 }
