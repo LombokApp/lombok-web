@@ -62,9 +62,9 @@ export const useWebsocket = (
         })
 
         s.on('connect', () => {
-          console.log(`socket connected ns(${namespace}):`, {
-            ...s,
-          })
+          // console.log(`socket connected ns(${namespace}):`, {
+          //   ...s,
+          // })
           setSocketState({
             socket: s,
             reconnectKey: socketState.reconnectKey,
@@ -72,9 +72,9 @@ export const useWebsocket = (
         })
 
         s.on('disconnect', () => {
-          console.log(`socket disconnected ns(${namespace}):`, {
-            ...s,
-          })
+          // console.log(`socket disconnected ns(${namespace}):`, {
+          //   ...s,
+          // })
 
           setSocketState({
             reconnectKey: socketState.reconnectKey,
