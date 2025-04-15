@@ -26,8 +26,8 @@ export const FolderSidebar = ({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-1 flex-col gap-4">
-        <Card>
+      <div className="flex flex-1 flex-col gap-4 overflow-hidden">
+        <Card className="shrink-0">
           <CardHeader className="p-4 pt-3">
             <TypographyH3>
               <div className="flex items-center gap-2">
@@ -97,7 +97,10 @@ export const FolderSidebar = ({
             </dl>
           </CardContent>
         </Card>
-        <FolderTasksList {...{ folderAndPermission }} />
+
+        <div className="flex-shrink-0 overflow-hidden">
+          <FolderTasksList {...{ folderAndPermission }} />
+        </div>
       </div>
     </div>
   )
