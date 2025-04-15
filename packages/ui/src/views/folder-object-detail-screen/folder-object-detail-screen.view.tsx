@@ -207,6 +207,7 @@ export const FolderObjectDetailScreen = ({
                     objectKey={objectKey}
                     objectMetadata={folderObject}
                     previewObjectKey={displayObjectKey}
+                    displayMode="object-contain"
                   />
                 ) : (
                   <div className="flex flex-1 items-center justify-around">
