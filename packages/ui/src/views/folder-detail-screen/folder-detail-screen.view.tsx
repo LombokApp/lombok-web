@@ -234,16 +234,16 @@ export const FolderDetailScreen = () => {
                   {folderContext.folderMetadata?.totalCount === 0 ? (
                     <div className="flex size-full flex-col items-center justify-center">
                       <div className="flex w-full max-w-md flex-col items-center p-8">
-                        <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-gray-200/10">
+                        <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-foreground/[.04] p-4">
                           <Folder
                             className="size-20 text-gray-400"
                             strokeWidth={1}
                           />
                         </div>
                         <h3 className="mb-3 text-xl font-medium">
-                          No objects found in this folder
+                          This folder is empty
                         </h3>
-                        <p className="mb-8 text-center text-sm opacity-50">
+                        <p className="mb-8 text-center text-sm opacity-75">
                           You can upload files or reindex the folder to discover
                           existing files.
                         </p>
