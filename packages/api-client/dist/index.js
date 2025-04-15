@@ -2830,6 +2830,139 @@ class AuthApi extends BaseAPI {
     return AuthApiFp(this.configuration).signup(requestParameters.signupCredentialsDTO, options).then((request) => request(this.axios, this.basePath));
   }
 }
+var FolderEventsApiAxiosParamCreator = function(configuration) {
+  return {
+    getFolderEvent: async (folderId, eventId, options = {}) => {
+      assertParamExists("getFolderEvent", "folderId", folderId);
+      assertParamExists("getFolderEvent", "eventId", eventId);
+      const localVarPath = `/api/v1/folders/{folderId}/events/{eventId}`.replace(`{${"folderId"}}`, encodeURIComponent(String(folderId))).replace(`{${"eventId"}}`, encodeURIComponent(String(eventId)));
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options };
+      const localVarHeaderParameter = {};
+      const localVarQueryParameter = {};
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions
+      };
+    },
+    listFolderEvents: async (folderId, sort, objectKey, search, includeTrace, includeDebug, includeInfo, includeWarning, includeError, offset, limit, options = {}) => {
+      assertParamExists("listFolderEvents", "folderId", folderId);
+      const localVarPath = `/api/v1/folders/{folderId}/events`.replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options };
+      const localVarHeaderParameter = {};
+      const localVarQueryParameter = {};
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+      if (sort !== undefined) {
+        localVarQueryParameter["sort"] = sort;
+      }
+      if (objectKey !== undefined) {
+        localVarQueryParameter["objectKey"] = objectKey;
+      }
+      if (search !== undefined) {
+        localVarQueryParameter["search"] = search;
+      }
+      if (includeTrace !== undefined) {
+        localVarQueryParameter["includeTrace"] = includeTrace;
+      }
+      if (includeDebug !== undefined) {
+        localVarQueryParameter["includeDebug"] = includeDebug;
+      }
+      if (includeInfo !== undefined) {
+        localVarQueryParameter["includeInfo"] = includeInfo;
+      }
+      if (includeWarning !== undefined) {
+        localVarQueryParameter["includeWarning"] = includeWarning;
+      }
+      if (includeError !== undefined) {
+        localVarQueryParameter["includeError"] = includeError;
+      }
+      if (offset !== undefined) {
+        localVarQueryParameter["offset"] = offset;
+      }
+      if (limit !== undefined) {
+        localVarQueryParameter["limit"] = limit;
+      }
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions
+      };
+    }
+  };
+};
+var FolderEventsApiFp = function(configuration) {
+  const localVarAxiosParamCreator = FolderEventsApiAxiosParamCreator(configuration);
+  return {
+    async getFolderEvent(folderId, eventId, options) {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.getFolderEvent(folderId, eventId, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath = operationServerMap["FolderEventsApi.getFolderEvent"]?.[localVarOperationServerIndex]?.url;
+      return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
+    },
+    async listFolderEvents(folderId, sort, objectKey, search, includeTrace, includeDebug, includeInfo, includeWarning, includeError, offset, limit, options) {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderEvents(folderId, sort, objectKey, search, includeTrace, includeDebug, includeInfo, includeWarning, includeError, offset, limit, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath = operationServerMap["FolderEventsApi.listFolderEvents"]?.[localVarOperationServerIndex]?.url;
+      return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
+    }
+  };
+};
+var FolderEventsApiFactory = function(configuration, basePath, axios2) {
+  const localVarFp = FolderEventsApiFp(configuration);
+  return {
+    getFolderEvent(requestParameters, options) {
+      return localVarFp.getFolderEvent(requestParameters.folderId, requestParameters.eventId, options).then((request) => request(axios2, basePath));
+    },
+    listFolderEvents(requestParameters, options) {
+      return localVarFp.listFolderEvents(requestParameters.folderId, requestParameters.sort, requestParameters.objectKey, requestParameters.search, requestParameters.includeTrace, requestParameters.includeDebug, requestParameters.includeInfo, requestParameters.includeWarning, requestParameters.includeError, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios2, basePath));
+    }
+  };
+};
+
+class FolderEventsApi extends BaseAPI {
+  getFolderEvent(requestParameters, options) {
+    return FolderEventsApiFp(this.configuration).getFolderEvent(requestParameters.folderId, requestParameters.eventId, options).then((request) => request(this.axios, this.basePath));
+  }
+  listFolderEvents(requestParameters, options) {
+    return FolderEventsApiFp(this.configuration).listFolderEvents(requestParameters.folderId, requestParameters.sort, requestParameters.objectKey, requestParameters.search, requestParameters.includeTrace, requestParameters.includeDebug, requestParameters.includeInfo, requestParameters.includeWarning, requestParameters.includeError, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+  }
+}
+var ListFolderEventsSortEnum = {
+  CreatedAtAsc: "createdAt-asc",
+  CreatedAtDesc: "createdAt-desc",
+  UpdatedAtAsc: "updatedAt-asc",
+  UpdatedAtDesc: "updatedAt-desc"
+};
+var ListFolderEventsIncludeTraceEnum = {
+  True: "true"
+};
+var ListFolderEventsIncludeDebugEnum = {
+  True: "true"
+};
+var ListFolderEventsIncludeInfoEnum = {
+  True: "true"
+};
+var ListFolderEventsIncludeWarningEnum = {
+  True: "true"
+};
+var ListFolderEventsIncludeErrorEnum = {
+  True: "true"
+};
 var FoldersApiAxiosParamCreator = function(configuration) {
   return {
     createFolder: async (folderCreateInputDTO, options = {}) => {
@@ -6693,6 +6826,171 @@ var schema = {
         ]
       }
     },
+    "/api/v1/folders/{folderId}/events/{eventId}": {
+      get: {
+        operationId: "getFolderEvent",
+        parameters: [
+          {
+            name: "folderId",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          },
+          {
+            name: "eventId",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          }
+        ],
+        responses: {
+          "200": {
+            description: ""
+          }
+        },
+        security: [
+          {
+            bearer: []
+          }
+        ],
+        tags: [
+          "FolderEvents"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/events": {
+      get: {
+        operationId: "listFolderEvents",
+        parameters: [
+          {
+            name: "sort",
+            required: false,
+            in: "query",
+            schema: {
+              type: "string",
+              enum: [
+                "createdAt-asc",
+                "createdAt-desc",
+                "updatedAt-asc",
+                "updatedAt-desc"
+              ]
+            }
+          },
+          {
+            name: "objectKey",
+            required: false,
+            in: "query",
+            schema: {
+              type: "string"
+            }
+          },
+          {
+            name: "search",
+            required: false,
+            in: "query",
+            schema: {
+              type: "string"
+            }
+          },
+          {
+            name: "includeTrace",
+            required: false,
+            in: "query",
+            schema: {
+              type: "string",
+              enum: [
+                "true"
+              ]
+            }
+          },
+          {
+            name: "includeDebug",
+            required: false,
+            in: "query",
+            schema: {
+              type: "string",
+              enum: [
+                "true"
+              ]
+            }
+          },
+          {
+            name: "includeInfo",
+            required: false,
+            in: "query",
+            schema: {
+              type: "string",
+              enum: [
+                "true"
+              ]
+            }
+          },
+          {
+            name: "includeWarning",
+            required: false,
+            in: "query",
+            schema: {
+              type: "string",
+              enum: [
+                "true"
+              ]
+            }
+          },
+          {
+            name: "includeError",
+            required: false,
+            in: "query",
+            schema: {
+              type: "string",
+              enum: [
+                "true"
+              ]
+            }
+          },
+          {
+            name: "offset",
+            required: false,
+            in: "query",
+            schema: {
+              type: "number"
+            }
+          },
+          {
+            name: "limit",
+            required: false,
+            in: "query",
+            schema: {
+              type: "number"
+            }
+          },
+          {
+            name: "folderId",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          }
+        ],
+        responses: {
+          "200": {
+            description: ""
+          }
+        },
+        security: [
+          {
+            bearer: []
+          }
+        ],
+        tags: [
+          "FolderEvents"
+        ]
+      }
+    },
     "/api/v1/server/apps": {
       get: {
         operationId: "listApps",
@@ -10423,6 +10721,12 @@ export {
   ListFolderTasksIncludeFailedEnum,
   ListFolderTasksIncludeCompleteEnum,
   ListFolderObjectsSortEnum,
+  ListFolderEventsSortEnum,
+  ListFolderEventsIncludeWarningEnum,
+  ListFolderEventsIncludeTraceEnum,
+  ListFolderEventsIncludeInfoEnum,
+  ListFolderEventsIncludeErrorEnum,
+  ListFolderEventsIncludeDebugEnum,
   ListEventsSortEnum,
   ListEventsIncludeWarningEnum,
   ListEventsIncludeTraceEnum,
@@ -10440,6 +10744,10 @@ export {
   FolderObjectContentAttributesDTOMediaTypeEnum,
   FolderListResponseResultInnerPermissionsEnum,
   FolderGetResponsePermissionsEnum,
+  FolderEventsApiFp,
+  FolderEventsApiFactory,
+  FolderEventsApiAxiosParamCreator,
+  FolderEventsApi,
   FolderDTOMetadataLocationProviderTypeEnum,
   FolderCreateSignedUrlInputDTOInnerMethodEnum,
   EventGetResponseEventLevelEnum,

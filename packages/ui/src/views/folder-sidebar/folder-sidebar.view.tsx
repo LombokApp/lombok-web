@@ -13,6 +13,7 @@ import { formatBytes } from '@stellariscloud/utils'
 import { Calculator, Globe } from 'lucide-react'
 
 import { Icon } from '../../design-system/icon'
+import { FolderEventsList } from '../folder-events-list/folder-events-list.view'
 import { FolderTasksList } from '../folder-tasks-list/folder-tasks-list.view'
 
 export const FolderSidebar = ({
@@ -98,8 +99,12 @@ export const FolderSidebar = ({
           </CardContent>
         </Card>
 
-        <div className="flex-shrink-0 overflow-hidden">
+        <div className="shrink-0 overflow-hidden">
           <FolderTasksList {...{ folderAndPermission }} />
+        </div>
+
+        <div className="shrink-0 overflow-hidden">
+          <FolderEventsList {...{ folderAndPermission }} />
         </div>
       </div>
     </div>
