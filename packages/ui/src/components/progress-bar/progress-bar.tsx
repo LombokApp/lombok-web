@@ -1,5 +1,4 @@
 import { cn } from '@stellariscloud/ui-toolkit'
-import React from 'react'
 
 export const ProgressBar = ({
   progress,

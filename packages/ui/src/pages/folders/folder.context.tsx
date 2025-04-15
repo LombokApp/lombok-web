@@ -4,18 +4,19 @@ import type {
 } from '@stellariscloud/api-client'
 import type { FolderMetadata } from '@stellariscloud/types'
 import { FolderPushMessage } from '@stellariscloud/types'
+import { useToast } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 import type { QueryObserverResult } from 'react-query'
 import type { Socket } from 'socket.io-client'
 
-import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
-import type { LogLevel } from '../../contexts/logging.context'
+import { LogLevel } from '../../contexts/logging.context'
 import { useWebsocket } from '../../hooks/use-websocket'
-import { foldersApiHooks } from '../../services/api'
+import { apiClient, foldersApiHooks } from '../../services/api'
 
 export interface Notification {
   level: LogLevel
-  message: string
+  title: string
+  message?: string
   thumbnailSrc?: string
   id?: string
 }
@@ -34,13 +35,12 @@ export interface IFolderContext {
     QueryObserverResult<FolderGetMetadataResponse>
   >
   folderMetadata?: FolderMetadata
-  notifications: Notification[]
   showNotification: (n: Notification) => void
-  newNotificationFlag?: string
   subscribeToMessages: (handler: SocketMessageHandler) => void
   unsubscribeFromMessages: (handler: SocketMessageHandler) => void
   socketConnected: boolean
   socket: Socket | undefined
+  deleteFolderObject: (objectKey: string) => Promise<void>
 }
 
 const FolderContext = React.createContext<IFolderContext>({} as IFolderContext)
@@ -52,14 +52,11 @@ export const FolderContextProvider = ({
   children: React.ReactNode
   folderId: string
 }) => {
-  const _localFileCacheContext = useLocalFileCacheContext()
-  //   const loggingContext = useLoggingContext()
-
-  const notifications = React.useRef<Notification[]>([])
-  const [newNotificationFlag, setNewNotificationFlag] = React.useState<string>()
+  //   const loggingContext = useLoggingContext(
 
   const folderQuery = foldersApiHooks.useGetFolder({ folderId })
   const folderMetadataQuery = foldersApiHooks.useGetFolderMetadata({ folderId })
+  const { toast } = useToast()
 
   const messageHandler = React.useCallback(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -110,25 +107,15 @@ export const FolderContextProvider = ({
     [folderQuery, folderMetadataQuery],
   )
   const { socket } = useWebsocket('folder', messageHandler, { folderId })
-  const showNotification = React.useCallback((notification: Notification) => {
-    const randomId = (Math.random() + 1).toString(36).substring(7)
-    notifications.current.unshift({ ...notification, id: randomId })
-    if (notifications.current.length > 100) {
-      notifications.current.pop()
-    }
-    notifications.current = [...notifications.current]
-    setNewNotificationFlag(randomId)
-    setTimeout(() => {
-      setNewNotificationFlag((notificationFlag) =>
-        notificationFlag === randomId ? undefined : notificationFlag,
-      )
-    }, 2500)
-    setTimeout(() => {
-      const index = notifications.current.findIndex((n) => n.id === randomId)
-      notifications.current.splice(index, 1)
-      notifications.current = [...notifications.current]
-    }, 5000)
-  }, [])
+  const showNotification = React.useCallback(
+    (notification: Notification) => {
+      toast({
+        title: notification.title,
+        description: notification.message,
+      })
+    },
+    [toast],
+  )
 
   const subscribeToMessages = (handler: SocketMessageHandler) => {
     socket?.onAny(handler)
@@ -137,23 +124,40 @@ export const FolderContextProvider = ({
   const unsubscribeFromMessages = (handler: SocketMessageHandler) => {
     socket?.offAny(handler)
   }
+  const deleteFolderObject = async (objectKey: string): Promise<void> => {
+    await apiClient.foldersApi.deleteFolderObject({
+      folderId,
+      objectKey,
+    })
+
+    // if (folderMetadataQuery.data) {
+    //   // Refresh folder data
+    //   await Promise.all([folderQuery.refetch(), folderMetadataQuery.refetch()])
+    // }
+
+    showNotification({
+      level: LogLevel.INFO,
+      title: `Object "${objectKey}" deleted`,
+      // message: `Object "${objectKey}" deleted`,
+      // thumbnailSrc: file?.dataURL,
+    })
+  }
 
   return (
     <FolderContext.Provider
       value={{
-        newNotificationFlag,
         folderId,
         folder: folderQuery.data?.folder,
         folderPermissions: folderQuery.data?.permissions,
         refreshFolder: folderQuery.refetch,
         folderMetadata: folderMetadataQuery.data,
         refreshFolderMetadata: folderMetadataQuery.refetch,
-        notifications: notifications.current,
         showNotification,
         socketConnected: socket?.connected ?? false,
         subscribeToMessages,
         unsubscribeFromMessages,
         socket,
+        deleteFolderObject,
       }}
     >
       {folderId && children}

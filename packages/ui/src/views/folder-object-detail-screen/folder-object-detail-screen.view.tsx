@@ -5,35 +5,45 @@ import {
   FolderPushMessage,
   MediaType,
 } from '@stellariscloud/types'
-import { Button, cn, TypographyH3 } from '@stellariscloud/ui-toolkit'
+import { Button, cn, TypographyH3, useToast } from '@stellariscloud/ui-toolkit'
 import React from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 
-import { ConfirmDeleteModal } from '../../components/confirm-delete-modal/confirm-delete-modal'
+import type { DeleteObjectModalData } from '../../components/delete-object-modal/delete-object-modal'
+import { DeleteObjectModal } from '../../components/delete-object-modal/delete-object-modal'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
-import { LogLevel, useLoggingContext } from '../../contexts/logging.context'
 import { useFocusedFolderObjectContext } from '../../pages/folders/focused-folder-object.context'
 import { useFolderContext } from '../../pages/folders/folder.context'
-import { apiClient } from '../../services/api'
 import { FolderObjectPreview } from '../folder-object-preview/folder-object-preview.view'
 import { FolderObjectSidebar } from '../folder-object-sidebar/folder-object-sidebar.view'
 
 export const FolderObjectDetailScreen = ({
   folderId,
   objectKey,
-  onFolderLinkClick,
 }: {
   folderId: string
   objectKey: string
-  onFolderLinkClick?: () => void
 }) => {
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
-  const [showDeleteModal, setShowDeleteModal] = React.useState(false)
   const { focusedFolderObject: folderObject, refetch: refetchFolderObject } =
     useFocusedFolderObjectContext()
-  const logging = useLoggingContext()
   const [displaySize, setDisplaySize] = React.useState('compressed')
   const [displayObjectKey, setDisplayObjectKey] = React.useState<string>()
   const { downloadToFile } = useLocalFileCacheContext()
+  const [deleteModalData, setDeleteModalData] =
+    React.useState<DeleteObjectModalData>({
+      isOpen: false,
+    })
+
+  const { toast } = useToast()
+  const handleDownload = React.useCallback(() => {
+    toast({ title: 'Preparing download' })
+    downloadToFile(
+      folderId,
+      `content:${objectKey}`,
+      objectKey.split('/').at(-1) ?? objectKey,
+    )
+  }, [downloadToFile, folderId, objectKey, toast])
 
   const currentVersionMetadata = React.useMemo(
     () =>
@@ -103,44 +113,51 @@ export const FolderObjectDetailScreen = ({
     [refetchFolderObject, objectKey],
   )
   const folderContext = useFolderContext(messageHandler)
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  const handleFolderLinkClick = React.useCallback(
-    (e?: React.MouseEvent) => {
-      e?.preventDefault()
-      e?.stopPropagation()
-      onFolderLinkClick?.()
-    },
-    [onFolderLinkClick],
-  )
+  const handleFolderLinkClick = React.useCallback(() => {
+    const folderPath = `/folders/${folderId}`
 
-  const handleDelete = () => {
-    if (!showDeleteModal) {
-      setShowDeleteModal(true)
+    // Check if we just came from the parent folder view
+    if (location.pathname.startsWith(folderPath) && location.key) {
+      // If we have a browser history key, we can go back
+      void navigate(-1)
     } else {
-      void apiClient.foldersApi
-        .deleteFolderObject({ folderId, objectKey })
-        .then(() => {
-          logging.appendLogLine({
-            level: LogLevel.INFO,
-            message: `Deleted object ${objectKey}`,
-            folderId,
-            remote: false,
-            objectKey,
-          })
-          handleFolderLinkClick()
-        })
+      // Otherwise navigate directly to the folder view
+      void navigate(folderPath)
+    }
+  }, [navigate, location, folderId])
+
+  const handleDelete = async () => {
+    if (!folderObject) {
+      return
+    }
+
+    if (
+      folderContext.folderPermissions?.includes(
+        FolderPermissionEnum.OBJECT_EDIT,
+      )
+    ) {
+      try {
+        await folderContext.deleteFolderObject(folderObject.objectKey)
+        handleFolderLinkClick()
+      } catch (error) {
+        console.error('Error deleting object:', error)
+      }
     }
   }
 
   return (
     <>
-      {showDeleteModal && folderObject && (
-        <ConfirmDeleteModal
-          folderObject={folderObject}
-          onConfirm={handleDelete}
-          onCancel={() => setShowDeleteModal(false)}
-        />
-      )}
+      <DeleteObjectModal
+        modalData={{
+          ...deleteModalData,
+          folderObject,
+        }}
+        setModalData={setDeleteModalData}
+        onConfirm={handleDelete}
+      />
       <div className="flex size-full flex-1 justify-end">
         <div
           className="relative flex size-full flex-col"
@@ -159,7 +176,7 @@ export const FolderObjectDetailScreen = ({
                   ) && (
                     <Button
                       size="sm"
-                      onClick={handleDelete}
+                      onClick={() => setDeleteModalData({ isOpen: true })}
                       variant={'outline'}
                     >
                       <TrashIcon className="size-5" />
@@ -168,13 +185,7 @@ export const FolderObjectDetailScreen = ({
                   <Button
                     size="sm"
                     variant={'outline'}
-                    onClick={() =>
-                      downloadToFile(
-                        folderId,
-                        `content:${objectKey}`,
-                        objectKey.split('/').at(-1) ?? objectKey,
-                      )
-                    }
+                    onClick={handleDownload}
                   >
                     <ArrowDownTrayIcon className="size-5" />
                   </Button>
