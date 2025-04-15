@@ -22,8 +22,8 @@ import { Ellipsis, Folder } from 'lucide-react'
 import React from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
-import type { ForgetFolderModalData } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
-import { ForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
+import type { DeleteFolderModalData } from '../../components/delete-folder-modal/delete-folder-modal'
+import { DeleteFolderModal } from '../../components/delete-folder-modal/delete-folder-modal'
 import {
   ReindexFolderModal,
   type ReindexFolderModalData,
@@ -93,7 +93,7 @@ export const FolderDetailScreen = () => {
   const [
     forgetFolderConfirmationModelData,
     setForgetFolderConfirmationModelData,
-  ] = React.useState<ForgetFolderModalData>({
+  ] = React.useState<DeleteFolderModalData>({
     isOpen: false,
   })
   const [_sorting, setSorting] = React.useState<SortingState>([])
@@ -206,7 +206,7 @@ export const FolderDetailScreen = () => {
         />
       )}
       {forgetFolderConfirmationModelData.isOpen && (
-        <ForgetFolderModal
+        <DeleteFolderModal
           onConfirm={handleForgetFolder}
           modalData={forgetFolderConfirmationModelData}
           setModalData={setForgetFolderConfirmationModelData}

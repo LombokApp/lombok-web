@@ -43,7 +43,7 @@ const ReindexFolderModal = ({
         <DialogFooter>
           <div className="flex gap-4">
             <Button
-              variant={'link'}
+              variant={'ghost'}
               onClick={() => setModalData({ isOpen: false })}
             >
               Cancel
