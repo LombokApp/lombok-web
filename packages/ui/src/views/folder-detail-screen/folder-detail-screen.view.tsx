@@ -6,6 +6,7 @@ import {
 import type { FolderObjectDTO } from '@stellariscloud/api-client'
 import { FolderPermissionEnum, FolderPushMessage } from '@stellariscloud/types'
 import {
+  Button,
   cn,
   DataTable,
   DropdownMenu,
@@ -33,7 +34,6 @@ import {
   type UploadModalData,
 } from '../../components/upload-modal/upload-modal'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
-import { EmptyState } from '../../design-system/empty-state/empty-state'
 import { useFolderContext } from '../../pages/folders/folder.context'
 import { apiClient, foldersApiHooks } from '../../services/api'
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
@@ -232,14 +232,44 @@ export const FolderDetailScreen = () => {
               <div className="flex flex-1 overflow-hidden">
                 <div className="h-full flex-1 overflow-hidden pr-2">
                   {folderContext.folderMetadata?.totalCount === 0 ? (
-                    <div className="flex size-full flex-col items-center justify-around">
-                      <div className="min-w-[30rem] max-w-[30rem]">
-                        <EmptyState
-                          icon={Folder}
-                          text={'No objects. Try reindexing the folder.'}
-                          onButtonPress={() => void handleReindexFolder()}
-                          buttonText="Reindex folder"
-                        />
+                    <div className="flex size-full flex-col items-center justify-center">
+                      <div className="flex w-full max-w-md flex-col items-center p-8">
+                        <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-gray-200/10">
+                          <Folder
+                            className="size-20 text-gray-400"
+                            strokeWidth={1}
+                          />
+                        </div>
+                        <h3 className="mb-3 text-xl font-medium">
+                          No objects found in this folder
+                        </h3>
+                        <p className="mb-8 text-center text-sm opacity-50">
+                          You can upload files or reindex the folder to discover
+                          existing files.
+                        </p>
+                        <div className="flex gap-4">
+                          <Button
+                            onClick={() =>
+                              setUploadModalData({
+                                isOpen: true,
+                                uploadingProgress,
+                              })
+                            }
+                            variant="default"
+                            className="flex items-center gap-2"
+                          >
+                            <ArrowUpOnSquareIcon className="size-4" />
+                            Upload files
+                          </Button>
+                          <Button
+                            onClick={() => void handleReindexFolder()}
+                            variant="outline"
+                            className="flex items-center gap-2"
+                          >
+                            <ArrowPathIcon className="size-4" />
+                            Reindex folder
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ) : (
