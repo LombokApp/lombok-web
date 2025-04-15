@@ -357,14 +357,18 @@ export const FolderDetailScreen = () => {
               {sidebarOpen &&
                 folderContext.folder &&
                 folderContext.folderPermissions && (
-                  <div className="xs:w-full md:w-[1/2] lg:w-[1/2] xl:w-2/5 2xl:w-[35%] 2xl:max-w-[35rem]">
-                    <FolderSidebar
-                      folderMetadata={folderContext.folderMetadata}
-                      folderAndPermission={{
-                        folder: folderContext.folder,
-                        permissions: folderContext.folderPermissions,
-                      }}
-                    />
+                  <div className="xs:w-full h-full overflow-hidden md:w-[1/2] lg:w-[1/2] xl:w-2/5 2xl:w-[35%] 2xl:max-w-[35rem]">
+                    <div className="h-full overflow-y-auto pr-1">
+                      <div>
+                        <FolderSidebar
+                          folderMetadata={folderContext.folderMetadata}
+                          folderAndPermission={{
+                            folder: folderContext.folder,
+                            permissions: folderContext.folderPermissions,
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
             </div>
