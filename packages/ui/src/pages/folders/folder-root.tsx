@@ -69,13 +69,13 @@ function FolderRootInner() {
     })
   } else if (isTaskListPage) {
     extraBreadcrumbs.push({
-      label: pathParts[2],
-      href: pathParts[2],
+      label: 'Tasks',
+      href: '',
     })
   } else if (isEventListPage) {
     extraBreadcrumbs.push({
-      label: pathParts[2],
-      href: pathParts[2],
+      label: 'Events',
+      href: '',
     })
   } else if (isTaskDetailPage) {
     extraBreadcrumbs.push({
@@ -94,7 +94,7 @@ function FolderRootInner() {
         { label: 'Folders', href: '/folders' },
         {
           label: folderContext.folder?.name ?? folderContext.folderId,
-          href: `/folders/${folderContext.folderId}`,
+          href: isFolderDetailPage ? '' : `/folders/${folderContext.folderId}`,
         },
       ].concat(extraBreadcrumbs)}
     >
