@@ -2169,7 +2169,14 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventGetResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2177,6 +2184,7 @@ export const schema = {
             "bearer": []
           }
         ],
+        "summary": "Get a folder event by id.",
         "tags": [
           "FolderEvents"
         ]
@@ -2298,7 +2306,14 @@ export const schema = {
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventListResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -2306,6 +2321,7 @@ export const schema = {
             "bearer": []
           }
         ],
+        "summary": "List tasks.",
         "tags": [
           "FolderEvents"
         ]

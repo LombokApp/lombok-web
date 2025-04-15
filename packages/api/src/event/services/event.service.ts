@@ -35,6 +35,9 @@ export const APP_NS_PREFIX = 'app:'
 
 @Injectable()
 export class EventService {
+  get folderService(): FolderService {
+    return this._folderService as FolderService
+  }
   get folderSocketService(): FolderSocketService {
     return this._folderSocketService as FolderSocketService
   }
@@ -44,10 +47,10 @@ export class EventService {
   }
 
   constructor(
+    private readonly ormService: OrmService,
     @Inject(forwardRef(() => FolderSocketService))
     private readonly _folderSocketService,
-    private readonly ormService: OrmService,
-    private readonly folderService: FolderService,
+    @Inject(forwardRef(() => FolderService)) private readonly _folderService,
     @Inject(forwardRef(() => AppService)) private readonly _appService,
   ) {}
 

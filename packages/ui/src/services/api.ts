@@ -58,5 +58,8 @@ export const tasksApiHooks = createQueryHooks(sdkInstance.apiClient.tasksApi)
 export const serverEventsApiHooks = createQueryHooks(
   sdkInstance.apiClient.serverEventsApi,
 )
+export const folderEventsApiHooks = createQueryHooks(
+  sdkInstance.apiClient.folderEventsApi,
+)
 
 export const apiClient = sdkInstance.apiClient

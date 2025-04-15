@@ -6849,7 +6849,14 @@ var schema = {
         ],
         responses: {
           "200": {
-            description: ""
+            description: "",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/EventGetResponse"
+                }
+              }
+            }
           }
         },
         security: [
@@ -6857,6 +6864,7 @@ var schema = {
             bearer: []
           }
         ],
+        summary: "Get a folder event by id.",
         tags: [
           "FolderEvents"
         ]
@@ -6978,7 +6986,14 @@ var schema = {
         ],
         responses: {
           "200": {
-            description: ""
+            description: "",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/EventListResponse"
+                }
+              }
+            }
           }
         },
         security: [
@@ -6986,6 +7001,7 @@ var schema = {
             bearer: []
           }
         ],
+        summary: "List tasks.",
         tags: [
           "FolderEvents"
         ]

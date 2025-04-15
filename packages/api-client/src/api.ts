@@ -3721,6 +3721,7 @@ export const FolderEventsApiAxiosParamCreator = function (configuration?: Config
     return {
         /**
          * 
+         * @summary Get a folder event by id.
          * @param {string} folderId 
          * @param {string} eventId 
          * @param {*} [options] Override http request option.
@@ -3762,6 +3763,7 @@ export const FolderEventsApiAxiosParamCreator = function (configuration?: Config
         },
         /**
          * 
+         * @summary List tasks.
          * @param {string} folderId 
          * @param {ListFolderEventsSortEnum} [sort] 
          * @param {string} [objectKey] 
@@ -3859,12 +3861,13 @@ export const FolderEventsApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @summary Get a folder event by id.
          * @param {string} folderId 
          * @param {string} eventId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getFolderEvent(folderId: string, eventId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async getFolderEvent(folderId: string, eventId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventGetResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getFolderEvent(folderId, eventId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['FolderEventsApi.getFolderEvent']?.[localVarOperationServerIndex]?.url;
@@ -3872,6 +3875,7 @@ export const FolderEventsApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary List tasks.
          * @param {string} folderId 
          * @param {ListFolderEventsSortEnum} [sort] 
          * @param {string} [objectKey] 
@@ -3886,7 +3890,7 @@ export const FolderEventsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async listFolderEvents(folderId: string, sort?: ListFolderEventsSortEnum, objectKey?: string, search?: string, includeTrace?: ListFolderEventsIncludeTraceEnum, includeDebug?: ListFolderEventsIncludeDebugEnum, includeInfo?: ListFolderEventsIncludeInfoEnum, includeWarning?: ListFolderEventsIncludeWarningEnum, includeError?: ListFolderEventsIncludeErrorEnum, offset?: number, limit?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async listFolderEvents(folderId: string, sort?: ListFolderEventsSortEnum, objectKey?: string, search?: string, includeTrace?: ListFolderEventsIncludeTraceEnum, includeDebug?: ListFolderEventsIncludeDebugEnum, includeInfo?: ListFolderEventsIncludeInfoEnum, includeWarning?: ListFolderEventsIncludeWarningEnum, includeError?: ListFolderEventsIncludeErrorEnum, offset?: number, limit?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventListResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderEvents(folderId, sort, objectKey, search, includeTrace, includeDebug, includeInfo, includeWarning, includeError, offset, limit, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['FolderEventsApi.listFolderEvents']?.[localVarOperationServerIndex]?.url;
@@ -3904,20 +3908,22 @@ export const FolderEventsApiFactory = function (configuration?: Configuration, b
     return {
         /**
          * 
+         * @summary Get a folder event by id.
          * @param {FolderEventsApiGetFolderEventRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getFolderEvent(requestParameters: FolderEventsApiGetFolderEventRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        getFolderEvent(requestParameters: FolderEventsApiGetFolderEventRequest, options?: RawAxiosRequestConfig): AxiosPromise<EventGetResponse> {
             return localVarFp.getFolderEvent(requestParameters.folderId, requestParameters.eventId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
+         * @summary List tasks.
          * @param {FolderEventsApiListFolderEventsRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        listFolderEvents(requestParameters: FolderEventsApiListFolderEventsRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        listFolderEvents(requestParameters: FolderEventsApiListFolderEventsRequest, options?: RawAxiosRequestConfig): AxiosPromise<EventListResponse> {
             return localVarFp.listFolderEvents(requestParameters.folderId, requestParameters.sort, requestParameters.objectKey, requestParameters.search, requestParameters.includeTrace, requestParameters.includeDebug, requestParameters.includeInfo, requestParameters.includeWarning, requestParameters.includeError, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
         },
     };
@@ -4037,6 +4043,7 @@ export interface FolderEventsApiListFolderEventsRequest {
 export class FolderEventsApi extends BaseAPI {
     /**
      * 
+     * @summary Get a folder event by id.
      * @param {FolderEventsApiGetFolderEventRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -4048,6 +4055,7 @@ export class FolderEventsApi extends BaseAPI {
 
     /**
      * 
+     * @summary List tasks.
      * @param {FolderEventsApiListFolderEventsRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}

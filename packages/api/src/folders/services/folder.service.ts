@@ -151,10 +151,13 @@ export class FolderService {
   get coreTaskService(): CoreTaskService {
     return this._coreTaskService as CoreTaskService
   }
-
+  get s3Service(): S3Service {
+    return this._s3Service as S3Service
+  }
   constructor(
     private readonly moduleRef: ModuleRef,
-    private readonly s3Service: S3Service,
+    @Inject(forwardRef(() => S3Service))
+    private readonly _s3Service,
     @Inject(forwardRef(() => FolderSocketService))
     private readonly _folderSocketService,
     @Inject(forwardRef(() => CoreTaskService))
