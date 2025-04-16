@@ -1,4 +1,9 @@
-import type { EventDTO, FolderGetResponse } from '@stellariscloud/api-client'
+import {
+  type EventDTO,
+  type FolderGetResponse,
+  ListEventsSortEnum,
+} from '@stellariscloud/api-client'
+import { FolderPushMessage } from '@stellariscloud/types'
 import {
   Card,
   CardContent,
@@ -8,11 +13,12 @@ import {
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
 import { ActivityIcon } from 'lucide-react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 
 import { Icon } from '../../design-system/icon'
 import { useFolderContext } from '../../pages/folders/folder.context'
-import { serverEventsApiHooks } from '../../services/api'
+import { folderEventsApiHooks } from '../../services/api'
 
 const EVENT_PREVIEW_LENGTH = 5
 
@@ -91,15 +97,24 @@ export const FolderEventsList = ({
 }) => {
   const { folder } = folderAndPermission ?? {}
   const { folderId } = useFolderContext()
-  const listFolderEventsQuery = serverEventsApiHooks.useListEvents(
+  const listFolderEventsQuery = folderEventsApiHooks.useListFolderEvents(
     {
       folderId,
-      limit: EVENT_PREVIEW_LENGTH,
+      sort: ListEventsSortEnum.CreatedAtDesc,
     },
-    {
-      refetchInterval: 10000, // Refresh every 10 seconds
-    },
+    { enabled: !!folderId },
   )
+
+  const messageHandler = React.useCallback(
+    (name: FolderPushMessage, _payload: unknown) => {
+      if ([FolderPushMessage.EVENT_CREATED].includes(name)) {
+        void listFolderEventsQuery.refetch()
+      }
+    },
+    [listFolderEventsQuery],
+  )
+
+  useFolderContext(messageHandler)
 
   return (
     <Card className="h-auto">

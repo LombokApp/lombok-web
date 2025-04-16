@@ -1,4 +1,9 @@
-import type { FolderGetResponse, TaskDTO } from '@stellariscloud/api-client'
+import {
+  type FolderGetResponse,
+  ListTasksSortEnum,
+  type TaskDTO,
+} from '@stellariscloud/api-client'
+import { FolderPushMessage } from '@stellariscloud/types'
 import {
   Card,
   CardContent,
@@ -8,6 +13,7 @@ import {
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
 import { ListChecks } from 'lucide-react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 
 import { Icon } from '../../design-system/icon'
@@ -39,8 +45,17 @@ const TaskCard = ({ task, folderId }: { task: TaskDTO; folderId: string }) => {
                         : 'bg-yellow-500',
                 )}
               />
-              <div className="font-semibold group-hover:text-primary">
-                {task.taskKey}
+              <div className="flex items-center gap-2">
+                <div className="font-semibold group-hover:text-primary">
+                  {task.taskKey}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  <div className="font-mono">
+                    {task.ownerIdentifier === 'core'
+                      ? 'core'
+                      : `app:${task.ownerIdentifier.split(':').at(-1)?.toLowerCase()}`}
+                  </div>
+                </div>
               </div>
             </div>
             <div className="text-xs text-muted-foreground">
@@ -56,14 +71,12 @@ const TaskCard = ({ task, folderId }: { task: TaskDTO; folderId: string }) => {
                   : 'Pending'}
             </div>
           </div>
-          <div className="mt-1 flex gap-1 text-xs text-muted-foreground">
-            <div>Owner:</div>
-            <div className="font-mono">
-              {task.ownerIdentifier === 'core'
-                ? 'core'
-                : `app:${task.ownerIdentifier.split(':').at(-1)?.toLowerCase()}`}
+          {task.subjectObjectKey && (
+            <div className="mt-1 flex gap-1 text-xs text-muted-foreground">
+              <div>Object:</div>
+              <div className="truncate font-mono">{task.subjectObjectKey}</div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </Link>
@@ -76,13 +89,29 @@ export const FolderTasksList = ({
   folderAndPermission?: FolderGetResponse
 }) => {
   const { folder } = folderAndPermission ?? {}
-  const { folderId } = useFolderContext()
+
   const listFolderTasksQuery = tasksApiHooks.useListFolderTasks(
     {
-      folderId,
+      folderId: folder?.id ?? '',
+      sort: ListTasksSortEnum.CreatedAtDesc,
     },
-    {},
+    { enabled: !!folder?.id },
   )
+
+  const messageHandler = React.useCallback(
+    (name: FolderPushMessage, _payload: unknown) => {
+      if (
+        [FolderPushMessage.TASK_ADDED, FolderPushMessage.TASK_UPDATED].includes(
+          name,
+        )
+      ) {
+        void listFolderTasksQuery.refetch()
+      }
+    },
+    [listFolderTasksQuery],
+  )
+
+  const { folderId } = useFolderContext(messageHandler)
 
   return (
     <Card className="h-auto">

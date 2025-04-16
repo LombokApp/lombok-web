@@ -129,6 +129,15 @@ export class EventService {
         ])
         .returning()
 
+      // Emit EVENT_CREATED to folder room if folderId is present
+      if (locationContext?.folderId) {
+        this.folderSocketService.sendToFolderRoom(
+          locationContext.folderId,
+          FolderPushMessage.EVENT_CREATED as FolderPushMessage,
+          { event },
+        )
+      }
+
       if (triggeringTaskKey) {
         const triggeredTask: NewTask = {
           id: uuidV4(),

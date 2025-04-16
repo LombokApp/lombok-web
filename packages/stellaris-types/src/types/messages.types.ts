@@ -7,6 +7,7 @@ export enum FolderPushMessage {
   OBJECT_UPDATED = 'OBJECT_UPDATED',
   TASK_ADDED = 'TASK_ADDED',
   TASK_UPDATED = 'TASK_UPDATED',
+  EVENT_CREATED = 'EVENT_CREATED',
 }
 
 export enum UserPushMessage {
