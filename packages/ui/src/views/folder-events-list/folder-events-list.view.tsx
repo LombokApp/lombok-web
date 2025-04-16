@@ -101,6 +101,7 @@ export const FolderEventsList = ({
     {
       folderId,
       sort: ListEventsSortEnum.CreatedAtDesc,
+      limit: EVENT_PREVIEW_LENGTH,
     },
     { enabled: !!folderId },
   )

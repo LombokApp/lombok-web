@@ -94,6 +94,7 @@ export const FolderTasksList = ({
     {
       folderId: folder?.id ?? '',
       sort: ListTasksSortEnum.CreatedAtDesc,
+      limit: TASK_PREVIEW_LENGTH,
     },
     { enabled: !!folder?.id },
   )
@@ -140,11 +141,9 @@ export const FolderTasksList = ({
         ) : listFolderTasksQuery.data?.result &&
           listFolderTasksQuery.data.result.length > 0 ? (
           <div className="flex flex-col gap-3">
-            {listFolderTasksQuery.data.result
-              .slice(0, TASK_PREVIEW_LENGTH)
-              .map((task) => (
-                <TaskCard key={task.id} task={task} folderId={folderId} />
-              ))}
+            {listFolderTasksQuery.data.result.map((task) => (
+              <TaskCard key={task.id} task={task} folderId={folderId} />
+            ))}
             {listFolderTasksQuery.data.meta.totalCount >
               TASK_PREVIEW_LENGTH && (
               <div className="text-center text-xs">
