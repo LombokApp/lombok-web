@@ -22,6 +22,7 @@ import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-
 import { ServerAppDetailScreen } from '../../apps/server-app-detail-screen/server-app-detail-screen.view'
 import { ServerAppsScreen } from '../../apps/server-apps-screen/server-apps-screen.view'
 import { ServerConfigScreen } from '../../config/server-config-screen/server-config-screen'
+import { ServerAccessKeyDetailScreen } from '../../config/storage/server-access-keys/server-access-key-detail-screen/server-access-key-detail-screen.view'
 import { ServerEventDetailScreen } from '../../events/server-event-detail-screen/server-event-detail-screen.view'
 import { ServerEventsScreen } from '../../events/server-events-screen/server-events-screen.view'
 import { ServerTaskDetailScreen } from '../../tasks/server-task-detail-screen/server-task-detail-screen.view'
@@ -191,6 +192,10 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
         {serverPage[0] === 'events' && typeof serverPage[1] === 'string' && (
           <ServerEventDetailScreen eventId={serverPage[1]} />
         )}
+        {serverPage[0] === 'access-keys' &&
+          typeof serverPage[1] === 'string' && (
+            <ServerAccessKeyDetailScreen accessKeyHashId={serverPage[1]} />
+          )}
         {serverPage[0] === 'apps' && typeof serverPage[1] === 'string' && (
           <ServerAppDetailScreen appIdentifier={serverPage[1]} />
         )}

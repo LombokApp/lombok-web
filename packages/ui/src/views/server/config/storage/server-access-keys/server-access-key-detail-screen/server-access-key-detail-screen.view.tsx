@@ -1,35 +1,25 @@
-import type { AccessKeyDTO } from '@stellariscloud/api-client'
 import { cn } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { AccessKeyAttributeList } from '../../../../../../components/access-key-attribute-list/access-key-attributes-list'
 import { AccessKeyRotateForm } from '../../../../../../components/access-key-rotate-form/access-key-rotate-form'
-import { apiClient } from '../../../../../../services/api'
+import {
+  apiClient,
+  serverAccessKeysApiHooks,
+} from '../../../../../../services/api'
 
-export function ServerAccessKeyDetailScreen() {
+export function ServerAccessKeyDetailScreen({
+  accessKeyHashId,
+}: {
+  accessKeyHashId: string
+}) {
   const navigate = useNavigate()
   const params = useParams()
-  const [accessKey, setAccessKey] = React.useState<AccessKeyDTO>()
-
-  const fetchAccessKey = React.useCallback(
-    ({ accessKeyHashId }: { accessKeyHashId: string }) => {
-      void apiClient.serverAccessKeysApi
-        .getServerAccessKey({ accessKeyHashId })
-        .then((resp) => {
-          setAccessKey(resp.data.accessKey)
-        })
-    },
-    [],
+  const accessKeyQuery = serverAccessKeysApiHooks.useGetServerAccessKey(
+    { accessKeyHashId },
+    { enabled: !!accessKeyHashId },
   )
-
-  React.useEffect(() => {
-    if (typeof params.accessKeyHashId === 'string' && !accessKey) {
-      fetchAccessKey({
-        accessKeyHashId: params.accessKeyHashId,
-      })
-    }
-  }, [accessKey, fetchAccessKey, params.accessKeyHashId])
 
   const handleRotate = React.useCallback(
     async (input: { accessKeyId: string; secretAccessKey: string }) => {
@@ -45,11 +35,9 @@ export function ServerAccessKeyDetailScreen() {
       await navigate(
         `/server/storage/keys/${updatedAccessKey.data.accessKeyHashId}`,
       )
-      fetchAccessKey({
-        accessKeyHashId: updatedAccessKey.data.accessKeyHashId,
-      })
+      await accessKeyQuery.refetch()
     },
-    [fetchAccessKey, navigate, params.accessKeyHashId],
+    [navigate, accessKeyQuery, params.accessKeyHashId],
   )
 
   return (
@@ -60,8 +48,8 @@ export function ServerAccessKeyDetailScreen() {
         )}
       >
         <div className="container flex flex-1 flex-col pt-12">
-          <AccessKeyAttributeList accessKey={accessKey} />
-          {accessKey && (
+          <AccessKeyAttributeList accessKey={accessKeyQuery.data?.accessKey} />
+          {accessKeyQuery.data?.accessKey && (
             <AccessKeyRotateForm onSubmit={(input) => handleRotate(input)} />
           )}
         </div>
