@@ -1,4 +1,10 @@
-import { cn } from '@stellariscloud/ui-toolkit'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  cn,
+  TypographyH3,
+} from '@stellariscloud/ui-toolkit'
 import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
@@ -44,14 +50,23 @@ export function ServerAccessKeyDetailScreen({
     <>
       <div
         className={cn(
-          'flex h-full flex-1 flex-col items-center gap-6 overflow-y-auto px-4',
+          'flex h-full flex-1 flex-col items-center gap-6 overflow-y-auto',
         )}
       >
-        <div className="container flex flex-1 flex-col pt-12">
+        <div className="container flex flex-1 flex-col gap-4">
           <AccessKeyAttributeList accessKey={accessKeyQuery.data?.accessKey} />
-          {accessKeyQuery.data?.accessKey && (
-            <AccessKeyRotateForm onSubmit={(input) => handleRotate(input)} />
-          )}
+          <Card>
+            <CardHeader>
+              <TypographyH3>Rotate Key</TypographyH3>
+            </CardHeader>
+            <CardContent>
+              {accessKeyQuery.data?.accessKey && (
+                <AccessKeyRotateForm
+                  onSubmit={(input) => handleRotate(input)}
+                />
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </>

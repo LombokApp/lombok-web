@@ -50,19 +50,11 @@ export function UserAccessKeysScreen() {
       <Separator className="mb-3 bg-foreground/10" />
 
       <DataTable
-        onColumnFiltersChange={(updater) => {
-          setFilters((old) =>
-            updater instanceof Function ? updater(old) : updater,
-          )
-        }}
+        onColumnFiltersChange={setFilters}
         rowCount={accessKeys?.meta.totalCount}
         data={accessKeys?.result ?? []}
         columns={userAccessKeysTableColumns}
-        onPaginationChange={(updater) => {
-          setPagination((old) =>
-            updater instanceof Function ? updater(old) : updater,
-          )
-        }}
+        onPaginationChange={setPagination}
         onSortingChange={(updater) => {
           setSorting((old) =>
             updater instanceof Function ? updater(old) : updater,
