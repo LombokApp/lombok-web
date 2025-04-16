@@ -9,7 +9,7 @@ import React from 'react'
 import { apiClient } from '../../../../../../services/api'
 import { serverAccessKeysTableColumns } from './server-access-keys-table-columns'
 
-export function ServerAccessKeysScreen() {
+export function ServerAccessKeysTable() {
   const [accessKeys, setAccessKeys] = React.useState<{
     result: AccessKeyDTO[]
     meta: { totalCount: number }
@@ -47,35 +47,12 @@ export function ServerAccessKeysScreen() {
   return (
     <div className={cn('flex h-full flex-1 flex-col items-center')}>
       <DataTable
-        onColumnFiltersChange={(updater) => {
-          setFilters((old) =>
-            updater instanceof Function ? updater(old) : updater,
-          )
-        }}
+        onColumnFiltersChange={setFilters}
         rowCount={accessKeys?.meta.totalCount}
         data={accessKeys?.result ?? []}
         columns={serverAccessKeysTableColumns}
-        onPaginationChange={(updater) => {
-          setPagination((old) =>
-            updater instanceof Function ? updater(old) : updater,
-          )
-        }}
-        onSortingChange={(updater) => {
-          setSorting((old) =>
-            updater instanceof Function ? updater(old) : updater,
-          )
-        }}
-        // filterOptions={{
-        //   status: {
-        //     label: 'Status',
-        //     options: [
-        //       { value: 'WAITING', label: 'Waiting', icon: Clock10Icon },
-        //       { value: 'RUNNING', label: 'Running', icon: Play },
-        //       { value: 'COMPLETE', label: 'Complete', icon: CircleCheck },
-        //       { value: 'FAILED', label: 'Failed', icon: CircleX },
-        //     ],
-        //   },
-        // }}
+        onPaginationChange={setPagination}
+        onSortingChange={setSorting}
       />
     </div>
   )

@@ -1,18 +1,63 @@
 'use client'
 
 import type { AccessKeyDTO } from '@stellariscloud/api-client'
+import { useToast } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import type { ColumnDef } from '@tanstack/react-table'
+import React from 'react'
 import { Link } from 'react-router-dom'
+
+import { AccessKeyRotateModal } from '../../../../../../components/access-key-rotate-modal/access-key-rotate-modal'
+import { apiClient } from '../../../../../../services/api'
 
 export const serverAccessKeysTableColumns: ColumnDef<AccessKeyDTO>[] = [
   {
     id: '__HIDDEN__',
     cell: ({ row }) => {
+      const [rotateAccessKeyModalData, setRotateAccessKeyModalData] =
+        React.useState<{
+          isOpen: boolean
+          accessKey?: AccessKeyDTO
+        }>({
+          isOpen: false,
+        })
+
+      const accessKey = row.original
+      const { toast } = useToast()
+
+      const handleRotate = async (input: {
+        accessKeyId: string
+        secretAccessKey: string
+      }) => {
+        console.log('Rotating key:', accessKey.accessKeyHashId, input)
+        await apiClient.serverAccessKeysApi.rotateServerAccessKey({
+          accessKeyHashId: accessKey.accessKeyHashId,
+          rotateAccessKeyInputDTO: input,
+        })
+        setRotateAccessKeyModalData({ isOpen: false })
+        toast({
+          title: 'Access key rotated successfully',
+          description: 'The access key has been rotated successfully',
+        })
+      }
+
       return (
         <div className="size-0 max-w-0 overflow-hidden">
+          <AccessKeyRotateModal
+            modalData={rotateAccessKeyModalData}
+            setModalData={setRotateAccessKeyModalData}
+            onSubmit={handleRotate}
+          />
+
           <Link
-            to={`/server/access-keys/${row.original.accessKeyHashId}`}
+            onClick={(e) => {
+              e.preventDefault()
+              setRotateAccessKeyModalData({
+                isOpen: true,
+                accessKey: row.original,
+              })
+            }}
+            to={``}
             className="absolute inset-0"
           />
         </div>

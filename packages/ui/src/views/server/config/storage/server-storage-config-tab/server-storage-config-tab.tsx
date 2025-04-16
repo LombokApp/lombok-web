@@ -4,9 +4,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components'
+} from '@stellariscloud/ui-toolkit'
 
-import { ServerAccessKeysScreen } from '../server-access-keys/server-access-keys/server-access-keys-screen.view'
+import { ServerAccessKeysTable } from '../server-access-keys/server-access-keys-table/server-access-keys-table.view'
 import { ServerStorageLocation } from '../server-storage-location/server-storage-location.view'
 import { UserStorageProvisions } from '../user-storage-provisions/user-storage-provisions.view'
 
@@ -50,7 +50,9 @@ export function ServerStorageConfigTab() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ServerAccessKeysScreen />
+          <div className="flex flex-col gap-4">
+            <ServerAccessKeysTable />
+          </div>
         </CardContent>
       </Card>
     </div>

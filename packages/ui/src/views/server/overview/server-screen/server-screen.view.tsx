@@ -39,8 +39,7 @@ import {
 import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
 import { ServerAppDetailScreen } from '../../apps/server-app-detail-screen/server-app-detail-screen.view'
 import { ServerAppsScreen } from '../../apps/server-apps-screen/server-apps-screen.view'
-import { ServerConfigScreen } from '../../config/server-config-screen/server-config-screen'
-import { ServerAccessKeyDetailScreen } from '../../config/storage/server-access-keys/server-access-key-detail-screen/server-access-key-detail-screen.view'
+import { ServerSettingsScreen } from '../../config/server-config-screen/server-config-screen'
 import { ServerEventDetailScreen } from '../../events/server-event-detail-screen/server-event-detail-screen.view'
 import { ServerEventsScreen } from '../../events/server-events-screen/server-events-screen.view'
 import { ServerTaskDetailScreen } from '../../tasks/server-task-detail-screen/server-task-detail-screen.view'
@@ -62,14 +61,14 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
             width={1280}
             height={866}
             alt="Dashboard"
-            className="dark:hidden block"
+            className="block dark:hidden"
           />
           <img
             src="/examples/dashboard-dark.png"
             width={1280}
             height={866}
             alt="Dashboard"
-            className="dark:block hidden"
+            className="hidden dark:block"
           />
         </div>
         <div className="hidden flex-col md:flex">
@@ -123,17 +122,17 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     </div>
                   </TabsTrigger>
                   <TabsTrigger
-                    onClick={() => void navigate('/server/config')}
-                    value="config"
+                    onClick={() => void navigate('/server/settings')}
+                    value="settings"
                   >
                     <div className="flex items-center gap-2">
                       <Settings className="size-4" />
-                      Config
+                      Settings
                     </div>
                   </TabsTrigger>
                 </TabsList>
               </div>
-              {(serverPage.length === 1 || serverPage[0] === 'config') && (
+              {(serverPage.length === 1 || serverPage[0] === 'settings') && (
                 <div className="pb-6">
                   <TabsContent value="users">
                     <ServerUsersScreen />
@@ -147,9 +146,9 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                   <TabsContent value="tasks">
                     <ServerTasksScreen />
                   </TabsContent>
-                  <TabsContent value="config">
-                    {paramParts[0] === 'config' && (
-                      <ServerConfigScreen tab={paramParts[1] ?? 'general'} />
+                  <TabsContent value="settings">
+                    {paramParts[0] === 'settings' && (
+                      <ServerSettingsScreen tab={paramParts[1] ?? 'general'} />
                     )}
                   </TabsContent>
                   <TabsContent value="overview">
@@ -373,10 +372,6 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
         {serverPage[0] === 'events' && typeof serverPage[1] === 'string' && (
           <ServerEventDetailScreen eventId={serverPage[1]} />
         )}
-        {serverPage[0] === 'access-keys' &&
-          typeof serverPage[1] === 'string' && (
-            <ServerAccessKeyDetailScreen accessKeyHashId={serverPage[1]} />
-          )}
         {serverPage[0] === 'apps' && typeof serverPage[1] === 'string' && (
           <ServerAppDetailScreen appIdentifier={serverPage[1]} />
         )}
