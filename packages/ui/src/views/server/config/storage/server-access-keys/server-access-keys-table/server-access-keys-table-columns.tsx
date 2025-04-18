@@ -1,23 +1,23 @@
 'use client'
 
-import type { AccessKeyDTO } from '@stellariscloud/api-client'
+import type { AccessKeyPublicDTO } from '@stellariscloud/api-client'
 import { useToast } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import type { ColumnDef } from '@tanstack/react-table'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-import { AccessKeyRotateModal } from '../../../../../../components/access-key-rotate-modal/access-key-rotate-modal'
+import { AccessKeyModal } from '../../../../../../components/access-key-modal/access-key-modal'
 import { apiClient } from '../../../../../../services/api'
 
-export const serverAccessKeysTableColumns: ColumnDef<AccessKeyDTO>[] = [
+export const serverAccessKeysTableColumns: ColumnDef<AccessKeyPublicDTO>[] = [
   {
     id: '__HIDDEN__',
     cell: ({ row }) => {
       const [rotateAccessKeyModalData, setRotateAccessKeyModalData] =
         React.useState<{
           isOpen: boolean
-          accessKey?: AccessKeyDTO
+          accessKey?: AccessKeyPublicDTO
         }>({
           isOpen: false,
         })
@@ -29,7 +29,6 @@ export const serverAccessKeysTableColumns: ColumnDef<AccessKeyDTO>[] = [
         accessKeyId: string
         secretAccessKey: string
       }) => {
-        console.log('Rotating key:', accessKey.accessKeyHashId, input)
         await apiClient.serverAccessKeysApi.rotateServerAccessKey({
           accessKeyHashId: accessKey.accessKeyHashId,
           rotateAccessKeyInputDTO: input,
@@ -43,10 +42,17 @@ export const serverAccessKeysTableColumns: ColumnDef<AccessKeyDTO>[] = [
 
       return (
         <div className="size-0 max-w-0 overflow-hidden">
-          <AccessKeyRotateModal
+          <AccessKeyModal
             modalData={rotateAccessKeyModalData}
             setModalData={setRotateAccessKeyModalData}
             onSubmit={handleRotate}
+            listBuckets={() =>
+              apiClient.serverAccessKeysApi
+                .listServerAccessKeyBuckets({
+                  accessKeyHashId: accessKey.accessKeyHashId,
+                })
+                .then((response) => response.data.result)
+            }
           />
 
           <Link

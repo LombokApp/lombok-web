@@ -24,7 +24,6 @@ import { useServerContext } from './hooks/use-server-context'
 import { useStore } from './hooks/use-store'
 import { LandingPage } from './pages'
 import { AccessKeysPage } from './pages/access-keys'
-import { AccessKeyDetailPage } from './pages/access-keys/access-key-detail'
 import { FolderRoot } from './pages/folders/folder-root'
 import { FoldersPage } from './pages/folders/folders'
 import { Login } from './pages/login'
@@ -44,7 +43,6 @@ const Content = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/access-keys" element={<AccessKeysPage />} />
-      <Route path="/access-keys/*" element={<AccessKeyDetailPage />} />
       <Route path="/folders" element={<FoldersPage />} />
       <Route path="/server/*" element={<ServerIndexPage />} />
       <Route path="/folders/*" element={<FolderRoot />} />

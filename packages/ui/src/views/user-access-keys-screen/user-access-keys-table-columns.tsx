@@ -1,21 +1,74 @@
 'use client'
 
-import type { AccessKeyDTO } from '@stellariscloud/api-client'
+import type { AccessKeyPublicDTO } from '@stellariscloud/api-client'
+import { useToast } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import type { ColumnDef } from '@tanstack/react-table'
+import React from 'react'
 import { Link } from 'react-router-dom'
 
-export const userAccessKeysTableColumns: ColumnDef<AccessKeyDTO>[] = [
+import { AccessKeyModal } from '../../components/access-key-modal/access-key-modal'
+import { apiClient } from '../../services/api'
+
+export const userAccessKeysTableColumns: ColumnDef<AccessKeyPublicDTO>[] = [
   {
     id: '__HIDDEN__',
     cell: ({ row }) => {
+      const [rotateAccessKeyModalData, setRotateAccessKeyModalData] =
+        React.useState<{
+          isOpen: boolean
+          accessKey?: AccessKeyPublicDTO
+        }>({
+          isOpen: false,
+        })
+
+      const accessKey = row.original
+      const { toast } = useToast()
+
+      const handleRotate = async (input: {
+        accessKeyId: string
+        secretAccessKey: string
+      }) => {
+        await apiClient.accessKeysApi.rotateAccessKey({
+          accessKeyHashId: accessKey.accessKeyHashId,
+          rotateAccessKeyInputDTO: input,
+        })
+        setRotateAccessKeyModalData({ isOpen: false })
+        toast({
+          title: 'Access key rotated successfully',
+          description: 'The access key has been rotated successfully',
+        })
+      }
+
       return (
-        <div className="size-0 max-w-0 overflow-hidden">
-          <Link
-            to={`/access-keys/${row.original.accessKeyHashId}`}
-            className="absolute inset-0"
+        <>
+          <AccessKeyModal
+            modalData={rotateAccessKeyModalData}
+            setModalData={setRotateAccessKeyModalData}
+            onSubmit={handleRotate}
+            listBuckets={() =>
+              apiClient.serverAccessKeysApi
+                .listServerAccessKeyBuckets({
+                  accessKeyHashId: accessKey.accessKeyHashId,
+                })
+                .then((response) => response.data.result)
+            }
           />
-        </div>
+
+          <div className="size-0 max-w-0 overflow-hidden">
+            <Link
+              onClick={(e) => {
+                e.preventDefault()
+                setRotateAccessKeyModalData({
+                  isOpen: true,
+                  accessKey: row.original,
+                })
+              }}
+              to=""
+              className="absolute inset-0"
+            />
+          </div>
+        </>
       )
     },
     enableSorting: false,

@@ -1,5 +1,5 @@
 import type {
-  AccessKeyDTO,
+  AccessKeyPublicDTO,
   ServerAccessKeysApiListServerAccessKeysRequest,
 } from '@stellariscloud/api-client'
 import { cn, DataTable } from '@stellariscloud/ui-toolkit'
@@ -11,7 +11,7 @@ import { serverAccessKeysTableColumns } from './server-access-keys-table-columns
 
 export function ServerAccessKeysTable() {
   const [accessKeys, setAccessKeys] = React.useState<{
-    result: AccessKeyDTO[]
+    result: AccessKeyPublicDTO[]
     meta: { totalCount: number }
   }>()
   const [filters, setFilters] = React.useState<

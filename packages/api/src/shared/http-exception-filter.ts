@@ -1,11 +1,17 @@
-import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common'
-import { Catch, HttpException } from '@nestjs/common'
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpException,
+  Logger,
+} from '@nestjs/common'
 import type { Request, Response } from 'express'
 
 type LoggingMode = 'DEBUG' | 'NONE'
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   loggingMode: LoggingMode
+  private readonly logger = new Logger(HttpExceptionFilter.name)
   constructor(loggingMode: LoggingMode = 'NONE') {
     this.loggingMode = loggingMode
   }
@@ -18,7 +24,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>()
 
     if (this.loggingMode === 'DEBUG') {
-      console.log(
+      this.logger.debug(
         'API EXCEPTION (%s %s):',
         request.method,
         request.url,

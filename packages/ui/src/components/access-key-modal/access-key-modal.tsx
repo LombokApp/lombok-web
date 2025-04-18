@@ -1,32 +1,45 @@
 'use client'
 
-import type { AccessKeyDTO } from '@stellariscloud/api-client'
+import type {
+  AccessKeyBucketsListResponseDTO,
+  AccessKeyPublicDTO,
+} from '@stellariscloud/api-client'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  TypographyH3,
 } from '@stellariscloud/ui-toolkit'
+import React from 'react'
 
-import { AccessKeyRotateForm } from '../../components/access-key-rotate-form/access-key-rotate-form'
+import { AccessKeyRotateForm } from '../access-key-rotate-form/access-key-rotate-form'
 
-export interface AccessKeyRotateModalData {
+export interface AccessKeyModalData {
   isOpen: boolean
-  accessKey?: AccessKeyDTO
+  accessKey?: AccessKeyPublicDTO
 }
 
-export const AccessKeyRotateModal = ({
+export const AccessKeyModal = ({
   modalData,
   setModalData,
   onSubmit,
+  listBuckets,
 }: {
-  modalData: AccessKeyRotateModalData
-  setModalData: (modalData: AccessKeyRotateModalData) => void
+  modalData: AccessKeyModalData
+  setModalData: (modalData: AccessKeyModalData) => void
   onSubmit: (input: {
     accessKeyId: string
     secretAccessKey: string
   }) => Promise<void>
+  listBuckets: () => Promise<AccessKeyBucketsListResponseDTO['result']>
 }) => {
+  const [buckets, setBuckets] = React.useState<
+    AccessKeyBucketsListResponseDTO['result']
+  >([])
+  React.useEffect(() => {
+    void listBuckets().then(setBuckets)
+  }, [listBuckets])
   return (
     <Dialog
       open={!!modalData.isOpen}
@@ -74,6 +87,18 @@ export const AccessKeyRotateModal = ({
           </div>
           <div className="py-4">
             <AccessKeyRotateForm onSubmit={(input) => onSubmit(input)} />
+          </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          <div>
+            <TypographyH3>Buckets</TypographyH3>
+            <div>
+              {buckets.map(({ name }, i) => (
+                <div key={i} className="italic opacity-50">
+                  {name}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </DialogContent>

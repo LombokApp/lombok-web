@@ -3557,6 +3557,26 @@ var ServerAccessKeysApiAxiosParamCreator = function(configuration) {
         options: localVarRequestOptions
       };
     },
+    listServerAccessKeyBuckets: async (accessKeyHashId, options = {}) => {
+      assertParamExists("listServerAccessKeyBuckets", "accessKeyHashId", accessKeyHashId);
+      const localVarPath = `/api/v1/server/access-keys/{accessKeyHashId}/buckets`.replace(`{${"accessKeyHashId"}}`, encodeURIComponent(String(accessKeyHashId)));
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options };
+      const localVarHeaderParameter = {};
+      const localVarQueryParameter = {};
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions
+      };
+    },
     listServerAccessKeys: async (offset, limit, sort, options = {}) => {
       const localVarPath = `/api/v1/server/access-keys`;
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -3619,6 +3639,12 @@ var ServerAccessKeysApiFp = function(configuration) {
       const localVarOperationServerBasePath = operationServerMap["ServerAccessKeysApi.getServerAccessKey"]?.[localVarOperationServerIndex]?.url;
       return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
     },
+    async listServerAccessKeyBuckets(accessKeyHashId, options) {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listServerAccessKeyBuckets(accessKeyHashId, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath = operationServerMap["ServerAccessKeysApi.listServerAccessKeyBuckets"]?.[localVarOperationServerIndex]?.url;
+      return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
+    },
     async listServerAccessKeys(offset, limit, sort, options) {
       const localVarAxiosArgs = await localVarAxiosParamCreator.listServerAccessKeys(offset, limit, sort, options);
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
@@ -3639,6 +3665,9 @@ var ServerAccessKeysApiFactory = function(configuration, basePath, axios2) {
     getServerAccessKey(requestParameters, options) {
       return localVarFp.getServerAccessKey(requestParameters.accessKeyHashId, options).then((request) => request(axios2, basePath));
     },
+    listServerAccessKeyBuckets(requestParameters, options) {
+      return localVarFp.listServerAccessKeyBuckets(requestParameters.accessKeyHashId, options).then((request) => request(axios2, basePath));
+    },
     listServerAccessKeys(requestParameters = {}, options) {
       return localVarFp.listServerAccessKeys(requestParameters.offset, requestParameters.limit, requestParameters.sort, options).then((request) => request(axios2, basePath));
     },
@@ -3651,6 +3680,9 @@ var ServerAccessKeysApiFactory = function(configuration, basePath, axios2) {
 class ServerAccessKeysApi extends BaseAPI {
   getServerAccessKey(requestParameters, options) {
     return ServerAccessKeysApiFp(this.configuration).getServerAccessKey(requestParameters.accessKeyHashId, options).then((request) => request(this.axios, this.basePath));
+  }
+  listServerAccessKeyBuckets(requestParameters, options) {
+    return ServerAccessKeysApiFp(this.configuration).listServerAccessKeyBuckets(requestParameters.accessKeyHashId, options).then((request) => request(this.axios, this.basePath));
   }
   listServerAccessKeys(requestParameters = {}, options) {
     return ServerAccessKeysApiFp(this.configuration).listServerAccessKeys(requestParameters.offset, requestParameters.limit, requestParameters.sort, options).then((request) => request(this.axios, this.basePath));
@@ -5937,6 +5969,42 @@ var schema = {
           }
         ],
         summary: "Rotate a server access key.",
+        tags: [
+          "ServerAccessKeys"
+        ]
+      }
+    },
+    "/api/v1/server/access-keys/{accessKeyHashId}/buckets": {
+      get: {
+        operationId: "listServerAccessKeyBuckets",
+        parameters: [
+          {
+            name: "accessKeyHashId",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          }
+        ],
+        responses: {
+          "200": {
+            description: "",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/AccessKeyBucketsListResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            bearer: []
+          }
+        ],
+        summary: "List buckets for an access key.",
         tags: [
           "ServerAccessKeys"
         ]
@@ -8912,7 +8980,7 @@ var schema = {
           inputParams: {}
         }
       },
-      AccessKeyDTO: {
+      AccessKeyPublicDTO: {
         type: "object",
         properties: {
           accessKeyId: {

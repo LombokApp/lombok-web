@@ -58,49 +58,6 @@ export interface AccessKeyBucketsListResponseDTOResultInner {
 /**
  * 
  * @export
- * @interface AccessKeyDTO
- */
-export interface AccessKeyDTO {
-    /**
-     * 
-     * @type {string}
-     * @memberof AccessKeyDTO
-     */
-    'accessKeyId': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AccessKeyDTO
-     */
-    'accessKeyHashId': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AccessKeyDTO
-     */
-    'endpoint': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AccessKeyDTO
-     */
-    'endpointDomain': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AccessKeyDTO
-     */
-    'region': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof AccessKeyDTO
-     */
-    'folderCount': number;
-}
-/**
- * 
- * @export
  * @interface AccessKeyGetResponse
  */
 export interface AccessKeyGetResponse {
@@ -170,6 +127,49 @@ export interface AccessKeyListResponseResultInner {
      * 
      * @type {number}
      * @memberof AccessKeyListResponseResultInner
+     */
+    'folderCount': number;
+}
+/**
+ * 
+ * @export
+ * @interface AccessKeyPublicDTO
+ */
+export interface AccessKeyPublicDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyPublicDTO
+     */
+    'accessKeyId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyPublicDTO
+     */
+    'accessKeyHashId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyPublicDTO
+     */
+    'endpoint': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyPublicDTO
+     */
+    'endpointDomain': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyPublicDTO
+     */
+    'region': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof AccessKeyPublicDTO
      */
     'folderCount': number;
 }
@@ -5745,6 +5745,44 @@ export const ServerAccessKeysApiAxiosParamCreator = function (configuration?: Co
         },
         /**
          * 
+         * @summary List buckets for an access key.
+         * @param {string} accessKeyHashId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerAccessKeyBuckets: async (accessKeyHashId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'accessKeyHashId' is not null or undefined
+            assertParamExists('listServerAccessKeyBuckets', 'accessKeyHashId', accessKeyHashId)
+            const localVarPath = `/api/v1/server/access-keys/{accessKeyHashId}/buckets`
+                .replace(`{${"accessKeyHashId"}}`, encodeURIComponent(String(accessKeyHashId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary List server access keys.
          * @param {number} [offset] 
          * @param {number} [limit] 
@@ -5861,6 +5899,19 @@ export const ServerAccessKeysApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary List buckets for an access key.
+         * @param {string} accessKeyHashId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listServerAccessKeyBuckets(accessKeyHashId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyBucketsListResponseDTO>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listServerAccessKeyBuckets(accessKeyHashId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerAccessKeysApi.listServerAccessKeyBuckets']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary List server access keys.
          * @param {number} [offset] 
          * @param {number} [limit] 
@@ -5910,6 +5961,16 @@ export const ServerAccessKeysApiFactory = function (configuration?: Configuratio
         },
         /**
          * 
+         * @summary List buckets for an access key.
+         * @param {ServerAccessKeysApiListServerAccessKeyBucketsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerAccessKeyBuckets(requestParameters: ServerAccessKeysApiListServerAccessKeyBucketsRequest, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyBucketsListResponseDTO> {
+            return localVarFp.listServerAccessKeyBuckets(requestParameters.accessKeyHashId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary List server access keys.
          * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
@@ -5941,6 +6002,20 @@ export interface ServerAccessKeysApiGetServerAccessKeyRequest {
      * 
      * @type {string}
      * @memberof ServerAccessKeysApiGetServerAccessKey
+     */
+    readonly accessKeyHashId: string
+}
+
+/**
+ * Request parameters for listServerAccessKeyBuckets operation in ServerAccessKeysApi.
+ * @export
+ * @interface ServerAccessKeysApiListServerAccessKeyBucketsRequest
+ */
+export interface ServerAccessKeysApiListServerAccessKeyBucketsRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerAccessKeysApiListServerAccessKeyBuckets
      */
     readonly accessKeyHashId: string
 }
@@ -6011,6 +6086,18 @@ export class ServerAccessKeysApi extends BaseAPI {
      */
     public getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: RawAxiosRequestConfig) {
         return ServerAccessKeysApiFp(this.configuration).getServerAccessKey(requestParameters.accessKeyHashId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary List buckets for an access key.
+     * @param {ServerAccessKeysApiListServerAccessKeyBucketsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerAccessKeysApi
+     */
+    public listServerAccessKeyBuckets(requestParameters: ServerAccessKeysApiListServerAccessKeyBucketsRequest, options?: RawAxiosRequestConfig) {
+        return ServerAccessKeysApiFp(this.configuration).listServerAccessKeyBuckets(requestParameters.accessKeyHashId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

@@ -1,5 +1,5 @@
 import type {
-  AccessKeyDTO,
+  AccessKeyPublicDTO,
   AccessKeysApiListAccessKeysRequest,
 } from '@stellariscloud/api-client'
 import { DataTable, Separator, TypographyH2 } from '@stellariscloud/ui-toolkit'
@@ -11,7 +11,7 @@ import { userAccessKeysTableColumns } from './user-access-keys-table-columns'
 
 export function UserAccessKeysScreen() {
   const [accessKeys, setAccessKeys] = React.useState<{
-    result: AccessKeyDTO[]
+    result: AccessKeyPublicDTO[]
     meta: { totalCount: number }
   }>()
   const [filters, setFilters] = React.useState<
