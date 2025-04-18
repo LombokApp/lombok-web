@@ -10,10 +10,12 @@ import {
   useToast,
 } from '@stellariscloud/ui-toolkit'
 
-import type { UserStorageProvisionFormValues } from './user-storage-provision-form/user-storage-provision-form'
+import type {
+  MutationType,
+  UserStorageProvisionFormValues,
+} from './user-storage-provision-form/user-storage-provision-form'
 import { UserStorageProvisionForm } from './user-storage-provision-form/user-storage-provision-form'
 
-export type MutationType = 'CREATE' | 'UPDATE'
 interface ModalData {
   userStorageProvision: UserStorageProvisionDTO | undefined
   mutationType: MutationType
@@ -58,6 +60,8 @@ const UserStorageProvisionModal = ({
         </DialogHeader>
         <div className="w-full">
           <UserStorageProvisionForm
+            mutationType={modalData.mutationType}
+            value={modalData.userStorageProvision}
             onCancel={() =>
               setModalData({ ...modalData, userStorageProvision: undefined })
             }

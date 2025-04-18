@@ -40,19 +40,23 @@ export const userAccessKeysTableColumns: ColumnDef<AccessKeyPublicDTO>[] = [
         })
       }
 
+      const listBuckets = React.useCallback(
+        () =>
+          apiClient.serverAccessKeysApi
+            .listServerAccessKeyBuckets({
+              accessKeyHashId: accessKey.accessKeyHashId,
+            })
+            .then((response) => response.data.result),
+        [accessKey.accessKeyHashId],
+      )
+
       return (
         <>
           <AccessKeyModal
             modalData={rotateAccessKeyModalData}
             setModalData={setRotateAccessKeyModalData}
             onSubmit={handleRotate}
-            listBuckets={() =>
-              apiClient.serverAccessKeysApi
-                .listServerAccessKeyBuckets({
-                  accessKeyHashId: accessKey.accessKeyHashId,
-                })
-                .then((response) => response.data.result)
-            }
+            listBuckets={listBuckets}
           />
 
           <div className="size-0 max-w-0 overflow-hidden">

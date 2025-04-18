@@ -39,6 +39,15 @@ export const serverAccessKeysTableColumns: ColumnDef<AccessKeyPublicDTO>[] = [
           description: 'The access key has been rotated successfully',
         })
       }
+      const listBuckets = React.useCallback(
+        () =>
+          apiClient.serverAccessKeysApi
+            .listServerAccessKeyBuckets({
+              accessKeyHashId: accessKey.accessKeyHashId,
+            })
+            .then((response) => response.data.result),
+        [accessKey.accessKeyHashId],
+      )
 
       return (
         <div className="size-0 max-w-0 overflow-hidden">
@@ -46,13 +55,7 @@ export const serverAccessKeysTableColumns: ColumnDef<AccessKeyPublicDTO>[] = [
             modalData={rotateAccessKeyModalData}
             setModalData={setRotateAccessKeyModalData}
             onSubmit={handleRotate}
-            listBuckets={() =>
-              apiClient.serverAccessKeysApi
-                .listServerAccessKeyBuckets({
-                  accessKeyHashId: accessKey.accessKeyHashId,
-                })
-                .then((response) => response.data.result)
-            }
+            listBuckets={listBuckets}
           />
 
           <Link

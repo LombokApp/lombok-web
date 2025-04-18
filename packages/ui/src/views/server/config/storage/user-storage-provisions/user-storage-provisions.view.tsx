@@ -9,8 +9,10 @@ import {
   apiClient,
   userStorageProvisionsApiHooks,
 } from '../../../../../services/api'
-import type { UserStorageProvisionFormValues } from './user-storage-provision-form/user-storage-provision-form'
-import type { MutationType } from './user-storage-provision-modal'
+import type {
+  MutationType,
+  UserStorageProvisionFormValues,
+} from './user-storage-provision-form/user-storage-provision-form'
 import { UserStorageProvisionModal } from './user-storage-provision-modal'
 
 export function UserStorageProvisions() {
@@ -37,7 +39,6 @@ export function UserStorageProvisions() {
     [userStorageProvisionsQuery],
   )
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleUpdateStorageProvision = React.useCallback(
     (
       userStorageProvision: UserStorageProvisionDTO,
@@ -68,7 +69,6 @@ export function UserStorageProvisions() {
   const handleUpdate = React.useCallback(
     (userStorageProvision: UserStorageProvisionDTO) => {
       setModalData({ mutationType: 'UPDATE', userStorageProvision })
-      // fetchProvisions() // Refetch data on update
     },
     [],
   )
@@ -79,12 +79,17 @@ export function UserStorageProvisions() {
         onSubmit={async (mutationType, values) => {
           if (mutationType === 'CREATE') {
             await handleAddStorageProvision(values)
+          } else if (modalData.userStorageProvision) {
+            await handleUpdateStorageProvision(
+              modalData.userStorageProvision,
+              values,
+            )
           }
         }}
         setModalData={setModalData}
         modalData={modalData}
       />
-      <dl className="divide-y divide-gray-100 dark:divide-gray-700">
+      <dl className="dark:divide-gray-700 divide-y divide-gray-100">
         <div className="flex flex-col sm:gap-4">
           <dd className="mt-1 text-sm leading-6 sm:col-span-5 sm:mt-0">
             {(userStorageProvisionsQuery.data?.result.length ?? 0) > 0 ? (
