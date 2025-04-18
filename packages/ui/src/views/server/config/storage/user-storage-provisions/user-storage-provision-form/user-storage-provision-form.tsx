@@ -73,10 +73,10 @@ export const UserStorageProvisionForm = ({
           onSubmit={(e) => {
             e.preventDefault()
             void form.trigger().then(() => {
-              console.log('form.formState.isValid:', {
-                valid: form.formState.isValid,
-                errors: form.formState.errors,
-              })
+              // console.log('form.formState.isValid:', {
+              //   valid: form.formState.isValid,
+              //   errors: form.formState.errors,
+              // })
               if (form.formState.isValid) {
                 void form.handleSubmit(onSubmit)(e)
               }
