@@ -185,6 +185,15 @@ export const LocalFileCacheContextProvider = ({
             const progress = (event.data[1] as any).progress as number
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
             const uploadObjectKey = (event.data[1] as any).objectKey as string
+            // console.log(
+            //   `Upload progress for '${uploadObjectKey}': ${progress}%`,
+            //   {
+            //     objectKey: uploadObjectKey,
+            //     progress,
+            //     timestamp: new Date().toISOString(),
+            //   },
+            // )
+
             setUploadingProgress((up) => ({
               ...up,
               [uploadObjectKey]: progress,

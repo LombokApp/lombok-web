@@ -1,5 +1,5 @@
 import type {
-  AccessKeyDTO,
+  AccessKeyPublicDTO,
   AccessKeysApiListAccessKeysRequest,
 } from '@stellariscloud/api-client'
 import { DataTable, Separator, TypographyH2 } from '@stellariscloud/ui-toolkit'
@@ -11,7 +11,7 @@ import { userAccessKeysTableColumns } from './user-access-keys-table-columns'
 
 export function UserAccessKeysScreen() {
   const [accessKeys, setAccessKeys] = React.useState<{
-    result: AccessKeyDTO[]
+    result: AccessKeyPublicDTO[]
     meta: { totalCount: number }
   }>()
   const [filters, setFilters] = React.useState<
@@ -50,19 +50,11 @@ export function UserAccessKeysScreen() {
       <Separator className="mb-3 bg-foreground/10" />
 
       <DataTable
-        onColumnFiltersChange={(updater) => {
-          setFilters((old) =>
-            updater instanceof Function ? updater(old) : updater,
-          )
-        }}
+        onColumnFiltersChange={setFilters}
         rowCount={accessKeys?.meta.totalCount}
         data={accessKeys?.result ?? []}
         columns={userAccessKeysTableColumns}
-        onPaginationChange={(updater) => {
-          setPagination((old) =>
-            updater instanceof Function ? updater(old) : updater,
-          )
-        }}
+        onPaginationChange={setPagination}
         onSortingChange={(updater) => {
           setSorting((old) =>
             updater instanceof Function ? updater(old) : updater,

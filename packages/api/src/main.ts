@@ -23,7 +23,7 @@ export async function buildApp() {
   setApp(app)
 
   // set other app configs
-  app.useGlobalFilters(new HttpExceptionFilter())
+  app.useGlobalFilters(new HttpExceptionFilter('DEBUG'))
   app.enableShutdownHooks()
   app.enableCors()
 

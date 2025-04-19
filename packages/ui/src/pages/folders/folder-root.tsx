@@ -2,6 +2,8 @@ import { useParams } from 'react-router-dom'
 
 import { ContentLayout } from '../../components/sidebar/components/content-layout'
 import { FolderDetailScreen } from '../../views/folder-detail-screen/folder-detail-screen.view'
+import { FolderEventDetailScreen } from '../../views/folder-event-detail-screen/folder-event-detail-screen.view'
+import { FolderEventsScreen } from '../../views/folder-events-screen/folder-events-screen.view'
 import { FolderObjectDetailScreen } from '../../views/folder-object-detail-screen/folder-object-detail-screen.view'
 import { FolderTaskDetailScreen } from '../../views/folder-task-detail-screen/folder-task-detail-screen.view'
 import { FolderTasksScreen } from '../../views/folder-tasks-screen/folder-tasks-screen.view'
@@ -44,8 +46,47 @@ function FolderRootInner() {
 
   const isTaskListPage = pathParts.length === 2 && pathParts[1] === 'tasks'
   const isTaskDetailPage = pathParts.length === 3 && pathParts[1] === 'tasks'
+
+  const isEventListPage = pathParts.length === 2 && pathParts[1] === 'events'
+  const isEventDetailPage = pathParts.length === 3 && pathParts[1] === 'events'
+
   const folderContext = useFolderContext()
 
+  const extraBreadcrumbs: { label: string; href: string }[] = []
+  if (focusedFolderObjectKey) {
+    extraBreadcrumbs.push({
+      label: focusedFolderObjectKey,
+      href: pathParts[2],
+    })
+  } else if (isEventDetailPage) {
+    extraBreadcrumbs.push({
+      label: 'Events',
+      href: `/folders/${folderContext.folderId}/events`,
+    })
+    extraBreadcrumbs.push({
+      label: pathParts[2],
+      href: pathParts[2],
+    })
+  } else if (isTaskListPage) {
+    extraBreadcrumbs.push({
+      label: 'Tasks',
+      href: '',
+    })
+  } else if (isEventListPage) {
+    extraBreadcrumbs.push({
+      label: 'Events',
+      href: '',
+    })
+  } else if (isTaskDetailPage) {
+    extraBreadcrumbs.push({
+      label: 'Tasks',
+      href: `/folders/${folderContext.folderId}/tasks`,
+    })
+    extraBreadcrumbs.push({
+      label: pathParts[2],
+      href: pathParts[2],
+    })
+  }
   return (
     <ContentLayout
       contentPadding={false}
@@ -53,18 +94,9 @@ function FolderRootInner() {
         { label: 'Folders', href: '/folders' },
         {
           label: folderContext.folder?.name ?? folderContext.folderId,
-          href: `/folders/${folderContext.folderId}`,
+          href: isFolderDetailPage ? '' : `/folders/${folderContext.folderId}`,
         },
-      ].concat(
-        focusedFolderObjectKey
-          ? [
-              {
-                label: focusedFolderObjectKey,
-                href: pathParts[2],
-              },
-            ]
-          : [],
-      )}
+      ].concat(extraBreadcrumbs)}
     >
       <div className="flex size-full p-2">
         {focusedFolderObjectKey ? (
@@ -75,6 +107,10 @@ function FolderRootInner() {
           <FolderTasksScreen />
         ) : isTaskDetailPage ? (
           <FolderTaskDetailScreen />
+        ) : isEventListPage ? (
+          <FolderEventsScreen />
+        ) : isEventDetailPage ? (
+          <FolderEventDetailScreen />
         ) : (
           <></>
         )}

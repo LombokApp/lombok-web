@@ -5,15 +5,17 @@ import React from 'react'
 
 import { UserStorageProvisionsTable } from '../../../../../components/user-storage-provisions-table/user-storage-provisions-table'
 import { EmptyState } from '../../../../../design-system/empty-state/empty-state'
-import { apiClient } from '../../../../../services/api'
-import type { UserStorageProvisionFormValues } from './user-storage-provision-form/user-storage-provision-form'
-import type { MutationType } from './user-storage-provision-modal'
+import {
+  apiClient,
+  userStorageProvisionsApiHooks,
+} from '../../../../../services/api'
+import type {
+  MutationType,
+  UserStorageProvisionFormValues,
+} from './user-storage-provision-form/user-storage-provision-form'
 import { UserStorageProvisionModal } from './user-storage-provision-modal'
 
 export function UserStorageProvisions() {
-  const [userStorageProvisions, setUserStorageProvisions] =
-    React.useState<UserStorageProvisionDTO[]>()
-
   const [modalData, setModalData] = React.useState<{
     userStorageProvision: UserStorageProvisionDTO | undefined
     mutationType: MutationType
@@ -21,6 +23,9 @@ export function UserStorageProvisions() {
     userStorageProvision: undefined,
     mutationType: 'CREATE',
   })
+
+  const userStorageProvisionsQuery =
+    userStorageProvisionsApiHooks.useListUserStorageProvisions({})
 
   const handleAddStorageProvision = React.useCallback(
     (input: UserStorageProvisionFormValues) =>
@@ -30,13 +35,10 @@ export function UserStorageProvisions() {
             ...input,
           },
         })
-        .then((resp) => {
-          setUserStorageProvisions(resp.data.result)
-        }),
-    [],
+        .then(() => userStorageProvisionsQuery.refetch()),
+    [userStorageProvisionsQuery],
   )
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleUpdateStorageProvision = React.useCallback(
     (
       userStorageProvision: UserStorageProvisionDTO,
@@ -49,29 +51,27 @@ export function UserStorageProvisions() {
             ...input,
           },
         })
-        .then((resp) => setUserStorageProvisions(resp.data.result)),
-    [],
+        .then(() => userStorageProvisionsQuery.refetch()),
+    [userStorageProvisionsQuery],
   )
 
-  const handleDeleteStorageProvision = React.useCallback(
+  const _handleDeleteStorageProvision = React.useCallback(
     (userStorageProvisionId: string) =>
       apiClient.userStorageProvisionsApi
         .deleteUserStorageProvision({
           userStorageProvisionId,
         })
-        .then((resp) => {
-          setUserStorageProvisions(resp.data.result)
-        }),
-    [],
+        .then(() => userStorageProvisionsQuery.refetch()),
+    [userStorageProvisionsQuery],
   )
 
-  React.useEffect(() => {
-    void apiClient.userStorageProvisionsApi
-      .listUserStorageProvisions()
-      .then((resp) => {
-        setUserStorageProvisions(resp.data.result)
-      })
-  }, [])
+  // Define the update handler to pass to the table
+  const handleUpdate = React.useCallback(
+    (userStorageProvision: UserStorageProvisionDTO) => {
+      setModalData({ mutationType: 'UPDATE', userStorageProvision })
+    },
+    [],
+  )
 
   return (
     <div className="w-full">
@@ -79,33 +79,32 @@ export function UserStorageProvisions() {
         onSubmit={async (mutationType, values) => {
           if (mutationType === 'CREATE') {
             await handleAddStorageProvision(values)
+          } else if (modalData.userStorageProvision) {
+            await handleUpdateStorageProvision(
+              modalData.userStorageProvision,
+              values,
+            )
           }
         }}
         setModalData={setModalData}
         modalData={modalData}
       />
-      <dl className="divide-y divide-gray-100 dark:divide-gray-700">
+      <dl className="dark:divide-gray-700 divide-y divide-gray-100">
         <div className="flex flex-col sm:gap-4">
           <dd className="mt-1 text-sm leading-6 sm:col-span-5 sm:mt-0">
-            {(userStorageProvisions?.length ?? 0) > 0 ? (
+            {(userStorageProvisionsQuery.data?.result.length ?? 0) > 0 ? (
               <div className="flex flex-col items-start gap-4">
                 <div className="w-full">
                   <UserStorageProvisionsTable
-                    userStorageProvisions={userStorageProvisions ?? []}
-                    onEdit={(userStorageProvision) =>
-                      setModalData({
-                        userStorageProvision,
-                        mutationType: 'UPDATE',
-                      })
+                    userStorageProvisions={
+                      userStorageProvisionsQuery.data?.result ?? []
                     }
-                    onDelete={(storageProvision) =>
-                      void handleDeleteStorageProvision(storageProvision.id)
-                    }
+                    onUpdate={handleUpdate}
                   />
                 </div>
                 <Button
                   variant="outline"
-                  onClick={() =>
+                  onClick={() => {
                     setModalData({
                       userStorageProvision: {
                         accessKeyHashId: '',
@@ -121,7 +120,7 @@ export function UserStorageProvisions() {
                       },
                       mutationType: 'CREATE',
                     })
-                  }
+                  }}
                 >
                   <PlusIcon className="size-5" />
                   Add Storage Provision
@@ -132,7 +131,11 @@ export function UserStorageProvisions() {
                 buttonText="Add storage provision"
                 icon={FolderIcon}
                 text="No storage provisions have been created"
-                onButtonPress={() =>
+                onButtonPress={() => {
+                  // TODO: Update add provision logic
+                  console.log(
+                    'Add provision button clicked - functionality needs update',
+                  )
                   setModalData({
                     userStorageProvision: {
                       accessKeyHashId: '',
@@ -148,7 +151,7 @@ export function UserStorageProvisions() {
                     },
                     mutationType: 'CREATE',
                   })
-                }
+                }}
               />
             )}
           </dd>

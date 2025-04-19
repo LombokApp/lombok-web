@@ -15,12 +15,14 @@ import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
-import { AccessKeyDTO } from '../dto/access-key.dto'
 import { AccessKeyListQueryParamsDTO } from '../dto/access-key-list-query-params.dto'
+import { AccessKeyPublicDTO } from '../dto/access-key-public.dto'
+import { AccessKeyBucketsListResponseDTO } from '../dto/responses/access-key-buckets-list-response.dto'
 import { AccessKeyGetResponse } from '../dto/responses/access-key-get-response.dto'
 import { AccessKeyListResponse } from '../dto/responses/access-key-list-response.dto'
 import { AccessKeyRotateResponse } from '../dto/responses/access-key-rotate-response.dto'
 import { RotateAccessKeyInputDTO } from '../dto/rotate-access-key-input.dto'
+import { transformAccessKeyToPublicDTO } from '../dto/transforms/access-key.transforms'
 import { StorageLocationService } from '../storage-location.service'
 
 @Controller('/api/v1/server/access-keys')
@@ -28,7 +30,7 @@ import { StorageLocationService } from '../storage-location.service'
 @UseGuards(AuthGuard)
 @UsePipes(ZodValidationPipe)
 @ApiBearerAuth()
-@ApiExtraModels(AccessKeyDTO)
+@ApiExtraModels(AccessKeyPublicDTO)
 export class ServerAccessKeysController {
   constructor(
     private readonly storageLocationService: StorageLocationService,
@@ -68,7 +70,8 @@ export class ServerAccessKeysController {
       req.user,
       accessKeyHashId,
     )
-    return { accessKey: result }
+
+    return { accessKey: transformAccessKeyToPublicDTO(result) }
   }
 
   /**
@@ -92,6 +95,30 @@ export class ServerAccessKeysController {
           newAccessKey: body,
         },
       ),
+    }
+  }
+
+  /**
+   * List buckets for an access key.
+   */
+  @Get('/:accessKeyHashId/buckets')
+  async listServerAccessKeyBuckets(
+    @Req() req: express.Request,
+    @Param('accessKeyHashId') accessKeyHashId: string,
+  ): Promise<AccessKeyBucketsListResponseDTO> {
+    if (!req.user?.isAdmin) {
+      throw new UnauthorizedException()
+    }
+    const result = await this.storageLocationService.listAccessKeyBucketAsAdmin(
+      req.user,
+      accessKeyHashId,
+    )
+    return {
+      result:
+        result.Buckets?.map((bucket) => ({
+          name: bucket.Name ?? '',
+          createdDate: bucket.CreationDate,
+        })) ?? [],
     }
   }
 }

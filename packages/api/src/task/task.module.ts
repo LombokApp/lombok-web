@@ -37,7 +37,7 @@ export class TaskModule implements OnModuleInit, OnModuleDestroy {
     // every 5 seconds, attempt to drain any pending core tasks
     this.jobs = [
       new CronJob(
-        '0,4,9,14,19,24,29,34,39,44,49,54,59 * * * * *',
+        '*/5 * * * * *',
         () => void this.coreTaskService.drainCoreTasks(),
         null,
         true,
@@ -45,7 +45,7 @@ export class TaskModule implements OnModuleInit, OnModuleDestroy {
 
       // every 5 seconds, broadcast to apps about pendng app tasks
       new CronJob(
-        '0,4,9,14,19,24,29,34,39,44,49,54,59 * * * * *',
+        '*/5 * * * * *',
         () => this.taskService.notifyAllAppsOfPendingTasks(),
         null,
         true,

@@ -10,17 +10,17 @@ import {
   DialogTitle,
 } from '@stellariscloud/ui-toolkit'
 
-export interface ForgetFolderModalData {
+export interface DeleteFolderModalData {
   isOpen: boolean
 }
 
-const ForgetFolderModal = ({
+export const DeleteFolderModal = ({
   modalData,
   setModalData,
   onConfirm,
 }: {
-  modalData: ForgetFolderModalData
-  setModalData: (modalData: ForgetFolderModalData) => void
+  modalData: DeleteFolderModalData
+  setModalData: (modalData: DeleteFolderModalData) => void
   onConfirm: () => Promise<void>
 }) => {
   return (
@@ -35,22 +35,22 @@ const ForgetFolderModal = ({
         aria-describedby={undefined}
       >
         <DialogHeader className="text-left">
-          <DialogTitle>Remove the folder</DialogTitle>
+          <DialogTitle>Delete folder</DialogTitle>
         </DialogHeader>
-        <DialogDescription>
-          This will remove all reference to the folder, but leave the underlying
-          data intact.
+        <DialogDescription className="text-sm text-gray-600 dark:text-gray-400">
+          This action will remove the folder from your account, but will not
+          delete any files from the underlying storage.
         </DialogDescription>
         <DialogFooter>
           <div className="flex gap-4">
             <Button
-              variant={'link'}
+              variant={'outline'}
               onClick={() => setModalData({ isOpen: false })}
             >
               Cancel
             </Button>
             <Button variant={'destructive'} onClick={() => void onConfirm()}>
-              Forget
+              Delete
             </Button>
           </div>
         </DialogFooter>
@@ -58,5 +58,3 @@ const ForgetFolderModal = ({
     </Dialog>
   )
 }
-
-export { ForgetFolderModal }

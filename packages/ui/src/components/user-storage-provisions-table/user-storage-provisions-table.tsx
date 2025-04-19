@@ -1,21 +1,20 @@
 import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
 import { DataTable } from '@stellariscloud/ui-toolkit'
+import React from 'react'
 
 import { userStorageProvisionsTableColumns } from './user-storage-provisions-table-columns'
 
 export function UserStorageProvisionsTable({
   userStorageProvisions,
-  // onEdit,
-  // onDelete,
+  onUpdate,
 }: {
   userStorageProvisions: UserStorageProvisionDTO[]
-  onEdit: (l: UserStorageProvisionDTO) => void
-  onDelete: (l: UserStorageProvisionDTO) => void
+  onUpdate: (userStorageProvision: UserStorageProvisionDTO) => void
 }) {
-  return (
-    <DataTable
-      data={userStorageProvisions}
-      columns={userStorageProvisionsTableColumns}
-    />
+  const columns = React.useMemo(
+    () => userStorageProvisionsTableColumns(onUpdate),
+    [onUpdate],
   )
+
+  return <DataTable data={userStorageProvisions} columns={columns} />
 }

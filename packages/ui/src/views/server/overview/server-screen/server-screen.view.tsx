@@ -1,9 +1,18 @@
 import {
+  Card,
+  CardContent,
+  CardHeader,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
   cn,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
+  TypographyH3,
 } from '@stellariscloud/ui-toolkit'
 import {
   AppWindow,
@@ -17,11 +26,20 @@ import {
   Users,
 } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  XAxis,
+  YAxis,
+} from 'recharts'
 
 import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
 import { ServerAppDetailScreen } from '../../apps/server-app-detail-screen/server-app-detail-screen.view'
 import { ServerAppsScreen } from '../../apps/server-apps-screen/server-apps-screen.view'
-import { ServerConfigScreen } from '../../config/server-config-screen/server-config-screen'
+import { ServerSettingsScreen } from '../../config/server-config-screen/server-config-screen'
 import { ServerEventDetailScreen } from '../../events/server-event-detail-screen/server-event-detail-screen.view'
 import { ServerEventsScreen } from '../../events/server-events-screen/server-events-screen.view'
 import { ServerTaskDetailScreen } from '../../tasks/server-task-detail-screen/server-task-detail-screen.view'
@@ -43,14 +61,14 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
             width={1280}
             height={866}
             alt="Dashboard"
-            className="dark:hidden block"
+            className="block dark:hidden"
           />
           <img
             src="/examples/dashboard-dark.png"
             width={1280}
             height={866}
             alt="Dashboard"
-            className="dark:block hidden"
+            className="hidden dark:block"
           />
         </div>
         <div className="hidden flex-col md:flex">
@@ -104,17 +122,17 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                     </div>
                   </TabsTrigger>
                   <TabsTrigger
-                    onClick={() => void navigate('/server/config')}
-                    value="config"
+                    onClick={() => void navigate('/server/settings')}
+                    value="settings"
                   >
                     <div className="flex items-center gap-2">
                       <Settings className="size-4" />
-                      Config
+                      Settings
                     </div>
                   </TabsTrigger>
                 </TabsList>
               </div>
-              {(serverPage.length === 1 || serverPage[0] === 'config') && (
+              {(serverPage.length === 1 || serverPage[0] === 'settings') && (
                 <div className="pb-6">
                   <TabsContent value="users">
                     <ServerUsersScreen />
@@ -128,9 +146,9 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                   <TabsContent value="tasks">
                     <ServerTasksScreen />
                   </TabsContent>
-                  <TabsContent value="config">
-                    {paramParts[0] === 'config' && (
-                      <ServerConfigScreen tab={paramParts[1] ?? 'general'} />
+                  <TabsContent value="settings">
+                    {paramParts[0] === 'settings' && (
+                      <ServerSettingsScreen tab={paramParts[1] ?? 'general'} />
                     )}
                   </TabsContent>
                   <TabsContent value="overview">
@@ -180,6 +198,169 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
                           },
                         ]}
                       />
+
+                      {/* User Growth Chart */}
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <Card>
+                          <CardHeader className="p-4 pb-1 pt-3">
+                            <TypographyH3>User Growth</TypographyH3>
+                          </CardHeader>
+                          <CardContent className="p-4">
+                            {/* User growth bar chart */}
+                            <ChartContainer
+                              config={{
+                                users: {
+                                  label: 'Users',
+                                  color: '#2563eb',
+                                },
+                                newUsers: {
+                                  label: 'New Users',
+                                  color: '#60a5fa',
+                                },
+                              }}
+                              className="h-[250px] w-full"
+                            >
+                              <BarChart
+                                accessibilityLayer
+                                data={[
+                                  { month: 'Jan', users: 35, newUsers: 12 },
+                                  { month: 'Feb', users: 38, newUsers: 8 },
+                                  { month: 'Mar', users: 40, newUsers: 5 },
+                                  { month: 'Apr', users: 42, newUsers: 7 },
+                                  { month: 'May', users: 45, newUsers: 9 },
+                                  { month: 'Jun', users: 47, newUsers: 3 },
+                                ]}
+                              >
+                                <CartesianGrid vertical={false} />
+                                <XAxis
+                                  dataKey="month"
+                                  tickLine={false}
+                                  tickMargin={10}
+                                  axisLine={false}
+                                />
+                                <YAxis tickLine={false} axisLine={false} />
+                                <ChartTooltip
+                                  content={<ChartTooltipContent />}
+                                />
+                                <ChartLegend content={<ChartLegendContent />} />
+                                <Bar
+                                  dataKey="users"
+                                  fill="var(--color-users)"
+                                  radius={4}
+                                />
+                                <Bar
+                                  dataKey="newUsers"
+                                  fill="var(--color-newUsers)"
+                                  radius={4}
+                                />
+                              </BarChart>
+                            </ChartContainer>
+                          </CardContent>
+                        </Card>
+
+                        {/* Storage Usage Chart */}
+                        <Card>
+                          <CardHeader className="p-4 pb-1 pt-3">
+                            <TypographyH3>Storage Usage (TB)</TypographyH3>
+                          </CardHeader>
+                          <CardContent className="p-4">
+                            {/* Storage usage line chart */}
+                            <ChartContainer
+                              config={{
+                                minio: {
+                                  label: 'MinIO',
+                                  color: '#2563eb',
+                                },
+                                aws: {
+                                  label: 'AWS',
+                                  color: '#60a5fa',
+                                },
+                                local: {
+                                  label: 'Local',
+                                  color: '#93c5fd',
+                                },
+                              }}
+                              className="h-[250px] w-full"
+                            >
+                              <LineChart
+                                accessibilityLayer
+                                data={[
+                                  {
+                                    month: 'Jan',
+                                    minio: 2.8,
+                                    aws: 1.5,
+                                    local: 4.1,
+                                  },
+                                  {
+                                    month: 'Feb',
+                                    minio: 3.2,
+                                    aws: 1.8,
+                                    local: 4.3,
+                                  },
+                                  {
+                                    month: 'Mar',
+                                    minio: 3.5,
+                                    aws: 2.1,
+                                    local: 4.2,
+                                  },
+                                  {
+                                    month: 'Apr',
+                                    minio: 3.8,
+                                    aws: 2.3,
+                                    local: 4.4,
+                                  },
+                                  {
+                                    month: 'May',
+                                    minio: 4.1,
+                                    aws: 2.5,
+                                    local: 4.5,
+                                  },
+                                  {
+                                    month: 'Jun',
+                                    minio: 4.5,
+                                    aws: 2.7,
+                                    local: 4.6,
+                                  },
+                                ]}
+                              >
+                                <CartesianGrid vertical={false} />
+                                <XAxis
+                                  dataKey="month"
+                                  tickLine={false}
+                                  tickMargin={10}
+                                  axisLine={false}
+                                />
+                                <YAxis tickLine={false} axisLine={false} />
+                                <ChartTooltip
+                                  content={<ChartTooltipContent />}
+                                />
+                                <ChartLegend content={<ChartLegendContent />} />
+                                <Line
+                                  type="monotone"
+                                  dataKey="minio"
+                                  stroke="var(--color-minio)"
+                                  strokeWidth={2}
+                                  dot={{ r: 4 }}
+                                />
+                                <Line
+                                  type="monotone"
+                                  dataKey="aws"
+                                  stroke="var(--color-aws)"
+                                  strokeWidth={2}
+                                  dot={{ r: 4 }}
+                                />
+                                <Line
+                                  type="monotone"
+                                  dataKey="local"
+                                  stroke="var(--color-local)"
+                                  strokeWidth={2}
+                                  dot={{ r: 4 }}
+                                />
+                              </LineChart>
+                            </ChartContainer>
+                          </CardContent>
+                        </Card>
+                      </div>
                     </div>
                     <StatCardGroup stats={[]} />
                   </TabsContent>

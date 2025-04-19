@@ -6,6 +6,7 @@ import {
 import type { FolderObjectDTO } from '@stellariscloud/api-client'
 import { FolderPermissionEnum, FolderPushMessage } from '@stellariscloud/types'
 import {
+  Button,
   cn,
   DataTable,
   DropdownMenu,
@@ -22,8 +23,8 @@ import { Ellipsis, Folder } from 'lucide-react'
 import React from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
-import type { ForgetFolderModalData } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
-import { ForgetFolderModal } from '../../components/confirm-forget-folder-modal/confirm-forget-folder-modal'
+import type { DeleteFolderModalData } from '../../components/delete-folder-modal/delete-folder-modal'
+import { DeleteFolderModal } from '../../components/delete-folder-modal/delete-folder-modal'
 import {
   ReindexFolderModal,
   type ReindexFolderModalData,
@@ -33,7 +34,6 @@ import {
   type UploadModalData,
 } from '../../components/upload-modal/upload-modal'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
-import { EmptyState } from '../../design-system/empty-state/empty-state'
 import { useFolderContext } from '../../pages/folders/folder.context'
 import { apiClient, foldersApiHooks } from '../../services/api'
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
@@ -61,9 +61,31 @@ export const FolderDetailScreen = () => {
   const [uploadModalData, setUploadModalData] = React.useState<UploadModalData>(
     {
       isOpen: false,
-      uploadingProgress,
+      uploadingProgress: {},
     },
   )
+
+  // Create a reference to the current uploadingProgress for the modal
+  const uploadModalRef = React.useRef<UploadModalData>({
+    isOpen: false,
+    uploadingProgress: {},
+  })
+
+  // Update the modal data when uploadingProgress changes
+  React.useEffect(() => {
+    if (uploadModalRef.current.isOpen) {
+      setUploadModalData({
+        isOpen: true,
+        uploadingProgress,
+      })
+    }
+  }, [uploadingProgress])
+
+  // Update the ref when the modal state changes
+  React.useEffect(() => {
+    uploadModalRef.current = uploadModalData
+  }, [uploadModalData])
+
   const [reindexFolderModalData, setReindexFolderModalData] =
     React.useState<ReindexFolderModalData>({
       isOpen: false,
@@ -71,7 +93,7 @@ export const FolderDetailScreen = () => {
   const [
     forgetFolderConfirmationModelData,
     setForgetFolderConfirmationModelData,
-  ] = React.useState<ForgetFolderModalData>({
+  ] = React.useState<DeleteFolderModalData>({
     isOpen: false,
   })
   const [_sorting, setSorting] = React.useState<SortingState>([])
@@ -184,7 +206,7 @@ export const FolderDetailScreen = () => {
         />
       )}
       {forgetFolderConfirmationModelData.isOpen && (
-        <ForgetFolderModal
+        <DeleteFolderModal
           onConfirm={handleForgetFolder}
           modalData={forgetFolderConfirmationModelData}
           setModalData={setForgetFolderConfirmationModelData}
@@ -210,14 +232,44 @@ export const FolderDetailScreen = () => {
               <div className="flex flex-1 overflow-hidden">
                 <div className="h-full flex-1 overflow-hidden pr-2">
                   {folderContext.folderMetadata?.totalCount === 0 ? (
-                    <div className="flex size-full flex-col items-center justify-around">
-                      <div className="min-w-[30rem] max-w-[30rem]">
-                        <EmptyState
-                          icon={Folder}
-                          text={'No objects. Try reindexing the folder.'}
-                          onButtonPress={() => void handleReindexFolder()}
-                          buttonText="Reindex folder"
-                        />
+                    <div className="flex size-full flex-col items-center justify-center">
+                      <div className="flex w-full max-w-md flex-col items-center p-8">
+                        <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-foreground/[.04] p-4">
+                          <Folder
+                            className="size-20 text-gray-400"
+                            strokeWidth={1}
+                          />
+                        </div>
+                        <h3 className="mb-3 text-xl font-medium">
+                          This folder is empty
+                        </h3>
+                        <p className="mb-8 text-center text-sm opacity-75">
+                          You can upload files or reindex the folder to discover
+                          existing files.
+                        </p>
+                        <div className="flex gap-4">
+                          <Button
+                            onClick={() =>
+                              setUploadModalData({
+                                isOpen: true,
+                                uploadingProgress,
+                              })
+                            }
+                            variant="default"
+                            className="flex items-center gap-2"
+                          >
+                            <ArrowUpOnSquareIcon className="size-4" />
+                            Upload files
+                          </Button>
+                          <Button
+                            onClick={() => void handleReindexFolder()}
+                            variant="outline"
+                            className="flex items-center gap-2"
+                          >
+                            <ArrowPathIcon className="size-4" />
+                            Reindex folder
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -240,8 +292,8 @@ export const FolderDetailScreen = () => {
                               <DropdownMenuItem
                                 onClick={() =>
                                   setUploadModalData({
-                                    ...uploadModalData,
                                     isOpen: true,
+                                    uploadingProgress,
                                   })
                                 }
                                 className="gap-2"
@@ -271,8 +323,8 @@ export const FolderDetailScreen = () => {
                             ) && (
                               <DropdownMenuItem
                                 onClick={() =>
-                                  setUploadModalData({
-                                    ...uploadModalData,
+                                  setForgetFolderConfirmationModelData({
+                                    ...forgetFolderConfirmationModelData,
                                     isOpen: true,
                                   })
                                 }
@@ -305,14 +357,18 @@ export const FolderDetailScreen = () => {
               {sidebarOpen &&
                 folderContext.folder &&
                 folderContext.folderPermissions && (
-                  <div className="xs:w-full md:w-[1/2] lg:w-[1/2] xl:w-2/5 2xl:w-[35%] 2xl:max-w-[35rem]">
-                    <FolderSidebar
-                      folderMetadata={folderContext.folderMetadata}
-                      folderAndPermission={{
-                        folder: folderContext.folder,
-                        permissions: folderContext.folderPermissions,
-                      }}
-                    />
+                  <div className="xs:w-full h-full overflow-hidden md:w-[1/2] lg:w-[1/2] xl:w-2/5 2xl:w-[35%] 2xl:max-w-[35rem]">
+                    <div className="h-full overflow-y-auto pr-1">
+                      <div>
+                        <FolderSidebar
+                          folderMetadata={folderContext.folderMetadata}
+                          folderAndPermission={{
+                            folder: folderContext.folder,
+                            permissions: folderContext.folderPermissions,
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
             </div>

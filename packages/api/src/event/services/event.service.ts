@@ -8,18 +8,19 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { CoreEvent, FolderPushMessage } from '@stellariscloud/types'
-import { and, eq, ilike, inArray, or, SQL, sql } from 'drizzle-orm'
+import { and, count, eq, ilike, inArray, or, SQL } from 'drizzle-orm'
 import { AppDTO } from 'src/app/dto/app.dto'
 import { AppService } from 'src/app/services/app.service'
 import { parseSort } from 'src/core/utils/sort.util'
+import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
-import type { NewTask } from 'src/task/entities/task.entity'
-import { tasksTable } from 'src/task/entities/task.entity'
+import { type NewTask, tasksTable } from 'src/task/entities/task.entity'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
 import { EventsListQueryParamsDTO } from '../dto/events-list-query-params.dto'
+import { FolderEventsListQueryParamsDTO } from '../dto/folder-events-list-query-params.dto'
 import type { Event } from '../entities/event.entity'
 import { EventLevel, eventsTable } from '../entities/event.entity'
 
@@ -34,6 +35,9 @@ export const APP_NS_PREFIX = 'app:'
 
 @Injectable()
 export class EventService {
+  get folderService(): FolderService {
+    return this._folderService as FolderService
+  }
   get folderSocketService(): FolderSocketService {
     return this._folderSocketService as FolderSocketService
   }
@@ -43,9 +47,10 @@ export class EventService {
   }
 
   constructor(
+    private readonly ormService: OrmService,
     @Inject(forwardRef(() => FolderSocketService))
     private readonly _folderSocketService,
-    private readonly ormService: OrmService,
+    @Inject(forwardRef(() => FolderService)) private readonly _folderService,
     @Inject(forwardRef(() => AppService)) private readonly _appService,
   ) {}
 
@@ -124,6 +129,15 @@ export class EventService {
         ])
         .returning()
 
+      // Emit EVENT_CREATED to folder room if folderId is present
+      if (locationContext?.folderId) {
+        this.folderSocketService.sendToFolderRoom(
+          locationContext.folderId,
+          FolderPushMessage.EVENT_CREATED as FolderPushMessage,
+          { event },
+        )
+      }
+
       if (triggeringTaskKey) {
         const triggeredTask: NewTask = {
           id: uuidV4(),
@@ -201,6 +215,37 @@ export class EventService {
     })
   }
 
+  async getFolderEventAsUser(
+    actor: User,
+    { folderId, eventId }: { folderId: string; eventId: string },
+  ): Promise<Event> {
+    const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
+
+    const event = await this.ormService.db.query.eventsTable.findFirst({
+      where: and(
+        eq(eventsTable.folderId, folder.id),
+        eq(eventsTable.id, eventId),
+      ),
+    })
+
+    if (!event) {
+      // no event matching the given input
+      throw new NotFoundException()
+    }
+
+    return event
+  }
+
+  async listFolderEventsAsUser(
+    actor: User,
+    { folderId }: { folderId: string },
+    queryParams: FolderEventsListQueryParamsDTO,
+  ) {
+    // ACL check
+    const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
+    return this.listEvents({ ...queryParams, folderId: folder.id })
+  }
+
   async getEventAsAdmin(actor: User, eventId: string): Promise<Event> {
     const event = await this.ormService.db.query.eventsTable.findFirst({
       where: eq(eventsTable.id, eventId),
@@ -230,6 +275,38 @@ export class EventService {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
+    return this.listEvents({
+      offset,
+      limit,
+      sort,
+      search,
+      folderId,
+      objectKey,
+      includeDebug,
+      includeError,
+      includeTrace,
+      includeWarning,
+      includeInfo,
+    })
+  }
+
+  async listEvents({
+    offset,
+    limit,
+    search,
+    sort = EventSort.CreatedAtAsc,
+    objectKey,
+    folderId,
+    includeDebug,
+    includeError,
+    includeInfo,
+    includeTrace,
+    includeWarning,
+  }: EventsListQueryParamsDTO) {
+    const conditions: (SQL | undefined)[] = []
+    if (folderId) {
+      conditions.push(eq(eventsTable.folderId, folderId))
+    }
 
     const levelFilters: EventLevel[] = []
     if (includeDebug) {
@@ -247,7 +324,6 @@ export class EventService {
     if (includeError) {
       levelFilters.push(EventLevel.ERROR)
     }
-    const conditions: (SQL | undefined)[] = []
     if (search) {
       conditions.push(
         or(
@@ -261,29 +337,27 @@ export class EventService {
       conditions.push(inArray(eventsTable.level, levelFilters))
     }
 
-    if (folderId) {
-      conditions.push(eq(tasksTable.subjectFolderId, folderId))
-      if (objectKey) {
-        conditions.push(eq(tasksTable.subjectObjectKey, objectKey))
-      }
+    if (objectKey) {
+      conditions.push(eq(eventsTable.objectKey, objectKey))
     }
 
-    const events: Event[] = await this.ormService.db.query.eventsTable.findMany(
-      {
-        offset: Math.max(offset ?? 0, 0),
-        limit: Math.min(100, limit ?? 25),
-        orderBy: parseSort(eventsTable, sort),
-        where: and(...conditions),
-      },
-    )
-    const [eventsCount] = await this.ormService.db
-      .select({ count: sql<string | null>`count(*)` })
+    const events = await this.ormService.db.query.eventsTable.findMany({
+      ...(conditions.length ? { where: and(...conditions) } : {}),
+      offset: Math.max(0, offset ?? 0),
+      limit: Math.min(100, limit ?? 25),
+      orderBy: parseSort(eventsTable, sort),
+    })
+
+    const eventsCountResult = await this.ormService.db
+      .select({
+        count: count(),
+      })
       .from(eventsTable)
-      .where(and(...conditions))
+      .where(conditions.length ? and(...conditions) : undefined)
 
     return {
       result: events,
-      meta: { totalCount: parseInt(eventsCount.count ?? '0', 10) },
+      meta: { totalCount: eventsCountResult[0].count },
     }
   }
 }

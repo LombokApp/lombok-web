@@ -58,49 +58,6 @@ export interface AccessKeyBucketsListResponseDTOResultInner {
 /**
  * 
  * @export
- * @interface AccessKeyDTO
- */
-export interface AccessKeyDTO {
-    /**
-     * 
-     * @type {string}
-     * @memberof AccessKeyDTO
-     */
-    'accessKeyId': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AccessKeyDTO
-     */
-    'accessKeyHashId': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AccessKeyDTO
-     */
-    'endpoint': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AccessKeyDTO
-     */
-    'endpointDomain': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AccessKeyDTO
-     */
-    'region': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof AccessKeyDTO
-     */
-    'folderCount': number;
-}
-/**
- * 
- * @export
  * @interface AccessKeyGetResponse
  */
 export interface AccessKeyGetResponse {
@@ -170,6 +127,49 @@ export interface AccessKeyListResponseResultInner {
      * 
      * @type {number}
      * @memberof AccessKeyListResponseResultInner
+     */
+    'folderCount': number;
+}
+/**
+ * 
+ * @export
+ * @interface AccessKeyPublicDTO
+ */
+export interface AccessKeyPublicDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyPublicDTO
+     */
+    'accessKeyId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyPublicDTO
+     */
+    'accessKeyHashId': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyPublicDTO
+     */
+    'endpoint': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyPublicDTO
+     */
+    'endpointDomain': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AccessKeyPublicDTO
+     */
+    'region': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof AccessKeyPublicDTO
      */
     'folderCount': number;
 }
@@ -3714,6 +3714,406 @@ export class AuthApi extends BaseAPI {
 
 
 /**
+ * FolderEventsApi - axios parameter creator
+ * @export
+ */
+export const FolderEventsApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary Get a folder event by id.
+         * @param {string} folderId 
+         * @param {string} eventId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFolderEvent: async (folderId: string, eventId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('getFolderEvent', 'folderId', folderId)
+            // verify required parameter 'eventId' is not null or undefined
+            assertParamExists('getFolderEvent', 'eventId', eventId)
+            const localVarPath = `/api/v1/folders/{folderId}/events/{eventId}`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
+                .replace(`{${"eventId"}}`, encodeURIComponent(String(eventId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary List tasks.
+         * @param {string} folderId 
+         * @param {ListFolderEventsSortEnum} [sort] 
+         * @param {string} [objectKey] 
+         * @param {string} [search] 
+         * @param {ListFolderEventsIncludeTraceEnum} [includeTrace] 
+         * @param {ListFolderEventsIncludeDebugEnum} [includeDebug] 
+         * @param {ListFolderEventsIncludeInfoEnum} [includeInfo] 
+         * @param {ListFolderEventsIncludeWarningEnum} [includeWarning] 
+         * @param {ListFolderEventsIncludeErrorEnum} [includeError] 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listFolderEvents: async (folderId: string, sort?: ListFolderEventsSortEnum, objectKey?: string, search?: string, includeTrace?: ListFolderEventsIncludeTraceEnum, includeDebug?: ListFolderEventsIncludeDebugEnum, includeInfo?: ListFolderEventsIncludeInfoEnum, includeWarning?: ListFolderEventsIncludeWarningEnum, includeError?: ListFolderEventsIncludeErrorEnum, offset?: number, limit?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('listFolderEvents', 'folderId', folderId)
+            const localVarPath = `/api/v1/folders/{folderId}/events`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (sort !== undefined) {
+                localVarQueryParameter['sort'] = sort;
+            }
+
+            if (objectKey !== undefined) {
+                localVarQueryParameter['objectKey'] = objectKey;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+            if (includeTrace !== undefined) {
+                localVarQueryParameter['includeTrace'] = includeTrace;
+            }
+
+            if (includeDebug !== undefined) {
+                localVarQueryParameter['includeDebug'] = includeDebug;
+            }
+
+            if (includeInfo !== undefined) {
+                localVarQueryParameter['includeInfo'] = includeInfo;
+            }
+
+            if (includeWarning !== undefined) {
+                localVarQueryParameter['includeWarning'] = includeWarning;
+            }
+
+            if (includeError !== undefined) {
+                localVarQueryParameter['includeError'] = includeError;
+            }
+
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * FolderEventsApi - functional programming interface
+ * @export
+ */
+export const FolderEventsApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = FolderEventsApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary Get a folder event by id.
+         * @param {string} folderId 
+         * @param {string} eventId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getFolderEvent(folderId: string, eventId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getFolderEvent(folderId, eventId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FolderEventsApi.getFolderEvent']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary List tasks.
+         * @param {string} folderId 
+         * @param {ListFolderEventsSortEnum} [sort] 
+         * @param {string} [objectKey] 
+         * @param {string} [search] 
+         * @param {ListFolderEventsIncludeTraceEnum} [includeTrace] 
+         * @param {ListFolderEventsIncludeDebugEnum} [includeDebug] 
+         * @param {ListFolderEventsIncludeInfoEnum} [includeInfo] 
+         * @param {ListFolderEventsIncludeWarningEnum} [includeWarning] 
+         * @param {ListFolderEventsIncludeErrorEnum} [includeError] 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listFolderEvents(folderId: string, sort?: ListFolderEventsSortEnum, objectKey?: string, search?: string, includeTrace?: ListFolderEventsIncludeTraceEnum, includeDebug?: ListFolderEventsIncludeDebugEnum, includeInfo?: ListFolderEventsIncludeInfoEnum, includeWarning?: ListFolderEventsIncludeWarningEnum, includeError?: ListFolderEventsIncludeErrorEnum, offset?: number, limit?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<EventListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderEvents(folderId, sort, objectKey, search, includeTrace, includeDebug, includeInfo, includeWarning, includeError, offset, limit, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FolderEventsApi.listFolderEvents']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * FolderEventsApi - factory interface
+ * @export
+ */
+export const FolderEventsApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = FolderEventsApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary Get a folder event by id.
+         * @param {FolderEventsApiGetFolderEventRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFolderEvent(requestParameters: FolderEventsApiGetFolderEventRequest, options?: RawAxiosRequestConfig): AxiosPromise<EventGetResponse> {
+            return localVarFp.getFolderEvent(requestParameters.folderId, requestParameters.eventId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary List tasks.
+         * @param {FolderEventsApiListFolderEventsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listFolderEvents(requestParameters: FolderEventsApiListFolderEventsRequest, options?: RawAxiosRequestConfig): AxiosPromise<EventListResponse> {
+            return localVarFp.listFolderEvents(requestParameters.folderId, requestParameters.sort, requestParameters.objectKey, requestParameters.search, requestParameters.includeTrace, requestParameters.includeDebug, requestParameters.includeInfo, requestParameters.includeWarning, requestParameters.includeError, requestParameters.offset, requestParameters.limit, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * Request parameters for getFolderEvent operation in FolderEventsApi.
+ * @export
+ * @interface FolderEventsApiGetFolderEventRequest
+ */
+export interface FolderEventsApiGetFolderEventRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderEventsApiGetFolderEvent
+     */
+    readonly folderId: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderEventsApiGetFolderEvent
+     */
+    readonly eventId: string
+}
+
+/**
+ * Request parameters for listFolderEvents operation in FolderEventsApi.
+ * @export
+ * @interface FolderEventsApiListFolderEventsRequest
+ */
+export interface FolderEventsApiListFolderEventsRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderEventsApiListFolderEvents
+     */
+    readonly folderId: string
+
+    /**
+     * 
+     * @type {'createdAt-asc' | 'createdAt-desc' | 'updatedAt-asc' | 'updatedAt-desc'}
+     * @memberof FolderEventsApiListFolderEvents
+     */
+    readonly sort?: ListFolderEventsSortEnum
+
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderEventsApiListFolderEvents
+     */
+    readonly objectKey?: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderEventsApiListFolderEvents
+     */
+    readonly search?: string
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof FolderEventsApiListFolderEvents
+     */
+    readonly includeTrace?: ListFolderEventsIncludeTraceEnum
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof FolderEventsApiListFolderEvents
+     */
+    readonly includeDebug?: ListFolderEventsIncludeDebugEnum
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof FolderEventsApiListFolderEvents
+     */
+    readonly includeInfo?: ListFolderEventsIncludeInfoEnum
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof FolderEventsApiListFolderEvents
+     */
+    readonly includeWarning?: ListFolderEventsIncludeWarningEnum
+
+    /**
+     * 
+     * @type {'true'}
+     * @memberof FolderEventsApiListFolderEvents
+     */
+    readonly includeError?: ListFolderEventsIncludeErrorEnum
+
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderEventsApiListFolderEvents
+     */
+    readonly offset?: number
+
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderEventsApiListFolderEvents
+     */
+    readonly limit?: number
+}
+
+/**
+ * FolderEventsApi - object-oriented interface
+ * @export
+ * @class FolderEventsApi
+ * @extends {BaseAPI}
+ */
+export class FolderEventsApi extends BaseAPI {
+    /**
+     * 
+     * @summary Get a folder event by id.
+     * @param {FolderEventsApiGetFolderEventRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FolderEventsApi
+     */
+    public getFolderEvent(requestParameters: FolderEventsApiGetFolderEventRequest, options?: RawAxiosRequestConfig) {
+        return FolderEventsApiFp(this.configuration).getFolderEvent(requestParameters.folderId, requestParameters.eventId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary List tasks.
+     * @param {FolderEventsApiListFolderEventsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FolderEventsApi
+     */
+    public listFolderEvents(requestParameters: FolderEventsApiListFolderEventsRequest, options?: RawAxiosRequestConfig) {
+        return FolderEventsApiFp(this.configuration).listFolderEvents(requestParameters.folderId, requestParameters.sort, requestParameters.objectKey, requestParameters.search, requestParameters.includeTrace, requestParameters.includeDebug, requestParameters.includeInfo, requestParameters.includeWarning, requestParameters.includeError, requestParameters.offset, requestParameters.limit, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+/**
+ * @export
+ */
+export const ListFolderEventsSortEnum = {
+    CreatedAtAsc: 'createdAt-asc',
+    CreatedAtDesc: 'createdAt-desc',
+    UpdatedAtAsc: 'updatedAt-asc',
+    UpdatedAtDesc: 'updatedAt-desc'
+} as const;
+export type ListFolderEventsSortEnum = typeof ListFolderEventsSortEnum[keyof typeof ListFolderEventsSortEnum];
+/**
+ * @export
+ */
+export const ListFolderEventsIncludeTraceEnum = {
+    True: 'true'
+} as const;
+export type ListFolderEventsIncludeTraceEnum = typeof ListFolderEventsIncludeTraceEnum[keyof typeof ListFolderEventsIncludeTraceEnum];
+/**
+ * @export
+ */
+export const ListFolderEventsIncludeDebugEnum = {
+    True: 'true'
+} as const;
+export type ListFolderEventsIncludeDebugEnum = typeof ListFolderEventsIncludeDebugEnum[keyof typeof ListFolderEventsIncludeDebugEnum];
+/**
+ * @export
+ */
+export const ListFolderEventsIncludeInfoEnum = {
+    True: 'true'
+} as const;
+export type ListFolderEventsIncludeInfoEnum = typeof ListFolderEventsIncludeInfoEnum[keyof typeof ListFolderEventsIncludeInfoEnum];
+/**
+ * @export
+ */
+export const ListFolderEventsIncludeWarningEnum = {
+    True: 'true'
+} as const;
+export type ListFolderEventsIncludeWarningEnum = typeof ListFolderEventsIncludeWarningEnum[keyof typeof ListFolderEventsIncludeWarningEnum];
+/**
+ * @export
+ */
+export const ListFolderEventsIncludeErrorEnum = {
+    True: 'true'
+} as const;
+export type ListFolderEventsIncludeErrorEnum = typeof ListFolderEventsIncludeErrorEnum[keyof typeof ListFolderEventsIncludeErrorEnum];
+
+
+/**
  * FoldersApi - axios parameter creator
  * @export
  */
@@ -5345,6 +5745,44 @@ export const ServerAccessKeysApiAxiosParamCreator = function (configuration?: Co
         },
         /**
          * 
+         * @summary List buckets for an access key.
+         * @param {string} accessKeyHashId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerAccessKeyBuckets: async (accessKeyHashId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'accessKeyHashId' is not null or undefined
+            assertParamExists('listServerAccessKeyBuckets', 'accessKeyHashId', accessKeyHashId)
+            const localVarPath = `/api/v1/server/access-keys/{accessKeyHashId}/buckets`
+                .replace(`{${"accessKeyHashId"}}`, encodeURIComponent(String(accessKeyHashId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary List server access keys.
          * @param {number} [offset] 
          * @param {number} [limit] 
@@ -5461,6 +5899,19 @@ export const ServerAccessKeysApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary List buckets for an access key.
+         * @param {string} accessKeyHashId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listServerAccessKeyBuckets(accessKeyHashId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AccessKeyBucketsListResponseDTO>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listServerAccessKeyBuckets(accessKeyHashId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ServerAccessKeysApi.listServerAccessKeyBuckets']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary List server access keys.
          * @param {number} [offset] 
          * @param {number} [limit] 
@@ -5510,6 +5961,16 @@ export const ServerAccessKeysApiFactory = function (configuration?: Configuratio
         },
         /**
          * 
+         * @summary List buckets for an access key.
+         * @param {ServerAccessKeysApiListServerAccessKeyBucketsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listServerAccessKeyBuckets(requestParameters: ServerAccessKeysApiListServerAccessKeyBucketsRequest, options?: RawAxiosRequestConfig): AxiosPromise<AccessKeyBucketsListResponseDTO> {
+            return localVarFp.listServerAccessKeyBuckets(requestParameters.accessKeyHashId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary List server access keys.
          * @param {ServerAccessKeysApiListServerAccessKeysRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
@@ -5541,6 +6002,20 @@ export interface ServerAccessKeysApiGetServerAccessKeyRequest {
      * 
      * @type {string}
      * @memberof ServerAccessKeysApiGetServerAccessKey
+     */
+    readonly accessKeyHashId: string
+}
+
+/**
+ * Request parameters for listServerAccessKeyBuckets operation in ServerAccessKeysApi.
+ * @export
+ * @interface ServerAccessKeysApiListServerAccessKeyBucketsRequest
+ */
+export interface ServerAccessKeysApiListServerAccessKeyBucketsRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ServerAccessKeysApiListServerAccessKeyBuckets
      */
     readonly accessKeyHashId: string
 }
@@ -5611,6 +6086,18 @@ export class ServerAccessKeysApi extends BaseAPI {
      */
     public getServerAccessKey(requestParameters: ServerAccessKeysApiGetServerAccessKeyRequest, options?: RawAxiosRequestConfig) {
         return ServerAccessKeysApiFp(this.configuration).getServerAccessKey(requestParameters.accessKeyHashId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary List buckets for an access key.
+     * @param {ServerAccessKeysApiListServerAccessKeyBucketsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServerAccessKeysApi
+     */
+    public listServerAccessKeyBuckets(requestParameters: ServerAccessKeysApiListServerAccessKeyBucketsRequest, options?: RawAxiosRequestConfig) {
+        return ServerAccessKeysApiFp(this.configuration).listServerAccessKeyBuckets(requestParameters.accessKeyHashId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

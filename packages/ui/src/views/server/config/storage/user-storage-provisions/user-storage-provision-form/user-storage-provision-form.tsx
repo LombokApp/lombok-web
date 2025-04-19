@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { UserStorageProvisionInputDTO } from '@stellariscloud/api-client'
+import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
 import {
   s3LocationEndpointSchema,
   UserStorageProvisionTypeEnum,
@@ -18,8 +18,11 @@ import {
   Icons,
   Input,
 } from '@stellariscloud/ui-toolkit'
+import React from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
+
+export type MutationType = 'CREATE' | 'UPDATE'
 
 const formSchema = z.object({
   label: z.string().nonempty(),
@@ -38,19 +41,21 @@ export type UserStorageProvisionFormValues = z.infer<typeof formSchema>
 export const UserStorageProvisionForm = ({
   onSubmit,
   onCancel,
-  // value = {},
+  value: userStorageProvision,
   className,
   submitText = 'Save',
+  mutationType,
 }: {
   submitText?: string
   onSubmit: (values: UserStorageProvisionFormValues) => void
   onCancel: () => void
-  value?: Partial<UserStorageProvisionInputDTO>
+  value?: Partial<UserStorageProvisionDTO>
   className?: string
+  mutationType: MutationType
 }) => {
   const form = useForm<UserStorageProvisionFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: userStorageProvision ?? {
       label: '',
       description: '',
       provisionTypes: [
@@ -66,6 +71,28 @@ export const UserStorageProvisionForm = ({
     },
   })
 
+  React.useEffect(() => {
+    if (userStorageProvision?.id) {
+      form.reset(userStorageProvision)
+      form.setValue('secretAccessKey', '********')
+    } else {
+      form.reset({
+        label: '',
+        description: '',
+        provisionTypes: [
+          UserStorageProvisionTypeEnum.CONTENT,
+          UserStorageProvisionTypeEnum.METADATA,
+        ],
+        accessKeyId: '',
+        secretAccessKey: '',
+        bucket: '',
+        endpoint: '',
+        prefix: '',
+        region: '',
+      })
+    }
+  }, [userStorageProvision, form.reset, form])
+
   return (
     <div className={cn('grid gap-6', className)}>
       <Form {...form}>
@@ -73,10 +100,6 @@ export const UserStorageProvisionForm = ({
           onSubmit={(e) => {
             e.preventDefault()
             void form.trigger().then(() => {
-              console.log('form.formState.isValid:', {
-                valid: form.formState.isValid,
-                errors: form.formState.errors,
-              })
               if (form.formState.isValid) {
                 void form.handleSubmit(onSubmit)(e)
               }
@@ -134,6 +157,7 @@ export const UserStorageProvisionForm = ({
             <FormField
               control={form.control}
               name="secretAccessKey"
+              disabled={mutationType === 'UPDATE'}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Secret Access Key</FormLabel>

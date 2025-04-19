@@ -55,5 +55,19 @@ export const foldersApiHooks = createQueryHooks(
   sdkInstance.apiClient.foldersApi,
 )
 export const tasksApiHooks = createQueryHooks(sdkInstance.apiClient.tasksApi)
-
+export const serverEventsApiHooks = createQueryHooks(
+  sdkInstance.apiClient.serverEventsApi,
+)
+export const folderEventsApiHooks = createQueryHooks(
+  sdkInstance.apiClient.folderEventsApi,
+)
+export const serverAccessKeysApiHooks = createQueryHooks(
+  sdkInstance.apiClient.serverAccessKeysApi,
+)
+export const userStorageProvisionsApiHooks = createQueryHooks(
+  sdkInstance.apiClient.userStorageProvisionsApi,
+)
+export const accessKeysApiHooks = createQueryHooks(
+  sdkInstance.apiClient.accessKeysApi,
+)
 export const apiClient = sdkInstance.apiClient

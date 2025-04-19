@@ -167,7 +167,8 @@ export function DataTable<TData, TValue>({
           table={table}
         />
       )}
-      <div className="flex-1 overflow-hidden overflow-y-auto rounded-md">
+      {/* eslint-disable-next-line tailwindcss/no-custom-classname */}
+      <div className="special-scrollbar overflow-hidden overflow-y-auto rounded-md">
         <div className="rounded-md border border-foreground/10 bg-card">
           <Table>
             {!hideHeader && (

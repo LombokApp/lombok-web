@@ -8,9 +8,13 @@ import { foldersTable } from 'src/folders/entities/folder.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { User } from 'src/users/entities/user.entity'
+import { z } from 'zod'
 
 import { buildAccessKeyHashId } from './access-key.utils'
-import { AccessKeyDTO } from './dto/access-key.dto'
+import {
+  AccessKeyPublicDTO,
+  accessKeySchema,
+} from './dto/access-key-public.dto'
 import { RotateAccessKeyInputDTO } from './dto/rotate-access-key-input.dto'
 import { storageLocationsTable } from './entities/storage-location.entity'
 
@@ -206,6 +210,7 @@ export class StorageLocationService {
           eq(storageLocationsTable.providerType, 'USER'),
         ),
       })
+    // TODO: if user has deleted their folders, this could be undefined, right?
     if (!location) {
       throw new NotFoundException()
     }
@@ -221,10 +226,39 @@ export class StorageLocationService {
     return buckets
   }
 
+  async listAccessKeyBucketAsAdmin(actor: User, accessKeyHashId: string) {
+    const accessKey = await this.getServerAccessKeyAsAdmin(
+      actor,
+      accessKeyHashId,
+    )
+    const location =
+      await this.ormService.db.query.storageLocationsTable.findFirst({
+        where: and(
+          eq(storageLocationsTable.accessKeyHashId, accessKeyHashId),
+          eq(storageLocationsTable.providerType, 'SERVER'),
+        ),
+      })
+    console.log({ location })
+    // TODO: if no user has created a folder using this access key, this could be undefined, right?
+    if (!location) {
+      throw new NotFoundException()
+    }
+    const buckets = await this.s3Service.s3ListBuckets({
+      s3Client: configureS3Client({
+        accessKeyId: accessKey.accessKeyId,
+        secretAccessKey: location.secretAccessKey,
+        endpoint: accessKey.endpoint,
+        region: accessKey.region,
+      }),
+    })
+
+    return buckets
+  }
+
   async getAccessKeyAsUser(
     actor: User,
     accessKeyHashId: string,
-  ): Promise<AccessKeyDTO> {
+  ): Promise<AccessKeyPublicDTO> {
     const where = and(
       eq(storageLocationsTable.accessKeyHashId, accessKeyHashId),
       eq(storageLocationsTable.userId, actor.id),
@@ -263,7 +297,7 @@ export class StorageLocationService {
   async getServerAccessKeyAsAdmin(
     actor: User,
     accessKeyHashId: string,
-  ): Promise<AccessKeyDTO> {
+  ): Promise<z.infer<typeof accessKeySchema>> {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
@@ -282,6 +316,7 @@ export class StorageLocationService {
     }
     return {
       accessKeyHashId: accessKeyLocation.accessKeyHashId,
+      secretAccessKey: accessKeyLocation.secretAccessKey,
       accessKeyId: accessKeyLocation.accessKeyId,
       endpoint: accessKeyLocation.endpoint,
       endpointDomain: accessKeyLocation.endpointDomain,

@@ -1,4 +1,4 @@
-import type { AccessKeyDTO } from '@stellariscloud/api-client'
+import type { AccessKeyPublicDTO } from '@stellariscloud/api-client'
 import { Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
 
 const ROW_SPACING = 'px-4 py-3'
@@ -8,7 +8,7 @@ const VALUE_TEXT_COLOR = ''
 export function AccessKeyAttributeList({
   accessKey,
 }: {
-  accessKey?: AccessKeyDTO
+  accessKey?: AccessKeyPublicDTO
 }) {
   return (
     <Card>

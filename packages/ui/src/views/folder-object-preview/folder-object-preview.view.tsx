@@ -91,7 +91,7 @@ export const FolderObjectPreview = ({
         {file && dataURL && mediaType === MediaType.Image ? (
           <div className={cn('flex-1 flex flex-col justify-around')}>
             <img
-              className={cn(displayMode, isCoverView ? 'size-full' : '')}
+              className={cn(displayMode, 'size-full')}
               alt={fileName ?? objectKey}
               src={dataURL}
             />

@@ -1262,6 +1262,42 @@
         ]
       }
     },
+    "/api/v1/server/access-keys/{accessKeyHashId}/buckets": {
+      "get": {
+        "operationId": "listServerAccessKeyBuckets",
+        "parameters": [
+          {
+            "name": "accessKeyHashId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessKeyBucketsListResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List buckets for an access key.",
+        "tags": [
+          "ServerAccessKeys"
+        ]
+      }
+    },
     "/api/v1/server/settings": {
       "get": {
         "operationId": "getServerSettings",
@@ -2143,6 +2179,187 @@
         "summary": "List events.",
         "tags": [
           "ServerEvents"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/events/{eventId}": {
+      "get": {
+        "operationId": "getFolderEvent",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a folder event by id.",
+        "tags": [
+          "FolderEvents"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/events": {
+      "get": {
+        "operationId": "listFolderEvents",
+        "parameters": [
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt-asc",
+                "createdAt-desc",
+                "updatedAt-asc",
+                "updatedAt-desc"
+              ]
+            }
+          },
+          {
+            "name": "objectKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeTrace",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeDebug",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeInfo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeWarning",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeError",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventListResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List tasks.",
+        "tags": [
+          "FolderEvents"
         ]
       }
     },
@@ -4051,7 +4268,7 @@
           "inputParams": {}
         }
       },
-      "AccessKeyDTO": {
+      "AccessKeyPublicDTO": {
         "type": "object",
         "properties": {
           "accessKeyId": {

@@ -4,7 +4,6 @@ import {
   cn,
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -67,9 +66,6 @@ export function AccessKeyRotateForm({
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
-                <FormDescription>
-                  This is your public display name.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -81,22 +77,17 @@ export function AccessKeyRotateForm({
               <FormItem>
                 <FormLabel>Secret Access Key</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input {...field} type="password" />
                 </FormControl>
-                <FormDescription>
-                  This is your public display name.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
           <div>
             <Button className="w-full py-1.5" type="submit">
-              {form.formState.isValid &&
-                !form.formState.isSubmitting &&
-                !form.formState.isSubmitted && (
-                  <Icons.spinner className="mr-2 size-5 animate-spin" />
-                )}
+              {form.formState.isSubmitting && (
+                <Icons.spinner className="mr-2 size-5 animate-spin" />
+              )}
               Rotate
             </Button>
           </div>

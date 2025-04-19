@@ -76,8 +76,8 @@ export function getMenuList(pathname: string | undefined): Group[] {
           icon: ListChecks,
         },
         {
-          href: '/server/config',
-          label: 'Config',
+          href: '/server/settings',
+          label: 'Settings',
           icon: Settings,
         },
       ],

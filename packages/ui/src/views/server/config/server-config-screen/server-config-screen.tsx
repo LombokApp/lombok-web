@@ -18,7 +18,7 @@ import { Link } from 'react-router-dom'
 import { apiClient } from '../../../../services/api'
 import { ServerStorageConfigTab } from '../storage/server-storage-config-tab/server-storage-config-tab'
 
-export function ServerConfigScreen({ tab }: { tab: string }) {
+export function ServerSettingsScreen({ tab }: { tab: string }) {
   const [originalSettings, setOriginalSettings] =
     React.useState<Partial<SettingsGetResponse['settings']>>()
   const [settings, setSettings] =
@@ -84,19 +84,19 @@ export function ServerConfigScreen({ tab }: { tab: string }) {
         x-chunk="dashboard-04-chunk-0"
       >
         <Link
-          to="/server/config"
+          to="/server/settings"
           className={cn(tab === 'general' && 'text-primary font-semibold')}
         >
           General
         </Link>
         <Link
-          to="/server/config/storage"
+          to="/server/settings/storage"
           className={cn(tab === 'storage' && 'text-primary font-semibold')}
         >
           Storage
         </Link>
         <Link
-          to="/server/config/apps"
+          to="/server/settings/apps"
           className={cn(tab === 'apps' && 'text-primary font-semibold')}
         >
           Apps
