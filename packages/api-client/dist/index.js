@@ -4458,6 +4458,26 @@ var UsersApiAxiosParamCreator = function(configuration) {
         options: localVarRequestOptions
       };
     },
+    listActiveUserSessions: async (userId, options = {}) => {
+      assertParamExists("listActiveUserSessions", "userId", userId);
+      const localVarPath = `/api/v1/server/users/{userId}/sessions`.replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options };
+      const localVarHeaderParameter = {};
+      const localVarQueryParameter = {};
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions
+      };
+    },
     listUsers: async (offset, limit, isAdmin, sort, search, options = {}) => {
       const localVarPath = `/api/v1/server/users`;
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -4538,6 +4558,12 @@ var UsersApiFp = function(configuration) {
       const localVarOperationServerBasePath = operationServerMap["UsersApi.getUser"]?.[localVarOperationServerIndex]?.url;
       return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
     },
+    async listActiveUserSessions(userId, options) {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listActiveUserSessions(userId, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath = operationServerMap["UsersApi.listActiveUserSessions"]?.[localVarOperationServerIndex]?.url;
+      return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
+    },
     async listUsers(offset, limit, isAdmin, sort, search, options) {
       const localVarAxiosArgs = await localVarAxiosParamCreator.listUsers(offset, limit, isAdmin, sort, search, options);
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
@@ -4564,6 +4590,9 @@ var UsersApiFactory = function(configuration, basePath, axios2) {
     getUser(requestParameters, options) {
       return localVarFp.getUser(requestParameters.userId, options).then((request) => request(axios2, basePath));
     },
+    listActiveUserSessions(requestParameters, options) {
+      return localVarFp.listActiveUserSessions(requestParameters.userId, options).then((request) => request(axios2, basePath));
+    },
     listUsers(requestParameters = {}, options) {
       return localVarFp.listUsers(requestParameters.offset, requestParameters.limit, requestParameters.isAdmin, requestParameters.sort, requestParameters.search, options).then((request) => request(axios2, basePath));
     },
@@ -4582,6 +4611,9 @@ class UsersApi extends BaseAPI {
   }
   getUser(requestParameters, options) {
     return UsersApiFp(this.configuration).getUser(requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
+  }
+  listActiveUserSessions(requestParameters, options) {
+    return UsersApiFp(this.configuration).listActiveUserSessions(requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
   }
   listUsers(requestParameters = {}, options) {
     return UsersApiFp(this.configuration).listUsers(requestParameters.offset, requestParameters.limit, requestParameters.isAdmin, requestParameters.sort, requestParameters.search, options).then((request) => request(this.axios, this.basePath));
@@ -5112,6 +5144,41 @@ var schema = {
           }
         ],
         summary: "Delete a server user by id.",
+        tags: [
+          "Users"
+        ]
+      }
+    },
+    "/api/v1/server/users/{userId}/sessions": {
+      get: {
+        operationId: "listActiveUserSessions",
+        parameters: [
+          {
+            name: "userId",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          }
+        ],
+        responses: {
+          "200": {
+            description: "",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/UserSessionListResponse"
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            bearer: []
+          }
+        ],
         tags: [
           "Users"
         ]
@@ -7526,12 +7593,10 @@ var schema = {
         type: "object",
         properties: {
           name: {
-            type: "string",
-            minLength: 1
+            type: "string"
           },
           email: {
-            type: "string",
-            minLength: 1
+            type: "string"
           },
           isAdmin: {
             type: "boolean"
@@ -7623,6 +7688,56 @@ var schema = {
                 "isAdmin",
                 "username",
                 "permissions",
+                "createdAt",
+                "updatedAt"
+              ]
+            }
+          }
+        },
+        required: [
+          "meta",
+          "result"
+        ]
+      },
+      UserSessionListResponse: {
+        type: "object",
+        properties: {
+          meta: {
+            type: "object",
+            properties: {
+              totalCount: {
+                type: "number"
+              }
+            },
+            required: [
+              "totalCount"
+            ]
+          },
+          result: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                id: {
+                  type: "string",
+                  format: "uuid"
+                },
+                expiresAt: {
+                  type: "string",
+                  format: "date-time"
+                },
+                createdAt: {
+                  type: "string",
+                  format: "date-time"
+                },
+                updatedAt: {
+                  type: "string",
+                  format: "date-time"
+                }
+              },
+              required: [
+                "id",
+                "expiresAt",
                 "createdAt",
                 "updatedAt"
               ]

@@ -238,7 +238,6 @@ export class StorageLocationService {
           eq(storageLocationsTable.providerType, 'SERVER'),
         ),
       })
-    console.log({ location })
     // TODO: if no user has created a folder using this access key, this could be undefined, right?
     if (!location) {
       throw new NotFoundException()

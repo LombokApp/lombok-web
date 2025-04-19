@@ -2412,6 +2412,56 @@ export type UserListResponseResultInnerEmail = string;
 /**
  * 
  * @export
+ * @interface UserSessionListResponse
+ */
+export interface UserSessionListResponse {
+    /**
+     * 
+     * @type {UserListResponseMeta}
+     * @memberof UserSessionListResponse
+     */
+    'meta': UserListResponseMeta;
+    /**
+     * 
+     * @type {Array<UserSessionListResponseResultInner>}
+     * @memberof UserSessionListResponse
+     */
+    'result': Array<UserSessionListResponseResultInner>;
+}
+/**
+ * 
+ * @export
+ * @interface UserSessionListResponseResultInner
+ */
+export interface UserSessionListResponseResultInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof UserSessionListResponseResultInner
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserSessionListResponseResultInner
+     */
+    'expiresAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserSessionListResponseResultInner
+     */
+    'createdAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserSessionListResponseResultInner
+     */
+    'updatedAt': string;
+}
+/**
+ * 
+ * @export
  * @interface UserStorageProvisionDTO
  */
 export interface UserStorageProvisionDTO {
@@ -8165,6 +8215,43 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
         },
         /**
          * 
+         * @param {string} userId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listActiveUserSessions: async (userId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('listActiveUserSessions', 'userId', userId)
+            const localVarPath = `/api/v1/server/users/{userId}/sessions`
+                .replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary List the users.
          * @param {number} [offset] 
          * @param {number} [limit] 
@@ -8317,6 +8404,18 @@ export const UsersApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {string} userId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listActiveUserSessions(userId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserSessionListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listActiveUserSessions(userId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.listActiveUserSessions']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary List the users.
          * @param {number} [offset] 
          * @param {number} [limit] 
@@ -8388,6 +8487,15 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
         },
         /**
          * 
+         * @param {UsersApiListActiveUserSessionsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listActiveUserSessions(requestParameters: UsersApiListActiveUserSessionsRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserSessionListResponse> {
+            return localVarFp.listActiveUserSessions(requestParameters.userId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary List the users.
          * @param {UsersApiListUsersRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
@@ -8447,6 +8555,20 @@ export interface UsersApiGetUserRequest {
      * 
      * @type {string}
      * @memberof UsersApiGetUser
+     */
+    readonly userId: string
+}
+
+/**
+ * Request parameters for listActiveUserSessions operation in UsersApi.
+ * @export
+ * @interface UsersApiListActiveUserSessionsRequest
+ */
+export interface UsersApiListActiveUserSessionsRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof UsersApiListActiveUserSessions
      */
     readonly userId: string
 }
@@ -8555,6 +8677,17 @@ export class UsersApi extends BaseAPI {
      */
     public getUser(requestParameters: UsersApiGetUserRequest, options?: RawAxiosRequestConfig) {
         return UsersApiFp(this.configuration).getUser(requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {UsersApiListActiveUserSessionsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApi
+     */
+    public listActiveUserSessions(requestParameters: UsersApiListActiveUserSessionsRequest, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).listActiveUserSessions(requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

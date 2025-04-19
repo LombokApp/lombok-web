@@ -147,4 +147,11 @@ export class SessionService {
 
     return session
   }
+
+  async listActiveUserSessions(user: User) {
+    return this.ormService.db.query.sessionsTable.findMany({
+      where: eq(sessionsTable.userId, user.id),
+      orderBy: (sessions, { desc }) => [desc(sessions.createdAt)],
+    })
+  }
 }
