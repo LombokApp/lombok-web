@@ -1,4 +1,3 @@
-CREATE TYPE "public"."providerType" AS ENUM('SERVER', 'USER');--> statement-breakpoint
 CREATE TABLE "apps" (
 	"identifier" text PRIMARY KEY NOT NULL,
 	"publicKey" text NOT NULL,
@@ -46,6 +45,14 @@ CREATE TABLE "folder_objects" (
 	"updatedAt" timestamp NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "folder_shares" (
+	"folderId" uuid NOT NULL,
+	"userId" uuid NOT NULL,
+	"permissions" text[] NOT NULL,
+	"createdAt" text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	"updatedAt" text DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "folders" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
@@ -66,7 +73,7 @@ CREATE TABLE "server_settings" (
 CREATE TABLE "storage_locations" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"accessKeyHashId" text NOT NULL,
-	"providerType" "providerType" NOT NULL,
+	"providerType" text NOT NULL,
 	"label" text NOT NULL,
 	"endpoint" text NOT NULL,
 	"endpointDomain" text NOT NULL,
@@ -116,6 +123,7 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
+ALTER TABLE "folder_shares" ADD CONSTRAINT "folder_shares_folderId_folders_id_fk" FOREIGN KEY ("folderId") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folders" ADD CONSTRAINT "folders_contentLocationId_storage_locations_id_fk" FOREIGN KEY ("contentLocationId") REFERENCES "public"."storage_locations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folders" ADD CONSTRAINT "folders_metadataLocationId_storage_locations_id_fk" FOREIGN KEY ("metadataLocationId") REFERENCES "public"."storage_locations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folders" ADD CONSTRAINT "folders_ownerId_users_id_fk" FOREIGN KEY ("ownerId") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

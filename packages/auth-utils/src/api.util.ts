@@ -2,7 +2,12 @@ import * as z from 'zod'
 import type { ConfigurationParameters } from '@stellariscloud/api-client'
 import { Configuration } from '@stellariscloud/api-client'
 import type { AxiosError, AxiosInstance, AxiosResponse } from 'axios'
-import type { UseQueryOptions, UseQueryResult } from 'react-query'
+import type {
+  UseQueryOptions,
+  UseQueryResult,
+  UseMutationResult,
+  UseMutationOptions,
+} from '@tanstack/react-query'
 import { safeZodParse } from '@stellariscloud/utils'
 
 export const isAxiosError = (
@@ -65,6 +70,16 @@ export type UseApiQuery<TFn, TParams, TQueryFnData> = <TData = TQueryFnData>(
     'queryKey' | 'queryFn'
   >,
 ) => UseQueryResult<TData>
+
+export type UseApiMutation<TFn, TParams, TMutationFnData> = <
+  TData = TMutationFnData,
+>(
+  requestParameters: TParams,
+  options?: Omit<
+    UseMutationOptions<TMutationFnData, Error, TData, [TFn, TParams]>,
+    'mutationKey' | 'mutationFn'
+  >,
+) => UseMutationResult<TData>
 
 export type ApiQueryHooks<T> = {
   [TFn in keyof T as `use${Capitalize<string & TFn>}`]: UseApiQuery<

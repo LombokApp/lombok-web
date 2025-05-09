@@ -1,5 +1,5 @@
 {
-  "id": "85689b68-112c-47d2-8d09-ac543910a859",
+  "id": "7adf454e-2039-48a2-a641-072425ef00e5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -266,6 +266,65 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.folder_shares": {
+      "name": "folder_shares",
+      "schema": "",
+      "columns": {
+        "folderId": {
+          "name": "folderId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "permissions": {
+          "name": "permissions",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "folder_shares_folderId_folders_id_fk": {
+          "name": "folder_shares_folderId_folders_id_fk",
+          "tableFrom": "folder_shares",
+          "tableTo": "folders",
+          "columnsFrom": [
+            "folderId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.folders": {
       "name": "folders",
       "schema": "",
@@ -416,8 +475,7 @@
         },
         "providerType": {
           "name": "providerType",
-          "type": "providerType",
-          "typeSchema": "public",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -751,16 +809,7 @@
       "isRLSEnabled": false
     }
   },
-  "enums": {
-    "public.providerType": {
-      "name": "providerType",
-      "schema": "public",
-      "values": [
-        "SERVER",
-        "USER"
-      ]
-    }
-  },
+  "enums": {},
   "schemas": {},
   "sequences": {},
   "roles": {},

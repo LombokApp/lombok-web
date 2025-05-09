@@ -43,21 +43,26 @@ import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { CoreTaskService } from 'src/task/services/core-task.service'
 import { CoreTaskName } from 'src/task/task.constants'
-import type { User } from 'src/users/entities/user.entity'
+import { type User, usersTable } from 'src/users/entities/user.entity'
+import { UserNotFoundException } from 'src/users/exceptions/user-not-found.exception'
 import { UserService } from 'src/users/services/users.service'
 import { v4 as uuidV4 } from 'uuid'
 import * as z from 'zod'
 
+import { FolderShareDTO } from '../dto/folder-share.dto'
+import { FolderShareUsersListQueryParamsDTO } from '../dto/folder-shares-list-query-params.dto'
 import { FoldersListQueryParamsDTO } from '../dto/folders-list-query-params.dto'
 import type { Folder } from '../entities/folder.entity'
 import { foldersTable } from '../entities/folder.entity'
 import type { FolderObject } from '../entities/folder-object.entity'
 import { folderObjectsTable } from '../entities/folder-object.entity'
+import { folderSharesTable } from '../entities/folder-share.entity'
 import { FolderLocationNotFoundException } from '../exceptions/folder-location-not-found.exception'
 import { FolderMetadataWriteUnauthorisedException } from '../exceptions/folder-metadata-write-unauthorized.exception'
 import { FolderNotFoundException } from '../exceptions/folder-not-found.exception'
 import { FolderObjectNotFoundException } from '../exceptions/folder-object-not-found.exception'
 import { FolderPermissionUnauthorizedException } from '../exceptions/folder-permission-unauthorized.exception'
+import { FolderShareNotFoundException } from '../exceptions/folder-share-not-found.exception'
 
 export interface OutputUploadUrlsResponse {
   folderId: string
@@ -976,5 +981,133 @@ export class FolderService {
         updatedObject,
       )
     }
+  }
+  async getFolderShare(
+    actor: User,
+    folderId: string,
+    userId: string,
+  ): Promise<FolderShareDTO> {
+    const share = await this.ormService.db.query.folderSharesTable.findFirst({
+      where: and(
+        eq(folderSharesTable.userId, userId),
+        eq(folderSharesTable.folderId, folderId),
+      ),
+    })
+    if (!share) {
+      throw new FolderShareNotFoundException()
+    }
+    return share
+  }
+
+  async listFolderShares(
+    actor: User,
+    folderId: string,
+  ): Promise<{
+    result: { userId: string; permissions: string[] }[]
+    meta: { totalCount: number }
+  }> {
+    const { folder } = await this.getFolderAsUser(actor, folderId)
+    const shares = await this.ormService.db.query.folderSharesTable.findMany({
+      where: eq(folderSharesTable.folderId, folder.id),
+    })
+
+    return {
+      result: shares.map((share) => ({
+        userId: share.userId,
+        permissions: share.permissions,
+      })),
+      meta: { totalCount: shares.length },
+    }
+  }
+
+  async listFolderShareUsersAsUser(
+    actor: User,
+    folderId: string,
+    { offset, limit, search }: FolderShareUsersListQueryParamsDTO,
+  ) {
+    const { folder: _folder } = await this.getFolderAsUser(actor, folderId)
+
+    const where = search ? ilike(usersTable.username, `%${search}%`) : undefined
+
+    const users: User[] = await this.ormService.db.query.usersTable.findMany({
+      where,
+      offset: offset ?? 0,
+      limit: limit ?? 25,
+    })
+    const [usersCount] = await this.ormService.db
+      .select({ count: sql<string | null>`count(*)` })
+      .from(usersTable)
+      .where(where)
+
+    return {
+      result: users.map((user) => ({ id: user.id, username: user.username })),
+      meta: { totalCount: parseInt(usersCount.count ?? '0', 10) },
+    }
+  }
+
+  async upsertFolderShare(
+    actor: User,
+    folderId: string,
+    userId: string,
+    permissions: string[],
+  ): Promise<FolderShareDTO> {
+    const { folder } = await this.getFolderAsUser(actor, folderId)
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.id, userId),
+    })
+    if (!user) {
+      throw new UserNotFoundException()
+    }
+
+    const where = and(
+      eq(folderSharesTable.folderId, folder.id),
+      eq(folderSharesTable.userId, userId),
+    )
+
+    const existingShare =
+      await this.ormService.db.query.folderSharesTable.findFirst({
+        where,
+      })
+
+    if (existingShare) {
+      await this.ormService.db
+        .update(folderSharesTable)
+        .set({ permissions })
+        .where(where)
+    } else {
+      await this.ormService.db.insert(folderSharesTable).values({
+        folderId,
+        userId,
+        permissions,
+      })
+    }
+    return {
+      userId,
+      permissions,
+    }
+  }
+
+  async removeFolderShare(
+    actor: User,
+    folderId: string,
+    userId: string,
+  ): Promise<void> {
+    const { folder } = await this.getFolderAsUser(actor, folderId)
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.id, userId),
+    })
+    if (!user) {
+      throw new UserNotFoundException()
+    }
+
+    await this.ormService.db
+      .delete(folderSharesTable)
+      .where(
+        and(
+          eq(folderSharesTable.folderId, folder.id),
+          eq(folderSharesTable.userId, userId),
+        ),
+      )
+      .execute()
   }
 }

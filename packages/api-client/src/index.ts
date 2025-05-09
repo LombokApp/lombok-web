@@ -17,3 +17,4 @@ export * from "./api";
 export * from "./configuration";
 
 export * from './schema';
+export * from './schema-types.d';

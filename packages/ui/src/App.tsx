@@ -3,8 +3,8 @@ import './fonts/inter/inter.css'
 
 import { AuthContextProvider, useAuthContext } from '@stellariscloud/auth-utils'
 import { cn, Toaster } from '@stellariscloud/ui-toolkit'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
-import { QueryClient, QueryClientProvider } from 'react-query'
 import {
   BrowserRouter as Router,
   Route,

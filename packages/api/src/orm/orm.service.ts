@@ -13,6 +13,7 @@ import {
   foldersTable,
 } from '../folders/entities/folder.entity'
 import { folderObjectsTable } from '../folders/entities/folder-object.entity'
+import { folderSharesTable } from '../folders/entities/folder-share.entity'
 import { serverSettingsTable } from '../server/entities/server-configuration.entity'
 import { storageLocationsTable } from '../storage/entities/storage-location.entity'
 import { tasksTable } from '../task/entities/task.entity'
@@ -30,6 +31,7 @@ export const dbSchema = {
   appsTable,
   eventsTable,
   tasksTable,
+  folderSharesTable,
 }
 
 export const TEST_DB_PREFIX = 'stellaris_test__'
