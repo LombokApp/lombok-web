@@ -63,6 +63,9 @@ const maybeSendBatch = (folderId: string) => {
     folderId in presignedURLBufferContext
       ? presignedURLBufferContext[folderId]
       : { batchBuffer: [], lastTimeExecuted: Date.now() }
+  if (!folderBatch) {
+    return
+  }
   presignedURLBufferContext[folderId] = folderBatch
   if (
     folderBatch.batchBuffer.length > 0 &&
@@ -83,7 +86,7 @@ const maybeSendBatch = (folderId: string) => {
     folderBatch.lastTimeExecuted = Date.now()
     void foldersApi
       .createPresignedUrls({
-        folderId,
+            folderId,
         folderCreateSignedUrlInputDTOInner: toFetch.map((k) => ({
           method: SignedURLsRequestMethod.GET,
           objectIdentifier: k,
@@ -123,6 +126,9 @@ const requestDownloadUrlAndMaybeSendBatch = (
     folderId in presignedURLBufferContext
       ? presignedURLBufferContext[folderId]
       : { batchBuffer: [], lastTimeExecuted: Date.now() }
+  if (!folderBatch) {
+    return
+  }
   presignedURLBufferContext[folderId] = folderBatch
   presignedURLBufferContext[folderId].batchBuffer.push(objectIdentifier)
   if (presignedURLBufferContext[folderId].batchBuffer.length === 1) {
@@ -244,7 +250,11 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
         ],
       })
       .then((response) => response.data)
-      .then(async ({ urls: [uploadSlot] }) => {
+      .then(async ({ urls }) => {
+        const uploadSlot = urls[0]
+        if (!uploadSlot) {
+          return
+        }
         await axios.put(uploadSlot, uploadFile, {
           headers: {
             'Content-Type': uploadFile.type,

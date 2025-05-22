@@ -16,11 +16,11 @@ export const sdkInstance = new StellarisCloudAppBrowserSdk({
   basePath,
 })
 
-const fetchClient = createFetchClient<paths>({
+export const $apiClient = createFetchClient<paths>({
   baseUrl: basePath,
 })
 
-export const $api = createClient(fetchClient)
+export const $api = createClient($apiClient)
 export const createApiHooks = <
   T extends StellarisCloudAPI[keyof StellarisCloudAPI],
 >(
