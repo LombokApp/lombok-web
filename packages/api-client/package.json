@@ -7,9 +7,9 @@
     "clean": "rm -rf ./dist"
   },
   "devDependencies": {
-    "axios": "1.7.9"
+    "axios": "1.9.0"
   },
   "peerDependencies": {
-    "axios": "1.7.9"
+    "axios": "1.9.0"
   }
 }
