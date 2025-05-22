@@ -7,8 +7,8 @@ export const streamUploadFile = async (
   uploadUrl: string,
   mimeType?: string,
 ) => {
-  const readmeStream = fs.createReadStream(filepath)
-  readmeStream.on('error', (e: any) => {
+  const stream = fs.createReadStream(filepath)
+  stream.on('error', (e: any) => {
     if (e.isAxiosError) {
       console.log({ status: e.status, json: e.toJSON() })
     }
@@ -16,7 +16,7 @@ export const streamUploadFile = async (
   })
   const { size } = fs.statSync(filepath)
   console.log('Uploading file of size %d bytes to "%s":', size, uploadUrl)
-  await axios.put(uploadUrl, readmeStream, {
+  await axios.put(uploadUrl, stream, {
     headers: {
       ...(mimeType ? { 'Content-Type': mimeType } : {}),
       'Content-Length': size,
