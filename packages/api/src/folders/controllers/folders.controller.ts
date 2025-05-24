@@ -108,16 +108,16 @@ export class FoldersController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    const result = await this.folderService.listFoldersAsUser(
+    const { result, meta } = await this.folderService.listFoldersAsUser(
       req.user,
       queryParams,
     )
     return {
-      result: result.result.map(({ folder, permissions }) => ({
+      result: result.map(({ folder, permissions }) => ({
         permissions,
         folder: transformFolderToDTO(folder),
       })),
-      meta: result.meta,
+      meta,
     }
   }
 

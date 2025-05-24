@@ -25,7 +25,16 @@ import {
   objectIdentifierToObjectKey,
   safeZodParse,
 } from '@stellariscloud/utils'
-import { and, eq, ilike, SQL, sql } from 'drizzle-orm'
+import {
+  aliasedTable,
+  and,
+  eq,
+  ilike,
+  isNotNull,
+  or,
+  SQL,
+  sql,
+} from 'drizzle-orm'
 import mime from 'mime'
 import { APP_NS_PREFIX, AppService } from 'src/app/services/app.service'
 import { parseSort } from 'src/core/utils/sort.util'
@@ -376,33 +385,75 @@ export class FolderService {
       sort = FolderSort.CreatedAtDesc,
     }: FoldersListQueryParamsDTO,
   ) {
-    const conditions: (SQL | undefined)[] = [eq(foldersTable.ownerId, actor.id)]
+    const contentLocationTable = aliasedTable(
+      storageLocationsTable,
+      'contentLocation',
+    )
+    const metadataLocationTable = aliasedTable(
+      storageLocationsTable,
+      'metadataLocation',
+    )
 
-    if (search) {
-      conditions.push(ilike(foldersTable.name, `%${search}%`))
-    }
-
-    const where = and(...conditions)
-
-    const folders: Folder[] =
-      await this.ormService.db.query.foldersTable.findMany({
-        where,
-        offset: offset ?? 0,
-        limit: limit ?? 25,
-        orderBy: parseSort(foldersTable, sort),
-        with: {
-          contentLocation: true,
-          metadataLocation: true,
-        },
+    const folders = await this.ormService.db
+      .select({
+        id: foldersTable.id,
+        name: foldersTable.name,
+        contentLocationId: foldersTable.contentLocationId,
+        metadataLocationId: foldersTable.metadataLocationId,
+        ownerId: foldersTable.ownerId,
+        createdAt: foldersTable.createdAt,
+        updatedAt: foldersTable.updatedAt,
+        contentLocation: contentLocationTable,
+        metadataLocation: metadataLocationTable,
+        folderShares: folderSharesTable,
+        totalCount: sql<string>`count(*) over()`,
       })
-    const [foldersCount] = await this.ormService.db
-      .select({ count: sql<string | null>`count(*)` })
       .from(foldersTable)
-      .where(where)
-
+      .leftJoin(
+        folderSharesTable,
+        and(
+          eq(folderSharesTable.folderId, foldersTable.id),
+          eq(folderSharesTable.userId, actor.id),
+        ),
+      )
+      .leftJoin(
+        contentLocationTable,
+        eq(contentLocationTable.id, foldersTable.contentLocationId),
+      )
+      .leftJoin(
+        metadataLocationTable,
+        eq(metadataLocationTable.id, foldersTable.metadataLocationId),
+      )
+      .where(
+        and(
+          or(
+            eq(foldersTable.ownerId, actor.id),
+            isNotNull(folderSharesTable.userId),
+          ),
+          search ? ilike(foldersTable.name, `%${search}%`) : undefined,
+        ),
+      )
+      .orderBy(parseSort(foldersTable, sort))
+      .limit(limit ?? 25)
+      .offset(offset ?? 0)
+    console.log(folders[0]?.totalCount, typeof folders[0]?.totalCount)
     return {
-      result: folders.map((folder) => ({ folder, permissions: [] })),
-      meta: { totalCount: parseInt(foldersCount.count ?? '0', 10) },
+      result: folders.map(({ totalCount, ...folder }) => ({
+        folder: {
+          ...folder,
+          contentLocation: folder.contentLocation as NonNullable<
+            typeof folder.contentLocation
+          >,
+          metadataLocation: folder.metadataLocation as NonNullable<
+            typeof folder.metadataLocation
+          >,
+        },
+        permissions:
+          folder.ownerId === actor.id
+            ? OWNER_PERMISSIONS
+            : (folder.folderShares?.permissions ?? []),
+      })),
+      meta: { totalCount: parseInt(folders[0]?.totalCount ?? '0', 10) },
     }
   }
 

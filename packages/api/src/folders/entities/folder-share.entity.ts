@@ -1,5 +1,5 @@
-import { sql } from 'drizzle-orm'
-import { pgTable, text, uuid } from 'drizzle-orm/pg-core'
+import { relations, sql } from 'drizzle-orm'
+import { pgTable, text, uuid, index, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { foldersTable } from './folder.entity'
 import { FolderPermissionName } from '@stellariscloud/types'
@@ -22,11 +22,20 @@ export const folderSharesTable = pgTable(
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
   },
-  (table) => ({
-    // Index for user lookups
-    userIdx: [table.userId],
-    // Unique constraint for folder-user pairs
-    folderUserUnique: [table.folderId, table.userId],
+  (table) => [
+    index('user_idx').on(table.userId),
+    uniqueIndex('folder_user_unique').on(table.folderId, table.userId),
+  ],
+)
+
+export const folderSharesRelations = relations(
+  folderSharesTable,
+  ({ one }) => ({
+    folder: one(foldersTable, {
+      fields: [folderSharesTable.folderId],
+      references: [foldersTable.id],
+      relationName: 'folderShares',
+    }),
   }),
 )
 

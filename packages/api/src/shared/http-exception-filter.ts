@@ -28,7 +28,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         'API EXCEPTION (%s %s):',
         request.method,
         request.url,
-        JSON.stringify(exception, null, 2),
+        exception,
       )
     }
 
