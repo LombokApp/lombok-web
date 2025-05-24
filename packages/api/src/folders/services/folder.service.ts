@@ -519,7 +519,6 @@ export class FolderService {
     folder: Folder
     permissions: FolderPermissionName[]
   }> {
-    // TODO: get user specific sharing config if user is not the owner
     const folder = await this.ormService.db.query.foldersTable.findFirst({
       where: eq(foldersTable.id, folderId),
       with: {
@@ -528,18 +527,33 @@ export class FolderService {
       },
     })
 
-    const isOwner = folder?.ownerId === actor.id
-    // const share = folder?.shares.getItems()?.find((s) => s.user?.id === userId)
+    if (!folder) {
+      throw new FolderNotFoundException()
+    }
 
-    if (!folder || !isOwner) {
+    const isOwner = folder.ownerId === actor.id
+    if (isOwner) {
+      return {
+        folder,
+        permissions: OWNER_PERMISSIONS,
+      }
+    }
+
+    // If not owner, check for share permissions
+    const share = await this.ormService.db.query.folderSharesTable.findFirst({
+      where: and(
+        eq(folderSharesTable.folderId, folder.id),
+        eq(folderSharesTable.userId, actor.id),
+      ),
+    })
+
+    if (!share) {
       throw new FolderNotFoundException()
     }
 
     return {
       folder,
-      permissions: OWNER_PERMISSIONS,
-      // ? OWNER_PERMISSIONS
-      // : share?.shareConfiguration.permissions ?? [],
+      permissions: share.permissions as FolderPermissionName[],
     }
   }
 
