@@ -76,6 +76,9 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
         userId: modalData.user.id,
         userUpdateInputDTO: {
           ...values,
+          name: values.name?.length ? values.name : null,
+          email: values.email?.length ? values.email : null,
+          password: values.password.length ? values.password : undefined,
         },
       })
     }

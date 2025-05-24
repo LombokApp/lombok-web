@@ -41,15 +41,15 @@ services:
     volumes:
       - ./.test-data/minio:/data
     ports:
-      - 9001:9001
-      - 9000:9000
+      - 9003:9001
+      - 9002:9000
     healthcheck:
       test: ['CMD', 'mc', 'ready', 'local']
       interval: 1s
       timeout: 1s
       retries: 5
     environment:
-      - MINIO_DOMAIN=miniotest:9000
+      - MINIO_DOMAIN=miniotest:9002
       # - MINIO_BROWSER=off
   minioclienttest:
     image: minio/mc

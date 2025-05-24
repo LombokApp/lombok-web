@@ -802,8 +802,8 @@ export interface components {
             };
         };
         UserUpdateInputDTO: {
-            name?: string;
-            email?: string;
+            name?: string | null;
+            email?: string | null;
             isAdmin?: boolean;
             username?: string;
             password?: string;

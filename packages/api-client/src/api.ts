@@ -2840,13 +2840,13 @@ export interface UserUpdateInputDTO {
      * @type {string}
      * @memberof UserUpdateInputDTO
      */
-    'name'?: string;
+    'name'?: string | null;
     /**
      * 
      * @type {string}
      * @memberof UserUpdateInputDTO
      */
-    'email'?: string;
+    'email'?: string | null;
     /**
      * 
      * @type {boolean}

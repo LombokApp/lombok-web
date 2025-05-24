@@ -21,13 +21,13 @@ export type MutationType = 'CREATE' | 'UPDATE'
 const userFormSchema = z.object({
   username: z.string().nonempty(),
   name: z.string().optional(),
-  email: z.string().email('Invalid email address').optional(),
+  email: z.string().email('Invalid email address').optional().or(z.literal('')),
   isAdmin: z.boolean(),
   permissions: z.array(z.string()),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
-    .optional(),
+    .or(z.literal('')),
 })
 
 export type UserFormValues = z.infer<typeof userFormSchema>
