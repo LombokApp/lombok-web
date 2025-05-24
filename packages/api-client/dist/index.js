@@ -2494,6 +2494,18 @@ var FolderObjectListResponseResultInnerMediaTypeEnum = {
   Document: "DOCUMENT",
   Unknown: "UNKNOWN"
 };
+var FolderShareCreateInputDTOPermissionsEnum = {
+  FolderReindex: "FOLDER_REINDEX",
+  FolderForget: "FOLDER_FORGET",
+  ObjectEdit: "OBJECT_EDIT",
+  ObjectManage: "OBJECT_MANAGE"
+};
+var FolderShareGetResponseSharePermissionsEnum = {
+  FolderReindex: "FOLDER_REINDEX",
+  FolderForget: "FOLDER_FORGET",
+  ObjectEdit: "OBJECT_EDIT",
+  ObjectManage: "OBJECT_MANAGE"
+};
 var UserStorageProvisionDTOProvisionTypesEnum = {
   Content: "CONTENT",
   Metadata: "METADATA",
@@ -9582,7 +9594,13 @@ var schema = {
               permissions: {
                 type: "array",
                 items: {
-                  type: "string"
+                  type: "string",
+                  enum: [
+                    "FOLDER_REINDEX",
+                    "FOLDER_FORGET",
+                    "OBJECT_EDIT",
+                    "OBJECT_MANAGE"
+                  ]
                 }
               }
             },
@@ -9622,7 +9640,13 @@ var schema = {
                 permissions: {
                   type: "array",
                   items: {
-                    type: "string"
+                    type: "string",
+                    enum: [
+                      "FOLDER_REINDEX",
+                      "FOLDER_FORGET",
+                      "OBJECT_EDIT",
+                      "OBJECT_MANAGE"
+                    ]
                   }
                 }
               },
@@ -9682,7 +9706,13 @@ var schema = {
           permissions: {
             type: "array",
             items: {
-              type: "string"
+              type: "string",
+              enum: [
+                "FOLDER_REINDEX",
+                "FOLDER_FORGET",
+                "OBJECT_EDIT",
+                "OBJECT_MANAGE"
+              ]
             }
           }
         },
@@ -11532,6 +11562,8 @@ export {
   FoldersApiFactory,
   FoldersApiAxiosParamCreator,
   FoldersApi,
+  FolderShareGetResponseSharePermissionsEnum,
+  FolderShareCreateInputDTOPermissionsEnum,
   FolderObjectListResponseResultInnerMediaTypeEnum,
   FolderObjectDTOMediaTypeEnum,
   FolderObjectDTOContentAttributesValueMediaTypeEnum,

@@ -1417,8 +1417,18 @@ export interface FolderShareCreateInputDTO {
      * @type {Array<string>}
      * @memberof FolderShareCreateInputDTO
      */
-    'permissions': Array<string>;
+    'permissions': Array<FolderShareCreateInputDTOPermissionsEnum>;
 }
+
+export const FolderShareCreateInputDTOPermissionsEnum = {
+    FolderReindex: 'FOLDER_REINDEX',
+    FolderForget: 'FOLDER_FORGET',
+    ObjectEdit: 'OBJECT_EDIT',
+    ObjectManage: 'OBJECT_MANAGE'
+} as const;
+
+export type FolderShareCreateInputDTOPermissionsEnum = typeof FolderShareCreateInputDTOPermissionsEnum[keyof typeof FolderShareCreateInputDTOPermissionsEnum];
+
 /**
  * 
  * @export
@@ -1449,8 +1459,18 @@ export interface FolderShareGetResponseShare {
      * @type {Array<string>}
      * @memberof FolderShareGetResponseShare
      */
-    'permissions': Array<string>;
+    'permissions': Array<FolderShareGetResponseSharePermissionsEnum>;
 }
+
+export const FolderShareGetResponseSharePermissionsEnum = {
+    FolderReindex: 'FOLDER_REINDEX',
+    FolderForget: 'FOLDER_FORGET',
+    ObjectEdit: 'OBJECT_EDIT',
+    ObjectManage: 'OBJECT_MANAGE'
+} as const;
+
+export type FolderShareGetResponseSharePermissionsEnum = typeof FolderShareGetResponseSharePermissionsEnum[keyof typeof FolderShareGetResponseSharePermissionsEnum];
+
 /**
  * 
  * @export

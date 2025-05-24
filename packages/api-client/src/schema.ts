@@ -4591,7 +4591,13 @@ export const schema = {
               "permissions": {
                 "type": "array",
                 "items": {
-                  "type": "string"
+                  "type": "string",
+                  "enum": [
+                    "FOLDER_REINDEX",
+                    "FOLDER_FORGET",
+                    "OBJECT_EDIT",
+                    "OBJECT_MANAGE"
+                  ]
                 }
               }
             },
@@ -4631,7 +4637,13 @@ export const schema = {
                 "permissions": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                      "FOLDER_REINDEX",
+                      "FOLDER_FORGET",
+                      "OBJECT_EDIT",
+                      "OBJECT_MANAGE"
+                    ]
                   }
                 }
               },
@@ -4691,7 +4703,13 @@ export const schema = {
           "permissions": {
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "FOLDER_REINDEX",
+                "FOLDER_FORGET",
+                "OBJECT_EDIT",
+                "OBJECT_MANAGE"
+              ]
             }
           }
         },

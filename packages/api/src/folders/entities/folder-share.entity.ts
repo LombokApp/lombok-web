@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import { pgTable, text, uuid } from 'drizzle-orm/pg-core'
 
 import { foldersTable } from './folder.entity'
+import { FolderPermissionName } from '@stellariscloud/types'
 
 export const folderSharesTable = pgTable(
   'folder_shares',
@@ -10,7 +11,10 @@ export const folderSharesTable = pgTable(
       .references(() => foldersTable.id)
       .notNull(),
     userId: uuid('userId').notNull(),
-    permissions: text('permissions').array().notNull(),
+    permissions: text('permissions')
+      .array()
+      .notNull()
+      .$type<FolderPermissionName[]>(),
     createdAt: text('createdAt')
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),

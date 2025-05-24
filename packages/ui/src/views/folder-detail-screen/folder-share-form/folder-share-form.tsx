@@ -3,6 +3,8 @@ import type {
   FolderShareListResponse,
   FolderShareUserListResponse,
 } from '@stellariscloud/api-client'
+import type { FolderPermissionName } from '@stellariscloud/types'
+import { FolderPermissionEnum } from '@stellariscloud/types'
 import {
   Button,
   cn,
@@ -25,12 +27,11 @@ import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
 const AVAILABLE_PERMISSIONS = [
-  { label: 'Read', value: 'read' },
-  { label: 'Write', value: 'write' },
-  { label: 'Delete', value: 'delete' },
-  { label: 'Share', value: 'share' },
-  { label: 'Admin', value: 'admin' },
-] as const
+  { label: 'Reindex', value: FolderPermissionEnum.FOLDER_REINDEX },
+  { label: 'Forget', value: FolderPermissionEnum.FOLDER_FORGET },
+  { label: 'Edit Objects', value: FolderPermissionEnum.OBJECT_EDIT },
+  { label: 'Manage Objects', value: FolderPermissionEnum.OBJECT_MANAGE },
+]
 
 type PermissionValue = (typeof AVAILABLE_PERMISSIONS)[number]['value']
 
@@ -38,7 +39,7 @@ type PermissionValue = (typeof AVAILABLE_PERMISSIONS)[number]['value']
 const shareFormSchema = z.object({
   userId: z.string().nonempty('User ID is required'),
   permissions: z
-    .array(z.string().min(1)) // Ensure permissions strings are not empty
+    .array(z.nativeEnum(FolderPermissionEnum))
     .min(1, 'At least one permission is required'),
 })
 
@@ -70,12 +71,12 @@ interface FolderShareFormProps {
     }>
   >
   upsertFolderShareMutation: UseMutationResult<
-    { share: { userId: string; permissions: string[] } },
+    { share: { userId: string; permissions: FolderPermissionName[] } },
     never,
     FetchOptions<{
       parameters: { path: { folderId: string; userId: string } }
       requestBody: {
-        content: { 'application/json': { permissions: string[] } }
+        content: { 'application/json': { permissions: FolderPermissionName[] } }
       }
     }>
   >
@@ -189,7 +190,7 @@ export const FolderShareForm = ({
     } else {
       newSet.add(permissionValue)
     }
-    const newPermissionsArray = Array.from(newSet) as PermissionValue[]
+    const newPermissionsArray = Array.from(newSet)
     addForm.setValue('permissions', newPermissionsArray, {
       shouldValidate: true,
     })

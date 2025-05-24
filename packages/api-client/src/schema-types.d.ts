@@ -1220,7 +1220,7 @@ export interface components {
             share: {
                 /** Format: uuid */
                 userId: string;
-                permissions: string[];
+                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
             };
         };
         FolderShareListResponse: {
@@ -1230,7 +1230,7 @@ export interface components {
             result: {
                 /** Format: uuid */
                 userId: string;
-                permissions: string[];
+                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
             }[];
         };
         FolderShareUserListResponse: {
@@ -1243,7 +1243,7 @@ export interface components {
             }[];
         };
         FolderShareCreateInputDTO: {
-            permissions: string[];
+            permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
         };
         AccessKeyPublicDTO: {
             accessKeyId: string;

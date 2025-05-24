@@ -1017,7 +1017,7 @@ export class FolderService {
     actor: User,
     folderId: string,
   ): Promise<{
-    result: { userId: string; permissions: string[] }[]
+    result: { userId: string; permissions: FolderPermissionName[] }[]
     meta: { totalCount: number }
   }> {
     const { folder } = await this.getFolderAsUser(actor, folderId)
@@ -1063,7 +1063,7 @@ export class FolderService {
     actor: User,
     folderId: string,
     userId: string,
-    permissions: string[],
+    permissions: FolderPermissionName[],
   ): Promise<FolderShareDTO> {
     const { folder } = await this.getFolderAsUser(actor, folderId)
     const user = await this.ormService.db.query.usersTable.findFirst({
