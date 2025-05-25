@@ -1,6 +1,7 @@
 import {
   ArrowPathIcon,
   ArrowUpOnSquareIcon,
+  ShareIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline'
 import type { FolderObjectDTO } from '@stellariscloud/api-client'
@@ -38,6 +39,7 @@ import { useFolderContext } from '../../pages/folders/folder.context'
 import { apiClient, foldersApiHooks } from '../../services/api'
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
 import { folderObjectsTableColumns } from './folder-objects-table-columns'
+import { FolderShareModal } from './folder-share-modal/folder-share-modal'
 
 export const FolderDetailScreen = () => {
   const navigate = useNavigate()
@@ -194,6 +196,54 @@ export const FolderDetailScreen = () => {
     [setSearchParams, searchParams],
   )
 
+  const [shareModalData, setShareModalData] = React.useState<{
+    isOpen: boolean
+    shares?: { userId: string; permissions: string[] }[]
+  }>({
+    isOpen: false,
+  })
+
+  // Add this after other API hooks
+  const listFolderSharesQuery = foldersApiHooks.useListFolderShares({
+    folderId,
+  })
+
+  const handleShareFolder = React.useCallback(async () => {
+    if (!shareModalData.isOpen) {
+      try {
+        const shares = await listFolderSharesQuery.refetch()
+        if (shares.data?.result) {
+          setShareModalData({
+            isOpen: true,
+            shares: shares.data.result,
+          })
+        }
+      } catch (error) {
+        console.error('Failed to fetch folder shares:', error)
+      }
+    }
+  }, [shareModalData.isOpen, listFolderSharesQuery])
+
+  const handleUpdateShares = React.useCallback(
+    async (values: { shares: { userId: string; permissions: string[] }[] }) => {
+      try {
+        // Update each share individually
+        for (const share of values.shares) {
+          await apiClient.foldersApi.upsertFolderShare({
+            folderId,
+            userId: share.userId,
+            folderShareCreateInputDTO: {
+              permissions: share.permissions,
+            },
+          })
+        }
+      } catch (error) {
+        console.error('Failed to update folder shares:', error)
+      }
+    },
+    [folderId],
+  )
+
   return (
     <>
       {uploadModalData.isOpen && (
@@ -217,6 +267,14 @@ export const FolderDetailScreen = () => {
           modalData={reindexFolderModalData}
           setModalData={setReindexFolderModalData}
           onSubmit={handleReindexFolder}
+        />
+      )}
+      {shareModalData.isOpen && (
+        <FolderShareModal
+          folderId={folderId}
+          modalData={shareModalData}
+          setModalData={setShareModalData}
+          onSubmit={handleUpdateShares}
         />
       )}
       <div className="relative flex size-full flex-1 justify-around">
@@ -318,6 +376,13 @@ export const FolderDetailScreen = () => {
                                 Reindex
                               </DropdownMenuItem>
                             )}
+                            <DropdownMenuItem
+                              onClick={() => void handleShareFolder()}
+                              className="gap-2"
+                            >
+                              <ShareIcon className="size-5" />
+                              Share
+                            </DropdownMenuItem>
                             {folderContext.folderPermissions?.includes(
                               FolderPermissionEnum.FOLDER_FORGET,
                             ) && (

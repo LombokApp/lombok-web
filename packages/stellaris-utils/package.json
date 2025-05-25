@@ -20,7 +20,7 @@
     "ts-jest": "29.2.5"
   },
   "dependencies": {
-    "axios": "1.7.9",
+    "axios": "1.9.0",
     "fast-json-stable-stringify": "2.1.0",
     "fast-memoize": "2.5.2",
     "utility-types": "3.11.0"

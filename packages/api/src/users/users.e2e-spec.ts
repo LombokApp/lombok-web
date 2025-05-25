@@ -118,6 +118,62 @@ describe('Users', () => {
     ).toBe(false)
   })
 
+  it(`should remove a user's email`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule, {
+      username: 'initialusername',
+      name: 'initialname',
+      password: '123',
+      admin: true,
+    })
+
+    const newUserResponse = await apiClient
+      .usersApi({ accessToken })
+      .createUser({
+        userCreateInputDTO: {
+          isAdmin: false,
+          password: 'testpass',
+          username: 'testusername',
+          email: 'email@example.com',
+          name: 'testname',
+          emailVerified: true,
+          permissions: [],
+        },
+      })
+    expect(newUserResponse.status).toEqual(201)
+
+    expect(newUserResponse.data.user.name).toEqual('testname')
+    expect(newUserResponse.data.user.username).toEqual('testusername')
+    expect(newUserResponse.data.user.email).toEqual('email@example.com')
+    expect(newUserResponse.data.user.isAdmin).toEqual(false)
+    expect(
+      newUserResponse.data.user.createdAt ===
+        newUserResponse.data.user.updatedAt,
+    ).toBe(true)
+
+    const setEmailUpdateUserResponse = await apiClient
+      .usersApi({ accessToken })
+      .updateUser({
+        userId: newUserResponse.data.user.id,
+        userUpdateInputDTO: {
+          email: null,
+        },
+      })
+
+    expect(setEmailUpdateUserResponse.status).toEqual(200)
+    expect(setEmailUpdateUserResponse.data.user.name).toEqual('testname')
+    expect(setEmailUpdateUserResponse.data.user.username).toEqual(
+      'testusername',
+    )
+    expect(setEmailUpdateUserResponse.data.user.email).toBeNull()
+    expect(setEmailUpdateUserResponse.data.user.isAdmin).toEqual(false)
+    expect(
+      setEmailUpdateUserResponse.data.user.createdAt ===
+        setEmailUpdateUserResponse.data.user.updatedAt,
+    ).toBe(false)
+  })
+
   it(`should update a user's name only`, async () => {
     const {
       session: { accessToken },

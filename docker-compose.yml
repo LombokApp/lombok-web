@@ -13,45 +13,41 @@ services:
     command: ['bun', '--cwd', 'packages/api', 'dev']
     ports:
       - 3000:3000
-  # minio:
-  #   image: minio/minio
-  #   command: server /data --address "minio:9000" --console-address ":9001"
-  #   volumes:
-  #     - ./.docker/minio/:/data
-  #   ports:
-  #     - 9001:${MINIO_CONSOLE_PORT:-0}
-  #     - 9000:9000
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://minio:9000/minio/health/live"]
-  #     interval: 3s
-  #     timeout: 2s
-  #     retries: 10
-  #   environment:
-  #     - MINIO_DOMAIN=minio:9000
-  # minioclient:
-  #   image: minio/mc
-  #   depends_on:
-  #     minio:
-  #       condition: service_healthy
-  #   restart: on-failure
-  #   entrypoint: >
-  #     /bin/sh -c "
-  #     /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadmin;
+  minio:
+    image: minio/minio
+    command: server /data --address "minio:9000" --console-address ":9001"
+    volumes:
+      - ./.docker/minio/:/data
+    ports:
+      - 9001:${MINIO_CONSOLE_PORT:-9001}
+      - 9000:9000
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://minio:9000/minio/health/live']
+      interval: 3s
+      timeout: 2s
+      retries: 10
+    environment:
+      - MINIO_DOMAIN=minio:9000
+  minioclient:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: on-failure
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadmin;
 
-  #     /usr/bin/mc rm -r --force myminio/uploads;
-  #     /usr/bin/mc rm -r --force myminio/blockchain-cache;
-  #     /usr/bin/mc rm -r --force myminio/snapshot-payloads;
-  #     /usr/bin/mc mb myminio/uploads;
-  #     /usr/bin/mc mb myminio/blockchain-cache;
-  #     /usr/bin/mc mb myminio/snapshot-payloads;
+      /usr/bin/mc rm -r --force myminio/stellaris-dev;
+      /usr/bin/mc mb myminio/stellaris-dev;
 
-  #     /usr/bin/mc admin user add myminio ${S3_ACCESS_KEY_ID} ${S3_SECRET_ACCESS_KEY};
-  #     /usr/bin/mc admin policy set myminio readwrite user=${S3_ACCESS_KEY_ID};
+      /usr/bin/mc admin user add myminio ${DEV_S3_ACCESS_KEY_ID} ${DEV_S3_SECRET_ACCESS_KEY};
+      /usr/bin/mc admin policy attach myminio readwrite --user ${DEV_S3_ACCESS_KEY_ID};
 
-  #     # /usr/bin/mc admin trace -v -a myminio
+      /usr/bin/mc admin trace -v -a myminio
 
-  #     exit 0;
-  #     "
+      exit 0;
+      "
   db:
     image: postgres
     ports:
@@ -63,9 +59,3 @@ services:
       - POSTGRES_DB=${DB_NAME}
     volumes:
       - ./.docker/postgres/:/var/lib/postgresql/data
-  swagger:
-    image: swaggerapi/swagger-ui
-    ports:
-      - 8080:8080
-    volumes:
-      - ./packages/api/src/generated-openapi.json:/app/swagger.json

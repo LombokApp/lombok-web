@@ -25,7 +25,16 @@ import {
   objectIdentifierToObjectKey,
   safeZodParse,
 } from '@stellariscloud/utils'
-import { and, eq, ilike, SQL, sql } from 'drizzle-orm'
+import {
+  aliasedTable,
+  and,
+  eq,
+  ilike,
+  isNotNull,
+  or,
+  SQL,
+  sql,
+} from 'drizzle-orm'
 import mime from 'mime'
 import { APP_NS_PREFIX, AppService } from 'src/app/services/app.service'
 import { parseSort } from 'src/core/utils/sort.util'
@@ -43,21 +52,26 @@ import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { CoreTaskService } from 'src/task/services/core-task.service'
 import { CoreTaskName } from 'src/task/task.constants'
-import type { User } from 'src/users/entities/user.entity'
+import { type User, usersTable } from 'src/users/entities/user.entity'
+import { UserNotFoundException } from 'src/users/exceptions/user-not-found.exception'
 import { UserService } from 'src/users/services/users.service'
 import { v4 as uuidV4 } from 'uuid'
 import * as z from 'zod'
 
+import { FolderShareDTO } from '../dto/folder-share.dto'
+import { FolderShareUsersListQueryParamsDTO } from '../dto/folder-shares-list-query-params.dto'
 import { FoldersListQueryParamsDTO } from '../dto/folders-list-query-params.dto'
 import type { Folder } from '../entities/folder.entity'
 import { foldersTable } from '../entities/folder.entity'
 import type { FolderObject } from '../entities/folder-object.entity'
 import { folderObjectsTable } from '../entities/folder-object.entity'
+import { folderSharesTable } from '../entities/folder-share.entity'
 import { FolderLocationNotFoundException } from '../exceptions/folder-location-not-found.exception'
 import { FolderMetadataWriteUnauthorisedException } from '../exceptions/folder-metadata-write-unauthorized.exception'
 import { FolderNotFoundException } from '../exceptions/folder-not-found.exception'
 import { FolderObjectNotFoundException } from '../exceptions/folder-object-not-found.exception'
 import { FolderPermissionUnauthorizedException } from '../exceptions/folder-permission-unauthorized.exception'
+import { FolderShareNotFoundException } from '../exceptions/folder-share-not-found.exception'
 
 export interface OutputUploadUrlsResponse {
   folderId: string
@@ -371,33 +385,75 @@ export class FolderService {
       sort = FolderSort.CreatedAtDesc,
     }: FoldersListQueryParamsDTO,
   ) {
-    const conditions: (SQL | undefined)[] = [eq(foldersTable.ownerId, actor.id)]
+    const contentLocationTable = aliasedTable(
+      storageLocationsTable,
+      'contentLocation',
+    )
+    const metadataLocationTable = aliasedTable(
+      storageLocationsTable,
+      'metadataLocation',
+    )
 
-    if (search) {
-      conditions.push(ilike(foldersTable.name, `%${search}%`))
-    }
-
-    const where = and(...conditions)
-
-    const folders: Folder[] =
-      await this.ormService.db.query.foldersTable.findMany({
-        where,
-        offset: offset ?? 0,
-        limit: limit ?? 25,
-        orderBy: parseSort(foldersTable, sort),
-        with: {
-          contentLocation: true,
-          metadataLocation: true,
-        },
+    const folders = await this.ormService.db
+      .select({
+        id: foldersTable.id,
+        name: foldersTable.name,
+        contentLocationId: foldersTable.contentLocationId,
+        metadataLocationId: foldersTable.metadataLocationId,
+        ownerId: foldersTable.ownerId,
+        createdAt: foldersTable.createdAt,
+        updatedAt: foldersTable.updatedAt,
+        contentLocation: contentLocationTable,
+        metadataLocation: metadataLocationTable,
+        folderShares: folderSharesTable,
+        totalCount: sql<string>`count(*) over()`,
       })
-    const [foldersCount] = await this.ormService.db
-      .select({ count: sql<string | null>`count(*)` })
       .from(foldersTable)
-      .where(where)
-
+      .leftJoin(
+        folderSharesTable,
+        and(
+          eq(folderSharesTable.folderId, foldersTable.id),
+          eq(folderSharesTable.userId, actor.id),
+        ),
+      )
+      .leftJoin(
+        contentLocationTable,
+        eq(contentLocationTable.id, foldersTable.contentLocationId),
+      )
+      .leftJoin(
+        metadataLocationTable,
+        eq(metadataLocationTable.id, foldersTable.metadataLocationId),
+      )
+      .where(
+        and(
+          or(
+            eq(foldersTable.ownerId, actor.id),
+            isNotNull(folderSharesTable.userId),
+          ),
+          search ? ilike(foldersTable.name, `%${search}%`) : undefined,
+        ),
+      )
+      .orderBy(parseSort(foldersTable, sort))
+      .limit(limit ?? 25)
+      .offset(offset ?? 0)
+    console.log(folders[0]?.totalCount, typeof folders[0]?.totalCount)
     return {
-      result: folders.map((folder) => ({ folder, permissions: [] })),
-      meta: { totalCount: parseInt(foldersCount.count ?? '0', 10) },
+      result: folders.map(({ totalCount, ...folder }) => ({
+        folder: {
+          ...folder,
+          contentLocation: folder.contentLocation as NonNullable<
+            typeof folder.contentLocation
+          >,
+          metadataLocation: folder.metadataLocation as NonNullable<
+            typeof folder.metadataLocation
+          >,
+        },
+        permissions:
+          folder.ownerId === actor.id
+            ? OWNER_PERMISSIONS
+            : (folder.folderShares?.permissions ?? []),
+      })),
+      meta: { totalCount: parseInt(folders[0]?.totalCount ?? '0', 10) },
     }
   }
 
@@ -514,7 +570,6 @@ export class FolderService {
     folder: Folder
     permissions: FolderPermissionName[]
   }> {
-    // TODO: get user specific sharing config if user is not the owner
     const folder = await this.ormService.db.query.foldersTable.findFirst({
       where: eq(foldersTable.id, folderId),
       with: {
@@ -523,18 +578,33 @@ export class FolderService {
       },
     })
 
-    const isOwner = folder?.ownerId === actor.id
-    // const share = folder?.shares.getItems()?.find((s) => s.user?.id === userId)
+    if (!folder) {
+      throw new FolderNotFoundException()
+    }
 
-    if (!folder || !isOwner) {
+    const isOwner = folder.ownerId === actor.id
+    if (isOwner) {
+      return {
+        folder,
+        permissions: OWNER_PERMISSIONS,
+      }
+    }
+
+    // If not owner, check for share permissions
+    const share = await this.ormService.db.query.folderSharesTable.findFirst({
+      where: and(
+        eq(folderSharesTable.folderId, folder.id),
+        eq(folderSharesTable.userId, actor.id),
+      ),
+    })
+
+    if (!share) {
       throw new FolderNotFoundException()
     }
 
     return {
       folder,
-      permissions: OWNER_PERMISSIONS,
-      // ? OWNER_PERMISSIONS
-      // : share?.shareConfiguration.permissions ?? [],
+      permissions: share.permissions as FolderPermissionName[],
     }
   }
 
@@ -976,5 +1046,133 @@ export class FolderService {
         updatedObject,
       )
     }
+  }
+  async getFolderShare(
+    actor: User,
+    folderId: string,
+    userId: string,
+  ): Promise<FolderShareDTO> {
+    const share = await this.ormService.db.query.folderSharesTable.findFirst({
+      where: and(
+        eq(folderSharesTable.userId, userId),
+        eq(folderSharesTable.folderId, folderId),
+      ),
+    })
+    if (!share) {
+      throw new FolderShareNotFoundException()
+    }
+    return share
+  }
+
+  async listFolderShares(
+    actor: User,
+    folderId: string,
+  ): Promise<{
+    result: { userId: string; permissions: FolderPermissionName[] }[]
+    meta: { totalCount: number }
+  }> {
+    const { folder } = await this.getFolderAsUser(actor, folderId)
+    const shares = await this.ormService.db.query.folderSharesTable.findMany({
+      where: eq(folderSharesTable.folderId, folder.id),
+    })
+
+    return {
+      result: shares.map((share) => ({
+        userId: share.userId,
+        permissions: share.permissions,
+      })),
+      meta: { totalCount: shares.length },
+    }
+  }
+
+  async listFolderShareUsersAsUser(
+    actor: User,
+    folderId: string,
+    { offset, limit, search }: FolderShareUsersListQueryParamsDTO,
+  ) {
+    const { folder: _folder } = await this.getFolderAsUser(actor, folderId)
+
+    const where = search ? ilike(usersTable.username, `%${search}%`) : undefined
+
+    const users: User[] = await this.ormService.db.query.usersTable.findMany({
+      where,
+      offset: offset ?? 0,
+      limit: limit ?? 25,
+    })
+    const [usersCount] = await this.ormService.db
+      .select({ count: sql<string | null>`count(*)` })
+      .from(usersTable)
+      .where(where)
+
+    return {
+      result: users.map((user) => ({ id: user.id, username: user.username })),
+      meta: { totalCount: parseInt(usersCount.count ?? '0', 10) },
+    }
+  }
+
+  async upsertFolderShare(
+    actor: User,
+    folderId: string,
+    userId: string,
+    permissions: FolderPermissionName[],
+  ): Promise<FolderShareDTO> {
+    const { folder } = await this.getFolderAsUser(actor, folderId)
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.id, userId),
+    })
+    if (!user) {
+      throw new UserNotFoundException()
+    }
+
+    const where = and(
+      eq(folderSharesTable.folderId, folder.id),
+      eq(folderSharesTable.userId, userId),
+    )
+
+    const existingShare =
+      await this.ormService.db.query.folderSharesTable.findFirst({
+        where,
+      })
+
+    if (existingShare) {
+      await this.ormService.db
+        .update(folderSharesTable)
+        .set({ permissions })
+        .where(where)
+    } else {
+      await this.ormService.db.insert(folderSharesTable).values({
+        folderId,
+        userId,
+        permissions,
+      })
+    }
+    return {
+      userId,
+      permissions,
+    }
+  }
+
+  async removeFolderShare(
+    actor: User,
+    folderId: string,
+    userId: string,
+  ): Promise<void> {
+    const { folder } = await this.getFolderAsUser(actor, folderId)
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.id, userId),
+    })
+    if (!user) {
+      throw new UserNotFoundException()
+    }
+
+    await this.ormService.db
+      .delete(folderSharesTable)
+      .where(
+        and(
+          eq(folderSharesTable.folderId, folder.id),
+          eq(folderSharesTable.userId, userId),
+        ),
+      )
+      .execute()
   }
 }

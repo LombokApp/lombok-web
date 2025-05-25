@@ -1409,6 +1409,128 @@ export type FolderObjectListResponseResultInnerMediaTypeEnum = typeof FolderObje
 /**
  * 
  * @export
+ * @interface FolderShareCreateInputDTO
+ */
+export interface FolderShareCreateInputDTO {
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof FolderShareCreateInputDTO
+     */
+    'permissions': Array<FolderShareCreateInputDTOPermissionsEnum>;
+}
+
+export const FolderShareCreateInputDTOPermissionsEnum = {
+    FolderReindex: 'FOLDER_REINDEX',
+    FolderForget: 'FOLDER_FORGET',
+    ObjectEdit: 'OBJECT_EDIT',
+    ObjectManage: 'OBJECT_MANAGE'
+} as const;
+
+export type FolderShareCreateInputDTOPermissionsEnum = typeof FolderShareCreateInputDTOPermissionsEnum[keyof typeof FolderShareCreateInputDTOPermissionsEnum];
+
+/**
+ * 
+ * @export
+ * @interface FolderShareGetResponse
+ */
+export interface FolderShareGetResponse {
+    /**
+     * 
+     * @type {FolderShareGetResponseShare}
+     * @memberof FolderShareGetResponse
+     */
+    'share': FolderShareGetResponseShare;
+}
+/**
+ * 
+ * @export
+ * @interface FolderShareGetResponseShare
+ */
+export interface FolderShareGetResponseShare {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderShareGetResponseShare
+     */
+    'userId': string;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof FolderShareGetResponseShare
+     */
+    'permissions': Array<FolderShareGetResponseSharePermissionsEnum>;
+}
+
+export const FolderShareGetResponseSharePermissionsEnum = {
+    FolderReindex: 'FOLDER_REINDEX',
+    FolderForget: 'FOLDER_FORGET',
+    ObjectEdit: 'OBJECT_EDIT',
+    ObjectManage: 'OBJECT_MANAGE'
+} as const;
+
+export type FolderShareGetResponseSharePermissionsEnum = typeof FolderShareGetResponseSharePermissionsEnum[keyof typeof FolderShareGetResponseSharePermissionsEnum];
+
+/**
+ * 
+ * @export
+ * @interface FolderShareListResponse
+ */
+export interface FolderShareListResponse {
+    /**
+     * 
+     * @type {UserListResponseMeta}
+     * @memberof FolderShareListResponse
+     */
+    'meta': UserListResponseMeta;
+    /**
+     * 
+     * @type {Array<FolderShareGetResponseShare>}
+     * @memberof FolderShareListResponse
+     */
+    'result': Array<FolderShareGetResponseShare>;
+}
+/**
+ * 
+ * @export
+ * @interface FolderShareUserListResponse
+ */
+export interface FolderShareUserListResponse {
+    /**
+     * 
+     * @type {UserListResponseMeta}
+     * @memberof FolderShareUserListResponse
+     */
+    'meta': UserListResponseMeta;
+    /**
+     * 
+     * @type {Array<FolderShareUserListResponseResultInner>}
+     * @memberof FolderShareUserListResponse
+     */
+    'result': Array<FolderShareUserListResponseResultInner>;
+}
+/**
+ * 
+ * @export
+ * @interface FolderShareUserListResponseResultInner
+ */
+export interface FolderShareUserListResponseResultInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderShareUserListResponseResultInner
+     */
+    'username': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderShareUserListResponseResultInner
+     */
+    'id': string;
+}
+/**
+ * 
+ * @export
  * @interface LoginCredentialsDTO
  */
 export interface LoginCredentialsDTO {
@@ -2412,6 +2534,56 @@ export type UserListResponseResultInnerEmail = string;
 /**
  * 
  * @export
+ * @interface UserSessionListResponse
+ */
+export interface UserSessionListResponse {
+    /**
+     * 
+     * @type {UserListResponseMeta}
+     * @memberof UserSessionListResponse
+     */
+    'meta': UserListResponseMeta;
+    /**
+     * 
+     * @type {Array<UserSessionListResponseResultInner>}
+     * @memberof UserSessionListResponse
+     */
+    'result': Array<UserSessionListResponseResultInner>;
+}
+/**
+ * 
+ * @export
+ * @interface UserSessionListResponseResultInner
+ */
+export interface UserSessionListResponseResultInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof UserSessionListResponseResultInner
+     */
+    'id': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserSessionListResponseResultInner
+     */
+    'expiresAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserSessionListResponseResultInner
+     */
+    'createdAt': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserSessionListResponseResultInner
+     */
+    'updatedAt': string;
+}
+/**
+ * 
+ * @export
  * @interface UserStorageProvisionDTO
  */
 export interface UserStorageProvisionDTO {
@@ -2668,13 +2840,13 @@ export interface UserUpdateInputDTO {
      * @type {string}
      * @memberof UserUpdateInputDTO
      */
-    'name'?: string;
+    'name'?: string | null;
     /**
      * 
      * @type {string}
      * @memberof UserUpdateInputDTO
      */
-    'email'?: string;
+    'email'?: string | null;
     /**
      * 
      * @type {boolean}
@@ -4403,6 +4575,48 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
+         * @summary Get folder share for a user
+         * @param {string} folderId 
+         * @param {string} userId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFolderShares: async (folderId: string, userId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('getFolderShares', 'folderId', folderId)
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('getFolderShares', 'userId', userId)
+            const localVarPath = `/api/v1/folders/{folderId}/shares/{userId}`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
+                .replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary Handle app task trigger
          * @param {string} folderId 
          * @param {string} appIdentifier 
@@ -4499,6 +4713,97 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
             if (sort !== undefined) {
                 localVarQueryParameter['sort'] = sort;
             }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary List prospective folder share users
+         * @param {string} folderId 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {string} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listFolderShareUsers: async (folderId: string, offset?: number, limit?: number, search?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('listFolderShareUsers', 'folderId', folderId)
+            const localVarPath = `/api/v1/folders/{folderId}/user-share-options`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (offset !== undefined) {
+                localVarQueryParameter['offset'] = offset;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+            if (search !== undefined) {
+                localVarQueryParameter['search'] = search;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary List folder shares
+         * @param {string} folderId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listFolderShares: async (folderId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('listFolderShares', 'folderId', folderId)
+            const localVarPath = `/api/v1/folders/{folderId}/shares`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
 
     
@@ -4645,6 +4950,96 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @summary Remove a folder share
+         * @param {string} folderId 
+         * @param {string} userId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        removeFolderShare: async (folderId: string, userId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('removeFolderShare', 'folderId', folderId)
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('removeFolderShare', 'userId', userId)
+            const localVarPath = `/api/v1/folders/{folderId}/shares/{userId}`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
+                .replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Add or update a folder share
+         * @param {string} folderId 
+         * @param {string} userId 
+         * @param {FolderShareCreateInputDTO} folderShareCreateInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        upsertFolderShare: async (folderId: string, userId: string, folderShareCreateInputDTO: FolderShareCreateInputDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('upsertFolderShare', 'folderId', folderId)
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('upsertFolderShare', 'userId', userId)
+            // verify required parameter 'folderShareCreateInputDTO' is not null or undefined
+            assertParamExists('upsertFolderShare', 'folderShareCreateInputDTO', folderShareCreateInputDTO)
+            const localVarPath = `/api/v1/folders/{folderId}/shares/{userId}`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)))
+                .replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(folderShareCreateInputDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -4751,6 +5146,20 @@ export const FoldersApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary Get folder share for a user
+         * @param {string} folderId 
+         * @param {string} userId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getFolderShares(folderId: string, userId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderShareGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getFolderShares(folderId, userId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.getFolderShares']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary Handle app task trigger
          * @param {string} folderId 
          * @param {string} appIdentifier 
@@ -4780,6 +5189,35 @@ export const FoldersApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderObjects(folderId, offset, limit, search, sort, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['FoldersApi.listFolderObjects']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary List prospective folder share users
+         * @param {string} folderId 
+         * @param {number} [offset] 
+         * @param {number} [limit] 
+         * @param {string} [search] 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listFolderShareUsers(folderId: string, offset?: number, limit?: number, search?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderShareUserListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderShareUsers(folderId, offset, limit, search, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.listFolderShareUsers']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary List folder shares
+         * @param {string} folderId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listFolderShares(folderId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderShareListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderShares(folderId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.listFolderShares']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -4823,6 +5261,35 @@ export const FoldersApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.reindexFolder(folderId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['FoldersApi.reindexFolder']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Remove a folder share
+         * @param {string} folderId 
+         * @param {string} userId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async removeFolderShare(folderId: string, userId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.removeFolderShare(folderId, userId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.removeFolderShare']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Add or update a folder share
+         * @param {string} folderId 
+         * @param {string} userId 
+         * @param {FolderShareCreateInputDTO} folderShareCreateInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async upsertFolderShare(folderId: string, userId: string, folderShareCreateInputDTO: FolderShareCreateInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderShareGetResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.upsertFolderShare(folderId, userId, folderShareCreateInputDTO, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.upsertFolderShare']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -4907,6 +5374,16 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
         },
         /**
          * 
+         * @summary Get folder share for a user
+         * @param {FoldersApiGetFolderSharesRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getFolderShares(requestParameters: FoldersApiGetFolderSharesRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderShareGetResponse> {
+            return localVarFp.getFolderShares(requestParameters.folderId, requestParameters.userId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary Handle app task trigger
          * @param {FoldersApiHandleAppTaskTriggerRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
@@ -4924,6 +5401,26 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
          */
         listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderObjectListResponse> {
             return localVarFp.listFolderObjects(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, requestParameters.sort, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary List prospective folder share users
+         * @param {FoldersApiListFolderShareUsersRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listFolderShareUsers(requestParameters: FoldersApiListFolderShareUsersRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderShareUserListResponse> {
+            return localVarFp.listFolderShareUsers(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary List folder shares
+         * @param {FoldersApiListFolderSharesRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listFolderShares(requestParameters: FoldersApiListFolderSharesRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderShareListResponse> {
+            return localVarFp.listFolderShares(requestParameters.folderId, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -4954,6 +5451,26 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
          */
         reindexFolder(requestParameters: FoldersApiReindexFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.reindexFolder(requestParameters.folderId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Remove a folder share
+         * @param {FoldersApiRemoveFolderShareRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        removeFolderShare(requestParameters: FoldersApiRemoveFolderShareRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.removeFolderShare(requestParameters.folderId, requestParameters.userId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Add or update a folder share
+         * @param {FoldersApiUpsertFolderShareRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        upsertFolderShare(requestParameters: FoldersApiUpsertFolderShareRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderShareGetResponse> {
+            return localVarFp.upsertFolderShare(requestParameters.folderId, requestParameters.userId, requestParameters.folderShareCreateInputDTO, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -5078,6 +5595,27 @@ export interface FoldersApiGetFolderObjectRequest {
 }
 
 /**
+ * Request parameters for getFolderShares operation in FoldersApi.
+ * @export
+ * @interface FoldersApiGetFolderSharesRequest
+ */
+export interface FoldersApiGetFolderSharesRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiGetFolderShares
+     */
+    readonly folderId: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiGetFolderShares
+     */
+    readonly userId: string
+}
+
+/**
  * Request parameters for handleAppTaskTrigger operation in FoldersApi.
  * @export
  * @interface FoldersApiHandleAppTaskTriggerRequest
@@ -5155,6 +5693,55 @@ export interface FoldersApiListFolderObjectsRequest {
 }
 
 /**
+ * Request parameters for listFolderShareUsers operation in FoldersApi.
+ * @export
+ * @interface FoldersApiListFolderShareUsersRequest
+ */
+export interface FoldersApiListFolderShareUsersRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiListFolderShareUsers
+     */
+    readonly folderId: string
+
+    /**
+     * 
+     * @type {number}
+     * @memberof FoldersApiListFolderShareUsers
+     */
+    readonly offset?: number
+
+    /**
+     * 
+     * @type {number}
+     * @memberof FoldersApiListFolderShareUsers
+     */
+    readonly limit?: number
+
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiListFolderShareUsers
+     */
+    readonly search?: string
+}
+
+/**
+ * Request parameters for listFolderShares operation in FoldersApi.
+ * @export
+ * @interface FoldersApiListFolderSharesRequest
+ */
+export interface FoldersApiListFolderSharesRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiListFolderShares
+     */
+    readonly folderId: string
+}
+
+/**
  * Request parameters for listFolders operation in FoldersApi.
  * @export
  * @interface FoldersApiListFoldersRequest
@@ -5222,6 +5809,55 @@ export interface FoldersApiReindexFolderRequest {
      * @memberof FoldersApiReindexFolder
      */
     readonly folderId: string
+}
+
+/**
+ * Request parameters for removeFolderShare operation in FoldersApi.
+ * @export
+ * @interface FoldersApiRemoveFolderShareRequest
+ */
+export interface FoldersApiRemoveFolderShareRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiRemoveFolderShare
+     */
+    readonly folderId: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiRemoveFolderShare
+     */
+    readonly userId: string
+}
+
+/**
+ * Request parameters for upsertFolderShare operation in FoldersApi.
+ * @export
+ * @interface FoldersApiUpsertFolderShareRequest
+ */
+export interface FoldersApiUpsertFolderShareRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiUpsertFolderShare
+     */
+    readonly folderId: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiUpsertFolderShare
+     */
+    readonly userId: string
+
+    /**
+     * 
+     * @type {FolderShareCreateInputDTO}
+     * @memberof FoldersApiUpsertFolderShare
+     */
+    readonly folderShareCreateInputDTO: FolderShareCreateInputDTO
 }
 
 /**
@@ -5317,6 +5953,18 @@ export class FoldersApi extends BaseAPI {
 
     /**
      * 
+     * @summary Get folder share for a user
+     * @param {FoldersApiGetFolderSharesRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    public getFolderShares(requestParameters: FoldersApiGetFolderSharesRequest, options?: RawAxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).getFolderShares(requestParameters.folderId, requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
      * @summary Handle app task trigger
      * @param {FoldersApiHandleAppTaskTriggerRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -5337,6 +5985,30 @@ export class FoldersApi extends BaseAPI {
      */
     public listFolderObjects(requestParameters: FoldersApiListFolderObjectsRequest, options?: RawAxiosRequestConfig) {
         return FoldersApiFp(this.configuration).listFolderObjects(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, requestParameters.sort, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary List prospective folder share users
+     * @param {FoldersApiListFolderShareUsersRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    public listFolderShareUsers(requestParameters: FoldersApiListFolderShareUsersRequest, options?: RawAxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).listFolderShareUsers(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary List folder shares
+     * @param {FoldersApiListFolderSharesRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    public listFolderShares(requestParameters: FoldersApiListFolderSharesRequest, options?: RawAxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).listFolderShares(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -5373,6 +6045,30 @@ export class FoldersApi extends BaseAPI {
      */
     public reindexFolder(requestParameters: FoldersApiReindexFolderRequest, options?: RawAxiosRequestConfig) {
         return FoldersApiFp(this.configuration).reindexFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Remove a folder share
+     * @param {FoldersApiRemoveFolderShareRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    public removeFolderShare(requestParameters: FoldersApiRemoveFolderShareRequest, options?: RawAxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).removeFolderShare(requestParameters.folderId, requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Add or update a folder share
+     * @param {FoldersApiUpsertFolderShareRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    public upsertFolderShare(requestParameters: FoldersApiUpsertFolderShareRequest, options?: RawAxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).upsertFolderShare(requestParameters.folderId, requestParameters.userId, requestParameters.folderShareCreateInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -8165,6 +8861,43 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
         },
         /**
          * 
+         * @param {string} userId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listActiveUserSessions: async (userId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userId' is not null or undefined
+            assertParamExists('listActiveUserSessions', 'userId', userId)
+            const localVarPath = `/api/v1/server/users/{userId}/sessions`
+                .replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary List the users.
          * @param {number} [offset] 
          * @param {number} [limit] 
@@ -8317,6 +9050,18 @@ export const UsersApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {string} userId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async listActiveUserSessions(userId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserSessionListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.listActiveUserSessions(userId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UsersApi.listActiveUserSessions']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary List the users.
          * @param {number} [offset] 
          * @param {number} [limit] 
@@ -8388,6 +9133,15 @@ export const UsersApiFactory = function (configuration?: Configuration, basePath
         },
         /**
          * 
+         * @param {UsersApiListActiveUserSessionsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        listActiveUserSessions(requestParameters: UsersApiListActiveUserSessionsRequest, options?: RawAxiosRequestConfig): AxiosPromise<UserSessionListResponse> {
+            return localVarFp.listActiveUserSessions(requestParameters.userId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @summary List the users.
          * @param {UsersApiListUsersRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
@@ -8447,6 +9201,20 @@ export interface UsersApiGetUserRequest {
      * 
      * @type {string}
      * @memberof UsersApiGetUser
+     */
+    readonly userId: string
+}
+
+/**
+ * Request parameters for listActiveUserSessions operation in UsersApi.
+ * @export
+ * @interface UsersApiListActiveUserSessionsRequest
+ */
+export interface UsersApiListActiveUserSessionsRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof UsersApiListActiveUserSessions
      */
     readonly userId: string
 }
@@ -8555,6 +9323,17 @@ export class UsersApi extends BaseAPI {
      */
     public getUser(requestParameters: UsersApiGetUserRequest, options?: RawAxiosRequestConfig) {
         return UsersApiFp(this.configuration).getUser(requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {UsersApiListActiveUserSessionsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApi
+     */
+    public listActiveUserSessions(requestParameters: UsersApiListActiveUserSessionsRequest, options?: RawAxiosRequestConfig) {
+        return UsersApiFp(this.configuration).listActiveUserSessions(requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

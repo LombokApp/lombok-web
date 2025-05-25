@@ -38,11 +38,13 @@ buildclients() {
   set -x
 
   echo "export * from './schema';" >> "${ROOT_DIR}${OUT_PATH}src/index.ts"
+  echo "export * from './schema-types.d';" >> "${ROOT_DIR}${OUT_PATH}src/index.ts"
 
   { set +x; } 2>/dev/null
 }
 
 buildclients "${PUBLIC_API_OUT_PATH}" "openapi.json"
+bunx openapi-typescript src/openapi.json -o ${ROOT_DIR}${PUBLIC_API_OUT_PATH}src/schema-types.d.ts
 
 # Transpile generated .ts sources to js
 (cd "${ROOT_DIR}${PUBLIC_API_OUT_PATH}" && bun run build:clean)

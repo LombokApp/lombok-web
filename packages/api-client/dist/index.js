@@ -315,6 +315,23 @@ var toJSONObject = (obj) => {
 };
 var isAsyncFn = kindOfTest("AsyncFunction");
 var isThenable = (thing) => thing && (isObject(thing) || isFunction(thing)) && isFunction(thing.then) && isFunction(thing.catch);
+var _setImmediate = ((setImmediateSupported, postMessageSupported) => {
+  if (setImmediateSupported) {
+    return setImmediate;
+  }
+  return postMessageSupported ? ((token, callbacks) => {
+    _global.addEventListener("message", ({ source, data }) => {
+      if (source === _global && data === token) {
+        callbacks.length && callbacks.shift()();
+      }
+    }, false);
+    return (cb) => {
+      callbacks.push(cb);
+      _global.postMessage(token, "*");
+    };
+  })(`axios@${Math.random()}`, []) : (cb) => setTimeout(cb);
+})(typeof setImmediate === "function", isFunction(_global.postMessage));
+var asap = typeof queueMicrotask !== "undefined" ? queueMicrotask.bind(_global) : typeof process !== "undefined" && process.nextTick || _setImmediate;
 var utils_default = {
   isArray,
   isArrayBuffer,
@@ -370,7 +387,9 @@ var utils_default = {
   isSpecCompliantForm,
   toJSONObject,
   isAsyncFn,
-  isThenable
+  isThenable,
+  setImmediate: _setImmediate,
+  asap
 };
 
 // node_modules/axios/lib/core/AxiosError.js
@@ -386,7 +405,10 @@ function AxiosError(message, code, config, request, response) {
   code && (this.code = code);
   config && (this.config = config);
   request && (this.request = request);
-  response && (this.response = response);
+  if (response) {
+    this.response = response;
+    this.status = response.status ? response.status : null;
+  }
 }
 utils_default.inherits(AxiosError, Error, {
   toJSON: function toJSON() {
@@ -401,7 +423,7 @@ utils_default.inherits(AxiosError, Error, {
       stack: this.stack,
       config: utils_default.toJSONObject(this.config),
       code: this.code,
-      status: this.response && this.response.status ? this.response.status : null
+      status: this.status
     };
   }
 });
@@ -590,6 +612,11 @@ function buildURL(url, params, options) {
     return url;
   }
   const _encode = options && options.encode || encode2;
+  if (utils_default.isFunction(options)) {
+    options = {
+      serialize: options
+    };
+  }
   const serializeFn = options && options.serialize;
   let serializedParams;
   if (serializeFn) {
@@ -672,14 +699,14 @@ var browser_default = {
 var exports_utils = {};
 __export(exports_utils, {
   origin: () => origin,
+  navigator: () => _navigator,
   hasStandardBrowserWebWorkerEnv: () => hasStandardBrowserWebWorkerEnv,
   hasStandardBrowserEnv: () => hasStandardBrowserEnv,
   hasBrowserEnv: () => hasBrowserEnv
 });
 var hasBrowserEnv = typeof window !== "undefined" && typeof document !== "undefined";
-var hasStandardBrowserEnv = ((product) => {
-  return hasBrowserEnv && ["ReactNative", "NativeScript", "NS"].indexOf(product) < 0;
-})(typeof navigator !== "undefined" && navigator.product);
+var _navigator = typeof navigator === "object" && navigator || undefined;
+var hasStandardBrowserEnv = hasBrowserEnv && (!_navigator || ["ReactNative", "NativeScript", "NS"].indexOf(_navigator.product) < 0);
 var hasStandardBrowserWebWorkerEnv = (() => {
   return typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope && typeof self.importScripts === "function";
 })();
@@ -1212,32 +1239,40 @@ var speedometer_default = speedometer;
 // node_modules/axios/lib/helpers/throttle.js
 function throttle(fn, freq) {
   let timestamp = 0;
-  const threshold = 1000 / freq;
-  let timer = null;
-  return function throttled() {
-    const force = this === true;
-    const now = Date.now();
-    if (force || now - timestamp > threshold) {
-      if (timer) {
-        clearTimeout(timer);
-        timer = null;
-      }
-      timestamp = now;
-      return fn.apply(null, arguments);
+  let threshold = 1000 / freq;
+  let lastArgs;
+  let timer;
+  const invoke = (args, now = Date.now()) => {
+    timestamp = now;
+    lastArgs = null;
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
     }
-    if (!timer) {
-      timer = setTimeout(() => {
-        timer = null;
-        timestamp = Date.now();
-        return fn.apply(null, arguments);
-      }, threshold - (now - timestamp));
+    fn.apply(null, args);
+  };
+  const throttled = (...args) => {
+    const now = Date.now();
+    const passed = now - timestamp;
+    if (passed >= threshold) {
+      invoke(args, now);
+    } else {
+      lastArgs = args;
+      if (!timer) {
+        timer = setTimeout(() => {
+          timer = null;
+          invoke(lastArgs);
+        }, threshold - passed);
+      }
     }
   };
+  const flush = () => lastArgs && invoke(lastArgs);
+  return [throttled, flush];
 }
 var throttle_default = throttle;
 
 // node_modules/axios/lib/helpers/progressEventReducer.js
-var progressEventReducer_default = (listener, isDownloadStream, freq = 3) => {
+var progressEventReducer = (listener, isDownloadStream, freq = 3) => {
   let bytesNotified = 0;
   const _speedometer = speedometer_default(50, 250);
   return throttle_default((e) => {
@@ -1255,46 +1290,27 @@ var progressEventReducer_default = (listener, isDownloadStream, freq = 3) => {
       rate: rate ? rate : undefined,
       estimated: rate && total && inRange ? (total - loaded) / rate : undefined,
       event: e,
-      lengthComputable: total != null
+      lengthComputable: total != null,
+      [isDownloadStream ? "download" : "upload"]: true
     };
-    data[isDownloadStream ? "download" : "upload"] = true;
     listener(data);
   }, freq);
 };
+var progressEventDecorator = (total, throttled) => {
+  const lengthComputable = total != null;
+  return [(loaded) => throttled[0]({
+    lengthComputable,
+    total,
+    loaded
+  }), throttled[1]];
+};
+var asyncDecorator = (fn) => (...args) => utils_default.asap(() => fn(...args));
 
 // node_modules/axios/lib/helpers/isURLSameOrigin.js
-var isURLSameOrigin_default = platform_default.hasStandardBrowserEnv ? function standardBrowserEnv() {
-  const msie = /(msie|trident)/i.test(navigator.userAgent);
-  const urlParsingNode = document.createElement("a");
-  let originURL;
-  function resolveURL(url) {
-    let href = url;
-    if (msie) {
-      urlParsingNode.setAttribute("href", href);
-      href = urlParsingNode.href;
-    }
-    urlParsingNode.setAttribute("href", href);
-    return {
-      href: urlParsingNode.href,
-      protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, "") : "",
-      host: urlParsingNode.host,
-      search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, "") : "",
-      hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, "") : "",
-      hostname: urlParsingNode.hostname,
-      port: urlParsingNode.port,
-      pathname: urlParsingNode.pathname.charAt(0) === "/" ? urlParsingNode.pathname : "/" + urlParsingNode.pathname
-    };
-  }
-  originURL = resolveURL(window.location.href);
-  return function isURLSameOrigin(requestURL) {
-    const parsed = utils_default.isString(requestURL) ? resolveURL(requestURL) : requestURL;
-    return parsed.protocol === originURL.protocol && parsed.host === originURL.host;
-  };
-}() : function nonStandardBrowserEnv() {
-  return function isURLSameOrigin() {
-    return true;
-  };
-}();
+var isURLSameOrigin_default = platform_default.hasStandardBrowserEnv ? ((origin2, isMSIE) => (url) => {
+  url = new URL(url, platform_default.origin);
+  return origin2.protocol === url.protocol && origin2.host === url.host && (isMSIE || origin2.port === url.port);
+})(new URL(platform_default.origin), platform_default.navigator && /(msie|trident)/i.test(platform_default.navigator.userAgent)) : () => true;
 
 // node_modules/axios/lib/helpers/cookies.js
 var cookies_default = platform_default.hasStandardBrowserEnv ? {
@@ -1344,7 +1360,7 @@ var headersToObject = (thing) => thing instanceof AxiosHeaders_default ? { ...th
 function mergeConfig(config1, config2) {
   config2 = config2 || {};
   const config = {};
-  function getMergedValue(target, source, caseless) {
+  function getMergedValue(target, source, prop, caseless) {
     if (utils_default.isPlainObject(target) && utils_default.isPlainObject(source)) {
       return utils_default.merge.call({ caseless }, target, source);
     } else if (utils_default.isPlainObject(source)) {
@@ -1354,11 +1370,11 @@ function mergeConfig(config1, config2) {
     }
     return source;
   }
-  function mergeDeepProperties(a, b, caseless) {
+  function mergeDeepProperties(a, b, prop, caseless) {
     if (!utils_default.isUndefined(b)) {
-      return getMergedValue(a, b, caseless);
+      return getMergedValue(a, b, prop, caseless);
     } else if (!utils_default.isUndefined(a)) {
-      return getMergedValue(undefined, a, caseless);
+      return getMergedValue(undefined, a, prop, caseless);
     }
   }
   function valueFromConfig2(a, b) {
@@ -1409,7 +1425,7 @@ function mergeConfig(config1, config2) {
     socketPath: defaultToConfig2,
     responseEncoding: defaultToConfig2,
     validateStatus: mergeDirectKeys,
-    headers: (a, b) => mergeDeepProperties(headersToObject(a), headersToObject(b), true)
+    headers: (a, b, prop) => mergeDeepProperties(headersToObject(a), headersToObject(b), prop, true)
   };
   utils_default.forEach(Object.keys(Object.assign({}, config1, config2)), function computeConfigValue(prop) {
     const merge2 = mergeMap[prop] || mergeDeepProperties;
@@ -1456,15 +1472,15 @@ var xhr_default = isXHRAdapterSupported && function(config) {
     const _config = resolveConfig_default(config);
     let requestData = _config.data;
     const requestHeaders = AxiosHeaders_default.from(_config.headers).normalize();
-    let { responseType } = _config;
+    let { responseType, onUploadProgress, onDownloadProgress } = _config;
     let onCanceled;
+    let uploadThrottled, downloadThrottled;
+    let flushUpload, flushDownload;
     function done() {
-      if (_config.cancelToken) {
-        _config.cancelToken.unsubscribe(onCanceled);
-      }
-      if (_config.signal) {
-        _config.signal.removeEventListener("abort", onCanceled);
-      }
+      flushUpload && flushUpload();
+      flushDownload && flushDownload();
+      _config.cancelToken && _config.cancelToken.unsubscribe(onCanceled);
+      _config.signal && _config.signal.removeEventListener("abort", onCanceled);
     }
     let request = new XMLHttpRequest;
     request.open(_config.method.toUpperCase(), _config.url, true);
@@ -1509,11 +1525,11 @@ var xhr_default = isXHRAdapterSupported && function(config) {
       if (!request) {
         return;
       }
-      reject(new AxiosError_default("Request aborted", AxiosError_default.ECONNABORTED, _config, request));
+      reject(new AxiosError_default("Request aborted", AxiosError_default.ECONNABORTED, config, request));
       request = null;
     };
     request.onerror = function handleError() {
-      reject(new AxiosError_default("Network Error", AxiosError_default.ERR_NETWORK, _config, request));
+      reject(new AxiosError_default("Network Error", AxiosError_default.ERR_NETWORK, config, request));
       request = null;
     };
     request.ontimeout = function handleTimeout() {
@@ -1522,7 +1538,7 @@ var xhr_default = isXHRAdapterSupported && function(config) {
       if (_config.timeoutErrorMessage) {
         timeoutErrorMessage = _config.timeoutErrorMessage;
       }
-      reject(new AxiosError_default(timeoutErrorMessage, transitional.clarifyTimeoutError ? AxiosError_default.ETIMEDOUT : AxiosError_default.ECONNABORTED, _config, request));
+      reject(new AxiosError_default(timeoutErrorMessage, transitional.clarifyTimeoutError ? AxiosError_default.ETIMEDOUT : AxiosError_default.ECONNABORTED, config, request));
       request = null;
     };
     requestData === undefined && requestHeaders.setContentType(null);
@@ -1537,11 +1553,14 @@ var xhr_default = isXHRAdapterSupported && function(config) {
     if (responseType && responseType !== "json") {
       request.responseType = _config.responseType;
     }
-    if (typeof _config.onDownloadProgress === "function") {
-      request.addEventListener("progress", progressEventReducer_default(_config.onDownloadProgress, true));
+    if (onDownloadProgress) {
+      [downloadThrottled, flushDownload] = progressEventReducer(onDownloadProgress, true);
+      request.addEventListener("progress", downloadThrottled);
     }
-    if (typeof _config.onUploadProgress === "function" && request.upload) {
-      request.upload.addEventListener("progress", progressEventReducer_default(_config.onUploadProgress));
+    if (onUploadProgress && request.upload) {
+      [uploadThrottled, flushUpload] = progressEventReducer(onUploadProgress);
+      request.upload.addEventListener("progress", uploadThrottled);
+      request.upload.addEventListener("loadend", flushUpload);
     }
     if (_config.cancelToken || _config.signal) {
       onCanceled = (cancel) => {
@@ -1568,36 +1587,37 @@ var xhr_default = isXHRAdapterSupported && function(config) {
 
 // node_modules/axios/lib/helpers/composeSignals.js
 var composeSignals = (signals, timeout) => {
-  let controller = new AbortController;
-  let aborted;
-  const onabort = function(cancel) {
-    if (!aborted) {
-      aborted = true;
-      unsubscribe();
-      const err = cancel instanceof Error ? cancel : this.reason;
-      controller.abort(err instanceof AxiosError_default ? err : new CanceledError_default(err instanceof Error ? err.message : err));
-    }
-  };
-  let timer = timeout && setTimeout(() => {
-    onabort(new AxiosError_default(`timeout ${timeout} of ms exceeded`, AxiosError_default.ETIMEDOUT));
-  }, timeout);
-  const unsubscribe = () => {
-    if (signals) {
-      timer && clearTimeout(timer);
+  const { length } = signals = signals ? signals.filter(Boolean) : [];
+  if (timeout || length) {
+    let controller = new AbortController;
+    let aborted;
+    const onabort = function(reason) {
+      if (!aborted) {
+        aborted = true;
+        unsubscribe();
+        const err = reason instanceof Error ? reason : this.reason;
+        controller.abort(err instanceof AxiosError_default ? err : new CanceledError_default(err instanceof Error ? err.message : err));
+      }
+    };
+    let timer = timeout && setTimeout(() => {
       timer = null;
-      signals.forEach((signal2) => {
-        signal2 && (signal2.removeEventListener ? signal2.removeEventListener("abort", onabort) : signal2.unsubscribe(onabort));
-      });
-      signals = null;
-    }
-  };
-  signals.forEach((signal2) => signal2 && signal2.addEventListener && signal2.addEventListener("abort", onabort));
-  const { signal } = controller;
-  signal.unsubscribe = unsubscribe;
-  return [signal, () => {
-    timer && clearTimeout(timer);
-    timer = null;
-  }];
+      onabort(new AxiosError_default(`timeout ${timeout} of ms exceeded`, AxiosError_default.ETIMEDOUT));
+    }, timeout);
+    const unsubscribe = () => {
+      if (signals) {
+        timer && clearTimeout(timer);
+        timer = null;
+        signals.forEach((signal2) => {
+          signal2.unsubscribe ? signal2.unsubscribe(onabort) : signal2.removeEventListener("abort", onabort);
+        });
+        signals = null;
+      }
+    };
+    signals.forEach((signal2) => signal2.addEventListener("abort", onabort));
+    const { signal } = controller;
+    signal.unsubscribe = () => utils_default.asap(unsubscribe);
+    return signal;
+  }
 };
 var composeSignals_default = composeSignals;
 
@@ -1616,29 +1636,61 @@ var streamChunk = function* (chunk, chunkSize) {
     pos = end;
   }
 };
-var readBytes = async function* (iterable, chunkSize, encode3) {
-  for await (const chunk of iterable) {
-    yield* streamChunk(ArrayBuffer.isView(chunk) ? chunk : await encode3(String(chunk)), chunkSize);
+var readBytes = async function* (iterable, chunkSize) {
+  for await (const chunk of readStream(iterable)) {
+    yield* streamChunk(chunk, chunkSize);
   }
 };
-var trackStream = (stream, chunkSize, onProgress, onFinish, encode3) => {
-  const iterator = readBytes(stream, chunkSize, encode3);
-  let bytes = 0;
-  return new ReadableStream({
-    type: "bytes",
-    async pull(controller) {
-      const { done, value } = await iterator.next();
+var readStream = async function* (stream) {
+  if (stream[Symbol.asyncIterator]) {
+    yield* stream;
+    return;
+  }
+  const reader = stream.getReader();
+  try {
+    for (;; ) {
+      const { done, value } = await reader.read();
       if (done) {
-        controller.close();
-        onFinish();
-        return;
+        break;
       }
-      let len = value.byteLength;
-      onProgress && onProgress(bytes += len);
-      controller.enqueue(new Uint8Array(value));
+      yield value;
+    }
+  } finally {
+    await reader.cancel();
+  }
+};
+var trackStream = (stream, chunkSize, onProgress, onFinish) => {
+  const iterator = readBytes(stream, chunkSize);
+  let bytes = 0;
+  let done;
+  let _onFinish = (e) => {
+    if (!done) {
+      done = true;
+      onFinish && onFinish(e);
+    }
+  };
+  return new ReadableStream({
+    async pull(controller) {
+      try {
+        const { done: done2, value } = await iterator.next();
+        if (done2) {
+          _onFinish();
+          controller.close();
+          return;
+        }
+        let len = value.byteLength;
+        if (onProgress) {
+          let loadedBytes = bytes += len;
+          onProgress(loadedBytes);
+        }
+        controller.enqueue(new Uint8Array(value));
+      } catch (err) {
+        _onFinish(err);
+        throw err;
+      }
     },
     cancel(reason) {
-      onFinish(reason);
+      _onFinish(reason);
       return iterator.return();
     }
   }, {
@@ -1647,18 +1699,17 @@ var trackStream = (stream, chunkSize, onProgress, onFinish, encode3) => {
 };
 
 // node_modules/axios/lib/adapters/fetch.js
-var fetchProgressDecorator = (total, fn) => {
-  const lengthComputable = total != null;
-  return (loaded) => setTimeout(() => fn({
-    lengthComputable,
-    total,
-    loaded
-  }));
-};
 var isFetchSupported = typeof fetch === "function" && typeof Request === "function" && typeof Response === "function";
 var isReadableStreamSupported = isFetchSupported && typeof ReadableStream === "function";
 var encodeText = isFetchSupported && (typeof TextEncoder === "function" ? ((encoder) => (str) => encoder.encode(str))(new TextEncoder) : async (str) => new Uint8Array(await new Response(str).arrayBuffer()));
-var supportsRequestStream = isReadableStreamSupported && (() => {
+var test = (fn, ...args) => {
+  try {
+    return !!fn(...args);
+  } catch (e) {
+    return false;
+  }
+};
+var supportsRequestStream = isReadableStreamSupported && test(() => {
   let duplexAccessed = false;
   const hasContentType = new Request(platform_default.origin, {
     body: new ReadableStream,
@@ -1669,13 +1720,9 @@ var supportsRequestStream = isReadableStreamSupported && (() => {
     }
   }).headers.has("Content-Type");
   return duplexAccessed && !hasContentType;
-})();
+});
 var DEFAULT_CHUNK_SIZE = 64 * 1024;
-var supportsResponseStream = isReadableStreamSupported && !!(() => {
-  try {
-    return utils_default.isReadableStream(new Response("").body);
-  } catch (err) {}
-})();
+var supportsResponseStream = isReadableStreamSupported && test(() => utils_default.isReadableStream(new Response("").body));
 var resolvers = {
   stream: supportsResponseStream && ((res) => res.body)
 };
@@ -1694,9 +1741,13 @@ var getBodyLength = async (body) => {
     return body.size;
   }
   if (utils_default.isSpecCompliantForm(body)) {
-    return (await new Request(body).arrayBuffer()).byteLength;
+    const _request = new Request(platform_default.origin, {
+      method: "POST",
+      body
+    });
+    return (await _request.arrayBuffer()).byteLength;
   }
-  if (utils_default.isArrayBufferView(body)) {
+  if (utils_default.isArrayBufferView(body) || utils_default.isArrayBuffer(body)) {
     return body.byteLength;
   }
   if (utils_default.isURLSearchParams(body)) {
@@ -1726,14 +1777,11 @@ var fetch_default = isFetchSupported && (async (config) => {
     fetchOptions
   } = resolveConfig_default(config);
   responseType = responseType ? (responseType + "").toLowerCase() : "text";
-  let [composedSignal, stopTimeout] = signal || cancelToken || timeout ? composeSignals_default([signal, cancelToken], timeout) : [];
-  let finished, request;
-  const onFinish = () => {
-    !finished && setTimeout(() => {
-      composedSignal && composedSignal.unsubscribe();
-    });
-    finished = true;
-  };
+  let composedSignal = composeSignals_default([signal, cancelToken && cancelToken.toAbortSignal()], timeout);
+  let request;
+  const unsubscribe = composedSignal && composedSignal.unsubscribe && (() => {
+    composedSignal.unsubscribe();
+  });
   let requestContentLength;
   try {
     if (onUploadProgress && supportsRequestStream && method !== "get" && method !== "head" && (requestContentLength = await resolveBodyLength(headers, data)) !== 0) {
@@ -1747,12 +1795,14 @@ var fetch_default = isFetchSupported && (async (config) => {
         headers.setContentType(contentTypeHeader);
       }
       if (_request.body) {
-        data = trackStream(_request.body, DEFAULT_CHUNK_SIZE, fetchProgressDecorator(requestContentLength, progressEventReducer_default(onUploadProgress)), null, encodeText);
+        const [onProgress, flush] = progressEventDecorator(requestContentLength, progressEventReducer(asyncDecorator(onUploadProgress)));
+        data = trackStream(_request.body, DEFAULT_CHUNK_SIZE, onProgress, flush);
       }
     }
     if (!utils_default.isString(withCredentials)) {
-      withCredentials = withCredentials ? "cors" : "omit";
+      withCredentials = withCredentials ? "include" : "omit";
     }
+    const isCredentialsSupported = "credentials" in Request.prototype;
     request = new Request(url, {
       ...fetchOptions,
       signal: composedSignal,
@@ -1760,22 +1810,25 @@ var fetch_default = isFetchSupported && (async (config) => {
       headers: headers.normalize().toJSON(),
       body: data,
       duplex: "half",
-      withCredentials
+      credentials: isCredentialsSupported ? withCredentials : undefined
     });
     let response = await fetch(request);
     const isStreamResponse = supportsResponseStream && (responseType === "stream" || responseType === "response");
-    if (supportsResponseStream && (onDownloadProgress || isStreamResponse)) {
+    if (supportsResponseStream && (onDownloadProgress || isStreamResponse && unsubscribe)) {
       const options = {};
       ["status", "statusText", "headers"].forEach((prop) => {
         options[prop] = response[prop];
       });
       const responseContentLength = utils_default.toFiniteNumber(response.headers.get("content-length"));
-      response = new Response(trackStream(response.body, DEFAULT_CHUNK_SIZE, onDownloadProgress && fetchProgressDecorator(responseContentLength, progressEventReducer_default(onDownloadProgress, true)), isStreamResponse && onFinish, encodeText), options);
+      const [onProgress, flush] = onDownloadProgress && progressEventDecorator(responseContentLength, progressEventReducer(asyncDecorator(onDownloadProgress), true)) || [];
+      response = new Response(trackStream(response.body, DEFAULT_CHUNK_SIZE, onProgress, () => {
+        flush && flush();
+        unsubscribe && unsubscribe();
+      }), options);
     }
     responseType = responseType || "text";
     let responseData = await resolvers[utils_default.findKey(resolvers, responseType) || "text"](response, config);
-    !isStreamResponse && onFinish();
-    stopTimeout && stopTimeout();
+    !isStreamResponse && unsubscribe && unsubscribe();
     return await new Promise((resolve, reject) => {
       settle(resolve, reject, {
         data: responseData,
@@ -1787,7 +1840,7 @@ var fetch_default = isFetchSupported && (async (config) => {
       });
     });
   } catch (err) {
-    onFinish();
+    unsubscribe && unsubscribe();
     if (err && err.name === "TypeError" && /fetch/i.test(err.message)) {
       throw Object.assign(new AxiosError_default("Network Error", AxiosError_default.ERR_NETWORK, config, request), {
         cause: err.cause || err
@@ -1882,7 +1935,7 @@ function dispatchRequest(config) {
 }
 
 // node_modules/axios/lib/env/data.js
-var VERSION = "1.7.2";
+var VERSION = "1.7.9";
 
 // node_modules/axios/lib/helpers/validator.js
 var validators = {};
@@ -1905,6 +1958,12 @@ validators.transitional = function transitional(validator, version, message) {
       console.warn(formatMessage(opt, " has been deprecated since v" + version + " and will be removed in the near future"));
     }
     return validator ? validator(value, opt, opts) : true;
+  };
+};
+validators.spelling = function spelling(correctSpelling) {
+  return (value, opt) => {
+    console.warn(`${opt} is likely a misspelling of ${correctSpelling}`);
+    return true;
   };
 };
 function assertOptions(options, schema, allowUnknown) {
@@ -1950,8 +2009,8 @@ class Axios {
       return await this._request(configOrUrl, config);
     } catch (err) {
       if (err instanceof Error) {
-        let dummy;
-        Error.captureStackTrace ? Error.captureStackTrace(dummy = {}) : dummy = new Error;
+        let dummy = {};
+        Error.captureStackTrace ? Error.captureStackTrace(dummy) : dummy = new Error;
         const stack = dummy.stack ? dummy.stack.replace(/^.+\n/, "") : "";
         try {
           if (!err.stack) {
@@ -1993,6 +2052,10 @@ class Axios {
         }, true);
       }
     }
+    validator_default.assertOptions(config, {
+      baseUrl: validators2.spelling("baseURL"),
+      withXsrfToken: validators2.spelling("withXSRFToken")
+    }, true);
     config.method = (config.method || this.defaults.method || "get").toLowerCase();
     let contextHeaders = headers && utils_default.merge(headers.common, headers[config.method]);
     headers && utils_default.forEach(["delete", "get", "head", "post", "put", "patch", "common"], (method) => {
@@ -2147,6 +2210,15 @@ class CancelToken {
     if (index !== -1) {
       this._listeners.splice(index, 1);
     }
+  }
+  toAbortSignal() {
+    const controller = new AbortController;
+    const abort = (err) => {
+      controller.abort(err);
+    };
+    this.subscribe(abort);
+    controller.signal.unsubscribe = () => this.unsubscribe(abort);
+    return controller.signal;
   }
   static source() {
     let cancel;
@@ -2421,6 +2493,18 @@ var FolderObjectListResponseResultInnerMediaTypeEnum = {
   Audio: "AUDIO",
   Document: "DOCUMENT",
   Unknown: "UNKNOWN"
+};
+var FolderShareCreateInputDTOPermissionsEnum = {
+  FolderReindex: "FOLDER_REINDEX",
+  FolderForget: "FOLDER_FORGET",
+  ObjectEdit: "OBJECT_EDIT",
+  ObjectManage: "OBJECT_MANAGE"
+};
+var FolderShareGetResponseSharePermissionsEnum = {
+  FolderReindex: "FOLDER_REINDEX",
+  FolderForget: "FOLDER_FORGET",
+  ObjectEdit: "OBJECT_EDIT",
+  ObjectManage: "OBJECT_MANAGE"
 };
 var UserStorageProvisionDTOProvisionTypesEnum = {
   Content: "CONTENT",
@@ -3112,6 +3196,27 @@ var FoldersApiAxiosParamCreator = function(configuration) {
         options: localVarRequestOptions
       };
     },
+    getFolderShares: async (folderId, userId, options = {}) => {
+      assertParamExists("getFolderShares", "folderId", folderId);
+      assertParamExists("getFolderShares", "userId", userId);
+      const localVarPath = `/api/v1/folders/{folderId}/shares/{userId}`.replace(`{${"folderId"}}`, encodeURIComponent(String(folderId))).replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options };
+      const localVarHeaderParameter = {};
+      const localVarQueryParameter = {};
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions
+      };
+    },
     handleAppTaskTrigger: async (folderId, appIdentifier, taskKey, triggerAppTaskInputDTO, options = {}) => {
       assertParamExists("handleAppTaskTrigger", "folderId", folderId);
       assertParamExists("handleAppTaskTrigger", "appIdentifier", appIdentifier);
@@ -3161,6 +3266,55 @@ var FoldersApiAxiosParamCreator = function(configuration) {
       if (sort !== undefined) {
         localVarQueryParameter["sort"] = sort;
       }
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions
+      };
+    },
+    listFolderShareUsers: async (folderId, offset, limit, search, options = {}) => {
+      assertParamExists("listFolderShareUsers", "folderId", folderId);
+      const localVarPath = `/api/v1/folders/{folderId}/user-share-options`.replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options };
+      const localVarHeaderParameter = {};
+      const localVarQueryParameter = {};
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+      if (offset !== undefined) {
+        localVarQueryParameter["offset"] = offset;
+      }
+      if (limit !== undefined) {
+        localVarQueryParameter["limit"] = limit;
+      }
+      if (search !== undefined) {
+        localVarQueryParameter["search"] = search;
+      }
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions
+      };
+    },
+    listFolderShares: async (folderId, options = {}) => {
+      assertParamExists("listFolderShares", "folderId", folderId);
+      const localVarPath = `/api/v1/folders/{folderId}/shares`.replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options };
+      const localVarHeaderParameter = {};
+      const localVarQueryParameter = {};
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
       setSearchParams(localVarUrlObj, localVarQueryParameter);
       let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
       localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
@@ -3240,6 +3394,51 @@ var FoldersApiAxiosParamCreator = function(configuration) {
         url: toPathString(localVarUrlObj),
         options: localVarRequestOptions
       };
+    },
+    removeFolderShare: async (folderId, userId, options = {}) => {
+      assertParamExists("removeFolderShare", "folderId", folderId);
+      assertParamExists("removeFolderShare", "userId", userId);
+      const localVarPath = `/api/v1/folders/{folderId}/shares/{userId}`.replace(`{${"folderId"}}`, encodeURIComponent(String(folderId))).replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+      const localVarRequestOptions = { method: "DELETE", ...baseOptions, ...options };
+      const localVarHeaderParameter = {};
+      const localVarQueryParameter = {};
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions
+      };
+    },
+    upsertFolderShare: async (folderId, userId, folderShareCreateInputDTO, options = {}) => {
+      assertParamExists("upsertFolderShare", "folderId", folderId);
+      assertParamExists("upsertFolderShare", "userId", userId);
+      assertParamExists("upsertFolderShare", "folderShareCreateInputDTO", folderShareCreateInputDTO);
+      const localVarPath = `/api/v1/folders/{folderId}/shares/{userId}`.replace(`{${"folderId"}}`, encodeURIComponent(String(folderId))).replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options };
+      const localVarHeaderParameter = {};
+      const localVarQueryParameter = {};
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+      localVarHeaderParameter["Content-Type"] = "application/json";
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      localVarRequestOptions.data = serializeDataIfNeeded(folderShareCreateInputDTO, localVarRequestOptions, configuration);
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions
+      };
     }
   };
 };
@@ -3288,6 +3487,12 @@ var FoldersApiFp = function(configuration) {
       const localVarOperationServerBasePath = operationServerMap["FoldersApi.getFolderObject"]?.[localVarOperationServerIndex]?.url;
       return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
     },
+    async getFolderShares(folderId, userId, options) {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.getFolderShares(folderId, userId, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath = operationServerMap["FoldersApi.getFolderShares"]?.[localVarOperationServerIndex]?.url;
+      return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
+    },
     async handleAppTaskTrigger(folderId, appIdentifier, taskKey, triggerAppTaskInputDTO, options) {
       const localVarAxiosArgs = await localVarAxiosParamCreator.handleAppTaskTrigger(folderId, appIdentifier, taskKey, triggerAppTaskInputDTO, options);
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
@@ -3298,6 +3503,18 @@ var FoldersApiFp = function(configuration) {
       const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderObjects(folderId, offset, limit, search, sort, options);
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
       const localVarOperationServerBasePath = operationServerMap["FoldersApi.listFolderObjects"]?.[localVarOperationServerIndex]?.url;
+      return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
+    },
+    async listFolderShareUsers(folderId, offset, limit, search, options) {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderShareUsers(folderId, offset, limit, search, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath = operationServerMap["FoldersApi.listFolderShareUsers"]?.[localVarOperationServerIndex]?.url;
+      return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
+    },
+    async listFolderShares(folderId, options) {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listFolderShares(folderId, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath = operationServerMap["FoldersApi.listFolderShares"]?.[localVarOperationServerIndex]?.url;
       return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
     },
     async listFolders(offset, limit, sort, search, options) {
@@ -3316,6 +3533,18 @@ var FoldersApiFp = function(configuration) {
       const localVarAxiosArgs = await localVarAxiosParamCreator.reindexFolder(folderId, options);
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
       const localVarOperationServerBasePath = operationServerMap["FoldersApi.reindexFolder"]?.[localVarOperationServerIndex]?.url;
+      return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
+    },
+    async removeFolderShare(folderId, userId, options) {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.removeFolderShare(folderId, userId, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath = operationServerMap["FoldersApi.removeFolderShare"]?.[localVarOperationServerIndex]?.url;
+      return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
+    },
+    async upsertFolderShare(folderId, userId, folderShareCreateInputDTO, options) {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.upsertFolderShare(folderId, userId, folderShareCreateInputDTO, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath = operationServerMap["FoldersApi.upsertFolderShare"]?.[localVarOperationServerIndex]?.url;
       return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
     }
   };
@@ -3344,11 +3573,20 @@ var FoldersApiFactory = function(configuration, basePath, axios2) {
     getFolderObject(requestParameters, options) {
       return localVarFp.getFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(axios2, basePath));
     },
+    getFolderShares(requestParameters, options) {
+      return localVarFp.getFolderShares(requestParameters.folderId, requestParameters.userId, options).then((request) => request(axios2, basePath));
+    },
     handleAppTaskTrigger(requestParameters, options) {
       return localVarFp.handleAppTaskTrigger(requestParameters.folderId, requestParameters.appIdentifier, requestParameters.taskKey, requestParameters.triggerAppTaskInputDTO, options).then((request) => request(axios2, basePath));
     },
     listFolderObjects(requestParameters, options) {
       return localVarFp.listFolderObjects(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, requestParameters.sort, options).then((request) => request(axios2, basePath));
+    },
+    listFolderShareUsers(requestParameters, options) {
+      return localVarFp.listFolderShareUsers(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, options).then((request) => request(axios2, basePath));
+    },
+    listFolderShares(requestParameters, options) {
+      return localVarFp.listFolderShares(requestParameters.folderId, options).then((request) => request(axios2, basePath));
     },
     listFolders(requestParameters = {}, options) {
       return localVarFp.listFolders(requestParameters.offset, requestParameters.limit, requestParameters.sort, requestParameters.search, options).then((request) => request(axios2, basePath));
@@ -3358,6 +3596,12 @@ var FoldersApiFactory = function(configuration, basePath, axios2) {
     },
     reindexFolder(requestParameters, options) {
       return localVarFp.reindexFolder(requestParameters.folderId, options).then((request) => request(axios2, basePath));
+    },
+    removeFolderShare(requestParameters, options) {
+      return localVarFp.removeFolderShare(requestParameters.folderId, requestParameters.userId, options).then((request) => request(axios2, basePath));
+    },
+    upsertFolderShare(requestParameters, options) {
+      return localVarFp.upsertFolderShare(requestParameters.folderId, requestParameters.userId, requestParameters.folderShareCreateInputDTO, options).then((request) => request(axios2, basePath));
     }
   };
 };
@@ -3384,11 +3628,20 @@ class FoldersApi extends BaseAPI {
   getFolderObject(requestParameters, options) {
     return FoldersApiFp(this.configuration).getFolderObject(requestParameters.folderId, requestParameters.objectKey, options).then((request) => request(this.axios, this.basePath));
   }
+  getFolderShares(requestParameters, options) {
+    return FoldersApiFp(this.configuration).getFolderShares(requestParameters.folderId, requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
+  }
   handleAppTaskTrigger(requestParameters, options) {
     return FoldersApiFp(this.configuration).handleAppTaskTrigger(requestParameters.folderId, requestParameters.appIdentifier, requestParameters.taskKey, requestParameters.triggerAppTaskInputDTO, options).then((request) => request(this.axios, this.basePath));
   }
   listFolderObjects(requestParameters, options) {
     return FoldersApiFp(this.configuration).listFolderObjects(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, requestParameters.sort, options).then((request) => request(this.axios, this.basePath));
+  }
+  listFolderShareUsers(requestParameters, options) {
+    return FoldersApiFp(this.configuration).listFolderShareUsers(requestParameters.folderId, requestParameters.offset, requestParameters.limit, requestParameters.search, options).then((request) => request(this.axios, this.basePath));
+  }
+  listFolderShares(requestParameters, options) {
+    return FoldersApiFp(this.configuration).listFolderShares(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
   }
   listFolders(requestParameters = {}, options) {
     return FoldersApiFp(this.configuration).listFolders(requestParameters.offset, requestParameters.limit, requestParameters.sort, requestParameters.search, options).then((request) => request(this.axios, this.basePath));
@@ -3398,6 +3651,12 @@ class FoldersApi extends BaseAPI {
   }
   reindexFolder(requestParameters, options) {
     return FoldersApiFp(this.configuration).reindexFolder(requestParameters.folderId, options).then((request) => request(this.axios, this.basePath));
+  }
+  removeFolderShare(requestParameters, options) {
+    return FoldersApiFp(this.configuration).removeFolderShare(requestParameters.folderId, requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
+  }
+  upsertFolderShare(requestParameters, options) {
+    return FoldersApiFp(this.configuration).upsertFolderShare(requestParameters.folderId, requestParameters.userId, requestParameters.folderShareCreateInputDTO, options).then((request) => request(this.axios, this.basePath));
   }
 }
 var ListFolderObjectsSortEnum = {
@@ -4458,6 +4717,26 @@ var UsersApiAxiosParamCreator = function(configuration) {
         options: localVarRequestOptions
       };
     },
+    listActiveUserSessions: async (userId, options = {}) => {
+      assertParamExists("listActiveUserSessions", "userId", userId);
+      const localVarPath = `/api/v1/server/users/{userId}/sessions`.replace(`{${"userId"}}`, encodeURIComponent(String(userId)));
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options };
+      const localVarHeaderParameter = {};
+      const localVarQueryParameter = {};
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions
+      };
+    },
     listUsers: async (offset, limit, isAdmin, sort, search, options = {}) => {
       const localVarPath = `/api/v1/server/users`;
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -4538,6 +4817,12 @@ var UsersApiFp = function(configuration) {
       const localVarOperationServerBasePath = operationServerMap["UsersApi.getUser"]?.[localVarOperationServerIndex]?.url;
       return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
     },
+    async listActiveUserSessions(userId, options) {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listActiveUserSessions(userId, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath = operationServerMap["UsersApi.listActiveUserSessions"]?.[localVarOperationServerIndex]?.url;
+      return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
+    },
     async listUsers(offset, limit, isAdmin, sort, search, options) {
       const localVarAxiosArgs = await localVarAxiosParamCreator.listUsers(offset, limit, isAdmin, sort, search, options);
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
@@ -4564,6 +4849,9 @@ var UsersApiFactory = function(configuration, basePath, axios2) {
     getUser(requestParameters, options) {
       return localVarFp.getUser(requestParameters.userId, options).then((request) => request(axios2, basePath));
     },
+    listActiveUserSessions(requestParameters, options) {
+      return localVarFp.listActiveUserSessions(requestParameters.userId, options).then((request) => request(axios2, basePath));
+    },
     listUsers(requestParameters = {}, options) {
       return localVarFp.listUsers(requestParameters.offset, requestParameters.limit, requestParameters.isAdmin, requestParameters.sort, requestParameters.search, options).then((request) => request(axios2, basePath));
     },
@@ -4582,6 +4870,9 @@ class UsersApi extends BaseAPI {
   }
   getUser(requestParameters, options) {
     return UsersApiFp(this.configuration).getUser(requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
+  }
+  listActiveUserSessions(requestParameters, options) {
+    return UsersApiFp(this.configuration).listActiveUserSessions(requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
   }
   listUsers(requestParameters = {}, options) {
     return UsersApiFp(this.configuration).listUsers(requestParameters.offset, requestParameters.limit, requestParameters.isAdmin, requestParameters.sort, requestParameters.search, options).then((request) => request(this.axios, this.basePath));
@@ -5117,6 +5408,41 @@ var schema = {
         ]
       }
     },
+    "/api/v1/server/users/{userId}/sessions": {
+      get: {
+        operationId: "listActiveUserSessions",
+        parameters: [
+          {
+            name: "userId",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          }
+        ],
+        responses: {
+          "200": {
+            description: "",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/UserSessionListResponse"
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            bearer: []
+          }
+        ],
+        tags: [
+          "Users"
+        ]
+      }
+    },
     "/api/v1/folders/{folderId}": {
       get: {
         operationId: "getFolder",
@@ -5645,6 +5971,233 @@ var schema = {
           }
         ],
         summary: "Handle app task trigger",
+        tags: [
+          "Folders"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/shares/{userId}": {
+      get: {
+        operationId: "getFolderShares",
+        parameters: [
+          {
+            name: "folderId",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          },
+          {
+            name: "userId",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          }
+        ],
+        responses: {
+          "200": {
+            description: "",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/FolderShareGetResponse"
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            bearer: []
+          }
+        ],
+        summary: "Get folder share for a user",
+        tags: [
+          "Folders"
+        ]
+      },
+      post: {
+        operationId: "upsertFolderShare",
+        parameters: [
+          {
+            name: "folderId",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          },
+          {
+            name: "userId",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/FolderShareCreateInputDTO"
+              }
+            }
+          }
+        },
+        responses: {
+          "201": {
+            description: "",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/FolderShareGetResponse"
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            bearer: []
+          }
+        ],
+        summary: "Add or update a folder share",
+        tags: [
+          "Folders"
+        ]
+      },
+      delete: {
+        operationId: "removeFolderShare",
+        parameters: [
+          {
+            name: "folderId",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          },
+          {
+            name: "userId",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          }
+        ],
+        responses: {
+          "200": {
+            description: ""
+          }
+        },
+        security: [
+          {
+            bearer: []
+          }
+        ],
+        summary: "Remove a folder share",
+        tags: [
+          "Folders"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/shares": {
+      get: {
+        operationId: "listFolderShares",
+        parameters: [
+          {
+            name: "folderId",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          }
+        ],
+        responses: {
+          "200": {
+            description: "",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/FolderShareListResponse"
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            bearer: []
+          }
+        ],
+        summary: "List folder shares",
+        tags: [
+          "Folders"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/user-share-options": {
+      get: {
+        operationId: "listFolderShareUsers",
+        parameters: [
+          {
+            name: "folderId",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          },
+          {
+            name: "offset",
+            required: false,
+            in: "query",
+            schema: {
+              type: "number"
+            }
+          },
+          {
+            name: "limit",
+            required: false,
+            in: "query",
+            schema: {
+              type: "number"
+            }
+          },
+          {
+            name: "search",
+            required: false,
+            in: "query",
+            schema: {
+              type: "string"
+            }
+          }
+        ],
+        responses: {
+          "200": {
+            description: "",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/FolderShareUserListResponse"
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            bearer: []
+          }
+        ],
+        summary: "List prospective folder share users",
         tags: [
           "Folders"
         ]
@@ -7526,12 +8079,26 @@ var schema = {
         type: "object",
         properties: {
           name: {
-            type: "string",
-            minLength: 1
+            oneOf: [
+              {
+                type: "string",
+                minLength: 1
+              },
+              {
+                type: "null"
+              }
+            ]
           },
           email: {
-            type: "string",
-            minLength: 1
+            oneOf: [
+              {
+                type: "string",
+                minLength: 1
+              },
+              {
+                type: "null"
+              }
+            ]
           },
           isAdmin: {
             type: "boolean"
@@ -7623,6 +8190,56 @@ var schema = {
                 "isAdmin",
                 "username",
                 "permissions",
+                "createdAt",
+                "updatedAt"
+              ]
+            }
+          }
+        },
+        required: [
+          "meta",
+          "result"
+        ]
+      },
+      UserSessionListResponse: {
+        type: "object",
+        properties: {
+          meta: {
+            type: "object",
+            properties: {
+              totalCount: {
+                type: "number"
+              }
+            },
+            required: [
+              "totalCount"
+            ]
+          },
+          result: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                id: {
+                  type: "string",
+                  format: "uuid"
+                },
+                expiresAt: {
+                  type: "string",
+                  format: "date-time"
+                },
+                createdAt: {
+                  type: "string",
+                  format: "date-time"
+                },
+                updatedAt: {
+                  type: "string",
+                  format: "date-time"
+                }
+              },
+              required: [
+                "id",
+                "expiresAt",
                 "createdAt",
                 "updatedAt"
               ]
@@ -8979,6 +9596,145 @@ var schema = {
           },
           inputParams: {}
         }
+      },
+      FolderShareGetResponse: {
+        type: "object",
+        properties: {
+          share: {
+            type: "object",
+            properties: {
+              userId: {
+                type: "string",
+                format: "uuid"
+              },
+              permissions: {
+                type: "array",
+                items: {
+                  type: "string",
+                  enum: [
+                    "FOLDER_REINDEX",
+                    "FOLDER_FORGET",
+                    "OBJECT_EDIT",
+                    "OBJECT_MANAGE"
+                  ]
+                }
+              }
+            },
+            required: [
+              "userId",
+              "permissions"
+            ]
+          }
+        },
+        required: [
+          "share"
+        ]
+      },
+      FolderShareListResponse: {
+        type: "object",
+        properties: {
+          meta: {
+            type: "object",
+            properties: {
+              totalCount: {
+                type: "number"
+              }
+            },
+            required: [
+              "totalCount"
+            ]
+          },
+          result: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                userId: {
+                  type: "string",
+                  format: "uuid"
+                },
+                permissions: {
+                  type: "array",
+                  items: {
+                    type: "string",
+                    enum: [
+                      "FOLDER_REINDEX",
+                      "FOLDER_FORGET",
+                      "OBJECT_EDIT",
+                      "OBJECT_MANAGE"
+                    ]
+                  }
+                }
+              },
+              required: [
+                "userId",
+                "permissions"
+              ]
+            }
+          }
+        },
+        required: [
+          "meta",
+          "result"
+        ]
+      },
+      FolderShareUserListResponse: {
+        type: "object",
+        properties: {
+          meta: {
+            type: "object",
+            properties: {
+              totalCount: {
+                type: "number"
+              }
+            },
+            required: [
+              "totalCount"
+            ]
+          },
+          result: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                username: {
+                  type: "string"
+                },
+                id: {
+                  type: "string"
+                }
+              },
+              required: [
+                "username",
+                "id"
+              ]
+            }
+          }
+        },
+        required: [
+          "meta",
+          "result"
+        ]
+      },
+      FolderShareCreateInputDTO: {
+        type: "object",
+        properties: {
+          permissions: {
+            type: "array",
+            items: {
+              type: "string",
+              enum: [
+                "FOLDER_REINDEX",
+                "FOLDER_FORGET",
+                "OBJECT_EDIT",
+                "OBJECT_MANAGE"
+              ]
+            }
+          }
+        },
+        required: [
+          "permissions"
+        ]
       },
       AccessKeyPublicDTO: {
         type: "object",
@@ -10822,6 +11578,8 @@ export {
   FoldersApiFactory,
   FoldersApiAxiosParamCreator,
   FoldersApi,
+  FolderShareGetResponseSharePermissionsEnum,
+  FolderShareCreateInputDTOPermissionsEnum,
   FolderObjectListResponseResultInnerMediaTypeEnum,
   FolderObjectDTOMediaTypeEnum,
   FolderObjectDTOContentAttributesValueMediaTypeEnum,

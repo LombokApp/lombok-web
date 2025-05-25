@@ -15,13 +15,13 @@ export interface Stat {
 
 export function StatCardGroup({ stats }: { stats: Stat[] }) {
   return (
-    <>
+    <div className="container">
       <div
         className={cn(
           'grid gap-4',
           stats.length % 2 === 0
-            ? 'md:grid-cols-2 lg:grid-cols-4'
-            : 'sm:grid-cols-1 md:grid-cols-3',
+            ? '@container grid-cols-2 @[400px]:grid-cols-4'
+            : '@container grid-cols-3 @[400px]:grid-cols-4',
         )}
       >
         {stats.map((stat, i) => {
@@ -41,6 +41,6 @@ export function StatCardGroup({ stats }: { stats: Stat[] }) {
           )
         })}
       </div>
-    </>
+    </div>
   )
 }

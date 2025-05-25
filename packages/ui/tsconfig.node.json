@@ -5,6 +5,7 @@
     "lib": ["ES2023", "WebWorker"],
     "module": "ESNext",
     "skipLibCheck": true,
+    "noUncheckedIndexedAccess": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -25,7 +26,13 @@
       "@/components": ["../ui-toolkit/src/components"],
       "@/components/*": ["../ui-toolkit/src/components/*"]
     }
-
   },
-  "include": ["vite.config.ts", "tailwind.config.ts", "postcss.config.ts", "eslint.config.ts", "index.d.ts", "src/.worker.ts"]
+  "include": [
+    "vite.config.ts",
+    "tailwind.config.ts",
+    "postcss.config.ts",
+    "eslint.config.ts",
+    "index.d.ts",
+    "src/.worker.ts"
+  ]
 }

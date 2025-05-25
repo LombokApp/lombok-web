@@ -5,8 +5,8 @@ import type {
 import type { FolderMetadata } from '@stellariscloud/types'
 import { FolderPushMessage } from '@stellariscloud/types'
 import { useToast } from '@stellariscloud/ui-toolkit'
+import type { QueryObserverResult } from '@tanstack/react-query'
 import React from 'react'
-import type { QueryObserverResult } from 'react-query'
 import type { Socket } from 'socket.io-client'
 
 import { LogLevel } from '../../contexts/logging.context'

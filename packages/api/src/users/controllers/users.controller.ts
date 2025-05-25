@@ -16,8 +16,10 @@ import {
 import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
+import { SessionService } from 'src/auth/services/session.service'
 import { UserGetResponse } from 'src/server/dto/responses/user-get-response.dto'
 import { UserListResponse } from 'src/server/dto/responses/user-list-response.dto'
+import { UserSessionListResponse } from 'src/server/dto/responses/user-session-list-response.dto'
 import { UserService } from 'src/users/services/users.service'
 
 import { transformUserToDTO } from '../dto/transforms/user.transforms'
@@ -33,7 +35,10 @@ import { UsersListQueryParamsDTO } from '../dto/users-list-query-params.dto'
 @UseGuards(AuthGuard)
 @ApiExtraModels(UserDTO)
 export class UsersController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly sessionService: SessionService,
+  ) {}
 
   /**
    * Create a user.
@@ -124,5 +129,21 @@ export class UsersController {
       throw new UnauthorizedException()
     }
     await this.userService.deleteUserAsAdmin(req.user, userId)
+  }
+
+  @Get(':userId/sessions')
+  async listActiveUserSessions(
+    @Req() req: express.Request,
+    @Param('userId') userId: string,
+  ): Promise<UserSessionListResponse> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const user = await this.userService.getUserByIdAsAdmin(req.user, userId)
+    const sessions = await this.sessionService.listActiveUserSessions(user)
+    return {
+      result: sessions,
+      meta: { totalCount: sessions.length },
+    }
   }
 }

@@ -13,6 +13,10 @@ import {
   foldersTable,
 } from '../folders/entities/folder.entity'
 import { folderObjectsTable } from '../folders/entities/folder-object.entity'
+import {
+  folderSharesRelations,
+  folderSharesTable,
+} from '../folders/entities/folder-share.entity'
 import { serverSettingsTable } from '../server/entities/server-configuration.entity'
 import { storageLocationsTable } from '../storage/entities/storage-location.entity'
 import { tasksTable } from '../task/entities/task.entity'
@@ -26,10 +30,12 @@ export const dbSchema = {
   serverSettingsTable,
   foldersTable,
   foldersRelations,
+  folderSharesRelations,
   folderObjectsTable,
   appsTable,
   eventsTable,
   tasksTable,
+  folderSharesTable,
 }
 
 export const TEST_DB_PREFIX = 'stellaris_test__'
@@ -70,6 +76,7 @@ export class OrmService {
     if (!this._db) {
       this._db = drizzle(this.client, {
         schema: dbSchema,
+        logger: this._ormConfig.logQueries,
       })
     }
     return this._db

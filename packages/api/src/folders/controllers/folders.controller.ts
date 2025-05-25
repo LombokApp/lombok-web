@@ -26,6 +26,8 @@ import { FolderObjectDTO } from '../dto/folder-object.dto'
 import { FolderObjectContentAttributesDTO } from '../dto/folder-object-content-attributes.dto'
 import { FolderObjectContentMetadataDTO } from '../dto/folder-object-content-metadata.dto'
 import { FolderObjectsListQueryParamsDTO } from '../dto/folder-objects-list-query-params.dto'
+import { FolderShareCreateInputDTO } from '../dto/folder-share-create-input.dto'
+import { FolderShareUsersListQueryParamsDTO } from '../dto/folder-shares-list-query-params.dto'
 import { FoldersListQueryParamsDTO } from '../dto/folders-list-query-params.dto'
 import type { FolderCreateResponse } from '../dto/responses/folder-create-response.dto'
 import type { FolderCreateSignedUrlsResponse } from '../dto/responses/folder-create-signed-urls-response.dto'
@@ -34,6 +36,9 @@ import type { FolderGetResponse } from '../dto/responses/folder-get-response.dto
 import type { FolderListResponse } from '../dto/responses/folder-list-response.dto'
 import type { FolderObjectGetResponse } from '../dto/responses/folder-object-get-response.dto'
 import type { FolderObjectListResponse } from '../dto/responses/folder-object-list-response.dto'
+import { FolderShareGetResponse } from '../dto/responses/folder-share-get-response.dto'
+import { FolderShareListResponse } from '../dto/responses/folder-share-list-response.dto'
+import { FolderShareUserListResponse } from '../dto/responses/folder-share-user-list-response.dto'
 import { transformFolderToDTO } from '../dto/transforms/folder.transforms'
 import { transformFolderObjectToDTO } from '../dto/transforms/folder-object.transforms'
 import { TriggerAppTaskInputDTO } from '../dto/trigger-app-task-input.dto'
@@ -103,16 +108,16 @@ export class FoldersController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    const result = await this.folderService.listFoldersAsUser(
+    const { result, meta } = await this.folderService.listFoldersAsUser(
       req.user,
       queryParams,
     )
     return {
-      result: result.result.map(({ folder, permissions }) => ({
+      result: result.map(({ folder, permissions }) => ({
         permissions,
         folder: transformFolderToDTO(folder),
       })),
-      meta: result.meta,
+      meta,
     }
   }
 
@@ -299,5 +304,98 @@ export class FoldersController {
       appIdentifier,
       objectKey: body.objectKey,
     })
+  }
+  /**
+   * Get folder share for a user
+   */
+  @Get('/:folderId/shares/:userId')
+  async getFolderShares(
+    @Req() req: express.Request,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<FolderShareGetResponse> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const share = await this.folderService.getFolderShare(
+      req.user,
+      folderId,
+      userId,
+    )
+    return { share }
+  }
+
+  /**
+   * List folder shares
+   */
+  @Get('/:folderId/shares')
+  async listFolderShares(
+    @Req() req: express.Request,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
+  ): Promise<FolderShareListResponse> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const shares = await this.folderService.listFolderShares(req.user, folderId)
+
+    return shares
+  }
+
+  /**
+   * List prospective folder share users
+   */
+  @Get('/:folderId/user-share-options')
+  async listFolderShareUsers(
+    @Req() req: express.Request,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
+    @Query() queryParams: FolderShareUsersListQueryParamsDTO,
+  ): Promise<FolderShareUserListResponse> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const shares = await this.folderService.listFolderShareUsersAsUser(
+      req.user,
+      folderId,
+      queryParams,
+    )
+    return shares
+  }
+
+  /**
+   * Add or update a folder share
+   */
+  @Post('/:folderId/shares/:userId')
+  async upsertFolderShare(
+    @Req() req: express.Request,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Body() body: FolderShareCreateInputDTO,
+  ): Promise<FolderShareGetResponse> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    return {
+      share: await this.folderService.upsertFolderShare(
+        req.user,
+        folderId,
+        userId,
+        body.permissions,
+      ),
+    }
+  }
+
+  /**
+   * Remove a folder share
+   */
+  @Delete('/:folderId/shares/:userId')
+  async removeFolderShare(
+    @Req() req: express.Request,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+  ): Promise<void> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    await this.folderService.removeFolderShare(req.user, folderId, userId)
   }
 }

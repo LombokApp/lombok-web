@@ -11,6 +11,7 @@ export const ormConfig = registerAs('orm', () => {
     DB_PASSWORD: z.string(),
     DISABLE_NOTICE_LOGGING: z.string().refine(isBoolean).optional(),
     RUN_MIGRATIONS: z.string().refine(isBoolean).optional(),
+    LOG_QUERIES: z.string().refine(isBoolean).optional(),
     CREATE_DATABASE: z.string().refine(isBoolean).optional(),
   })
   return {
@@ -19,11 +20,13 @@ export const ormConfig = registerAs('orm', () => {
     dbUser: env.DB_USER,
     dbPassword: env.DB_PASSWORD,
     dbName: env.DB_NAME,
+    logQueries: !!env.LOG_QUERIES && ['1', 'true'].includes(env.LOG_QUERIES),
     disableNoticeLogging:
-      env.DISABLE_NOTICE_LOGGING === '1' ||
-      env.DISABLE_NOTICE_LOGGING === 'true',
-    runMigrations: env.RUN_MIGRATIONS === '1' || env.RUN_MIGRATIONS === 'true',
+      !!env.DISABLE_NOTICE_LOGGING &&
+      ['1', 'true'].includes(env.DISABLE_NOTICE_LOGGING),
+    runMigrations:
+      !!env.RUN_MIGRATIONS && ['1', 'true'].includes(env.RUN_MIGRATIONS),
     createDatabase:
-      env.CREATE_DATABASE === '1' || env.CREATE_DATABASE === 'true',
+      !!env.CREATE_DATABASE && ['1', 'true'].includes(env.CREATE_DATABASE),
   }
 })

@@ -405,6 +405,41 @@ export const schema = {
         ]
       }
     },
+    "/api/v1/server/users/{userId}/sessions": {
+      "get": {
+        "operationId": "listActiveUserSessions",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserSessionListResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Users"
+        ]
+      }
+    },
     "/api/v1/folders/{folderId}": {
       "get": {
         "operationId": "getFolder",
@@ -933,6 +968,233 @@ export const schema = {
           }
         ],
         "summary": "Handle app task trigger",
+        "tags": [
+          "Folders"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/shares/{userId}": {
+      "get": {
+        "operationId": "getFolderShares",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderShareGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get folder share for a user",
+        "tags": [
+          "Folders"
+        ]
+      },
+      "post": {
+        "operationId": "upsertFolderShare",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FolderShareCreateInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderShareGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add or update a folder share",
+        "tags": [
+          "Folders"
+        ]
+      },
+      "delete": {
+        "operationId": "removeFolderShare",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a folder share",
+        "tags": [
+          "Folders"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/shares": {
+      "get": {
+        "operationId": "listFolderShares",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderShareListResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List folder shares",
+        "tags": [
+          "Folders"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/user-share-options": {
+      "get": {
+        "operationId": "listFolderShareUsers",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderShareUserListResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List prospective folder share users",
         "tags": [
           "Folders"
         ]
@@ -2814,12 +3076,26 @@ export const schema = {
         "type": "object",
         "properties": {
           "name": {
-            "type": "string",
-            "minLength": 1
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "email": {
-            "type": "string",
-            "minLength": 1
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "isAdmin": {
             "type": "boolean"
@@ -2911,6 +3187,56 @@ export const schema = {
                 "isAdmin",
                 "username",
                 "permissions",
+                "createdAt",
+                "updatedAt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "result"
+        ]
+      },
+      "UserSessionListResponse": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalCount"
+            ]
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "id",
+                "expiresAt",
                 "createdAt",
                 "updatedAt"
               ]
@@ -4267,6 +4593,145 @@ export const schema = {
           },
           "inputParams": {}
         }
+      },
+      "FolderShareGetResponse": {
+        "type": "object",
+        "properties": {
+          "share": {
+            "type": "object",
+            "properties": {
+              "userId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "permissions": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "FOLDER_REINDEX",
+                    "FOLDER_FORGET",
+                    "OBJECT_EDIT",
+                    "OBJECT_MANAGE"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "userId",
+              "permissions"
+            ]
+          }
+        },
+        "required": [
+          "share"
+        ]
+      },
+      "FolderShareListResponse": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalCount"
+            ]
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "userId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "permissions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "FOLDER_REINDEX",
+                      "FOLDER_FORGET",
+                      "OBJECT_EDIT",
+                      "OBJECT_MANAGE"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "userId",
+                "permissions"
+              ]
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "result"
+        ]
+      },
+      "FolderShareUserListResponse": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalCount"
+            ]
+          },
+          "result": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "username": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "username",
+                "id"
+              ]
+            }
+          }
+        },
+        "required": [
+          "meta",
+          "result"
+        ]
+      },
+      "FolderShareCreateInputDTO": {
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "FOLDER_REINDEX",
+                "FOLDER_FORGET",
+                "OBJECT_EDIT",
+                "OBJECT_MANAGE"
+              ]
+            }
+          }
+        },
+        "required": [
+          "permissions"
+        ]
       },
       "AccessKeyPublicDTO": {
         "type": "object",

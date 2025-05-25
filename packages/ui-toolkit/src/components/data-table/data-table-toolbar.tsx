@@ -56,9 +56,11 @@ export function DataTableToolbar<TData>({
   return (
     <div className="flex flex-row items-start justify-between">
       <div className="flex flex-col items-start xl:flex-row xl:items-center">
-        <div className="pl-2">
-          {title && <TypographyH3>{title}</TypographyH3>}
-        </div>
+        {title && (
+          <div className="pl-2">
+            <TypographyH3>{title}</TypographyH3>
+          </div>
+        )}
         <div className="flex items-center space-x-2 rounded-md p-1">
           <div className="flex items-center pl-2">
             <Filter className="size-5 text-foreground/40" />
