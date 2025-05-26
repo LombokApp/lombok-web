@@ -125,41 +125,34 @@ const AuthenticatedContent = () => {
   )
 }
 
-export const App = () => {
-  const [loaded, setLoaded] = React.useState(false)
-
-  const listener = React.useCallback(() => {
-    setLoaded(sdkInstance.authenticator.state.isLoaded)
-  }, [])
-
-  React.useEffect(() => {
-    sdkInstance.authenticator.addEventListener('onStateChanged', listener)
-    return () => {
-      sdkInstance.authenticator.removeEventListener('onStateChanged', listener)
-    }
-  }, [listener])
+const AuthStateRouter = () => {
+  const { authState } = useAuthContext()
 
   return (
-    <LoggingContextProvider>
-      <QueryClientProvider client={queryClient}>
-        <Router>
-          <AuthContextProvider authenticator={sdkInstance.authenticator}>
-            <ThemeProvider>
-              <div className="size-full">
-                {loaded && sdkInstance.authenticator.state.isAuthenticated ? (
-                  <LocalFileCacheContextProvider>
-                    <ServerContextProvider>
-                      <AuthenticatedContent />
-                    </ServerContextProvider>
-                  </LocalFileCacheContextProvider>
-                ) : (
-                  <UnauthenticatedContent />
-                )}
-              </div>
-            </ThemeProvider>
-          </AuthContextProvider>
-        </Router>
-      </QueryClientProvider>
-    </LoggingContextProvider>
+    <div className="size-full">
+      {authState.isAuthenticated && authState.isLoaded ? (
+        <LocalFileCacheContextProvider>
+          <ServerContextProvider>
+            <AuthenticatedContent />
+          </ServerContextProvider>
+        </LocalFileCacheContextProvider>
+      ) : (
+        <UnauthenticatedContent />
+      )}
+    </div>
   )
 }
+
+export const App = () => (
+  <LoggingContextProvider>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <AuthContextProvider authenticator={sdkInstance.authenticator}>
+          <ThemeProvider>
+            <AuthStateRouter />
+          </ThemeProvider>
+        </AuthContextProvider>
+      </Router>
+    </QueryClientProvider>
+  </LoggingContextProvider>
+)
