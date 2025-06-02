@@ -22,7 +22,7 @@ import {
 import {
   downloadFileToDisk,
   hashLocalFile,
-  streamUploadFile,
+  uploadFile,
 } from '../utils/file.util'
 
 export const analyzeObjectTaskHandler = async (
@@ -170,60 +170,88 @@ export const analyzeObjectTaskHandler = async (
         hash: metadataHashes.compressedVersion,
         mimeType: outMimeType,
         size: fs.statSync(compressedOutFilePath).size,
+        storageKey: metadataHashes.compressedVersion,
+        content: '',
       },
       thumbnailLg: {
         hash: metadataHashes.thumbnailLg,
         mimeType: outMimeType,
         size: fs.statSync(lgThumbnailOutFilePath).size,
+        storageKey: metadataHashes.thumbnailLg,
+        content: '',
       },
       thumbnailSm: {
         hash: metadataHashes.thumbnailSm,
         mimeType: outMimeType,
         size: fs.statSync(smThumbnailOutFilePath).size,
+        storageKey: metadataHashes.thumbnailSm,
+        content: '',
+      },
+      mimeType: {
+        size: Buffer.from(mimeType).length,
+        hash: '',
+        storageKey: '',
+        content: mimeType,
+        mimeType: 'text/plain',
+      },
+      mediaType: {
+        size: Buffer.from(mediaType).length,
+        hash: '',
+        storageKey: '',
+        content: mediaType,
+        mimeType: 'text/plain',
+      },
+      height: {
+        size: Buffer.from(JSON.stringify(scaleResult?.originalHeight ?? 0))
+          .length,
+        hash: '',
+        storageKey: '',
+        content: `${scaleResult?.originalHeight ?? 0}`,
+        mimeType: 'application/json',
+      },
+      width: {
+        size: Buffer.from(JSON.stringify(scaleResult?.originalWidth ?? 0))
+          .length,
+        hash: '',
+        storageKey: '',
+        content: `${scaleResult?.originalWidth ?? 0}`,
+        mimeType: 'application/json',
+      },
+      orientation: {
+        size: Buffer.from(JSON.stringify(rotation ?? 0)).length,
+        hash: '',
+        storageKey: '',
+        content: `${rotation ?? 0}`,
+        mimeType: 'application/json',
+      },
+      lengthMs: {
+        size: Buffer.from(
+          JSON.stringify((scaleResult as any | undefined)?.lengthMs ?? 0),
+        ).length,
+        hash: '',
+        storageKey: '',
+        content: `${(scaleResult as any | undefined)?.lengthMs ?? 0}`,
+        mimeType: 'application/json',
       },
     }
 
-    await streamUploadFile(
+    await uploadFile(
       compressedOutFilePath,
       metadtaSignedUrlsResponse.compressedVersion,
       outMimeType,
     )
 
-    await streamUploadFile(
+    await uploadFile(
       lgThumbnailOutFilePath,
       metadtaSignedUrlsResponse.thumbnailLg,
       outMimeType,
     )
 
-    await streamUploadFile(
+    await uploadFile(
       smThumbnailOutFilePath,
       metadtaSignedUrlsResponse.thumbnailSm,
       outMimeType,
     )
-  }
-
-  const updateContentAttributesResponse = await server.updateContentAttributes(
-    [
-      {
-        folderId: task.data.folderId,
-        objectKey: task.data.objectKey,
-        hash: contentHash,
-        attributes: {
-          mimeType,
-          mediaType: MediaType.Image,
-          bitrate: 0,
-          height: scaleResult?.originalHeight ?? 0,
-          width: scaleResult?.originalWidth ?? 0,
-          lengthMs: (scaleResult as any | undefined)?.lengthMs ?? 0,
-          orientation: rotation ?? 0,
-        },
-      },
-    ],
-    task.id,
-  )
-
-  if (updateContentAttributesResponse.error) {
-    throw new AppAPIError('UPDATE_CONTENT_ATTRIBUTES_FAILED')
   }
 
   const metadataUpdateResponse = await server.updateContentMetadata(

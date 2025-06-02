@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 export enum MediaType {
   Image = 'IMAGE',
   Video = 'VIDEO',
@@ -14,11 +16,6 @@ export enum ThumbnailSize {
 export interface ContentAttributesType {
   mediaType: MediaType
   mimeType: string
-  height: number
-  width: number
-  orientation: number
-  lengthMs: number
-  bitrate: number
 }
 
 export interface ContentAttributesByHash {
@@ -26,17 +23,32 @@ export interface ContentAttributesByHash {
   [hash: string]: ContentAttributesType | undefined
 }
 
-export interface MetadataEntry {
-  mimeType: string
-  size: number
-  hash: string
-}
+export const metadataEntrySchema = z
+  .object({
+    mimeType: z.string(),
+    size: z.number(),
+    hash: z.string(),
+    storageKey: z.string(),
+    content: z.literal(''),
+  })
+  .or(
+    z.object({
+      mimeType: z.string(),
+      size: z.number(),
+      hash: z.literal(''),
+      storageKey: z.literal(''),
+      content: z.string(),
+    }),
+  )
+
+export type MetadataEntry = z.infer<typeof metadataEntrySchema>
+
 
 export interface ContentMetadataType {
-  [key: string]: MetadataEntry | undefined
+  [key: string]: MetadataEntry
 }
 
 export interface ContentMetadataByHash {
   // keyed by content hash (e.g. "SHA1:<hash>")
-  [key: string]: ContentMetadataType | undefined
+  [key: string]: ContentMetadataType
 }

@@ -7,7 +7,11 @@ import {
 import nestJsConfig from '@nestjs/config'
 import { hashLocalFile } from '@stellariscloud/core-worker'
 import type { AppConfig, ConnectedAppWorker } from '@stellariscloud/types'
-import { MediaType, SignedURLsRequestMethod } from '@stellariscloud/types'
+import {
+  MediaType,
+  metadataEntrySchema,
+  SignedURLsRequestMethod,
+} from '@stellariscloud/types'
 import { safeZodParse } from '@stellariscloud/utils'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
 import fs from 'fs'
@@ -108,12 +112,6 @@ const GetMetadataSignedURLsValidator = z.object({
       metadataHash: z.string(),
     }),
   ),
-})
-
-const metadataEntrySchema = z.object({
-  mimeType: z.string(),
-  size: z.number(),
-  hash: z.string(),
 })
 
 const updateMetadataSchema = z.object({
@@ -223,23 +221,6 @@ export class AppService {
           if (safeZodParse(requestData, GetMetadataSignedURLsValidator)) {
             return {
               result: await this.createSignedMetadataUrls(requestData),
-            }
-          } else {
-            return {
-              error: {
-                code: 400,
-                message: 'Invalid request.',
-              },
-            }
-          }
-        }
-        case 'UPDATE_CONTENT_ATTRIBUTES': {
-          if (safeZodParse(requestData, UpdateAttributesValidator)) {
-            await this.folderService.updateFolderObjectAttributes(
-              requestData.updates,
-            )
-            return {
-              result: undefined,
             }
           } else {
             return {

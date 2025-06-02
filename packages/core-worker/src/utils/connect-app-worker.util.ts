@@ -30,14 +30,6 @@ export const buildAppClient = (socket: Socket): CoreServerMessageInterface => {
         },
       })
     },
-    updateContentAttributes(updates) {
-      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
-        name: 'UPDATE_CONTENT_ATTRIBUTES',
-        data: {
-          updates,
-        },
-      })
-    },
     updateContentMetadata(updates, taskId) {
       return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
         name: 'UPDATE_CONTENT_METADATA',
@@ -107,15 +99,6 @@ export interface CoreServerMessageInterface {
       urls: { url: string; folderId: string; objectKey: string }[]
     }>
   >
-  updateContentAttributes: (
-    updates: {
-      folderId: string
-      objectKey: string
-      hash: string
-      attributes: ContentAttributesType
-    }[],
-    eventId?: string,
-  ) => Promise<AppAPIResponse<void>>
   updateContentMetadata: (
     updates: {
       folderId: string
