@@ -1,9 +1,11 @@
-FROM oven/bun:1.2.12-alpine AS base
+FROM oven/bun:1.2.15-alpine AS base
 
 WORKDIR /usr/src/app
 
 # Install necessary dependencies
-RUN set -eux && apk add --no-cache ffmpeg nginx libheif-tools su-exec
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
+    echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
+    apk update && set -eux && apk add --no-cache ffmpeg nginx libheif-tools su-exec
 
 FROM base AS local
 

@@ -132,7 +132,6 @@ export const analyzeObjectTaskHandler = async (
       thumbnailSm: await hashLocalFile(smThumbnailOutFilePath),
       thumbnailLg: await hashLocalFile(lgThumbnailOutFilePath),
     }
-    // console.log('metadataHashes:', metadataHashes)
 
     const metadataKeys = Object.keys(metadataHashes)
     const metadtaSignedUrlsResponse = await server

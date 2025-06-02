@@ -189,7 +189,7 @@ export async function getNecessaryContentRotation(
   filepath: string,
   mimeType: string,
 ): Promise<number> {
-  if (mimeType.startsWith('image/')) {
+  if (mimeType.startsWith('image/') && mimeType !== 'image/heic') {
     const metadata = await getExifTagsFromImage(filepath)
     if (
       metadata &&
@@ -197,7 +197,7 @@ export async function getNecessaryContentRotation(
       'Orientation' in metadata &&
       typeof metadata.Orientation === 'string'
     ) {
-      // stellariscloud-api  |   Orientation: "Rotate 270 CW",
+      // Orientation: "Rotate 270 CW",
       return parseOrientationToPosition(metadata?.Orientation)
     }
   }
@@ -277,7 +277,7 @@ export const generateMpegDashWithFFmpeg = async (
 }
 
 export async function convertHeicToJpeg(input: string, output: string) {
-  const child = spawn(['heif-convert', input, output], {
+  const child = spawn(['heif-dec', input, output], {
     stdout: 'pipe',
     stderr: 'pipe',
   })
