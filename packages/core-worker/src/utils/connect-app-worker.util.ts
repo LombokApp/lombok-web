@@ -1,8 +1,4 @@
-import type {
-  ContentAttributesType,
-  ContentMetadataType,
-  AppLogEntry,
-} from '@stellariscloud/types'
+import type { ContentMetadataType, AppLogEntry } from '@stellariscloud/types'
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
 

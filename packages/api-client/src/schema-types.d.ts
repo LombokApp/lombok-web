@@ -897,44 +897,42 @@ export interface components {
             mimeType: string;
             /** @enum {string} */
             mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
-            contentAttributes: {
-                [key: string]: {
-                    /** @enum {string} */
-                    mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
-                    mimeType: string;
-                    height: number;
-                    width: number;
-                    orientation: number;
-                    lengthMs: number;
-                    bitrate: number;
-                };
-            };
             contentMetadata: {
                 [key: string]: {
                     [key: string]: {
                         mimeType: string;
                         size: number;
                         hash: string;
+                        storageKey: string;
+                        /** @enum {string} */
+                        content: "";
+                    } | {
+                        mimeType: string;
+                        size: number;
+                        /** @enum {string} */
+                        hash: "";
+                        /** @enum {string} */
+                        storageKey: "";
+                        content: string;
                     };
                 };
             };
         };
         FolderObjectContentMetadataDTO: {
-            [key: string]: {
-                mimeType: string;
-                size: number;
-                hash: string;
-            };
-        };
-        FolderObjectContentAttributesDTO: {
-            /** @enum {string} */
-            mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
             mimeType: string;
-            height: number;
-            width: number;
-            orientation: number;
-            lengthMs: number;
-            bitrate: number;
+            size: number;
+            hash: string;
+            storageKey: string;
+            /** @enum {string} */
+            content: "";
+        } | {
+            mimeType: string;
+            size: number;
+            /** @enum {string} */
+            hash: "";
+            /** @enum {string} */
+            storageKey: "";
+            content: string;
         };
         StorageLocationInputDTO: {
             accessKeyId: string;
@@ -1144,24 +1142,23 @@ export interface components {
                 mimeType: string;
                 /** @enum {string} */
                 mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
-                contentAttributes: {
-                    [key: string]: {
-                        /** @enum {string} */
-                        mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
-                        mimeType: string;
-                        height: number;
-                        width: number;
-                        orientation: number;
-                        lengthMs: number;
-                        bitrate: number;
-                    };
-                };
                 contentMetadata: {
                     [key: string]: {
                         [key: string]: {
                             mimeType: string;
                             size: number;
                             hash: string;
+                            storageKey: string;
+                            /** @enum {string} */
+                            content: "";
+                        } | {
+                            mimeType: string;
+                            size: number;
+                            /** @enum {string} */
+                            hash: "";
+                            /** @enum {string} */
+                            storageKey: "";
+                            content: string;
                         };
                     };
                 };
@@ -1181,24 +1178,23 @@ export interface components {
                 mimeType: string;
                 /** @enum {string} */
                 mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
-                contentAttributes: {
-                    [key: string]: {
-                        /** @enum {string} */
-                        mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
-                        mimeType: string;
-                        height: number;
-                        width: number;
-                        orientation: number;
-                        lengthMs: number;
-                        bitrate: number;
-                    };
-                };
                 contentMetadata: {
                     [key: string]: {
                         [key: string]: {
                             mimeType: string;
                             size: number;
                             hash: string;
+                            storageKey: string;
+                            /** @enum {string} */
+                            content: "";
+                        } | {
+                            mimeType: string;
+                            size: number;
+                            /** @enum {string} */
+                            hash: "";
+                            /** @enum {string} */
+                            storageKey: "";
+                            content: string;
                         };
                     };
                 };

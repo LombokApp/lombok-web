@@ -67,26 +67,6 @@ const LogEntryValidator = z.object({
   data: z.unknown().optional(),
 })
 
-const UpdateAttributesValidator = z.object({
-  updates: z.array(
-    z.object({
-      folderId: z.string(),
-      objectKey: z.string(),
-      hash: z.string(),
-      attributes: z.object({
-        mediaType: z.nativeEnum(MediaType),
-        mimeType: z.string(),
-        height: z.number(),
-        width: z.number(),
-        orientation: z.number(),
-        lengthMs: z.number(),
-        bitrate: z.number(),
-      }),
-    }),
-  ),
-  eventId: z.string().optional(),
-})
-
 const AttemptStartHandleTaskValidator = z.object({
   taskKeys: z.array(z.string()),
 })

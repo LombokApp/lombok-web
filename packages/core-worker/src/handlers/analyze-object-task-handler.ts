@@ -98,6 +98,7 @@ export const analyzeObjectTaskHandler = async (
   let metadataDescription: { [key: string]: MetadataEntry } = {}
   const contentHash = await hashLocalFile(inFilepath)
   const rotation = await getNecessaryContentRotation(inFilepath, mimeType)
+
   if ([MediaType.Image, MediaType.Video].includes(mediaType)) {
     const compressedOutFilePath = path.join(tempDir, `comp.${outExtension}`)
     const smThumbnailOutFilePath = path.join(tempDir, `sm.${outExtension}`)
@@ -164,66 +165,51 @@ export const analyzeObjectTaskHandler = async (
         )
       })
 
-    metadataDescription = {
-      compressedVersion: {
-        hash: metadataHashes.compressedVersion,
-        mimeType: outMimeType,
-        size: fs.statSync(compressedOutFilePath).size,
-        storageKey: metadataHashes.compressedVersion,
-        content: '',
-      },
-      thumbnailLg: {
-        hash: metadataHashes.thumbnailLg,
-        mimeType: outMimeType,
-        size: fs.statSync(lgThumbnailOutFilePath).size,
-        storageKey: metadataHashes.thumbnailLg,
-        content: '',
-      },
-      thumbnailSm: {
-        hash: metadataHashes.thumbnailSm,
-        mimeType: outMimeType,
-        size: fs.statSync(smThumbnailOutFilePath).size,
-        storageKey: metadataHashes.thumbnailSm,
-        content: '',
-      },
-      mimeType: {
-        size: Buffer.from(mimeType).length,
-        hash: '',
-        storageKey: '',
-        content: mimeType,
-        mimeType: 'text/plain',
-      },
-      mediaType: {
-        size: Buffer.from(mediaType).length,
-        hash: '',
-        storageKey: '',
-        content: mediaType,
-        mimeType: 'text/plain',
-      },
-      height: {
-        size: Buffer.from(JSON.stringify(scaleResult?.originalHeight ?? 0))
-          .length,
-        hash: '',
-        storageKey: '',
-        content: `${scaleResult?.originalHeight ?? 0}`,
-        mimeType: 'application/json',
-      },
-      width: {
-        size: Buffer.from(JSON.stringify(scaleResult?.originalWidth ?? 0))
-          .length,
-        hash: '',
-        storageKey: '',
-        content: `${scaleResult?.originalWidth ?? 0}`,
-        mimeType: 'application/json',
-      },
-      orientation: {
-        size: Buffer.from(JSON.stringify(rotation ?? 0)).length,
-        hash: '',
-        storageKey: '',
-        content: `${rotation ?? 0}`,
-        mimeType: 'application/json',
-      },
-      lengthMs: {
+    metadataDescription.compressedVersion = {
+      hash: metadataHashes.compressedVersion,
+      mimeType: outMimeType,
+      size: fs.statSync(compressedOutFilePath).size,
+      storageKey: metadataHashes.compressedVersion,
+      content: '',
+    }
+    metadataDescription.thumbnailLg = {
+      hash: metadataHashes.thumbnailLg,
+      mimeType: outMimeType,
+      size: fs.statSync(lgThumbnailOutFilePath).size,
+      storageKey: metadataHashes.thumbnailLg,
+      content: '',
+    }
+    metadataDescription.thumbnailSm = {
+      hash: metadataHashes.thumbnailSm,
+      mimeType: outMimeType,
+      size: fs.statSync(smThumbnailOutFilePath).size,
+      storageKey: metadataHashes.thumbnailSm,
+      content: '',
+    }
+    metadataDescription.height = {
+      size: Buffer.from(JSON.stringify(scaleResult?.originalHeight ?? 0))
+        .length,
+      hash: '',
+      storageKey: '',
+      content: `${scaleResult?.originalHeight ?? 0}`,
+      mimeType: 'application/json',
+    }
+    metadataDescription.width = {
+      size: Buffer.from(JSON.stringify(scaleResult?.originalWidth ?? 0)).length,
+      hash: '',
+      storageKey: '',
+      content: `${scaleResult?.originalWidth ?? 0}`,
+      mimeType: 'application/json',
+    }
+    metadataDescription.orientation = {
+      size: Buffer.from(JSON.stringify(rotation ?? 0)).length,
+      hash: '',
+      storageKey: '',
+      content: `${rotation ?? 0}`,
+      mimeType: 'application/json',
+    }
+    if (MediaType.Video === mediaType) {
+      metadataDescription.lengthMs = {
         size: Buffer.from(
           JSON.stringify((scaleResult as any | undefined)?.lengthMs ?? 0),
         ).length,
@@ -231,7 +217,7 @@ export const analyzeObjectTaskHandler = async (
         storageKey: '',
         content: `${(scaleResult as any | undefined)?.lengthMs ?? 0}`,
         mimeType: 'application/json',
-      },
+      }
     }
 
     await uploadFile(

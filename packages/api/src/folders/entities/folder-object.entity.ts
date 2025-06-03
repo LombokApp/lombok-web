@@ -1,8 +1,4 @@
-import type {
-  ContentAttributesByHash,
-  ContentMetadataByHash,
-  MediaType,
-} from '@stellariscloud/types'
+import type { ContentMetadataByHash, MediaType } from '@stellariscloud/types'
 import {
   bigint,
   jsonb,
@@ -21,9 +17,6 @@ export const folderObjectsTable = pgTable('folder_objects', {
   hash: text('hash'),
   contentMetadata: jsonb('contentMetadata')
     .$type<ContentMetadataByHash>()
-    .notNull(),
-  contentAttributes: jsonb('contentAttributes')
-    .$type<ContentAttributesByHash>()
     .notNull(),
   folderId: uuid('folderId').notNull(),
   mimeType: text('mimeType').notNull(),

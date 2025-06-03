@@ -1062,64 +1062,10 @@ export const FolderListResponseResultInnerPermissionsEnum = {
 export type FolderListResponseResultInnerPermissionsEnum = typeof FolderListResponseResultInnerPermissionsEnum[keyof typeof FolderListResponseResultInnerPermissionsEnum];
 
 /**
- * 
+ * @type FolderObjectContentMetadataDTO
  * @export
- * @interface FolderObjectContentAttributesDTO
  */
-export interface FolderObjectContentAttributesDTO {
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderObjectContentAttributesDTO
-     */
-    'mediaType': FolderObjectContentAttributesDTOMediaTypeEnum;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderObjectContentAttributesDTO
-     */
-    'mimeType': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof FolderObjectContentAttributesDTO
-     */
-    'height': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof FolderObjectContentAttributesDTO
-     */
-    'width': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof FolderObjectContentAttributesDTO
-     */
-    'orientation': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof FolderObjectContentAttributesDTO
-     */
-    'lengthMs': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof FolderObjectContentAttributesDTO
-     */
-    'bitrate': number;
-}
-
-export const FolderObjectContentAttributesDTOMediaTypeEnum = {
-    Image: 'IMAGE',
-    Video: 'VIDEO',
-    Audio: 'AUDIO',
-    Document: 'DOCUMENT',
-    Unknown: 'UNKNOWN'
-} as const;
-
-export type FolderObjectContentAttributesDTOMediaTypeEnum = typeof FolderObjectContentAttributesDTOMediaTypeEnum[keyof typeof FolderObjectContentAttributesDTOMediaTypeEnum];
+export type FolderObjectContentMetadataDTO = FolderObjectDTOContentMetadataValueValueOneOf | FolderObjectDTOContentMetadataValueValueOneOf1;
 
 /**
  * 
@@ -1183,12 +1129,6 @@ export interface FolderObjectDTO {
     'mediaType': FolderObjectDTOMediaTypeEnum;
     /**
      * 
-     * @type {{ [key: string]: FolderObjectDTOContentAttributesValue; }}
-     * @memberof FolderObjectDTO
-     */
-    'contentAttributes': { [key: string]: FolderObjectDTOContentAttributesValue; };
-    /**
-     * 
      * @type {{ [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue; }; }}
      * @memberof FolderObjectDTO
      */
@@ -1206,90 +1146,104 @@ export const FolderObjectDTOMediaTypeEnum = {
 export type FolderObjectDTOMediaTypeEnum = typeof FolderObjectDTOMediaTypeEnum[keyof typeof FolderObjectDTOMediaTypeEnum];
 
 /**
- * 
+ * @type FolderObjectDTOContentMetadataValueValue
  * @export
- * @interface FolderObjectDTOContentAttributesValue
  */
-export interface FolderObjectDTOContentAttributesValue {
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderObjectDTOContentAttributesValue
-     */
-    'mediaType': FolderObjectDTOContentAttributesValueMediaTypeEnum;
-    /**
-     * 
-     * @type {string}
-     * @memberof FolderObjectDTOContentAttributesValue
-     */
-    'mimeType': string;
-    /**
-     * 
-     * @type {number}
-     * @memberof FolderObjectDTOContentAttributesValue
-     */
-    'height': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof FolderObjectDTOContentAttributesValue
-     */
-    'width': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof FolderObjectDTOContentAttributesValue
-     */
-    'orientation': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof FolderObjectDTOContentAttributesValue
-     */
-    'lengthMs': number;
-    /**
-     * 
-     * @type {number}
-     * @memberof FolderObjectDTOContentAttributesValue
-     */
-    'bitrate': number;
-}
-
-export const FolderObjectDTOContentAttributesValueMediaTypeEnum = {
-    Image: 'IMAGE',
-    Video: 'VIDEO',
-    Audio: 'AUDIO',
-    Document: 'DOCUMENT',
-    Unknown: 'UNKNOWN'
-} as const;
-
-export type FolderObjectDTOContentAttributesValueMediaTypeEnum = typeof FolderObjectDTOContentAttributesValueMediaTypeEnum[keyof typeof FolderObjectDTOContentAttributesValueMediaTypeEnum];
+export type FolderObjectDTOContentMetadataValueValue = FolderObjectDTOContentMetadataValueValueOneOf | FolderObjectDTOContentMetadataValueValueOneOf1;
 
 /**
  * 
  * @export
- * @interface FolderObjectDTOContentMetadataValueValue
+ * @interface FolderObjectDTOContentMetadataValueValueOneOf
  */
-export interface FolderObjectDTOContentMetadataValueValue {
+export interface FolderObjectDTOContentMetadataValueValueOneOf {
     /**
      * 
      * @type {string}
-     * @memberof FolderObjectDTOContentMetadataValueValue
+     * @memberof FolderObjectDTOContentMetadataValueValueOneOf
      */
     'mimeType': string;
     /**
      * 
      * @type {number}
-     * @memberof FolderObjectDTOContentMetadataValueValue
+     * @memberof FolderObjectDTOContentMetadataValueValueOneOf
      */
     'size': number;
     /**
      * 
      * @type {string}
-     * @memberof FolderObjectDTOContentMetadataValueValue
+     * @memberof FolderObjectDTOContentMetadataValueValueOneOf
      */
     'hash': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectDTOContentMetadataValueValueOneOf
+     */
+    'storageKey': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectDTOContentMetadataValueValueOneOf
+     */
+    'content': FolderObjectDTOContentMetadataValueValueOneOfContentEnum;
 }
+
+export const FolderObjectDTOContentMetadataValueValueOneOfContentEnum = {
+    Empty: ''
+} as const;
+
+export type FolderObjectDTOContentMetadataValueValueOneOfContentEnum = typeof FolderObjectDTOContentMetadataValueValueOneOfContentEnum[keyof typeof FolderObjectDTOContentMetadataValueValueOneOfContentEnum];
+
+/**
+ * 
+ * @export
+ * @interface FolderObjectDTOContentMetadataValueValueOneOf1
+ */
+export interface FolderObjectDTOContentMetadataValueValueOneOf1 {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectDTOContentMetadataValueValueOneOf1
+     */
+    'mimeType': string;
+    /**
+     * 
+     * @type {number}
+     * @memberof FolderObjectDTOContentMetadataValueValueOneOf1
+     */
+    'size': number;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectDTOContentMetadataValueValueOneOf1
+     */
+    'hash': FolderObjectDTOContentMetadataValueValueOneOf1HashEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectDTOContentMetadataValueValueOneOf1
+     */
+    'storageKey': FolderObjectDTOContentMetadataValueValueOneOf1StorageKeyEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderObjectDTOContentMetadataValueValueOneOf1
+     */
+    'content': string;
+}
+
+export const FolderObjectDTOContentMetadataValueValueOneOf1HashEnum = {
+    Empty: ''
+} as const;
+
+export type FolderObjectDTOContentMetadataValueValueOneOf1HashEnum = typeof FolderObjectDTOContentMetadataValueValueOneOf1HashEnum[keyof typeof FolderObjectDTOContentMetadataValueValueOneOf1HashEnum];
+export const FolderObjectDTOContentMetadataValueValueOneOf1StorageKeyEnum = {
+    Empty: ''
+} as const;
+
+export type FolderObjectDTOContentMetadataValueValueOneOf1StorageKeyEnum = typeof FolderObjectDTOContentMetadataValueValueOneOf1StorageKeyEnum[keyof typeof FolderObjectDTOContentMetadataValueValueOneOf1StorageKeyEnum];
+
 /**
  * 
  * @export
@@ -1382,12 +1336,6 @@ export interface FolderObjectListResponseResultInner {
      * @memberof FolderObjectListResponseResultInner
      */
     'mediaType': FolderObjectListResponseResultInnerMediaTypeEnum;
-    /**
-     * 
-     * @type {{ [key: string]: FolderObjectDTOContentAttributesValue; }}
-     * @memberof FolderObjectListResponseResultInner
-     */
-    'contentAttributes': { [key: string]: FolderObjectDTOContentAttributesValue; };
     /**
      * 
      * @type {{ [key: string]: { [key: string]: FolderObjectDTOContentMetadataValueValue; }; }}

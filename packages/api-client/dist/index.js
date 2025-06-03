@@ -2466,13 +2466,6 @@ var FolderListResponseResultInnerPermissionsEnum = {
   ObjectEdit: "OBJECT_EDIT",
   ObjectManage: "OBJECT_MANAGE"
 };
-var FolderObjectContentAttributesDTOMediaTypeEnum = {
-  Image: "IMAGE",
-  Video: "VIDEO",
-  Audio: "AUDIO",
-  Document: "DOCUMENT",
-  Unknown: "UNKNOWN"
-};
 var FolderObjectDTOMediaTypeEnum = {
   Image: "IMAGE",
   Video: "VIDEO",
@@ -2480,12 +2473,14 @@ var FolderObjectDTOMediaTypeEnum = {
   Document: "DOCUMENT",
   Unknown: "UNKNOWN"
 };
-var FolderObjectDTOContentAttributesValueMediaTypeEnum = {
-  Image: "IMAGE",
-  Video: "VIDEO",
-  Audio: "AUDIO",
-  Document: "DOCUMENT",
-  Unknown: "UNKNOWN"
+var FolderObjectDTOContentMetadataValueValueOneOfContentEnum = {
+  Empty: ""
+};
+var FolderObjectDTOContentMetadataValueValueOneOf1HashEnum = {
+  Empty: ""
+};
+var FolderObjectDTOContentMetadataValueValueOneOf1StorageKeyEnum = {
+  Empty: ""
 };
 var FolderObjectListResponseResultInnerMediaTypeEnum = {
   Image: "IMAGE",
@@ -8425,72 +8420,75 @@ var schema = {
               "UNKNOWN"
             ]
           },
-          contentAttributes: {
-            type: "object",
-            additionalProperties: {
-              type: "object",
-              properties: {
-                mediaType: {
-                  type: "string",
-                  enum: [
-                    "IMAGE",
-                    "VIDEO",
-                    "AUDIO",
-                    "DOCUMENT",
-                    "UNKNOWN"
-                  ]
-                },
-                mimeType: {
-                  type: "string"
-                },
-                height: {
-                  type: "number"
-                },
-                width: {
-                  type: "number"
-                },
-                orientation: {
-                  type: "number"
-                },
-                lengthMs: {
-                  type: "number"
-                },
-                bitrate: {
-                  type: "number"
-                }
-              },
-              required: [
-                "mediaType",
-                "mimeType",
-                "height",
-                "width",
-                "orientation",
-                "lengthMs",
-                "bitrate"
-              ]
-            }
-          },
           contentMetadata: {
             type: "object",
             additionalProperties: {
               type: "object",
               additionalProperties: {
-                type: "object",
-                properties: {
-                  mimeType: {
-                    type: "string"
+                oneOf: [
+                  {
+                    type: "object",
+                    properties: {
+                      mimeType: {
+                        type: "string"
+                      },
+                      size: {
+                        type: "number"
+                      },
+                      hash: {
+                        type: "string"
+                      },
+                      storageKey: {
+                        type: "string"
+                      },
+                      content: {
+                        type: "string",
+                        enum: [
+                          ""
+                        ]
+                      }
+                    },
+                    required: [
+                      "mimeType",
+                      "size",
+                      "hash",
+                      "storageKey",
+                      "content"
+                    ]
                   },
-                  size: {
-                    type: "number"
-                  },
-                  hash: {
-                    type: "string"
+                  {
+                    type: "object",
+                    properties: {
+                      mimeType: {
+                        type: "string"
+                      },
+                      size: {
+                        type: "number"
+                      },
+                      hash: {
+                        type: "string",
+                        enum: [
+                          ""
+                        ]
+                      },
+                      storageKey: {
+                        type: "string",
+                        enum: [
+                          ""
+                        ]
+                      },
+                      content: {
+                        type: "string"
+                      }
+                    },
+                    required: [
+                      "mimeType",
+                      "size",
+                      "hash",
+                      "storageKey",
+                      "content"
+                    ]
                   }
-                },
-                required: [
-                  "mimeType",
-                  "size",
-                  "hash"
                 ]
               }
             }
@@ -8505,72 +8503,74 @@ var schema = {
           "sizeBytes",
           "mimeType",
           "mediaType",
-          "contentAttributes",
           "contentMetadata"
         ]
       },
       FolderObjectContentMetadataDTO: {
-        type: "object",
-        additionalProperties: {
-          type: "object",
-          properties: {
-            mimeType: {
-              type: "string"
+        oneOf: [
+          {
+            type: "object",
+            properties: {
+              mimeType: {
+                type: "string"
+              },
+              size: {
+                type: "number"
+              },
+              hash: {
+                type: "string"
+              },
+              storageKey: {
+                type: "string"
+              },
+              content: {
+                type: "string",
+                enum: [
+                  ""
+                ]
+              }
             },
-            size: {
-              type: "number"
-            },
-            hash: {
-              type: "string"
-            }
-          },
-          required: [
-            "mimeType",
-            "size",
-            "hash"
-          ]
-        }
-      },
-      FolderObjectContentAttributesDTO: {
-        type: "object",
-        properties: {
-          mediaType: {
-            type: "string",
-            enum: [
-              "IMAGE",
-              "VIDEO",
-              "AUDIO",
-              "DOCUMENT",
-              "UNKNOWN"
+            required: [
+              "mimeType",
+              "size",
+              "hash",
+              "storageKey",
+              "content"
             ]
           },
-          mimeType: {
-            type: "string"
-          },
-          height: {
-            type: "number"
-          },
-          width: {
-            type: "number"
-          },
-          orientation: {
-            type: "number"
-          },
-          lengthMs: {
-            type: "number"
-          },
-          bitrate: {
-            type: "number"
+          {
+            type: "object",
+            properties: {
+              mimeType: {
+                type: "string"
+              },
+              size: {
+                type: "number"
+              },
+              hash: {
+                type: "string",
+                enum: [
+                  ""
+                ]
+              },
+              storageKey: {
+                type: "string",
+                enum: [
+                  ""
+                ]
+              },
+              content: {
+                type: "string"
+              }
+            },
+            required: [
+              "mimeType",
+              "size",
+              "hash",
+              "storageKey",
+              "content"
+            ]
           }
-        },
-        required: [
-          "mediaType",
-          "mimeType",
-          "height",
-          "width",
-          "orientation",
-          "lengthMs",
-          "bitrate"
         ]
       },
       StorageLocationInputDTO: {
@@ -9329,72 +9329,75 @@ var schema = {
                     "UNKNOWN"
                   ]
                 },
-                contentAttributes: {
-                  type: "object",
-                  additionalProperties: {
-                    type: "object",
-                    properties: {
-                      mediaType: {
-                        type: "string",
-                        enum: [
-                          "IMAGE",
-                          "VIDEO",
-                          "AUDIO",
-                          "DOCUMENT",
-                          "UNKNOWN"
-                        ]
-                      },
-                      mimeType: {
-                        type: "string"
-                      },
-                      height: {
-                        type: "number"
-                      },
-                      width: {
-                        type: "number"
-                      },
-                      orientation: {
-                        type: "number"
-                      },
-                      lengthMs: {
-                        type: "number"
-                      },
-                      bitrate: {
-                        type: "number"
-                      }
-                    },
-                    required: [
-                      "mediaType",
-                      "mimeType",
-                      "height",
-                      "width",
-                      "orientation",
-                      "lengthMs",
-                      "bitrate"
-                    ]
-                  }
-                },
                 contentMetadata: {
                   type: "object",
                   additionalProperties: {
                     type: "object",
                     additionalProperties: {
-                      type: "object",
-                      properties: {
-                        mimeType: {
-                          type: "string"
+                      oneOf: [
+                        {
+                          type: "object",
+                          properties: {
+                            mimeType: {
+                              type: "string"
+                            },
+                            size: {
+                              type: "number"
+                            },
+                            hash: {
+                              type: "string"
+                            },
+                            storageKey: {
+                              type: "string"
+                            },
+                            content: {
+                              type: "string",
+                              enum: [
+                                ""
+                              ]
+                            }
+                          },
+                          required: [
+                            "mimeType",
+                            "size",
+                            "hash",
+                            "storageKey",
+                            "content"
+                          ]
                         },
-                        size: {
-                          type: "number"
-                        },
-                        hash: {
-                          type: "string"
+                        {
+                          type: "object",
+                          properties: {
+                            mimeType: {
+                              type: "string"
+                            },
+                            size: {
+                              type: "number"
+                            },
+                            hash: {
+                              type: "string",
+                              enum: [
+                                ""
+                              ]
+                            },
+                            storageKey: {
+                              type: "string",
+                              enum: [
+                                ""
+                              ]
+                            },
+                            content: {
+                              type: "string"
+                            }
+                          },
+                          required: [
+                            "mimeType",
+                            "size",
+                            "hash",
+                            "storageKey",
+                            "content"
+                          ]
                         }
-                      },
-                      required: [
-                        "mimeType",
-                        "size",
-                        "hash"
                       ]
                     }
                   }
@@ -9409,7 +9412,6 @@ var schema = {
                 "sizeBytes",
                 "mimeType",
                 "mediaType",
-                "contentAttributes",
                 "contentMetadata"
               ]
             }
@@ -9462,72 +9464,75 @@ var schema = {
                   "UNKNOWN"
                 ]
               },
-              contentAttributes: {
-                type: "object",
-                additionalProperties: {
-                  type: "object",
-                  properties: {
-                    mediaType: {
-                      type: "string",
-                      enum: [
-                        "IMAGE",
-                        "VIDEO",
-                        "AUDIO",
-                        "DOCUMENT",
-                        "UNKNOWN"
-                      ]
-                    },
-                    mimeType: {
-                      type: "string"
-                    },
-                    height: {
-                      type: "number"
-                    },
-                    width: {
-                      type: "number"
-                    },
-                    orientation: {
-                      type: "number"
-                    },
-                    lengthMs: {
-                      type: "number"
-                    },
-                    bitrate: {
-                      type: "number"
-                    }
-                  },
-                  required: [
-                    "mediaType",
-                    "mimeType",
-                    "height",
-                    "width",
-                    "orientation",
-                    "lengthMs",
-                    "bitrate"
-                  ]
-                }
-              },
               contentMetadata: {
                 type: "object",
                 additionalProperties: {
                   type: "object",
                   additionalProperties: {
-                    type: "object",
-                    properties: {
-                      mimeType: {
-                        type: "string"
+                    oneOf: [
+                      {
+                        type: "object",
+                        properties: {
+                          mimeType: {
+                            type: "string"
+                          },
+                          size: {
+                            type: "number"
+                          },
+                          hash: {
+                            type: "string"
+                          },
+                          storageKey: {
+                            type: "string"
+                          },
+                          content: {
+                            type: "string",
+                            enum: [
+                              ""
+                            ]
+                          }
+                        },
+                        required: [
+                          "mimeType",
+                          "size",
+                          "hash",
+                          "storageKey",
+                          "content"
+                        ]
                       },
-                      size: {
-                        type: "number"
-                      },
-                      hash: {
-                        type: "string"
+                      {
+                        type: "object",
+                        properties: {
+                          mimeType: {
+                            type: "string"
+                          },
+                          size: {
+                            type: "number"
+                          },
+                          hash: {
+                            type: "string",
+                            enum: [
+                              ""
+                            ]
+                          },
+                          storageKey: {
+                            type: "string",
+                            enum: [
+                              ""
+                            ]
+                          },
+                          content: {
+                            type: "string"
+                          }
+                        },
+                        required: [
+                          "mimeType",
+                          "size",
+                          "hash",
+                          "storageKey",
+                          "content"
+                        ]
                       }
-                    },
-                    required: [
-                      "mimeType",
-                      "size",
-                      "hash"
                     ]
                   }
                 }
@@ -9542,7 +9547,6 @@ var schema = {
               "sizeBytes",
               "mimeType",
               "mediaType",
-              "contentAttributes",
               "contentMetadata"
             ]
           }
@@ -11582,8 +11586,9 @@ export {
   FolderShareCreateInputDTOPermissionsEnum,
   FolderObjectListResponseResultInnerMediaTypeEnum,
   FolderObjectDTOMediaTypeEnum,
-  FolderObjectDTOContentAttributesValueMediaTypeEnum,
-  FolderObjectContentAttributesDTOMediaTypeEnum,
+  FolderObjectDTOContentMetadataValueValueOneOfContentEnum,
+  FolderObjectDTOContentMetadataValueValueOneOf1StorageKeyEnum,
+  FolderObjectDTOContentMetadataValueValueOneOf1HashEnum,
   FolderListResponseResultInnerPermissionsEnum,
   FolderGetResponsePermissionsEnum,
   FolderEventsApiFp,

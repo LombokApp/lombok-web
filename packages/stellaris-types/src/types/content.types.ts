@@ -13,16 +13,6 @@ export enum ThumbnailSize {
   Small = 'small',
 }
 
-export interface ContentAttributesType {
-  mediaType: MediaType
-  mimeType: string
-}
-
-export interface ContentAttributesByHash {
-  // keyed by content hash (e.g. "SHA1:<hash>")
-  [hash: string]: ContentAttributesType | undefined
-}
-
 export const metadataEntrySchema = z
   .object({
     mimeType: z.string(),
@@ -42,7 +32,6 @@ export const metadataEntrySchema = z
   )
 
 export type MetadataEntry = z.infer<typeof metadataEntrySchema>
-
 
 export interface ContentMetadataType {
   [key: string]: MetadataEntry
