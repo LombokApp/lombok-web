@@ -7,7 +7,11 @@ import {
 import nestJsConfig from '@nestjs/config'
 import { hashLocalFile } from '@stellariscloud/core-worker'
 import type { AppConfig, ConnectedAppWorker } from '@stellariscloud/types'
-import { MediaType, SignedURLsRequestMethod } from '@stellariscloud/types'
+import {
+  MediaType,
+  metadataEntrySchema,
+  SignedURLsRequestMethod,
+} from '@stellariscloud/types'
 import { safeZodParse } from '@stellariscloud/utils'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
 import fs from 'fs'
@@ -63,26 +67,6 @@ const LogEntryValidator = z.object({
   data: z.unknown().optional(),
 })
 
-const UpdateAttributesValidator = z.object({
-  updates: z.array(
-    z.object({
-      folderId: z.string(),
-      objectKey: z.string(),
-      hash: z.string(),
-      attributes: z.object({
-        mediaType: z.nativeEnum(MediaType),
-        mimeType: z.string(),
-        height: z.number(),
-        width: z.number(),
-        orientation: z.number(),
-        lengthMs: z.number(),
-        bitrate: z.number(),
-      }),
-    }),
-  ),
-  eventId: z.string().optional(),
-})
-
 const AttemptStartHandleTaskValidator = z.object({
   taskKeys: z.array(z.string()),
 })
@@ -108,12 +92,6 @@ const GetMetadataSignedURLsValidator = z.object({
       metadataHash: z.string(),
     }),
   ),
-})
-
-const metadataEntrySchema = z.object({
-  mimeType: z.string(),
-  size: z.number(),
-  hash: z.string(),
 })
 
 const updateMetadataSchema = z.object({
@@ -223,23 +201,6 @@ export class AppService {
           if (safeZodParse(requestData, GetMetadataSignedURLsValidator)) {
             return {
               result: await this.createSignedMetadataUrls(requestData),
-            }
-          } else {
-            return {
-              error: {
-                code: 400,
-                message: 'Invalid request.',
-              },
-            }
-          }
-        }
-        case 'UPDATE_CONTENT_ATTRIBUTES': {
-          if (safeZodParse(requestData, UpdateAttributesValidator)) {
-            await this.folderService.updateFolderObjectAttributes(
-              requestData.updates,
-            )
-            return {
-              result: undefined,
             }
           } else {
             return {

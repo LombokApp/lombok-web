@@ -1,8 +1,4 @@
-import type {
-  ContentAttributesType,
-  ContentMetadataType,
-  AppLogEntry,
-} from '@stellariscloud/types'
+import type { ContentMetadataType, AppLogEntry } from '@stellariscloud/types'
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
 
@@ -27,14 +23,6 @@ export const buildAppClient = (socket: Socket): CoreServerMessageInterface => {
         name: 'GET_METADATA_SIGNED_URLS',
         data: {
           requests,
-        },
-      })
-    },
-    updateContentAttributes(updates) {
-      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
-        name: 'UPDATE_CONTENT_ATTRIBUTES',
-        data: {
-          updates,
         },
       })
     },
@@ -107,15 +95,6 @@ export interface CoreServerMessageInterface {
       urls: { url: string; folderId: string; objectKey: string }[]
     }>
   >
-  updateContentAttributes: (
-    updates: {
-      folderId: string
-      objectKey: string
-      hash: string
-      attributes: ContentAttributesType
-    }[],
-    eventId?: string,
-  ) => Promise<AppAPIResponse<void>>
   updateContentMetadata: (
     updates: {
       folderId: string

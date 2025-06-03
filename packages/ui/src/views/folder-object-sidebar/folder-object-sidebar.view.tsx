@@ -19,6 +19,7 @@ import type {
   FolderDTO,
   FolderGetResponse,
   FolderObjectDTO,
+  FolderObjectDTOContentMetadataValueValue,
   TaskDTO,
 } from '@stellariscloud/api-client'
 import { MediaType } from '@stellariscloud/types'
@@ -26,7 +27,6 @@ import { Button, Card, cn } from '@stellariscloud/ui-toolkit'
 import {
   extensionFromMimeType,
   formatBytes,
-  mediaTypeFromMimeType,
   toMetadataObjectIdentifier,
 } from '@stellariscloud/utils'
 import React from 'react'
@@ -104,10 +104,10 @@ export const FolderObjectSidebar = ({
     objectKey,
   ])
 
-  const attributes = folderObject.hash
-    ? (folderObject.contentAttributes[folderObject.hash] ??
-      ({} as Record<string, string>))
-    : ({} as Record<string, string>)
+  const metadata = folderObject.hash
+    ? (folderObject.contentMetadata[folderObject.hash] ??
+      ({} as Record<string, FolderObjectDTOContentMetadataValueValue>))
+    : ({} as Record<string, FolderObjectDTOContentMetadataValueValue>)
 
   const actionItems: {
     id: string
@@ -192,20 +192,20 @@ export const FolderObjectSidebar = ({
                   <span className="font-mono">{`(${folderObject.sizeBytes.toLocaleString()} bytes)`}</span>
                 </dd>
               </div>
-              {attributes.height && attributes.width ? (
+              {metadata.height.content && metadata.width.content ? (
                 <div className="mt-4 flex w-full flex-none items-center gap-x-4 px-2">
                   <dt className="flex flex-none">
                     <span className="sr-only">Dimensions</span>
                     <Icon icon={TvIcon} size="md" />
                   </dt>
                   <dd className={cn('text-sm leading-6')}>
-                    {attributes.width} x {attributes.height}
+                    {metadata.width.content} x {metadata.height.content}
                   </dd>
                 </div>
               ) : (
                 ''
               )}
-              {attributes.mimeType && (
+              {folderObject.mimeType && (
                 <div className="mt-4 flex w-full flex-none items-center gap-x-4 px-2">
                   <dt className="flex-none">
                     <span className="sr-only">Status</span>
@@ -225,7 +225,7 @@ export const FolderObjectSidebar = ({
                     />
                   </dt>
                   <dd className={cn('text-sm leading-6')}>
-                    {attributes.mimeType}
+                    {folderObject.mimeType}
                   </dd>
                 </div>
               )}
@@ -244,9 +244,6 @@ export const FolderObjectSidebar = ({
                         folderObject.contentMetadata[folderObject.hash ?? ''][
                           metadataKey
                         ]
-                      const mediaType = mediaTypeFromMimeType(
-                        metadataEntry.mimeType,
-                      )
                       return (
                         <li key={i} className="flex flex-col">
                           <div className="flex justify-between gap-x-6 py-5">
@@ -255,9 +252,10 @@ export const FolderObjectSidebar = ({
                                 <div className="rounded-full p-4">
                                   <Icon
                                     icon={
-                                      mediaType === MediaType.Image
+                                      folderObject.mediaType === MediaType.Image
                                         ? PhotoIcon
-                                        : mediaType === MediaType.Audio
+                                        : folderObject.mediaType ===
+                                            MediaType.Audio
                                           ? MusicalNoteIcon
                                           : DocumentTextIcon
                                     }
@@ -339,7 +337,8 @@ export const FolderObjectSidebar = ({
                           </div>
                           {focusedMetadata === metadataKey && (
                             <div className={cn('w-full')}>
-                              {mediaType === MediaType.Document && (
+                              {folderObject.mediaType ===
+                                MediaType.Document && (
                                 <pre className="">
                                   {metadataContent[metadataKey] &&
                                     Buffer.from(
@@ -350,7 +349,7 @@ export const FolderObjectSidebar = ({
                                     ).toString()}
                                 </pre>
                               )}
-                              {mediaType === MediaType.Image && (
+                              {folderObject.mediaType === MediaType.Image && (
                                 <div className="relative min-h-[30rem] w-full">
                                   <img
                                     className="object-contain"
@@ -373,10 +372,9 @@ export const FolderObjectSidebar = ({
           <div>{tasks && <TasksList tasks={tasks} />}</div>
           {showRawMetadata && (
             <div className="p-4 text-xs">
-              <pre className="dark:bg-white/5 dark:text-gray-200 p-6">
+              <pre className="p-6 dark:bg-white/5 dark:text-gray-200">
                 {JSON.stringify(
                   {
-                    contentAttributes: folderObject.contentAttributes,
                     contentMetadata: folderObject.contentMetadata,
                   },
                   null,

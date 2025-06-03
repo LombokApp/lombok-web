@@ -1,29 +1,28 @@
-import axios from 'axios'
 import crypto from 'crypto'
 import fs from 'fs'
 
-export const streamUploadFile = async (
+export const uploadFile = async (
   filepath: string,
   uploadUrl: string,
   mimeType?: string,
 ) => {
-  const stream = fs.createReadStream(filepath)
-  stream.on('error', (e: any) => {
-    if (e.isAxiosError) {
-      console.log({ status: e.status, json: e.toJSON() })
-    }
-    throw e
-  })
   const { size } = fs.statSync(filepath)
   console.log('Uploading file of size %d bytes to "%s":', size, uploadUrl)
-  await axios.put(uploadUrl, stream, {
+
+  const fileBuffer = await Bun.file(filepath).arrayBuffer()
+  const blob = new Blob([fileBuffer], { type: mimeType })
+
+  const response = await fetch(uploadUrl, {
+    method: 'PUT',
     headers: {
-      ...(mimeType ? { 'Content-Type': mimeType } : {}),
-      'Content-Length': size,
+      'Content-Length': size.toString(),
     },
-    maxContentLength: Infinity,
-    maxBodyLength: Infinity,
+    body: blob,
   })
+
+  if (!response.ok) {
+    throw new Error(`Upload failed with status ${response.status}`)
+  }
 }
 
 export const hashFileStream = async (
@@ -103,47 +102,48 @@ export const waitForFileOnDisk = (
 }
 
 export const downloadFileToDisk = async (url: string, filepath: string) => {
-  let mimeType = ''
-  await axios
-    .get<fs.ReadStream>(url, {
-      responseType: 'stream',
-    })
-    .then(async (response) => {
-      let receivedBytes = 0
-      const totalBytes = parseInt(
-        response.headers['content-length'] as string,
-        10,
-      )
-      mimeType = response.headers['content-type']
-        ? (response.headers['content-type'] as string)
-        : ''
-      if (!mimeType) {
-        throw new Error(`Cannot resolve mimeType for ${url}`)
-      }
-      const downloadStream = response.data.pipe(fs.createWriteStream(filepath))
-      let lastAnnounce = 0
-      response.data.on('data', (chunk) => {
-        // Update and maybe log progress
-        const now = Date.now()
-        receivedBytes += chunk.length
-        const progress = Math.floor((receivedBytes / totalBytes) * 100)
-        if (!lastAnnounce || lastAnnounce < now - 1000 || progress === 100) {
-          console.log('Progress: %d%', progress)
-          lastAnnounce = now
-        }
-      })
-      response.data.on('error', (e: any) => {
-        if (e.isAxiosError) {
-          console.log('Download error:', { status: e.status, json: e.toJSON() })
-        }
-        throw e
-      })
-      await new Promise((resolve) => {
-        downloadStream.on('finish', () => {
-          console.log('Finished!')
-          resolve(undefined)
-        })
-      })
-    })
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`Download failed with status ${response.status}`)
+  }
+
+  const mimeType = response.headers.get('content-type')
+  if (!mimeType) {
+    throw new Error(`Cannot resolve mimeType for ${url}`)
+  }
+
+  const totalBytes = parseInt(response.headers.get('content-length') || '0', 10)
+  let receivedBytes = 0
+  let lastAnnounce = 0
+
+  const writeStream = fs.createWriteStream(filepath)
+  const reader = response.body?.getReader()
+  if (!reader) {
+    throw new Error('No response body available')
+  }
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) {
+      break
+    }
+
+    writeStream.write(value)
+    receivedBytes += value.length
+    const progress = Math.floor((receivedBytes / totalBytes) * 100)
+
+    const now = Date.now()
+    if (!lastAnnounce || lastAnnounce < now - 1000 || progress === 100) {
+      console.log('Download progress: %d%', progress)
+      lastAnnounce = now
+    }
+  }
+
+  writeStream.end()
+  await new Promise<void>((resolve) =>
+    writeStream.on('finish', () => resolve()),
+  )
+  console.log('Download complete.')
+
   return { mimeType }
 }

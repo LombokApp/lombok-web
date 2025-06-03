@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
 import type {
-  ContentAttributesType,
   ContentMetadataType,
   FolderPermissionName,
   S3ObjectInternal,
@@ -77,13 +76,6 @@ export interface OutputUploadUrlsResponse {
   folderId: string
   objectKey: string
   url: string
-}
-
-export interface ContentAttibutesPayload {
-  folderId: string
-  objectKey: string
-  hash: string
-  attributes: ContentAttributesType
 }
 
 export interface ContentMetadataPayload {
@@ -928,7 +920,6 @@ export class FolderService {
             objectKey,
             lastModified: updateRecord.lastModified ?? 0,
             eTag: updateRecord.eTag ?? '',
-            contentAttributes: {},
             contentMetadata: {},
             sizeBytes: updateRecord.size ?? 0,
             mediaType: extension
@@ -962,50 +953,6 @@ export class FolderService {
     })
 
     return record
-  }
-
-  async updateFolderObjectAttributes(
-    payload: ContentAttibutesPayload[],
-  ): Promise<void> {
-    for (const { folderId, objectKey, hash, attributes } of payload) {
-      const folderObject =
-        await this.ormService.db.query.folderObjectsTable.findFirst({
-          where: and(
-            eq(folderObjectsTable.folderId, folderId),
-            eq(folderObjectsTable.objectKey, objectKey),
-          ),
-        })
-      if (!folderObject) {
-        throw new FolderObjectNotFoundException()
-      }
-
-      const updatedObject = (
-        await this.ormService.db
-          .update(folderObjectsTable)
-          .set({
-            hash,
-            contentAttributes: {
-              ...folderObject.contentAttributes,
-              [hash]: {
-                ...folderObject.contentAttributes[hash],
-                ...attributes,
-              },
-            },
-          })
-          .where(
-            and(
-              eq(folderObjectsTable.folderId, folderId),
-              eq(folderObjectsTable.objectKey, objectKey),
-            ),
-          )
-          .returning()
-      )[0]
-      this.folderSocketService.sendToFolderRoom(
-        folderId,
-        FolderPushMessage.OBJECT_UPDATED,
-        updatedObject,
-      )
-    }
   }
 
   async updateFolderObjectMetadata(

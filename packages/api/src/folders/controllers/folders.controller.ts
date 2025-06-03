@@ -23,7 +23,6 @@ import { FolderDTO } from '../dto/folder.dto'
 import { FolderCreateInputDTO } from '../dto/folder-create-input.dto'
 import { FolderCreateSignedUrlInputDTO } from '../dto/folder-create-signed-url-input.dto'
 import { FolderObjectDTO } from '../dto/folder-object.dto'
-import { FolderObjectContentAttributesDTO } from '../dto/folder-object-content-attributes.dto'
 import { FolderObjectContentMetadataDTO } from '../dto/folder-object-content-metadata.dto'
 import { FolderObjectsListQueryParamsDTO } from '../dto/folder-objects-list-query-params.dto'
 import { FolderShareCreateInputDTO } from '../dto/folder-share-create-input.dto'
@@ -54,7 +53,6 @@ import { FolderService } from '../services/folder.service'
   FolderDTO,
   FolderObjectDTO,
   FolderObjectContentMetadataDTO,
-  FolderObjectContentAttributesDTO,
   StorageLocationInputDTO,
 )
 export class FoldersController {
