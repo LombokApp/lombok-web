@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   forwardRef,
   Inject,
   Injectable,
@@ -20,6 +21,8 @@ import { LoginInvalidException } from '../exceptions/login-invalid.exception'
 import { SessionInvalidException } from '../exceptions/session-invalid.exception'
 import { authHelper } from '../utils/auth-helper'
 import { SessionService } from './session.service'
+import { SIGNUP_ENABLED_CONFIG } from 'src/server/constants/server.constants'
+import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
 
 /**
  * Calculates the sliding expiration of a session token based on the initial
@@ -44,6 +47,15 @@ export class AuthService {
   }
 
   async signup(data: SignupCredentialsDTO) {
+    const signupEnabled =
+      await this.ormService.db.query.serverSettingsTable.findFirst({
+        where: eq(serverSettingsTable.key, SIGNUP_ENABLED_CONFIG.key),
+      })
+
+    if (signupEnabled?.value === false) {
+      throw new ForbiddenException('Signups are not enabled.')
+    }
+
     const user = await this.createSignup(data)
     // await this.sendEmailVerification(data.email)
 

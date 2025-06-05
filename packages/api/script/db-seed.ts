@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import { foldersTable } from 'src/folders/entities/folder.entity'
-import { USER_STORAGE_PROVISIONS_KEY } from 'src/server/constants/server.constants'
+import { USER_STORAGE_PROVISIONS_CONFIG } from 'src/server/constants/server.constants'
 import type { UserStorageProvisionDTO } from 'src/server/dto/user-storage-provision.dto'
 import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
@@ -193,7 +193,7 @@ async function main(): Promise<void> {
   }
 
   await db.insert(serverSettingsTable).values({
-    key: USER_STORAGE_PROVISIONS_KEY.key,
+    key: USER_STORAGE_PROVISIONS_CONFIG.key,
     value: [storageProvision],
     createdAt: new Date('2023-11-01 22:49:00.93'),
     updatedAt: new Date('2023-11-01 22:49:00.93'),
