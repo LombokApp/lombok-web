@@ -17,8 +17,9 @@ import { z } from 'zod'
 
 import {
   CONFIGURATION_KEYS,
-  SERVER_STORAGE_LOCATION_KEY,
-  USER_STORAGE_PROVISIONS_KEY,
+  CONFIGURATION_KEYS_MAP,
+  SERVER_STORAGE_LOCATION_CONFIG,
+  USER_STORAGE_PROVISIONS_CONFIG,
 } from '../constants/server.constants'
 import { ServerStorageLocationDTO } from '../dto/server-storage-location.dto'
 import { ServerStorageLocationInputDTO } from '../dto/server-storage-location-input.dto'
@@ -42,14 +43,16 @@ export class ServerConfigurationService {
       {
         where: inArray(
           serverSettingsTable.key,
-          Object.keys(CONFIGURATION_KEYS),
+          Object.keys(CONFIGURATION_KEYS_MAP),
         ),
       },
     )
-    return results.reduce(
-      (acc, configResult) => ({
+    return CONFIGURATION_KEYS.reduce(
+      (acc, configObject) => ({
         ...acc,
-        [configResult.key]: configResult.value,
+        [configObject.key]:
+          results.find((result) => result.key === configObject.key)?.value ??
+          configObject.default,
       }),
       {},
     ) as SettingsDTO
@@ -59,7 +62,7 @@ export class ServerConfigurationService {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
-    if (!(configurationKey in CONFIGURATION_KEYS)) {
+    if (!(configurationKey in CONFIGURATION_KEYS_MAP)) {
       throw new ServerConfigurationNotFoundException()
     }
 
@@ -77,7 +80,7 @@ export class ServerConfigurationService {
       throw new UnauthorizedException()
     }
 
-    if (!(settingKey in CONFIGURATION_KEYS)) {
+    if (!(settingKey in CONFIGURATION_KEYS_MAP)) {
       throw new ServerConfigurationNotFoundException()
     }
 
@@ -154,7 +157,7 @@ export class ServerConfigurationService {
 
     const existingRecord = (
       await this.ormService.db.query.serverSettingsTable.findFirst({
-        where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key),
+        where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_CONFIG.key),
       })
     )?.value as
       | (UserStorageProvisionDTO & UserStorageProvisionInputDTO)[]
@@ -167,10 +170,10 @@ export class ServerConfigurationService {
           value: existingRecord.concat([locationWithId]),
           updatedAt: now,
         })
-        .where(eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key))
+        .where(eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_CONFIG.key))
     } else {
       const newServerConfiguration: NewServerSetting = {
-        key: USER_STORAGE_PROVISIONS_KEY.key,
+        key: USER_STORAGE_PROVISIONS_CONFIG.key,
         value: [locationWithId],
         createdAt: now,
         updatedAt: now,
@@ -204,7 +207,7 @@ export class ServerConfigurationService {
 
     const existingSettingRecord = (
       await this.ormService.db.query.serverSettingsTable.findFirst({
-        where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key),
+        where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_CONFIG.key),
       })
     )?.value as
       | (UserStorageProvisionDTO & UserStorageProvisionInputDTO)[]
@@ -239,7 +242,7 @@ export class ServerConfigurationService {
           ),
           updatedAt: now,
         })
-        .where(eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key))
+        .where(eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_CONFIG.key))
     }
 
     return storageProvision
@@ -255,7 +258,7 @@ export class ServerConfigurationService {
     const now = new Date()
     const existingRecord = (
       await this.ormService.db.query.serverSettingsTable.findFirst({
-        where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key),
+        where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_CONFIG.key),
       })
     )?.value as
       | (UserStorageProvisionDTO & UserStorageProvisionInputDTO)[]
@@ -279,7 +282,7 @@ export class ServerConfigurationService {
         value: newValue,
         updatedAt: now,
       })
-      .where(eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key))
+      .where(eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_CONFIG.key))
     return existingRecord
   }
 
@@ -288,7 +291,7 @@ export class ServerConfigurationService {
 
     const record =
       (await this.ormService.db.query.serverSettingsTable.findFirst({
-        where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key),
+        where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_CONFIG.key),
       })) ?? { value: [] }
 
     return (
@@ -309,7 +312,7 @@ export class ServerConfigurationService {
 
     const record = (
       await this.ormService.db.query.serverSettingsTable.findFirst({
-        where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_KEY.key),
+        where: eq(serverSettingsTable.key, USER_STORAGE_PROVISIONS_CONFIG.key),
       })
     )?.value as
       | (UserStorageProvisionDTO & UserStorageProvisionInputDTO)[]
@@ -342,7 +345,7 @@ export class ServerConfigurationService {
   > {
     const savedLocation = (
       await this.ormService.db.query.serverSettingsTable.findFirst({
-        where: eq(serverSettingsTable.key, SERVER_STORAGE_LOCATION_KEY.key),
+        where: eq(serverSettingsTable.key, SERVER_STORAGE_LOCATION_CONFIG.key),
       })
     )?.value as
       | (ServerStorageLocationDTO & { secretAccessKey: string })
@@ -361,7 +364,7 @@ export class ServerConfigurationService {
     const now = new Date()
     const idCondition = eq(
       serverSettingsTable.key,
-      SERVER_STORAGE_LOCATION_KEY.key,
+      SERVER_STORAGE_LOCATION_CONFIG.key,
     )
     const existingServerStorageLocation =
       await this.ormService.db.query.serverSettingsTable.findFirst({
@@ -389,7 +392,7 @@ export class ServerConfigurationService {
         .where(idCondition)
     } else {
       await this.ormService.db.insert(serverSettingsTable).values({
-        key: SERVER_STORAGE_LOCATION_KEY.key,
+        key: SERVER_STORAGE_LOCATION_CONFIG.key,
         value: { ...appStorageProvisionInput, accessKeyHashId },
         createdAt: now,
         updatedAt: now,
@@ -405,6 +408,6 @@ export class ServerConfigurationService {
 
     await this.ormService.db
       .delete(serverSettingsTable)
-      .where(eq(serverSettingsTable.key, SERVER_STORAGE_LOCATION_KEY.key))
+      .where(eq(serverSettingsTable.key, SERVER_STORAGE_LOCATION_CONFIG.key))
   }
 }

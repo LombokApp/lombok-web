@@ -119,7 +119,6 @@ const AuthenticatedContent = () => {
         )}
       >
         <Content />
-        <Toaster />
       </main>
     </div>
   )
@@ -139,6 +138,7 @@ const AuthStateRouter = () => {
       ) : (
         <UnauthenticatedContent />
       )}
+      <Toaster />
     </div>
   )
 }
