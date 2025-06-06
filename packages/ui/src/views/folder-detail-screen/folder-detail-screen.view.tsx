@@ -5,6 +5,7 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline'
 import type { FolderObjectDTO } from '@stellariscloud/api-client'
+import type { FolderPermissionName } from '@stellariscloud/types'
 import { FolderPermissionEnum, FolderPushMessage } from '@stellariscloud/types'
 import {
   Button,
@@ -225,7 +226,9 @@ export const FolderDetailScreen = () => {
   }, [shareModalData.isOpen, listFolderSharesQuery])
 
   const handleUpdateShares = React.useCallback(
-    async (values: { shares: { userId: string; permissions: string[] }[] }) => {
+    async (values: {
+      shares: { userId: string; permissions: FolderPermissionName[] }[]
+    }) => {
       try {
         // Update each share individually
         for (const share of values.shares) {
