@@ -57,7 +57,7 @@ export const FolderDetailScreen = () => {
       ? [{ id: 'search', value: searchParams.get('search') }]
       : [],
   )
-  const searchFilter = filters.find((f) => f.id === 'objectKey')
+  const searchFilter = filters.find((f) => f.id === 'main')
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
   const { uploadFile, uploadingProgress } = useLocalFileCacheContext()
 
