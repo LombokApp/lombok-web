@@ -1,3 +1,4 @@
+import type { FolderPermissionName } from '@stellariscloud/types'
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,7 @@ interface FolderShareModalProps {
   modalData: ModalData
   setModalData: (modalData: ModalData) => void
   onSubmit: (values: {
-    shares: { userId: string; permissions: string[] }[]
+    shares: { userId: string; permissions: FolderPermissionName[] }[]
   }) => Promise<void>
   folderId: string
 }
