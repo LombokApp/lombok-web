@@ -24,16 +24,7 @@ import {
   objectIdentifierToObjectKey,
   safeZodParse,
 } from '@stellariscloud/utils'
-import {
-  aliasedTable,
-  and,
-  eq,
-  ilike,
-  isNotNull,
-  or,
-  SQL,
-  sql,
-} from 'drizzle-orm'
+import { aliasedTable, and, eq, ilike, isNotNull, or, sql } from 'drizzle-orm'
 import mime from 'mime'
 import { APP_NS_PREFIX, AppService } from 'src/app/services/app.service'
 import { parseSort } from 'src/core/utils/sort.util'
@@ -428,14 +419,15 @@ export class FolderService {
       .orderBy(parseSort(foldersTable, sort))
       .limit(limit ?? 25)
       .offset(offset ?? 0)
-    console.log(folders[0]?.totalCount, typeof folders[0]?.totalCount)
     return {
       result: folders.map(({ totalCount, ...folder }) => ({
         folder: {
           ...folder,
+          // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
           contentLocation: folder.contentLocation as NonNullable<
             typeof folder.contentLocation
           >,
+          // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
           metadataLocation: folder.metadataLocation as NonNullable<
             typeof folder.metadataLocation
           >,
@@ -596,7 +588,7 @@ export class FolderService {
 
     return {
       folder,
-      permissions: share.permissions as FolderPermissionName[],
+      permissions: share.permissions,
     }
   }
 
