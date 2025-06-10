@@ -26,7 +26,7 @@ services:
     env_file: packages/api/.env.test
     environment:
       WAIT_HOSTS: db:${DB_PORT:-0}
-    entrypoint: ['bun', 'test:e2e']
+    entrypoint: ['bun', '--cwd', './packages/api', 'test:e2e']
   dbtest:
     image: postgres
     environment:
