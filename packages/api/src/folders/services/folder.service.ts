@@ -24,16 +24,7 @@ import {
   objectIdentifierToObjectKey,
   safeZodParse,
 } from '@stellariscloud/utils'
-import {
-  aliasedTable,
-  and,
-  eq,
-  ilike,
-  isNotNull,
-  or,
-  SQL,
-  sql,
-} from 'drizzle-orm'
+import { aliasedTable, and, eq, ilike, isNotNull, or, sql } from 'drizzle-orm'
 import mime from 'mime'
 import { APP_NS_PREFIX, AppService } from 'src/app/services/app.service'
 import { parseSort } from 'src/core/utils/sort.util'
@@ -113,6 +104,7 @@ export enum FolderSort {
 }
 
 const OWNER_PERMISSIONS = [
+  FolderPermissionEnum.FOLDER_EDIT,
   FolderPermissionEnum.FOLDER_FORGET,
   FolderPermissionEnum.FOLDER_REINDEX,
   FolderPermissionEnum.OBJECT_EDIT,
@@ -428,14 +420,15 @@ export class FolderService {
       .orderBy(parseSort(foldersTable, sort))
       .limit(limit ?? 25)
       .offset(offset ?? 0)
-    console.log(folders[0]?.totalCount, typeof folders[0]?.totalCount)
     return {
       result: folders.map(({ totalCount, ...folder }) => ({
         folder: {
           ...folder,
+          // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
           contentLocation: folder.contentLocation as NonNullable<
             typeof folder.contentLocation
           >,
+          // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
           metadataLocation: folder.metadataLocation as NonNullable<
             typeof folder.metadataLocation
           >,
@@ -463,8 +456,38 @@ export class FolderService {
     return true
   }
 
+  async updateFolderAsUser(
+    actor: User,
+    folderId: string,
+    updateData: { name: string },
+  ): Promise<Folder> {
+    const { folder, permissions } = await this.getFolderAsUser(actor, folderId)
+
+    if (!permissions.includes(FolderPermissionEnum.FOLDER_EDIT)) {
+      throw new FolderPermissionUnauthorizedException()
+    }
+
+    const now = new Date()
+    const updatedFolder = (
+      await this.ormService.db
+        .update(foldersTable)
+        .set({
+          name: updateData.name,
+          updatedAt: now,
+        })
+        .where(eq(foldersTable.id, folderId))
+        .returning()
+    )[0]
+
+    return {
+      ...updatedFolder,
+      contentLocation: folder.contentLocation,
+      metadataLocation: folder.metadataLocation,
+    }
+  }
+
   async deleteFolderObjectAsUser(
-    user: User,
+    actor: User,
     {
       folderId,
       objectKey,
@@ -473,7 +496,7 @@ export class FolderService {
       objectKey: string
     },
   ): Promise<boolean> {
-    const { folder, permissions } = await this.getFolderAsUser(user, folderId)
+    const { folder, permissions } = await this.getFolderAsUser(actor, folderId)
 
     if (!permissions.includes(FolderPermissionEnum.OBJECT_EDIT)) {
       throw new FolderPermissionUnauthorizedException()
@@ -596,7 +619,7 @@ export class FolderService {
 
     return {
       folder,
-      permissions: share.permissions as FolderPermissionName[],
+      permissions: share.permissions,
     }
   }
 

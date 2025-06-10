@@ -84,6 +84,45 @@ describe('Folders', () => {
     expect(folderGetResponse.data.folder.id).toEqual(testFolder.folder.id)
   })
 
+  it(`should update a folder name`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule, {
+      username: 'testuser',
+      password: '123',
+    })
+
+    const testFolder = await createTestFolder({
+      folderName: 'Original Folder Name',
+      apiClient,
+      testModule,
+      accessToken,
+      mockFiles: [],
+    })
+
+    expect(testFolder.folder.id).toBeTruthy()
+    expect(testFolder.folder.name).toEqual('Original Folder Name')
+
+    const updatedName = 'Updated Folder Name'
+
+    // Update the folder name
+    await apiClient.foldersApi({ accessToken }).updateFolder({
+      folderId: testFolder.folder.id,
+      folderUpdateInputDTO: {
+        name: updatedName,
+      },
+    })
+
+    // Verify the update persisted by fetching the folder again
+    const folderGetResponse = await apiClient
+      .foldersApi({ accessToken })
+      .getFolder({ folderId: testFolder.folder.id })
+
+    expect(folderGetResponse.status).toEqual(200)
+    expect(folderGetResponse.data.folder.id).toEqual(testFolder.folder.id)
+    expect(folderGetResponse.data.folder.name).toEqual(updatedName)
+  })
+
   it(`should list a user's folders`, async () => {
     const {
       session: { accessToken },
@@ -766,6 +805,158 @@ describe('Folders', () => {
     })
 
     expect(response.status).toEqual(401)
+  })
+
+  it(`should reject folder creation with empty name`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule, {
+      username: 'testuser',
+      password: '123',
+    })
+
+    const response = await apiClient.foldersApi({ accessToken }).createFolder({
+      folderCreateInputDTO: {
+        name: '',
+        contentLocation: testS3Location({ bucketName: '__dummy__' }),
+        metadataLocation: testS3Location({ bucketName: '__dummy__' }),
+      },
+    })
+
+    expect(response.status).toEqual(400)
+  })
+
+  it(`should reject folder creation with name longer than 256 characters`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule, {
+      username: 'testuser',
+      password: '123',
+    })
+
+    const longName = 'a'.repeat(257)
+
+    const response = await apiClient.foldersApi({ accessToken }).createFolder({
+      folderCreateInputDTO: {
+        name: longName,
+        contentLocation: testS3Location({ bucketName: '__dummy__' }),
+        metadataLocation: testS3Location({ bucketName: '__dummy__' }),
+      },
+    })
+
+    expect(response.status).toEqual(400)
+  })
+
+  it(`should accept folder creation with name exactly 256 characters`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule, {
+      username: 'testuser',
+      password: '123',
+    })
+
+    const maxLengthName = 'a'.repeat(256)
+
+    const response = await apiClient.foldersApi({ accessToken }).createFolder({
+      folderCreateInputDTO: {
+        name: maxLengthName,
+        contentLocation: testS3Location({ bucketName: '__dummy__' }),
+        metadataLocation: testS3Location({ bucketName: '__dummy__' }),
+      },
+    })
+
+    expect(response.status).toEqual(201)
+    expect(response.data.folder.name).toEqual(maxLengthName)
+  })
+
+  it(`should reject folder update with empty name`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule, {
+      username: 'testuser',
+      password: '123',
+    })
+
+    const testFolder = await createTestFolder({
+      folderName: 'Original Folder Name',
+      apiClient,
+      testModule,
+      accessToken,
+      mockFiles: [],
+    })
+
+    const response = await apiClient.foldersApi({ accessToken }).updateFolder({
+      folderId: testFolder.folder.id,
+      folderUpdateInputDTO: {
+        name: '',
+      },
+    })
+
+    expect(response.status).toEqual(400)
+  })
+
+  it(`should reject folder update with name longer than 256 characters`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule, {
+      username: 'testuser',
+      password: '123',
+    })
+
+    const testFolder = await createTestFolder({
+      folderName: 'Original Folder Name',
+      apiClient,
+      testModule,
+      accessToken,
+      mockFiles: [],
+    })
+
+    const longName = 'a'.repeat(257)
+
+    const response = await apiClient.foldersApi({ accessToken }).updateFolder({
+      folderId: testFolder.folder.id,
+      folderUpdateInputDTO: {
+        name: longName,
+      },
+    })
+
+    expect(response.status).toEqual(400)
+  })
+
+  it(`should accept folder update with name exactly 256 characters`, async () => {
+    const {
+      session: { accessToken },
+    } = await createTestUser(testModule, {
+      username: 'testuser',
+      password: '123',
+    })
+
+    const testFolder = await createTestFolder({
+      folderName: 'Original Folder Name',
+      apiClient,
+      testModule,
+      accessToken,
+      mockFiles: [],
+    })
+
+    const maxLengthName = 'a'.repeat(256)
+
+    const response = await apiClient.foldersApi({ accessToken }).updateFolder({
+      folderId: testFolder.folder.id,
+      folderUpdateInputDTO: {
+        name: maxLengthName,
+      },
+    })
+
+    expect(response.status).toEqual(200)
+
+    // Verify the update persisted
+    const folderGetResponse = await apiClient
+      .foldersApi({ accessToken })
+      .getFolder({ folderId: testFolder.folder.id })
+
+    expect(folderGetResponse.status).toEqual(200)
+    expect(folderGetResponse.data.folder.name).toEqual(maxLengthName)
   })
 
   afterAll(async () => {

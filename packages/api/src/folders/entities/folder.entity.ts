@@ -3,6 +3,7 @@ import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import type { StorageLocation } from 'src/storage/entities/storage-location.entity'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { usersTable } from 'src/users/entities/user.entity'
+
 import { folderSharesTable } from './folder-share.entity'
 
 export const foldersTable = pgTable('folders', {

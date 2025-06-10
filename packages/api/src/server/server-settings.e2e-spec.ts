@@ -30,7 +30,13 @@ describe('Server - Settings', () => {
       .getServerSettings()
 
     expect(settings.status).toEqual(200)
-    expect(settings.data).toEqual({ settings: {} })
+    expect(settings.data).toEqual({
+      settings: {
+        SERVER_HOSTNAME: null,
+        SIGNUP_ENABLED: true,
+        SIGNUP_PERMISSIONS: [],
+      },
+    })
   })
 
   it(`should set the SIGNUP_ENABLED setting`, async () => {
@@ -55,7 +61,13 @@ describe('Server - Settings', () => {
       .serverApi({ accessToken })
       .getServerSettings()
 
-    expect(newSettings.data).toEqual({ settings: { SIGNUP_ENABLED: true } })
+    expect(newSettings.data).toEqual({
+      settings: {
+        SERVER_HOSTNAME: null,
+        SIGNUP_ENABLED: true,
+        SIGNUP_PERMISSIONS: [],
+      },
+    })
   })
 
   it(`should set the SIGNUP_PERMISSIONS server setting`, async () => {
@@ -81,7 +93,11 @@ describe('Server - Settings', () => {
       .getServerSettings()
 
     expect(newSettings.data).toEqual({
-      settings: { SIGNUP_PERMISSIONS: ['TEST_PERMISSION'] },
+      settings: {
+        SIGNUP_PERMISSIONS: ['TEST_PERMISSION'],
+        SERVER_HOSTNAME: null,
+        SIGNUP_ENABLED: true,
+      },
     })
   })
 
@@ -107,7 +123,13 @@ describe('Server - Settings', () => {
       .serverApi({ accessToken })
       .getServerSettings()
 
-    expect(newSettings.data).toEqual({ settings: { SIGNUP_ENABLED: true } })
+    expect(newSettings.data).toEqual({
+      settings: {
+        SIGNUP_ENABLED: true,
+        SERVER_HOSTNAME: null,
+        SIGNUP_PERMISSIONS: [],
+      },
+    })
 
     await apiClient.serverApi({ accessToken }).resetServerSetting({
       settingKey: 'SIGNUP_ENABLED',
@@ -117,7 +139,13 @@ describe('Server - Settings', () => {
       .serverApi({ accessToken })
       .getServerSettings()
 
-    expect(settingsAfterKeyReset.data).toEqual({ settings: {} })
+    expect(settingsAfterKeyReset.data).toEqual({
+      settings: {
+        SERVER_HOSTNAME: null,
+        SIGNUP_ENABLED: true,
+        SIGNUP_PERMISSIONS: [],
+      },
+    })
   })
 
   it(`should fail to set the server setting if not admin`, async () => {
@@ -144,7 +172,13 @@ describe('Server - Settings', () => {
       .serverApi({ accessToken: admin.session.accessToken })
       .getServerSettings()
 
-    expect(newSettings.data).toEqual({ settings: {} })
+    expect(newSettings.data).toEqual({
+      settings: {
+        SERVER_HOSTNAME: null,
+        SIGNUP_ENABLED: true,
+        SIGNUP_PERMISSIONS: [],
+      },
+    })
   })
 
   afterAll(async () => {

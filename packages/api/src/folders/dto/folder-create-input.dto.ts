@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { storageLocationInputSchema } from '../../storage/dto/storage-location-input.dto'
 
 export const folderCreateInputSchema = z.object({
-  name: z.string(),
+  name: z.string().max(256).nonempty(),
   metadataLocation: storageLocationInputSchema,
   contentLocation: storageLocationInputSchema,
 })
