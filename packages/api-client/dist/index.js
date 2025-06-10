@@ -315,23 +315,6 @@ var toJSONObject = (obj) => {
 };
 var isAsyncFn = kindOfTest("AsyncFunction");
 var isThenable = (thing) => thing && (isObject(thing) || isFunction(thing)) && isFunction(thing.then) && isFunction(thing.catch);
-var _setImmediate = ((setImmediateSupported, postMessageSupported) => {
-  if (setImmediateSupported) {
-    return setImmediate;
-  }
-  return postMessageSupported ? ((token, callbacks) => {
-    _global.addEventListener("message", ({ source, data }) => {
-      if (source === _global && data === token) {
-        callbacks.length && callbacks.shift()();
-      }
-    }, false);
-    return (cb) => {
-      callbacks.push(cb);
-      _global.postMessage(token, "*");
-    };
-  })(`axios@${Math.random()}`, []) : (cb) => setTimeout(cb);
-})(typeof setImmediate === "function", isFunction(_global.postMessage));
-var asap = typeof queueMicrotask !== "undefined" ? queueMicrotask.bind(_global) : typeof process !== "undefined" && process.nextTick || _setImmediate;
 var utils_default = {
   isArray,
   isArrayBuffer,
@@ -387,9 +370,7 @@ var utils_default = {
   isSpecCompliantForm,
   toJSONObject,
   isAsyncFn,
-  isThenable,
-  setImmediate: _setImmediate,
-  asap
+  isThenable
 };
 
 // node_modules/axios/lib/core/AxiosError.js
@@ -405,10 +386,7 @@ function AxiosError(message, code, config, request, response) {
   code && (this.code = code);
   config && (this.config = config);
   request && (this.request = request);
-  if (response) {
-    this.response = response;
-    this.status = response.status ? response.status : null;
-  }
+  response && (this.response = response);
 }
 utils_default.inherits(AxiosError, Error, {
   toJSON: function toJSON() {
@@ -423,7 +401,7 @@ utils_default.inherits(AxiosError, Error, {
       stack: this.stack,
       config: utils_default.toJSONObject(this.config),
       code: this.code,
-      status: this.status
+      status: this.response && this.response.status ? this.response.status : null
     };
   }
 });
@@ -612,11 +590,6 @@ function buildURL(url, params, options) {
     return url;
   }
   const _encode = options && options.encode || encode2;
-  if (utils_default.isFunction(options)) {
-    options = {
-      serialize: options
-    };
-  }
   const serializeFn = options && options.serialize;
   let serializedParams;
   if (serializeFn) {
@@ -699,14 +672,14 @@ var browser_default = {
 var exports_utils = {};
 __export(exports_utils, {
   origin: () => origin,
-  navigator: () => _navigator,
   hasStandardBrowserWebWorkerEnv: () => hasStandardBrowserWebWorkerEnv,
   hasStandardBrowserEnv: () => hasStandardBrowserEnv,
   hasBrowserEnv: () => hasBrowserEnv
 });
 var hasBrowserEnv = typeof window !== "undefined" && typeof document !== "undefined";
-var _navigator = typeof navigator === "object" && navigator || undefined;
-var hasStandardBrowserEnv = hasBrowserEnv && (!_navigator || ["ReactNative", "NativeScript", "NS"].indexOf(_navigator.product) < 0);
+var hasStandardBrowserEnv = ((product) => {
+  return hasBrowserEnv && ["ReactNative", "NativeScript", "NS"].indexOf(product) < 0;
+})(typeof navigator !== "undefined" && navigator.product);
 var hasStandardBrowserWebWorkerEnv = (() => {
   return typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope && typeof self.importScripts === "function";
 })();
@@ -1239,40 +1212,32 @@ var speedometer_default = speedometer;
 // node_modules/axios/lib/helpers/throttle.js
 function throttle(fn, freq) {
   let timestamp = 0;
-  let threshold = 1000 / freq;
-  let lastArgs;
-  let timer;
-  const invoke = (args, now = Date.now()) => {
-    timestamp = now;
-    lastArgs = null;
-    if (timer) {
-      clearTimeout(timer);
-      timer = null;
-    }
-    fn.apply(null, args);
-  };
-  const throttled = (...args) => {
+  const threshold = 1000 / freq;
+  let timer = null;
+  return function throttled() {
+    const force = this === true;
     const now = Date.now();
-    const passed = now - timestamp;
-    if (passed >= threshold) {
-      invoke(args, now);
-    } else {
-      lastArgs = args;
-      if (!timer) {
-        timer = setTimeout(() => {
-          timer = null;
-          invoke(lastArgs);
-        }, threshold - passed);
+    if (force || now - timestamp > threshold) {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
       }
+      timestamp = now;
+      return fn.apply(null, arguments);
+    }
+    if (!timer) {
+      timer = setTimeout(() => {
+        timer = null;
+        timestamp = Date.now();
+        return fn.apply(null, arguments);
+      }, threshold - (now - timestamp));
     }
   };
-  const flush = () => lastArgs && invoke(lastArgs);
-  return [throttled, flush];
 }
 var throttle_default = throttle;
 
 // node_modules/axios/lib/helpers/progressEventReducer.js
-var progressEventReducer = (listener, isDownloadStream, freq = 3) => {
+var progressEventReducer_default = (listener, isDownloadStream, freq = 3) => {
   let bytesNotified = 0;
   const _speedometer = speedometer_default(50, 250);
   return throttle_default((e) => {
@@ -1290,27 +1255,46 @@ var progressEventReducer = (listener, isDownloadStream, freq = 3) => {
       rate: rate ? rate : undefined,
       estimated: rate && total && inRange ? (total - loaded) / rate : undefined,
       event: e,
-      lengthComputable: total != null,
-      [isDownloadStream ? "download" : "upload"]: true
+      lengthComputable: total != null
     };
+    data[isDownloadStream ? "download" : "upload"] = true;
     listener(data);
   }, freq);
 };
-var progressEventDecorator = (total, throttled) => {
-  const lengthComputable = total != null;
-  return [(loaded) => throttled[0]({
-    lengthComputable,
-    total,
-    loaded
-  }), throttled[1]];
-};
-var asyncDecorator = (fn) => (...args) => utils_default.asap(() => fn(...args));
 
 // node_modules/axios/lib/helpers/isURLSameOrigin.js
-var isURLSameOrigin_default = platform_default.hasStandardBrowserEnv ? ((origin2, isMSIE) => (url) => {
-  url = new URL(url, platform_default.origin);
-  return origin2.protocol === url.protocol && origin2.host === url.host && (isMSIE || origin2.port === url.port);
-})(new URL(platform_default.origin), platform_default.navigator && /(msie|trident)/i.test(platform_default.navigator.userAgent)) : () => true;
+var isURLSameOrigin_default = platform_default.hasStandardBrowserEnv ? function standardBrowserEnv() {
+  const msie = /(msie|trident)/i.test(navigator.userAgent);
+  const urlParsingNode = document.createElement("a");
+  let originURL;
+  function resolveURL(url) {
+    let href = url;
+    if (msie) {
+      urlParsingNode.setAttribute("href", href);
+      href = urlParsingNode.href;
+    }
+    urlParsingNode.setAttribute("href", href);
+    return {
+      href: urlParsingNode.href,
+      protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, "") : "",
+      host: urlParsingNode.host,
+      search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, "") : "",
+      hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, "") : "",
+      hostname: urlParsingNode.hostname,
+      port: urlParsingNode.port,
+      pathname: urlParsingNode.pathname.charAt(0) === "/" ? urlParsingNode.pathname : "/" + urlParsingNode.pathname
+    };
+  }
+  originURL = resolveURL(window.location.href);
+  return function isURLSameOrigin(requestURL) {
+    const parsed = utils_default.isString(requestURL) ? resolveURL(requestURL) : requestURL;
+    return parsed.protocol === originURL.protocol && parsed.host === originURL.host;
+  };
+}() : function nonStandardBrowserEnv() {
+  return function isURLSameOrigin() {
+    return true;
+  };
+}();
 
 // node_modules/axios/lib/helpers/cookies.js
 var cookies_default = platform_default.hasStandardBrowserEnv ? {
@@ -1360,7 +1344,7 @@ var headersToObject = (thing) => thing instanceof AxiosHeaders_default ? { ...th
 function mergeConfig(config1, config2) {
   config2 = config2 || {};
   const config = {};
-  function getMergedValue(target, source, prop, caseless) {
+  function getMergedValue(target, source, caseless) {
     if (utils_default.isPlainObject(target) && utils_default.isPlainObject(source)) {
       return utils_default.merge.call({ caseless }, target, source);
     } else if (utils_default.isPlainObject(source)) {
@@ -1370,11 +1354,11 @@ function mergeConfig(config1, config2) {
     }
     return source;
   }
-  function mergeDeepProperties(a, b, prop, caseless) {
+  function mergeDeepProperties(a, b, caseless) {
     if (!utils_default.isUndefined(b)) {
-      return getMergedValue(a, b, prop, caseless);
+      return getMergedValue(a, b, caseless);
     } else if (!utils_default.isUndefined(a)) {
-      return getMergedValue(undefined, a, prop, caseless);
+      return getMergedValue(undefined, a, caseless);
     }
   }
   function valueFromConfig2(a, b) {
@@ -1425,7 +1409,7 @@ function mergeConfig(config1, config2) {
     socketPath: defaultToConfig2,
     responseEncoding: defaultToConfig2,
     validateStatus: mergeDirectKeys,
-    headers: (a, b, prop) => mergeDeepProperties(headersToObject(a), headersToObject(b), prop, true)
+    headers: (a, b) => mergeDeepProperties(headersToObject(a), headersToObject(b), true)
   };
   utils_default.forEach(Object.keys(Object.assign({}, config1, config2)), function computeConfigValue(prop) {
     const merge2 = mergeMap[prop] || mergeDeepProperties;
@@ -1472,15 +1456,15 @@ var xhr_default = isXHRAdapterSupported && function(config) {
     const _config = resolveConfig_default(config);
     let requestData = _config.data;
     const requestHeaders = AxiosHeaders_default.from(_config.headers).normalize();
-    let { responseType, onUploadProgress, onDownloadProgress } = _config;
+    let { responseType } = _config;
     let onCanceled;
-    let uploadThrottled, downloadThrottled;
-    let flushUpload, flushDownload;
     function done() {
-      flushUpload && flushUpload();
-      flushDownload && flushDownload();
-      _config.cancelToken && _config.cancelToken.unsubscribe(onCanceled);
-      _config.signal && _config.signal.removeEventListener("abort", onCanceled);
+      if (_config.cancelToken) {
+        _config.cancelToken.unsubscribe(onCanceled);
+      }
+      if (_config.signal) {
+        _config.signal.removeEventListener("abort", onCanceled);
+      }
     }
     let request = new XMLHttpRequest;
     request.open(_config.method.toUpperCase(), _config.url, true);
@@ -1525,11 +1509,11 @@ var xhr_default = isXHRAdapterSupported && function(config) {
       if (!request) {
         return;
       }
-      reject(new AxiosError_default("Request aborted", AxiosError_default.ECONNABORTED, config, request));
+      reject(new AxiosError_default("Request aborted", AxiosError_default.ECONNABORTED, _config, request));
       request = null;
     };
     request.onerror = function handleError() {
-      reject(new AxiosError_default("Network Error", AxiosError_default.ERR_NETWORK, config, request));
+      reject(new AxiosError_default("Network Error", AxiosError_default.ERR_NETWORK, _config, request));
       request = null;
     };
     request.ontimeout = function handleTimeout() {
@@ -1538,7 +1522,7 @@ var xhr_default = isXHRAdapterSupported && function(config) {
       if (_config.timeoutErrorMessage) {
         timeoutErrorMessage = _config.timeoutErrorMessage;
       }
-      reject(new AxiosError_default(timeoutErrorMessage, transitional.clarifyTimeoutError ? AxiosError_default.ETIMEDOUT : AxiosError_default.ECONNABORTED, config, request));
+      reject(new AxiosError_default(timeoutErrorMessage, transitional.clarifyTimeoutError ? AxiosError_default.ETIMEDOUT : AxiosError_default.ECONNABORTED, _config, request));
       request = null;
     };
     requestData === undefined && requestHeaders.setContentType(null);
@@ -1553,14 +1537,11 @@ var xhr_default = isXHRAdapterSupported && function(config) {
     if (responseType && responseType !== "json") {
       request.responseType = _config.responseType;
     }
-    if (onDownloadProgress) {
-      [downloadThrottled, flushDownload] = progressEventReducer(onDownloadProgress, true);
-      request.addEventListener("progress", downloadThrottled);
+    if (typeof _config.onDownloadProgress === "function") {
+      request.addEventListener("progress", progressEventReducer_default(_config.onDownloadProgress, true));
     }
-    if (onUploadProgress && request.upload) {
-      [uploadThrottled, flushUpload] = progressEventReducer(onUploadProgress);
-      request.upload.addEventListener("progress", uploadThrottled);
-      request.upload.addEventListener("loadend", flushUpload);
+    if (typeof _config.onUploadProgress === "function" && request.upload) {
+      request.upload.addEventListener("progress", progressEventReducer_default(_config.onUploadProgress));
     }
     if (_config.cancelToken || _config.signal) {
       onCanceled = (cancel) => {
@@ -1587,37 +1568,36 @@ var xhr_default = isXHRAdapterSupported && function(config) {
 
 // node_modules/axios/lib/helpers/composeSignals.js
 var composeSignals = (signals, timeout) => {
-  const { length } = signals = signals ? signals.filter(Boolean) : [];
-  if (timeout || length) {
-    let controller = new AbortController;
-    let aborted;
-    const onabort = function(reason) {
-      if (!aborted) {
-        aborted = true;
-        unsubscribe();
-        const err = reason instanceof Error ? reason : this.reason;
-        controller.abort(err instanceof AxiosError_default ? err : new CanceledError_default(err instanceof Error ? err.message : err));
-      }
-    };
-    let timer = timeout && setTimeout(() => {
+  let controller = new AbortController;
+  let aborted;
+  const onabort = function(cancel) {
+    if (!aborted) {
+      aborted = true;
+      unsubscribe();
+      const err = cancel instanceof Error ? cancel : this.reason;
+      controller.abort(err instanceof AxiosError_default ? err : new CanceledError_default(err instanceof Error ? err.message : err));
+    }
+  };
+  let timer = timeout && setTimeout(() => {
+    onabort(new AxiosError_default(`timeout ${timeout} of ms exceeded`, AxiosError_default.ETIMEDOUT));
+  }, timeout);
+  const unsubscribe = () => {
+    if (signals) {
+      timer && clearTimeout(timer);
       timer = null;
-      onabort(new AxiosError_default(`timeout ${timeout} of ms exceeded`, AxiosError_default.ETIMEDOUT));
-    }, timeout);
-    const unsubscribe = () => {
-      if (signals) {
-        timer && clearTimeout(timer);
-        timer = null;
-        signals.forEach((signal2) => {
-          signal2.unsubscribe ? signal2.unsubscribe(onabort) : signal2.removeEventListener("abort", onabort);
-        });
-        signals = null;
-      }
-    };
-    signals.forEach((signal2) => signal2.addEventListener("abort", onabort));
-    const { signal } = controller;
-    signal.unsubscribe = () => utils_default.asap(unsubscribe);
-    return signal;
-  }
+      signals.forEach((signal2) => {
+        signal2 && (signal2.removeEventListener ? signal2.removeEventListener("abort", onabort) : signal2.unsubscribe(onabort));
+      });
+      signals = null;
+    }
+  };
+  signals.forEach((signal2) => signal2 && signal2.addEventListener && signal2.addEventListener("abort", onabort));
+  const { signal } = controller;
+  signal.unsubscribe = unsubscribe;
+  return [signal, () => {
+    timer && clearTimeout(timer);
+    timer = null;
+  }];
 };
 var composeSignals_default = composeSignals;
 
@@ -1636,61 +1616,29 @@ var streamChunk = function* (chunk, chunkSize) {
     pos = end;
   }
 };
-var readBytes = async function* (iterable, chunkSize) {
-  for await (const chunk of readStream(iterable)) {
-    yield* streamChunk(chunk, chunkSize);
+var readBytes = async function* (iterable, chunkSize, encode3) {
+  for await (const chunk of iterable) {
+    yield* streamChunk(ArrayBuffer.isView(chunk) ? chunk : await encode3(String(chunk)), chunkSize);
   }
 };
-var readStream = async function* (stream) {
-  if (stream[Symbol.asyncIterator]) {
-    yield* stream;
-    return;
-  }
-  const reader = stream.getReader();
-  try {
-    for (;; ) {
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
-      }
-      yield value;
-    }
-  } finally {
-    await reader.cancel();
-  }
-};
-var trackStream = (stream, chunkSize, onProgress, onFinish) => {
-  const iterator = readBytes(stream, chunkSize);
+var trackStream = (stream, chunkSize, onProgress, onFinish, encode3) => {
+  const iterator = readBytes(stream, chunkSize, encode3);
   let bytes = 0;
-  let done;
-  let _onFinish = (e) => {
-    if (!done) {
-      done = true;
-      onFinish && onFinish(e);
-    }
-  };
   return new ReadableStream({
+    type: "bytes",
     async pull(controller) {
-      try {
-        const { done: done2, value } = await iterator.next();
-        if (done2) {
-          _onFinish();
-          controller.close();
-          return;
-        }
-        let len = value.byteLength;
-        if (onProgress) {
-          let loadedBytes = bytes += len;
-          onProgress(loadedBytes);
-        }
-        controller.enqueue(new Uint8Array(value));
-      } catch (err) {
-        _onFinish(err);
-        throw err;
+      const { done, value } = await iterator.next();
+      if (done) {
+        controller.close();
+        onFinish();
+        return;
       }
+      let len = value.byteLength;
+      onProgress && onProgress(bytes += len);
+      controller.enqueue(new Uint8Array(value));
     },
     cancel(reason) {
-      _onFinish(reason);
+      onFinish(reason);
       return iterator.return();
     }
   }, {
@@ -1699,17 +1647,18 @@ var trackStream = (stream, chunkSize, onProgress, onFinish) => {
 };
 
 // node_modules/axios/lib/adapters/fetch.js
+var fetchProgressDecorator = (total, fn) => {
+  const lengthComputable = total != null;
+  return (loaded) => setTimeout(() => fn({
+    lengthComputable,
+    total,
+    loaded
+  }));
+};
 var isFetchSupported = typeof fetch === "function" && typeof Request === "function" && typeof Response === "function";
 var isReadableStreamSupported = isFetchSupported && typeof ReadableStream === "function";
 var encodeText = isFetchSupported && (typeof TextEncoder === "function" ? ((encoder) => (str) => encoder.encode(str))(new TextEncoder) : async (str) => new Uint8Array(await new Response(str).arrayBuffer()));
-var test = (fn, ...args) => {
-  try {
-    return !!fn(...args);
-  } catch (e) {
-    return false;
-  }
-};
-var supportsRequestStream = isReadableStreamSupported && test(() => {
+var supportsRequestStream = isReadableStreamSupported && (() => {
   let duplexAccessed = false;
   const hasContentType = new Request(platform_default.origin, {
     body: new ReadableStream,
@@ -1720,9 +1669,13 @@ var supportsRequestStream = isReadableStreamSupported && test(() => {
     }
   }).headers.has("Content-Type");
   return duplexAccessed && !hasContentType;
-});
+})();
 var DEFAULT_CHUNK_SIZE = 64 * 1024;
-var supportsResponseStream = isReadableStreamSupported && test(() => utils_default.isReadableStream(new Response("").body));
+var supportsResponseStream = isReadableStreamSupported && !!(() => {
+  try {
+    return utils_default.isReadableStream(new Response("").body);
+  } catch (err) {}
+})();
 var resolvers = {
   stream: supportsResponseStream && ((res) => res.body)
 };
@@ -1741,13 +1694,9 @@ var getBodyLength = async (body) => {
     return body.size;
   }
   if (utils_default.isSpecCompliantForm(body)) {
-    const _request = new Request(platform_default.origin, {
-      method: "POST",
-      body
-    });
-    return (await _request.arrayBuffer()).byteLength;
+    return (await new Request(body).arrayBuffer()).byteLength;
   }
-  if (utils_default.isArrayBufferView(body) || utils_default.isArrayBuffer(body)) {
+  if (utils_default.isArrayBufferView(body)) {
     return body.byteLength;
   }
   if (utils_default.isURLSearchParams(body)) {
@@ -1777,11 +1726,14 @@ var fetch_default = isFetchSupported && (async (config) => {
     fetchOptions
   } = resolveConfig_default(config);
   responseType = responseType ? (responseType + "").toLowerCase() : "text";
-  let composedSignal = composeSignals_default([signal, cancelToken && cancelToken.toAbortSignal()], timeout);
-  let request;
-  const unsubscribe = composedSignal && composedSignal.unsubscribe && (() => {
-    composedSignal.unsubscribe();
-  });
+  let [composedSignal, stopTimeout] = signal || cancelToken || timeout ? composeSignals_default([signal, cancelToken], timeout) : [];
+  let finished, request;
+  const onFinish = () => {
+    !finished && setTimeout(() => {
+      composedSignal && composedSignal.unsubscribe();
+    });
+    finished = true;
+  };
   let requestContentLength;
   try {
     if (onUploadProgress && supportsRequestStream && method !== "get" && method !== "head" && (requestContentLength = await resolveBodyLength(headers, data)) !== 0) {
@@ -1795,14 +1747,12 @@ var fetch_default = isFetchSupported && (async (config) => {
         headers.setContentType(contentTypeHeader);
       }
       if (_request.body) {
-        const [onProgress, flush] = progressEventDecorator(requestContentLength, progressEventReducer(asyncDecorator(onUploadProgress)));
-        data = trackStream(_request.body, DEFAULT_CHUNK_SIZE, onProgress, flush);
+        data = trackStream(_request.body, DEFAULT_CHUNK_SIZE, fetchProgressDecorator(requestContentLength, progressEventReducer_default(onUploadProgress)), null, encodeText);
       }
     }
     if (!utils_default.isString(withCredentials)) {
-      withCredentials = withCredentials ? "include" : "omit";
+      withCredentials = withCredentials ? "cors" : "omit";
     }
-    const isCredentialsSupported = "credentials" in Request.prototype;
     request = new Request(url, {
       ...fetchOptions,
       signal: composedSignal,
@@ -1810,25 +1760,22 @@ var fetch_default = isFetchSupported && (async (config) => {
       headers: headers.normalize().toJSON(),
       body: data,
       duplex: "half",
-      credentials: isCredentialsSupported ? withCredentials : undefined
+      withCredentials
     });
     let response = await fetch(request);
     const isStreamResponse = supportsResponseStream && (responseType === "stream" || responseType === "response");
-    if (supportsResponseStream && (onDownloadProgress || isStreamResponse && unsubscribe)) {
+    if (supportsResponseStream && (onDownloadProgress || isStreamResponse)) {
       const options = {};
       ["status", "statusText", "headers"].forEach((prop) => {
         options[prop] = response[prop];
       });
       const responseContentLength = utils_default.toFiniteNumber(response.headers.get("content-length"));
-      const [onProgress, flush] = onDownloadProgress && progressEventDecorator(responseContentLength, progressEventReducer(asyncDecorator(onDownloadProgress), true)) || [];
-      response = new Response(trackStream(response.body, DEFAULT_CHUNK_SIZE, onProgress, () => {
-        flush && flush();
-        unsubscribe && unsubscribe();
-      }), options);
+      response = new Response(trackStream(response.body, DEFAULT_CHUNK_SIZE, onDownloadProgress && fetchProgressDecorator(responseContentLength, progressEventReducer_default(onDownloadProgress, true)), isStreamResponse && onFinish, encodeText), options);
     }
     responseType = responseType || "text";
     let responseData = await resolvers[utils_default.findKey(resolvers, responseType) || "text"](response, config);
-    !isStreamResponse && unsubscribe && unsubscribe();
+    !isStreamResponse && onFinish();
+    stopTimeout && stopTimeout();
     return await new Promise((resolve, reject) => {
       settle(resolve, reject, {
         data: responseData,
@@ -1840,7 +1787,7 @@ var fetch_default = isFetchSupported && (async (config) => {
       });
     });
   } catch (err) {
-    unsubscribe && unsubscribe();
+    onFinish();
     if (err && err.name === "TypeError" && /fetch/i.test(err.message)) {
       throw Object.assign(new AxiosError_default("Network Error", AxiosError_default.ERR_NETWORK, config, request), {
         cause: err.cause || err
@@ -1935,7 +1882,7 @@ function dispatchRequest(config) {
 }
 
 // node_modules/axios/lib/env/data.js
-var VERSION = "1.7.9";
+var VERSION = "1.7.2";
 
 // node_modules/axios/lib/helpers/validator.js
 var validators = {};
@@ -1958,12 +1905,6 @@ validators.transitional = function transitional(validator, version, message) {
       console.warn(formatMessage(opt, " has been deprecated since v" + version + " and will be removed in the near future"));
     }
     return validator ? validator(value, opt, opts) : true;
-  };
-};
-validators.spelling = function spelling(correctSpelling) {
-  return (value, opt) => {
-    console.warn(`${opt} is likely a misspelling of ${correctSpelling}`);
-    return true;
   };
 };
 function assertOptions(options, schema, allowUnknown) {
@@ -2009,8 +1950,8 @@ class Axios {
       return await this._request(configOrUrl, config);
     } catch (err) {
       if (err instanceof Error) {
-        let dummy = {};
-        Error.captureStackTrace ? Error.captureStackTrace(dummy) : dummy = new Error;
+        let dummy;
+        Error.captureStackTrace ? Error.captureStackTrace(dummy = {}) : dummy = new Error;
         const stack = dummy.stack ? dummy.stack.replace(/^.+\n/, "") : "";
         try {
           if (!err.stack) {
@@ -2052,10 +1993,6 @@ class Axios {
         }, true);
       }
     }
-    validator_default.assertOptions(config, {
-      baseUrl: validators2.spelling("baseURL"),
-      withXsrfToken: validators2.spelling("withXSRFToken")
-    }, true);
     config.method = (config.method || this.defaults.method || "get").toLowerCase();
     let contextHeaders = headers && utils_default.merge(headers.common, headers[config.method]);
     headers && utils_default.forEach(["delete", "get", "head", "post", "put", "patch", "common"], (method) => {
@@ -2210,15 +2147,6 @@ class CancelToken {
     if (index !== -1) {
       this._listeners.splice(index, 1);
     }
-  }
-  toAbortSignal() {
-    const controller = new AbortController;
-    const abort = (err) => {
-      controller.abort(err);
-    };
-    this.subscribe(abort);
-    controller.signal.unsubscribe = () => this.unsubscribe(abort);
-    return controller.signal;
   }
   static source() {
     let cancel;
@@ -2457,12 +2385,14 @@ var FolderDTOMetadataLocationProviderTypeEnum = {
 var FolderGetResponsePermissionsEnum = {
   FolderReindex: "FOLDER_REINDEX",
   FolderForget: "FOLDER_FORGET",
+  FolderEdit: "FOLDER_EDIT",
   ObjectEdit: "OBJECT_EDIT",
   ObjectManage: "OBJECT_MANAGE"
 };
 var FolderListResponseResultInnerPermissionsEnum = {
   FolderReindex: "FOLDER_REINDEX",
   FolderForget: "FOLDER_FORGET",
+  FolderEdit: "FOLDER_EDIT",
   ObjectEdit: "OBJECT_EDIT",
   ObjectManage: "OBJECT_MANAGE"
 };
@@ -2492,12 +2422,14 @@ var FolderObjectListResponseResultInnerMediaTypeEnum = {
 var FolderShareCreateInputDTOPermissionsEnum = {
   FolderReindex: "FOLDER_REINDEX",
   FolderForget: "FOLDER_FORGET",
+  FolderEdit: "FOLDER_EDIT",
   ObjectEdit: "OBJECT_EDIT",
   ObjectManage: "OBJECT_MANAGE"
 };
 var FolderShareGetResponseSharePermissionsEnum = {
   FolderReindex: "FOLDER_REINDEX",
   FolderForget: "FOLDER_FORGET",
+  FolderEdit: "FOLDER_EDIT",
   ObjectEdit: "OBJECT_EDIT",
   ObjectManage: "OBJECT_MANAGE"
 };
@@ -3411,6 +3343,29 @@ var FoldersApiAxiosParamCreator = function(configuration) {
         options: localVarRequestOptions
       };
     },
+    updateFolder: async (folderId, folderUpdateInputDTO, options = {}) => {
+      assertParamExists("updateFolder", "folderId", folderId);
+      assertParamExists("updateFolder", "folderUpdateInputDTO", folderUpdateInputDTO);
+      const localVarPath = `/api/v1/folders/{folderId}`.replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+      const localVarRequestOptions = { method: "PUT", ...baseOptions, ...options };
+      const localVarHeaderParameter = {};
+      const localVarQueryParameter = {};
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+      localVarHeaderParameter["Content-Type"] = "application/json";
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      localVarRequestOptions.data = serializeDataIfNeeded(folderUpdateInputDTO, localVarRequestOptions, configuration);
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions
+      };
+    },
     upsertFolderShare: async (folderId, userId, folderShareCreateInputDTO, options = {}) => {
       assertParamExists("upsertFolderShare", "folderId", folderId);
       assertParamExists("upsertFolderShare", "userId", userId);
@@ -3536,6 +3491,12 @@ var FoldersApiFp = function(configuration) {
       const localVarOperationServerBasePath = operationServerMap["FoldersApi.removeFolderShare"]?.[localVarOperationServerIndex]?.url;
       return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
     },
+    async updateFolder(folderId, folderUpdateInputDTO, options) {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.updateFolder(folderId, folderUpdateInputDTO, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath = operationServerMap["FoldersApi.updateFolder"]?.[localVarOperationServerIndex]?.url;
+      return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
+    },
     async upsertFolderShare(folderId, userId, folderShareCreateInputDTO, options) {
       const localVarAxiosArgs = await localVarAxiosParamCreator.upsertFolderShare(folderId, userId, folderShareCreateInputDTO, options);
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
@@ -3595,6 +3556,9 @@ var FoldersApiFactory = function(configuration, basePath, axios2) {
     removeFolderShare(requestParameters, options) {
       return localVarFp.removeFolderShare(requestParameters.folderId, requestParameters.userId, options).then((request) => request(axios2, basePath));
     },
+    updateFolder(requestParameters, options) {
+      return localVarFp.updateFolder(requestParameters.folderId, requestParameters.folderUpdateInputDTO, options).then((request) => request(axios2, basePath));
+    },
     upsertFolderShare(requestParameters, options) {
       return localVarFp.upsertFolderShare(requestParameters.folderId, requestParameters.userId, requestParameters.folderShareCreateInputDTO, options).then((request) => request(axios2, basePath));
     }
@@ -3649,6 +3613,9 @@ class FoldersApi extends BaseAPI {
   }
   removeFolderShare(requestParameters, options) {
     return FoldersApiFp(this.configuration).removeFolderShare(requestParameters.folderId, requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
+  }
+  updateFolder(requestParameters, options) {
+    return FoldersApiFp(this.configuration).updateFolder(requestParameters.folderId, requestParameters.folderUpdateInputDTO, options).then((request) => request(this.axios, this.basePath));
   }
   upsertFolderShare(requestParameters, options) {
     return FoldersApiFp(this.configuration).upsertFolderShare(requestParameters.folderId, requestParameters.userId, requestParameters.folderShareCreateInputDTO, options).then((request) => request(this.axios, this.basePath));
@@ -5496,6 +5463,50 @@ var schema = {
           }
         ],
         summary: "Delete a folder by id.",
+        tags: [
+          "Folders"
+        ]
+      },
+      put: {
+        operationId: "updateFolder",
+        parameters: [
+          {
+            name: "folderId",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/FolderUpdateInputDTO"
+              }
+            }
+          }
+        },
+        responses: {
+          "200": {
+            description: "",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/FolderUpdateResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            bearer: []
+          }
+        ],
+        summary: "Update a folder by id.",
         tags: [
           "Folders"
         ]
@@ -8783,6 +8794,7 @@ var schema = {
               enum: [
                 "FOLDER_REINDEX",
                 "FOLDER_FORGET",
+                "FOLDER_EDIT",
                 "OBJECT_EDIT",
                 "OBJECT_MANAGE"
               ]
@@ -8835,6 +8847,7 @@ var schema = {
                     enum: [
                       "FOLDER_REINDEX",
                       "FOLDER_FORGET",
+                      "FOLDER_EDIT",
                       "OBJECT_EDIT",
                       "OBJECT_MANAGE"
                     ]
@@ -9618,6 +9631,7 @@ var schema = {
                   enum: [
                     "FOLDER_REINDEX",
                     "FOLDER_FORGET",
+                    "FOLDER_EDIT",
                     "OBJECT_EDIT",
                     "OBJECT_MANAGE"
                   ]
@@ -9664,6 +9678,7 @@ var schema = {
                     enum: [
                       "FOLDER_REINDEX",
                       "FOLDER_FORGET",
+                      "FOLDER_EDIT",
                       "OBJECT_EDIT",
                       "OBJECT_MANAGE"
                     ]
@@ -9730,6 +9745,7 @@ var schema = {
               enum: [
                 "FOLDER_REINDEX",
                 "FOLDER_FORGET",
+                "FOLDER_EDIT",
                 "OBJECT_EDIT",
                 "OBJECT_MANAGE"
               ]
@@ -9738,6 +9754,162 @@ var schema = {
         },
         required: [
           "permissions"
+        ]
+      },
+      FolderUpdateInputDTO: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            maxLength: 256,
+            minLength: 1
+          }
+        },
+        required: [
+          "name"
+        ]
+      },
+      FolderUpdateResponseDTO: {
+        type: "object",
+        properties: {
+          folder: {
+            type: "object",
+            properties: {
+              id: {
+                type: "string",
+                format: "uuid"
+              },
+              ownerId: {
+                type: "string",
+                format: "uuid"
+              },
+              name: {
+                type: "string"
+              },
+              metadataLocation: {
+                type: "object",
+                properties: {
+                  id: {
+                    type: "string",
+                    format: "uuid"
+                  },
+                  userId: {
+                    type: "string",
+                    format: "uuid"
+                  },
+                  providerType: {
+                    type: "string",
+                    enum: [
+                      "SERVER",
+                      "USER"
+                    ]
+                  },
+                  label: {
+                    type: "string"
+                  },
+                  endpoint: {
+                    type: "string"
+                  },
+                  region: {
+                    type: "string"
+                  },
+                  bucket: {
+                    type: "string"
+                  },
+                  prefix: {
+                    type: "string"
+                  },
+                  accessKeyId: {
+                    type: "string"
+                  },
+                  accessKeyHashId: {
+                    type: "string"
+                  }
+                },
+                required: [
+                  "id",
+                  "providerType",
+                  "label",
+                  "endpoint",
+                  "region",
+                  "bucket",
+                  "accessKeyId",
+                  "accessKeyHashId"
+                ]
+              },
+              contentLocation: {
+                type: "object",
+                properties: {
+                  id: {
+                    type: "string",
+                    format: "uuid"
+                  },
+                  userId: {
+                    type: "string",
+                    format: "uuid"
+                  },
+                  providerType: {
+                    type: "string",
+                    enum: [
+                      "SERVER",
+                      "USER"
+                    ]
+                  },
+                  label: {
+                    type: "string"
+                  },
+                  endpoint: {
+                    type: "string"
+                  },
+                  region: {
+                    type: "string"
+                  },
+                  bucket: {
+                    type: "string"
+                  },
+                  prefix: {
+                    type: "string"
+                  },
+                  accessKeyId: {
+                    type: "string"
+                  },
+                  accessKeyHashId: {
+                    type: "string"
+                  }
+                },
+                required: [
+                  "id",
+                  "providerType",
+                  "label",
+                  "endpoint",
+                  "region",
+                  "bucket",
+                  "accessKeyId",
+                  "accessKeyHashId"
+                ]
+              },
+              createdAt: {
+                type: "string",
+                format: "date-time"
+              },
+              updatedAt: {
+                type: "string",
+                format: "date-time"
+              }
+            },
+            required: [
+              "id",
+              "ownerId",
+              "name",
+              "metadataLocation",
+              "contentLocation",
+              "createdAt",
+              "updatedAt"
+            ]
+          }
+        },
+        required: [
+          "folder"
         ]
       },
       AccessKeyPublicDTO: {
@@ -9932,9 +10104,14 @@ var schema = {
                 }
               },
               SERVER_HOSTNAME: {
-                type: "string"
+                type: "string",
+                nullable: true
               }
-            }
+            },
+            required: [
+              "SIGNUP_PERMISSIONS",
+              "SERVER_HOSTNAME"
+            ]
           }
         },
         required: [

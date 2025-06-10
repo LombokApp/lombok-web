@@ -958,6 +958,7 @@ export interface FolderGetResponse {
 export const FolderGetResponsePermissionsEnum = {
     FolderReindex: 'FOLDER_REINDEX',
     FolderForget: 'FOLDER_FORGET',
+    FolderEdit: 'FOLDER_EDIT',
     ObjectEdit: 'OBJECT_EDIT',
     ObjectManage: 'OBJECT_MANAGE'
 } as const;
@@ -1055,6 +1056,7 @@ export interface FolderListResponseResultInner {
 export const FolderListResponseResultInnerPermissionsEnum = {
     FolderReindex: 'FOLDER_REINDEX',
     FolderForget: 'FOLDER_FORGET',
+    FolderEdit: 'FOLDER_EDIT',
     ObjectEdit: 'OBJECT_EDIT',
     ObjectManage: 'OBJECT_MANAGE'
 } as const;
@@ -1371,6 +1373,7 @@ export interface FolderShareCreateInputDTO {
 export const FolderShareCreateInputDTOPermissionsEnum = {
     FolderReindex: 'FOLDER_REINDEX',
     FolderForget: 'FOLDER_FORGET',
+    FolderEdit: 'FOLDER_EDIT',
     ObjectEdit: 'OBJECT_EDIT',
     ObjectManage: 'OBJECT_MANAGE'
 } as const;
@@ -1413,6 +1416,7 @@ export interface FolderShareGetResponseShare {
 export const FolderShareGetResponseSharePermissionsEnum = {
     FolderReindex: 'FOLDER_REINDEX',
     FolderForget: 'FOLDER_FORGET',
+    FolderEdit: 'FOLDER_EDIT',
     ObjectEdit: 'OBJECT_EDIT',
     ObjectManage: 'OBJECT_MANAGE'
 } as const;
@@ -1475,6 +1479,32 @@ export interface FolderShareUserListResponseResultInner {
      * @memberof FolderShareUserListResponseResultInner
      */
     'id': string;
+}
+/**
+ * 
+ * @export
+ * @interface FolderUpdateInputDTO
+ */
+export interface FolderUpdateInputDTO {
+    /**
+     * 
+     * @type {string}
+     * @memberof FolderUpdateInputDTO
+     */
+    'name': string;
+}
+/**
+ * 
+ * @export
+ * @interface FolderUpdateResponseDTO
+ */
+export interface FolderUpdateResponseDTO {
+    /**
+     * 
+     * @type {FolderGetResponseFolder}
+     * @memberof FolderUpdateResponseDTO
+     */
+    'folder': FolderGetResponseFolder;
 }
 /**
  * 
@@ -1756,13 +1786,13 @@ export interface SettingsGetResponseSettings {
      * @type {Array<string>}
      * @memberof SettingsGetResponseSettings
      */
-    'SIGNUP_PERMISSIONS'?: Array<string>;
+    'SIGNUP_PERMISSIONS': Array<string>;
     /**
      * 
      * @type {string}
      * @memberof SettingsGetResponseSettings
      */
-    'SERVER_HOSTNAME'?: string;
+    'SERVER_HOSTNAME': string;
 }
 /**
  * 
@@ -4942,6 +4972,50 @@ export const FoldersApiAxiosParamCreator = function (configuration?: Configurati
         },
         /**
          * 
+         * @summary Update a folder by id.
+         * @param {string} folderId 
+         * @param {FolderUpdateInputDTO} folderUpdateInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateFolder: async (folderId: string, folderUpdateInputDTO: FolderUpdateInputDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'folderId' is not null or undefined
+            assertParamExists('updateFolder', 'folderId', folderId)
+            // verify required parameter 'folderUpdateInputDTO' is not null or undefined
+            assertParamExists('updateFolder', 'folderUpdateInputDTO', folderUpdateInputDTO)
+            const localVarPath = `/api/v1/folders/{folderId}`
+                .replace(`{${"folderId"}}`, encodeURIComponent(String(folderId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(folderUpdateInputDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @summary Add or update a folder share
          * @param {string} folderId 
          * @param {string} userId 
@@ -5227,6 +5301,20 @@ export const FoldersApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary Update a folder by id.
+         * @param {string} folderId 
+         * @param {FolderUpdateInputDTO} folderUpdateInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateFolder(folderId: string, folderUpdateInputDTO: FolderUpdateInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FolderUpdateResponseDTO>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateFolder(folderId, folderUpdateInputDTO, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['FoldersApi.updateFolder']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @summary Add or update a folder share
          * @param {string} folderId 
          * @param {string} userId 
@@ -5409,6 +5497,16 @@ export const FoldersApiFactory = function (configuration?: Configuration, basePa
          */
         removeFolderShare(requestParameters: FoldersApiRemoveFolderShareRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.removeFolderShare(requestParameters.folderId, requestParameters.userId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Update a folder by id.
+         * @param {FoldersApiUpdateFolderRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateFolder(requestParameters: FoldersApiUpdateFolderRequest, options?: RawAxiosRequestConfig): AxiosPromise<FolderUpdateResponseDTO> {
+            return localVarFp.updateFolder(requestParameters.folderId, requestParameters.folderUpdateInputDTO, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -5781,6 +5879,27 @@ export interface FoldersApiRemoveFolderShareRequest {
 }
 
 /**
+ * Request parameters for updateFolder operation in FoldersApi.
+ * @export
+ * @interface FoldersApiUpdateFolderRequest
+ */
+export interface FoldersApiUpdateFolderRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof FoldersApiUpdateFolder
+     */
+    readonly folderId: string
+
+    /**
+     * 
+     * @type {FolderUpdateInputDTO}
+     * @memberof FoldersApiUpdateFolder
+     */
+    readonly folderUpdateInputDTO: FolderUpdateInputDTO
+}
+
+/**
  * Request parameters for upsertFolderShare operation in FoldersApi.
  * @export
  * @interface FoldersApiUpsertFolderShareRequest
@@ -6005,6 +6124,18 @@ export class FoldersApi extends BaseAPI {
      */
     public removeFolderShare(requestParameters: FoldersApiRemoveFolderShareRequest, options?: RawAxiosRequestConfig) {
         return FoldersApiFp(this.configuration).removeFolderShare(requestParameters.folderId, requestParameters.userId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Update a folder by id.
+     * @param {FoldersApiUpdateFolderRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof FoldersApi
+     */
+    public updateFolder(requestParameters: FoldersApiUpdateFolderRequest, options?: RawAxiosRequestConfig) {
+        return FoldersApiFp(this.configuration).updateFolder(requestParameters.folderId, requestParameters.folderUpdateInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

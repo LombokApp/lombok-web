@@ -150,7 +150,8 @@ export interface paths {
         };
         /** Get a folder by id. */
         get: operations["getFolder"];
-        put?: never;
+        /** Update a folder by id. */
+        put: operations["updateFolder"];
         post?: never;
         /** Delete a folder by id. */
         delete: operations["deleteFolder"];
@@ -992,7 +993,7 @@ export interface components {
                 /** Format: date-time */
                 updatedAt: string;
             };
-            permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
+            permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
         };
         FolderGetMetadataResponse: {
             totalCount: number;
@@ -1003,7 +1004,7 @@ export interface components {
                 totalCount: number;
             };
             result: {
-                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
+                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
                 folder: {
                     /** Format: uuid */
                     id: string;
@@ -1216,7 +1217,7 @@ export interface components {
             share: {
                 /** Format: uuid */
                 userId: string;
-                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
+                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
             };
         };
         FolderShareListResponse: {
@@ -1226,7 +1227,7 @@ export interface components {
             result: {
                 /** Format: uuid */
                 userId: string;
-                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
+                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
             }[];
         };
         FolderShareUserListResponse: {
@@ -1239,7 +1240,53 @@ export interface components {
             }[];
         };
         FolderShareCreateInputDTO: {
-            permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
+            permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
+        };
+        FolderUpdateInputDTO: {
+            name: string;
+        };
+        FolderUpdateResponseDTO: {
+            folder: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                ownerId: string;
+                name: string;
+                metadataLocation: {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    userId?: string;
+                    /** @enum {string} */
+                    providerType: "SERVER" | "USER";
+                    label: string;
+                    endpoint: string;
+                    region: string;
+                    bucket: string;
+                    prefix?: string;
+                    accessKeyId: string;
+                    accessKeyHashId: string;
+                };
+                contentLocation: {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    userId?: string;
+                    /** @enum {string} */
+                    providerType: "SERVER" | "USER";
+                    label: string;
+                    endpoint: string;
+                    region: string;
+                    bucket: string;
+                    prefix?: string;
+                    accessKeyId: string;
+                    accessKeyHashId: string;
+                };
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            };
         };
         AccessKeyPublicDTO: {
             accessKeyId: string;
@@ -1289,8 +1336,8 @@ export interface components {
         SettingsGetResponse: {
             settings: {
                 SIGNUP_ENABLED?: boolean;
-                SIGNUP_PERMISSIONS?: string[];
-                SERVER_HOSTNAME?: string;
+                SIGNUP_PERMISSIONS: string[];
+                SERVER_HOSTNAME: string | null;
             };
         };
         SetSettingInputDTO: {
@@ -1987,6 +2034,31 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FolderGetResponse"];
+                };
+            };
+        };
+    };
+    updateFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FolderUpdateInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderUpdateResponseDTO"];
                 };
             };
         };

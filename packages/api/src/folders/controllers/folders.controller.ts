@@ -7,6 +7,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
   Query,
   Req,
   UnauthorizedException,
@@ -27,6 +28,7 @@ import { FolderObjectContentMetadataDTO } from '../dto/folder-object-content-met
 import { FolderObjectsListQueryParamsDTO } from '../dto/folder-objects-list-query-params.dto'
 import { FolderShareCreateInputDTO } from '../dto/folder-share-create-input.dto'
 import { FolderShareUsersListQueryParamsDTO } from '../dto/folder-shares-list-query-params.dto'
+import { FolderUpdateInputDTO } from '../dto/folder-update-input.dto'
 import { FoldersListQueryParamsDTO } from '../dto/folders-list-query-params.dto'
 import type { FolderCreateResponse } from '../dto/responses/folder-create-response.dto'
 import type { FolderCreateSignedUrlsResponse } from '../dto/responses/folder-create-signed-urls-response.dto'
@@ -38,6 +40,7 @@ import type { FolderObjectListResponse } from '../dto/responses/folder-object-li
 import { FolderShareGetResponse } from '../dto/responses/folder-share-get-response.dto'
 import { FolderShareListResponse } from '../dto/responses/folder-share-list-response.dto'
 import { FolderShareUserListResponse } from '../dto/responses/folder-share-user-list-response.dto'
+import type { FolderUpdateResponseDTO } from '../dto/responses/folder-update-response.dto'
 import { transformFolderToDTO } from '../dto/transforms/folder.transforms'
 import { transformFolderObjectToDTO } from '../dto/transforms/folder-object.transforms'
 import { TriggerAppTaskInputDTO } from '../dto/trigger-app-task-input.dto'
@@ -395,5 +398,27 @@ export class FoldersController {
       throw new UnauthorizedException()
     }
     await this.folderService.removeFolderShare(req.user, folderId, userId)
+  }
+
+  /**
+   * Update a folder by id.
+   */
+  @Put('/:folderId')
+  async updateFolder(
+    @Req() req: express.Request,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
+    @Body() body: FolderUpdateInputDTO,
+  ): Promise<FolderUpdateResponseDTO> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const folder = await this.folderService.updateFolderAsUser(
+      req.user,
+      folderId,
+      body,
+    )
+    return {
+      folder: transformFolderToDTO(folder),
+    }
   }
 }

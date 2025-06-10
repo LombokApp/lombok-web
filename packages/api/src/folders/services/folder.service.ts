@@ -104,6 +104,7 @@ export enum FolderSort {
 }
 
 const OWNER_PERMISSIONS = [
+  FolderPermissionEnum.FOLDER_EDIT,
   FolderPermissionEnum.FOLDER_FORGET,
   FolderPermissionEnum.FOLDER_REINDEX,
   FolderPermissionEnum.OBJECT_EDIT,
@@ -455,8 +456,38 @@ export class FolderService {
     return true
   }
 
+  async updateFolderAsUser(
+    actor: User,
+    folderId: string,
+    updateData: { name: string },
+  ): Promise<Folder> {
+    const { folder, permissions } = await this.getFolderAsUser(actor, folderId)
+
+    if (!permissions.includes(FolderPermissionEnum.FOLDER_EDIT)) {
+      throw new FolderPermissionUnauthorizedException()
+    }
+
+    const now = new Date()
+    const updatedFolder = (
+      await this.ormService.db
+        .update(foldersTable)
+        .set({
+          name: updateData.name,
+          updatedAt: now,
+        })
+        .where(eq(foldersTable.id, folderId))
+        .returning()
+    )[0]
+
+    return {
+      ...updatedFolder,
+      contentLocation: folder.contentLocation,
+      metadataLocation: folder.metadataLocation,
+    }
+  }
+
   async deleteFolderObjectAsUser(
-    user: User,
+    actor: User,
     {
       folderId,
       objectKey,
@@ -465,7 +496,7 @@ export class FolderService {
       objectKey: string
     },
   ): Promise<boolean> {
-    const { folder, permissions } = await this.getFolderAsUser(user, folderId)
+    const { folder, permissions } = await this.getFolderAsUser(actor, folderId)
 
     if (!permissions.includes(FolderPermissionEnum.OBJECT_EDIT)) {
       throw new FolderPermissionUnauthorizedException()

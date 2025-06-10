@@ -15,6 +15,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  useToast,
 } from '@stellariscloud/ui-toolkit'
 import type {
   ColumnFiltersState,
@@ -27,6 +28,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import type { DeleteFolderModalData } from '../../components/delete-folder-modal/delete-folder-modal'
 import { DeleteFolderModal } from '../../components/delete-folder-modal/delete-folder-modal'
+import { EditableTitle } from '../../components/editable-title'
 import {
   ReindexFolderModal,
   type ReindexFolderModalData,
@@ -37,7 +39,7 @@ import {
 } from '../../components/upload-modal/upload-modal'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { useFolderContext } from '../../pages/folders/folder.context'
-import { apiClient, foldersApiHooks } from '../../services/api'
+import { $api, apiClient, foldersApiHooks } from '../../services/api'
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
 import { folderObjectsTableColumns } from './folder-objects-table-columns'
 import { FolderShareModal } from './folder-share-modal/folder-share-modal'
@@ -46,6 +48,12 @@ export const FolderDetailScreen = () => {
   const navigate = useNavigate()
   // const query = useQuery()
   const [searchParams, setSearchParams] = useSearchParams()
+  const { toast } = useToast()
+
+  const folderUpdateMutation = $api.useMutation(
+    'put',
+    '/api/v1/folders/{folderId}',
+  )
 
   const params = useParams()
   const [folderId, focusedObjectKeyFromParams] = params['*']?.split('/') ?? []
@@ -247,6 +255,41 @@ export const FolderDetailScreen = () => {
     [folderId],
   )
 
+  const handleFolderNameChange = React.useCallback(
+    async (newName: string) => {
+      try {
+        await folderUpdateMutation.mutateAsync({
+          params: {
+            path: {
+              folderId,
+            },
+          },
+          body: {
+            name: newName,
+          },
+        })
+
+        // Refresh the folder data to show the updated name
+        await folderContext.refreshFolder()
+
+        toast({
+          title: 'Folder name updated',
+          description: `Folder name has been updated to: "${newName}"`,
+        })
+      } catch (error) {
+        console.error('Failed to update folder name:', error)
+        toast({
+          title: 'Error updating folder name',
+          description: 'Failed to update the folder name. Please try again.',
+          variant: 'destructive',
+        })
+        // Re-throw the error so the EditableTitle component can handle the UI state
+        throw error
+      }
+    },
+    [folderUpdateMutation, folderId, folderContext, toast],
+  )
+
   return (
     <>
       {uploadModalData.isOpen && (
@@ -334,12 +377,13 @@ export const FolderDetailScreen = () => {
                       </div>
                     </div>
                   ) : (
-                    <DataTable
-                      fullHeight={true}
-                      cellPadding={'p-1.5'}
-                      hideHeader={true}
-                      title={folderContext.folder?.name}
-                      actionComponent={
+                    <div className="flex h-full flex-col">
+                      <div className="flex justify-between">
+                        <EditableTitle
+                          value={folderContext.folder?.name ?? ''}
+                          onChange={handleFolderNameChange}
+                          placeholder="Enter folder name..."
+                        />
                         <DropdownMenu>
                           <DropdownMenuTrigger className="m-1 rounded-full">
                             <div className="flex size-8 items-center justify-around rounded-full border">
@@ -404,21 +448,32 @@ export const FolderDetailScreen = () => {
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      }
-                      enableSearch={true}
-                      searchColumn={'main'}
-                      onColumnFiltersChange={handleFiltersChange}
-                      rowCount={folderContext.folderMetadata?.totalCount ?? 0}
-                      data={listFolderObjectsQuery.data?.result ?? []}
-                      columns={folderObjectsTableColumns}
-                      onPaginationChange={handlePaginationChange}
-                      pageIndex={pagination.pageIndex}
-                      onSortingChange={(updater) => {
-                        setSorting((old) =>
-                          updater instanceof Function ? updater(old) : updater,
-                        )
-                      }}
-                    />
+                      </div>
+                      <div className="flex min-h-0 flex-1 flex-col">
+                        <DataTable
+                          fullHeight={true}
+                          cellPadding={'p-1.5'}
+                          hideHeader={true}
+                          enableSearch={true}
+                          searchColumn={'main'}
+                          onColumnFiltersChange={handleFiltersChange}
+                          rowCount={
+                            folderContext.folderMetadata?.totalCount ?? 0
+                          }
+                          data={listFolderObjectsQuery.data?.result ?? []}
+                          columns={folderObjectsTableColumns}
+                          onPaginationChange={handlePaginationChange}
+                          pageIndex={pagination.pageIndex}
+                          onSortingChange={(updater) => {
+                            setSorting((old) =>
+                              updater instanceof Function
+                                ? updater(old)
+                                : updater,
+                            )
+                          }}
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>

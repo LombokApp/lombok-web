@@ -501,6 +501,50 @@ export const schema = {
         "tags": [
           "Folders"
         ]
+      },
+      "put": {
+        "operationId": "updateFolder",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FolderUpdateInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FolderUpdateResponseDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a folder by id.",
+        "tags": [
+          "Folders"
+        ]
       }
     },
     "/api/v1/folders/{folderId}/metadata": {
@@ -3785,6 +3829,7 @@ export const schema = {
               "enum": [
                 "FOLDER_REINDEX",
                 "FOLDER_FORGET",
+                "FOLDER_EDIT",
                 "OBJECT_EDIT",
                 "OBJECT_MANAGE"
               ]
@@ -3837,6 +3882,7 @@ export const schema = {
                     "enum": [
                       "FOLDER_REINDEX",
                       "FOLDER_FORGET",
+                      "FOLDER_EDIT",
                       "OBJECT_EDIT",
                       "OBJECT_MANAGE"
                     ]
@@ -4620,6 +4666,7 @@ export const schema = {
                   "enum": [
                     "FOLDER_REINDEX",
                     "FOLDER_FORGET",
+                    "FOLDER_EDIT",
                     "OBJECT_EDIT",
                     "OBJECT_MANAGE"
                   ]
@@ -4666,6 +4713,7 @@ export const schema = {
                     "enum": [
                       "FOLDER_REINDEX",
                       "FOLDER_FORGET",
+                      "FOLDER_EDIT",
                       "OBJECT_EDIT",
                       "OBJECT_MANAGE"
                     ]
@@ -4732,6 +4780,7 @@ export const schema = {
               "enum": [
                 "FOLDER_REINDEX",
                 "FOLDER_FORGET",
+                "FOLDER_EDIT",
                 "OBJECT_EDIT",
                 "OBJECT_MANAGE"
               ]
@@ -4740,6 +4789,162 @@ export const schema = {
         },
         "required": [
           "permissions"
+        ]
+      },
+      "FolderUpdateInputDTO": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "FolderUpdateResponseDTO": {
+        "type": "object",
+        "properties": {
+          "folder": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "ownerId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              },
+              "metadataLocation": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "providerType": {
+                    "type": "string",
+                    "enum": [
+                      "SERVER",
+                      "USER"
+                    ]
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "endpoint": {
+                    "type": "string"
+                  },
+                  "region": {
+                    "type": "string"
+                  },
+                  "bucket": {
+                    "type": "string"
+                  },
+                  "prefix": {
+                    "type": "string"
+                  },
+                  "accessKeyId": {
+                    "type": "string"
+                  },
+                  "accessKeyHashId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "providerType",
+                  "label",
+                  "endpoint",
+                  "region",
+                  "bucket",
+                  "accessKeyId",
+                  "accessKeyHashId"
+                ]
+              },
+              "contentLocation": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "providerType": {
+                    "type": "string",
+                    "enum": [
+                      "SERVER",
+                      "USER"
+                    ]
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "endpoint": {
+                    "type": "string"
+                  },
+                  "region": {
+                    "type": "string"
+                  },
+                  "bucket": {
+                    "type": "string"
+                  },
+                  "prefix": {
+                    "type": "string"
+                  },
+                  "accessKeyId": {
+                    "type": "string"
+                  },
+                  "accessKeyHashId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "providerType",
+                  "label",
+                  "endpoint",
+                  "region",
+                  "bucket",
+                  "accessKeyId",
+                  "accessKeyHashId"
+                ]
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "ownerId",
+              "name",
+              "metadataLocation",
+              "contentLocation",
+              "createdAt",
+              "updatedAt"
+            ]
+          }
+        },
+        "required": [
+          "folder"
         ]
       },
       "AccessKeyPublicDTO": {
@@ -4934,9 +5139,14 @@ export const schema = {
                 }
               },
               "SERVER_HOSTNAME": {
-                "type": "string"
+                "type": "string",
+                "nullable": true
               }
-            }
+            },
+            "required": [
+              "SIGNUP_PERMISSIONS",
+              "SERVER_HOSTNAME"
+            ]
           }
         },
         "required": [

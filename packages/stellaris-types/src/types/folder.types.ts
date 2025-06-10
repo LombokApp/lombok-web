@@ -104,6 +104,7 @@ export interface PresignedURLResult {
 export const FolderPermissionZodEnum = z.enum([
   'FOLDER_REINDEX',
   'FOLDER_FORGET',
+  'FOLDER_EDIT',
   'OBJECT_EDIT',
   'OBJECT_MANAGE',
 ])
