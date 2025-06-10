@@ -29,6 +29,7 @@
     "dev:docker:api:build": "docker compose --env-file \"./.env\" up api --build",
     "dev:docker:db": "docker compose --env-file \"./.env\" up db",
     "dev:docker:minio": "docker compose --env-file \"./.env\" up minio minioclient",
+    "dev:docker:install": "docker exec -it stellariscloud-api bun install",
     "dev:docker:e2e:services": "docker compose -f ../../docker-compose.test.yml --env-file \"./.env.test\" up dbtest miniotest minioclienttest",
     "dev:docker:e2e:down": "docker compose -f ../../docker-compose.test.yml --env-file \"./.env.test\" down",
     "dev:docker:e2e:watch": "docker compose -f ../../docker-compose.test.yml --env-file \"./.env.test\" up apitestwatch",
