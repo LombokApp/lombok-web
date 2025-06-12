@@ -8,7 +8,6 @@ import nestJsConfig from '@nestjs/config'
 import { hashLocalFile } from '@stellariscloud/core-worker'
 import type { AppConfig, ConnectedAppWorker } from '@stellariscloud/types'
 import {
-  MediaType,
   metadataEntrySchema,
   SignedURLsRequestMethod,
 } from '@stellariscloud/types'
