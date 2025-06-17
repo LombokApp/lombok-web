@@ -1,7 +1,27 @@
 {
   "description": "The dev app.",
-  "tasks": [],
   "requiresStorage": true,
+  "tasks": [
+    {
+      "key": "DO_SPECIAL_THING",
+      "label": "Do Special Thing",
+      "description": "Do special thing for each new object.",
+      "triggers": [
+        {
+          "type": "event",
+          "event": "CORE:OBJECT_ADDED",
+          "inputParams": {
+            "folderId": "event:folderId",
+            "objectKey": "event:objectKey"
+          }
+        }
+      ],
+      "worker": "special_worker"
+    }
+  ],
+  "workers": {
+    "special_worker": {}
+  },
   "emittableEvents": [],
   "menuItems": [{
     "name": "dev-main",

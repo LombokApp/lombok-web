@@ -13,6 +13,7 @@ services:
     command: ['bun', '--cwd', 'packages/api', 'dev']
     ports:
       - 3000:3000
+    privileged: true
   minio:
     image: minio/minio
     command: server /data --address "minio:9000" --console-address ":9001"

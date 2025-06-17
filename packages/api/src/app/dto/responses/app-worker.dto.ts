@@ -1,4 +1,4 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { connectedAppWorkerSchema } from '@stellariscloud/types'
+import { connectedAppInstanceSchema } from '@stellariscloud/types'
 
-export class AppWorker extends createZodDto(connectedAppWorkerSchema) {}
+export class AppWorker extends createZodDto(connectedAppInstanceSchema) {}

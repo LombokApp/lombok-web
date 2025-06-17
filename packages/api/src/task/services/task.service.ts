@@ -174,7 +174,7 @@ export class TaskService {
     }
   }
 
-  async notifyAllAppsOfPendingTasks() {
+  async handlePendingTasks() {
     const pendingTasks = await this.ormService.db
       .select({
         taskKey: tasksTable.taskKey,
@@ -182,7 +182,9 @@ export class TaskService {
         count: sql<number>`cast(count(${tasksTable.id}) as int)`,
       })
       .from(tasksTable)
-      .where(isNull(tasksTable.startedAt))
+      .where(
+        and(isNull(tasksTable.startedAt), isNull(tasksTable.workerIdentifier)),
+      )
       .groupBy(tasksTable.taskKey, tasksTable.ownerIdentifier)
     const pendingTasksByApp = pendingTasks.reduce<
       Record<string, Record<string, number>>

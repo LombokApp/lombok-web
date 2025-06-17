@@ -29,24 +29,24 @@ export const analyzeObjectTaskHandler = async (
   task: AppTask,
   server: CoreServerMessageInterface,
 ) => {
-  // console.log('Starting work for task:', task)
+  console.log('Starting work for analyze object task:', task)
   if (!task.id) {
     throw new AppAPIError('INVALID_TASK', 'Missing task id.')
   }
 
-  if (!task.data.folderId) {
+  if (!task.subjectFolderId) {
     throw new AppAPIError('INVALID_TASK', 'Missing folderId.')
   }
 
-  if (!task.data.objectKey) {
+  if (!task.subjectObjectKey) {
     throw new AppAPIError('INVALID_TASK', 'Missing objectKey.')
   }
 
   const response = await server.getContentSignedUrls(
     [
       {
-        folderId: task.data.folderId,
-        objectKey: task.data.objectKey,
+        folderId: task.subjectFolderId,
+        objectKey: task.subjectObjectKey,
         method: 'GET',
       },
     ],
@@ -77,13 +77,16 @@ export const analyzeObjectTaskHandler = async (
     if (!mimeType) {
       throw new AppAPIError(
         'UNRECOGNIZED_MIME_TYPE',
-        `Cannot resolve mimeType for objectKey ${task.data.objectKey}`,
+        `Cannot resolve mimeType for objectKey ${task.subjectObjectKey}`,
       )
     }
   } catch (e: unknown) {
     throw new AppAPIError(
       'STORAGE_ACCESS_FAILURE',
-      `Failure accessing underlying storage: ${JSON.stringify(task.data)}`,
+      `Failure accessing underlying storage: ${JSON.stringify({
+        folderId: task.subjectFolderId,
+        objectKey: task.subjectObjectKey,
+      })}`,
     )
     throw e
   }
@@ -138,10 +141,9 @@ export const analyzeObjectTaskHandler = async (
     const metadtaSignedUrlsResponse = await server
       .getMetadataSignedUrls(
         metadataKeys.map((k) => ({
-          folderId: task.data.folderId,
+          folderId: task.subjectFolderId!,
           contentHash,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          objectKey: task.data.objectKey!,
+          objectKey: task.subjectObjectKey!,
           method: 'PUT',
           metadataHash: metadataHashes[k as keyof typeof metadataHashes],
         })),
@@ -242,8 +244,8 @@ export const analyzeObjectTaskHandler = async (
   const metadataUpdateResponse = await server.updateContentMetadata(
     [
       {
-        folderId: task.data.folderId,
-        objectKey: task.data.objectKey,
+        folderId: task.subjectFolderId,
+        objectKey: task.subjectObjectKey,
         hash: contentHash,
         metadata: metadataDescription,
       },

@@ -5,32 +5,57 @@
     {
       "key": "ANALYZE_OBJECT",
       "label": "Analyze Object",
-      "eventTriggers": ["CORE:OBJECT_ADDED"],
       "description": "Analyze the content of a file and save the result as metadata",
-      "objectAction": { "description": "Analyze the content of this file" },
       "inputParams": {
         "folderId": { "type": "string" },
-        "objectKey": { "type": "string" },
-        "generatePreviews": { "type": "boolean" }
-      }
+        "objectKey": { "type": "string" }
+      },
+      "triggers": [
+        {
+          "type": "event",
+          "event": "CORE:OBJECT_ADDED",
+          "inputParams": {
+            "folderId": "{event.folderId}",
+            "objectKey": "{event.objectKey}"
+          }
+        },
+        {
+          "type": "objectAction",
+          "description": "Analyze the content of this file",
+          "inputParams": {
+            "folderId": "{object.folderId}",
+            "objectKey": "{object.objectKey}"
+          }
+        }
+      ]
     },
     {
       "key": "ANALYZE_ALL_OBJECTS",
       "label": "Analyze All Objects",
-      "eventTriggers": [],
       "description": "Analyze all files in a folder",
+      "triggers": [
+        {
+          "type": "folderAction",
+          "actionLabel": "Analyze all files in this folder",
+          "inputParams": {
+            "folderId": "{folder.id}"
+          }
+        }
+      ],
       "folderAction": { "description": "Analyze all files in this folder" },
       "inputParams": {
-        "folderId": { "type": "string" },
-        "generatePreviews": { "type": "boolean", "default": true }
+        "folderId": { "type": "string" }
       }
     },
     {
       "key": "RUN_WORKER_SCRIPT",
       "label": "Run Worker",
-      "eventTriggers": [],
       "description": "Run a worker script.",
-      "folderAction": { "description": "Test the dummy worker script" }
+      "inputParams": {
+        "appIdentifier": { "type": "string" },
+        "workerIdentifier": { "type": "string" },
+        "taskId": { "type": "string" }
+      }
     }
   ],
   "emittableEvents": ["OBJECT_ANALYZED"],

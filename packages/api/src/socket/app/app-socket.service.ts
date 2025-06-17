@@ -1,6 +1,6 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
-import { ConnectedAppWorker } from '@stellariscloud/types'
+import { ConnectedAppInstance } from '@stellariscloud/types'
 import { safeZodParse } from '@stellariscloud/utils'
 import type { Namespace, Socket } from 'socket.io'
 import { APP_NS_PREFIX, AppService } from 'src/app/services/app.service'
@@ -85,7 +85,7 @@ export class AppSocketService {
         socket.disconnect(true)
         throw new UnauthorizedException()
       }
-      const workerInfo: ConnectedAppWorker = {
+      const workerInfo: ConnectedAppInstance = {
         appIdentifier,
         socketClientId: socket.id,
         handledTaskKeys: auth.handledTaskKeys, // TODO: validate worker reported task keys to match their config
@@ -124,16 +124,14 @@ export class AppSocketService {
               }
             })
           if (response?.error) {
-            // eslint-disable-next-line no-console
-            console.log('APP Message Error:', {
+            this.logger.log('APP Message Error:', {
               message,
               auth,
               appIdentifier,
               error: response.error,
             })
           } else {
-            // eslint-disable-next-line no-console
-            console.log('APP Message Response:', {
+            this.logger.log('APP Message Response:', {
               message,
               auth,
               appIdentifier,

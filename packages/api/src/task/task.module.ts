@@ -46,7 +46,7 @@ export class TaskModule implements OnModuleInit, OnModuleDestroy {
       // every 5 seconds, broadcast to apps about pendng app tasks
       new CronJob(
         '*/5 * * * * *',
-        () => this.taskService.notifyAllAppsOfPendingTasks(),
+        () => this.taskService.handlePendingTasks(),
         null,
         true,
       ),

@@ -5,53 +5,46 @@ import { io } from 'socket.io-client'
 const SOCKET_RESPONSE_TIMEOUT = 2000
 
 export const buildAppClient = (socket: Socket): CoreServerMessageInterface => {
-  return {
-    saveLogEntry(entry) {
-      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
-        name: 'SAVE_LOG_ENTRY',
-        data: entry,
+  const emitWithAck = async (name: string, data: any) => {
+    const response = await socket
+      .timeout(SOCKET_RESPONSE_TIMEOUT)
+      .emitWithAck('APP_API', {
+        name,
+        data,
       })
+    if (response.error) {
+      throw new AppAPIError(response.error.code, response.error.message)
+    }
+    return response
+  }
+
+  return {
+    getWorkerPayloadSignedUrl(appIdentifier, workerIdentifier) {
+      return emitWithAck('GET_WORKER_PAYLOAD_SIGNED_URL', {
+        appIdentifier,
+        workerIdentifier,
+      })
+    },
+    saveLogEntry(entry) {
+      return emitWithAck('SAVE_LOG_ENTRY', entry)
     },
     getContentSignedUrls(requests) {
-      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
-        name: 'GET_CONTENT_SIGNED_URLS',
-        data: { requests },
-      })
+      return emitWithAck('GET_CONTENT_SIGNED_URLS', { requests })
     },
     getMetadataSignedUrls(requests) {
-      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
-        name: 'GET_METADATA_SIGNED_URLS',
-        data: {
-          requests,
-        },
-      })
+      return emitWithAck('GET_METADATA_SIGNED_URLS', { requests })
     },
     updateContentMetadata(updates, taskId) {
-      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
-        name: 'UPDATE_CONTENT_METADATA',
-        data: {
-          taskId,
-          updates,
-        },
-      })
+      return emitWithAck('UPDATE_CONTENT_METADATA', { taskId, updates })
     },
     completeHandleTask(taskId) {
-      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
-        name: 'COMPLETE_HANDLE_TASK',
-        data: taskId,
-      })
+      return emitWithAck('COMPLETE_HANDLE_TASK', taskId)
     },
     attemptStartHandleTask(taskKeys: string[]) {
-      return socket.timeout(SOCKET_RESPONSE_TIMEOUT).emitWithAck('APP_API', {
-        name: 'ATTEMPT_START_HANDLE_TASK',
-        data: { taskKeys },
-      })
+      return emitWithAck('ATTEMPT_START_HANDLE_TASK', { taskKeys })
     },
     failHandleTask(taskId, error) {
-      return socket.emitWithAck('APP_API', {
-        name: 'FAIL_HANDLE_TASK',
-        data: { taskId, error },
-      })
+      return emitWithAck('FAIL_HANDLE_TASK', { taskId, error })
     },
   }
 }
@@ -61,6 +54,10 @@ interface AppAPIResponse<T> {
   error?: { code: string; message: string }
 }
 export interface CoreServerMessageInterface {
+  getWorkerPayloadSignedUrl: (
+    appIdentifier: string,
+    workerIdentifier: string,
+  ) => Promise<AppAPIResponse<{ url: string }>>
   saveLogEntry: (entry: AppLogEntry) => Promise<boolean>
   attemptStartHandleTask: (
     taskKeys: string[],
@@ -109,7 +106,9 @@ export interface CoreServerMessageInterface {
 export interface AppTask {
   id: string
   taskKey: string
-  data: any
+  inputData: any
+  subjectFolderId?: string
+  subjectObjectKey?: string
 }
 
 export class AppAPIError extends Error {
@@ -131,12 +130,11 @@ export const connectAndPerformWork = (
       serverClient: CoreServerMessageInterface,
     ) => Promise<void>
   },
-  log: (entry: Partial<AppLogEntry>) => void,
 ) => {
   // TODO: send internal state back to the core via a message
   const connectURL = `${socketBaseUrl}/apps`
   const taskKeys = Object.keys(taskHandlers)
-  log({ message: 'Connecting...', data: { connectURL, taskKeys } })
+  // log({ message: 'Connecting...', data: { connectURL, taskKeys } })
   const socket = io(connectURL, {
     auth: {
       appWorkerId,
@@ -145,10 +143,18 @@ export const connectAndPerformWork = (
     },
     reconnection: false,
   })
+  const serverClient = buildAppClient(socket)
+  const log = (logEntryProperties: Partial<AppLogEntry>) => {
+    const logEntry: AppLogEntry = {
+      data: logEntryProperties.data ?? {},
+      name: logEntryProperties.name ?? 'info',
+      level: logEntryProperties.level ?? 'info',
+      message: logEntryProperties.message ?? '',
+    }
+    serverClient.saveLogEntry(logEntry)
+  }
   log({ message: 'Connected.' })
   let concurrentTasks = 0
-
-  const serverClient = buildAppClient(socket)
 
   const shutdown = () => {
     socket.disconnect()
@@ -160,7 +166,7 @@ export const connectAndPerformWork = (
     })
 
     socket.on('disconnect', (reason) => {
-      log({
+      console.log({
         level: 'warning',
         message: `Worker disconnected. Reason: ${reason}`,
         data: {
@@ -171,7 +177,10 @@ export const connectAndPerformWork = (
     })
 
     socket.onAny((_data) => {
-      log({ message: 'Got event in worker thread', data: _data })
+      ;(socket.disconnected ? console.log : log)({
+        message: 'Got event in worker thread',
+        data: _data,
+      })
     })
 
     socket.on('PENDING_TASKS_NOTIFICATION', async (_data) => {
@@ -192,14 +201,14 @@ export const connectAndPerformWork = (
                   code: String(
                     e instanceof AppAPIError
                       ? e.errorCode
-                      : 'APP_WORKER_EXECUTION_ERROR',
+                      : 'APP_TASK_EXECUTION_ERROR',
                   ),
                   message: `${e.name}: ${e.message}`,
                 })
               })
           }
         } catch (error: any) {
-          log({
+          ;(socket.disconnected ? console.log : log)({
             level: 'error',
             message: 'Unexpected error during app worker execution',
             data: {
@@ -215,7 +224,7 @@ export const connectAndPerformWork = (
     })
 
     socket.on('error', (error) => {
-      log({
+      ;(socket.disconnected ? console.log : log)({
         message: 'Core app worker websocket error.',
         name: 'CoreAppWorkerSocketError',
         level: 'error',
@@ -234,5 +243,7 @@ export const connectAndPerformWork = (
   return {
     shutdown,
     wait,
+    socket,
+    log,
   }
 }

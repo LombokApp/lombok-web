@@ -1,5 +1,5 @@
 import type { AppDTO } from '@stellariscloud/api-client'
-import type { ConnectedAppWorker } from '@stellariscloud/types'
+import type { ConnectedAppInstance } from '@stellariscloud/types'
 import React from 'react'
 
 import type { AppsTab } from './installed-app-tabs'
@@ -10,7 +10,7 @@ export function InstalledAppDataPanel({
   connectedAppInstances,
 }: {
   appInfo: AppDTO
-  connectedAppInstances: Record<string, ConnectedAppWorker | undefined>
+  connectedAppInstances: Record<string, ConnectedAppInstance | undefined>
 }) {
   const [activeTab, setActiveTab] = React.useState<AppsTab>('config')
   const _connectedAppInstances = Object.keys(connectedAppInstances).map(
