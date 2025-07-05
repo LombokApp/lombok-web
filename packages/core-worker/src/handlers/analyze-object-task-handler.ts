@@ -6,11 +6,11 @@ import os from 'os'
 import path from 'path'
 import { v4 as uuidV4 } from 'uuid'
 
-import type {
+import {
   CoreServerMessageInterface,
   AppTask,
-} from '../utils/connect-app-worker.util'
-import { AppAPIError } from '../utils/connect-app-worker.util'
+  AppAPIError,
+} from '@stellariscloud/app-worker-sdk'
 import type {
   ImageOperationOutput,
   VideoOperationOutput,

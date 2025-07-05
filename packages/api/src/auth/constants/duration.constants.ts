@@ -7,6 +7,7 @@ export const enum AuthDurationSeconds {
   SessionSliding = 15 * 24 * 60 * 60,
   EmailVerification = 24 * 60 * 60,
   PasswordChange = 60 * 60,
+  AppWorker = 30 * 60, // max time a worker can run for
 }
 
 /**

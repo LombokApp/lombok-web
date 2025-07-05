@@ -19,6 +19,7 @@ import fs from 'fs'
 import fsPromises from 'fs/promises'
 import os from 'os'
 import path from 'path'
+import { JWTService } from 'src/auth/services/jwt.service'
 import { KVService } from 'src/cache/kv.service'
 import { readDirRecursive } from 'src/core/utils/fs.util'
 import { EventLevel, eventsTable } from 'src/event/entities/event.entity'
@@ -34,7 +35,7 @@ import { APP_WORKER_INFO_CACHE_KEY_PREFIX } from 'src/socket/app/app-socket.serv
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
-import { tasksTable } from 'src/task/entities/task.entity'
+import { Task, tasksTable } from 'src/task/entities/task.entity'
 import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
 
@@ -71,6 +72,10 @@ const LogEntryValidator = z.object({
 
 const AttemptStartHandleTaskValidator = z.object({
   taskKeys: z.array(z.string()),
+})
+
+const AttemptStartHandleTaskByIdValidator = z.object({
+  taskId: z.string().uuid(),
 })
 
 const GetWorkerPayloadSignedURLValidator = z.object({
@@ -146,6 +151,7 @@ export class AppService {
     @Inject(appConfig.KEY)
     private readonly _appConfig: nestJsConfig.ConfigType<typeof appConfig>,
     private readonly ormService: OrmService,
+    private readonly jwtService: JWTService,
     private readonly serverConfigurationService: ServerConfigurationService,
     private readonly kvService: KVService,
     @Inject(forwardRef(() => FolderService)) _folderService,
@@ -169,6 +175,7 @@ export class AppService {
     if (safeZodParse(message, AppSocketAPIRequest)) {
       const requestData = message.data
       const appIdentifierPrefixed = `${APP_NS_PREFIX}${appIdentifier.toLowerCase()}`
+      const isCoreApp = appIdentifierPrefixed === `${APP_NS_PREFIX}core`
       switch (message.name) {
         case 'SAVE_LOG_ENTRY':
           if (safeZodParse(requestData, LogEntryValidator)) {
@@ -240,10 +247,13 @@ export class AppService {
         case 'COMPLETE_HANDLE_TASK': {
           if (safeZodParse(requestData, z.string())) {
             const task = await this.ormService.db.query.tasksTable.findFirst({
-              where: and(
-                eq(tasksTable.id, requestData),
-                eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
-              ),
+              where: isCoreApp
+                ? eq(tasksTable.id, requestData)
+                : and(
+                    eq(tasksTable.id, requestData),
+                    isNull(tasksTable.workerIdentifier),
+                    eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
+                  ),
             })
             if (
               !task ||
@@ -269,19 +279,91 @@ export class AppService {
         }
         case 'ATTEMPT_START_HANDLE_TASK': {
           if (safeZodParse(requestData, AttemptStartHandleTaskValidator)) {
+            let securedTask: Task | undefined = undefined
+            for (let attempt = 0; attempt < 5; attempt++) {
+              const task = await this.ormService.db.query.tasksTable.findFirst({
+                where: and(
+                  eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
+                  inArray(tasksTable.taskKey, requestData.taskKeys),
+                  isNull(tasksTable.startedAt),
+                ),
+              })
+              if (
+                !task ||
+                task.completedAt ||
+                task.handlerId ||
+                task.startedAt
+              ) {
+                // No available task, break early
+                break
+              }
+              // Try to secure the task
+              securedTask = (
+                await this.ormService.db
+                  .update(tasksTable)
+                  .set({ startedAt: new Date(), handlerId })
+                  .where(
+                    and(
+                      eq(tasksTable.id, task.id),
+                      isNull(tasksTable.startedAt),
+                    ),
+                  )
+                  .returning()
+              )[0]
+              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+              if (securedTask) {
+                break
+              }
+              // If not secured, loop again to try next available task
+            }
+            if (!securedTask) {
+              // If we are finding tasks but not able to secure one after n retries, return a 409
+              return {
+                result: undefined,
+                error: {
+                  code: 409,
+                  message:
+                    'Task already started by another handler after 5 attempts.',
+                },
+              }
+            }
+            return {
+              result: securedTask,
+            }
+          }
+          break
+        }
+        case 'ATTEMPT_START_HANDLE_TASK_BY_ID': {
+          if (safeZodParse(requestData, AttemptStartHandleTaskByIdValidator)) {
             const task = await this.ormService.db.query.tasksTable.findFirst({
-              where: and(
-                eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
-                inArray(tasksTable.taskKey, requestData.taskKeys),
-                isNull(tasksTable.startedAt),
-              ),
+              where: eq(tasksTable.id, requestData.taskId),
             })
-            if (!task || task.completedAt || task.handlerId || task.startedAt) {
+            console.log({
+              isCoreApp,
+              isWorkerTask: !!task?.workerIdentifier,
+              appIdentifier,
+              appIdentifierPrefixed,
+            })
+            if (
+              !task ||
+              (task.workerIdentifier && !isCoreApp) ||
+              (isCoreApp &&
+                !task.workerIdentifier &&
+                task.ownerIdentifier !== appIdentifierPrefixed)
+            ) {
               return {
                 result: undefined,
                 error: {
                   code: 400,
-                  message: 'Invalid request.',
+                  message: 'Invalid request (no task found by id).',
+                },
+              }
+            } else if (task.startedAt || task.completedAt || task.handlerId) {
+              return {
+                result: undefined,
+                error: {
+                  code: 400,
+                  message: 'Task already started.',
                 },
               }
             }
@@ -354,7 +436,7 @@ export class AppService {
           }
           break
         }
-        case 'GET_WORKER_PAYLOAD_SIGNED_URL': {
+        case 'GET_WORKER_EXECUTION_DETAILS': {
           if (safeZodParse(requestData, GetWorkerPayloadSignedURLValidator)) {
             // verify the app is the installed "core" app, and that the specified worker payload exists and is specified in the config
             if (appIdentifier !== 'core') {
@@ -420,7 +502,12 @@ export class AppService {
               },
             ])
             return {
-              result: { url: presignedGetURL[0] },
+              result: {
+                payloadUrl: presignedGetURL[0],
+                workerToken: await this.jwtService.createAppWorkerToken(
+                  requestData.appIdentifier,
+                ),
+              },
             }
           } else {
             // eslint-disable-next-line no-console

@@ -7,12 +7,16 @@ import { APP_NS_PREFIX, AppService } from 'src/app/services/app.service'
 import { KVService } from 'src/cache/kv.service'
 import { z } from 'zod'
 
-import { APP_JWT_SUB_PREFIX, JWTService } from '../../auth/services/jwt.service'
+import {
+  APP_JWT_SUB_PREFIX,
+  APP_WORKER_JWT_SUB_PREFIX,
+  JWTService,
+} from '../../auth/services/jwt.service'
 
 const AppAuthPayload = z.object({
   appWorkerId: z.string(),
   token: z.string(),
-  handledTaskKeys: z.array(z.string()),
+  handledTaskKeys: z.array(z.string()).optional(),
 })
 
 export const APP_WORKER_INFO_CACHE_KEY_PREFIX = 'APP_WORKER'
@@ -53,9 +57,15 @@ export class AppSocketService {
     if (safeZodParse(auth, AppAuthPayload)) {
       const jwt = this.jwtService.decodeJWT(auth.token)
       const sub = jwt.payload.sub as string | undefined
-      const appIdentifier = sub?.startsWith(APP_JWT_SUB_PREFIX)
-        ? sub.slice(APP_NS_PREFIX.length)
-        : undefined
+      const isExternalAppToken = sub?.startsWith(APP_JWT_SUB_PREFIX)
+      const isAppWorkerToken = sub?.startsWith(APP_WORKER_JWT_SUB_PREFIX)
+      const appIdentifier = isExternalAppToken
+        ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          sub!.slice(APP_JWT_SUB_PREFIX.length)
+        : isAppWorkerToken
+          ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            sub!.slice(APP_WORKER_JWT_SUB_PREFIX.length)
+          : undefined
 
       if (!appIdentifier) {
         // eslint-disable-next-line no-console
@@ -73,22 +83,27 @@ export class AppSocketService {
 
       try {
         // verifies the token using the publicKey we have on file for this app
-        this.jwtService.verifyAppJWT({
-          appIdentifier,
-          publicKey: app.publicKey,
-          token: auth.token,
-        })
-        // console.log('verifiedJwt:', _verifiedJwt)
+        if (isExternalAppToken) {
+          this.jwtService.verifyAppJWT({
+            appIdentifier,
+            publicKey: app.publicKey,
+            token: auth.token,
+          })
+        } else if (isAppWorkerToken) {
+          this.jwtService.verifyAppWorkerToken({
+            appIdentifier,
+            token: auth.token,
+          })
+        }
       } catch (e: unknown) {
-        // eslint-disable-next-line no-console
-        console.log('SOCKET JWT VERIFY ERROR:', e)
+        this.logger.error('SOCKET JWT VERIFY ERROR:', e)
         socket.disconnect(true)
         throw new UnauthorizedException()
       }
       const workerInfo: ConnectedAppInstance = {
         appIdentifier,
         socketClientId: socket.id,
-        handledTaskKeys: auth.handledTaskKeys, // TODO: validate worker reported task keys to match their config
+        handledTaskKeys: auth.handledTaskKeys ?? [], // TODO: validate worker reported task keys to match their config
         workerId: auth.appWorkerId,
         ip: socket.handshake.address,
       }
@@ -149,7 +164,7 @@ export class AppSocketService {
       })
       // add the clients to the rooms corresponding to their subscriptions
       await Promise.all(
-        auth.handledTaskKeys.map((taskKey) => {
+        (auth.handledTaskKeys ?? []).map((taskKey) => {
           const roomKey = this.getRoomKeyForAppAndTask(appIdentifier, taskKey)
           return socket.join(roomKey)
         }),

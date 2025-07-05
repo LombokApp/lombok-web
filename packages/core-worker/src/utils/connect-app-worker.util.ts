@@ -1,124 +1,11 @@
-import type { ContentMetadataType, AppLogEntry } from '@stellariscloud/types'
-import type { Socket } from 'socket.io-client'
+import {
+  AppAPIError,
+  AppTask,
+  buildAppClient,
+  CoreServerMessageInterface,
+} from '@stellariscloud/app-worker-sdk/src/app-worker-sdk'
+import type { AppLogEntry } from '@stellariscloud/types'
 import { io } from 'socket.io-client'
-
-const SOCKET_RESPONSE_TIMEOUT = 2000
-
-export const buildAppClient = (socket: Socket): CoreServerMessageInterface => {
-  const emitWithAck = async (name: string, data: any) => {
-    const response = await socket
-      .timeout(SOCKET_RESPONSE_TIMEOUT)
-      .emitWithAck('APP_API', {
-        name,
-        data,
-      })
-    if (response.error) {
-      throw new AppAPIError(response.error.code, response.error.message)
-    }
-    return response
-  }
-
-  return {
-    getWorkerPayloadSignedUrl(appIdentifier, workerIdentifier) {
-      return emitWithAck('GET_WORKER_PAYLOAD_SIGNED_URL', {
-        appIdentifier,
-        workerIdentifier,
-      })
-    },
-    saveLogEntry(entry) {
-      return emitWithAck('SAVE_LOG_ENTRY', entry)
-    },
-    getContentSignedUrls(requests) {
-      return emitWithAck('GET_CONTENT_SIGNED_URLS', { requests })
-    },
-    getMetadataSignedUrls(requests) {
-      return emitWithAck('GET_METADATA_SIGNED_URLS', { requests })
-    },
-    updateContentMetadata(updates, taskId) {
-      return emitWithAck('UPDATE_CONTENT_METADATA', { taskId, updates })
-    },
-    completeHandleTask(taskId) {
-      return emitWithAck('COMPLETE_HANDLE_TASK', taskId)
-    },
-    attemptStartHandleTask(taskKeys: string[]) {
-      return emitWithAck('ATTEMPT_START_HANDLE_TASK', { taskKeys })
-    },
-    failHandleTask(taskId, error) {
-      return emitWithAck('FAIL_HANDLE_TASK', { taskId, error })
-    },
-  }
-}
-
-interface AppAPIResponse<T> {
-  result: T
-  error?: { code: string; message: string }
-}
-export interface CoreServerMessageInterface {
-  getWorkerPayloadSignedUrl: (
-    appIdentifier: string,
-    workerIdentifier: string,
-  ) => Promise<AppAPIResponse<{ url: string }>>
-  saveLogEntry: (entry: AppLogEntry) => Promise<boolean>
-  attemptStartHandleTask: (
-    taskKeys: string[],
-  ) => Promise<AppAPIResponse<AppTask>>
-  failHandleTask: (
-    taskId: string,
-    error: { code: string; message: string },
-  ) => Promise<void>
-  completeHandleTask: (taskId: string) => Promise<AppAPIResponse<void>>
-  getMetadataSignedUrls: (
-    objects: {
-      folderId: string
-      objectKey: string
-      contentHash: string
-      metadataHash: string
-      method: 'GET' | 'PUT' | 'DELETE'
-    }[],
-  ) => Promise<
-    AppAPIResponse<{
-      urls: { url: string; folderId: string; objectKey: string }[]
-    }>
-  >
-  getContentSignedUrls: (
-    objects: {
-      folderId: string
-      objectKey: string
-      method: 'GET' | 'PUT' | 'DELETE'
-    }[],
-    eventId?: string,
-  ) => Promise<
-    AppAPIResponse<{
-      urls: { url: string; folderId: string; objectKey: string }[]
-    }>
-  >
-  updateContentMetadata: (
-    updates: {
-      folderId: string
-      objectKey: string
-      hash: string
-      metadata: ContentMetadataType
-    }[],
-    eventId?: string,
-  ) => Promise<AppAPIResponse<void>>
-}
-
-export interface AppTask {
-  id: string
-  taskKey: string
-  inputData: any
-  subjectFolderId?: string
-  subjectObjectKey?: string
-}
-
-export class AppAPIError extends Error {
-  errorCode: string
-  constructor(errorCode: string, errorMessage: string = '') {
-    super()
-    this.errorCode = errorCode
-    this.message = errorMessage
-  }
-}
 
 export const connectAndPerformWork = (
   socketBaseUrl: string,
@@ -132,10 +19,9 @@ export const connectAndPerformWork = (
   },
 ) => {
   // TODO: send internal state back to the core via a message
-  const connectURL = `${socketBaseUrl}/apps`
   const taskKeys = Object.keys(taskHandlers)
   // log({ message: 'Connecting...', data: { connectURL, taskKeys } })
-  const socket = io(connectURL, {
+  const socket = io(`${socketBaseUrl}/apps`, {
     auth: {
       appWorkerId,
       token: appToken,
@@ -143,7 +29,7 @@ export const connectAndPerformWork = (
     },
     reconnection: false,
   })
-  const serverClient = buildAppClient(socket)
+  const serverClient = buildAppClient(socket, socketBaseUrl)
   const log = (logEntryProperties: Partial<AppLogEntry>) => {
     const logEntry: AppLogEntry = {
       data: logEntryProperties.data ?? {},

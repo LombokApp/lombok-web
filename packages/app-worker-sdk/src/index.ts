@@ -1,1 +1,1 @@
-export { AppWorkerSdk as StellarisCloudAppWorkerSdk } from './app-worker-sdk'
+export * from './app-worker-sdk'
