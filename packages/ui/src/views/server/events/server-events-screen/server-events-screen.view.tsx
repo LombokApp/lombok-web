@@ -66,24 +66,12 @@ export function ServerEventsScreen() {
         title="Events"
         enableSearch={true}
         searchColumn="__HIDDEN__"
-        onColumnFiltersChange={(updater) => {
-          setFilters((old) =>
-            updater instanceof Function ? updater(old) : updater,
-          )
-        }}
+        onColumnFiltersChange={(updatedValues) => setFilters(updatedValues)}
         rowCount={events?.meta.totalCount}
         data={events?.result ?? []}
         columns={serverEventsTableColumns}
-        onPaginationChange={(updater) => {
-          setPagination((old) =>
-            updater instanceof Function ? updater(old) : updater,
-          )
-        }}
-        onSortingChange={(updater) => {
-          setSorting((old) =>
-            updater instanceof Function ? updater(old) : updater,
-          )
-        }}
+        onPaginationChange={(updatedValues) => setPagination(updatedValues)}
+        onSortingChange={(updatedValues) => setSorting(updatedValues)}
         filterOptions={{
           level: {
             label: 'Level',

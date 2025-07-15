@@ -119,15 +119,15 @@ export const FolderDetailScreen = () => {
     {
       params: {
         path: {
-    folderId,
+          folderId,
         },
         query: {
-    limit: pagination.pageSize,
-    offset: pagination.pageIndex * pagination.pageSize,
+          limit: pagination.pageSize,
+          offset: pagination.pageIndex * pagination.pageSize,
           ...(searchFilter?.value
             ? { search: searchFilter.value as string }
             : {}),
-    // sort: sorting[0].id,
+          // sort: sorting[0].id,
         },
       },
     },
@@ -230,7 +230,7 @@ export const FolderDetailScreen = () => {
     {
       params: {
         path: {
-    folderId,
+          folderId,
         },
       },
     },
@@ -470,7 +470,6 @@ export const FolderDetailScreen = () => {
                       </div>
                       <div className="flex min-h-0 flex-1 flex-col">
                         <DataTable
-                          fullHeight={true}
                           cellPadding={'p-1.5'}
                           hideHeader={true}
                           enableSearch={true}

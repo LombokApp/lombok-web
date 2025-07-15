@@ -48,7 +48,6 @@ interface DataTableProps<TData, TValue> {
   searchColumn?: string
   searchPlaceholder?: string
   actionComponent?: React.ReactNode
-  fullHeight?: boolean
   cellPadding?: string
   hideHeader?: boolean
   pageIndex?: number
@@ -75,7 +74,6 @@ export function DataTable<TData, TValue>({
   enableRowSelection = false,
   enableSearch = false,
   searchColumn,
-  fullHeight = false,
   hideHeader = false,
   pageIndex = 0,
   searchPlaceholder,
@@ -151,9 +149,7 @@ export function DataTable<TData, TValue>({
   }
 
   return (
-    <div
-      className={cn('w-full space-y-2', fullHeight && 'h-full flex flex-col')}
-    >
+    <div className={cn('size-full gap-2 flex flex-col')}>
       {(Object.keys(filterOptions).length > 0 ||
         enableSearch ||
         actionComponent) && (
@@ -167,8 +163,7 @@ export function DataTable<TData, TValue>({
           table={table}
         />
       )}
-      {/* eslint-disable-next-line tailwindcss/no-custom-classname */}
-      <div className="special-scrollbar overflow-hidden overflow-y-auto rounded-md">
+      <div className="vertical-scrollbar-container">
         <div className="rounded-md border border-foreground/10 bg-card">
           <Table>
             {!hideHeader && (
