@@ -4040,7 +4040,9 @@ export const schema = {
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1
           },
           "metadataLocation": {
             "oneOf": [
@@ -6086,10 +6088,89 @@ export const schema = {
                     "label": {
                       "type": "string"
                     },
-                    "eventTriggers": {
+                    "triggers": {
                       "type": "array",
                       "items": {
-                        "type": "string"
+                        "discriminator": {
+                          "propertyName": "type"
+                        },
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "event"
+                                ]
+                              },
+                              "event": {
+                                "type": "string"
+                              },
+                              "inputParams": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "event",
+                              "inputParams"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "objectAction"
+                                ]
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "inputParams": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "description",
+                              "inputParams"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "folderAction"
+                                ]
+                              },
+                              "actionLabel": {
+                                "type": "string"
+                              },
+                              "inputParams": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "actionLabel",
+                              "inputParams"
+                            ]
+                          }
+                        ]
                       }
                     },
                     "folderAction": {
@@ -6149,14 +6230,23 @@ export const schema = {
                           "type"
                         ]
                       }
+                    },
+                    "worker": {
+                      "type": "string"
                     }
                   },
                   "required": [
                     "key",
                     "label",
-                    "eventTriggers",
                     "description"
                   ]
+                }
+              },
+              "workers": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {}
                 }
               },
               "menuItems": {
@@ -6314,10 +6404,89 @@ export const schema = {
                           "label": {
                             "type": "string"
                           },
-                          "eventTriggers": {
+                          "triggers": {
                             "type": "array",
                             "items": {
-                              "type": "string"
+                              "discriminator": {
+                                "propertyName": "type"
+                              },
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "event"
+                                      ]
+                                    },
+                                    "event": {
+                                      "type": "string"
+                                    },
+                                    "inputParams": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "event",
+                                    "inputParams"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "objectAction"
+                                      ]
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "inputParams": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "description",
+                                    "inputParams"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "folderAction"
+                                      ]
+                                    },
+                                    "actionLabel": {
+                                      "type": "string"
+                                    },
+                                    "inputParams": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "actionLabel",
+                                    "inputParams"
+                                  ]
+                                }
+                              ]
                             }
                           },
                           "folderAction": {
@@ -6377,14 +6546,23 @@ export const schema = {
                                 "type"
                               ]
                             }
+                          },
+                          "worker": {
+                            "type": "string"
                           }
                         },
                         "required": [
                           "key",
                           "label",
-                          "eventTriggers",
                           "description"
                         ]
+                      }
+                    },
+                    "workers": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {}
                       }
                     },
                     "menuItems": {
@@ -6536,10 +6714,89 @@ export const schema = {
                         "label": {
                           "type": "string"
                         },
-                        "eventTriggers": {
+                        "triggers": {
                           "type": "array",
                           "items": {
-                            "type": "string"
+                            "discriminator": {
+                              "propertyName": "type"
+                            },
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "event"
+                                    ]
+                                  },
+                                  "event": {
+                                    "type": "string"
+                                  },
+                                  "inputParams": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "event",
+                                  "inputParams"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "objectAction"
+                                    ]
+                                  },
+                                  "description": {
+                                    "type": "string"
+                                  },
+                                  "inputParams": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "description",
+                                  "inputParams"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "folderAction"
+                                    ]
+                                  },
+                                  "actionLabel": {
+                                    "type": "string"
+                                  },
+                                  "inputParams": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "actionLabel",
+                                  "inputParams"
+                                ]
+                              }
+                            ]
                           }
                         },
                         "folderAction": {
@@ -6599,14 +6856,23 @@ export const schema = {
                               "type"
                             ]
                           }
+                        },
+                        "worker": {
+                          "type": "string"
                         }
                       },
                       "required": [
                         "key",
                         "label",
-                        "eventTriggers",
                         "description"
                       ]
+                    }
+                  },
+                  "workers": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {}
                     }
                   },
                   "menuItems": {

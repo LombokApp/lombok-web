@@ -1602,7 +1602,28 @@ export interface components {
                 tasks: {
                     key: string;
                     label: string;
-                    eventTriggers: string[];
+                    triggers?: ({
+                        /** @enum {string} */
+                        type: "event";
+                        event: string;
+                        inputParams: {
+                            [key: string]: string;
+                        };
+                    } | {
+                        /** @enum {string} */
+                        type: "objectAction";
+                        description: string;
+                        inputParams: {
+                            [key: string]: string;
+                        };
+                    } | {
+                        /** @enum {string} */
+                        type: "folderAction";
+                        actionLabel: string;
+                        inputParams: {
+                            [key: string]: string;
+                        };
+                    })[];
                     folderAction?: {
                         description: string;
                     };
@@ -1617,7 +1638,11 @@ export interface components {
                             default?: (string | number | boolean) | null;
                         };
                     };
+                    worker?: string;
                 }[];
+                workers?: {
+                    [key: string]: Record<string, never>;
+                };
                 menuItems: {
                     label: string;
                     iconPath?: string;
@@ -1655,7 +1680,28 @@ export interface components {
                     tasks: {
                         key: string;
                         label: string;
-                        eventTriggers: string[];
+                        triggers?: ({
+                            /** @enum {string} */
+                            type: "event";
+                            event: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            type: "objectAction";
+                            description: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            type: "folderAction";
+                            actionLabel: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        })[];
                         folderAction?: {
                             description: string;
                         };
@@ -1670,7 +1716,11 @@ export interface components {
                                 default?: (string | number | boolean) | null;
                             };
                         };
+                        worker?: string;
                     }[];
+                    workers?: {
+                        [key: string]: Record<string, never>;
+                    };
                     menuItems: {
                         label: string;
                         iconPath?: string;
@@ -1706,7 +1756,28 @@ export interface components {
                     tasks: {
                         key: string;
                         label: string;
-                        eventTriggers: string[];
+                        triggers?: ({
+                            /** @enum {string} */
+                            type: "event";
+                            event: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            type: "objectAction";
+                            description: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            type: "folderAction";
+                            actionLabel: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        })[];
                         folderAction?: {
                             description: string;
                         };
@@ -1721,7 +1792,11 @@ export interface components {
                                 default?: (string | number | boolean) | null;
                             };
                         };
+                        worker?: string;
                     }[];
+                    workers?: {
+                        [key: string]: Record<string, never>;
+                    };
                     menuItems: {
                         label: string;
                         iconPath?: string;

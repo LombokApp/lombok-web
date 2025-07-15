@@ -267,6 +267,12 @@ export interface AppDTOConfig {
     'tasks': Array<AppDTOConfigTasksInner>;
     /**
      * 
+     * @type {{ [key: string]: object; }}
+     * @memberof AppDTOConfig
+     */
+    'workers'?: { [key: string]: object; };
+    /**
+     * 
      * @type {Array<AppDTOConfigMenuItemsInner>}
      * @memberof AppDTOConfig
      */
@@ -317,10 +323,10 @@ export interface AppDTOConfigTasksInner {
     'label': string;
     /**
      * 
-     * @type {Array<string>}
+     * @type {Array<AppDTOConfigTasksInnerTriggersInner>}
      * @memberof AppDTOConfigTasksInner
      */
-    'eventTriggers': Array<string>;
+    'triggers'?: Array<AppDTOConfigTasksInnerTriggersInner>;
     /**
      * 
      * @type {AppDTOConfigTasksInnerFolderAction}
@@ -345,6 +351,12 @@ export interface AppDTOConfigTasksInner {
      * @memberof AppDTOConfigTasksInner
      */
     'inputParams'?: { [key: string]: AppDTOConfigTasksInnerInputParamsValue; };
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigTasksInner
+     */
+    'worker'?: string;
 }
 /**
  * 
@@ -392,6 +404,108 @@ export type AppDTOConfigTasksInnerInputParamsValueTypeEnum = typeof AppDTOConfig
  * @export
  */
 export type AppDTOConfigTasksInnerInputParamsValueDefault = boolean | number | string;
+
+/**
+ * @type AppDTOConfigTasksInnerTriggersInner
+ * @export
+ */
+export type AppDTOConfigTasksInnerTriggersInner = AppDTOConfigTasksInnerTriggersInnerOneOf | AppDTOConfigTasksInnerTriggersInnerOneOf1 | AppDTOConfigTasksInnerTriggersInnerOneOf2;
+
+/**
+ * 
+ * @export
+ * @interface AppDTOConfigTasksInnerTriggersInnerOneOf
+ */
+export interface AppDTOConfigTasksInnerTriggersInnerOneOf {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf
+     */
+    'type': AppDTOConfigTasksInnerTriggersInnerOneOfTypeEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf
+     */
+    'event': string;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf
+     */
+    'inputParams': { [key: string]: string; };
+}
+
+export const AppDTOConfigTasksInnerTriggersInnerOneOfTypeEnum = {
+    Event: 'event'
+} as const;
+
+export type AppDTOConfigTasksInnerTriggersInnerOneOfTypeEnum = typeof AppDTOConfigTasksInnerTriggersInnerOneOfTypeEnum[keyof typeof AppDTOConfigTasksInnerTriggersInnerOneOfTypeEnum];
+
+/**
+ * 
+ * @export
+ * @interface AppDTOConfigTasksInnerTriggersInnerOneOf1
+ */
+export interface AppDTOConfigTasksInnerTriggersInnerOneOf1 {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf1
+     */
+    'type': AppDTOConfigTasksInnerTriggersInnerOneOf1TypeEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf1
+     */
+    'description': string;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf1
+     */
+    'inputParams': { [key: string]: string; };
+}
+
+export const AppDTOConfigTasksInnerTriggersInnerOneOf1TypeEnum = {
+    ObjectAction: 'objectAction'
+} as const;
+
+export type AppDTOConfigTasksInnerTriggersInnerOneOf1TypeEnum = typeof AppDTOConfigTasksInnerTriggersInnerOneOf1TypeEnum[keyof typeof AppDTOConfigTasksInnerTriggersInnerOneOf1TypeEnum];
+
+/**
+ * 
+ * @export
+ * @interface AppDTOConfigTasksInnerTriggersInnerOneOf2
+ */
+export interface AppDTOConfigTasksInnerTriggersInnerOneOf2 {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf2
+     */
+    'type': AppDTOConfigTasksInnerTriggersInnerOneOf2TypeEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf2
+     */
+    'actionLabel': string;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf2
+     */
+    'inputParams': { [key: string]: string; };
+}
+
+export const AppDTOConfigTasksInnerTriggersInnerOneOf2TypeEnum = {
+    FolderAction: 'folderAction'
+} as const;
+
+export type AppDTOConfigTasksInnerTriggersInnerOneOf2TypeEnum = typeof AppDTOConfigTasksInnerTriggersInnerOneOf2TypeEnum[keyof typeof AppDTOConfigTasksInnerTriggersInnerOneOf2TypeEnum];
 
 /**
  * 
