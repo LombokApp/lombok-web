@@ -1,5 +1,6 @@
-import type { UserDTO } from '@stellariscloud/api-client'
 import { Badge, Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
+
+import type { UserDTO } from '@/src/services/api'
 
 const LABEL_TEXT_COLOR = 'opacity-50'
 const VALUE_TEXT_COLOR = ''
