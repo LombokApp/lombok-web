@@ -2,6 +2,7 @@ import { io } from 'socket.io-client'
 import { buildAppClient } from '@stellariscloud/app-worker-sdk'
 ;(async () => {
   console.log('process.argv:', process.argv)
+  console.log('process.env:', process.env)
   const workerStartContext = JSON.parse(process.argv[2])
   console.log('WORKER START CONTEXT:', workerStartContext)
   let userModule

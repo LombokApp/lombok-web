@@ -82,7 +82,7 @@ const AttemptStartHandleTaskByIdValidator = z.object({
   taskId: z.string().uuid(),
 })
 
-const GetWorkerPayloadSignedURLValidator = z.object({
+const GetWorkerExecutionDetailsValidator = z.object({
   appIdentifier: z.string(),
   workerIdentifier: z.string(),
 })
@@ -441,7 +441,7 @@ export class AppService {
           break
         }
         case 'GET_WORKER_EXECUTION_DETAILS': {
-          if (safeZodParse(requestData, GetWorkerPayloadSignedURLValidator)) {
+          if (safeZodParse(requestData, GetWorkerExecutionDetailsValidator)) {
             // verify the app is the installed "core" app, and that the specified worker payload exists and is specified in the config
             if (appIdentifier !== 'core') {
               // must be "core" app to access app worker payloads
@@ -504,6 +504,8 @@ export class AppService {
             return {
               result: {
                 payloadUrl: presignedGetURL[0],
+                envVars:
+                  workerApp.workerScripts[requestData.workerIdentifier].envVars,
                 workerToken: await this.jwtService.createAppWorkerToken(
                   requestData.appIdentifier,
                 ),
@@ -512,15 +514,15 @@ export class AppService {
           } else {
             // eslint-disable-next-line no-console
             console.log(
-              'GET_WORKER_PAYLOAD_SIGNED_URL error:',
+              'GET_WORKER_EXECUTION_DETAILS error:',
               requestData,
-              GetWorkerPayloadSignedURLValidator.safeParse(requestData).error,
+              GetWorkerExecutionDetailsValidator.safeParse(requestData).error,
             )
             return {
               result: undefined,
               error: {
                 code: 400,
-                message: 'Malformed GET_WORKER_PAYLOAD_SIGNED_URL request.',
+                message: 'Malformed GET_WORKER_EXECUTION_DETAILS request.',
               },
             }
           }
@@ -1068,15 +1070,19 @@ export class AppService {
 
     const workerScripts = Object.entries(
       config.workerScripts ?? {},
-    ).reduce<AppWorkerScriptMap>((acc, [workerIdentifier, value]) => {
-      acc[workerIdentifier] = {
-        ...value,
-        files: manifest.filter((manifestEntry) =>
-          manifestEntry.path.startsWith(`/workers/${workerIdentifier}/`),
-        ),
-      }
-      return acc
-    }, {})
+    ).reduce<AppWorkerScriptMap>(
+      (acc, [workerIdentifier, value]) => ({
+        ...acc,
+        [workerIdentifier]: {
+          ...value,
+          files: manifest.filter((manifestEntry) =>
+            manifestEntry.path.startsWith(`/workers/${workerIdentifier}/`),
+          ),
+          envVars: value.envVars ?? {},
+        },
+      }),
+      {},
+    )
 
     const appDefinition: App = {
       identifier: appIdentifier,
@@ -1098,6 +1104,47 @@ export class AppService {
       definition: appDefinition,
     }
     return app
+  }
+
+  /**
+   * Update the envVars for a specific worker script in an app.
+   * @param params.appIdentifier - The app's identifier
+   * @param params.workerIdentifier - The worker script's identifier
+   * @param params.envVars - The new environment variables
+   * @returns The updated envVars object
+   */
+  async setAppWorkerEnvVars({
+    appIdentifier,
+    workerIdentifier,
+    envVars,
+  }: {
+    appIdentifier: string
+    workerIdentifier: string
+    envVars: Record<string, string>
+  }): Promise<Record<string, string>> {
+    // Fetch the app
+    const app = await this.getApp(appIdentifier)
+    if (!app) {
+      throw new NotFoundException(`App not found: ${appIdentifier}`)
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!app.workerScripts[workerIdentifier]) {
+      throw new NotFoundException(
+        `Worker script not found: ${workerIdentifier}`,
+      )
+    }
+    // Update envVars for the specified worker
+    app.workerScripts[workerIdentifier] = {
+      ...app.workerScripts[workerIdentifier],
+      envVars: { ...envVars },
+    }
+    // Persist the change
+    await this.ormService.db
+      .update(appsTable)
+      .set({ workerScripts: app.workerScripts })
+      .where(eq(appsTable.identifier, appIdentifier))
+
+    return app.workerScripts[workerIdentifier].envVars
   }
 
   getExternalWorkerConnections(): Record<string, ExternalAppWorker[]> {

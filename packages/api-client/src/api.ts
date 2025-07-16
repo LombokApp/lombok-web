@@ -279,10 +279,10 @@ export interface AppDTOConfig {
     'externalWorkers'?: Array<string>;
     /**
      * 
-     * @type {{ [key: string]: AppDTOConfigTasksInnerFolderAction; }}
+     * @type {{ [key: string]: AppDTOConfigWorkerScriptsValue; }}
      * @memberof AppDTOConfig
      */
-    'workerScripts'?: { [key: string]: AppDTOConfigTasksInnerFolderAction; };
+    'workerScripts'?: { [key: string]: AppDTOConfigWorkerScriptsValue; };
     /**
      * 
      * @type {Array<AppDTOConfigMenuItemsInner>}
@@ -522,6 +522,25 @@ export type AppDTOConfigTasksInnerTriggersInnerOneOf2TypeEnum = typeof AppDTOCon
 /**
  * 
  * @export
+ * @interface AppDTOConfigWorkerScriptsValue
+ */
+export interface AppDTOConfigWorkerScriptsValue {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigWorkerScriptsValue
+     */
+    'description': string;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof AppDTOConfigWorkerScriptsValue
+     */
+    'envVars'?: { [key: string]: string; };
+}
+/**
+ * 
+ * @export
  * @interface AppDTOExternalWorkersInner
  */
 export interface AppDTOExternalWorkersInner {
@@ -599,6 +618,12 @@ export interface AppDTOWorkerScriptsInner {
      * @memberof AppDTOWorkerScriptsInner
      */
     'files': Array<AppDTOManifestInner>;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof AppDTOWorkerScriptsInner
+     */
+    'envVars': { [key: string]: string; };
     /**
      * 
      * @type {string}
@@ -1893,6 +1918,19 @@ export interface SetSettingInputDTO {
      * @memberof SetSettingInputDTO
      */
     'value'?: any;
+}
+/**
+ * 
+ * @export
+ * @interface SetWorkerScriptEnvVarsInputDTO
+ */
+export interface SetWorkerScriptEnvVarsInputDTO {
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof SetWorkerScriptEnvVarsInputDTO
+     */
+    'envVars': { [key: string]: string; };
 }
 /**
  * 
@@ -3554,6 +3592,53 @@ export const AppsApiAxiosParamCreator = function (configuration?: Configuration)
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @param {string} appIdentifier 
+         * @param {string} workerIdentifier 
+         * @param {SetWorkerScriptEnvVarsInputDTO} setWorkerScriptEnvVarsInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        setWorkerScriptEnvVars: async (appIdentifier: string, workerIdentifier: string, setWorkerScriptEnvVarsInputDTO: SetWorkerScriptEnvVarsInputDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'appIdentifier' is not null or undefined
+            assertParamExists('setWorkerScriptEnvVars', 'appIdentifier', appIdentifier)
+            // verify required parameter 'workerIdentifier' is not null or undefined
+            assertParamExists('setWorkerScriptEnvVars', 'workerIdentifier', workerIdentifier)
+            // verify required parameter 'setWorkerScriptEnvVarsInputDTO' is not null or undefined
+            assertParamExists('setWorkerScriptEnvVars', 'setWorkerScriptEnvVarsInputDTO', setWorkerScriptEnvVarsInputDTO)
+            const localVarPath = `/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/env-vars`
+                .replace(`{${"appIdentifier"}}`, encodeURIComponent(String(appIdentifier)))
+                .replace(`{${"workerIdentifier"}}`, encodeURIComponent(String(workerIdentifier)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(setWorkerScriptEnvVarsInputDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -3587,6 +3672,20 @@ export const AppsApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['AppsApi.listApps']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
+        /**
+         * 
+         * @param {string} appIdentifier 
+         * @param {string} workerIdentifier 
+         * @param {SetWorkerScriptEnvVarsInputDTO} setWorkerScriptEnvVarsInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async setWorkerScriptEnvVars(appIdentifier: string, workerIdentifier: string, setWorkerScriptEnvVarsInputDTO: SetWorkerScriptEnvVarsInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.setWorkerScriptEnvVars(appIdentifier, workerIdentifier, setWorkerScriptEnvVarsInputDTO, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AppsApi.setWorkerScriptEnvVars']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
     }
 };
 
@@ -3614,6 +3713,15 @@ export const AppsApiFactory = function (configuration?: Configuration, basePath?
         listApps(options?: RawAxiosRequestConfig): AxiosPromise<AppListResponse> {
             return localVarFp.listApps(options).then((request) => request(axios, basePath));
         },
+        /**
+         * 
+         * @param {AppsApiSetWorkerScriptEnvVarsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        setWorkerScriptEnvVars(requestParameters: AppsApiSetWorkerScriptEnvVarsRequest, options?: RawAxiosRequestConfig): AxiosPromise<object> {
+            return localVarFp.setWorkerScriptEnvVars(requestParameters.appIdentifier, requestParameters.workerIdentifier, requestParameters.setWorkerScriptEnvVarsInputDTO, options).then((request) => request(axios, basePath));
+        },
     };
 };
 
@@ -3629,6 +3737,34 @@ export interface AppsApiGetAppRequest {
      * @memberof AppsApiGetApp
      */
     readonly appIdentifier: string
+}
+
+/**
+ * Request parameters for setWorkerScriptEnvVars operation in AppsApi.
+ * @export
+ * @interface AppsApiSetWorkerScriptEnvVarsRequest
+ */
+export interface AppsApiSetWorkerScriptEnvVarsRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppsApiSetWorkerScriptEnvVars
+     */
+    readonly appIdentifier: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof AppsApiSetWorkerScriptEnvVars
+     */
+    readonly workerIdentifier: string
+
+    /**
+     * 
+     * @type {SetWorkerScriptEnvVarsInputDTO}
+     * @memberof AppsApiSetWorkerScriptEnvVars
+     */
+    readonly setWorkerScriptEnvVarsInputDTO: SetWorkerScriptEnvVarsInputDTO
 }
 
 /**
@@ -3657,6 +3793,17 @@ export class AppsApi extends BaseAPI {
      */
     public listApps(options?: RawAxiosRequestConfig) {
         return AppsApiFp(this.configuration).listApps(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {AppsApiSetWorkerScriptEnvVarsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AppsApi
+     */
+    public setWorkerScriptEnvVars(requestParameters: AppsApiSetWorkerScriptEnvVarsRequest, options?: RawAxiosRequestConfig) {
+        return AppsApiFp(this.configuration).setWorkerScriptEnvVars(requestParameters.appIdentifier, requestParameters.workerIdentifier, requestParameters.setWorkerScriptEnvVarsInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

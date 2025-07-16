@@ -19,7 +19,7 @@ import { AppAttributeList } from '../../../../components/app-attribute-list/app-
 import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
 import { serverAppExternalWorkerTableColumns } from './server-app-external-worker-table-columns'
 import { serverAppManifestTableColumns } from './server-app-manifest-table-columns'
-import { serverAppWorkerScriptTableColumns } from './server-app-worker-script-table-columns'
+import { configureServerAppWorkerScriptTableColumns } from './server-app-worker-script-table-columns'
 
 export function ServerAppDetailScreen({
   appIdentifier,
@@ -37,6 +37,16 @@ export function ServerAppDetailScreen({
 
   const app = appQuery.data?.app
   const [showRawConfig, setShowRawConfig] = React.useState(false)
+
+  // React Query mutation for saving env vars
+  const setEnvVarsMutation = $api.useMutation(
+    'put',
+    '/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/env-vars',
+    {
+      onSuccess: () => appQuery.refetch(),
+    },
+  )
+
   return (
     <div className={'flex size-full flex-1 flex-col gap-8'}>
       <Card className="flex-1 border-0 bg-transparent shadow-none">
@@ -79,7 +89,10 @@ export function ServerAppDetailScreen({
         <CardContent className="p-0">
           <DataTable
             data={app?.workerScripts ?? []}
-            columns={serverAppWorkerScriptTableColumns}
+            columns={configureServerAppWorkerScriptTableColumns(
+              appIdentifier,
+              setEnvVarsMutation,
+            )}
           />
         </CardContent>
       </Card>

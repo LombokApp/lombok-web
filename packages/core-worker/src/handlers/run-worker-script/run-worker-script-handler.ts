@@ -52,12 +52,22 @@ export const runWorkerScriptHandler = async (
     fs.mkdirSync(tempDir)
   }
 
-  const taskEnvVars = Object.keys(task.inputData.envVars ?? {}).reduce<
-    string[]
-  >((acc, next) => acc.concat(`-E ${next}=${task.inputData.envVars[next]}`), [])
-
   const { result: workerExecutionDetails } =
     await server.getWorkerExecutionDetails(appIdentifier, workerIdentifier)
+
+  const taskEnvVars = Object.keys(task.inputData.envVars ?? {}).reduce<
+    string[]
+  >((acc, next) => acc.concat(`${next}=${task.inputData.envVars[next]}`), [])
+
+  const workerScriptEnvVars = Object.keys(
+    workerExecutionDetails.envVars ?? {},
+  ).reduce<string[]>(
+    (acc, next) =>
+      acc.concat(
+        `WORKER_SCRIPT_VAR_${next.trim()}=${workerExecutionDetails.envVars[next].trim()}`,
+      ),
+    [],
+  )
 
   console.log(
     'About to download worker payload:',
@@ -81,8 +91,11 @@ export const runWorkerScriptHandler = async (
     path.join(workerDirectory, workerWrapperScript),
   )
 
-  const envVars = `${taskEnvVars.join(' ').trim()}`.trim()
+  const envVars = taskEnvVars.concat(workerScriptEnvVars).map((v) => v.trim())
 
+  console.log('workerScriptEnvVars:', workerScriptEnvVars)
+  console.log('taskEnvVars:', taskEnvVars)
+  console.log('envVars:', envVars)
   const entrypoint = fs.existsSync(
     path.join(workerDirectory, workerIdentifier, 'index.js'),
   )
@@ -111,7 +124,7 @@ export const runWorkerScriptHandler = async (
   --bindmount /dev/null:/dev/null \
   --bindmount /dev/random:/dev/random \
   --bindmount /dev/urandom:/dev/urandom \
-  ${envVars} \
+  ${[...envVars.map((v) => `-E${v}`)]} \
   -Mo -v -- /usr/local/bin/bun ./${workerWrapperScript} ${JSON.stringify(
     workerStartContext,
   )}`
@@ -129,9 +142,8 @@ export const runWorkerScriptHandler = async (
 
   // run the script
   //   - ~~load the worker payload~~
-  //   - fetch/preprare env vars
-  //     - app socket endpoint + token
-  //     - worker id
+  //   - ~~fetch/preprare env vars~~
+  //     - ~~app socket endpoint + token~~
   //   - nsjail + bun to execute the js script
   //     - ~~make ffmpeg and other dependencies available (in spite of nsjail)~~
   //     - add built-in npm packages (fluent-ffmpeg, sharp, app sdk, ...?)

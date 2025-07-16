@@ -1,9 +1,11 @@
 import { ZodValidationPipe } from '@anatine/zod-nestjs'
 import {
+  Body,
   Controller,
   Get,
   NotFoundException,
   Param,
+  Put,
   Req,
   UnauthorizedException,
   UseGuards,
@@ -17,6 +19,7 @@ import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { AppDTO } from '../dto/app.dto'
 import { AppGetResponse } from '../dto/responses/app-get-response.dto'
 import { AppListResponse } from '../dto/responses/app-list-response.dto'
+import { SetWorkerScriptEnvVarsInputDTO } from '../dto/set-worker-script-env-vars-input.dto'
 import { transformAppToDTO } from '../dto/transforms/app.transforms'
 
 @Controller('/api/v1/server/apps')
@@ -69,5 +72,24 @@ export class AppsController {
         connectedExternalAppWorkers[app.identifier] ?? [],
       ),
     }
+  }
+
+  @Put('/:appIdentifier/workers/:workerIdentifier/env-vars')
+  async setWorkerScriptEnvVars(
+    @Req() req: express.Request,
+    @Param('appIdentifier') appIdentifier: string,
+    @Param('workerIdentifier') workerIdentifier: string,
+    @Body() { envVars }: SetWorkerScriptEnvVarsInputDTO,
+  ): Promise<AppGetResponse['app']['workerScripts'][0]['envVars']> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const savedEnvVars = await this.appService.setAppWorkerEnvVars({
+      appIdentifier,
+      workerIdentifier,
+      envVars,
+    })
+
+    return savedEnvVars
   }
 }

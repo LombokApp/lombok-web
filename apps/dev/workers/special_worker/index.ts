@@ -9,5 +9,8 @@ export default async function main(serverClient: CoreServerMessageInterface) {
       method: 'GET',
     },
   ])
-  console.log({ urls })
+  console.log('From inside worker:', {
+    generatedPresignedUrls: urls,
+    envVars: process.env,
+  })
 }

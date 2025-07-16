@@ -66,7 +66,13 @@ export interface CoreServerMessageInterface {
   getWorkerExecutionDetails: (
     appIdentifier: string,
     workerIdentifier: string,
-  ) => Promise<AppAPIResponse<{ payloadUrl: string; workerToken: string }>>
+  ) => Promise<
+    AppAPIResponse<{
+      payloadUrl: string
+      workerToken: string
+      envVars: Record<string, string>
+    }>
+  >
   saveLogEntry: (entry: AppLogEntry) => Promise<boolean>
   attemptStartHandleTaskById: (
     taskId: string,

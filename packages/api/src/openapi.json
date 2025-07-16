@@ -2729,6 +2729,59 @@
           "Apps"
         ]
       }
+    },
+    "/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/env-vars": {
+      "put": {
+        "operationId": "setWorkerScriptEnvVars",
+        "parameters": [
+          {
+            "name": "appIdentifier",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workerIdentifier",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetWorkerScriptEnvVarsInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
     }
   },
   "info": {
@@ -6255,6 +6308,12 @@
                   "properties": {
                     "description": {
                       "type": "string"
+                    },
+                    "envVars": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
                     }
                   },
                   "required": [
@@ -6377,6 +6436,12 @@
                     ]
                   }
                 },
+                "envVars": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
                 "identifier": {
                   "type": "string"
                 }
@@ -6384,6 +6449,7 @@
               "required": [
                 "description",
                 "files",
+                "envVars",
                 "identifier"
               ]
             }
@@ -6626,6 +6692,12 @@
                         "properties": {
                           "description": {
                             "type": "string"
+                          },
+                          "envVars": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "string"
+                            }
                           }
                         },
                         "required": [
@@ -6748,6 +6820,12 @@
                           ]
                         }
                       },
+                      "envVars": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      },
                       "identifier": {
                         "type": "string"
                       }
@@ -6755,6 +6833,7 @@
                     "required": [
                       "description",
                       "files",
+                      "envVars",
                       "identifier"
                     ]
                   }
@@ -6991,6 +7070,12 @@
                       "properties": {
                         "description": {
                           "type": "string"
+                        },
+                        "envVars": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
                         }
                       },
                       "required": [
@@ -7121,6 +7206,12 @@
                         ]
                       }
                     },
+                    "envVars": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
                     "identifier": {
                       "type": "string"
                     }
@@ -7128,6 +7219,7 @@
                   "required": [
                     "description",
                     "files",
+                    "envVars",
                     "identifier"
                   ]
                 }
@@ -7147,6 +7239,20 @@
         },
         "required": [
           "app"
+        ]
+      },
+      "SetWorkerScriptEnvVarsInputDTO": {
+        "type": "object",
+        "properties": {
+          "envVars": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "envVars"
         ]
       }
     }

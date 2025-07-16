@@ -2737,6 +2737,30 @@ var AppsApiAxiosParamCreator = function(configuration) {
         url: toPathString(localVarUrlObj),
         options: localVarRequestOptions
       };
+    },
+    setWorkerScriptEnvVars: async (appIdentifier, workerIdentifier, setWorkerScriptEnvVarsInputDTO, options = {}) => {
+      assertParamExists("setWorkerScriptEnvVars", "appIdentifier", appIdentifier);
+      assertParamExists("setWorkerScriptEnvVars", "workerIdentifier", workerIdentifier);
+      assertParamExists("setWorkerScriptEnvVars", "setWorkerScriptEnvVarsInputDTO", setWorkerScriptEnvVarsInputDTO);
+      const localVarPath = `/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/env-vars`.replace(`{${"appIdentifier"}}`, encodeURIComponent(String(appIdentifier))).replace(`{${"workerIdentifier"}}`, encodeURIComponent(String(workerIdentifier)));
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+      const localVarRequestOptions = { method: "PUT", ...baseOptions, ...options };
+      const localVarHeaderParameter = {};
+      const localVarQueryParameter = {};
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+      localVarHeaderParameter["Content-Type"] = "application/json";
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      localVarRequestOptions.data = serializeDataIfNeeded(setWorkerScriptEnvVarsInputDTO, localVarRequestOptions, configuration);
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions
+      };
     }
   };
 };
@@ -2754,6 +2778,12 @@ var AppsApiFp = function(configuration) {
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
       const localVarOperationServerBasePath = operationServerMap["AppsApi.listApps"]?.[localVarOperationServerIndex]?.url;
       return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
+    },
+    async setWorkerScriptEnvVars(appIdentifier, workerIdentifier, setWorkerScriptEnvVarsInputDTO, options) {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.setWorkerScriptEnvVars(appIdentifier, workerIdentifier, setWorkerScriptEnvVarsInputDTO, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath = operationServerMap["AppsApi.setWorkerScriptEnvVars"]?.[localVarOperationServerIndex]?.url;
+      return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
     }
   };
 };
@@ -2765,6 +2795,9 @@ var AppsApiFactory = function(configuration, basePath, axios2) {
     },
     listApps(options) {
       return localVarFp.listApps(options).then((request) => request(axios2, basePath));
+    },
+    setWorkerScriptEnvVars(requestParameters, options) {
+      return localVarFp.setWorkerScriptEnvVars(requestParameters.appIdentifier, requestParameters.workerIdentifier, requestParameters.setWorkerScriptEnvVarsInputDTO, options).then((request) => request(axios2, basePath));
     }
   };
 };
@@ -2775,6 +2808,9 @@ class AppsApi extends BaseAPI {
   }
   listApps(options) {
     return AppsApiFp(this.configuration).listApps(options).then((request) => request(this.axios, this.basePath));
+  }
+  setWorkerScriptEnvVars(requestParameters, options) {
+    return AppsApiFp(this.configuration).setWorkerScriptEnvVars(requestParameters.appIdentifier, requestParameters.workerIdentifier, requestParameters.setWorkerScriptEnvVarsInputDTO, options).then((request) => request(this.axios, this.basePath));
   }
 }
 var AuthApiAxiosParamCreator = function(configuration) {
@@ -7775,6 +7811,59 @@ var schema = {
           "Apps"
         ]
       }
+    },
+    "/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/env-vars": {
+      put: {
+        operationId: "setWorkerScriptEnvVars",
+        parameters: [
+          {
+            name: "appIdentifier",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          },
+          {
+            name: "workerIdentifier",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/SetWorkerScriptEnvVarsInputDTO"
+              }
+            }
+          }
+        },
+        responses: {
+          "200": {
+            description: "",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object"
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            bearer: []
+          }
+        ],
+        tags: [
+          "Apps"
+        ]
+      }
     }
   },
   info: {
@@ -11301,6 +11390,12 @@ var schema = {
                   properties: {
                     description: {
                       type: "string"
+                    },
+                    envVars: {
+                      type: "object",
+                      additionalProperties: {
+                        type: "string"
+                      }
                     }
                   },
                   required: [
@@ -11423,6 +11518,12 @@ var schema = {
                     ]
                   }
                 },
+                envVars: {
+                  type: "object",
+                  additionalProperties: {
+                    type: "string"
+                  }
+                },
                 identifier: {
                   type: "string"
                 }
@@ -11430,6 +11531,7 @@ var schema = {
               required: [
                 "description",
                 "files",
+                "envVars",
                 "identifier"
               ]
             }
@@ -11672,6 +11774,12 @@ var schema = {
                         properties: {
                           description: {
                             type: "string"
+                          },
+                          envVars: {
+                            type: "object",
+                            additionalProperties: {
+                              type: "string"
+                            }
                           }
                         },
                         required: [
@@ -11794,6 +11902,12 @@ var schema = {
                           ]
                         }
                       },
+                      envVars: {
+                        type: "object",
+                        additionalProperties: {
+                          type: "string"
+                        }
+                      },
                       identifier: {
                         type: "string"
                       }
@@ -11801,6 +11915,7 @@ var schema = {
                     required: [
                       "description",
                       "files",
+                      "envVars",
                       "identifier"
                     ]
                   }
@@ -12037,6 +12152,12 @@ var schema = {
                       properties: {
                         description: {
                           type: "string"
+                        },
+                        envVars: {
+                          type: "object",
+                          additionalProperties: {
+                            type: "string"
+                          }
                         }
                       },
                       required: [
@@ -12167,6 +12288,12 @@ var schema = {
                         ]
                       }
                     },
+                    envVars: {
+                      type: "object",
+                      additionalProperties: {
+                        type: "string"
+                      }
+                    },
                     identifier: {
                       type: "string"
                     }
@@ -12174,6 +12301,7 @@ var schema = {
                   required: [
                     "description",
                     "files",
+                    "envVars",
                     "identifier"
                   ]
                 }
@@ -12193,6 +12321,20 @@ var schema = {
         },
         required: [
           "app"
+        ]
+      },
+      SetWorkerScriptEnvVarsInputDTO: {
+        type: "object",
+        properties: {
+          envVars: {
+            type: "object",
+            additionalProperties: {
+              type: "string"
+            }
+          }
+        },
+        required: [
+          "envVars"
         ]
       }
     }
