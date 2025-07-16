@@ -1,8 +1,9 @@
-import type { FolderGetResponse } from '@stellariscloud/api-client'
 import type { FolderMetadata } from '@stellariscloud/types'
 import { FolderPermissionEnum } from '@stellariscloud/types'
 import { Button } from '@stellariscloud/ui-toolkit'
 import { formatBytes } from '@stellariscloud/utils'
+
+import type { FolderGetResponse } from '@/src/services/api'
 
 export const FolderDetailSidePanel = ({
   folderAndPermissions,

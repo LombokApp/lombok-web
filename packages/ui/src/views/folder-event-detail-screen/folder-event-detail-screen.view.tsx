@@ -1,18 +1,20 @@
 import { Button, cn } from '@stellariscloud/ui-toolkit'
 import { useParams } from 'react-router-dom'
 
-import { useFolderContext } from '../../pages/folders/folder.context'
-import { serverEventsApiHooks } from '../../services/api'
+import { useFolderContext } from '@/src/pages/folders/folder.context'
+import { $api } from '@/src/services/api'
 
 export function FolderEventDetailScreen() {
   const params = useParams()
   const eventId = (params['*']?.split('/') ?? [])[2]
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { folderId } = useFolderContext()
 
-  const eventQuery = serverEventsApiHooks.useGetEvent(
-    { eventId },
-    { enabled: !!eventId },
+  const { data, isLoading } = $api.useQuery(
+    'get',
+    '/api/v1/folders/{folderId}/events/{eventId}',
+    {
+      params: { path: { folderId, eventId } },
+    },
   )
 
   // Get the appropriate color for the level indicator
@@ -41,27 +43,27 @@ export function FolderEventDetailScreen() {
     <div className={cn('flex h-full flex-1 flex-col items-center')}>
       <div className="container flex flex-1 flex-col">
         <div className="inline-block min-w-full py-2 align-middle">
-          {eventQuery.isLoading ? (
+          {isLoading ? (
             <div>Loading event details...</div>
-          ) : eventQuery.data?.event ? (
+          ) : data?.event ? (
             <div className="space-y-4">
               <div className="flex justify-between">
                 <div>
                   <h1 className="text-2xl font-semibold">
-                    {eventQuery.data.event.eventKey}
+                    {data.event.eventKey}
                   </h1>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                       <div
                         className={cn(
                           'size-2 rounded-full',
-                          getLevelColor(eventQuery.data.event.level),
+                          getLevelColor(data.event.level),
                         )}
                       />
-                      <span>{eventQuery.data.event.level}</span>
+                      <span>{data.event.level}</span>
                     </div>
                     <span className="px-1">•</span>
-                    <span>Event ID: {eventQuery.data.event.id}</span>
+                    <span>Event ID: {data.event.id}</span>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -75,7 +77,7 @@ export function FolderEventDetailScreen() {
                     Created At
                   </h3>
                   <p className="font-mono text-sm">
-                    {new Date(eventQuery.data.event.createdAt).toLocaleString()}
+                    {new Date(data.event.createdAt).toLocaleString()}
                   </p>
                 </div>
                 <div>
@@ -83,16 +85,16 @@ export function FolderEventDetailScreen() {
                     Emitter
                   </h3>
                   <p className="font-mono text-sm">
-                    {eventQuery.data.event.emitterIdentifier}
+                    {data.event.emitterIdentifier}
                   </p>
                 </div>
-                {eventQuery.data.event.locationContext?.objectKey && (
+                {data.event.locationContext?.objectKey && (
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground">
                       Object Key
                     </h3>
                     <p className="font-mono text-sm">
-                      {eventQuery.data.event.locationContext.objectKey}
+                      {data.event.locationContext.objectKey}
                     </p>
                   </div>
                 )}
@@ -103,7 +105,7 @@ export function FolderEventDetailScreen() {
                   Event Data
                 </h3>
                 <pre className="max-h-96 overflow-auto rounded-md bg-foreground/5 p-4 font-mono text-sm">
-                  {JSON.stringify(eventQuery.data.event.data, null, 2)}
+                  {JSON.stringify(data.event.data, null, 2)}
                 </pre>
               </div>
             </div>

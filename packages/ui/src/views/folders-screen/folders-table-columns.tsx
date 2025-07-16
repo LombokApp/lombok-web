@@ -1,6 +1,6 @@
 'use client'
 
-import type { FolderDTO } from '@stellariscloud/api-client'
+import type { FolderDTO } from '@/src/services/api'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
 import type { ColumnDef } from '@tanstack/react-table'

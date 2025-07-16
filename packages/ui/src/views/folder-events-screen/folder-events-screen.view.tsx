@@ -1,4 +1,3 @@
-import type { ServerEventsApiListEventsRequest } from '@stellariscloud/api-client'
 import {
   Card,
   CardContent,
@@ -12,8 +11,10 @@ import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { AlertTriangle, InfoIcon, MessageSquare, XCircle } from 'lucide-react'
 import React from 'react'
 
-import { useFolderContext } from '../../pages/folders/folder.context'
-import { serverEventsApiHooks } from '../../services/api'
+import { useFolderContext } from '@/src/pages/folders/folder.context'
+import type { FolderEventsListRequest } from '@/src/services/api'
+import { $api } from '@/src/services/api'
+
 import { folderEventsTableColumns } from './folder-events-table-columns'
 
 export function FolderEventsScreen() {
@@ -31,38 +32,42 @@ export function FolderEventsScreen() {
   const searchFilter = filters.find((f) => f.id === 'eventKey')
   const levelFilterValue = filters.find((f) => f.id === 'level')?.value ?? []
 
-  const listFolderEventsQuery = serverEventsApiHooks.useListEvents(
+  const { data: listFolderEventsQuery } = $api.useQuery(
+    'get',
+    '/api/v1/folders/{folderId}/events',
     {
-      folderId,
-      limit: pagination.pageSize,
-      offset: pagination.pageSize * pagination.pageIndex,
-      ...(sorting[0]
-        ? {
-            sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ServerEventsApiListEventsRequest['sort'],
-          }
-        : {}),
-      ...(typeof searchFilter?.value === 'string'
-        ? {
-            search: searchFilter.value,
-          }
-        : {}),
-      ...((levelFilterValue as string[]).includes('ERROR')
-        ? { includeError: 'true' }
-        : {}),
-      ...((levelFilterValue as string[]).includes('WARN')
-        ? { includeWarning: 'true' }
-        : {}),
-      ...((levelFilterValue as string[]).includes('INFO')
-        ? { includeInfo: 'true' }
-        : {}),
-      ...((levelFilterValue as string[]).includes('DEBUG')
-        ? { includeDebug: 'true' }
-        : {}),
-      ...((levelFilterValue as string[]).includes('TRACE')
-        ? { includeTrace: 'true' }
-        : {}),
+      params: {
+        path: {
+          folderId,
+        },
+        query: {
+          limit: pagination.pageSize,
+          offset: pagination.pageSize * pagination.pageIndex,
+          sort: (sorting[0]
+            ? `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}`
+            : undefined) as FolderEventsListRequest['sort'] | undefined,
+          search:
+            typeof searchFilter?.value === 'string'
+              ? searchFilter.value
+              : undefined,
+          includeError: (levelFilterValue as string[]).includes('ERROR')
+            ? 'true'
+            : undefined,
+          includeWarning: (levelFilterValue as string[]).includes('WARN')
+            ? 'true'
+            : undefined,
+          includeInfo: (levelFilterValue as string[]).includes('INFO')
+            ? 'true'
+            : undefined,
+          includeDebug: (levelFilterValue as string[]).includes('DEBUG')
+            ? 'true'
+            : undefined,
+          includeTrace: (levelFilterValue as string[]).includes('TRACE')
+            ? 'true'
+            : undefined,
+        },
+      },
     },
-    { enabled: !!folderId },
   )
 
   return (
@@ -78,8 +83,8 @@ export function FolderEventsScreen() {
               enableSearch={true}
               searchColumn={'eventKey'}
               onColumnFiltersChange={setFilters}
-              rowCount={listFolderEventsQuery.data?.meta.totalCount}
-              data={listFolderEventsQuery.data?.result ?? []}
+              rowCount={listFolderEventsQuery?.meta.totalCount}
+              data={listFolderEventsQuery?.result ?? []}
               columns={folderEventsTableColumns}
               onPaginationChange={setPagination}
               onSortingChange={(updater) => {

@@ -362,6 +362,22 @@ export interface paths {
         /** Get an access key by id. */
         get: operations["getAccessKey"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access-keys/{accessKeyHashId}/rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
         /** Rotate an access key. */
         post: operations["rotateAccessKey"];
         delete?: never;
@@ -413,6 +429,22 @@ export interface paths {
         };
         /** Get server access key by id. */
         get: operations["getServerAccessKey"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/access-keys/{accessKeyHashId}/rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
         put?: never;
         /** Rotate a server access key. */
         post: operations["rotateServerAccessKey"];
@@ -833,7 +865,7 @@ export interface components {
             result: {
                 /** Format: uuid */
                 id: string;
-                name?: (string | unknown) | null;
+                name: string | null;
                 email: string | null;
                 emailVerified: boolean;
                 isAdmin: boolean;

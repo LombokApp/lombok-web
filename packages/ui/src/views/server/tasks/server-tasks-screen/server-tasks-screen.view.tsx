@@ -1,13 +1,11 @@
-import type {
-  ServerTasksApiListTasksRequest,
-  TaskDTO,
-} from '@stellariscloud/api-client'
 import { cn, DataTable } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
 import React from 'react'
 
-import { apiClient } from '../../../../services/api'
+import type { ListServerTasksRequest } from '@/src/services/api'
+import { $api } from '@/src/services/api'
+
 import { serverTasksTableColumns } from './server-tasks-table-columns'
 
 export function ServerTasksScreen() {
@@ -21,21 +19,16 @@ export function ServerTasksScreen() {
     pageSize: 10,
   })
   const searchFilter = filters.find((f) => f.id === 'taskKey')
-  const [events, setTasks] = React.useState<{
-    result: TaskDTO[]
-    meta: { totalCount: number }
-  }>()
+  const statusFilterValue = filters.find((f) => f.id === 'status')?.value ?? []
 
-  React.useEffect(() => {
-    const statusFilterValue =
-      filters.find((f) => f.id === 'status')?.value ?? []
-    void apiClient.serverTasksApi
-      .listTasks({
+  const listServerTasksQuery = $api.useQuery('get', '/api/v1/server/tasks', {
+    params: {
+      query: {
         limit: pagination.pageSize,
         offset: pagination.pageSize * pagination.pageIndex,
         ...(sorting[0]
           ? {
-              sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ServerTasksApiListTasksRequest['sort'],
+              sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ListServerTasksRequest['sort'],
             }
           : {}),
         ...(typeof searchFilter?.value === 'string'
@@ -55,28 +48,21 @@ export function ServerTasksScreen() {
         ...((statusFilterValue as string[]).includes('WAITING')
           ? { includeWaiting: 'true' }
           : {}),
-      })
-      .then((response) => setTasks(response.data))
-  }, [filters, sorting, pagination, searchFilter?.value])
+      },
+    },
+  })
+  const events = listServerTasksQuery.data
   return (
     <div className={cn('flex h-full flex-1 flex-col items-center')}>
       <DataTable
         title="Tasks"
         enableSearch={true}
         searchColumn="taskKey"
-        onColumnFiltersChange={(updater) => {
-          setFilters((old) =>
-            updater instanceof Function ? updater(old) : updater,
-          )
-        }}
+        onColumnFiltersChange={setFilters}
         rowCount={events?.meta.totalCount}
         data={events?.result ?? []}
         columns={serverTasksTableColumns}
-        onPaginationChange={(updater) => {
-          setPagination((old) =>
-            updater instanceof Function ? updater(old) : updater,
-          )
-        }}
+        onPaginationChange={setPagination}
         onSortingChange={(updater) => {
           setSorting((old) =>
             updater instanceof Function ? updater(old) : updater,

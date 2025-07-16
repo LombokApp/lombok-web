@@ -10,9 +10,9 @@ import { format } from 'date-fns'
 import { Folders, HandshakeIcon, KeyIcon, Pencil } from 'lucide-react'
 import React from 'react'
 
-import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
-import { $api, apiClient } from '../../../../services/api'
-import type { UserFormValues } from '../server-user-modal/server-user-form/server-user-form'
+import { StatCardGroup } from '@/src/components/stat-card-group/stat-card-group'
+import { $api } from '@/src/services/api'
+
 import {
   ServerUserModal,
   type ServerUserModalData,
@@ -24,6 +24,26 @@ interface Session {
   createdAt: string
   updatedAt: string
 }
+
+interface CommonUserValues {
+  username: string
+  name?: string
+  email?: string
+  isAdmin: boolean
+  permissions: string[]
+}
+
+export type CreateUserValues = CommonUserValues & {
+  password: string
+}
+
+export type UpdateUserValues = CommonUserValues & {
+  password?: string
+}
+
+type HandleSubmitParams =
+  | { mutationType: 'CREATE'; values: CreateUserValues }
+  | { mutationType: 'UPDATE'; values: UpdateUserValues }
 
 export function ServerUserDetailScreen({ userId }: { userId: string }) {
   const [modalData, setModalData] = React.useState<ServerUserModalData>({
@@ -51,36 +71,36 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
       },
     },
   )
+  const createUserMutation = $api.useMutation('post', '/api/v1/server/users')
+  const updateUserMutation = $api.useMutation(
+    'patch',
+    '/api/v1/server/users/{userId}',
+  )
 
-  const handleSubmit = async (
-    mutationType: 'CREATE' | 'UPDATE',
-    values: {
-      username: string
-      name?: string
-      email?: string
-      password: typeof mutationType extends 'UPDATE'
-        ? string | undefined
-        : string
-      isAdmin: boolean
-      permissions: string[]
-    },
-  ) => {
+  // Refactored handleSubmit
+  const handleSubmit = async (params: HandleSubmitParams) => {
+    const { mutationType, values } = params
     if (mutationType === 'CREATE') {
-      await apiClient.usersApi.createUser({
-        userCreateInputDTO: {
+      await createUserMutation.mutateAsync({
+        body: {
           ...values,
           name: values.name?.length ? values.name : undefined,
           email: values.email?.length ? values.email : undefined,
+          password: values.password,
         },
       })
     } else if (modalData.user?.id) {
-      await apiClient.usersApi.updateUser({
-        userId: modalData.user.id,
-        userUpdateInputDTO: {
+      await updateUserMutation.mutateAsync({
+        params: {
+          path: {
+            userId: modalData.user.id,
+          },
+        },
+        body: {
           ...values,
           name: values.name?.length ? values.name : null,
           email: values.email?.length ? values.email : null,
-          password: values.password.length ? values.password : undefined,
+          password: values.password?.length ? values.password : undefined,
         },
       })
     }
@@ -115,12 +135,7 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
         <ServerUserModal
           modalData={modalData}
           setModalData={setModalData}
-          onSubmit={
-            handleSubmit as (
-              mutationType: 'CREATE' | 'UPDATE',
-              values: UserFormValues,
-            ) => Promise<void>
-          }
+          onSubmit={handleSubmit}
         />
       </div>
 

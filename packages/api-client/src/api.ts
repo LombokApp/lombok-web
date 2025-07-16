@@ -2651,16 +2651,16 @@ export interface UserListResponseResultInner {
     'id': string;
     /**
      * 
-     * @type {string}
+     * @type {UserListResponseResultInnerName}
      * @memberof UserListResponseResultInner
      */
-    'name'?: string | null;
+    'name': UserListResponseResultInnerName;
     /**
      * 
-     * @type {UserListResponseResultInnerEmail}
+     * @type {UserListResponseResultInnerName}
      * @memberof UserListResponseResultInner
      */
-    'email': UserListResponseResultInnerEmail;
+    'email': UserListResponseResultInnerName;
     /**
      * 
      * @type {boolean}
@@ -2699,10 +2699,10 @@ export interface UserListResponseResultInner {
     'updatedAt': string;
 }
 /**
- * @type UserListResponseResultInnerEmail
+ * @type UserListResponseResultInnerName
  * @export
  */
-export type UserListResponseResultInnerEmail = string;
+export type UserListResponseResultInnerName = string;
 
 /**
  * 
@@ -3216,7 +3216,7 @@ export const AccessKeysApiAxiosParamCreator = function (configuration?: Configur
             assertParamExists('rotateAccessKey', 'accessKeyHashId', accessKeyHashId)
             // verify required parameter 'rotateAccessKeyInputDTO' is not null or undefined
             assertParamExists('rotateAccessKey', 'rotateAccessKeyInputDTO', rotateAccessKeyInputDTO)
-            const localVarPath = `/api/v1/access-keys/{accessKeyHashId}`
+            const localVarPath = `/api/v1/access-keys/{accessKeyHashId}/rotate`
                 .replace(`{${"accessKeyHashId"}}`, encodeURIComponent(String(accessKeyHashId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -6922,7 +6922,7 @@ export const ServerAccessKeysApiAxiosParamCreator = function (configuration?: Co
             assertParamExists('rotateServerAccessKey', 'accessKeyHashId', accessKeyHashId)
             // verify required parameter 'rotateAccessKeyInputDTO' is not null or undefined
             assertParamExists('rotateServerAccessKey', 'rotateAccessKeyInputDTO', rotateAccessKeyInputDTO)
-            const localVarPath = `/api/v1/server/access-keys/{accessKeyHashId}`
+            const localVarPath = `/api/v1/server/access-keys/{accessKeyHashId}/rotate`
                 .replace(`{${"accessKeyHashId"}}`, encodeURIComponent(String(accessKeyHashId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);

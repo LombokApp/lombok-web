@@ -1,6 +1,6 @@
 'use client'
 
-import type { AppDTOManifestInner } from '@stellariscloud/api-client'
+import type { AppDTOManifestInner } from '@/src/services/api'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { formatBytes } from '@stellariscloud/utils'
 import type { ColumnDef } from '@tanstack/react-table'

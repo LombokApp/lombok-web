@@ -1,4 +1,3 @@
-import type { FolderObjectDTO } from '@stellariscloud/api-client'
 import { MediaType } from '@stellariscloud/types'
 import { cn } from '@stellariscloud/ui-toolkit'
 import {
@@ -7,19 +6,20 @@ import {
 } from '@stellariscloud/utils'
 import React from 'react'
 
-import { AudioPlayer } from '../../components/audio-player/audio-player'
-import { VideoPlayer } from '../../components/video-player/video-player'
-import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
-import { Icon } from '../../design-system/icon'
-import { apiClient } from '../../services/api'
-import { iconForMediaType } from '../../utils/icons'
+import { AudioPlayer } from '@/src/components/audio-player/audio-player'
+import { VideoPlayer } from '@/src/components/video-player/video-player'
+import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache.context'
+import { Icon } from '@/src/design-system/icon'
+import type { FolderObjectDTO } from '@/src/services/api'
+import { $api } from '@/src/services/api'
+import { iconForMediaType } from '@/src/utils/icons'
 
 export const FolderObjectPreview = ({
   folderId,
   objectKey,
+  objectMetadata,
   previewObjectKey,
   displayMode = 'object-contain',
-  objectMetadata,
 }: {
   folderId: string
   objectKey: string
@@ -27,9 +27,6 @@ export const FolderObjectPreview = ({
   previewObjectKey: string | undefined
   displayMode?: string
 }) => {
-  const [folderObject, setFolderObject] = React.useState<
-    FolderObjectDTO | undefined
-  >(objectMetadata)
   const fileName = objectKey.split('/').at(-1)
   const [file, setFile] = React.useState<
     | {
@@ -41,15 +38,15 @@ export const FolderObjectPreview = ({
   >()
   const { getData } = useLocalFileCacheContext()
 
-  React.useEffect(() => {
-    if (folderId && objectKey && !folderObject) {
-      void apiClient.foldersApi
-        .getFolderObject({ folderId, objectKey })
-        .then((response) => {
-          setFolderObject(response.data.folderObject)
-        })
-    }
-  }, [folderId, objectKey, folderObject])
+  const folderObjectQuery = $api.useQuery(
+    'get',
+    '/api/v1/folders/{folderId}/objects/{objectKey}',
+    {
+      params: { path: { folderId, objectKey } },
+    },
+    { enabled: !!folderId && !!objectKey },
+  )
+  const folderObject = objectMetadata ?? folderObjectQuery.data?.folderObject
 
   React.useEffect(() => {
     if (!file && previewObjectKey) {

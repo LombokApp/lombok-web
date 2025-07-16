@@ -1,6 +1,5 @@
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
 import { s3LocationSchema } from '@stellariscloud/types'
 import {
   Badge,
@@ -23,6 +22,7 @@ import * as z from 'zod'
 import type { CustomLocationFormValues } from '../custom-location-form/custom-location-form'
 import { CustomLocationForm } from '../custom-location-form/custom-location-form'
 import { StorageLocationDropdown } from '../storage-location-dropdown/storage-location-dropdown'
+import { UserStorageProvisionDTO } from '@/src/services/api'
 
 const storageProvisionSelectionSchema = z.object({
   storageProvisionId: z.string(),

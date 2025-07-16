@@ -107,7 +107,7 @@ export function configureServerAppWorkerScriptTableColumns(
             <EnvVarModal
               isOpen={modalOpen}
               onClose={() => setModalOpen(false)}
-              envVars={appWorker.envVars || {}}
+              envVars={appWorker.envVars}
               onSubmit={async (envVarArray) => {
                 // Convert array of {key, value} to Record<string, string>
                 const envVars: Record<string, string> = {}

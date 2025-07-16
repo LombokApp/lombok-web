@@ -1,15 +1,16 @@
 'use client'
 
-import type {
-  FolderCreateInputDTO,
-  UserStorageProvisionDTO,
-} from '@stellariscloud/api-client'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@stellariscloud/ui-toolkit'
+
+import type {
+  FolderCreateInputDTO,
+  UserStorageProvisionDTO,
+} from '@/src/services/api'
 
 import { CreateFolderForm } from '../../components/create-folder-form/create-folder-form'
 

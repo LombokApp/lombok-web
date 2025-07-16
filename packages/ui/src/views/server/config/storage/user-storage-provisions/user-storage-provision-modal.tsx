@@ -1,6 +1,5 @@
 'use client'
 
-import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
 import {
   Dialog,
   DialogContent,
@@ -9,6 +8,8 @@ import {
   DialogTitle,
   useToast,
 } from '@stellariscloud/ui-toolkit'
+
+import type { UserStorageProvisionDTO } from '@/src/services/api'
 
 import type {
   MutationType,

@@ -1,10 +1,8 @@
-'use client'
-
-import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
-import { Badge } from '@stellariscloud/ui-toolkit'
-import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
+import { Badge, DataTableColumnHeader } from '@stellariscloud/ui-toolkit'
 import type { ColumnDef } from '@tanstack/react-table'
 import { Link } from 'react-router-dom'
+
+import type { UserStorageProvisionDTO } from '@/src/services/api'
 
 export const userStorageProvisionsTableColumns = (
   onUpdate: (userStorageProvision: UserStorageProvisionDTO) => void,

@@ -1,16 +1,18 @@
 'use client'
 
-import type { AccessKeyPublicDTO } from '@stellariscloud/api-client'
 import { useToast } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import type { ColumnDef } from '@tanstack/react-table'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-import { AccessKeyModal } from '../../../../../../components/access-key-modal/access-key-modal'
-import { apiClient } from '../../../../../../services/api'
+import { AccessKeyModal } from '@/src/components/access-key-modal/access-key-modal'
+import type { AccessKeyPublicDTO } from '@/src/services/api'
+import { $api } from '@/src/services/api'
 
-export const serverAccessKeysTableColumns: ColumnDef<AccessKeyPublicDTO>[] = [
+export const configureServerAccessKeysTableColumns: (
+  onKeyRotate: (accessKey: AccessKeyPublicDTO) => void,
+) => ColumnDef<AccessKeyPublicDTO>[] = (onKeyRotate) => [
   {
     id: '__HIDDEN__',
     cell: ({ row }) => {
@@ -25,28 +27,28 @@ export const serverAccessKeysTableColumns: ColumnDef<AccessKeyPublicDTO>[] = [
       const accessKey = row.original
       const { toast } = useToast()
 
-      const handleRotate = async (input: {
-        accessKeyId: string
-        secretAccessKey: string
-      }) => {
-        await apiClient.serverAccessKeysApi.rotateServerAccessKey({
-          accessKeyHashId: accessKey.accessKeyHashId,
-          rotateAccessKeyInputDTO: input,
-        })
-        setRotateAccessKeyModalData({ isOpen: false })
-        toast({
-          title: 'Access key rotated successfully',
-          description: 'The access key has been rotated successfully',
-        })
-      }
-      const listBuckets = React.useCallback(
-        () =>
-          apiClient.serverAccessKeysApi
-            .listServerAccessKeyBuckets({
-              accessKeyHashId: accessKey.accessKeyHashId,
+      const bucketsQuery = $api.useQuery(
+        'get',
+        '/api/v1/server/access-keys/{accessKeyHashId}/buckets',
+        {
+          params: { path: { accessKeyHashId: accessKey.accessKeyHashId } },
+        },
+      )
+      const buckets = bucketsQuery.data?.result ?? []
+
+      const rotateAccessKeyMutation = $api.useMutation(
+        'post',
+        '/api/v1/server/access-keys/{accessKeyHashId}/rotate',
+        {
+          onSuccess: () => {
+            setRotateAccessKeyModalData({ isOpen: false })
+            onKeyRotate(accessKey)
+            toast({
+              title: 'Access key rotated successfully',
+              description: 'The access key has been rotated successfully',
             })
-            .then((response) => response.data.result),
-        [accessKey.accessKeyHashId],
+          },
+        },
       )
 
       return (
@@ -54,8 +56,15 @@ export const serverAccessKeysTableColumns: ColumnDef<AccessKeyPublicDTO>[] = [
           <AccessKeyModal
             modalData={rotateAccessKeyModalData}
             setModalData={setRotateAccessKeyModalData}
-            onSubmit={handleRotate}
-            listBuckets={listBuckets}
+            buckets={buckets}
+            onSubmit={async (input) => {
+              await rotateAccessKeyMutation.mutateAsync({
+                params: {
+                  path: { accessKeyHashId: accessKey.accessKeyHashId },
+                },
+                body: input,
+              })
+            }}
           />
 
           <Link

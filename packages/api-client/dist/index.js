@@ -2602,7 +2602,7 @@ var AccessKeysApiAxiosParamCreator = function(configuration) {
     rotateAccessKey: async (accessKeyHashId, rotateAccessKeyInputDTO, options = {}) => {
       assertParamExists("rotateAccessKey", "accessKeyHashId", accessKeyHashId);
       assertParamExists("rotateAccessKey", "rotateAccessKeyInputDTO", rotateAccessKeyInputDTO);
-      const localVarPath = `/api/v1/access-keys/{accessKeyHashId}`.replace(`{${"accessKeyHashId"}}`, encodeURIComponent(String(accessKeyHashId)));
+      const localVarPath = `/api/v1/access-keys/{accessKeyHashId}/rotate`.replace(`{${"accessKeyHashId"}}`, encodeURIComponent(String(accessKeyHashId)));
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
       let baseOptions;
       if (configuration) {
@@ -3946,7 +3946,7 @@ var ServerAccessKeysApiAxiosParamCreator = function(configuration) {
     rotateServerAccessKey: async (accessKeyHashId, rotateAccessKeyInputDTO, options = {}) => {
       assertParamExists("rotateServerAccessKey", "accessKeyHashId", accessKeyHashId);
       assertParamExists("rotateServerAccessKey", "rotateAccessKeyInputDTO", rotateAccessKeyInputDTO);
-      const localVarPath = `/api/v1/server/access-keys/{accessKeyHashId}`.replace(`{${"accessKeyHashId"}}`, encodeURIComponent(String(accessKeyHashId)));
+      const localVarPath = `/api/v1/server/access-keys/{accessKeyHashId}/rotate`.replace(`{${"accessKeyHashId"}}`, encodeURIComponent(String(accessKeyHashId)));
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
       let baseOptions;
       if (configuration) {
@@ -6424,7 +6424,9 @@ var schema = {
         tags: [
           "AccessKeys"
         ]
-      },
+      }
+    },
+    "/api/v1/access-keys/{accessKeyHashId}/rotate": {
       post: {
         operationId: "rotateAccessKey",
         parameters: [
@@ -6604,7 +6606,9 @@ var schema = {
         tags: [
           "ServerAccessKeys"
         ]
-      },
+      }
+    },
+    "/api/v1/server/access-keys/{accessKeyHashId}/rotate": {
       post: {
         operationId: "rotateServerAccessKey",
         parameters: [
@@ -8322,8 +8326,7 @@ var schema = {
                   oneOf: [
                     {
                       type: "string"
-                    },
-                    {}
+                    }
                   ],
                   nullable: true
                 },
@@ -8361,6 +8364,7 @@ var schema = {
               },
               required: [
                 "id",
+                "name",
                 "email",
                 "emailVerified",
                 "isAdmin",

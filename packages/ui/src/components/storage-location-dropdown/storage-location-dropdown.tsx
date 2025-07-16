@@ -1,4 +1,3 @@
-import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
 import {
   Button,
   DropdownMenu,
@@ -8,6 +7,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@stellariscloud/ui-toolkit'
+
+import type { UserStorageProvisionDTO } from '@/src/services/api'
 
 export function StorageLocationDropdown({
   storageProvisions,

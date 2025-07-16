@@ -1,11 +1,10 @@
-'use client'
-
-import type { TaskDTO } from '@stellariscloud/api-client'
 import { cn } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
 import type { ColumnDef } from '@tanstack/react-table'
 import { Link } from 'react-router-dom'
+
+import type { TaskDTO } from '@/src/services/api'
 
 import { invertColour, stringToColour } from '../../utils/colors'
 

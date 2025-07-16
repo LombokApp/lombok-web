@@ -1,18 +1,13 @@
 import { FolderIcon, PlusIcon } from '@heroicons/react/24/outline'
-import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
 import { Button } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 
-import { UserStorageProvisionsTable } from '../../../../../components/user-storage-provisions-table/user-storage-provisions-table'
-import { EmptyState } from '../../../../../design-system/empty-state/empty-state'
-import {
-  apiClient,
-  userStorageProvisionsApiHooks,
-} from '../../../../../services/api'
-import type {
-  MutationType,
-  UserStorageProvisionFormValues,
-} from './user-storage-provision-form/user-storage-provision-form'
+import { UserStorageProvisionsTable } from '@/src/components/user-storage-provisions-table/user-storage-provisions-table'
+import { EmptyState } from '@/src/design-system/empty-state/empty-state'
+import type { UserStorageProvisionDTO } from '@/src/services/api'
+import { $api } from '@/src/services/api'
+
+import type { MutationType } from './user-storage-provision-form/user-storage-provision-form'
 import { UserStorageProvisionModal } from './user-storage-provision-modal'
 
 export function UserStorageProvisions() {
@@ -24,45 +19,33 @@ export function UserStorageProvisions() {
     mutationType: 'CREATE',
   })
 
-  const userStorageProvisionsQuery =
-    userStorageProvisionsApiHooks.useListUserStorageProvisions({})
-
-  const handleAddStorageProvision = React.useCallback(
-    (input: UserStorageProvisionFormValues) =>
-      apiClient.userStorageProvisionsApi
-        .createUserStorageProvision({
-          userStorageProvisionInputDTO: {
-            ...input,
-          },
-        })
-        .then(() => userStorageProvisionsQuery.refetch()),
-    [userStorageProvisionsQuery],
+  const userStorageProvisionsQuery = $api.useQuery(
+    'get',
+    '/api/v1/server/user-storage-provisions',
   )
 
-  const handleUpdateStorageProvision = React.useCallback(
-    (
-      userStorageProvision: UserStorageProvisionDTO,
-      input: UserStorageProvisionFormValues,
-    ) =>
-      apiClient.userStorageProvisionsApi
-        .updateUserStorageProvision({
-          userStorageProvisionId: userStorageProvision.id,
-          userStorageProvisionInputDTO: {
-            ...input,
-          },
-        })
-        .then(() => userStorageProvisionsQuery.refetch()),
-    [userStorageProvisionsQuery],
+  const addStorageProvisionMutation = $api.useMutation(
+    'post',
+    '/api/v1/server/user-storage-provisions',
+    {
+      onSuccess: () => userStorageProvisionsQuery.refetch(),
+    },
   )
 
-  const _handleDeleteStorageProvision = React.useCallback(
-    (userStorageProvisionId: string) =>
-      apiClient.userStorageProvisionsApi
-        .deleteUserStorageProvision({
-          userStorageProvisionId,
-        })
-        .then(() => userStorageProvisionsQuery.refetch()),
-    [userStorageProvisionsQuery],
+  const updateStorageProvisionMutation = $api.useMutation(
+    'put',
+    '/api/v1/server/user-storage-provisions/{userStorageProvisionId}',
+    {
+      onSuccess: () => userStorageProvisionsQuery.refetch(),
+    },
+  )
+  // TODO: Delete storage provision mutation (add ui to modal)
+  const _deleteStorageProvisionMutation = $api.useMutation(
+    'delete',
+    '/api/v1/server/user-storage-provisions/{userStorageProvisionId}',
+    {
+      onSuccess: () => userStorageProvisionsQuery.refetch(),
+    },
   )
 
   // Define the update handler to pass to the table
@@ -78,12 +61,23 @@ export function UserStorageProvisions() {
       <UserStorageProvisionModal
         onSubmit={async (mutationType, values) => {
           if (mutationType === 'CREATE') {
-            await handleAddStorageProvision(values)
+            await addStorageProvisionMutation.mutateAsync({
+              body: values,
+            })
           } else if (modalData.userStorageProvision) {
-            await handleUpdateStorageProvision(
-              modalData.userStorageProvision,
-              values,
-            )
+            await updateStorageProvisionMutation.mutateAsync({
+              params: {
+                path: {
+                  userStorageProvisionId: modalData.userStorageProvision.id,
+                },
+              },
+              body: {
+                ...values,
+                secretAccessKey: values.secretAccessKey.length
+                  ? values.secretAccessKey
+                  : undefined,
+              },
+            })
           }
         }}
         setModalData={setModalData}

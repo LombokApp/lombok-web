@@ -1,6 +1,6 @@
 'use client'
 
-import type { AppDTO } from '@stellariscloud/api-client'
+import type { AppDTO } from '@/src/services/api'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import type { ColumnDef } from '@tanstack/react-table'
 import { Link } from 'react-router-dom'

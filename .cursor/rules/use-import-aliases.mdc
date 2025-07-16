@@ -1,0 +1,5 @@
+---
+description: Use defined path aliases (commonly "@/src/*") rather than relative paths when importing from other files in the same package (but outside of the current directory).
+globs:
+alwaysApply: false
+---

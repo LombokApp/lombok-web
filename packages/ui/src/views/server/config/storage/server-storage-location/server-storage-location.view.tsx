@@ -1,19 +1,14 @@
-import type {
-  ServerStorageLocationDTO,
-  ServerStorageLocationInputDTO,
-} from '@stellariscloud/api-client'
 import { FolderIcon } from 'lucide-react'
 import React from 'react'
 
+import { $api } from '@/src/services/api'
+
 import { EmptyState } from '../../../../../design-system/empty-state/empty-state'
-import { apiClient } from '../../../../../services/api'
 import { ServerStorageLocationCard } from './server-storage-location-card'
 import { ServerStorageLocationModal } from './server-storage-location-modal'
 import { ServerStorageLocationRemoveModal } from './server-storage-location-remove-modal'
 
 export function ServerStorageLocation() {
-  const [serverStorageLocation, setServerStorageLocation] =
-    React.useState<ServerStorageLocationDTO>()
   const [serverStorageLocationModalData, setServerStorageLocationModalData] =
     React.useState<{ open: boolean }>({ open: false })
   const [
@@ -21,63 +16,63 @@ export function ServerStorageLocation() {
     setServerStorageLocationRemoveModalData,
   ] = React.useState<{ open: boolean }>({ open: false })
 
-  const handleSetServerStorageLocation = React.useCallback(
-    (input: ServerStorageLocationInputDTO) =>
-      apiClient.serverStorageLocationApi
-        .setServerStorageLocation({
-          serverStorageLocationInputDTO: {
-            ...input,
-            region: input.region,
-            prefix: input.prefix,
-          },
-        })
-        .then((resp) => {
-          setServerStorageLocationModalData({ open: false })
-          setServerStorageLocation(resp.data.serverStorageLocation)
-        }),
-    [],
+  const { data: serverStorageLocation, refetch: refetchServerStorageLocation } =
+    $api.useQuery('get', '/api/v1/server/server-storage-location')
+
+  const setServerStorageLocationMutation = $api.useMutation(
+    'post',
+    '/api/v1/server/server-storage-location',
+    {
+      onSuccess: () => {
+        setServerStorageLocationModalData({ open: false })
+        void refetchServerStorageLocation()
+      },
+    },
   )
 
-  const handleDeleteServerStorageLocation = React.useCallback(
-    () =>
-      apiClient.serverStorageLocationApi
-        .deleteServerStorageLocation()
-        .then(() => {
-          setServerStorageLocationRemoveModalData({ open: false })
-          setServerStorageLocation(undefined)
-        }),
-    [],
+  const deleteServerStorageLocationMutation = $api.useMutation(
+    'delete',
+    '/api/v1/server/server-storage-location',
+    {
+      onSuccess: () => {
+        setServerStorageLocationRemoveModalData({ open: false })
+        void refetchServerStorageLocation()
+      },
+    },
   )
-
-  React.useEffect(() => {
-    void apiClient.serverStorageLocationApi
-      .getServerStorageLocation()
-      .then((resp) => {
-        setServerStorageLocation(resp.data.serverStorageLocation)
-      })
-  }, [])
 
   return (
     <>
       <ServerStorageLocationModal
         modalData={serverStorageLocationModalData}
         setModalData={setServerStorageLocationModalData}
-        onSubmit={handleSetServerStorageLocation}
+        onSubmit={async (input) => {
+          await setServerStorageLocationMutation.mutateAsync({
+            body: {
+              ...input,
+              region: input.region,
+              prefix: input.prefix,
+            },
+          })
+        }}
       />
       <ServerStorageLocationRemoveModal
         modalData={serverStorageLocationRemoveModalData}
         setModalData={setServerStorageLocationRemoveModalData}
-        onConfirm={handleDeleteServerStorageLocation}
+        onConfirm={() => deleteServerStorageLocationMutation.mutateAsync({})}
       />
 
-      {serverStorageLocation ? (
+      {serverStorageLocation?.serverStorageLocation ? (
         <ServerStorageLocationCard
           onRemoveClick={() =>
             setServerStorageLocationRemoveModalData({
               open: true,
             })
           }
-          serverStorageLocation={serverStorageLocation}
+          serverStorageLocation={{
+            ...serverStorageLocation.serverStorageLocation,
+            prefix: serverStorageLocation.serverStorageLocation.prefix ?? '',
+          }}
         />
       ) : (
         <EmptyState

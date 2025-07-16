@@ -1,4 +1,3 @@
-import type { SettingsGetResponse } from '@stellariscloud/api-client'
 import {
   Button,
   Card,
@@ -13,38 +12,26 @@ import {
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-import { $api, apiClient } from '../../../../services/api'
+import { $api } from '@/src/services/api'
+
 import { ServerStorageConfigTab } from '../storage/server-storage-config-tab/server-storage-config-tab'
 import { ServerGeneralConfigTab } from './server-general-config-tab'
 
 export function ServerSettingsScreen({ tab }: { tab: string }) {
-  const [settings, setSettings] =
-    React.useState<SettingsGetResponse['settings']>()
-
-  const [dataResetKey, setDataResetKey] = React.useState('___')
-
-  React.useEffect(() => {
-    void apiClient.serverApi.getServerSettings().then(({ data }) => {
-      setSettings(
-        JSON.parse(
-          JSON.stringify(data.settings),
-        ) as SettingsGetResponse['settings'],
-      )
-    })
-  }, [dataResetKey])
-
-  const reloadSettings = React.useCallback(() => {
-    setDataResetKey(`___${Math.random()}___`)
-  }, [])
+  const { data, refetch: reloadSettings } = $api.useQuery(
+    'get',
+    '/api/v1/server/settings',
+  )
 
   const updateSettingMutation = $api.useMutation(
     'put',
     '/api/v1/server/settings/{settingKey}',
+    { onSuccess: () => reloadSettings() },
   )
 
   const handleUpdateServerHostname = React.useCallback(
     async (hostname: string) => {
-      if (settings) {
+      if (data?.settings) {
         await updateSettingMutation.mutateAsync({
           params: {
             path: {
@@ -55,15 +42,14 @@ export function ServerSettingsScreen({ tab }: { tab: string }) {
             value: hostname,
           },
         })
-        reloadSettings()
       }
     },
-    [settings, updateSettingMutation, reloadSettings],
+    [data?.settings, updateSettingMutation],
   )
 
   const handleUpdateSignupEnabled = React.useCallback(
     async (enabled: boolean) => {
-      if (settings) {
+      if (data?.settings) {
         await updateSettingMutation.mutateAsync({
           params: {
             path: {
@@ -74,10 +60,9 @@ export function ServerSettingsScreen({ tab }: { tab: string }) {
             value: enabled,
           },
         })
-        reloadSettings()
       }
     },
-    [settings, updateSettingMutation, reloadSettings],
+    [data?.settings, updateSettingMutation],
   )
 
   return (
@@ -110,7 +95,14 @@ export function ServerSettingsScreen({ tab }: { tab: string }) {
           <ServerStorageConfigTab />
         ) : tab === 'general' ? (
           <ServerGeneralConfigTab
-            settings={settings}
+            settings={
+              data?.settings
+                ? {
+                    ...data.settings,
+                    SERVER_HOSTNAME: data.settings.SERVER_HOSTNAME ?? '',
+                  }
+                : undefined
+            }
             onSaveServerHostname={handleUpdateServerHostname}
             onSaveEnableNewSignups={handleUpdateSignupEnabled}
           />

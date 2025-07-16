@@ -1,7 +1,8 @@
-import type { EventDTO } from '@stellariscloud/api-client'
 import { Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
 import { Link } from 'react-router-dom'
+
+import type { EventDTO } from '@/src/services/api'
 
 import { invertColour, stringToColour } from '../../utils/colors'
 

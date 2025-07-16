@@ -1,6 +1,7 @@
-import type { AppDTO } from '@stellariscloud/api-client'
 import type { ExternalAppWorker } from '@stellariscloud/types'
 import React from 'react'
+
+import type { AppDTO } from '@/src/services/api'
 
 import type { AppsTab } from './installed-app-tabs'
 import { InstalledAppTabs } from './installed-app-tabs'

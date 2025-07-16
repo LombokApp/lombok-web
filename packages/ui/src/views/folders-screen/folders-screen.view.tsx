@@ -1,23 +1,17 @@
-import type {
-  FolderGetResponse,
-  FoldersApiCreateFolderRequest,
-  FoldersApiListFoldersRequest,
-  UserStorageProvisionDTO,
-} from '@stellariscloud/api-client'
 import { Button, DataTable, useToast } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import React from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
-import { apiClient, foldersApiHooks } from '../../services/api'
+import { $api } from '@/src/services/api'
+
 import type { CreateFolderModalData } from './create-folder-modal'
 import { CreateFolderModal } from './create-folder-modal'
 import { foldersTableColumns } from './folders-table-columns'
 
 export const FoldersScreen = () => {
   const navigate = useNavigate()
-  const params = useParams()
   const [filters, setFilters] = React.useState<
     { id: string; value: unknown }[]
   >([])
@@ -28,114 +22,49 @@ export const FoldersScreen = () => {
     pageSize: 10,
   })
   const searchFilter = filters.find((f) => f.id === 'name')
-  const [folders, setFolders] = React.useState<{
-    meta: { totalCount: number }
-    result: FolderGetResponse[]
-  }>()
-  const [folderFormKey, setFolderFormKey] = React.useState<string>()
-  const [forgetFolderConfirmationOpen, setForgetFolderConfirmationOpen] =
-    React.useState<string | false>(false)
 
-  const [userStorageProvisions, setUserStorageProvisions] = React.useState<
-    UserStorageProvisionDTO[]
-  >([])
+  const { data: userStorageProvisions, refetch: refetchUserStorageProvisions } =
+    $api.useQuery('get', '/api/v1/server/user-storage-provisions', {
+      enabled: false,
+    })
 
   const [createFolderModalData, setCreateFolderModalData] =
     React.useState<CreateFolderModalData>({
       isOpen: false,
-      userStorageProvisions,
+      userStorageProvisions: userStorageProvisions?.result ?? [],
     })
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleForgetFolder = React.useCallback(
-    (folderId: string) => {
-      if (!forgetFolderConfirmationOpen) {
-        setForgetFolderConfirmationOpen(folderId)
-      } else {
-        setForgetFolderConfirmationOpen(false)
-        void apiClient.foldersApi.deleteFolder({ folderId }).then(() =>
-          setFolders((state) => {
-            return {
-              result:
-                folders?.result.filter((b) => b.folder.id !== folderId) ?? [],
-              meta: { totalCount: state?.meta.totalCount ?? 0 },
-            }
-          }),
-        )
-      }
-    },
-    [forgetFolderConfirmationOpen, folders?.result],
-  )
-
-  const fetchUserProvisions = () =>
-    apiClient.userStorageProvisionsApi
-      .listUserStorageProvisions()
-      .then((resp) => {
-        setUserStorageProvisions(resp.data.result)
-        return resp.data.result
-      })
-
-  const listFolders = foldersApiHooks.useListFolders(
+  const { data: folders, refetch: listFolders } = $api.useQuery(
+    'get',
+    '/api/v1/folders',
     {
-      limit: pagination.pageSize,
-      offset: pagination.pageSize * pagination.pageIndex,
-      ...(sorting[0]
-        ? {
-            sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as FoldersApiListFoldersRequest['sort'],
-          }
-        : {}),
-      ...(typeof searchFilter?.value === 'string'
-        ? {
-            search: searchFilter.value,
-          }
-        : {}),
+      queries: {
+        limit: pagination.pageSize,
+        offset: pagination.pageSize * pagination.pageIndex,
+        sort: sorting[0]
+          ? `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}`
+          : undefined,
+        search:
+          typeof searchFilter?.value === 'string'
+            ? searchFilter.value
+            : undefined,
+      },
     },
-    { retry: 0 },
   )
-
-  const refreshFolders = React.useCallback(() => {
-    void listFolders.refetch().then((response) => setFolders(response.data))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listFolders.refetch, pagination, filters, sorting])
 
   const { toast } = useToast()
 
-  // reflect add query flag state
-  React.useEffect(() => {
-    if (params.add === 'true' && !folderFormKey) {
-      setFolderFormKey(`${Math.random()}`)
-    } else if (params.add !== 'true' && folderFormKey) {
-      setFolderFormKey(undefined)
-    }
-  }, [params.add, folderFormKey])
-
-  React.useEffect(() => {
-    refreshFolders()
-  }, [refreshFolders])
-
-  const handleCreateFolder = async (
-    folder: FoldersApiCreateFolderRequest['folderCreateInputDTO'],
-  ) => {
-    return apiClient.foldersApi
-      .createFolder({
-        folderCreateInputDTO: folder,
+  const createFolderMutation = $api.useMutation('post', '/api/v1/folders', {
+    onSuccess: async (data) => {
+      toast({
+        title: 'Folder created',
+        description: 'Navigating there now...',
       })
-      .then(
-        async ({
-          data: {
-            folder: { id },
-          },
-        }) => {
-          toast({
-            title: 'Folder created',
-            description: 'Navigating there now...',
-          })
-          await listFolders.refetch()
-          await new Promise((resolve) => setTimeout(resolve, 1000))
-          void navigate(`/folders/${id}`)
-        },
-      )
-  }
+      await listFolders()
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      void navigate(`/folders/${data.folder.id}`)
+    },
+  })
 
   return (
     <div className="container flex h-full flex-col gap-3 self-center">
@@ -155,10 +84,10 @@ export const FoldersScreen = () => {
             <Button
               variant={'outline'}
               onClick={() => {
-                void fetchUserProvisions().then((_userStorageProvisions) => {
+                void refetchUserStorageProvisions().then(() => {
                   setCreateFolderModalData({
                     ...createFolderModalData,
-                    userStorageProvisions: _userStorageProvisions,
+                    userStorageProvisions: userStorageProvisions?.result ?? [],
                     isOpen: true,
                   })
                 })
@@ -172,7 +101,11 @@ export const FoldersScreen = () => {
             <CreateFolderModal
               setModalData={setCreateFolderModalData}
               modalData={createFolderModalData}
-              onSubmit={handleCreateFolder}
+              onSubmit={async (folderValues) => {
+                await createFolderMutation.mutateAsync({
+                  body: folderValues,
+                })
+              }}
             />
           </div>
         }

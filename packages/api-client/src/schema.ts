@@ -1342,7 +1342,9 @@ export const schema = {
         "tags": [
           "AccessKeys"
         ]
-      },
+      }
+    },
+    "/api/v1/access-keys/{accessKeyHashId}/rotate": {
       "post": {
         "operationId": "rotateAccessKey",
         "parameters": [
@@ -1522,7 +1524,9 @@ export const schema = {
         "tags": [
           "ServerAccessKeys"
         ]
-      },
+      }
+    },
+    "/api/v1/server/access-keys/{accessKeyHashId}/rotate": {
       "post": {
         "operationId": "rotateServerAccessKey",
         "parameters": [
@@ -3240,8 +3244,7 @@ export const schema = {
                   "oneOf": [
                     {
                       "type": "string"
-                    },
-                    {}
+                    }
                   ],
                   "nullable": true
                 },
@@ -3279,6 +3282,7 @@ export const schema = {
               },
               "required": [
                 "id",
+                "name",
                 "email",
                 "emailVerified",
                 "isAdmin",

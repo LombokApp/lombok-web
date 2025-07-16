@@ -1,4 +1,3 @@
-import type { ServerTasksApiListTasksRequest } from '@stellariscloud/api-client'
 import {
   Card,
   CardContent,
@@ -12,8 +11,10 @@ import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
 import React from 'react'
 
-import { useFolderContext } from '../../pages/folders/folder.context'
-import { tasksApiHooks } from '../../services/api'
+import { useFolderContext } from '@/src/pages/folders/folder.context'
+import type { ServerTasksApiListTasksRequest } from '@/src/services/api'
+import { $api } from '@/src/services/api'
+
 import { folderTasksTableColumns } from './folder-tasks-table-columns'
 
 export function FolderTasksScreen() {
@@ -31,33 +32,35 @@ export function FolderTasksScreen() {
   const searchFilter = filters.find((f) => f.id === 'taskKey')
   const statusFilterValue = filters.find((f) => f.id === 'status')?.value ?? []
 
-  const listFolderTasksQuery = tasksApiHooks.useListFolderTasks(
+  const listFolderTasksQuery = $api.useQuery(
+    'get',
+    '/api/v1/folders/{folderId}/tasks',
     {
-      folderId,
-      limit: pagination.pageSize,
-      offset: pagination.pageSize * pagination.pageIndex,
-      ...(sorting[0]
-        ? {
-            sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ServerTasksApiListTasksRequest['sort'],
-          }
-        : {}),
-      ...(typeof searchFilter?.value === 'string'
-        ? {
-            search: searchFilter.value,
-          }
-        : {}),
-      ...((statusFilterValue as string[]).includes('COMPLETE')
-        ? { includeComplete: 'true' }
-        : {}),
-      ...((statusFilterValue as string[]).includes('FAILED')
-        ? { includeFailed: 'true' }
-        : {}),
-      ...((statusFilterValue as string[]).includes('RUNNING')
-        ? { includeRunning: 'true' }
-        : {}),
-      ...((statusFilterValue as string[]).includes('WAITING')
-        ? { includeWaiting: 'true' }
-        : {}),
+      params: {
+        path: { folderId },
+        query: {
+          limit: pagination.pageSize,
+          offset: pagination.pageSize * pagination.pageIndex,
+          sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ServerTasksApiListTasksRequest['sort'],
+          ...(typeof searchFilter?.value === 'string'
+            ? {
+                search: searchFilter.value,
+              }
+            : {}),
+          ...((statusFilterValue as string[]).includes('COMPLETE')
+            ? { includeComplete: 'true' }
+            : {}),
+          ...((statusFilterValue as string[]).includes('FAILED')
+            ? { includeFailed: 'true' }
+            : {}),
+          ...((statusFilterValue as string[]).includes('RUNNING')
+            ? { includeRunning: 'true' }
+            : {}),
+          ...((statusFilterValue as string[]).includes('WAITING')
+            ? { includeWaiting: 'true' }
+            : {}),
+        },
+      },
     },
     { enabled: !!folderId },
   )

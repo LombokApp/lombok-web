@@ -1,5 +1,6 @@
-import type { TaskDTO } from '@stellariscloud/api-client'
 import { cn } from '@stellariscloud/ui-toolkit'
+
+import type { TaskDTO } from '@/src/services/api'
 
 export function TasksListCard({ task }: { task: TaskDTO }) {
   return (

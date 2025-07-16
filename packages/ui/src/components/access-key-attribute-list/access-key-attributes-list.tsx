@@ -1,5 +1,6 @@
-import type { AccessKeyPublicDTO } from '@stellariscloud/api-client'
 import { Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
+
+import type { AccessKeyPublicDTO } from '@/src/services/api'
 
 const ROW_SPACING = 'px-4 py-3'
 const LABEL_TEXT_COLOR = 'opacity-50'

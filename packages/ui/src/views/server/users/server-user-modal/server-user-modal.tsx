@@ -30,8 +30,9 @@ export const ServerUserModal = ({
   modalData: ServerUserModalData
   setModalData: (modalData: ServerUserModalData) => void
   onSubmit: (
-    mutationType: MutationType,
-    values: UserFormValues,
+    params:
+      | { mutationType: 'CREATE'; values: UserFormValues }
+      | { mutationType: 'UPDATE'; values: UserFormValues },
   ) => Promise<void>
 }) => {
   const { toast } = useToast()
@@ -67,10 +68,14 @@ export const ServerUserModal = ({
               setModalData({ ...modalData, user: undefined, isOpen: false })
             }
             onSubmit={(user) => {
-              void onSubmit(modalData.mutationType, user)
-              setModalData({ ...modalData, user: undefined, isOpen: false })
-              toast({
-                title: `User ${modalData.mutationType === 'CREATE' ? 'created' : 'updated'} successfully.`,
+              void onSubmit({
+                mutationType: modalData.mutationType,
+                values: user,
+              }).then(() => {
+                setModalData({ ...modalData, user: undefined, isOpen: false })
+                toast({
+                  title: `User ${modalData.mutationType === 'CREATE' ? 'created' : 'updated'} successfully.`,
+                })
               })
             }}
           />

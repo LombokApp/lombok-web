@@ -1,4 +1,4 @@
-import type { TaskDTO } from '@stellariscloud/api-client'
+import type { TaskDTO } from '@/src/services/api'
 
 import { TasksListCard } from './task-list-card.component'
 

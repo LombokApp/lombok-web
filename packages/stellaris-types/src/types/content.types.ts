@@ -31,13 +31,16 @@ export const metadataEntrySchema = z
     }),
   )
 
-export type MetadataEntry = z.infer<typeof metadataEntrySchema>
+export type ContentMetadataEntry = z.infer<typeof metadataEntrySchema>
 
-export interface ContentMetadataType {
-  [key: string]: MetadataEntry
-}
+export const contentMetadataTypeSchema = z.record(
+  z.string(),
+  metadataEntrySchema.optional(),
+)
+export const contentMetadataByHashSchema = z.record(
+  z.string(),
+  contentMetadataTypeSchema.optional(),
+)
 
-export interface ContentMetadataByHash {
-  // keyed by content hash (e.g. "SHA1:<hash>")
-  [key: string]: ContentMetadataType
-}
+export type ContentMetadataType = z.infer<typeof contentMetadataTypeSchema>
+export type ContentMetadataByHash = z.infer<typeof contentMetadataByHashSchema>
