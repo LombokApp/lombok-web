@@ -1,5 +1,5 @@
 import type { AppDTO } from '@stellariscloud/api-client'
-import type { ConnectedAppWorker } from '@stellariscloud/types'
+import type { ExternalAppWorker } from '@stellariscloud/types'
 import React from 'react'
 
 import type { AppsTab } from './installed-app-tabs'
@@ -7,17 +7,17 @@ import { InstalledAppTabs } from './installed-app-tabs'
 
 export function InstalledAppDataPanel({
   appInfo,
-  connectedAppInstances,
+  externalAppWorkers,
 }: {
   appInfo: AppDTO
-  connectedAppInstances: Record<string, ConnectedAppWorker | undefined>
+  externalAppWorkers: Record<string, ExternalAppWorker | undefined>
 }) {
   const [activeTab, setActiveTab] = React.useState<AppsTab>('config')
-  const _connectedAppInstances = Object.keys(connectedAppInstances).map(
+  const _connectedExternalAppWorkers = Object.keys(externalAppWorkers).map(
     (workerName) => ({
-      id: connectedAppInstances[workerName]?.socketClientId ?? '',
-      name: connectedAppInstances[workerName]?.workerId ?? '',
-      ip: connectedAppInstances[workerName]?.ip ?? '',
+      id: externalAppWorkers[workerName]?.socketClientId ?? '',
+      name: externalAppWorkers[workerName]?.workerId ?? '',
+      ip: externalAppWorkers[workerName]?.ip ?? '',
     }),
   )
 
@@ -38,14 +38,14 @@ export function InstalledAppDataPanel({
       {activeTab === 'logs' && 'logs'}
       {activeTab === 'workers' && (
         <div className="dark:text-gray-200 flex flex-col">
-          {_connectedAppInstances.length === 0 && <em>None</em>}
-          {_connectedAppInstances.map((instance) => (
-            <div key={instance.id} className="bg-black/20 p-4">
+          {_connectedExternalAppWorkers.length === 0 && <em>None</em>}
+          {_connectedExternalAppWorkers.map((externalWorker) => (
+            <div key={externalWorker.id} className="bg-black/20 p-4">
               <pre>
                 {JSON.stringify(
                   {
-                    ip: instance.ip,
-                    name: instance.name,
+                    ip: externalWorker.ip,
+                    name: externalWorker.name,
                   },
                   null,
                   2,

@@ -1,11 +1,10 @@
-import type {
-  UserDTO,
-  UsersApiListUsersRequest,
-} from '@stellariscloud/api-client'
+import type { UsersApiListUsersRequest } from '@stellariscloud/api-client'
 import { Button, cn, DataTable } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { Plus } from 'lucide-react'
 import React from 'react'
+
+import type { UserDTO } from '@/src/services/api'
 
 import { apiClient } from '../../../../services/api'
 import type { UserFormValues } from '../server-user-modal/server-user-form/server-user-form'

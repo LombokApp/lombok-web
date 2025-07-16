@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
+import { spawn } from 'child_process'
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
 import jwt, { JwtPayload } from 'jsonwebtoken'
@@ -25,39 +26,28 @@ export class CoreAppService {
     const isEmbeddedCoreAppEnabled =
       !this._coreConfig.disableEmbeddedCoreAppWorker
     if (!this.workers[appWorkerId] && isEmbeddedCoreAppEnabled) {
-      // run the core-app-worker.ts script in a worker thread
-      const worker = (this.workers[appWorkerId] = new Worker(
-        path.join(__dirname, 'core-app-worker'),
-        {
-          name: appWorkerId,
-        },
-      ))
+      // run the core-app-worker.ts script in a child thread
+      const child = spawn('bun', [path.join(__dirname, 'core-app-worker')], {
+        uid: 1000,
+        gid: 1000,
+        stdio: ['pipe', 'inherit', 'inherit'],
+      })
       const appToken = !this._coreConfig.embeddedCoreAppToken
         ? await this.generateEmbeddedAppKeys()
         : this._coreConfig.embeddedCoreAppToken
 
       setTimeout(() => {
         // send the config as the first message
-        worker.postMessage({
-          socketBaseUrl: `http://127.0.0.1:3000`,
-          appToken,
-          appWorkerId,
-        })
+        child.stdin.write(
+          JSON.stringify({
+            socketBaseUrl: `http://127.0.0.1:3000`,
+            appToken,
+            appWorkerId,
+          }),
+        )
       }, 500)
 
       this.logger.debug('Embedded core app worker thread started')
-
-      // worker.addEventListener('error', (err) => {
-      //   this.logger.error('Worker thread error:', err)
-      // })
-
-      // worker.addEventListener('exit', (err) => {
-      //   this.logger.log('Worker thread exit:', err)
-      // })
-
-      // worker.addEventListener('message', (event) => {
-      //   this.logger.debug('Embedded core worker event:', event.data)
-      // })
     }
   }
 

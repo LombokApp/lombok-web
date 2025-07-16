@@ -1,5 +1,5 @@
 {
-  "id": "4b9a67d0-25c9-4041-86e6-c55f0faf34b6",
+  "id": "d9ab54ce-461b-4d75-a52c-75904f1c28db",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -28,6 +28,12 @@
         },
         "config": {
           "name": "config",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "workerScripts": {
+          "name": "workerScripts",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true
@@ -705,6 +711,12 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
+        },
+        "workerIdentifier": {
+          "name": "workerIdentifier",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},

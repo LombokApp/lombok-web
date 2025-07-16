@@ -138,7 +138,7 @@ export const FoldersScreen = () => {
   }
 
   return (
-    <div className="container flex flex-1 flex-col gap-3 self-center">
+    <div className="container flex h-full flex-col gap-3 self-center">
       <DataTable
         title="Folders"
         enableSearch={true}

@@ -218,10 +218,16 @@ export interface AppDTO {
     'manifest': Array<AppDTOManifestInner>;
     /**
      * 
-     * @type {Array<AppDTOConnectedWorkersInner>}
+     * @type {Array<AppDTOExternalWorkersInner>}
      * @memberof AppDTO
      */
-    'connectedWorkers': Array<AppDTOConnectedWorkersInner>;
+    'externalWorkers': Array<AppDTOExternalWorkersInner>;
+    /**
+     * 
+     * @type {Array<AppDTOWorkerScriptsInner>}
+     * @memberof AppDTO
+     */
+    'workerScripts': Array<AppDTOWorkerScriptsInner>;
     /**
      * 
      * @type {string}
@@ -265,6 +271,18 @@ export interface AppDTOConfig {
      * @memberof AppDTOConfig
      */
     'tasks': Array<AppDTOConfigTasksInner>;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof AppDTOConfig
+     */
+    'externalWorkers'?: Array<string>;
+    /**
+     * 
+     * @type {{ [key: string]: AppDTOConfigWorkerScriptsValue; }}
+     * @memberof AppDTOConfig
+     */
+    'workerScripts'?: { [key: string]: AppDTOConfigWorkerScriptsValue; };
     /**
      * 
      * @type {Array<AppDTOConfigMenuItemsInner>}
@@ -317,10 +335,10 @@ export interface AppDTOConfigTasksInner {
     'label': string;
     /**
      * 
-     * @type {Array<string>}
+     * @type {Array<AppDTOConfigTasksInnerTriggersInner>}
      * @memberof AppDTOConfigTasksInner
      */
-    'eventTriggers': Array<string>;
+    'triggers'?: Array<AppDTOConfigTasksInnerTriggersInner>;
     /**
      * 
      * @type {AppDTOConfigTasksInnerFolderAction}
@@ -345,6 +363,12 @@ export interface AppDTOConfigTasksInner {
      * @memberof AppDTOConfigTasksInner
      */
     'inputParams'?: { [key: string]: AppDTOConfigTasksInnerInputParamsValue; };
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigTasksInner
+     */
+    'worker'?: string;
 }
 /**
  * 
@@ -394,39 +418,160 @@ export type AppDTOConfigTasksInnerInputParamsValueTypeEnum = typeof AppDTOConfig
 export type AppDTOConfigTasksInnerInputParamsValueDefault = boolean | number | string;
 
 /**
+ * @type AppDTOConfigTasksInnerTriggersInner
+ * @export
+ */
+export type AppDTOConfigTasksInnerTriggersInner = AppDTOConfigTasksInnerTriggersInnerOneOf | AppDTOConfigTasksInnerTriggersInnerOneOf1 | AppDTOConfigTasksInnerTriggersInnerOneOf2;
+
+/**
  * 
  * @export
- * @interface AppDTOConnectedWorkersInner
+ * @interface AppDTOConfigTasksInnerTriggersInnerOneOf
  */
-export interface AppDTOConnectedWorkersInner {
+export interface AppDTOConfigTasksInnerTriggersInnerOneOf {
     /**
      * 
      * @type {string}
-     * @memberof AppDTOConnectedWorkersInner
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf
+     */
+    'type': AppDTOConfigTasksInnerTriggersInnerOneOfTypeEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf
+     */
+    'event': string;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf
+     */
+    'inputParams': { [key: string]: string; };
+}
+
+export const AppDTOConfigTasksInnerTriggersInnerOneOfTypeEnum = {
+    Event: 'event'
+} as const;
+
+export type AppDTOConfigTasksInnerTriggersInnerOneOfTypeEnum = typeof AppDTOConfigTasksInnerTriggersInnerOneOfTypeEnum[keyof typeof AppDTOConfigTasksInnerTriggersInnerOneOfTypeEnum];
+
+/**
+ * 
+ * @export
+ * @interface AppDTOConfigTasksInnerTriggersInnerOneOf1
+ */
+export interface AppDTOConfigTasksInnerTriggersInnerOneOf1 {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf1
+     */
+    'type': AppDTOConfigTasksInnerTriggersInnerOneOf1TypeEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf1
+     */
+    'description': string;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf1
+     */
+    'inputParams': { [key: string]: string; };
+}
+
+export const AppDTOConfigTasksInnerTriggersInnerOneOf1TypeEnum = {
+    ObjectAction: 'objectAction'
+} as const;
+
+export type AppDTOConfigTasksInnerTriggersInnerOneOf1TypeEnum = typeof AppDTOConfigTasksInnerTriggersInnerOneOf1TypeEnum[keyof typeof AppDTOConfigTasksInnerTriggersInnerOneOf1TypeEnum];
+
+/**
+ * 
+ * @export
+ * @interface AppDTOConfigTasksInnerTriggersInnerOneOf2
+ */
+export interface AppDTOConfigTasksInnerTriggersInnerOneOf2 {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf2
+     */
+    'type': AppDTOConfigTasksInnerTriggersInnerOneOf2TypeEnum;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf2
+     */
+    'actionLabel': string;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof AppDTOConfigTasksInnerTriggersInnerOneOf2
+     */
+    'inputParams': { [key: string]: string; };
+}
+
+export const AppDTOConfigTasksInnerTriggersInnerOneOf2TypeEnum = {
+    FolderAction: 'folderAction'
+} as const;
+
+export type AppDTOConfigTasksInnerTriggersInnerOneOf2TypeEnum = typeof AppDTOConfigTasksInnerTriggersInnerOneOf2TypeEnum[keyof typeof AppDTOConfigTasksInnerTriggersInnerOneOf2TypeEnum];
+
+/**
+ * 
+ * @export
+ * @interface AppDTOConfigWorkerScriptsValue
+ */
+export interface AppDTOConfigWorkerScriptsValue {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOConfigWorkerScriptsValue
+     */
+    'description': string;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof AppDTOConfigWorkerScriptsValue
+     */
+    'envVars'?: { [key: string]: string; };
+}
+/**
+ * 
+ * @export
+ * @interface AppDTOExternalWorkersInner
+ */
+export interface AppDTOExternalWorkersInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOExternalWorkersInner
      */
     'appIdentifier': string;
     /**
      * 
      * @type {string}
-     * @memberof AppDTOConnectedWorkersInner
+     * @memberof AppDTOExternalWorkersInner
      */
     'workerId': string;
     /**
      * 
      * @type {Array<string>}
-     * @memberof AppDTOConnectedWorkersInner
+     * @memberof AppDTOExternalWorkersInner
      */
     'handledTaskKeys': Array<string>;
     /**
      * 
      * @type {string}
-     * @memberof AppDTOConnectedWorkersInner
+     * @memberof AppDTOExternalWorkersInner
      */
     'socketClientId': string;
     /**
      * 
      * @type {string}
-     * @memberof AppDTOConnectedWorkersInner
+     * @memberof AppDTOExternalWorkersInner
      */
     'ip': string;
 }
@@ -454,6 +599,37 @@ export interface AppDTOManifestInner {
      * @memberof AppDTOManifestInner
      */
     'size': number;
+}
+/**
+ * 
+ * @export
+ * @interface AppDTOWorkerScriptsInner
+ */
+export interface AppDTOWorkerScriptsInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOWorkerScriptsInner
+     */
+    'description': string;
+    /**
+     * 
+     * @type {Array<AppDTOManifestInner>}
+     * @memberof AppDTOWorkerScriptsInner
+     */
+    'files': Array<AppDTOManifestInner>;
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof AppDTOWorkerScriptsInner
+     */
+    'envVars': { [key: string]: string; };
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOWorkerScriptsInner
+     */
+    'identifier': string;
 }
 /**
  * 
@@ -519,10 +695,16 @@ export interface AppListResponseResultInner {
     'manifest': Array<AppDTOManifestInner>;
     /**
      * 
-     * @type {Array<AppDTOConnectedWorkersInner>}
+     * @type {Array<AppDTOExternalWorkersInner>}
      * @memberof AppListResponseResultInner
      */
-    'connectedWorkers': Array<AppDTOConnectedWorkersInner>;
+    'externalWorkers': Array<AppDTOExternalWorkersInner>;
+    /**
+     * 
+     * @type {Array<AppDTOWorkerScriptsInner>}
+     * @memberof AppListResponseResultInner
+     */
+    'workerScripts': Array<AppDTOWorkerScriptsInner>;
     /**
      * 
      * @type {string}
@@ -1736,6 +1918,19 @@ export interface SetSettingInputDTO {
      * @memberof SetSettingInputDTO
      */
     'value'?: any;
+}
+/**
+ * 
+ * @export
+ * @interface SetWorkerScriptEnvVarsInputDTO
+ */
+export interface SetWorkerScriptEnvVarsInputDTO {
+    /**
+     * 
+     * @type {{ [key: string]: string; }}
+     * @memberof SetWorkerScriptEnvVarsInputDTO
+     */
+    'envVars': { [key: string]: string; };
 }
 /**
  * 
@@ -3397,6 +3592,53 @@ export const AppsApiAxiosParamCreator = function (configuration?: Configuration)
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @param {string} appIdentifier 
+         * @param {string} workerIdentifier 
+         * @param {SetWorkerScriptEnvVarsInputDTO} setWorkerScriptEnvVarsInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        setWorkerScriptEnvVars: async (appIdentifier: string, workerIdentifier: string, setWorkerScriptEnvVarsInputDTO: SetWorkerScriptEnvVarsInputDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'appIdentifier' is not null or undefined
+            assertParamExists('setWorkerScriptEnvVars', 'appIdentifier', appIdentifier)
+            // verify required parameter 'workerIdentifier' is not null or undefined
+            assertParamExists('setWorkerScriptEnvVars', 'workerIdentifier', workerIdentifier)
+            // verify required parameter 'setWorkerScriptEnvVarsInputDTO' is not null or undefined
+            assertParamExists('setWorkerScriptEnvVars', 'setWorkerScriptEnvVarsInputDTO', setWorkerScriptEnvVarsInputDTO)
+            const localVarPath = `/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/env-vars`
+                .replace(`{${"appIdentifier"}}`, encodeURIComponent(String(appIdentifier)))
+                .replace(`{${"workerIdentifier"}}`, encodeURIComponent(String(workerIdentifier)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+
+    
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(setWorkerScriptEnvVarsInputDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -3430,6 +3672,20 @@ export const AppsApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['AppsApi.listApps']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
+        /**
+         * 
+         * @param {string} appIdentifier 
+         * @param {string} workerIdentifier 
+         * @param {SetWorkerScriptEnvVarsInputDTO} setWorkerScriptEnvVarsInputDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async setWorkerScriptEnvVars(appIdentifier: string, workerIdentifier: string, setWorkerScriptEnvVarsInputDTO: SetWorkerScriptEnvVarsInputDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.setWorkerScriptEnvVars(appIdentifier, workerIdentifier, setWorkerScriptEnvVarsInputDTO, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AppsApi.setWorkerScriptEnvVars']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
     }
 };
 
@@ -3457,6 +3713,15 @@ export const AppsApiFactory = function (configuration?: Configuration, basePath?
         listApps(options?: RawAxiosRequestConfig): AxiosPromise<AppListResponse> {
             return localVarFp.listApps(options).then((request) => request(axios, basePath));
         },
+        /**
+         * 
+         * @param {AppsApiSetWorkerScriptEnvVarsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        setWorkerScriptEnvVars(requestParameters: AppsApiSetWorkerScriptEnvVarsRequest, options?: RawAxiosRequestConfig): AxiosPromise<object> {
+            return localVarFp.setWorkerScriptEnvVars(requestParameters.appIdentifier, requestParameters.workerIdentifier, requestParameters.setWorkerScriptEnvVarsInputDTO, options).then((request) => request(axios, basePath));
+        },
     };
 };
 
@@ -3472,6 +3737,34 @@ export interface AppsApiGetAppRequest {
      * @memberof AppsApiGetApp
      */
     readonly appIdentifier: string
+}
+
+/**
+ * Request parameters for setWorkerScriptEnvVars operation in AppsApi.
+ * @export
+ * @interface AppsApiSetWorkerScriptEnvVarsRequest
+ */
+export interface AppsApiSetWorkerScriptEnvVarsRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppsApiSetWorkerScriptEnvVars
+     */
+    readonly appIdentifier: string
+
+    /**
+     * 
+     * @type {string}
+     * @memberof AppsApiSetWorkerScriptEnvVars
+     */
+    readonly workerIdentifier: string
+
+    /**
+     * 
+     * @type {SetWorkerScriptEnvVarsInputDTO}
+     * @memberof AppsApiSetWorkerScriptEnvVars
+     */
+    readonly setWorkerScriptEnvVarsInputDTO: SetWorkerScriptEnvVarsInputDTO
 }
 
 /**
@@ -3500,6 +3793,17 @@ export class AppsApi extends BaseAPI {
      */
     public listApps(options?: RawAxiosRequestConfig) {
         return AppsApiFp(this.configuration).listApps(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {AppsApiSetWorkerScriptEnvVarsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AppsApi
+     */
+    public setWorkerScriptEnvVars(requestParameters: AppsApiSetWorkerScriptEnvVarsRequest, options?: RawAxiosRequestConfig) {
+        return AppsApiFp(this.configuration).setWorkerScriptEnvVars(requestParameters.appIdentifier, requestParameters.workerIdentifier, requestParameters.setWorkerScriptEnvVarsInputDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

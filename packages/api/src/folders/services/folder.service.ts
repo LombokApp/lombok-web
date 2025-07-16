@@ -40,6 +40,7 @@ import { storageLocationsTable } from 'src/storage/entities/storage-location.ent
 import { StorageLocationNotFoundException } from 'src/storage/exceptions/storage-location-not-found.exceptions'
 import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
+import { tasksTable } from 'src/task/entities/task.entity'
 import { CoreTaskService } from 'src/task/services/core-task.service'
 import { CoreTaskName } from 'src/task/task.constants'
 import { type User, usersTable } from 'src/users/entities/user.entity'
@@ -449,9 +450,12 @@ export class FolderService {
       throw new FolderPermissionUnauthorizedException()
     }
 
-    await this.ormService.db
-      .delete(foldersTable)
-      .where(eq(foldersTable.id, folderId))
+    await this.ormService.db.transaction(async (tx) => {
+      await tx
+        .delete(tasksTable)
+        .where(eq(tasksTable.subjectFolderId, folderId))
+      await tx.delete(foldersTable).where(eq(foldersTable.id, folderId))
+    })
 
     return true
   }
@@ -894,7 +898,7 @@ export class FolderService {
     //   objectKey,
     // })
     await this.eventService.emitEvent({
-      emitterIdentifier: `${APP_NS_PREFIX}${appIdentifier.toUpperCase()}`,
+      emitterIdentifier: `${APP_NS_PREFIX}${appIdentifier.toLowerCase()}`,
       locationContext: folderId ? { folderId, objectKey } : undefined,
       userId: actor.id,
       level: EventLevel.INFO,

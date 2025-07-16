@@ -46,8 +46,8 @@ export class AppModule implements OnModuleInit, NestModule {
     @Inject(coreConfig.KEY)
     private readonly _coreConfig: nestJSConfig.ConfigType<typeof coreConfig>,
   ) {}
-  onModuleInit() {
-    void this.ormService
+  async onModuleInit() {
+    await this.ormService
       .waitForInit()
       .then(() => {
         if (this._coreConfig.installAppsOnStart) {

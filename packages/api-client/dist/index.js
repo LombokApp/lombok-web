@@ -9,16 +9,17 @@ var __export = (target, all) => {
     });
 };
 
-// node_modules/axios/lib/helpers/bind.js
+// ../../node_modules/axios/lib/helpers/bind.js
 function bind(fn, thisArg) {
   return function wrap() {
     return fn.apply(thisArg, arguments);
   };
 }
 
-// node_modules/axios/lib/utils.js
+// ../../node_modules/axios/lib/utils.js
 var { toString } = Object.prototype;
 var { getPrototypeOf } = Object;
+var { iterator, toStringTag } = Symbol;
 var kindOf = ((cache) => (thing) => {
   const str = toString.call(thing);
   return cache[str] || (cache[str] = str.slice(8, -1).toLowerCase());
@@ -53,7 +54,7 @@ var isPlainObject = (val) => {
     return false;
   }
   const prototype = getPrototypeOf(val);
-  return (prototype === null || prototype === Object.prototype || Object.getPrototypeOf(prototype) === null) && !(Symbol.toStringTag in val) && !(Symbol.iterator in val);
+  return (prototype === null || prototype === Object.prototype || Object.getPrototypeOf(prototype) === null) && !(toStringTag in val) && !(iterator in val);
 };
 var isDate = kindOfTest("Date");
 var isFile = kindOfTest("File");
@@ -204,10 +205,10 @@ var isTypedArray = ((TypedArray) => {
   };
 })(typeof Uint8Array !== "undefined" && getPrototypeOf(Uint8Array));
 var forEachEntry = (obj, fn) => {
-  const generator = obj && obj[Symbol.iterator];
-  const iterator = generator.call(obj);
+  const generator = obj && obj[iterator];
+  const _iterator = generator.call(obj);
   let result;
-  while ((result = iterator.next()) && !result.done) {
+  while ((result = _iterator.next()) && !result.done) {
     const pair = result.value;
     fn.call(obj, pair[0], pair[1]);
   }
@@ -273,23 +274,8 @@ var noop = () => {};
 var toFiniteNumber = (value, defaultValue) => {
   return value != null && Number.isFinite(value = +value) ? value : defaultValue;
 };
-var ALPHA = "abcdefghijklmnopqrstuvwxyz";
-var DIGIT = "0123456789";
-var ALPHABET = {
-  DIGIT,
-  ALPHA,
-  ALPHA_DIGIT: ALPHA + ALPHA.toUpperCase() + DIGIT
-};
-var generateString = (size = 16, alphabet = ALPHABET.ALPHA_DIGIT) => {
-  let str = "";
-  const { length } = alphabet;
-  while (size--) {
-    str += alphabet[Math.random() * length | 0];
-  }
-  return str;
-};
 function isSpecCompliantForm(thing) {
-  return !!(thing && isFunction(thing.append) && thing[Symbol.toStringTag] === "FormData" && thing[Symbol.iterator]);
+  return !!(thing && isFunction(thing.append) && thing[toStringTag] === "FormData" && thing[iterator]);
 }
 var toJSONObject = (obj) => {
   const stack = new Array(10);
@@ -315,6 +301,24 @@ var toJSONObject = (obj) => {
 };
 var isAsyncFn = kindOfTest("AsyncFunction");
 var isThenable = (thing) => thing && (isObject(thing) || isFunction(thing)) && isFunction(thing.then) && isFunction(thing.catch);
+var _setImmediate = ((setImmediateSupported, postMessageSupported) => {
+  if (setImmediateSupported) {
+    return setImmediate;
+  }
+  return postMessageSupported ? ((token, callbacks) => {
+    _global.addEventListener("message", ({ source, data }) => {
+      if (source === _global && data === token) {
+        callbacks.length && callbacks.shift()();
+      }
+    }, false);
+    return (cb) => {
+      callbacks.push(cb);
+      _global.postMessage(token, "*");
+    };
+  })(`axios@${Math.random()}`, []) : (cb) => setTimeout(cb);
+})(typeof setImmediate === "function", isFunction(_global.postMessage));
+var asap = typeof queueMicrotask !== "undefined" ? queueMicrotask.bind(_global) : typeof process !== "undefined" && process.nextTick || _setImmediate;
+var isIterable = (thing) => thing != null && isFunction(thing[iterator]);
 var utils_default = {
   isArray,
   isArrayBuffer,
@@ -365,15 +369,16 @@ var utils_default = {
   findKey,
   global: _global,
   isContextDefined,
-  ALPHABET,
-  generateString,
   isSpecCompliantForm,
   toJSONObject,
   isAsyncFn,
-  isThenable
+  isThenable,
+  setImmediate: _setImmediate,
+  asap,
+  isIterable
 };
 
-// node_modules/axios/lib/core/AxiosError.js
+// ../../node_modules/axios/lib/core/AxiosError.js
 function AxiosError(message, code, config, request, response) {
   Error.call(this);
   if (Error.captureStackTrace) {
@@ -386,7 +391,10 @@ function AxiosError(message, code, config, request, response) {
   code && (this.code = code);
   config && (this.config = config);
   request && (this.request = request);
-  response && (this.response = response);
+  if (response) {
+    this.response = response;
+    this.status = response.status ? response.status : null;
+  }
 }
 utils_default.inherits(AxiosError, Error, {
   toJSON: function toJSON() {
@@ -401,7 +409,7 @@ utils_default.inherits(AxiosError, Error, {
       stack: this.stack,
       config: utils_default.toJSONObject(this.config),
       code: this.code,
-      status: this.response && this.response.status ? this.response.status : null
+      status: this.status
     };
   }
 });
@@ -440,10 +448,10 @@ AxiosError.from = (error, code, config, request, response, customProps) => {
 };
 var AxiosError_default = AxiosError;
 
-// node_modules/axios/lib/helpers/null.js
+// ../../node_modules/axios/lib/helpers/null.js
 var null_default = null;
 
-// node_modules/axios/lib/helpers/toFormData.js
+// ../../node_modules/axios/lib/helpers/toFormData.js
 function isVisitable(thing) {
   return utils_default.isPlainObject(thing) || utils_default.isArray(thing);
 }
@@ -548,7 +556,7 @@ function toFormData(obj, formData, options) {
 }
 var toFormData_default = toFormData;
 
-// node_modules/axios/lib/helpers/AxiosURLSearchParams.js
+// ../../node_modules/axios/lib/helpers/AxiosURLSearchParams.js
 function encode(str) {
   const charMap = {
     "!": "%21",
@@ -581,7 +589,7 @@ prototype2.toString = function toString2(encoder) {
 };
 var AxiosURLSearchParams_default = AxiosURLSearchParams;
 
-// node_modules/axios/lib/helpers/buildURL.js
+// ../../node_modules/axios/lib/helpers/buildURL.js
 function encode2(val) {
   return encodeURIComponent(val).replace(/%3A/gi, ":").replace(/%24/g, "$").replace(/%2C/gi, ",").replace(/%20/g, "+").replace(/%5B/gi, "[").replace(/%5D/gi, "]");
 }
@@ -590,6 +598,11 @@ function buildURL(url, params, options) {
     return url;
   }
   const _encode = options && options.encode || encode2;
+  if (utils_default.isFunction(options)) {
+    options = {
+      serialize: options
+    };
+  }
   const serializeFn = options && options.serialize;
   let serializedParams;
   if (serializeFn) {
@@ -607,7 +620,7 @@ function buildURL(url, params, options) {
   return url;
 }
 
-// node_modules/axios/lib/core/InterceptorManager.js
+// ../../node_modules/axios/lib/core/InterceptorManager.js
 class InterceptorManager {
   constructor() {
     this.handlers = [];
@@ -641,23 +654,23 @@ class InterceptorManager {
 }
 var InterceptorManager_default = InterceptorManager;
 
-// node_modules/axios/lib/defaults/transitional.js
+// ../../node_modules/axios/lib/defaults/transitional.js
 var transitional_default = {
   silentJSONParsing: true,
   forcedJSONParsing: true,
   clarifyTimeoutError: false
 };
 
-// node_modules/axios/lib/platform/browser/classes/URLSearchParams.js
+// ../../node_modules/axios/lib/platform/browser/classes/URLSearchParams.js
 var URLSearchParams_default = typeof URLSearchParams !== "undefined" ? URLSearchParams : AxiosURLSearchParams_default;
 
-// node_modules/axios/lib/platform/browser/classes/FormData.js
+// ../../node_modules/axios/lib/platform/browser/classes/FormData.js
 var FormData_default = typeof FormData !== "undefined" ? FormData : null;
 
-// node_modules/axios/lib/platform/browser/classes/Blob.js
+// ../../node_modules/axios/lib/platform/browser/classes/Blob.js
 var Blob_default = typeof Blob !== "undefined" ? Blob : null;
 
-// node_modules/axios/lib/platform/browser/index.js
+// ../../node_modules/axios/lib/platform/browser/index.js
 var browser_default = {
   isBrowser: true,
   classes: {
@@ -668,30 +681,30 @@ var browser_default = {
   protocols: ["http", "https", "file", "blob", "url", "data"]
 };
 
-// node_modules/axios/lib/platform/common/utils.js
+// ../../node_modules/axios/lib/platform/common/utils.js
 var exports_utils = {};
 __export(exports_utils, {
   origin: () => origin,
+  navigator: () => _navigator,
   hasStandardBrowserWebWorkerEnv: () => hasStandardBrowserWebWorkerEnv,
   hasStandardBrowserEnv: () => hasStandardBrowserEnv,
   hasBrowserEnv: () => hasBrowserEnv
 });
 var hasBrowserEnv = typeof window !== "undefined" && typeof document !== "undefined";
-var hasStandardBrowserEnv = ((product) => {
-  return hasBrowserEnv && ["ReactNative", "NativeScript", "NS"].indexOf(product) < 0;
-})(typeof navigator !== "undefined" && navigator.product);
+var _navigator = typeof navigator === "object" && navigator || undefined;
+var hasStandardBrowserEnv = hasBrowserEnv && (!_navigator || ["ReactNative", "NativeScript", "NS"].indexOf(_navigator.product) < 0);
 var hasStandardBrowserWebWorkerEnv = (() => {
   return typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope && typeof self.importScripts === "function";
 })();
 var origin = hasBrowserEnv && window.location.href || "http://localhost";
 
-// node_modules/axios/lib/platform/index.js
+// ../../node_modules/axios/lib/platform/index.js
 var platform_default = {
   ...exports_utils,
   ...browser_default
 };
 
-// node_modules/axios/lib/helpers/toURLEncodedForm.js
+// ../../node_modules/axios/lib/helpers/toURLEncodedForm.js
 function toURLEncodedForm(data, options) {
   return toFormData_default(data, new platform_default.classes.URLSearchParams, Object.assign({
     visitor: function(value, key, path, helpers) {
@@ -704,7 +717,7 @@ function toURLEncodedForm(data, options) {
   }, options));
 }
 
-// node_modules/axios/lib/helpers/formDataToJSON.js
+// ../../node_modules/axios/lib/helpers/formDataToJSON.js
 function parsePropPath(name) {
   return utils_default.matchAll(/\w+|\[(\w*)]/g, name).map((match) => {
     return match[0] === "[]" ? "" : match[1] || match[0];
@@ -758,7 +771,7 @@ function formDataToJSON(formData) {
 }
 var formDataToJSON_default = formDataToJSON;
 
-// node_modules/axios/lib/defaults/index.js
+// ../../node_modules/axios/lib/defaults/index.js
 function stringifySafely(rawValue, parser, encoder) {
   if (utils_default.isString(rawValue)) {
     try {
@@ -859,7 +872,7 @@ utils_default.forEach(["delete", "get", "head", "post", "put", "patch"], (method
 });
 var defaults_default = defaults;
 
-// node_modules/axios/lib/helpers/parseHeaders.js
+// ../../node_modules/axios/lib/helpers/parseHeaders.js
 var ignoreDuplicateOf = utils_default.toObjectSet([
   "age",
   "authorization",
@@ -905,7 +918,7 @@ var parseHeaders_default = (rawHeaders) => {
   return parsed;
 };
 
-// node_modules/axios/lib/core/AxiosHeaders.js
+// ../../node_modules/axios/lib/core/AxiosHeaders.js
 var $internals = Symbol("internals");
 function normalizeHeader(header) {
   return header && String(header).trim().toLowerCase();
@@ -980,10 +993,15 @@ class AxiosHeaders {
       setHeaders(header, valueOrRewrite);
     } else if (utils_default.isString(header) && (header = header.trim()) && !isValidHeaderName(header)) {
       setHeaders(parseHeaders_default(header), valueOrRewrite);
-    } else if (utils_default.isHeaders(header)) {
-      for (const [key, value] of header.entries()) {
-        setHeader(value, key, rewrite);
+    } else if (utils_default.isObject(header) && utils_default.isIterable(header)) {
+      let obj = {}, dest, key;
+      for (const entry of header) {
+        if (!utils_default.isArray(entry)) {
+          throw TypeError("Object iterator must return a key-value pair");
+        }
+        obj[key = entry[0]] = (dest = obj[key]) ? utils_default.isArray(dest) ? [...dest, entry[1]] : [dest, entry[1]] : entry[1];
       }
+      setHeaders(obj, valueOrRewrite);
     } else {
       header != null && setHeader(valueOrRewrite, header, rewrite);
     }
@@ -1088,6 +1106,9 @@ class AxiosHeaders {
     return Object.entries(this.toJSON()).map(([header, value]) => header + ": " + value).join(`
 `);
   }
+  getSetCookie() {
+    return this.get("set-cookie") || [];
+  }
   get [Symbol.toStringTag]() {
     return "AxiosHeaders";
   }
@@ -1129,7 +1150,7 @@ utils_default.reduceDescriptors(AxiosHeaders.prototype, ({ value }, key) => {
 utils_default.freezeMethods(AxiosHeaders);
 var AxiosHeaders_default = AxiosHeaders;
 
-// node_modules/axios/lib/core/transformData.js
+// ../../node_modules/axios/lib/core/transformData.js
 function transformData(fns, response) {
   const config = this || defaults_default;
   const context = response || config;
@@ -1142,12 +1163,12 @@ function transformData(fns, response) {
   return data;
 }
 
-// node_modules/axios/lib/cancel/isCancel.js
+// ../../node_modules/axios/lib/cancel/isCancel.js
 function isCancel(value) {
   return !!(value && value.__CANCEL__);
 }
 
-// node_modules/axios/lib/cancel/CanceledError.js
+// ../../node_modules/axios/lib/cancel/CanceledError.js
 function CanceledError(message, config, request) {
   AxiosError_default.call(this, message == null ? "canceled" : message, AxiosError_default.ERR_CANCELED, config, request);
   this.name = "CanceledError";
@@ -1157,7 +1178,7 @@ utils_default.inherits(CanceledError, AxiosError_default, {
 });
 var CanceledError_default = CanceledError;
 
-// node_modules/axios/lib/core/settle.js
+// ../../node_modules/axios/lib/core/settle.js
 function settle(resolve, reject, response) {
   const validateStatus2 = response.config.validateStatus;
   if (!response.status || !validateStatus2 || validateStatus2(response.status)) {
@@ -1167,13 +1188,13 @@ function settle(resolve, reject, response) {
   }
 }
 
-// node_modules/axios/lib/helpers/parseProtocol.js
+// ../../node_modules/axios/lib/helpers/parseProtocol.js
 function parseProtocol(url) {
   const match = /^([-+\w]{1,25})(:?\/\/|:)/.exec(url);
   return match && match[1] || "";
 }
 
-// node_modules/axios/lib/helpers/speedometer.js
+// ../../node_modules/axios/lib/helpers/speedometer.js
 function speedometer(samplesCount, min) {
   samplesCount = samplesCount || 10;
   const bytes = new Array(samplesCount);
@@ -1209,35 +1230,43 @@ function speedometer(samplesCount, min) {
 }
 var speedometer_default = speedometer;
 
-// node_modules/axios/lib/helpers/throttle.js
+// ../../node_modules/axios/lib/helpers/throttle.js
 function throttle(fn, freq) {
   let timestamp = 0;
-  const threshold = 1000 / freq;
-  let timer = null;
-  return function throttled() {
-    const force = this === true;
-    const now = Date.now();
-    if (force || now - timestamp > threshold) {
-      if (timer) {
-        clearTimeout(timer);
-        timer = null;
-      }
-      timestamp = now;
-      return fn.apply(null, arguments);
+  let threshold = 1000 / freq;
+  let lastArgs;
+  let timer;
+  const invoke = (args, now = Date.now()) => {
+    timestamp = now;
+    lastArgs = null;
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
     }
-    if (!timer) {
-      timer = setTimeout(() => {
-        timer = null;
-        timestamp = Date.now();
-        return fn.apply(null, arguments);
-      }, threshold - (now - timestamp));
+    fn.apply(null, args);
+  };
+  const throttled = (...args) => {
+    const now = Date.now();
+    const passed = now - timestamp;
+    if (passed >= threshold) {
+      invoke(args, now);
+    } else {
+      lastArgs = args;
+      if (!timer) {
+        timer = setTimeout(() => {
+          timer = null;
+          invoke(lastArgs);
+        }, threshold - passed);
+      }
     }
   };
+  const flush = () => lastArgs && invoke(lastArgs);
+  return [throttled, flush];
 }
 var throttle_default = throttle;
 
-// node_modules/axios/lib/helpers/progressEventReducer.js
-var progressEventReducer_default = (listener, isDownloadStream, freq = 3) => {
+// ../../node_modules/axios/lib/helpers/progressEventReducer.js
+var progressEventReducer = (listener, isDownloadStream, freq = 3) => {
   let bytesNotified = 0;
   const _speedometer = speedometer_default(50, 250);
   return throttle_default((e) => {
@@ -1255,48 +1284,29 @@ var progressEventReducer_default = (listener, isDownloadStream, freq = 3) => {
       rate: rate ? rate : undefined,
       estimated: rate && total && inRange ? (total - loaded) / rate : undefined,
       event: e,
-      lengthComputable: total != null
+      lengthComputable: total != null,
+      [isDownloadStream ? "download" : "upload"]: true
     };
-    data[isDownloadStream ? "download" : "upload"] = true;
     listener(data);
   }, freq);
 };
+var progressEventDecorator = (total, throttled) => {
+  const lengthComputable = total != null;
+  return [(loaded) => throttled[0]({
+    lengthComputable,
+    total,
+    loaded
+  }), throttled[1]];
+};
+var asyncDecorator = (fn) => (...args) => utils_default.asap(() => fn(...args));
 
-// node_modules/axios/lib/helpers/isURLSameOrigin.js
-var isURLSameOrigin_default = platform_default.hasStandardBrowserEnv ? function standardBrowserEnv() {
-  const msie = /(msie|trident)/i.test(navigator.userAgent);
-  const urlParsingNode = document.createElement("a");
-  let originURL;
-  function resolveURL(url) {
-    let href = url;
-    if (msie) {
-      urlParsingNode.setAttribute("href", href);
-      href = urlParsingNode.href;
-    }
-    urlParsingNode.setAttribute("href", href);
-    return {
-      href: urlParsingNode.href,
-      protocol: urlParsingNode.protocol ? urlParsingNode.protocol.replace(/:$/, "") : "",
-      host: urlParsingNode.host,
-      search: urlParsingNode.search ? urlParsingNode.search.replace(/^\?/, "") : "",
-      hash: urlParsingNode.hash ? urlParsingNode.hash.replace(/^#/, "") : "",
-      hostname: urlParsingNode.hostname,
-      port: urlParsingNode.port,
-      pathname: urlParsingNode.pathname.charAt(0) === "/" ? urlParsingNode.pathname : "/" + urlParsingNode.pathname
-    };
-  }
-  originURL = resolveURL(window.location.href);
-  return function isURLSameOrigin(requestURL) {
-    const parsed = utils_default.isString(requestURL) ? resolveURL(requestURL) : requestURL;
-    return parsed.protocol === originURL.protocol && parsed.host === originURL.host;
-  };
-}() : function nonStandardBrowserEnv() {
-  return function isURLSameOrigin() {
-    return true;
-  };
-}();
+// ../../node_modules/axios/lib/helpers/isURLSameOrigin.js
+var isURLSameOrigin_default = platform_default.hasStandardBrowserEnv ? ((origin2, isMSIE) => (url) => {
+  url = new URL(url, platform_default.origin);
+  return origin2.protocol === url.protocol && origin2.host === url.host && (isMSIE || origin2.port === url.port);
+})(new URL(platform_default.origin), platform_default.navigator && /(msie|trident)/i.test(platform_default.navigator.userAgent)) : () => true;
 
-// node_modules/axios/lib/helpers/cookies.js
+// ../../node_modules/axios/lib/helpers/cookies.js
 var cookies_default = platform_default.hasStandardBrowserEnv ? {
   write(name, value, expires, path, domain, secure) {
     const cookie = [name + "=" + encodeURIComponent(value)];
@@ -1321,30 +1331,31 @@ var cookies_default = platform_default.hasStandardBrowserEnv ? {
   remove() {}
 };
 
-// node_modules/axios/lib/helpers/isAbsoluteURL.js
+// ../../node_modules/axios/lib/helpers/isAbsoluteURL.js
 function isAbsoluteURL(url) {
   return /^([a-z][a-z\d+\-.]*:)?\/\//i.test(url);
 }
 
-// node_modules/axios/lib/helpers/combineURLs.js
+// ../../node_modules/axios/lib/helpers/combineURLs.js
 function combineURLs(baseURL, relativeURL) {
   return relativeURL ? baseURL.replace(/\/?\/$/, "") + "/" + relativeURL.replace(/^\/+/, "") : baseURL;
 }
 
-// node_modules/axios/lib/core/buildFullPath.js
-function buildFullPath(baseURL, requestedURL) {
-  if (baseURL && !isAbsoluteURL(requestedURL)) {
+// ../../node_modules/axios/lib/core/buildFullPath.js
+function buildFullPath(baseURL, requestedURL, allowAbsoluteUrls) {
+  let isRelativeUrl = !isAbsoluteURL(requestedURL);
+  if (baseURL && (isRelativeUrl || allowAbsoluteUrls == false)) {
     return combineURLs(baseURL, requestedURL);
   }
   return requestedURL;
 }
 
-// node_modules/axios/lib/core/mergeConfig.js
+// ../../node_modules/axios/lib/core/mergeConfig.js
 var headersToObject = (thing) => thing instanceof AxiosHeaders_default ? { ...thing } : thing;
 function mergeConfig(config1, config2) {
   config2 = config2 || {};
   const config = {};
-  function getMergedValue(target, source, caseless) {
+  function getMergedValue(target, source, prop, caseless) {
     if (utils_default.isPlainObject(target) && utils_default.isPlainObject(source)) {
       return utils_default.merge.call({ caseless }, target, source);
     } else if (utils_default.isPlainObject(source)) {
@@ -1354,11 +1365,11 @@ function mergeConfig(config1, config2) {
     }
     return source;
   }
-  function mergeDeepProperties(a, b, caseless) {
+  function mergeDeepProperties(a, b, prop, caseless) {
     if (!utils_default.isUndefined(b)) {
-      return getMergedValue(a, b, caseless);
+      return getMergedValue(a, b, prop, caseless);
     } else if (!utils_default.isUndefined(a)) {
-      return getMergedValue(undefined, a, caseless);
+      return getMergedValue(undefined, a, prop, caseless);
     }
   }
   function valueFromConfig2(a, b) {
@@ -1409,7 +1420,7 @@ function mergeConfig(config1, config2) {
     socketPath: defaultToConfig2,
     responseEncoding: defaultToConfig2,
     validateStatus: mergeDirectKeys,
-    headers: (a, b) => mergeDeepProperties(headersToObject(a), headersToObject(b), true)
+    headers: (a, b, prop) => mergeDeepProperties(headersToObject(a), headersToObject(b), prop, true)
   };
   utils_default.forEach(Object.keys(Object.assign({}, config1, config2)), function computeConfigValue(prop) {
     const merge2 = mergeMap[prop] || mergeDeepProperties;
@@ -1419,12 +1430,12 @@ function mergeConfig(config1, config2) {
   return config;
 }
 
-// node_modules/axios/lib/helpers/resolveConfig.js
+// ../../node_modules/axios/lib/helpers/resolveConfig.js
 var resolveConfig_default = (config) => {
   const newConfig = mergeConfig({}, config);
   let { data, withXSRFToken, xsrfHeaderName, xsrfCookieName, headers, auth } = newConfig;
   newConfig.headers = headers = AxiosHeaders_default.from(headers);
-  newConfig.url = buildURL(buildFullPath(newConfig.baseURL, newConfig.url), config.params, config.paramsSerializer);
+  newConfig.url = buildURL(buildFullPath(newConfig.baseURL, newConfig.url, newConfig.allowAbsoluteUrls), config.params, config.paramsSerializer);
   if (auth) {
     headers.set("Authorization", "Basic " + btoa((auth.username || "") + ":" + (auth.password ? unescape(encodeURIComponent(auth.password)) : "")));
   }
@@ -1449,22 +1460,22 @@ var resolveConfig_default = (config) => {
   return newConfig;
 };
 
-// node_modules/axios/lib/adapters/xhr.js
+// ../../node_modules/axios/lib/adapters/xhr.js
 var isXHRAdapterSupported = typeof XMLHttpRequest !== "undefined";
 var xhr_default = isXHRAdapterSupported && function(config) {
   return new Promise(function dispatchXhrRequest(resolve, reject) {
     const _config = resolveConfig_default(config);
     let requestData = _config.data;
     const requestHeaders = AxiosHeaders_default.from(_config.headers).normalize();
-    let { responseType } = _config;
+    let { responseType, onUploadProgress, onDownloadProgress } = _config;
     let onCanceled;
+    let uploadThrottled, downloadThrottled;
+    let flushUpload, flushDownload;
     function done() {
-      if (_config.cancelToken) {
-        _config.cancelToken.unsubscribe(onCanceled);
-      }
-      if (_config.signal) {
-        _config.signal.removeEventListener("abort", onCanceled);
-      }
+      flushUpload && flushUpload();
+      flushDownload && flushDownload();
+      _config.cancelToken && _config.cancelToken.unsubscribe(onCanceled);
+      _config.signal && _config.signal.removeEventListener("abort", onCanceled);
     }
     let request = new XMLHttpRequest;
     request.open(_config.method.toUpperCase(), _config.url, true);
@@ -1509,11 +1520,11 @@ var xhr_default = isXHRAdapterSupported && function(config) {
       if (!request) {
         return;
       }
-      reject(new AxiosError_default("Request aborted", AxiosError_default.ECONNABORTED, _config, request));
+      reject(new AxiosError_default("Request aborted", AxiosError_default.ECONNABORTED, config, request));
       request = null;
     };
     request.onerror = function handleError() {
-      reject(new AxiosError_default("Network Error", AxiosError_default.ERR_NETWORK, _config, request));
+      reject(new AxiosError_default("Network Error", AxiosError_default.ERR_NETWORK, config, request));
       request = null;
     };
     request.ontimeout = function handleTimeout() {
@@ -1522,7 +1533,7 @@ var xhr_default = isXHRAdapterSupported && function(config) {
       if (_config.timeoutErrorMessage) {
         timeoutErrorMessage = _config.timeoutErrorMessage;
       }
-      reject(new AxiosError_default(timeoutErrorMessage, transitional.clarifyTimeoutError ? AxiosError_default.ETIMEDOUT : AxiosError_default.ECONNABORTED, _config, request));
+      reject(new AxiosError_default(timeoutErrorMessage, transitional.clarifyTimeoutError ? AxiosError_default.ETIMEDOUT : AxiosError_default.ECONNABORTED, config, request));
       request = null;
     };
     requestData === undefined && requestHeaders.setContentType(null);
@@ -1537,11 +1548,14 @@ var xhr_default = isXHRAdapterSupported && function(config) {
     if (responseType && responseType !== "json") {
       request.responseType = _config.responseType;
     }
-    if (typeof _config.onDownloadProgress === "function") {
-      request.addEventListener("progress", progressEventReducer_default(_config.onDownloadProgress, true));
+    if (onDownloadProgress) {
+      [downloadThrottled, flushDownload] = progressEventReducer(onDownloadProgress, true);
+      request.addEventListener("progress", downloadThrottled);
     }
-    if (typeof _config.onUploadProgress === "function" && request.upload) {
-      request.upload.addEventListener("progress", progressEventReducer_default(_config.onUploadProgress));
+    if (onUploadProgress && request.upload) {
+      [uploadThrottled, flushUpload] = progressEventReducer(onUploadProgress);
+      request.upload.addEventListener("progress", uploadThrottled);
+      request.upload.addEventListener("loadend", flushUpload);
     }
     if (_config.cancelToken || _config.signal) {
       onCanceled = (cancel) => {
@@ -1566,42 +1580,43 @@ var xhr_default = isXHRAdapterSupported && function(config) {
   });
 };
 
-// node_modules/axios/lib/helpers/composeSignals.js
+// ../../node_modules/axios/lib/helpers/composeSignals.js
 var composeSignals = (signals, timeout) => {
-  let controller = new AbortController;
-  let aborted;
-  const onabort = function(cancel) {
-    if (!aborted) {
-      aborted = true;
-      unsubscribe();
-      const err = cancel instanceof Error ? cancel : this.reason;
-      controller.abort(err instanceof AxiosError_default ? err : new CanceledError_default(err instanceof Error ? err.message : err));
-    }
-  };
-  let timer = timeout && setTimeout(() => {
-    onabort(new AxiosError_default(`timeout ${timeout} of ms exceeded`, AxiosError_default.ETIMEDOUT));
-  }, timeout);
-  const unsubscribe = () => {
-    if (signals) {
-      timer && clearTimeout(timer);
+  const { length } = signals = signals ? signals.filter(Boolean) : [];
+  if (timeout || length) {
+    let controller = new AbortController;
+    let aborted;
+    const onabort = function(reason) {
+      if (!aborted) {
+        aborted = true;
+        unsubscribe();
+        const err = reason instanceof Error ? reason : this.reason;
+        controller.abort(err instanceof AxiosError_default ? err : new CanceledError_default(err instanceof Error ? err.message : err));
+      }
+    };
+    let timer = timeout && setTimeout(() => {
       timer = null;
-      signals.forEach((signal2) => {
-        signal2 && (signal2.removeEventListener ? signal2.removeEventListener("abort", onabort) : signal2.unsubscribe(onabort));
-      });
-      signals = null;
-    }
-  };
-  signals.forEach((signal2) => signal2 && signal2.addEventListener && signal2.addEventListener("abort", onabort));
-  const { signal } = controller;
-  signal.unsubscribe = unsubscribe;
-  return [signal, () => {
-    timer && clearTimeout(timer);
-    timer = null;
-  }];
+      onabort(new AxiosError_default(`timeout ${timeout} of ms exceeded`, AxiosError_default.ETIMEDOUT));
+    }, timeout);
+    const unsubscribe = () => {
+      if (signals) {
+        timer && clearTimeout(timer);
+        timer = null;
+        signals.forEach((signal2) => {
+          signal2.unsubscribe ? signal2.unsubscribe(onabort) : signal2.removeEventListener("abort", onabort);
+        });
+        signals = null;
+      }
+    };
+    signals.forEach((signal2) => signal2.addEventListener("abort", onabort));
+    const { signal } = controller;
+    signal.unsubscribe = () => utils_default.asap(unsubscribe);
+    return signal;
+  }
 };
 var composeSignals_default = composeSignals;
 
-// node_modules/axios/lib/helpers/trackStream.js
+// ../../node_modules/axios/lib/helpers/trackStream.js
 var streamChunk = function* (chunk, chunkSize) {
   let len = chunk.byteLength;
   if (!chunkSize || len < chunkSize) {
@@ -1616,49 +1631,80 @@ var streamChunk = function* (chunk, chunkSize) {
     pos = end;
   }
 };
-var readBytes = async function* (iterable, chunkSize, encode3) {
-  for await (const chunk of iterable) {
-    yield* streamChunk(ArrayBuffer.isView(chunk) ? chunk : await encode3(String(chunk)), chunkSize);
+var readBytes = async function* (iterable, chunkSize) {
+  for await (const chunk of readStream(iterable)) {
+    yield* streamChunk(chunk, chunkSize);
   }
 };
-var trackStream = (stream, chunkSize, onProgress, onFinish, encode3) => {
-  const iterator = readBytes(stream, chunkSize, encode3);
-  let bytes = 0;
-  return new ReadableStream({
-    type: "bytes",
-    async pull(controller) {
-      const { done, value } = await iterator.next();
+var readStream = async function* (stream) {
+  if (stream[Symbol.asyncIterator]) {
+    yield* stream;
+    return;
+  }
+  const reader = stream.getReader();
+  try {
+    for (;; ) {
+      const { done, value } = await reader.read();
       if (done) {
-        controller.close();
-        onFinish();
-        return;
+        break;
       }
-      let len = value.byteLength;
-      onProgress && onProgress(bytes += len);
-      controller.enqueue(new Uint8Array(value));
+      yield value;
+    }
+  } finally {
+    await reader.cancel();
+  }
+};
+var trackStream = (stream, chunkSize, onProgress, onFinish) => {
+  const iterator2 = readBytes(stream, chunkSize);
+  let bytes = 0;
+  let done;
+  let _onFinish = (e) => {
+    if (!done) {
+      done = true;
+      onFinish && onFinish(e);
+    }
+  };
+  return new ReadableStream({
+    async pull(controller) {
+      try {
+        const { done: done2, value } = await iterator2.next();
+        if (done2) {
+          _onFinish();
+          controller.close();
+          return;
+        }
+        let len = value.byteLength;
+        if (onProgress) {
+          let loadedBytes = bytes += len;
+          onProgress(loadedBytes);
+        }
+        controller.enqueue(new Uint8Array(value));
+      } catch (err) {
+        _onFinish(err);
+        throw err;
+      }
     },
     cancel(reason) {
-      onFinish(reason);
-      return iterator.return();
+      _onFinish(reason);
+      return iterator2.return();
     }
   }, {
     highWaterMark: 2
   });
 };
 
-// node_modules/axios/lib/adapters/fetch.js
-var fetchProgressDecorator = (total, fn) => {
-  const lengthComputable = total != null;
-  return (loaded) => setTimeout(() => fn({
-    lengthComputable,
-    total,
-    loaded
-  }));
-};
+// ../../node_modules/axios/lib/adapters/fetch.js
 var isFetchSupported = typeof fetch === "function" && typeof Request === "function" && typeof Response === "function";
 var isReadableStreamSupported = isFetchSupported && typeof ReadableStream === "function";
 var encodeText = isFetchSupported && (typeof TextEncoder === "function" ? ((encoder) => (str) => encoder.encode(str))(new TextEncoder) : async (str) => new Uint8Array(await new Response(str).arrayBuffer()));
-var supportsRequestStream = isReadableStreamSupported && (() => {
+var test = (fn, ...args) => {
+  try {
+    return !!fn(...args);
+  } catch (e) {
+    return false;
+  }
+};
+var supportsRequestStream = isReadableStreamSupported && test(() => {
   let duplexAccessed = false;
   const hasContentType = new Request(platform_default.origin, {
     body: new ReadableStream,
@@ -1669,13 +1715,9 @@ var supportsRequestStream = isReadableStreamSupported && (() => {
     }
   }).headers.has("Content-Type");
   return duplexAccessed && !hasContentType;
-})();
+});
 var DEFAULT_CHUNK_SIZE = 64 * 1024;
-var supportsResponseStream = isReadableStreamSupported && !!(() => {
-  try {
-    return utils_default.isReadableStream(new Response("").body);
-  } catch (err) {}
-})();
+var supportsResponseStream = isReadableStreamSupported && test(() => utils_default.isReadableStream(new Response("").body));
 var resolvers = {
   stream: supportsResponseStream && ((res) => res.body)
 };
@@ -1694,9 +1736,13 @@ var getBodyLength = async (body) => {
     return body.size;
   }
   if (utils_default.isSpecCompliantForm(body)) {
-    return (await new Request(body).arrayBuffer()).byteLength;
+    const _request = new Request(platform_default.origin, {
+      method: "POST",
+      body
+    });
+    return (await _request.arrayBuffer()).byteLength;
   }
-  if (utils_default.isArrayBufferView(body)) {
+  if (utils_default.isArrayBufferView(body) || utils_default.isArrayBuffer(body)) {
     return body.byteLength;
   }
   if (utils_default.isURLSearchParams(body)) {
@@ -1726,14 +1772,11 @@ var fetch_default = isFetchSupported && (async (config) => {
     fetchOptions
   } = resolveConfig_default(config);
   responseType = responseType ? (responseType + "").toLowerCase() : "text";
-  let [composedSignal, stopTimeout] = signal || cancelToken || timeout ? composeSignals_default([signal, cancelToken], timeout) : [];
-  let finished, request;
-  const onFinish = () => {
-    !finished && setTimeout(() => {
-      composedSignal && composedSignal.unsubscribe();
-    });
-    finished = true;
-  };
+  let composedSignal = composeSignals_default([signal, cancelToken && cancelToken.toAbortSignal()], timeout);
+  let request;
+  const unsubscribe = composedSignal && composedSignal.unsubscribe && (() => {
+    composedSignal.unsubscribe();
+  });
   let requestContentLength;
   try {
     if (onUploadProgress && supportsRequestStream && method !== "get" && method !== "head" && (requestContentLength = await resolveBodyLength(headers, data)) !== 0) {
@@ -1747,12 +1790,14 @@ var fetch_default = isFetchSupported && (async (config) => {
         headers.setContentType(contentTypeHeader);
       }
       if (_request.body) {
-        data = trackStream(_request.body, DEFAULT_CHUNK_SIZE, fetchProgressDecorator(requestContentLength, progressEventReducer_default(onUploadProgress)), null, encodeText);
+        const [onProgress, flush] = progressEventDecorator(requestContentLength, progressEventReducer(asyncDecorator(onUploadProgress)));
+        data = trackStream(_request.body, DEFAULT_CHUNK_SIZE, onProgress, flush);
       }
     }
     if (!utils_default.isString(withCredentials)) {
-      withCredentials = withCredentials ? "cors" : "omit";
+      withCredentials = withCredentials ? "include" : "omit";
     }
+    const isCredentialsSupported = "credentials" in Request.prototype;
     request = new Request(url, {
       ...fetchOptions,
       signal: composedSignal,
@@ -1760,22 +1805,25 @@ var fetch_default = isFetchSupported && (async (config) => {
       headers: headers.normalize().toJSON(),
       body: data,
       duplex: "half",
-      withCredentials
+      credentials: isCredentialsSupported ? withCredentials : undefined
     });
     let response = await fetch(request);
     const isStreamResponse = supportsResponseStream && (responseType === "stream" || responseType === "response");
-    if (supportsResponseStream && (onDownloadProgress || isStreamResponse)) {
+    if (supportsResponseStream && (onDownloadProgress || isStreamResponse && unsubscribe)) {
       const options = {};
       ["status", "statusText", "headers"].forEach((prop) => {
         options[prop] = response[prop];
       });
       const responseContentLength = utils_default.toFiniteNumber(response.headers.get("content-length"));
-      response = new Response(trackStream(response.body, DEFAULT_CHUNK_SIZE, onDownloadProgress && fetchProgressDecorator(responseContentLength, progressEventReducer_default(onDownloadProgress, true)), isStreamResponse && onFinish, encodeText), options);
+      const [onProgress, flush] = onDownloadProgress && progressEventDecorator(responseContentLength, progressEventReducer(asyncDecorator(onDownloadProgress), true)) || [];
+      response = new Response(trackStream(response.body, DEFAULT_CHUNK_SIZE, onProgress, () => {
+        flush && flush();
+        unsubscribe && unsubscribe();
+      }), options);
     }
     responseType = responseType || "text";
     let responseData = await resolvers[utils_default.findKey(resolvers, responseType) || "text"](response, config);
-    !isStreamResponse && onFinish();
-    stopTimeout && stopTimeout();
+    !isStreamResponse && unsubscribe && unsubscribe();
     return await new Promise((resolve, reject) => {
       settle(resolve, reject, {
         data: responseData,
@@ -1787,8 +1835,8 @@ var fetch_default = isFetchSupported && (async (config) => {
       });
     });
   } catch (err) {
-    onFinish();
-    if (err && err.name === "TypeError" && /fetch/i.test(err.message)) {
+    unsubscribe && unsubscribe();
+    if (err && err.name === "TypeError" && /Load failed|fetch/i.test(err.message)) {
       throw Object.assign(new AxiosError_default("Network Error", AxiosError_default.ERR_NETWORK, config, request), {
         cause: err.cause || err
       });
@@ -1797,7 +1845,7 @@ var fetch_default = isFetchSupported && (async (config) => {
   }
 });
 
-// node_modules/axios/lib/adapters/adapters.js
+// ../../node_modules/axios/lib/adapters/adapters.js
 var knownAdapters = {
   http: null_default,
   xhr: xhr_default,
@@ -1847,7 +1895,7 @@ var adapters_default = {
   adapters: knownAdapters
 };
 
-// node_modules/axios/lib/core/dispatchRequest.js
+// ../../node_modules/axios/lib/core/dispatchRequest.js
 function throwIfCancellationRequested(config) {
   if (config.cancelToken) {
     config.cancelToken.throwIfRequested();
@@ -1881,10 +1929,10 @@ function dispatchRequest(config) {
   });
 }
 
-// node_modules/axios/lib/env/data.js
-var VERSION = "1.7.2";
+// ../../node_modules/axios/lib/env/data.js
+var VERSION = "1.9.0";
 
-// node_modules/axios/lib/helpers/validator.js
+// ../../node_modules/axios/lib/helpers/validator.js
 var validators = {};
 ["object", "boolean", "number", "function", "string", "symbol"].forEach((type, i) => {
   validators[type] = function validator(thing) {
@@ -1905,6 +1953,12 @@ validators.transitional = function transitional(validator, version, message) {
       console.warn(formatMessage(opt, " has been deprecated since v" + version + " and will be removed in the near future"));
     }
     return validator ? validator(value, opt, opts) : true;
+  };
+};
+validators.spelling = function spelling(correctSpelling) {
+  return (value, opt) => {
+    console.warn(`${opt} is likely a misspelling of ${correctSpelling}`);
+    return true;
   };
 };
 function assertOptions(options, schema, allowUnknown) {
@@ -1934,12 +1988,12 @@ var validator_default = {
   validators
 };
 
-// node_modules/axios/lib/core/Axios.js
+// ../../node_modules/axios/lib/core/Axios.js
 var validators2 = validator_default.validators;
 
 class Axios {
   constructor(instanceConfig) {
-    this.defaults = instanceConfig;
+    this.defaults = instanceConfig || {};
     this.interceptors = {
       request: new InterceptorManager_default,
       response: new InterceptorManager_default
@@ -1950,8 +2004,8 @@ class Axios {
       return await this._request(configOrUrl, config);
     } catch (err) {
       if (err instanceof Error) {
-        let dummy;
-        Error.captureStackTrace ? Error.captureStackTrace(dummy = {}) : dummy = new Error;
+        let dummy = {};
+        Error.captureStackTrace ? Error.captureStackTrace(dummy) : dummy = new Error;
         const stack = dummy.stack ? dummy.stack.replace(/^.+\n/, "") : "";
         try {
           if (!err.stack) {
@@ -1993,6 +2047,15 @@ class Axios {
         }, true);
       }
     }
+    if (config.allowAbsoluteUrls !== undefined) {} else if (this.defaults.allowAbsoluteUrls !== undefined) {
+      config.allowAbsoluteUrls = this.defaults.allowAbsoluteUrls;
+    } else {
+      config.allowAbsoluteUrls = true;
+    }
+    validator_default.assertOptions(config, {
+      baseUrl: validators2.spelling("baseURL"),
+      withXsrfToken: validators2.spelling("withXSRFToken")
+    }, true);
     config.method = (config.method || this.defaults.method || "get").toLowerCase();
     let contextHeaders = headers && utils_default.merge(headers.common, headers[config.method]);
     headers && utils_default.forEach(["delete", "get", "head", "post", "put", "patch", "common"], (method) => {
@@ -2053,7 +2116,7 @@ class Axios {
   }
   getUri(config) {
     config = mergeConfig(this.defaults, config);
-    const fullPath = buildFullPath(config.baseURL, config.url);
+    const fullPath = buildFullPath(config.baseURL, config.url, config.allowAbsoluteUrls);
     return buildURL(fullPath, config.params, config.paramsSerializer);
   }
 }
@@ -2084,7 +2147,7 @@ utils_default.forEach(["post", "put", "patch"], function forEachMethodWithData(m
 });
 var Axios_default = Axios;
 
-// node_modules/axios/lib/cancel/CancelToken.js
+// ../../node_modules/axios/lib/cancel/CancelToken.js
 class CancelToken {
   constructor(executor) {
     if (typeof executor !== "function") {
@@ -2148,6 +2211,15 @@ class CancelToken {
       this._listeners.splice(index, 1);
     }
   }
+  toAbortSignal() {
+    const controller = new AbortController;
+    const abort = (err) => {
+      controller.abort(err);
+    };
+    this.subscribe(abort);
+    controller.signal.unsubscribe = () => this.unsubscribe(abort);
+    return controller.signal;
+  }
   static source() {
     let cancel;
     const token = new CancelToken(function executor(c) {
@@ -2161,19 +2233,19 @@ class CancelToken {
 }
 var CancelToken_default = CancelToken;
 
-// node_modules/axios/lib/helpers/spread.js
+// ../../node_modules/axios/lib/helpers/spread.js
 function spread(callback) {
   return function wrap(arr) {
     return callback.apply(null, arr);
   };
 }
 
-// node_modules/axios/lib/helpers/isAxiosError.js
+// ../../node_modules/axios/lib/helpers/isAxiosError.js
 function isAxiosError(payload) {
   return utils_default.isObject(payload) && payload.isAxiosError === true;
 }
 
-// node_modules/axios/lib/helpers/HttpStatusCode.js
+// ../../node_modules/axios/lib/helpers/HttpStatusCode.js
 var HttpStatusCode = {
   Continue: 100,
   SwitchingProtocols: 101,
@@ -2244,7 +2316,7 @@ Object.entries(HttpStatusCode).forEach(([key, value]) => {
 });
 var HttpStatusCode_default = HttpStatusCode;
 
-// node_modules/axios/lib/axios.js
+// ../../node_modules/axios/lib/axios.js
 function createInstance(defaultConfig) {
   const context = new Axios_default(defaultConfig);
   const instance = bind(Axios_default.prototype.request, context);
@@ -2358,6 +2430,15 @@ var AppDTOConfigTasksInnerInputParamsValueTypeEnum = {
   Boolean: "boolean",
   String: "string",
   Number: "number"
+};
+var AppDTOConfigTasksInnerTriggersInnerOneOfTypeEnum = {
+  Event: "event"
+};
+var AppDTOConfigTasksInnerTriggersInnerOneOf1TypeEnum = {
+  ObjectAction: "objectAction"
+};
+var AppDTOConfigTasksInnerTriggersInnerOneOf2TypeEnum = {
+  FolderAction: "folderAction"
 };
 var EventDTOLevelEnum = {
   Trace: "TRACE",
@@ -2656,6 +2737,30 @@ var AppsApiAxiosParamCreator = function(configuration) {
         url: toPathString(localVarUrlObj),
         options: localVarRequestOptions
       };
+    },
+    setWorkerScriptEnvVars: async (appIdentifier, workerIdentifier, setWorkerScriptEnvVarsInputDTO, options = {}) => {
+      assertParamExists("setWorkerScriptEnvVars", "appIdentifier", appIdentifier);
+      assertParamExists("setWorkerScriptEnvVars", "workerIdentifier", workerIdentifier);
+      assertParamExists("setWorkerScriptEnvVars", "setWorkerScriptEnvVarsInputDTO", setWorkerScriptEnvVarsInputDTO);
+      const localVarPath = `/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/env-vars`.replace(`{${"appIdentifier"}}`, encodeURIComponent(String(appIdentifier))).replace(`{${"workerIdentifier"}}`, encodeURIComponent(String(workerIdentifier)));
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+      const localVarRequestOptions = { method: "PUT", ...baseOptions, ...options };
+      const localVarHeaderParameter = {};
+      const localVarQueryParameter = {};
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+      localVarHeaderParameter["Content-Type"] = "application/json";
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      localVarRequestOptions.data = serializeDataIfNeeded(setWorkerScriptEnvVarsInputDTO, localVarRequestOptions, configuration);
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions
+      };
     }
   };
 };
@@ -2673,6 +2778,12 @@ var AppsApiFp = function(configuration) {
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
       const localVarOperationServerBasePath = operationServerMap["AppsApi.listApps"]?.[localVarOperationServerIndex]?.url;
       return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
+    },
+    async setWorkerScriptEnvVars(appIdentifier, workerIdentifier, setWorkerScriptEnvVarsInputDTO, options) {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.setWorkerScriptEnvVars(appIdentifier, workerIdentifier, setWorkerScriptEnvVarsInputDTO, options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath = operationServerMap["AppsApi.setWorkerScriptEnvVars"]?.[localVarOperationServerIndex]?.url;
+      return (axios2, basePath) => createRequestFunction(localVarAxiosArgs, axios_default, BASE_PATH, configuration)(axios2, localVarOperationServerBasePath || basePath);
     }
   };
 };
@@ -2684,6 +2795,9 @@ var AppsApiFactory = function(configuration, basePath, axios2) {
     },
     listApps(options) {
       return localVarFp.listApps(options).then((request) => request(axios2, basePath));
+    },
+    setWorkerScriptEnvVars(requestParameters, options) {
+      return localVarFp.setWorkerScriptEnvVars(requestParameters.appIdentifier, requestParameters.workerIdentifier, requestParameters.setWorkerScriptEnvVarsInputDTO, options).then((request) => request(axios2, basePath));
     }
   };
 };
@@ -2694,6 +2808,9 @@ class AppsApi extends BaseAPI {
   }
   listApps(options) {
     return AppsApiFp(this.configuration).listApps(options).then((request) => request(this.axios, this.basePath));
+  }
+  setWorkerScriptEnvVars(requestParameters, options) {
+    return AppsApiFp(this.configuration).setWorkerScriptEnvVars(requestParameters.appIdentifier, requestParameters.workerIdentifier, requestParameters.setWorkerScriptEnvVarsInputDTO, options).then((request) => request(this.axios, this.basePath));
   }
 }
 var AuthApiAxiosParamCreator = function(configuration) {
@@ -7694,6 +7811,59 @@ var schema = {
           "Apps"
         ]
       }
+    },
+    "/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/env-vars": {
+      put: {
+        operationId: "setWorkerScriptEnvVars",
+        parameters: [
+          {
+            name: "appIdentifier",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          },
+          {
+            name: "workerIdentifier",
+            required: true,
+            in: "path",
+            schema: {
+              type: "string"
+            }
+          }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/SetWorkerScriptEnvVarsInputDTO"
+              }
+            }
+          }
+        },
+        responses: {
+          "200": {
+            description: "",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object"
+                }
+              }
+            }
+          }
+        },
+        security: [
+          {
+            bearer: []
+          }
+        ],
+        tags: [
+          "Apps"
+        ]
+      }
     }
   },
   info: {
@@ -9005,7 +9175,9 @@ var schema = {
         type: "object",
         properties: {
           name: {
-            type: "string"
+            type: "string",
+            maxLength: 256,
+            minLength: 1
           },
           metadataLocation: {
             oneOf: [
@@ -11051,10 +11223,89 @@ var schema = {
                     label: {
                       type: "string"
                     },
-                    eventTriggers: {
+                    triggers: {
                       type: "array",
                       items: {
-                        type: "string"
+                        discriminator: {
+                          propertyName: "type"
+                        },
+                        oneOf: [
+                          {
+                            type: "object",
+                            properties: {
+                              type: {
+                                type: "string",
+                                enum: [
+                                  "event"
+                                ]
+                              },
+                              event: {
+                                type: "string"
+                              },
+                              inputParams: {
+                                type: "object",
+                                additionalProperties: {
+                                  type: "string"
+                                }
+                              }
+                            },
+                            required: [
+                              "type",
+                              "event",
+                              "inputParams"
+                            ]
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              type: {
+                                type: "string",
+                                enum: [
+                                  "objectAction"
+                                ]
+                              },
+                              description: {
+                                type: "string"
+                              },
+                              inputParams: {
+                                type: "object",
+                                additionalProperties: {
+                                  type: "string"
+                                }
+                              }
+                            },
+                            required: [
+                              "type",
+                              "description",
+                              "inputParams"
+                            ]
+                          },
+                          {
+                            type: "object",
+                            properties: {
+                              type: {
+                                type: "string",
+                                enum: [
+                                  "folderAction"
+                                ]
+                              },
+                              actionLabel: {
+                                type: "string"
+                              },
+                              inputParams: {
+                                type: "object",
+                                additionalProperties: {
+                                  type: "string"
+                                }
+                              }
+                            },
+                            required: [
+                              "type",
+                              "actionLabel",
+                              "inputParams"
+                            ]
+                          }
+                        ]
                       }
                     },
                     folderAction: {
@@ -11114,12 +11365,40 @@ var schema = {
                           "type"
                         ]
                       }
+                    },
+                    worker: {
+                      type: "string"
                     }
                   },
                   required: [
                     "key",
                     "label",
-                    "eventTriggers",
+                    "description"
+                  ]
+                }
+              },
+              externalWorkers: {
+                type: "array",
+                items: {
+                  type: "string"
+                }
+              },
+              workerScripts: {
+                type: "object",
+                additionalProperties: {
+                  type: "object",
+                  properties: {
+                    description: {
+                      type: "string"
+                    },
+                    envVars: {
+                      type: "object",
+                      additionalProperties: {
+                        type: "string"
+                      }
+                    }
+                  },
+                  required: [
                     "description"
                   ]
                 }
@@ -11176,7 +11455,7 @@ var schema = {
               ]
             }
           },
-          connectedWorkers: {
+          externalWorkers: {
             type: "array",
             items: {
               type: "object",
@@ -11209,6 +11488,54 @@ var schema = {
               ]
             }
           },
+          workerScripts: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                description: {
+                  type: "string"
+                },
+                files: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      path: {
+                        type: "string"
+                      },
+                      hash: {
+                        type: "string"
+                      },
+                      size: {
+                        type: "number"
+                      }
+                    },
+                    required: [
+                      "path",
+                      "hash",
+                      "size"
+                    ]
+                  }
+                },
+                envVars: {
+                  type: "object",
+                  additionalProperties: {
+                    type: "string"
+                  }
+                },
+                identifier: {
+                  type: "string"
+                }
+              },
+              required: [
+                "description",
+                "files",
+                "envVars",
+                "identifier"
+              ]
+            }
+          },
           createdAt: {
             type: "string",
             format: "date-time"
@@ -11223,7 +11550,8 @@ var schema = {
           "publicKey",
           "config",
           "manifest",
-          "connectedWorkers",
+          "externalWorkers",
+          "workerScripts",
           "createdAt",
           "updatedAt"
         ]
@@ -11279,10 +11607,89 @@ var schema = {
                           label: {
                             type: "string"
                           },
-                          eventTriggers: {
+                          triggers: {
                             type: "array",
                             items: {
-                              type: "string"
+                              discriminator: {
+                                propertyName: "type"
+                              },
+                              oneOf: [
+                                {
+                                  type: "object",
+                                  properties: {
+                                    type: {
+                                      type: "string",
+                                      enum: [
+                                        "event"
+                                      ]
+                                    },
+                                    event: {
+                                      type: "string"
+                                    },
+                                    inputParams: {
+                                      type: "object",
+                                      additionalProperties: {
+                                        type: "string"
+                                      }
+                                    }
+                                  },
+                                  required: [
+                                    "type",
+                                    "event",
+                                    "inputParams"
+                                  ]
+                                },
+                                {
+                                  type: "object",
+                                  properties: {
+                                    type: {
+                                      type: "string",
+                                      enum: [
+                                        "objectAction"
+                                      ]
+                                    },
+                                    description: {
+                                      type: "string"
+                                    },
+                                    inputParams: {
+                                      type: "object",
+                                      additionalProperties: {
+                                        type: "string"
+                                      }
+                                    }
+                                  },
+                                  required: [
+                                    "type",
+                                    "description",
+                                    "inputParams"
+                                  ]
+                                },
+                                {
+                                  type: "object",
+                                  properties: {
+                                    type: {
+                                      type: "string",
+                                      enum: [
+                                        "folderAction"
+                                      ]
+                                    },
+                                    actionLabel: {
+                                      type: "string"
+                                    },
+                                    inputParams: {
+                                      type: "object",
+                                      additionalProperties: {
+                                        type: "string"
+                                      }
+                                    }
+                                  },
+                                  required: [
+                                    "type",
+                                    "actionLabel",
+                                    "inputParams"
+                                  ]
+                                }
+                              ]
                             }
                           },
                           folderAction: {
@@ -11342,12 +11749,40 @@ var schema = {
                                 "type"
                               ]
                             }
+                          },
+                          worker: {
+                            type: "string"
                           }
                         },
                         required: [
                           "key",
                           "label",
-                          "eventTriggers",
+                          "description"
+                        ]
+                      }
+                    },
+                    externalWorkers: {
+                      type: "array",
+                      items: {
+                        type: "string"
+                      }
+                    },
+                    workerScripts: {
+                      type: "object",
+                      additionalProperties: {
+                        type: "object",
+                        properties: {
+                          description: {
+                            type: "string"
+                          },
+                          envVars: {
+                            type: "object",
+                            additionalProperties: {
+                              type: "string"
+                            }
+                          }
+                        },
+                        required: [
                           "description"
                         ]
                       }
@@ -11404,7 +11839,7 @@ var schema = {
                     ]
                   }
                 },
-                connectedWorkers: {
+                externalWorkers: {
                   type: "array",
                   items: {
                     type: "object",
@@ -11437,6 +11872,54 @@ var schema = {
                     ]
                   }
                 },
+                workerScripts: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      description: {
+                        type: "string"
+                      },
+                      files: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            path: {
+                              type: "string"
+                            },
+                            hash: {
+                              type: "string"
+                            },
+                            size: {
+                              type: "number"
+                            }
+                          },
+                          required: [
+                            "path",
+                            "hash",
+                            "size"
+                          ]
+                        }
+                      },
+                      envVars: {
+                        type: "object",
+                        additionalProperties: {
+                          type: "string"
+                        }
+                      },
+                      identifier: {
+                        type: "string"
+                      }
+                    },
+                    required: [
+                      "description",
+                      "files",
+                      "envVars",
+                      "identifier"
+                    ]
+                  }
+                },
                 createdAt: {
                   type: "string",
                   format: "date-time"
@@ -11451,7 +11934,8 @@ var schema = {
                 "publicKey",
                 "config",
                 "manifest",
-                "connectedWorkers",
+                "externalWorkers",
+                "workerScripts",
                 "createdAt",
                 "updatedAt"
               ]
@@ -11501,10 +11985,89 @@ var schema = {
                         label: {
                           type: "string"
                         },
-                        eventTriggers: {
+                        triggers: {
                           type: "array",
                           items: {
-                            type: "string"
+                            discriminator: {
+                              propertyName: "type"
+                            },
+                            oneOf: [
+                              {
+                                type: "object",
+                                properties: {
+                                  type: {
+                                    type: "string",
+                                    enum: [
+                                      "event"
+                                    ]
+                                  },
+                                  event: {
+                                    type: "string"
+                                  },
+                                  inputParams: {
+                                    type: "object",
+                                    additionalProperties: {
+                                      type: "string"
+                                    }
+                                  }
+                                },
+                                required: [
+                                  "type",
+                                  "event",
+                                  "inputParams"
+                                ]
+                              },
+                              {
+                                type: "object",
+                                properties: {
+                                  type: {
+                                    type: "string",
+                                    enum: [
+                                      "objectAction"
+                                    ]
+                                  },
+                                  description: {
+                                    type: "string"
+                                  },
+                                  inputParams: {
+                                    type: "object",
+                                    additionalProperties: {
+                                      type: "string"
+                                    }
+                                  }
+                                },
+                                required: [
+                                  "type",
+                                  "description",
+                                  "inputParams"
+                                ]
+                              },
+                              {
+                                type: "object",
+                                properties: {
+                                  type: {
+                                    type: "string",
+                                    enum: [
+                                      "folderAction"
+                                    ]
+                                  },
+                                  actionLabel: {
+                                    type: "string"
+                                  },
+                                  inputParams: {
+                                    type: "object",
+                                    additionalProperties: {
+                                      type: "string"
+                                    }
+                                  }
+                                },
+                                required: [
+                                  "type",
+                                  "actionLabel",
+                                  "inputParams"
+                                ]
+                              }
+                            ]
                           }
                         },
                         folderAction: {
@@ -11564,12 +12127,40 @@ var schema = {
                               "type"
                             ]
                           }
+                        },
+                        worker: {
+                          type: "string"
                         }
                       },
                       required: [
                         "key",
                         "label",
-                        "eventTriggers",
+                        "description"
+                      ]
+                    }
+                  },
+                  externalWorkers: {
+                    type: "array",
+                    items: {
+                      type: "string"
+                    }
+                  },
+                  workerScripts: {
+                    type: "object",
+                    additionalProperties: {
+                      type: "object",
+                      properties: {
+                        description: {
+                          type: "string"
+                        },
+                        envVars: {
+                          type: "object",
+                          additionalProperties: {
+                            type: "string"
+                          }
+                        }
+                      },
+                      required: [
                         "description"
                       ]
                     }
@@ -11626,7 +12217,7 @@ var schema = {
                   ]
                 }
               },
-              connectedWorkers: {
+              externalWorkers: {
                 type: "array",
                 items: {
                   type: "object",
@@ -11666,6 +12257,54 @@ var schema = {
               updatedAt: {
                 type: "string",
                 format: "date-time"
+              },
+              workerScripts: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    description: {
+                      type: "string"
+                    },
+                    files: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          path: {
+                            type: "string"
+                          },
+                          hash: {
+                            type: "string"
+                          },
+                          size: {
+                            type: "number"
+                          }
+                        },
+                        required: [
+                          "path",
+                          "hash",
+                          "size"
+                        ]
+                      }
+                    },
+                    envVars: {
+                      type: "object",
+                      additionalProperties: {
+                        type: "string"
+                      }
+                    },
+                    identifier: {
+                      type: "string"
+                    }
+                  },
+                  required: [
+                    "description",
+                    "files",
+                    "envVars",
+                    "identifier"
+                  ]
+                }
               }
             },
             required: [
@@ -11673,14 +12312,29 @@ var schema = {
               "publicKey",
               "config",
               "manifest",
-              "connectedWorkers",
+              "externalWorkers",
               "createdAt",
-              "updatedAt"
+              "updatedAt",
+              "workerScripts"
             ]
           }
         },
         required: [
           "app"
+        ]
+      },
+      SetWorkerScriptEnvVarsInputDTO: {
+        type: "object",
+        properties: {
+          envVars: {
+            type: "object",
+            additionalProperties: {
+              type: "string"
+            }
+          }
+        },
+        required: [
+          "envVars"
         ]
       }
     }
@@ -11785,6 +12439,9 @@ export {
   AppsApiFactory,
   AppsApiAxiosParamCreator,
   AppsApi,
+  AppDTOConfigTasksInnerTriggersInnerOneOfTypeEnum,
+  AppDTOConfigTasksInnerTriggersInnerOneOf2TypeEnum,
+  AppDTOConfigTasksInnerTriggersInnerOneOf1TypeEnum,
   AppDTOConfigTasksInnerInputParamsValueTypeEnum,
   AccessKeysApiFp,
   AccessKeysApiFactory,

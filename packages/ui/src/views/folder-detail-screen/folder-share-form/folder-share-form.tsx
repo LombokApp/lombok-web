@@ -93,7 +93,7 @@ export const FolderShareForm = ({
 }: FolderShareFormProps) => {
   // State specifically for the visual multi-select simulation
   const [currentAddPermissions, setCurrentAddPermissions] = React.useState<
-    PermissionValue[]
+    FolderPermissionName[]
   >([])
 
   // Form hook specifically for the 'Add New Share' section

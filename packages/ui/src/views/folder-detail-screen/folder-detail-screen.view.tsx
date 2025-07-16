@@ -39,7 +39,7 @@ import {
 } from '../../components/upload-modal/upload-modal'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import { useFolderContext } from '../../pages/folders/folder.context'
-import { $api, apiClient, foldersApiHooks } from '../../services/api'
+import { $api, apiClient } from '../../services/api'
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
 import { folderObjectsTableColumns } from './folder-objects-table-columns'
 import { FolderShareModal } from './folder-share-modal/folder-share-modal'
@@ -113,14 +113,25 @@ export const FolderDetailScreen = () => {
     pageIndex: pageFromUrl ? parseInt(pageFromUrl, 10) - 1 : 0,
     pageSize: 10,
   })
-
-  const listFolderObjectsQuery = foldersApiHooks.useListFolderObjects({
-    folderId,
-    limit: pagination.pageSize,
-    offset: pagination.pageIndex * pagination.pageSize,
-    ...(searchFilter?.value ? { search: searchFilter.value as string } : {}),
-    // sort: sorting[0].id,
-  })
+  const listFolderObjectsQuery = $api.useQuery(
+    'get',
+    '/api/v1/folders/{folderId}/objects',
+    {
+      params: {
+        path: {
+          folderId,
+        },
+        query: {
+          limit: pagination.pageSize,
+          offset: pagination.pageIndex * pagination.pageSize,
+          ...(searchFilter?.value
+            ? { search: searchFilter.value as string }
+            : {}),
+          // sort: sorting[0].id,
+        },
+      },
+    },
+  )
 
   const messageHandler = React.useCallback(
     (name: FolderPushMessage, payload: unknown) => {
@@ -213,9 +224,17 @@ export const FolderDetailScreen = () => {
   })
 
   // Add this after other API hooks
-  const listFolderSharesQuery = foldersApiHooks.useListFolderShares({
-    folderId,
-  })
+  const listFolderSharesQuery = $api.useQuery(
+    'get',
+    '/api/v1/folders/{folderId}/shares',
+    {
+      params: {
+        path: {
+          folderId,
+        },
+      },
+    },
+  )
 
   const handleShareFolder = React.useCallback(async () => {
     if (!shareModalData.isOpen) {
@@ -451,7 +470,6 @@ export const FolderDetailScreen = () => {
                       </div>
                       <div className="flex min-h-0 flex-1 flex-col">
                         <DataTable
-                          fullHeight={true}
                           cellPadding={'p-1.5'}
                           hideHeader={true}
                           enableSearch={true}

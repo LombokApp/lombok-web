@@ -19,7 +19,7 @@ import { ServerGeneralConfigTab } from './server-general-config-tab'
 
 export function ServerSettingsScreen({ tab }: { tab: string }) {
   const [settings, setSettings] =
-    React.useState<Partial<SettingsGetResponse['settings']>>()
+    React.useState<SettingsGetResponse['settings']>()
 
   const [dataResetKey, setDataResetKey] = React.useState('___')
 
@@ -105,7 +105,7 @@ export function ServerSettingsScreen({ tab }: { tab: string }) {
           Apps
         </Link>
       </nav>
-      <div className="flex-1 grow overflow-hidden overflow-y-auto">
+      <div className="flex size-full flex-1 flex-col gap-8 overflow-hidden overflow-y-auto">
         {tab === 'storage' ? (
           <ServerStorageConfigTab />
         ) : tab === 'general' ? (

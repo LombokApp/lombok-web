@@ -1,11 +1,12 @@
-FROM oven/bun:1.2.15-alpine AS base
+FROM oven/bun:1.2.17-alpine AS base
 
 WORKDIR /usr/src/app
 
 # Install necessary dependencies
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
-    echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
-    apk update && set -eux && apk add --no-cache ffmpeg nginx libheif-tools su-exec
+  echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
+  apk update && set -eux && apk add --no-cache ffmpeg nginx libheif-tools su-exec zip unzip nsjail && \
+  adduser -D -u 1001 stellaris
 
 FROM base AS local
 

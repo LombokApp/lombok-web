@@ -1,6 +1,5 @@
 'use client'
 
-import type { UserDTO } from '@stellariscloud/api-client'
 import {
   Dialog,
   DialogContent,
@@ -10,12 +9,13 @@ import {
   useToast,
 } from '@stellariscloud/ui-toolkit'
 
+import type { UserDTO } from '@/src/services/api'
+
 import type {
   MutationType,
   UserFormValues,
 } from './server-user-form/server-user-form'
 import { ServerUserForm } from './server-user-form/server-user-form'
-
 export interface ServerUserModalData {
   user: UserDTO | undefined
   mutationType: MutationType

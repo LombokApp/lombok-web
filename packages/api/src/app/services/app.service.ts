@@ -6,17 +6,24 @@ import {
 } from '@nestjs/common'
 import nestJsConfig from '@nestjs/config'
 import { hashLocalFile } from '@stellariscloud/core-worker'
-import type { AppConfig, ConnectedAppWorker } from '@stellariscloud/types'
+import type {
+  AppConfig,
+  AppWorkerScriptMap,
+  ExternalAppWorker,
+} from '@stellariscloud/types'
 import {
-  MediaType,
+  appConfigSchema,
   metadataEntrySchema,
   SignedURLsRequestMethod,
 } from '@stellariscloud/types'
 import { safeZodParse } from '@stellariscloud/utils'
+import { spawn } from 'bun'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
 import fs from 'fs'
-import mime from 'mime'
+import fsPromises from 'fs/promises'
+import os from 'os'
 import path from 'path'
+import { JWTService } from 'src/auth/services/jwt.service'
 import { KVService } from 'src/cache/kv.service'
 import { readDirRecursive } from 'src/core/utils/fs.util'
 import { EventLevel, eventsTable } from 'src/event/entities/event.entity'
@@ -27,12 +34,12 @@ import { FolderNotFoundException } from 'src/folders/exceptions/folder-not-found
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
-import { uploadLocalFile } from 'src/shared/utils'
+import { uploadFile } from 'src/shared/utils'
 import { APP_WORKER_INFO_CACHE_KEY_PREFIX } from 'src/socket/app/app-socket.service'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
-import { tasksTable } from 'src/task/entities/task.entity'
+import { Task, tasksTable } from 'src/task/entities/task.entity'
 import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
 
@@ -69,6 +76,15 @@ const LogEntryValidator = z.object({
 
 const AttemptStartHandleTaskValidator = z.object({
   taskKeys: z.array(z.string()),
+})
+
+const AttemptStartHandleTaskByIdValidator = z.object({
+  taskId: z.string().uuid(),
+})
+
+const GetWorkerExecutionDetailsValidator = z.object({
+  appIdentifier: z.string(),
+  workerIdentifier: z.string(),
 })
 
 const GetContentSignedURLsValidator = z.object({
@@ -123,7 +139,7 @@ export interface AppDefinition {
       files: Record<string, { size: number; hash: string }>
     }
   >
-  workers: Record<
+  workersScripts: Record<
     string,
     {
       name: string
@@ -139,6 +155,7 @@ export class AppService {
     @Inject(appConfig.KEY)
     private readonly _appConfig: nestJsConfig.ConfigType<typeof appConfig>,
     private readonly ormService: OrmService,
+    private readonly jwtService: JWTService,
     private readonly serverConfigurationService: ServerConfigurationService,
     private readonly kvService: KVService,
     @Inject(forwardRef(() => FolderService)) _folderService,
@@ -161,7 +178,8 @@ export class AppService {
     const now = new Date()
     if (safeZodParse(message, AppSocketAPIRequest)) {
       const requestData = message.data
-      const appIdentifierPrefixed = `${APP_NS_PREFIX}${appIdentifier.toUpperCase()}`
+      const appIdentifierPrefixed = `${APP_NS_PREFIX}${appIdentifier.toLowerCase()}`
+      const isCoreApp = appIdentifierPrefixed === `${APP_NS_PREFIX}core`
       switch (message.name) {
         case 'SAVE_LOG_ENTRY':
           if (safeZodParse(requestData, LogEntryValidator)) {
@@ -175,15 +193,16 @@ export class AppService {
                 id: uuidV4(),
               },
             ])
-          } else {
             return {
-              error: {
-                code: 400,
-                message: 'Invalid request.',
-              },
+              result: undefined,
             }
           }
-          break
+          return {
+            error: {
+              code: 400,
+              message: 'Invalid request.',
+            },
+          }
 
         case 'GET_CONTENT_SIGNED_URLS': {
           if (safeZodParse(requestData, GetContentSignedURLsValidator)) {
@@ -232,10 +251,13 @@ export class AppService {
         case 'COMPLETE_HANDLE_TASK': {
           if (safeZodParse(requestData, z.string())) {
             const task = await this.ormService.db.query.tasksTable.findFirst({
-              where: and(
-                eq(tasksTable.id, requestData),
-                eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
-              ),
+              where: isCoreApp
+                ? eq(tasksTable.id, requestData)
+                : and(
+                    eq(tasksTable.id, requestData),
+                    isNull(tasksTable.workerIdentifier),
+                    eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
+                  ),
             })
             if (
               !task ||
@@ -261,37 +283,103 @@ export class AppService {
         }
         case 'ATTEMPT_START_HANDLE_TASK': {
           if (safeZodParse(requestData, AttemptStartHandleTaskValidator)) {
+            let securedTask: Task | undefined = undefined
+            for (let attempt = 0; attempt < 5; attempt++) {
+              const task = await this.ormService.db.query.tasksTable.findFirst({
+                where: and(
+                  eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
+                  inArray(tasksTable.taskKey, requestData.taskKeys),
+                  isNull(tasksTable.startedAt),
+                ),
+              })
+              if (
+                !task ||
+                task.completedAt ||
+                task.handlerId ||
+                task.startedAt
+              ) {
+                // No available task, break early
+                break
+              }
+              // Try to secure the task
+              securedTask = (
+                await this.ormService.db
+                  .update(tasksTable)
+                  .set({ startedAt: new Date(), handlerId })
+                  .where(
+                    and(
+                      eq(tasksTable.id, task.id),
+                      isNull(tasksTable.startedAt),
+                    ),
+                  )
+                  .returning()
+              )[0]
+              // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+              if (securedTask) {
+                break
+              }
+              // If not secured, loop again to try next available task
+            }
+            if (!securedTask) {
+              // If we are finding tasks but not able to secure one after n retries, return a 409
+              return {
+                result: undefined,
+                error: {
+                  code: 409,
+                  message:
+                    'Task already started by another handler after 5 attempts.',
+                },
+              }
+            }
+            return {
+              result: securedTask,
+            }
+          }
+          break
+        }
+        case 'ATTEMPT_START_HANDLE_TASK_BY_ID': {
+          if (safeZodParse(requestData, AttemptStartHandleTaskByIdValidator)) {
             const task = await this.ormService.db.query.tasksTable.findFirst({
-              where: and(
-                eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
-                inArray(tasksTable.taskKey, requestData.taskKeys),
-                isNull(tasksTable.startedAt),
-              ),
+              where: eq(tasksTable.id, requestData.taskId),
             })
-            if (!task || task.completedAt || task.handlerId || task.startedAt) {
+            console.log({
+              isCoreApp,
+              isWorkerTask: !!task?.workerIdentifier,
+              appIdentifier,
+              appIdentifierPrefixed,
+            })
+            if (
+              !task ||
+              (task.workerIdentifier && !isCoreApp) ||
+              (isCoreApp &&
+                !task.workerIdentifier &&
+                task.ownerIdentifier !== appIdentifierPrefixed)
+            ) {
               return {
                 result: undefined,
                 error: {
                   code: 400,
-                  message: 'Invalid request.',
+                  message: 'Invalid request (no task found by id).',
+                },
+              }
+            } else if (task.startedAt || task.completedAt || task.handlerId) {
+              return {
+                result: undefined,
+                error: {
+                  code: 400,
+                  message: 'Task already started.',
                 },
               }
             }
 
             return {
-              result: {
-                ...(
-                  await this.ormService.db
-                    .update(tasksTable)
-                    .set({ startedAt: new Date(), handlerId })
-                    .where(eq(tasksTable.id, task.id))
-                    .returning()
-                )[0],
-                data: {
-                  folderId: task.subjectFolderId,
-                  objectKey: task.subjectObjectKey,
-                },
-              },
+              result: (
+                await this.ormService.db
+                  .update(tasksTable)
+                  .set({ startedAt: new Date(), handlerId })
+                  .where(eq(tasksTable.id, task.id))
+                  .returning()
+              )[0],
             }
           }
           break
@@ -351,6 +439,93 @@ export class AppService {
             }
           }
           break
+        }
+        case 'GET_WORKER_EXECUTION_DETAILS': {
+          if (safeZodParse(requestData, GetWorkerExecutionDetailsValidator)) {
+            // verify the app is the installed "core" app, and that the specified worker payload exists and is specified in the config
+            if (appIdentifier !== 'core') {
+              // must be "core" app to access app worker payloads
+              return {
+                result: undefined,
+                error: {
+                  code: 403,
+                  message: 'Unauthorized.',
+                },
+              }
+            }
+
+            const workerApp = await this.getApp(requestData.appIdentifier)
+            if (!workerApp) {
+              // app by appIdentifier not found
+              return {
+                result: undefined,
+                error: {
+                  code: 404,
+                  message: 'Worker app not found.',
+                },
+              }
+            }
+
+            if (!(requestData.workerIdentifier in workerApp.workerScripts)) {
+              // worker by workerIdentifier not found in app by appIdentifier
+              return {
+                result: undefined,
+                error: {
+                  code: 404,
+                  message: 'Worker not found.',
+                },
+              }
+            }
+
+            const serverStorageLocation =
+              await this.serverConfigurationService.getServerStorageLocation()
+
+            if (!serverStorageLocation) {
+              return {
+                result: undefined,
+                error: {
+                  code: 500,
+                  message: 'Server storage location not available.',
+                },
+              }
+            }
+            const presignedGetURL = this.s3Service.createS3PresignedUrls([
+              {
+                method: SignedURLsRequestMethod.GET,
+                objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}${requestData.appIdentifier}/workers/${requestData.workerIdentifier}.zip`,
+                accessKeyId: serverStorageLocation.accessKeyId,
+                secretAccessKey: serverStorageLocation.secretAccessKey,
+                bucket: serverStorageLocation.bucket,
+                endpoint: serverStorageLocation.endpoint,
+                expirySeconds: 3600,
+                region: serverStorageLocation.region,
+              },
+            ])
+            return {
+              result: {
+                payloadUrl: presignedGetURL[0],
+                envVars:
+                  workerApp.workerScripts[requestData.workerIdentifier].envVars,
+                workerToken: await this.jwtService.createAppWorkerToken(
+                  requestData.appIdentifier,
+                ),
+              },
+            }
+          } else {
+            // eslint-disable-next-line no-console
+            console.log(
+              'GET_WORKER_EXECUTION_DETAILS error:',
+              requestData,
+              GetWorkerExecutionDetailsValidator.safeParse(requestData).error,
+            )
+            return {
+              result: undefined,
+              error: {
+                code: 400,
+                message: 'Malformed GET_WORKER_EXECUTION_DETAILS request.',
+              },
+            }
+          }
         }
       }
       return {
@@ -627,7 +802,7 @@ export class AppService {
       ).length
 
     if (appRequiresStorage && serverStorageLocation) {
-      const prefix = `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-storage/${app.identifier}/`
+      const prefix = `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}${app.identifier}/`
       await this.s3Service.deleteAllWithPrefix({
         ...serverStorageLocation,
         prefix,
@@ -667,20 +842,85 @@ export class AppService {
     }
 
     if (serverStorageLocation) {
-      for (const manifestEntry of assetManifestEntries) {
-        const fullFilepath = path.join(
-          this._appConfig.appsLocalPath,
-          app.identifier,
-          manifestEntry.path,
-        )
-        const objectKey = `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}app-storage/${app.identifier}${manifestEntry.path}`
-        // eslint-disable-next-line no-console
-        console.log('Uploading app file:', {
-          objectKey,
-          filepath: manifestEntry.path,
-          fullFilepath,
-        })
+      // 1. Group assetManifestEntries by /ui/<name>/ or /workers/<name>/
+      const groupedAssets = new Map<
+        string,
+        {
+          groupType: 'ui' | 'worker'
+          groupName: string
+          entries: typeof assetManifestEntries
+        }
+      >()
 
+      for (const entry of assetManifestEntries) {
+        const match = entry.path.match(/^\/(ui|workers)\/([^/]+)\//)
+        if (!match) {
+          continue
+        }
+        const [_, type, name] = match
+        const key = `${type}__${name}`
+        if (!groupedAssets.has(key)) {
+          groupedAssets.set(key, {
+            groupType: type as 'ui' | 'worker',
+            groupName: name,
+            entries: [],
+          })
+        }
+        const group = groupedAssets.get(key)
+        if (group) {
+          group.entries.push(entry)
+        }
+      }
+
+      // 2. For each group, zip the files and upload
+      for (const [
+        groupKey,
+        { groupType, groupName, entries },
+      ] of groupedAssets) {
+        // Create a temp dir for this group
+        const tempDir = await fsPromises.mkdtemp(
+          path.join(os.tmpdir(), `appzip-${groupKey}-`),
+        )
+        const groupDir = path.join(tempDir, groupName)
+        const relRoot =
+          groupType === 'ui' ? `/ui/${groupName}/` : `/workers/${groupName}/`
+
+        // Copy files into temp dir, preserving structure
+        for (const entry of entries) {
+          const relPath = entry.path.slice(relRoot.length)
+          const destPath = path.join(groupDir, relPath)
+          await fsPromises.mkdir(path.dirname(destPath), { recursive: true })
+          const srcPath = path.join(
+            this._appConfig.appsLocalPath,
+            app.identifier,
+            entry.path,
+          )
+          await fsPromises.copyFile(srcPath, destPath)
+        }
+
+        // Zip the contents
+        const zipName = `${groupName}.zip`
+        const zipPath = path.join(os.tmpdir(), zipName)
+        // Use Bun.spawn to call zip
+        // zip -r <zipPath> <groupName> (from inside tempDir)
+        const zipProc = spawn({
+          cmd: ['zip', '-r', zipPath, groupName],
+          cwd: tempDir,
+          stdout: 'inherit',
+          stderr: 'inherit',
+        })
+        const zipCode = await zipProc.exited
+        if (zipCode !== 0) {
+          throw new Error(`Failed to zip assets for group ${groupKey}`)
+        }
+
+        // Upload zip to app storage
+        const objectKey = `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}${app.identifier}/${groupType}/${zipName}`
+        // eslint-disable-next-line no-console
+        console.log('Uploading app asset zip:', {
+          objectKey,
+          zipPath,
+        })
         const [url] = this.s3Service.createS3PresignedUrls([
           {
             ...serverStorageLocation,
@@ -689,12 +929,11 @@ export class AppService {
             objectKey,
           },
         ])
-
-        await uploadLocalFile(
-          fullFilepath,
-          url,
-          mime.getType(manifestEntry.path) ?? undefined,
-        )
+        // Upload the zip file
+        await uploadFile(zipPath, url, 'application/zip')
+        // Clean up temp files
+        await fsPromises.rm(tempDir, { recursive: true, force: true })
+        await fsPromises.rm(zipPath, { force: true })
       }
     }
 
@@ -730,7 +969,7 @@ export class AppService {
   ) {
     const app = await this.parseAppFromDisk(appIdentifier)
 
-    if (app.valid) {
+    if (app.validation.value) {
       try {
         await this.installApp(app.definition, update)
       } catch (error) {
@@ -756,7 +995,10 @@ export class AppService {
       }
     } else {
       // eslint-disable-next-line no-console
-      console.log(`APP PARSE ERROR - APP[${appIdentifier}]: DEFINITION_INVALID`)
+      console.log(
+        `APP PARSE ERROR - APP[${appIdentifier}]: DEFINITION_INVALID`,
+        app.validation.error,
+      )
     }
   }
 
@@ -772,9 +1014,10 @@ export class AppService {
       )
   }
 
-  public async parseAppFromDisk(
-    appIdentifier: string,
-  ): Promise<{ definition: App; valid: boolean }> {
+  public async parseAppFromDisk(appIdentifier: string): Promise<{
+    definition: App
+    validation: { value: boolean; error?: z.ZodError }
+  }> {
     const now = new Date()
 
     let currentTotalSize = 0
@@ -824,24 +1067,87 @@ export class AppService {
         }
       }),
     )
-    // TODO: Validate app definition
+
+    const workerScripts = Object.entries(
+      config.workerScripts ?? {},
+    ).reduce<AppWorkerScriptMap>(
+      (acc, [workerIdentifier, value]) => ({
+        ...acc,
+        [workerIdentifier]: {
+          ...value,
+          files: manifest.filter((manifestEntry) =>
+            manifestEntry.path.startsWith(`/workers/${workerIdentifier}/`),
+          ),
+          envVars: value.envVars ?? {},
+        },
+      }),
+      {},
+    )
+
+    const appDefinition: App = {
+      identifier: appIdentifier,
+      manifest,
+      publicKey,
+      workerScripts,
+      config,
+      createdAt: now,
+      updatedAt: now,
+      contentHash: '', // TODO: calculate the exact content hash
+    }
+
+    const parseResult = appConfigSchema.safeParse(appDefinition.config)
     const app = {
-      valid: true,
-      definition: {
-        identifier: appIdentifier,
-        manifest,
-        publicKey,
-        config,
-        createdAt: now,
-        updatedAt: now,
-        contentHash: '', // TODO: calculate the exact content hash
-        enabled: false,
+      validation: {
+        value: parseResult.success,
+        error: parseResult.success ? undefined : parseResult.error,
       },
+      definition: appDefinition,
     }
     return app
   }
 
-  getAppConnections(): Record<string, ConnectedAppWorker[]> {
+  /**
+   * Update the envVars for a specific worker script in an app.
+   * @param params.appIdentifier - The app's identifier
+   * @param params.workerIdentifier - The worker script's identifier
+   * @param params.envVars - The new environment variables
+   * @returns The updated envVars object
+   */
+  async setAppWorkerEnvVars({
+    appIdentifier,
+    workerIdentifier,
+    envVars,
+  }: {
+    appIdentifier: string
+    workerIdentifier: string
+    envVars: Record<string, string>
+  }): Promise<Record<string, string>> {
+    // Fetch the app
+    const app = await this.getApp(appIdentifier)
+    if (!app) {
+      throw new NotFoundException(`App not found: ${appIdentifier}`)
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    if (!app.workerScripts[workerIdentifier]) {
+      throw new NotFoundException(
+        `Worker script not found: ${workerIdentifier}`,
+      )
+    }
+    // Update envVars for the specified worker
+    app.workerScripts[workerIdentifier] = {
+      ...app.workerScripts[workerIdentifier],
+      envVars: { ...envVars },
+    }
+    // Persist the change
+    await this.ormService.db
+      .update(appsTable)
+      .set({ workerScripts: app.workerScripts })
+      .where(eq(appsTable.identifier, appIdentifier))
+
+    return app.workerScripts[workerIdentifier].envVars
+  }
+
+  getExternalWorkerConnections(): Record<string, ExternalAppWorker[]> {
     let cursor = 0
     let started = false
     let keys: string[] = []
@@ -861,11 +1167,11 @@ export class AppService {
       ? this.kvService.ops
           .mget(...keys)
           .filter((_r) => _r)
-          .reduce<Record<string, ConnectedAppWorker[]>>(
+          .reduce<Record<string, ExternalAppWorker[]>>(
             (acc, _r: string | undefined) => {
               const parsed = JSON.parse(
                 _r ?? 'null',
-              ) as ConnectedAppWorker | null
+              ) as ExternalAppWorker | null
               if (!parsed) {
                 return acc
               }

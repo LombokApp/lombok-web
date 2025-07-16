@@ -698,6 +698,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/env-vars": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["setWorkerScriptEnvVars"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1602,7 +1618,28 @@ export interface components {
                 tasks: {
                     key: string;
                     label: string;
-                    eventTriggers: string[];
+                    triggers?: ({
+                        /** @enum {string} */
+                        type: "event";
+                        event: string;
+                        inputParams: {
+                            [key: string]: string;
+                        };
+                    } | {
+                        /** @enum {string} */
+                        type: "objectAction";
+                        description: string;
+                        inputParams: {
+                            [key: string]: string;
+                        };
+                    } | {
+                        /** @enum {string} */
+                        type: "folderAction";
+                        actionLabel: string;
+                        inputParams: {
+                            [key: string]: string;
+                        };
+                    })[];
                     folderAction?: {
                         description: string;
                     };
@@ -1617,7 +1654,17 @@ export interface components {
                             default?: (string | number | boolean) | null;
                         };
                     };
+                    worker?: string;
                 }[];
+                externalWorkers?: string[];
+                workerScripts?: {
+                    [key: string]: {
+                        description: string;
+                        envVars?: {
+                            [key: string]: string;
+                        };
+                    };
+                };
                 menuItems: {
                     label: string;
                     iconPath?: string;
@@ -1629,12 +1676,24 @@ export interface components {
                 hash: string;
                 size: number;
             }[];
-            connectedWorkers: {
+            externalWorkers: {
                 appIdentifier: string;
                 workerId: string;
                 handledTaskKeys: string[];
                 socketClientId: string;
                 ip: string;
+            }[];
+            workerScripts: {
+                description: string;
+                files: {
+                    path: string;
+                    hash: string;
+                    size: number;
+                }[];
+                envVars: {
+                    [key: string]: string;
+                };
+                identifier: string;
             }[];
             /** Format: date-time */
             createdAt: string;
@@ -1655,7 +1714,28 @@ export interface components {
                     tasks: {
                         key: string;
                         label: string;
-                        eventTriggers: string[];
+                        triggers?: ({
+                            /** @enum {string} */
+                            type: "event";
+                            event: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            type: "objectAction";
+                            description: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            type: "folderAction";
+                            actionLabel: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        })[];
                         folderAction?: {
                             description: string;
                         };
@@ -1670,7 +1750,17 @@ export interface components {
                                 default?: (string | number | boolean) | null;
                             };
                         };
+                        worker?: string;
                     }[];
+                    externalWorkers?: string[];
+                    workerScripts?: {
+                        [key: string]: {
+                            description: string;
+                            envVars?: {
+                                [key: string]: string;
+                            };
+                        };
+                    };
                     menuItems: {
                         label: string;
                         iconPath?: string;
@@ -1682,12 +1772,24 @@ export interface components {
                     hash: string;
                     size: number;
                 }[];
-                connectedWorkers: {
+                externalWorkers: {
                     appIdentifier: string;
                     workerId: string;
                     handledTaskKeys: string[];
                     socketClientId: string;
                     ip: string;
+                }[];
+                workerScripts: {
+                    description: string;
+                    files: {
+                        path: string;
+                        hash: string;
+                        size: number;
+                    }[];
+                    envVars: {
+                        [key: string]: string;
+                    };
+                    identifier: string;
                 }[];
                 /** Format: date-time */
                 createdAt: string;
@@ -1706,7 +1808,28 @@ export interface components {
                     tasks: {
                         key: string;
                         label: string;
-                        eventTriggers: string[];
+                        triggers?: ({
+                            /** @enum {string} */
+                            type: "event";
+                            event: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            type: "objectAction";
+                            description: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            type: "folderAction";
+                            actionLabel: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        })[];
                         folderAction?: {
                             description: string;
                         };
@@ -1721,7 +1844,17 @@ export interface components {
                                 default?: (string | number | boolean) | null;
                             };
                         };
+                        worker?: string;
                     }[];
+                    externalWorkers?: string[];
+                    workerScripts?: {
+                        [key: string]: {
+                            description: string;
+                            envVars?: {
+                                [key: string]: string;
+                            };
+                        };
+                    };
                     menuItems: {
                         label: string;
                         iconPath?: string;
@@ -1733,7 +1866,7 @@ export interface components {
                     hash: string;
                     size: number;
                 }[];
-                connectedWorkers: {
+                externalWorkers: {
                     appIdentifier: string;
                     workerId: string;
                     handledTaskKeys: string[];
@@ -1744,6 +1877,23 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
+                workerScripts: {
+                    description: string;
+                    files: {
+                        path: string;
+                        hash: string;
+                        size: number;
+                    }[];
+                    envVars: {
+                        [key: string]: string;
+                    };
+                    identifier: string;
+                }[];
+            };
+        };
+        SetWorkerScriptEnvVarsInputDTO: {
+            envVars: {
+                [key: string]: string;
             };
         };
     };
@@ -3084,6 +3234,32 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AppGetResponse"];
+                };
+            };
+        };
+    };
+    setWorkerScriptEnvVars: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+                workerIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetWorkerScriptEnvVarsInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
                 };
             };
         };

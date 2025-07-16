@@ -2729,6 +2729,59 @@
           "Apps"
         ]
       }
+    },
+    "/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/env-vars": {
+      "put": {
+        "operationId": "setWorkerScriptEnvVars",
+        "parameters": [
+          {
+            "name": "appIdentifier",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "workerIdentifier",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetWorkerScriptEnvVarsInputDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
     }
   },
   "info": {
@@ -4040,7 +4093,9 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1
           },
           "metadataLocation": {
             "oneOf": [
@@ -6086,10 +6141,89 @@
                     "label": {
                       "type": "string"
                     },
-                    "eventTriggers": {
+                    "triggers": {
                       "type": "array",
                       "items": {
-                        "type": "string"
+                        "discriminator": {
+                          "propertyName": "type"
+                        },
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "event"
+                                ]
+                              },
+                              "event": {
+                                "type": "string"
+                              },
+                              "inputParams": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "event",
+                              "inputParams"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "objectAction"
+                                ]
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "inputParams": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "description",
+                              "inputParams"
+                            ]
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "folderAction"
+                                ]
+                              },
+                              "actionLabel": {
+                                "type": "string"
+                              },
+                              "inputParams": {
+                                "type": "object",
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "actionLabel",
+                              "inputParams"
+                            ]
+                          }
+                        ]
                       }
                     },
                     "folderAction": {
@@ -6149,12 +6283,40 @@
                           "type"
                         ]
                       }
+                    },
+                    "worker": {
+                      "type": "string"
                     }
                   },
                   "required": [
                     "key",
                     "label",
-                    "eventTriggers",
+                    "description"
+                  ]
+                }
+              },
+              "externalWorkers": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "workerScripts": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    },
+                    "envVars": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
                     "description"
                   ]
                 }
@@ -6211,7 +6373,7 @@
               ]
             }
           },
-          "connectedWorkers": {
+          "externalWorkers": {
             "type": "array",
             "items": {
               "type": "object",
@@ -6244,6 +6406,54 @@
               ]
             }
           },
+          "workerScripts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "files": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      },
+                      "hash": {
+                        "type": "string"
+                      },
+                      "size": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "hash",
+                      "size"
+                    ]
+                  }
+                },
+                "envVars": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "identifier": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "description",
+                "files",
+                "envVars",
+                "identifier"
+              ]
+            }
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -6258,7 +6468,8 @@
           "publicKey",
           "config",
           "manifest",
-          "connectedWorkers",
+          "externalWorkers",
+          "workerScripts",
           "createdAt",
           "updatedAt"
         ]
@@ -6314,10 +6525,89 @@
                           "label": {
                             "type": "string"
                           },
-                          "eventTriggers": {
+                          "triggers": {
                             "type": "array",
                             "items": {
-                              "type": "string"
+                              "discriminator": {
+                                "propertyName": "type"
+                              },
+                              "oneOf": [
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "event"
+                                      ]
+                                    },
+                                    "event": {
+                                      "type": "string"
+                                    },
+                                    "inputParams": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "event",
+                                    "inputParams"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "objectAction"
+                                      ]
+                                    },
+                                    "description": {
+                                      "type": "string"
+                                    },
+                                    "inputParams": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "description",
+                                    "inputParams"
+                                  ]
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "folderAction"
+                                      ]
+                                    },
+                                    "actionLabel": {
+                                      "type": "string"
+                                    },
+                                    "inputParams": {
+                                      "type": "object",
+                                      "additionalProperties": {
+                                        "type": "string"
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "actionLabel",
+                                    "inputParams"
+                                  ]
+                                }
+                              ]
                             }
                           },
                           "folderAction": {
@@ -6377,12 +6667,40 @@
                                 "type"
                               ]
                             }
+                          },
+                          "worker": {
+                            "type": "string"
                           }
                         },
                         "required": [
                           "key",
                           "label",
-                          "eventTriggers",
+                          "description"
+                        ]
+                      }
+                    },
+                    "externalWorkers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "workerScripts": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "description": {
+                            "type": "string"
+                          },
+                          "envVars": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": [
                           "description"
                         ]
                       }
@@ -6439,7 +6757,7 @@
                     ]
                   }
                 },
-                "connectedWorkers": {
+                "externalWorkers": {
                   "type": "array",
                   "items": {
                     "type": "object",
@@ -6472,6 +6790,54 @@
                     ]
                   }
                 },
+                "workerScripts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "files": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string"
+                            },
+                            "hash": {
+                              "type": "string"
+                            },
+                            "size": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "path",
+                            "hash",
+                            "size"
+                          ]
+                        }
+                      },
+                      "envVars": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      },
+                      "identifier": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "description",
+                      "files",
+                      "envVars",
+                      "identifier"
+                    ]
+                  }
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time"
@@ -6486,7 +6852,8 @@
                 "publicKey",
                 "config",
                 "manifest",
-                "connectedWorkers",
+                "externalWorkers",
+                "workerScripts",
                 "createdAt",
                 "updatedAt"
               ]
@@ -6536,10 +6903,89 @@
                         "label": {
                           "type": "string"
                         },
-                        "eventTriggers": {
+                        "triggers": {
                           "type": "array",
                           "items": {
-                            "type": "string"
+                            "discriminator": {
+                              "propertyName": "type"
+                            },
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "event"
+                                    ]
+                                  },
+                                  "event": {
+                                    "type": "string"
+                                  },
+                                  "inputParams": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "event",
+                                  "inputParams"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "objectAction"
+                                    ]
+                                  },
+                                  "description": {
+                                    "type": "string"
+                                  },
+                                  "inputParams": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "description",
+                                  "inputParams"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "folderAction"
+                                    ]
+                                  },
+                                  "actionLabel": {
+                                    "type": "string"
+                                  },
+                                  "inputParams": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                      "type": "string"
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "actionLabel",
+                                  "inputParams"
+                                ]
+                              }
+                            ]
                           }
                         },
                         "folderAction": {
@@ -6599,12 +7045,40 @@
                               "type"
                             ]
                           }
+                        },
+                        "worker": {
+                          "type": "string"
                         }
                       },
                       "required": [
                         "key",
                         "label",
-                        "eventTriggers",
+                        "description"
+                      ]
+                    }
+                  },
+                  "externalWorkers": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "workerScripts": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        },
+                        "envVars": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
                         "description"
                       ]
                     }
@@ -6661,7 +7135,7 @@
                   ]
                 }
               },
-              "connectedWorkers": {
+              "externalWorkers": {
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -6701,6 +7175,54 @@
               "updatedAt": {
                 "type": "string",
                 "format": "date-time"
+              },
+              "workerScripts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    },
+                    "files": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "hash": {
+                            "type": "string"
+                          },
+                          "size": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "hash",
+                          "size"
+                        ]
+                      }
+                    },
+                    "envVars": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "identifier": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "description",
+                    "files",
+                    "envVars",
+                    "identifier"
+                  ]
+                }
               }
             },
             "required": [
@@ -6708,14 +7230,29 @@
               "publicKey",
               "config",
               "manifest",
-              "connectedWorkers",
+              "externalWorkers",
               "createdAt",
-              "updatedAt"
+              "updatedAt",
+              "workerScripts"
             ]
           }
         },
         "required": [
           "app"
+        ]
+      },
+      "SetWorkerScriptEnvVarsInputDTO": {
+        "type": "object",
+        "properties": {
+          "envVars": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "envVars"
         ]
       }
     }

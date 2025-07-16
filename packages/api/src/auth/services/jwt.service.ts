@@ -27,6 +27,7 @@ const ALGORITHM = 'HS256'
 export const USER_JWT_SUB_PREFIX = 'user:'
 export const APP_USER_JWT_SUB_PREFIX = 'app_user:'
 export const APP_JWT_SUB_PREFIX = 'app:'
+export const APP_WORKER_JWT_SUB_PREFIX = 'app_worker:'
 
 export const accessTokenType = z.object({
   aud: z.string(),
@@ -113,6 +114,23 @@ export class JWTService {
     private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
     private readonly ormService: OrmService,
   ) {}
+
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async createAppWorkerToken(appIdentifier: string) {
+    return jwt.sign(
+      {
+        aud: this._coreConfig.hostId,
+        jti: `${uuidV4()}`,
+        scp: [],
+        sub: `${APP_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
+      },
+      this._authConfig.authJwtSecret,
+      {
+        algorithm: ALGORITHM,
+        expiresIn: AuthDurationSeconds.AppWorker,
+      },
+    )
+  }
 
   async createSessionAccessToken(session: Session): Promise<string> {
     const payload: AccessTokenJWT = {
@@ -204,7 +222,29 @@ export class JWTService {
       throw error
     }
   }
-
+  verifyAppWorkerToken({
+    appIdentifier,
+    token,
+  }: {
+    appIdentifier: string
+    token: string
+  }) {
+    try {
+      return jwt.verify(token, this._authConfig.authJwtSecret, {
+        algorithms: [ALGORITHM],
+        audience: this._coreConfig.hostId,
+        subject: `${APP_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
+      }) as JwtPayload
+    } catch (error) {
+      if (error instanceof jwt.TokenExpiredError) {
+        throw new AuthTokenExpiredError(token, error)
+      }
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new AuthTokenInvalidError(token, error)
+      }
+      throw error
+    }
+  }
   decodeJWT(token: string): jwt.Jwt {
     try {
       const decodedJWT = jwt.decode(token, {

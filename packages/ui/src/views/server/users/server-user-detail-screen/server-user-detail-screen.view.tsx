@@ -11,7 +11,7 @@ import { Folders, HandshakeIcon, KeyIcon, Pencil } from 'lucide-react'
 import React from 'react'
 
 import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
-import { apiClient, usersApiHooks } from '../../../../services/api'
+import { $api, apiClient } from '../../../../services/api'
 import type { UserFormValues } from '../server-user-modal/server-user-form/server-user-form'
 import {
   ServerUserModal,
@@ -32,21 +32,23 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
     isOpen: false,
   })
 
-  const userQuery = usersApiHooks.useGetUser(
-    {
-      userId,
+  const userQuery = $api.useQuery('get', '/api/v1/server/users/{userId}', {
+    params: {
+      path: {
+        userId,
+      },
     },
-    {
-      enabled: !!userId,
-    },
-  )
+  })
 
-  const userSessionsQuery = usersApiHooks.useListActiveUserSessions(
+  const userSessionsQuery = $api.useQuery(
+    'get',
+    '/api/v1/server/users/{userId}/sessions',
     {
-      userId,
-    },
-    {
-      enabled: !!userId,
+      params: {
+        path: {
+          userId,
+        },
+      },
     },
   )
 
@@ -86,7 +88,7 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex size-full flex-1 flex-col gap-8 overflow-hidden overflow-y-auto">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">

@@ -1,30 +1,25 @@
-import type { AxiosError } from 'axios'
-import axios from 'axios'
 import fs from 'fs'
 
-export const uploadLocalFile = async (
+export const uploadFile = async (
   filepath: string,
   uploadUrl: string,
   mimeType?: string,
 ) => {
-  const readmeStream = fs.createReadStream(filepath)
-  readmeStream.on('error', (e: unknown) => {
-    if (e && typeof e === 'object' && 'isAxiosError' in e) {
-      // eslint-disable-next-line no-console
-      console.log({
-        status: (e as AxiosError).status,
-        json: (e as AxiosError).toJSON(),
-      })
-    }
-    throw e
-  })
   const { size } = fs.statSync(filepath)
-  await axios.put(uploadUrl, readmeStream, {
+  console.log('Uploading file of size %d bytes to "%s":', size, uploadUrl)
+
+  const fileBuffer = await Bun.file(filepath).arrayBuffer()
+  const blob = new Blob([fileBuffer], { type: mimeType })
+
+  const response = await fetch(uploadUrl, {
+    method: 'PUT',
     headers: {
-      ...(mimeType ? { 'Content-Type': mimeType } : {}),
-      'Content-Length': size,
+      'Content-Length': size.toString(),
     },
-    maxContentLength: Infinity,
-    maxBodyLength: Infinity,
+    body: blob,
   })
+
+  if (!response.ok) {
+    throw new Error(`Upload failed with status ${response.status}`)
+  }
 }

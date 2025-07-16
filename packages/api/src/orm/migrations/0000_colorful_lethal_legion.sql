@@ -3,6 +3,7 @@ CREATE TABLE "apps" (
 	"publicKey" text NOT NULL,
 	"contentHash" text NOT NULL,
 	"config" jsonb NOT NULL,
+	"workerScripts" jsonb NOT NULL,
 	"manifest" jsonb NOT NULL,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL
@@ -103,7 +104,8 @@ CREATE TABLE "tasks" (
 	"errorCode" text,
 	"errorMessage" text,
 	"createdAt" timestamp NOT NULL,
-	"updatedAt" timestamp NOT NULL
+	"updatedAt" timestamp NOT NULL,
+	"workerIdentifier" text
 );
 --> statement-breakpoint
 CREATE TABLE "users" (

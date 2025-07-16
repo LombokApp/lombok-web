@@ -35,6 +35,7 @@ export const tasksTable = pgTable('tasks', {
   errorMessage: text('errorMessage'),
   createdAt: timestamp('createdAt').notNull(),
   updatedAt: timestamp('updatedAt').notNull(),
+  workerIdentifier: text('workerIdentifier'),
 })
 
 export type Task = typeof tasksTable.$inferSelect
