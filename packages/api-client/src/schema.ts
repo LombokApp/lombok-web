@@ -6242,11 +6242,24 @@ export const schema = {
                   ]
                 }
               },
-              "workers": {
+              "externalWorkers": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "workerScripts": {
                 "type": "object",
                 "additionalProperties": {
                   "type": "object",
-                  "properties": {}
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "description"
+                  ]
                 }
               },
               "menuItems": {
@@ -6301,7 +6314,7 @@ export const schema = {
               ]
             }
           },
-          "connectedWorkers": {
+          "externalWorkers": {
             "type": "array",
             "items": {
               "type": "object",
@@ -6334,6 +6347,47 @@ export const schema = {
               ]
             }
           },
+          "workerScripts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "files": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      },
+                      "hash": {
+                        "type": "string"
+                      },
+                      "size": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "path",
+                      "hash",
+                      "size"
+                    ]
+                  }
+                },
+                "identifier": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "description",
+                "files",
+                "identifier"
+              ]
+            }
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -6348,7 +6402,8 @@ export const schema = {
           "publicKey",
           "config",
           "manifest",
-          "connectedWorkers",
+          "externalWorkers",
+          "workerScripts",
           "createdAt",
           "updatedAt"
         ]
@@ -6558,11 +6613,24 @@ export const schema = {
                         ]
                       }
                     },
-                    "workers": {
+                    "externalWorkers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "workerScripts": {
                       "type": "object",
                       "additionalProperties": {
                         "type": "object",
-                        "properties": {}
+                        "properties": {
+                          "description": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "description"
+                        ]
                       }
                     },
                     "menuItems": {
@@ -6617,7 +6685,7 @@ export const schema = {
                     ]
                   }
                 },
-                "connectedWorkers": {
+                "externalWorkers": {
                   "type": "array",
                   "items": {
                     "type": "object",
@@ -6650,6 +6718,47 @@ export const schema = {
                     ]
                   }
                 },
+                "workerScripts": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "files": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string"
+                            },
+                            "hash": {
+                              "type": "string"
+                            },
+                            "size": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "path",
+                            "hash",
+                            "size"
+                          ]
+                        }
+                      },
+                      "identifier": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "description",
+                      "files",
+                      "identifier"
+                    ]
+                  }
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time"
@@ -6664,7 +6773,8 @@ export const schema = {
                 "publicKey",
                 "config",
                 "manifest",
-                "connectedWorkers",
+                "externalWorkers",
+                "workerScripts",
                 "createdAt",
                 "updatedAt"
               ]
@@ -6868,11 +6978,24 @@ export const schema = {
                       ]
                     }
                   },
-                  "workers": {
+                  "externalWorkers": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "workerScripts": {
                     "type": "object",
                     "additionalProperties": {
                       "type": "object",
-                      "properties": {}
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "description"
+                      ]
                     }
                   },
                   "menuItems": {
@@ -6927,7 +7050,7 @@ export const schema = {
                   ]
                 }
               },
-              "connectedWorkers": {
+              "externalWorkers": {
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -6967,6 +7090,47 @@ export const schema = {
               "updatedAt": {
                 "type": "string",
                 "format": "date-time"
+              },
+              "workerScripts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    },
+                    "files": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "hash": {
+                            "type": "string"
+                          },
+                          "size": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "hash",
+                          "size"
+                        ]
+                      }
+                    },
+                    "identifier": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "description",
+                    "files",
+                    "identifier"
+                  ]
+                }
               }
             },
             "required": [
@@ -6974,9 +7138,10 @@ export const schema = {
               "publicKey",
               "config",
               "manifest",
-              "connectedWorkers",
+              "externalWorkers",
               "createdAt",
-              "updatedAt"
+              "updatedAt",
+              "workerScripts"
             ]
           }
         },

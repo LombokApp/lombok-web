@@ -218,10 +218,16 @@ export interface AppDTO {
     'manifest': Array<AppDTOManifestInner>;
     /**
      * 
-     * @type {Array<AppDTOConnectedWorkersInner>}
+     * @type {Array<AppDTOExternalWorkersInner>}
      * @memberof AppDTO
      */
-    'connectedWorkers': Array<AppDTOConnectedWorkersInner>;
+    'externalWorkers': Array<AppDTOExternalWorkersInner>;
+    /**
+     * 
+     * @type {Array<AppDTOWorkerScriptsInner>}
+     * @memberof AppDTO
+     */
+    'workerScripts': Array<AppDTOWorkerScriptsInner>;
     /**
      * 
      * @type {string}
@@ -267,10 +273,16 @@ export interface AppDTOConfig {
     'tasks': Array<AppDTOConfigTasksInner>;
     /**
      * 
-     * @type {{ [key: string]: object; }}
+     * @type {Array<string>}
      * @memberof AppDTOConfig
      */
-    'workers'?: { [key: string]: object; };
+    'externalWorkers'?: Array<string>;
+    /**
+     * 
+     * @type {{ [key: string]: AppDTOConfigTasksInnerFolderAction; }}
+     * @memberof AppDTOConfig
+     */
+    'workerScripts'?: { [key: string]: AppDTOConfigTasksInnerFolderAction; };
     /**
      * 
      * @type {Array<AppDTOConfigMenuItemsInner>}
@@ -510,37 +522,37 @@ export type AppDTOConfigTasksInnerTriggersInnerOneOf2TypeEnum = typeof AppDTOCon
 /**
  * 
  * @export
- * @interface AppDTOConnectedWorkersInner
+ * @interface AppDTOExternalWorkersInner
  */
-export interface AppDTOConnectedWorkersInner {
+export interface AppDTOExternalWorkersInner {
     /**
      * 
      * @type {string}
-     * @memberof AppDTOConnectedWorkersInner
+     * @memberof AppDTOExternalWorkersInner
      */
     'appIdentifier': string;
     /**
      * 
      * @type {string}
-     * @memberof AppDTOConnectedWorkersInner
+     * @memberof AppDTOExternalWorkersInner
      */
     'workerId': string;
     /**
      * 
      * @type {Array<string>}
-     * @memberof AppDTOConnectedWorkersInner
+     * @memberof AppDTOExternalWorkersInner
      */
     'handledTaskKeys': Array<string>;
     /**
      * 
      * @type {string}
-     * @memberof AppDTOConnectedWorkersInner
+     * @memberof AppDTOExternalWorkersInner
      */
     'socketClientId': string;
     /**
      * 
      * @type {string}
-     * @memberof AppDTOConnectedWorkersInner
+     * @memberof AppDTOExternalWorkersInner
      */
     'ip': string;
 }
@@ -568,6 +580,31 @@ export interface AppDTOManifestInner {
      * @memberof AppDTOManifestInner
      */
     'size': number;
+}
+/**
+ * 
+ * @export
+ * @interface AppDTOWorkerScriptsInner
+ */
+export interface AppDTOWorkerScriptsInner {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOWorkerScriptsInner
+     */
+    'description': string;
+    /**
+     * 
+     * @type {Array<AppDTOManifestInner>}
+     * @memberof AppDTOWorkerScriptsInner
+     */
+    'files': Array<AppDTOManifestInner>;
+    /**
+     * 
+     * @type {string}
+     * @memberof AppDTOWorkerScriptsInner
+     */
+    'identifier': string;
 }
 /**
  * 
@@ -633,10 +670,16 @@ export interface AppListResponseResultInner {
     'manifest': Array<AppDTOManifestInner>;
     /**
      * 
-     * @type {Array<AppDTOConnectedWorkersInner>}
+     * @type {Array<AppDTOExternalWorkersInner>}
      * @memberof AppListResponseResultInner
      */
-    'connectedWorkers': Array<AppDTOConnectedWorkersInner>;
+    'externalWorkers': Array<AppDTOExternalWorkersInner>;
+    /**
+     * 
+     * @type {Array<AppDTOWorkerScriptsInner>}
+     * @memberof AppListResponseResultInner
+     */
+    'workerScripts': Array<AppDTOWorkerScriptsInner>;
     /**
      * 
      * @type {string}

@@ -11288,11 +11288,24 @@ var schema = {
                   ]
                 }
               },
-              workers: {
+              externalWorkers: {
+                type: "array",
+                items: {
+                  type: "string"
+                }
+              },
+              workerScripts: {
                 type: "object",
                 additionalProperties: {
                   type: "object",
-                  properties: {}
+                  properties: {
+                    description: {
+                      type: "string"
+                    }
+                  },
+                  required: [
+                    "description"
+                  ]
                 }
               },
               menuItems: {
@@ -11347,7 +11360,7 @@ var schema = {
               ]
             }
           },
-          connectedWorkers: {
+          externalWorkers: {
             type: "array",
             items: {
               type: "object",
@@ -11380,6 +11393,47 @@ var schema = {
               ]
             }
           },
+          workerScripts: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                description: {
+                  type: "string"
+                },
+                files: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      path: {
+                        type: "string"
+                      },
+                      hash: {
+                        type: "string"
+                      },
+                      size: {
+                        type: "number"
+                      }
+                    },
+                    required: [
+                      "path",
+                      "hash",
+                      "size"
+                    ]
+                  }
+                },
+                identifier: {
+                  type: "string"
+                }
+              },
+              required: [
+                "description",
+                "files",
+                "identifier"
+              ]
+            }
+          },
           createdAt: {
             type: "string",
             format: "date-time"
@@ -11394,7 +11448,8 @@ var schema = {
           "publicKey",
           "config",
           "manifest",
-          "connectedWorkers",
+          "externalWorkers",
+          "workerScripts",
           "createdAt",
           "updatedAt"
         ]
@@ -11604,11 +11659,24 @@ var schema = {
                         ]
                       }
                     },
-                    workers: {
+                    externalWorkers: {
+                      type: "array",
+                      items: {
+                        type: "string"
+                      }
+                    },
+                    workerScripts: {
                       type: "object",
                       additionalProperties: {
                         type: "object",
-                        properties: {}
+                        properties: {
+                          description: {
+                            type: "string"
+                          }
+                        },
+                        required: [
+                          "description"
+                        ]
                       }
                     },
                     menuItems: {
@@ -11663,7 +11731,7 @@ var schema = {
                     ]
                   }
                 },
-                connectedWorkers: {
+                externalWorkers: {
                   type: "array",
                   items: {
                     type: "object",
@@ -11696,6 +11764,47 @@ var schema = {
                     ]
                   }
                 },
+                workerScripts: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      description: {
+                        type: "string"
+                      },
+                      files: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            path: {
+                              type: "string"
+                            },
+                            hash: {
+                              type: "string"
+                            },
+                            size: {
+                              type: "number"
+                            }
+                          },
+                          required: [
+                            "path",
+                            "hash",
+                            "size"
+                          ]
+                        }
+                      },
+                      identifier: {
+                        type: "string"
+                      }
+                    },
+                    required: [
+                      "description",
+                      "files",
+                      "identifier"
+                    ]
+                  }
+                },
                 createdAt: {
                   type: "string",
                   format: "date-time"
@@ -11710,7 +11819,8 @@ var schema = {
                 "publicKey",
                 "config",
                 "manifest",
-                "connectedWorkers",
+                "externalWorkers",
+                "workerScripts",
                 "createdAt",
                 "updatedAt"
               ]
@@ -11914,11 +12024,24 @@ var schema = {
                       ]
                     }
                   },
-                  workers: {
+                  externalWorkers: {
+                    type: "array",
+                    items: {
+                      type: "string"
+                    }
+                  },
+                  workerScripts: {
                     type: "object",
                     additionalProperties: {
                       type: "object",
-                      properties: {}
+                      properties: {
+                        description: {
+                          type: "string"
+                        }
+                      },
+                      required: [
+                        "description"
+                      ]
                     }
                   },
                   menuItems: {
@@ -11973,7 +12096,7 @@ var schema = {
                   ]
                 }
               },
-              connectedWorkers: {
+              externalWorkers: {
                 type: "array",
                 items: {
                   type: "object",
@@ -12013,6 +12136,47 @@ var schema = {
               updatedAt: {
                 type: "string",
                 format: "date-time"
+              },
+              workerScripts: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    description: {
+                      type: "string"
+                    },
+                    files: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          path: {
+                            type: "string"
+                          },
+                          hash: {
+                            type: "string"
+                          },
+                          size: {
+                            type: "number"
+                          }
+                        },
+                        required: [
+                          "path",
+                          "hash",
+                          "size"
+                        ]
+                      }
+                    },
+                    identifier: {
+                      type: "string"
+                    }
+                  },
+                  required: [
+                    "description",
+                    "files",
+                    "identifier"
+                  ]
+                }
               }
             },
             required: [
@@ -12020,9 +12184,10 @@ var schema = {
               "publicKey",
               "config",
               "manifest",
-              "connectedWorkers",
+              "externalWorkers",
               "createdAt",
-              "updatedAt"
+              "updatedAt",
+              "workerScripts"
             ]
           }
         },

@@ -1,10 +1,10 @@
 'use client'
 
-import type { AppDTOConnectedWorkersInner } from '@stellariscloud/api-client'
+import type { AppDTOExternalWorkersInner } from '@stellariscloud/api-client'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import type { ColumnDef } from '@tanstack/react-table'
 
-export const serverAppWorkerTableColumns: ColumnDef<AppDTOConnectedWorkersInner>[] =
+export const serverAppExternalWorkerTableColumns: ColumnDef<AppDTOExternalWorkersInner>[] =
   [
     {
       accessorKey: 'appIdentifier',

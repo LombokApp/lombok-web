@@ -19,8 +19,10 @@
       "worker": "special_worker"
     }
   ],
-  "workers": {
-    "special_worker": {}
+  "workerScripts": {
+    "special_worker": {
+      "description": "Manages special things for objects."
+    }
   },
   "emittableEvents": [],
   "menuItems": [{

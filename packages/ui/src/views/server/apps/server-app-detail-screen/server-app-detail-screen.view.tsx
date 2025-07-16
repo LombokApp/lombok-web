@@ -1,4 +1,3 @@
-import type { AppDTO } from '@stellariscloud/api-client'
 import {
   Card,
   CardContent,
@@ -14,25 +13,29 @@ import {
 import { HardDrive, KeyIcon, OctagonX } from 'lucide-react'
 import React from 'react'
 
+import { $api } from '@/src/services/api'
+
 import { AppAttributeList } from '../../../../components/app-attribute-list/app-attribute-list'
 import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
-import { apiClient } from '../../../../services/api'
+import { serverAppExternalWorkerTableColumns } from './server-app-external-worker-table-columns'
 import { serverAppManifestTableColumns } from './server-app-manifest-table-columns'
-import { serverAppWorkerTableColumns } from './server-app-worker-table-columns'
+import { serverAppWorkerScriptTableColumns } from './server-app-worker-script-table-columns'
 
 export function ServerAppDetailScreen({
   appIdentifier,
 }: {
   appIdentifier: string
 }) {
-  const [app, setApp] = React.useState<AppDTO>()
-  React.useEffect(() => {
-    if (appIdentifier && !app) {
-      void apiClient.appsApi
-        .getApp({ appIdentifier })
-        .then((u) => setApp(u.data.app))
-    }
-  }, [app, appIdentifier])
+  // Remove useState and useEffect for app
+  const appQuery = $api.useQuery('get', '/api/v1/server/apps/{appIdentifier}', {
+    params: {
+      path: {
+        appIdentifier,
+      },
+    },
+  })
+
+  const app = appQuery.data?.app
   const [showRawConfig, setShowRawConfig] = React.useState(false)
   return (
     <div className={'flex size-full flex-1 flex-col gap-8'}>
@@ -68,16 +71,29 @@ export function ServerAppDetailScreen({
       </Card>
       <Card className="flex-1 border-0 bg-transparent shadow-none">
         <CardHeader className="p-0 pb-4">
-          <CardTitle>Workers</CardTitle>
+          <CardTitle>Worker scripts</CardTitle>
           <CardDescription>
-            The ephemeral and long-lived app workers currently connected to the
-            server.
+            The worker scripts defined in the app.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <DataTable
-            data={app?.connectedWorkers ?? []}
-            columns={serverAppWorkerTableColumns}
+            data={app?.workerScripts ?? []}
+            columns={serverAppWorkerScriptTableColumns}
+          />
+        </CardContent>
+      </Card>
+      <Card className="flex-1 border-0 bg-transparent shadow-none">
+        <CardHeader className="p-0 pb-4">
+          <CardTitle>External workers</CardTitle>
+          <CardDescription>
+            The external app workers currently connected to the server.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <DataTable
+            data={app?.externalWorkers ?? []}
+            columns={serverAppExternalWorkerTableColumns}
           />
         </CardContent>
       </Card>
@@ -126,7 +142,7 @@ export function ServerAppDetailScreen({
               </TabsContent>
               <TabsContent value="json" className="overflow-x-auto">
                 <pre className="overflow-y-auto rounded-lg bg-muted-foreground/5 p-4 text-foreground/75">
-                  {JSON.stringify(app, null, 2)}
+                  {JSON.stringify(app?.config, null, 2)}
                 </pre>
               </TabsContent>
             </Tabs>

@@ -4,14 +4,20 @@ import type { AppDTO } from '../app.dto'
 
 export function transformAppToDTO(
   app: App,
-  connectedWorkers: AppDTO['connectedWorkers'],
+  externalWorkers: AppDTO['externalWorkers'],
 ): AppDTO {
   return {
     identifier: app.identifier,
     publicKey: app.publicKey,
     config: app.config,
     manifest: app.manifest,
-    connectedWorkers,
+    externalWorkers,
+    workerScripts: Object.keys(app.workerScripts).map(
+      (workerScriptIdentifier) => ({
+        identifier: workerScriptIdentifier,
+        ...app.workerScripts[workerScriptIdentifier],
+      }),
+    ),
     createdAt: app.createdAt,
     updatedAt: app.updatedAt,
   }

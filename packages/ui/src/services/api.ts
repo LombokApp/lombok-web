@@ -101,3 +101,5 @@ export const apiClient = sdkInstance.apiClient
 
 export type UserDTO =
   paths['/api/v1/server/users/{userId}']['get']['responses']['200']['content']['application/json']['user']
+export type AppDTO =
+  paths['/api/v1/server/apps/{appIdentifier}']['get']['responses']['200']['content']['application/json']['app']

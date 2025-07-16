@@ -1640,8 +1640,11 @@ export interface components {
                     };
                     worker?: string;
                 }[];
-                workers?: {
-                    [key: string]: Record<string, never>;
+                externalWorkers?: string[];
+                workerScripts?: {
+                    [key: string]: {
+                        description: string;
+                    };
                 };
                 menuItems: {
                     label: string;
@@ -1654,12 +1657,21 @@ export interface components {
                 hash: string;
                 size: number;
             }[];
-            connectedWorkers: {
+            externalWorkers: {
                 appIdentifier: string;
                 workerId: string;
                 handledTaskKeys: string[];
                 socketClientId: string;
                 ip: string;
+            }[];
+            workerScripts: {
+                description: string;
+                files: {
+                    path: string;
+                    hash: string;
+                    size: number;
+                }[];
+                identifier: string;
             }[];
             /** Format: date-time */
             createdAt: string;
@@ -1718,8 +1730,11 @@ export interface components {
                         };
                         worker?: string;
                     }[];
-                    workers?: {
-                        [key: string]: Record<string, never>;
+                    externalWorkers?: string[];
+                    workerScripts?: {
+                        [key: string]: {
+                            description: string;
+                        };
                     };
                     menuItems: {
                         label: string;
@@ -1732,12 +1747,21 @@ export interface components {
                     hash: string;
                     size: number;
                 }[];
-                connectedWorkers: {
+                externalWorkers: {
                     appIdentifier: string;
                     workerId: string;
                     handledTaskKeys: string[];
                     socketClientId: string;
                     ip: string;
+                }[];
+                workerScripts: {
+                    description: string;
+                    files: {
+                        path: string;
+                        hash: string;
+                        size: number;
+                    }[];
+                    identifier: string;
                 }[];
                 /** Format: date-time */
                 createdAt: string;
@@ -1794,8 +1818,11 @@ export interface components {
                         };
                         worker?: string;
                     }[];
-                    workers?: {
-                        [key: string]: Record<string, never>;
+                    externalWorkers?: string[];
+                    workerScripts?: {
+                        [key: string]: {
+                            description: string;
+                        };
                     };
                     menuItems: {
                         label: string;
@@ -1808,7 +1835,7 @@ export interface components {
                     hash: string;
                     size: number;
                 }[];
-                connectedWorkers: {
+                externalWorkers: {
                     appIdentifier: string;
                     workerId: string;
                     handledTaskKeys: string[];
@@ -1819,6 +1846,15 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
+                workerScripts: {
+                    description: string;
+                    files: {
+                        path: string;
+                        hash: string;
+                        size: number;
+                    }[];
+                    identifier: string;
+                }[];
             };
         };
     };

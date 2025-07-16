@@ -6,7 +6,11 @@ import {
 } from '@nestjs/common'
 import nestJsConfig from '@nestjs/config'
 import { hashLocalFile } from '@stellariscloud/core-worker'
-import type { AppConfig, ConnectedAppInstance } from '@stellariscloud/types'
+import type {
+  AppConfig,
+  AppWorkerScriptMap,
+  ExternalAppWorker,
+} from '@stellariscloud/types'
 import {
   appConfigSchema,
   metadataEntrySchema,
@@ -135,7 +139,7 @@ export interface AppDefinition {
       files: Record<string, { size: number; hash: string }>
     }
   >
-  workers: Record<
+  workersScripts: Record<
     string,
     {
       name: string
@@ -462,11 +466,7 @@ export class AppService {
               }
             }
 
-            if (
-              !(
-                requestData.workerIdentifier in (workerApp.config.workers || {})
-              )
-            ) {
+            if (!(requestData.workerIdentifier in workerApp.workerScripts)) {
               // worker by workerIdentifier not found in app by appIdentifier
               return {
                 result: undefined,
@@ -1066,10 +1066,23 @@ export class AppService {
       }),
     )
 
+    const workerScripts = Object.entries(
+      config.workerScripts ?? {},
+    ).reduce<AppWorkerScriptMap>((acc, [workerIdentifier, value]) => {
+      acc[workerIdentifier] = {
+        ...value,
+        files: manifest.filter((manifestEntry) =>
+          manifestEntry.path.startsWith(`/workers/${workerIdentifier}/`),
+        ),
+      }
+      return acc
+    }, {})
+
     const appDefinition: App = {
       identifier: appIdentifier,
       manifest,
       publicKey,
+      workerScripts,
       config,
       createdAt: now,
       updatedAt: now,
@@ -1087,7 +1100,7 @@ export class AppService {
     return app
   }
 
-  getAppConnections(): Record<string, ConnectedAppInstance[]> {
+  getExternalWorkerConnections(): Record<string, ExternalAppWorker[]> {
     let cursor = 0
     let started = false
     let keys: string[] = []
@@ -1107,11 +1120,11 @@ export class AppService {
       ? this.kvService.ops
           .mget(...keys)
           .filter((_r) => _r)
-          .reduce<Record<string, ConnectedAppInstance[]>>(
+          .reduce<Record<string, ExternalAppWorker[]>>(
             (acc, _r: string | undefined) => {
               const parsed = JSON.parse(
                 _r ?? 'null',
-              ) as ConnectedAppInstance | null
+              ) as ExternalAppWorker | null
               if (!parsed) {
                 return acc
               }

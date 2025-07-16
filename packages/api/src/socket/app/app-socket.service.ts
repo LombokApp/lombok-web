@@ -1,6 +1,6 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
-import { ConnectedAppInstance } from '@stellariscloud/types'
+import { ExternalAppWorker } from '@stellariscloud/types'
 import { safeZodParse } from '@stellariscloud/utils'
 import type { Namespace, Socket } from 'socket.io'
 import { APP_NS_PREFIX, AppService } from 'src/app/services/app.service'
@@ -23,7 +23,7 @@ export const APP_WORKER_INFO_CACHE_KEY_PREFIX = 'APP_WORKER'
 
 @Injectable()
 export class AppSocketService {
-  private readonly connectedClients = new Map<string, Socket>()
+  private readonly connectedExternalAppWorkers = new Map<string, Socket>()
 
   private namespace: Namespace | undefined
   setNamespace(namespace: Namespace) {
@@ -47,9 +47,9 @@ export class AppSocketService {
     )
 
     const clientId = socket.id
-    this.connectedClients.set(clientId, socket)
+    this.connectedExternalAppWorkers.set(clientId, socket)
     socket.on('disconnect', () => {
-      this.connectedClients.delete(clientId)
+      this.connectedExternalAppWorkers.delete(clientId)
     })
 
     // Handle other messages from the client
@@ -100,7 +100,7 @@ export class AppSocketService {
         socket.disconnect(true)
         throw new UnauthorizedException()
       }
-      const workerInfo: ConnectedAppInstance = {
+      const workerInfo: ExternalAppWorker = {
         appIdentifier,
         socketClientId: socket.id,
         handledTaskKeys: auth.handledTaskKeys ?? [], // TODO: validate worker reported task keys to match their config

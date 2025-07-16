@@ -3,7 +3,10 @@ import {
   appConfigSchema,
   appManifestSchema,
   appMenuItemConfigSchema,
+  appWorkerScriptMapSchema,
+  appWorkerScriptSchema,
   appWorkersSchema,
+  externalAppWorkerSchema,
   taskConfigSchema,
 } from '../schemas'
 export interface AppTaskTrigger {
@@ -20,18 +23,14 @@ export type AppMenuItem = z.infer<typeof appMenuItemConfigSchema>
 
 export type AppConfig = z.infer<typeof appConfigSchema>
 
+export type AppWorkerScript = z.infer<typeof appWorkerScriptSchema>
+
+export type AppWorkerScriptMap = z.infer<typeof appWorkerScriptMapSchema>
+
 export type AppManifest = z.infer<typeof appManifestSchema>
 
-export interface ConnectedAppInstancesMap {
-  [appIdentifier: string]: ConnectedAppInstance[]
+export interface ExternalAppWorkerMap {
+  [appIdentifier: string]: ExternalAppWorker[]
 }
 
-export const connectedAppInstanceSchema = z.object({
-  appIdentifier: z.string(),
-  workerId: z.string(),
-  handledTaskKeys: z.array(z.string()),
-  socketClientId: z.string(),
-  ip: z.string(),
-})
-
-export type ConnectedAppInstance = z.infer<typeof connectedAppInstanceSchema>
+export type ExternalAppWorker = z.infer<typeof externalAppWorkerSchema>

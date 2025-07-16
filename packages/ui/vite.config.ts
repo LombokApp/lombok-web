@@ -35,6 +35,7 @@ export default defineConfig({
   plugins: [createReactPluginWithWorkerExclusion(['.worker.ts'])],
   resolve: {
     alias: {
+      '@/src': path.resolve(__dirname, './src'),
       '@/utils': path.resolve(__dirname, '../ui-toolkit/src/utils'),
       '@/components': path.resolve(__dirname, '../ui-toolkit/src/components'),
       '@/components/*': path.resolve(
