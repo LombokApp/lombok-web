@@ -55,7 +55,6 @@
     "@stellariscloud/types": "workspace:*",
     "@stellariscloud/utils": "workspace:*",
     "aws4": "1.13.2",
-    "axios": "1.9.0",
     "cron": "3.4.0",
     "drizzle-orm": "0.38.3",
     "express": "4.21.2",

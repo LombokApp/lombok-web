@@ -1,7 +1,6 @@
 import { Test } from '@nestjs/testing'
 import type { FolderDTO } from '@stellariscloud/types'
 import { SignedURLsRequestMethod } from '@stellariscloud/types'
-import axios from 'axios'
 import { eq } from 'drizzle-orm'
 import fs from 'fs'
 import path from 'path'
@@ -118,7 +117,7 @@ export async function buildTestModule({
 
       await Promise.all(
         uploadUrls.map((uploadUrl, i) =>
-          axios.put(uploadUrl, createFiles[i].content),
+          fetch(uploadUrl, { method: 'PUT', body: createFiles[i].content }),
         ),
       )
       return bucketName

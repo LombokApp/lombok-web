@@ -23,7 +23,6 @@
     "@stellariscloud/utils": "workspace:*",
     "@stellariscloud/types": "workspace:*",
     "openapi-fetch": "^0.14.0",
-    "axios": "1.9.0",
     "jwt-decode": "4.0.0",
     "react": "18.3.1",
     "react-dom": "18.3.1"
