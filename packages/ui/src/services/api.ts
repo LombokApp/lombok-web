@@ -1,24 +1,45 @@
-import { StellarisCloudAppBrowserSdk } from '@stellariscloud/app-browser-sdk'
-import type { paths } from '@stellariscloud/types'
-import createFetchClient from 'openapi-fetch'
+import Cookies from 'js-cookie'
+
+// TODO: Modify this with a better name.
+const COOKIES_NAME = 'stellariscloud:auth'
+const COOKIES_ACCESS_TOKEN = `${COOKIES_NAME}:accessToken`
+const COOKIES_REFRESH_TOKEN = `${COOKIES_NAME}:refreshToken`
+
+import { StellarisCloudSdk } from '@stellariscloud/app-browser-sdk'
+import type { TokensType } from '@stellariscloud/auth-utils'
 import createClient from 'openapi-react-query'
 
-const basePath = (import.meta.env.VITE_BACKEND_HOST as string | undefined) ?? ''
+export const basePath =
+  (import.meta.env.VITE_BACKEND_HOST as string | undefined) ?? ''
 
-export const sdkInstance = new StellarisCloudAppBrowserSdk({
+const loadTokens = () => {
+  const accessToken = Cookies.get(COOKIES_ACCESS_TOKEN)
+  const refreshToken = Cookies.get(COOKIES_REFRESH_TOKEN)
+
+  return {
+    accessToken,
+    refreshToken,
+  }
+}
+
+const saveTokens = ({ accessToken, refreshToken }: TokensType) => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  Cookies.set(COOKIES_ACCESS_TOKEN, accessToken!, {
+    sameSite: 'strict',
+  })
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  Cookies.set(COOKIES_REFRESH_TOKEN, refreshToken!, {
+    sameSite: 'strict',
+  })
+}
+
+export const sdkInstance = new StellarisCloudSdk({
   basePath,
+  accessToken: () => loadTokens().accessToken,
+  refreshToken: () => loadTokens().refreshToken,
+  onTokensRefreshed: (tokens) => saveTokens(tokens),
+  onTokensCreated: (tokens) => saveTokens(tokens),
 })
 
-export const $apiClient = createFetchClient<paths>({
-  baseUrl: basePath,
-  fetch: async (request) => {
-    const token = await sdkInstance.authenticator.getAccessToken()
-    const headers = new Headers(request.headers)
-    if (token) {
-      headers.set('Authorization', `Bearer ${token}`)
-    }
-    return fetch(new Request(request, { headers }))
-  },
-})
-
+export const $apiClient = sdkInstance.apiClient
 export const $api = createClient($apiClient)

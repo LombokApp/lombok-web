@@ -1,20 +1,14 @@
-import type { ConfigurationParameters } from '@stellariscloud/api-client'
-import { AuthApi, Configuration, ViewerApi } from '@stellariscloud/api-client'
-import Cookies from 'js-cookie'
+import createFetchClient from 'openapi-fetch'
 
 import { verifyToken } from './jwt.util'
-
-// TODO: Modify this with a better name.
-const COOKIES_NAME = 'stellariscloud:auth'
-const COOKIES_ACCESS_TOKEN = `${COOKIES_NAME}:accessToken`
-const COOKIES_REFRESH_TOKEN = `${COOKIES_NAME}:refreshToken`
+import { paths } from '@stellariscloud/types'
 
 export interface AuthenticatorStateType {
   isAuthenticated: boolean
   isLoaded: boolean
 }
 
-interface TokensType {
+export interface TokensType {
   accessToken?: string
   refreshToken?: string
 }
@@ -29,13 +23,67 @@ export class Authenticator {
   private readonly eventTarget =
     typeof window !== 'undefined' ? new EventTarget() : undefined
   private readonly tokens: TokensType = {}
+  private readonly $apiClient: ReturnType<typeof createFetchClient<paths>>
+  private readonly onTokensCreated?: (tokens: {
+    accessToken: string
+    refreshToken: string
+  }) => void | Promise<void>
+  private readonly onTokensRefreshed?: (tokens: {
+    accessToken: string
+    refreshToken: string
+  }) => void | Promise<void>
+  private readonly onLogout?: () => void | Promise<void>
+  private readonly getAccessTokenFn: () =>
+    | string
+    | undefined
+    | Promise<string | undefined>
+  private readonly getRefreshTokenFn?: () =>
+    | string
+    | undefined
+    | Promise<string | undefined>
 
-  constructor(readonly options: { basePath: string }) {
-    setTimeout(() => {
-      const loadedTokens = this.loadTokens()
-      if (verifyToken(loadedTokens.accessToken)) {
-        this.tokens.accessToken = loadedTokens.accessToken
-        this.tokens.refreshToken = loadedTokens.refreshToken
+  constructor(
+    readonly options: {
+      basePath: string
+      onTokensCreated?: (tokens: {
+        accessToken: string
+        refreshToken: string
+      }) => void | Promise<void>
+      onTokensRefreshed?: (tokens: {
+        accessToken: string
+        refreshToken: string
+      }) => void | Promise<void>
+      onLogout?: () => void | Promise<void>
+      accessToken: () => string | undefined | Promise<string | undefined>
+      refreshToken?: () => string | undefined | Promise<string | undefined>
+    },
+  ) {
+    this.onTokensCreated = options.onTokensCreated
+    this.onTokensRefreshed = options.onTokensRefreshed
+    this.onLogout = options.onLogout
+    this.getAccessTokenFn = options.accessToken
+    this.getRefreshTokenFn = options.refreshToken
+    this.$apiClient = createFetchClient<paths>({
+      baseUrl: options.basePath,
+      fetch: async (request) => {
+        const headers = new Headers(request.headers)
+        return fetch(new Request(request, { headers }))
+      },
+    })
+
+    setTimeout(async () => {
+      // Use provided token functions if available
+      let accessToken: string | undefined
+      if (this.getAccessTokenFn) {
+        accessToken = await this.getAccessTokenFn()
+      }
+      if (accessToken && verifyToken(accessToken)) {
+        this.tokens.accessToken = accessToken
+        let refreshToken: string | undefined
+        if (this.getRefreshTokenFn) {
+          refreshToken = await this.getRefreshTokenFn()
+        }
+        this.tokens.refreshToken = refreshToken
         this.state = { isAuthenticated: true, isLoaded: true }
         return
       }
@@ -43,13 +91,22 @@ export class Authenticator {
     })
   }
 
-  // getAccessToken returns valid accessToken if it exists
-  // or refreshes the token if not valid.
+  // getAccessToken returns valid accessToken if it exists or refreshes the token if not valid.
   public async getAccessToken() {
-    if (this.tokens.accessToken && verifyToken(this.tokens.accessToken)) {
-      return this.tokens.accessToken
+    let token = this.tokens.accessToken
+    if (this.getAccessTokenFn) {
+      token = await this.getAccessTokenFn()
+      this.tokens.accessToken = token
     }
-    if (this.tokens.refreshToken) {
+    if (token && verifyToken(token)) {
+      return token
+    }
+    let refreshToken = this.tokens.refreshToken
+    if (this.getRefreshTokenFn) {
+      refreshToken = await this.getRefreshTokenFn()
+      this.tokens.refreshToken = refreshToken
+    }
+    if (refreshToken) {
       await this.refresh()
     }
     return this.tokens.accessToken
@@ -57,22 +114,28 @@ export class Authenticator {
 
   public async login(loginParams: { login: string; password: string }) {
     try {
-      const authApi = this.newAuthApi()
-      const loginResult = (
-        await authApi.login({
-          loginCredentialsDTO: {
-            login: loginParams.login,
-            password: loginParams.password,
-          },
-        })
-      ).data
-      this.tokens.accessToken = loginResult.session.accessToken
-      this.tokens.refreshToken = loginResult.session.refreshToken
-      this.saveTokens({
-        accessToken: loginResult.session.accessToken,
-        refreshToken: loginResult.session.refreshToken,
+      const loginResponse = await this.$apiClient.POST('/api/v1/auth/login', {
+        body: {
+          login: loginParams.login,
+          password: loginParams.password,
+        },
       })
+      if (loginResponse.response.status !== 201 || !loginResponse.data) {
+        throw new Error(
+          'Login failed',
+          loginResponse.data ? { cause: loginResponse.data } : undefined,
+        )
+      }
+      this.tokens.accessToken = loginResponse.data.session.accessToken
+      this.tokens.refreshToken = loginResponse.data.session.refreshToken
       this.state = { isAuthenticated: true, isLoaded: true }
+      if (this.onTokensCreated) {
+        await this.onTokensCreated({
+          accessToken: loginResponse.data.session.accessToken,
+          refreshToken: loginResponse.data.session.refreshToken,
+        })
+      }
+      return loginResponse
     } catch (error: unknown) {
       this.reset()
       throw error
@@ -80,11 +143,20 @@ export class Authenticator {
   }
 
   public async getViewer() {
-    const viewerApi = this.newViewerApi({})
-    const viewerResponse = await viewerApi.getViewer({
+    const viewerResponse = await this.$apiClient.GET('/api/v1/viewer', {
       headers: { Authorization: `Bearer ${this.tokens.accessToken}` },
     })
-    return viewerResponse.data
+    if (viewerResponse.response.status !== 200 || !viewerResponse.data) {
+      throw new Error(
+        'Failed to get viewer',
+        viewerResponse.data
+          ? {
+              cause: viewerResponse.data,
+            }
+          : undefined,
+      )
+    }
+    return viewerResponse.data.user
   }
 
   public async signup(signupParams: {
@@ -93,14 +165,20 @@ export class Authenticator {
     password: string
   }) {
     try {
-      const authApi = this.newAuthApi()
-      await authApi.signup({
-        signupCredentialsDTO: {
+      const signupResponse = await this.$apiClient.POST('/api/v1/auth/signup', {
+        body: {
           username: signupParams.username,
           email: signupParams.email,
           password: signupParams.password,
         },
       })
+      if (signupResponse.response.status !== 201 || !signupResponse.data) {
+        throw new Error(
+          'Signup failed',
+          signupResponse.data ? { cause: signupResponse.data } : undefined,
+        )
+      }
+      return signupResponse
     } catch (error: unknown) {
       this.reset()
       throw error
@@ -115,8 +193,9 @@ export class Authenticator {
 
     if (accessToken !== undefined) {
       try {
-        const authApi = this.newAuthApi({ accessToken })
-        await authApi.logout()
+        await this.$apiClient.POST('/api/v1/auth/logout', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        })
       } catch (err) {
         error = err
         failed = true
@@ -135,6 +214,9 @@ export class Authenticator {
     // }
 
     this.reset()
+    if (this.onLogout) {
+      await this.onLogout()
+    }
     if (failed) {
       throw error
     }
@@ -164,75 +246,48 @@ export class Authenticator {
     this.eventTarget?.removeEventListener(type, callback, options)
   }
 
-  // Private methods.
-  // Access and refresh token operations.
-  private loadTokens(): TokensType {
-    const accessToken = Cookies.get(COOKIES_ACCESS_TOKEN)
-    const refreshToken = Cookies.get(COOKIES_REFRESH_TOKEN)
-
-    return {
-      accessToken,
-      refreshToken,
-    }
-  }
-
-  private saveTokens({ accessToken, refreshToken }: TokensType) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    Cookies.set(COOKIES_ACCESS_TOKEN, accessToken!, {
-      sameSite: 'strict',
-    })
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    Cookies.set(COOKIES_REFRESH_TOKEN, refreshToken!, {
-      sameSite: 'strict',
-    })
-  }
-
-  private clearTokens() {
-    Cookies.remove(COOKIES_ACCESS_TOKEN)
-    Cookies.remove(COOKIES_REFRESH_TOKEN)
-    delete this.tokens.accessToken
-    delete this.tokens.refreshToken
-  }
-
-  private newAuthApi(config?: ConfigurationParameters): AuthApi {
-    return new AuthApi(
-      new Configuration({
-        ...(config ?? {}),
-        basePath: this.options.basePath,
-      }),
-    )
-  }
-
-  private newViewerApi(config?: ConfigurationParameters): ViewerApi {
-    return new ViewerApi(
-      new Configuration({
-        ...(config ?? {}),
-        basePath: this.options.basePath,
-      }),
-    )
-  }
-
   private async refresh() {
     if (!this.tokens.refreshToken) {
       throw new Error('no refresh token set')
     }
 
-    const authApi = this.newAuthApi({
-      basePath: this.options.basePath,
-      apiKey: this.tokens.refreshToken,
-    })
-
     try {
-      const {
-        session: { accessToken, refreshToken },
-      } = (
-        await authApi.refreshToken({ refreshToken: this.tokens.refreshToken })
-      ).data
+      const refreshTokenResponse = await this.$apiClient.POST(
+        '/api/v1/auth/{refreshToken}',
+        {
+          params: {
+            path: {
+              refreshToken: this.tokens.refreshToken,
+            },
+          },
+        },
+      )
+
+      if (
+        refreshTokenResponse.response.status !== 200 ||
+        !refreshTokenResponse.data
+      ) {
+        throw new Error(
+          'Failed to refresh token',
+          refreshTokenResponse.data
+            ? {
+                cause: refreshTokenResponse.data,
+              }
+            : undefined,
+        )
+      }
+
+      const { accessToken, refreshToken } = refreshTokenResponse.data?.session
 
       this.tokens.accessToken = accessToken
       this.tokens.refreshToken = refreshToken
-      this.saveTokens({ accessToken, refreshToken })
       this.state = { isAuthenticated: true, isLoaded: true }
+      if (this.onTokensCreated) {
+        await this.onTokensCreated({ accessToken, refreshToken })
+      }
+      if (this.onTokensRefreshed) {
+        await this.onTokensRefreshed({ accessToken, refreshToken })
+      }
     } catch (err: unknown) {
       this.reset()
       throw err
@@ -240,7 +295,9 @@ export class Authenticator {
   }
 
   private reset() {
-    this.clearTokens()
+    this.tokens.accessToken = undefined
+    this.tokens.refreshToken = undefined
+    this.onLogout?.()
     this.state = { isAuthenticated: false, isLoaded: true }
   }
 

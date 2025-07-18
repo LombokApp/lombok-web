@@ -1,4 +1,7 @@
 import type { paths } from './api-paths'
+import type createFetchClient from 'openapi-fetch'
+
+export type StellarisApiClient = ReturnType<typeof createFetchClient<paths>>
 
 export type UserDTO =
   paths['/api/v1/server/users/{userId}']['get']['responses']['200']['content']['application/json']['user']
@@ -81,3 +84,14 @@ export type FolderShareListResponse =
   paths['/api/v1/folders/{folderId}/shares']['get']['responses']['200']['content']['application/json']
 export type FolderShareUserListResponse =
   paths['/api/v1/folders/{folderId}/user-share-options']['get']['responses']['200']['content']['application/json']
+
+export type LoginCredentialsDTO =
+  paths['/api/v1/auth/login']['post']['requestBody']['content']['application/json']
+export type SignupCredentialsDTO =
+  paths['/api/v1/auth/signup']['post']['requestBody']['content']['application/json']
+export type ViewerGetResponse =
+  paths['/api/v1/viewer']['get']['responses']['200']['content']['application/json']
+export type SignupResponse =
+  paths['/api/v1/auth/signup']['post']['responses']['201']['content']['application/json']
+export type LoginResponse =
+  paths['/api/v1/auth/login']['post']['responses']['201']['content']['application/json']

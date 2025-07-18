@@ -28,7 +28,6 @@ RUN cd /temp/dev && \
   bun install --frozen-lockfile && \
   # build the packages
   bun --cwd ./packages/api build && \
-  bun --cwd ./packages/api-client build && \
   bun --cwd ./packages/core-worker build && \
   bun --cwd ./packages/stellaris-types build && \
   bun --cwd ./packages/stellaris-utils build && \

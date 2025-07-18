@@ -43,7 +43,6 @@
         "@nestjs/platform-socket.io": "11.1.2",
         "@nestjs/swagger": "11.2.0",
         "@nestjs/websockets": "11.1.2",
-        "@stellariscloud/api-client": "workspace:*",
         "@stellariscloud/core-worker": "workspace:*",
         "@stellariscloud/types": "workspace:*",
         "@stellariscloud/utils": "workspace:*",
@@ -79,15 +78,6 @@
         "tsconfig-paths": "4.2.0",
       },
     },
-    "packages/api-client": {
-      "name": "@stellariscloud/api-client",
-      "devDependencies": {
-        "axios": "1.9.0",
-      },
-      "peerDependencies": {
-        "axios": "1.9.0",
-      },
-    },
     "packages/app-browser-sdk": {
       "name": "@stellariscloud/app-browser-sdk",
       "version": "0.0.1-6",
@@ -98,8 +88,8 @@
         "@rollup/plugin-alias": "5.1.1",
         "@rollup/plugin-node-resolve": "16.0.0",
         "@rollup/plugin-typescript": "12.1.2",
-        "@stellariscloud/api-client": "workspace:*",
         "@stellariscloud/auth-utils": "workspace:*",
+        "@stellariscloud/types": "workspace:*",
         "@stellariscloud/utils": "workspace:*",
         "@types/jest": "29.5.14",
         "jest": "29.7.0",
@@ -120,7 +110,7 @@
         "@rollup/plugin-alias": "5.1.1",
         "@rollup/plugin-node-resolve": "16.0.0",
         "@rollup/plugin-typescript": "12.1.2",
-        "@stellariscloud/api-client": "workspace:*",
+        "@stellariscloud/types": "workspace:*",
         "@types/jest": "29.5.14",
         "jest": "29.7.0",
         "prettier": "3.4.2",
@@ -141,7 +131,7 @@
         "@rollup/plugin-alias": "5.1.1",
         "@rollup/plugin-node-resolve": "16.0.0",
         "@rollup/plugin-typescript": "12.1.2",
-        "@stellariscloud/api-client": "workspace:*",
+        "@stellariscloud/types": "workspace:*",
         "@types/jest": "29.5.14",
         "jest": "29.7.0",
         "prettier": "3.4.2",
@@ -154,11 +144,12 @@
     "packages/auth-utils": {
       "name": "@stellariscloud/auth-utils",
       "dependencies": {
-        "@stellariscloud/api-client": "workspace:*",
+        "@stellariscloud/types": "workspace:*",
         "@stellariscloud/utils": "workspace:*",
         "axios": "1.9.0",
         "js-cookie": "3.0.5",
         "jwt-decode": "4.0.0",
+        "openapi-fetch": "^0.14.0",
         "react": "18.3.1",
         "react-dom": "18.3.1",
       },
@@ -1239,8 +1230,6 @@
     "@socket.io/component-emitter": ["@socket.io/component-emitter@3.1.2", "", {}, "sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA=="],
 
     "@stellariscloud/api": ["@stellariscloud/api@workspace:packages/api"],
-
-    "@stellariscloud/api-client": ["@stellariscloud/api-client@workspace:packages/api-client"],
 
     "@stellariscloud/app-browser-sdk": ["@stellariscloud/app-browser-sdk@workspace:packages/app-browser-sdk"],
 

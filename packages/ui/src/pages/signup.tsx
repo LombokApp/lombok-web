@@ -1,4 +1,4 @@
-import { isAxiosError, useAuthContext } from '@stellariscloud/auth-utils'
+import { useAuthContext } from '@stellariscloud/auth-utils'
 import { useToast } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -20,21 +20,28 @@ export const Signup = () => {
       email?: string
       password: string
     }) => {
-      await authContext
+      const result = await authContext
         .signup({ username, email, password })
-        .then(() => navigate('/login'))
-
-        .catch((e) => {
-          console.log(e)
-          if (isAxiosError(e) && e.response.status === 403) {
-            toast({
-              title: 'Signups are not enabled.',
-              description: 'Please contact your administrator.',
-            })
-          } else {
-            console.error(e)
-          }
+        .then((r) => {
+          void navigate('/login')
+          return r
         })
+
+      if (result.response.status === 201) {
+        toast({
+          title: 'Account created',
+        })
+      } else if (result.response.status === 403) {
+        toast({
+          title: 'Signups are not enabled',
+          description: 'Please contact your administrator.',
+        })
+      } else {
+        console.error({
+          errorCode: result.response.status,
+          response: result.data,
+        })
+      }
     },
     [authContext, navigate, toast],
   )

@@ -510,8 +510,9 @@ describe('Folders', () => {
       },
     )
     const provisionId = _storageProvision.data?.result[0]?.id
-    if (!provisionId) throw new Error('No provision id')
-
+    if (!provisionId) {
+      throw new Error('No provision id')
+    }
     const folderCreateResponse = await apiClient(accessToken).POST(
       '/api/v1/folders',
       {
@@ -529,7 +530,9 @@ describe('Folders', () => {
     expect(folderCreateResponse.response.status).toBe(201)
 
     const folderId = folderCreateResponse.data?.folder.id
-    if (!folderId) throw new Error('No folder id')
+    if (!folderId) {
+      throw new Error('No folder id')
+    }
     const presignedUrls = await apiClient(accessToken).POST(
       '/api/v1/folders/{folderId}/presigned-urls',
       {
