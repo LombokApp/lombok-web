@@ -5,8 +5,8 @@ const COOKIES_NAME = 'stellariscloud:auth'
 const COOKIES_ACCESS_TOKEN = `${COOKIES_NAME}:accessToken`
 const COOKIES_REFRESH_TOKEN = `${COOKIES_NAME}:refreshToken`
 
-import { StellarisCloudSdk } from '@stellariscloud/app-browser-sdk'
 import type { TokensType } from '@stellariscloud/auth-utils'
+import { StellarisCloudSdk } from '@stellariscloud/sdk'
 import createClient from 'openapi-react-query'
 
 export const basePath =

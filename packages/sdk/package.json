@@ -1,5 +1,5 @@
 {
-  "name": "@stellariscloud/app-browser-sdk",
+  "name": "@stellariscloud/sdk",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "version": "0.0.1-6",
@@ -10,7 +10,6 @@
   "scripts": {
     "build": "(rm -rf ./*.tsbuildinfo ||  true) && yarn rollup -c rollup.config.js",
     "build:clean": "yarn clean && yarn build",
-    "publish:dev": "YARN_NPM_REGISTRY_SERVER=\"https://npm.wasteofpaper.com\" yarn npm publish --access restricted --tag @stellariscloud/app-browser-sdk",
     "clean": "rm -rf ./dist",
     "lint:check": "eslint .",
     "lint:fix": "eslint --fix .",

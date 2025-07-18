@@ -45,7 +45,7 @@ RUN cd /temp/dev && \
   rm -rf ./packages/api/src && \
   rm -rf ./packages/auth-utils && \
   rm -rf ./packages/app-worker-sdk/node_modules && \
-  rm -rf ./packages/app-browser-sdk && \
+  rm -rf ./packages/sdk && \
   rm -rf ./packages/stellaris-types/node_modules && \
   rm -rf ./packages/app-worker-example && \
   rm -rf ./packages/ui-toolkit && \
