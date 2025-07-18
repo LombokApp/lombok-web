@@ -105,7 +105,7 @@ export class AccessKeysController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
-    const result = await this.storageLocationService.listAccessKeyBucketAsUser(
+    const result = await this.storageLocationService.listAccessKeyBucketsAsUser(
       req.user,
       accessKeyHashId,
     )

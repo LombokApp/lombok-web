@@ -201,7 +201,7 @@ export class StorageLocationService {
     return newHashId
   }
 
-  async listAccessKeyBucketAsUser(actor: User, accessKeyHashId: string) {
+  async listAccessKeyBucketsAsUser(actor: User, accessKeyHashId: string) {
     const accessKey = await this.getAccessKeyAsUser(actor, accessKeyHashId)
     const location =
       await this.ormService.db.query.storageLocationsTable.findFirst({
@@ -237,7 +237,7 @@ export class StorageLocationService {
     return buckets
   }
 
-  async listAccessKeyBucketAsAdmin(actor: User, accessKeyHashId: string) {
+  async listAccessKeyBucketsAsAdmin(actor: User, accessKeyHashId: string) {
     const accessKey = await this.getServerAccessKeyAsAdmin(
       actor,
       accessKeyHashId,

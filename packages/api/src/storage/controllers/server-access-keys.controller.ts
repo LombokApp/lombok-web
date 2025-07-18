@@ -109,10 +109,11 @@ export class ServerAccessKeysController {
     if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
-    const result = await this.storageLocationService.listAccessKeyBucketAsAdmin(
-      req.user,
-      accessKeyHashId,
-    )
+    const result =
+      await this.storageLocationService.listAccessKeyBucketsAsAdmin(
+        req.user,
+        accessKeyHashId,
+      )
     return {
       result:
         result.Buckets?.map((bucket) => ({

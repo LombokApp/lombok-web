@@ -1,6 +1,5 @@
 import { Test } from '@nestjs/testing'
-import type { FolderDTO } from '@stellariscloud/api-client'
-import { SignedURLsRequestMethod } from '@stellariscloud/types'
+import { FolderDTO, SignedURLsRequestMethod } from '@stellariscloud/types'
 import axios from 'axios'
 import { eq } from 'drizzle-orm'
 import fs from 'fs'
