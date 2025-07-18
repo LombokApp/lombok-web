@@ -1,5 +1,6 @@
 'use client'
 
+import type { UserDTO } from '@stellariscloud/types'
 import {
   Dialog,
   DialogContent,
@@ -8,8 +9,6 @@ import {
   DialogTitle,
   useToast,
 } from '@stellariscloud/ui-toolkit'
-
-import type { UserDTO } from '@/src/services/api'
 
 import type {
   MutationType,

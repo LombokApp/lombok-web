@@ -1,9 +1,9 @@
+import type { ListServerEventsRequest } from '@stellariscloud/types'
 import { cn, DataTable } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { BugIcon, InfoIcon, OctagonAlert, TriangleAlert } from 'lucide-react'
 import React from 'react'
 
-import type { ListServerEventsRequest } from '@/src/services/api'
 import { $api } from '@/src/services/api'
 
 import { serverEventsTableColumns } from './server-events-table-columns'

@@ -1,6 +1,6 @@
+import type { FolderObjectDTO } from '@stellariscloud/types'
 import React from 'react'
 
-import type { FolderObjectDTO } from '@/src/services/api'
 import { $api } from '@/src/services/api'
 
 export interface IFocusedFolderObjectContext {

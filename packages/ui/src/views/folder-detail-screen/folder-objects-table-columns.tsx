@@ -1,10 +1,9 @@
 'use client'
 
+import type { FolderObjectDTO } from '@stellariscloud/types'
 import { toMetadataObjectIdentifier } from '@stellariscloud/utils'
 import type { ColumnDef } from '@tanstack/react-table'
 import { Link } from 'react-router-dom'
-
-import type { FolderObjectDTO } from '@/src/services/api'
 
 import { FolderObjectPreview } from '../folder-object-preview/folder-object-preview.view'
 

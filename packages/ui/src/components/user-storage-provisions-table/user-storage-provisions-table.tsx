@@ -1,7 +1,6 @@
+import type { UserStorageProvisionDTO } from '@stellariscloud/types'
 import { DataTable } from '@stellariscloud/ui-toolkit'
 import React from 'react'
-
-import type { UserStorageProvisionDTO } from '@/src/services/api'
 
 import { userStorageProvisionsTableColumns } from './user-storage-provisions-table-columns'
 

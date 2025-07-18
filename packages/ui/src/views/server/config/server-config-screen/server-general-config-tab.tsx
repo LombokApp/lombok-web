@@ -1,3 +1,4 @@
+import type { ServerSettingsGetResponse } from '@stellariscloud/types'
 import {
   Button,
   Card,
@@ -10,8 +11,6 @@ import {
   Input,
 } from '@stellariscloud/ui-toolkit'
 import React from 'react'
-
-import type { ServerSettingsGetResponse } from '@/src/services/api'
 
 interface ServerGeneralConfigTabProps {
   settings?: ServerSettingsGetResponse['settings']

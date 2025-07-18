@@ -1,8 +1,7 @@
+import type { TaskDTO } from '@stellariscloud/types'
 import { Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
 import { Link } from 'react-router-dom'
-
-import type { TaskDTO } from '@/src/services/api'
 
 import { invertColour, stringToColour } from '../../utils/colors'
 

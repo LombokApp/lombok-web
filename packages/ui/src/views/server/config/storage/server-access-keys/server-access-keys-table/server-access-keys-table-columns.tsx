@@ -1,5 +1,6 @@
 'use client'
 
+import type { AccessKeyPublicDTO } from '@stellariscloud/types'
 import { useToast } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import type { ColumnDef } from '@tanstack/react-table'
@@ -7,7 +8,6 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 
 import { AccessKeyModal } from '@/src/components/access-key-modal/access-key-modal'
-import type { AccessKeyPublicDTO } from '@/src/services/api'
 import { $api } from '@/src/services/api'
 
 export const configureServerAccessKeysTableColumns: (

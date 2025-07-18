@@ -1,7 +1,5 @@
-import type { ExternalAppWorker } from '@stellariscloud/types'
+import type { AppDTO, ExternalAppWorker } from '@stellariscloud/types'
 import React from 'react'
-
-import type { AppDTO } from '@/src/services/api'
 
 import type { AppsTab } from './installed-app-tabs'
 import { InstalledAppTabs } from './installed-app-tabs'
@@ -31,14 +29,14 @@ export function InstalledAppDataPanel({
         />
       </div>
       {activeTab === 'config' && (
-        <div className="dark:text-gray-400 flex flex-col gap-4 overflow-x-auto rounded-md border border-gray-500 bg-black/20 p-2 text-gray-500">
+        <div className="flex flex-col gap-4 overflow-x-auto rounded-md border border-gray-500 bg-black/20 p-2 text-gray-500 dark:text-gray-400">
           <pre>{JSON.stringify(appInfo.config, null, 2)}</pre>
         </div>
       )}
       {activeTab === 'events' && 'events'}
       {activeTab === 'logs' && 'logs'}
       {activeTab === 'workers' && (
-        <div className="dark:text-gray-200 flex flex-col">
+        <div className="flex flex-col dark:text-gray-200">
           {_connectedExternalAppWorkers.length === 0 && <em>None</em>}
           {_connectedExternalAppWorkers.map((externalWorker) => (
             <div key={externalWorker.id} className="bg-black/20 p-4">

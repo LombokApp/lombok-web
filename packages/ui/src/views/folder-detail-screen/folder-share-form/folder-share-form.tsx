@@ -1,5 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { FolderPermissionName } from '@stellariscloud/types'
+import type {
+  FolderPermissionName,
+  FolderShareListResponse,
+  FolderShareUserListResponse,
+} from '@stellariscloud/types'
 import { FolderPermissionEnum } from '@stellariscloud/types'
 import {
   Button,
@@ -21,11 +25,6 @@ import type { FetchOptions } from 'openapi-fetch'
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
-
-import type {
-  FolderShareListResponse,
-  FolderShareUserListResponse,
-} from '@/src/services/api'
 
 const AVAILABLE_PERMISSIONS = [
   { label: 'Reindex', value: FolderPermissionEnum.FOLDER_REINDEX },

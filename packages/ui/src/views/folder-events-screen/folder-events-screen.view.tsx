@@ -1,3 +1,4 @@
+import type { FolderEventsListRequest } from '@stellariscloud/types'
 import {
   Card,
   CardContent,
@@ -12,7 +13,6 @@ import { AlertTriangle, InfoIcon, MessageSquare, XCircle } from 'lucide-react'
 import React from 'react'
 
 import { useFolderContext } from '@/src/pages/folders/folder.context'
-import type { FolderEventsListRequest } from '@/src/services/api'
 import { $api } from '@/src/services/api'
 
 import { folderEventsTableColumns } from './folder-events-table-columns'

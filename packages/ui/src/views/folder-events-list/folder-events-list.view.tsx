@@ -1,3 +1,4 @@
+import type { EventDTO, FolderGetResponse } from '@stellariscloud/types'
 import { FolderPushMessage } from '@stellariscloud/types'
 import {
   Card,
@@ -12,7 +13,6 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 
 import { Icon } from '@/src/design-system/icon'
-import type { EventDTO, FolderGetResponse } from '@/src/services/api'
 import { $api } from '@/src/services/api'
 
 import { useFolderContext } from '../../pages/folders/folder.context'

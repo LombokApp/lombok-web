@@ -1,8 +1,8 @@
+import type { UserDTO } from '@stellariscloud/types'
 import { cn, TypographyH2 } from '@stellariscloud/ui-toolkit'
 import type { NullablePartial } from '@stellariscloud/utils'
 import React from 'react'
 
-import type { UserDTO } from '@/src/services/api'
 import { $api } from '@/src/services/api'
 
 import type { ProfileUserFormValues } from '../../components/profile-user-form/profile-user-form'

@@ -1,3 +1,4 @@
+import type { ServerTasksApiListTasksRequest } from '@stellariscloud/types'
 import {
   Card,
   CardContent,
@@ -12,7 +13,6 @@ import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
 import React from 'react'
 
 import { useFolderContext } from '@/src/pages/folders/folder.context'
-import type { ServerTasksApiListTasksRequest } from '@/src/services/api'
 import { $api } from '@/src/services/api'
 
 import { folderTasksTableColumns } from './folder-tasks-table-columns'

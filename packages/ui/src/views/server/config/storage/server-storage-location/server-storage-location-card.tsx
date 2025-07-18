@@ -1,7 +1,6 @@
+import type { ServerStorageLocationDTO } from '@stellariscloud/types'
 import { Button } from '@stellariscloud/ui-toolkit'
 import { Globe, Key, Lock, PackageOpen, Server, Slash } from 'lucide-react'
-
-import type { ServerStorageLocationDTO } from '@/src/services/api'
 
 const DD_CLASS = 'mt-1 text-base text-muted-foreground font-mono'
 

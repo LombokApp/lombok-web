@@ -1,5 +1,5 @@
 import { KeyIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
-import type { FolderMetadata } from '@stellariscloud/types'
+import type { FolderGetResponse,FolderMetadata  } from '@stellariscloud/types'
 import {
   Card,
   CardContent,
@@ -10,8 +10,6 @@ import {
 } from '@stellariscloud/ui-toolkit'
 import { formatBytes } from '@stellariscloud/utils'
 import { Calculator, Globe } from 'lucide-react'
-
-import type { FolderGetResponse } from '@/src/services/api'
 
 import { Icon } from '../../design-system/icon'
 import { FolderEventsList } from '../folder-events-list/folder-events-list.view'

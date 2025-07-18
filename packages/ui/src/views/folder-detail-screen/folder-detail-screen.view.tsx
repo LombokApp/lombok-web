@@ -4,7 +4,7 @@ import {
   ShareIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline'
-import type { FolderPermissionName } from '@stellariscloud/types'
+import type { FolderObjectDTO,FolderPermissionName  } from '@stellariscloud/types'
 import { FolderPermissionEnum, FolderPushMessage } from '@stellariscloud/types'
 import {
   Button,
@@ -38,7 +38,6 @@ import {
 } from '@/src/components/upload-modal/upload-modal'
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache.context'
 import { useFolderContext } from '@/src/pages/folders/folder.context'
-import type { FolderObjectDTO } from '@/src/services/api'
 import { $api } from '@/src/services/api'
 
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'

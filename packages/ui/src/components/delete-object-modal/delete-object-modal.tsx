@@ -1,4 +1,5 @@
 import { TrashIcon } from '@heroicons/react/24/outline'
+import type { FolderObjectDTO } from '@stellariscloud/types'
 import {
   Button,
   Dialog,
@@ -8,8 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@stellariscloud/ui-toolkit'
-
-import type { FolderObjectDTO } from '@/src/services/api'
 
 export interface DeleteObjectModalData {
   isOpen: boolean
@@ -53,9 +52,9 @@ export const DeleteObjectModal = ({
             </DialogTitle>
           </div>
         </DialogHeader>
-        <DialogDescription className="dark:text-gray-400 text-sm text-gray-600">
+        <DialogDescription className="text-sm text-gray-600 dark:text-gray-400">
           This will permanently delete the object:
-          <div className="dark:bg-gray-800 mt-2 rounded-md bg-gray-100 p-2 font-mono text-sm">
+          <div className="mt-2 rounded-md bg-gray-100 p-2 font-mono text-sm dark:bg-gray-800">
             {modalData.folderObject?.objectKey}
           </div>
         </DialogDescription>

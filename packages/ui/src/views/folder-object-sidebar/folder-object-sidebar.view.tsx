@@ -15,7 +15,11 @@ import {
   TvIcon,
   VideoCameraIcon,
 } from '@heroicons/react/24/outline'
-import type { ContentMetadataType } from '@stellariscloud/types'
+import type { ContentMetadataType ,
+  FolderDTO,
+  FolderGetResponse,
+  FolderObjectDTO,
+} from '@stellariscloud/types'
 import { MediaType } from '@stellariscloud/types'
 import { Button, Card, cn } from '@stellariscloud/ui-toolkit'
 import {
@@ -25,11 +29,6 @@ import {
 } from '@stellariscloud/utils'
 import React from 'react'
 
-import type {
-  FolderDTO,
-  FolderGetResponse,
-  FolderObjectDTO,
-} from '@/src/services/api'
 import { $api } from '@/src/services/api'
 
 import { ActionsList } from '../../components/actions-list/actions-list.component'
@@ -375,7 +374,7 @@ export const FolderObjectSidebar = ({
           <div>{tasks && <TasksList tasks={tasks} />}</div>
           {showRawMetadata && (
             <div className="p-4 text-xs">
-              <pre className="dark:bg-white/5 dark:text-gray-200 p-6">
+              <pre className="p-6 dark:bg-white/5 dark:text-gray-200">
                 {JSON.stringify(
                   {
                     contentMetadata: folderObject.contentMetadata,

@@ -1,15 +1,15 @@
 'use client'
 
+import type {
+  AccessKeyPublicDTO,
+  RotateAccessKeyInputDTO,
+} from '@stellariscloud/types'
 import { useToast } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import type { ColumnDef } from '@tanstack/react-table'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-import type {
-  AccessKeyPublicDTO,
-  RotateAccessKeyInputDTO,
-} from '@/src/services/api'
 import { $api } from '@/src/services/api'
 
 import { AccessKeyModal } from '../../components/access-key-modal/access-key-modal'

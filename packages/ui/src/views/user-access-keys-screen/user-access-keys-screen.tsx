@@ -1,8 +1,8 @@
+import type { AccessKeysListRequest } from '@stellariscloud/types'
 import { DataTable, Separator, TypographyH2 } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import React from 'react'
 
-import type { AccessKeysListRequest } from '@/src/services/api'
 import { $api } from '@/src/services/api'
 
 import { configureUserAccessKeysTableColumns } from './user-access-keys-table-columns'

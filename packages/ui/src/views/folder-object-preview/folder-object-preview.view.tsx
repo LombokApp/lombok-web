@@ -1,3 +1,4 @@
+import type { FolderObjectDTO } from '@stellariscloud/types'
 import { MediaType } from '@stellariscloud/types'
 import { cn } from '@stellariscloud/ui-toolkit'
 import {
@@ -10,7 +11,6 @@ import { AudioPlayer } from '@/src/components/audio-player/audio-player'
 import { VideoPlayer } from '@/src/components/video-player/video-player'
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache.context'
 import { Icon } from '@/src/design-system/icon'
-import type { FolderObjectDTO } from '@/src/services/api'
 import { $api } from '@/src/services/api'
 import { iconForMediaType } from '@/src/utils/icons'
 

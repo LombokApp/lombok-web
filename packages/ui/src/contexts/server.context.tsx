@@ -2,17 +2,15 @@ import { useAuthContext } from '@stellariscloud/auth-utils'
 import type {
   AppMenuItem,
   AppPushMessage,
+  AppsListResponse,
   AppTaskTrigger,
+  ServerSettingsListResponse,
 } from '@stellariscloud/types'
 import { ServerPushMessage } from '@stellariscloud/types'
 import type { QueryObserverResult } from '@tanstack/react-query'
 import React from 'react'
 import type { Socket } from 'socket.io-client'
 
-import type {
-  AppsListResponse,
-  ServerSettingsListResponse,
-} from '@/src/services/api'
 import { $api } from '@/src/services/api'
 
 import { useWebsocket } from '../hooks/use-websocket'

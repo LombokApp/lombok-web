@@ -1,5 +1,5 @@
-import type { paths } from '@stellariscloud/api-client'
 import { StellarisCloudAppBrowserSdk } from '@stellariscloud/app-browser-sdk'
+import type { paths } from '@stellariscloud/types'
 import createFetchClient from 'openapi-fetch'
 import createClient from 'openapi-react-query'
 

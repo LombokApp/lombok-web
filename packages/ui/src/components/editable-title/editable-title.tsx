@@ -163,7 +163,7 @@ export const EditableTitle = ({
       ) : (
         <div
           onClick={handleStartEdit}
-          className={`${commonStyles} dark:hover:bg-gray-800 -mx-1 flex cursor-text items-center rounded px-1 transition-colors hover:bg-gray-100 ${className} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`${commonStyles} -mx-1 flex cursor-text items-center rounded px-1 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 ${className} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
           title={isLoading ? 'Saving...' : 'Click to edit'}
           style={commonInlineStyles}
           role="heading"

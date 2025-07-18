@@ -1,3 +1,4 @@
+import type { FolderGetResponse, TaskDTO } from '@stellariscloud/types'
 import { FolderPushMessage } from '@stellariscloud/types'
 import {
   Card,
@@ -11,7 +12,6 @@ import { ListChecks } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-import type { FolderGetResponse, TaskDTO } from '@/src/services/api'
 import { $api } from '@/src/services/api'
 
 import { Icon } from '../../design-system/icon'

@@ -1,5 +1,6 @@
 'use client'
 
+import type { AccessKeyPublicDTO } from '@stellariscloud/types'
 import {
   Dialog,
   DialogContent,
@@ -7,8 +8,6 @@ import {
   DialogTitle,
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
-
-import type { AccessKeyPublicDTO } from '@/src/services/api'
 
 import { AccessKeyRotateForm } from '../access-key-rotate-form/access-key-rotate-form'
 
