@@ -49,9 +49,9 @@ describe('S3', () => {
       ) ?? []
 
     const files = await Promise.all(
-      downloadUrls
-        .map((downloadUrl) => fetch(downloadUrl))
-        .map((response) => response.then((r) => r.json())),
+      downloadUrls.map((downloadUrl) =>
+        fetch(downloadUrl, { method: 'GET' }).then((r) => r.text()),
+      ),
     )
 
     expect(files.length).toEqual(1)
