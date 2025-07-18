@@ -95,7 +95,7 @@ describe('Users', () => {
     const setEmailUpdateUserResponse = await apiClient(accessToken).PATCH(
       '/api/v1/server/users/{userId}',
       {
-        params: { path: { userId: createUserResponse.data?.user.id! } },
+        params: { path: { userId: createUserResponse.data?.user.id ?? '' } },
         body: { email: 'email@example.com' },
       },
     )
@@ -151,7 +151,7 @@ describe('Users', () => {
     const setEmailUpdateUserResponse = await apiClient(accessToken).PATCH(
       '/api/v1/server/users/{userId}',
       {
-        params: { path: { userId: createUserResponse.data?.user.id! } },
+        params: { path: { userId: createUserResponse.data?.user.id ?? '' } },
         body: { email: null },
       },
     )
@@ -204,7 +204,7 @@ describe('Users', () => {
     const setNameUpdateUserResponse = await apiClient(accessToken).PATCH(
       '/api/v1/server/users/{userId}',
       {
-        params: { path: { userId: createUserResponse.data?.user.id! } },
+        params: { path: { userId: createUserResponse.data?.user.id ?? '' } },
         body: { name: 'newname' },
       },
     )
@@ -258,7 +258,7 @@ describe('Users', () => {
     const setNameUpdateUserResponse = await apiClient(accessToken).PATCH(
       '/api/v1/server/users/{userId}',
       {
-        params: { path: { userId: createUserResponse.data?.user.id! } },
+        params: { path: { userId: createUserResponse.data?.user.id ?? '' } },
         body: { isAdmin: true },
       },
     )
@@ -312,7 +312,7 @@ describe('Users', () => {
     const setNameUpdateUserResponse = await apiClient(accessToken).PATCH(
       '/api/v1/server/users/{userId}',
       {
-        params: { path: { userId: createUserResponse.data?.user.id! } },
+        params: { path: { userId: createUserResponse.data?.user.id ?? '' } },
         body: { username: 'newusername' },
       },
     )
@@ -364,7 +364,7 @@ describe('Users', () => {
     const setNameUpdateUserResponse = await apiClient(accessToken).PATCH(
       '/api/v1/server/users/{userId}',
       {
-        params: { path: { userId: createUserResponse.data?.user.id! } },
+        params: { path: { userId: createUserResponse.data?.user.id ?? '' } },
         body: { username: '' },
       },
     )
@@ -408,7 +408,7 @@ describe('Users', () => {
     const setNameUpdateUserResponse = await apiClient(accessToken).PATCH(
       '/api/v1/server/users/{userId}',
       {
-        params: { path: { userId: createUserResponse.data?.user.id! } },
+        params: { path: { userId: createUserResponse.data?.user.id ?? '' } },
         body: { email: '' },
       },
     )
@@ -433,7 +433,7 @@ describe('Users', () => {
     const fetchedUserResponse = await apiClient(accessToken).GET(
       '/api/v1/server/users/{userId}',
       {
-        params: { path: { userId: createUserResponse.data?.user.id! } },
+        params: { path: { userId: createUserResponse.data?.user.id ?? '' } },
       },
     )
     expect(fetchedUserResponse.response.status).toEqual(200)
@@ -489,7 +489,7 @@ describe('Users', () => {
     const deletedUserResponse = await apiClient(accessToken).DELETE(
       '/api/v1/server/users/{userId}',
       {
-        params: { path: { userId: createUserResponse.data?.user.id! } },
+        params: { path: { userId: createUserResponse.data?.user.id ?? '' } },
       },
     )
 
@@ -498,7 +498,7 @@ describe('Users', () => {
     const fetchedUserResponse = await apiClient(accessToken).GET(
       '/api/v1/server/users/{userId}',
       {
-        params: { path: { userId: createUserResponse.data?.user.id! } },
+        params: { path: { userId: createUserResponse.data?.user.id ?? '' } },
       },
     )
     expect(fetchedUserResponse.response.status).toEqual(404)

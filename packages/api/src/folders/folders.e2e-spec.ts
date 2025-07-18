@@ -33,8 +33,8 @@ describe('Folders', () => {
       password: '123',
     })
 
-    const bucketName = (await testModule!.initMinioTestBucket([])) ?? ''
-    const metadataBucketName = (await testModule!.initMinioTestBucket()) ?? ''
+    const bucketName = await testModule!.initMinioTestBucket([])
+    const metadataBucketName = await testModule!.initMinioTestBucket()
 
     const createFolderResponse = await apiClient(accessToken).POST(
       '/api/v1/folders',
@@ -47,11 +47,13 @@ describe('Folders', () => {
       },
     )
     expect(createFolderResponse.response.status).toEqual(201)
-    if (!createFolderResponse.data?.folder.id) throw new Error('No folder id')
+    if (!createFolderResponse.data?.folder.id) {
+      throw new Error('No folder id')
+    }
 
     const folderGetResponse = await apiClient(accessToken).GET(
       '/api/v1/folders/{folderId}',
-      { params: { path: { folderId: createFolderResponse.data.folder.id! } } },
+      { params: { path: { folderId: createFolderResponse.data.folder.id } } },
     )
     expect(folderGetResponse.response.status).toEqual(200)
     expect(folderGetResponse.data?.folder.id).toEqual(
@@ -241,7 +243,9 @@ describe('Folders', () => {
     expect(folderCreateResponse.data?.folder.id).toBeDefined()
 
     const folderId3 = folderCreateResponse.data?.folder.id
-    if (!folderId3) throw new Error('No folder id')
+    if (!folderId3) {
+      throw new Error('No folder id')
+    }
     const folderGetResponse = await apiClient(secondUserAccessToken).GET(
       '/api/v1/folders/{folderId}',
       { params: { path: { folderId: folderId3 } } },
@@ -264,7 +268,7 @@ describe('Folders', () => {
 
     const testFolder = await createTestFolder({
       folderName: 'My Folder',
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
       testModule: testModule!,
       accessToken,
       mockFiles: MOCK_OBJECTS,
@@ -340,7 +344,9 @@ describe('Folders', () => {
       },
     )
     const provisionId = _storageProvision.data?.result[0]?.id
-    if (!provisionId) throw new Error('No provision id')
+    if (!provisionId) {
+      throw new Error('No provision id')
+    }
 
     const folderCreateResponse = await apiClient(accessToken).POST(
       '/api/v1/folders',
@@ -601,7 +607,9 @@ describe('Folders', () => {
     const presignedUrls = await apiClient(accessToken).POST(
       '/api/v1/folders/{folderId}/presigned-urls',
       {
-        params: { path: { folderId: folderCreateResponse.data?.folder.id! } },
+        params: {
+          path: { folderId: folderCreateResponse.data?.folder.id ?? '' },
+        },
         body: [
           {
             method: 'PUT',
@@ -666,7 +674,9 @@ describe('Folders', () => {
     const presignedUrls = await apiClient(accessToken).POST(
       '/api/v1/folders/{folderId}/presigned-urls',
       {
-        params: { path: { folderId: folderCreateResponse.data?.folder.id! } },
+        params: {
+          path: { folderId: folderCreateResponse.data?.folder.id ?? '' },
+        },
         body: [
           {
             method: 'PUT',
@@ -727,7 +737,9 @@ describe('Folders', () => {
     )
     expect(folderCreateResponse.response.status).toBe(201)
     const folderId2 = folderCreateResponse.data?.folder.id
-    if (!folderId2) throw new Error('No folder id')
+    if (!folderId2) {
+      throw new Error('No folder id')
+    }
     const presignedUrlsGet = await apiClient(accessToken).POST(
       '/api/v1/folders/{folderId}/presigned-urls',
       {
@@ -745,7 +757,9 @@ describe('Folders', () => {
     const presignedUrls = await apiClient(accessToken).POST(
       '/api/v1/folders/{folderId}/presigned-urls',
       {
-        params: { path: { folderId: folderCreateResponse.data?.folder.id! } },
+        params: {
+          path: { folderId: folderCreateResponse.data?.folder.id ?? '' },
+        },
         body: [
           {
             method: 'PUT',
@@ -760,7 +774,9 @@ describe('Folders', () => {
     const presignedUrls2 = await apiClient(accessToken).POST(
       '/api/v1/folders/{folderId}/presigned-urls',
       {
-        params: { path: { folderId: folderCreateResponse.data?.folder.id! } },
+        params: {
+          path: { folderId: folderCreateResponse.data?.folder.id ?? '' },
+        },
         body: [
           {
             method: 'DELETE',

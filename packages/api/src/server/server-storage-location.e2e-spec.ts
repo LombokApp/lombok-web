@@ -38,7 +38,9 @@ describe('Server - Server Storage Location', () => {
         },
       },
     )
-    if (!setServerStorageLocationResponse.data) throw new Error('No data')
+    if (!setServerStorageLocationResponse.data) {
+      throw new Error('No data')
+    }
     expect(setServerStorageLocationResponse.response.status).toEqual(201)
     expect(
       setServerStorageLocationResponse.data.serverStorageLocation,

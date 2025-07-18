@@ -1,7 +1,8 @@
 import type { INestApplication } from '@nestjs/common'
-import createFetch from 'openapi-fetch'
 import type { paths } from '@stellariscloud/types'
+import createFetch from 'openapi-fetch'
 import request from 'supertest'
+import type { App } from 'supertest/types'
 
 export interface SupertestApiClientConfigParams {
   accessToken?: string
@@ -29,7 +30,7 @@ export function buildSupertestApiClient(app: INestApplication) {
     return async (input: Request | string, init?: RequestInit) => {
       let method: string
       let headers: HeadersInit
-      let body: any
+      let body: unknown
 
       if (typeof input === 'string') {
         method = init?.method || 'GET'
@@ -37,10 +38,12 @@ export function buildSupertestApiClient(app: INestApplication) {
         body = init?.body
       } else {
         method = input.method || 'GET'
-        headers = input.headers || {}
+        headers = input.headers
         // Read the body from the Request stream
         body = await input.text()
-        if (body === '') body = undefined
+        if (body === '') {
+          body = undefined
+        }
       }
 
       // Parse the URL to extract path and query parameters
@@ -51,7 +54,7 @@ export function buildSupertestApiClient(app: INestApplication) {
       const path = urlObj.pathname
 
       // Create supertest request
-      const supertestReq = request(app.getHttpServer())
+      const supertestReq = request(app.getHttpServer() as App)
       let req =
         supertestReq[
           method.toLowerCase() as
@@ -70,23 +73,21 @@ export function buildSupertestApiClient(app: INestApplication) {
       }
 
       // Set additional headers
-      if (headers) {
-        if (
-          typeof (headers as Headers).forEach === 'function' &&
-          headers instanceof Headers
-        ) {
-          // Headers object
-          ;(headers as Headers).forEach((value: string, key: string) => {
+      if (
+        typeof (headers as Headers).forEach === 'function' &&
+        headers instanceof Headers
+      ) {
+        // Headers object
+        headers.forEach((value: string, key: string) => {
+          req = req.set(key, value)
+        })
+      } else if (typeof headers === 'object') {
+        // Plain object
+        Object.entries(headers).forEach(([key, value]) => {
+          if (typeof value === 'string') {
             req = req.set(key, value)
-          })
-        } else if (typeof headers === 'object') {
-          // Plain object
-          Object.entries(headers).forEach(([key, value]) => {
-            if (typeof value === 'string') {
-              req = req.set(key, value)
-            }
-          })
-        }
+          }
+        })
       }
 
       // Set query parameters
@@ -98,26 +99,24 @@ export function buildSupertestApiClient(app: INestApplication) {
       if (body !== undefined) {
         // Determine content type
         let contentType: string | undefined
-        if (headers) {
-          if (headers instanceof Headers) {
-            contentType =
-              headers.get('content-type') ||
-              headers.get('Content-Type') ||
-              undefined
-          } else if (typeof headers === 'object') {
-            contentType =
-              (headers['content-type'] as string) ||
-              (headers['Content-Type'] as string)
-          }
+        if (headers instanceof Headers) {
+          contentType =
+            headers.get('content-type') ||
+            headers.get('Content-Type') ||
+            undefined
+        } else if (typeof headers === 'object') {
+          contentType =
+            (headers['content-type'] as string) ||
+            (headers['Content-Type'] as string)
         }
-        if (contentType && contentType.includes('application/json')) {
+        if (contentType?.includes('application/json')) {
           try {
-            req = req.send(JSON.parse(body))
+            req = req.send(JSON.parse(body as string) as object)
           } catch {
-            req = req.send(body)
+            req = req.send(body as string)
           }
         } else {
-          req = req.send(body)
+          req = req.send(body as string)
         }
       }
 

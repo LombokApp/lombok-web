@@ -43,7 +43,9 @@ describe('Server - User Storage Provisions', () => {
       },
     )
     expect(createProvisionResponse.response.status).toEqual(201)
-    if (!createProvisionResponse.data) throw new Error('No data')
+    if (!createProvisionResponse.data) {
+      throw new Error('No data')
+    }
     expect(createProvisionResponse.data.result[0].accessKeyId).toEqual(
       'dummyaccesskeyid',
     )
@@ -75,13 +77,17 @@ describe('Server - User Storage Provisions', () => {
       },
     )
     expect(createProvisionResponse.response.status).toEqual(201)
-    if (!createProvisionResponse.data) throw new Error('No data')
+    if (!createProvisionResponse.data) {
+      throw new Error('No data')
+    }
     expect(createProvisionResponse.data.result[0].accessKeyId).toEqual(
       'dummyaccesskeyid',
     )
 
     const provisionId = createProvisionResponse.data.result[0].id
-    if (!provisionId) throw new Error('No provision id')
+    if (!provisionId) {
+      throw new Error('No provision id')
+    }
     const updateProvisionResponse = await apiClient(accessToken).PUT(
       '/api/v1/server/user-storage-provisions/{userStorageProvisionId}',
       {
@@ -104,7 +110,9 @@ describe('Server - User Storage Provisions', () => {
     )
 
     expect(updateProvisionResponse.response.status).toEqual(200)
-    if (!updateProvisionResponse.data) throw new Error('No data')
+    if (!updateProvisionResponse.data) {
+      throw new Error('No data')
+    }
     expect(updateProvisionResponse.data.result[0].accessKeyId).toEqual(
       'dummyaccesskeyid',
     )
@@ -150,13 +158,17 @@ describe('Server - User Storage Provisions', () => {
       },
     )
     expect(createProvisionResponse.response.status).toEqual(201)
-    if (!createProvisionResponse.data) throw new Error('No data')
+    if (!createProvisionResponse.data) {
+      throw new Error('No data')
+    }
     expect(createProvisionResponse.data.result[0].accessKeyId).toEqual(
       'dummyaccesskeyid',
     )
 
     const provisionId = createProvisionResponse.data.result[0].id
-    if (!provisionId) throw new Error('No provision id')
+    if (!provisionId) {
+      throw new Error('No provision id')
+    }
     const deleteProvisionResponse = await apiClient(accessToken).DELETE(
       '/api/v1/server/user-storage-provisions/{userStorageProvisionId}',
       { params: { path: { userStorageProvisionId: provisionId } } },
@@ -169,7 +181,9 @@ describe('Server - User Storage Provisions', () => {
     )
 
     expect(listProvisionsResponse.response.status).toEqual(200)
-    if (!listProvisionsResponse.data) throw new Error('No data')
+    if (!listProvisionsResponse.data) {
+      throw new Error('No data')
+    }
     expect(listProvisionsResponse.data.result.length).toEqual(0)
   })
 

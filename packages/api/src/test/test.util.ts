@@ -1,5 +1,6 @@
 import { Test } from '@nestjs/testing'
-import { FolderDTO, SignedURLsRequestMethod } from '@stellariscloud/types'
+import type { FolderDTO } from '@stellariscloud/types'
+import { SignedURLsRequestMethod } from '@stellariscloud/types'
 import axios from 'axios'
 import { eq } from 'drizzle-orm'
 import fs from 'fs'
@@ -173,19 +174,17 @@ export async function createTestUser(
       },
     })
   if (admin) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    await testModule!
+    await testModule
       .getOrmService()
       .db.update(usersTable)
       .set({
         isAdmin: true,
         name,
       })
-      .where(eq(usersTable.username, signupResponse?.data?.user.username ?? ''))
+      .where(eq(usersTable.username, signupResponse.data?.user.username ?? ''))
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const result = await testModule!.apiClient().POST('/api/v1/auth/login', {
+  const result = await testModule.apiClient().POST('/api/v1/auth/login', {
     body: { login: username, password },
   })
 
@@ -244,7 +243,7 @@ export async function createTestFolder({
     },
   )
 
-  if (!folderCreateResponse?.data?.folder) {
+  if (!folderCreateResponse.data?.folder) {
     throw new Error('Folder creation failed - no folder data in response')
   }
 

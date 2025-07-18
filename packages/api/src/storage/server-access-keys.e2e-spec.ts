@@ -45,7 +45,9 @@ describe('Server Access Keys', () => {
         },
       },
     )
-    if (!createProvisionResponse.data) throw new Error('No data')
+    if (!createProvisionResponse.data) {
+      throw new Error('No data')
+    }
     const storageProvisionId = createProvisionResponse.data.result[0].id
     await apiClient(accessToken).POST('/api/v1/folders', {
       body: {
@@ -86,7 +88,9 @@ describe('Server Access Keys', () => {
     const listServerAccessKeysResponse = await apiClient(accessToken).GET(
       '/api/v1/server/access-keys',
     )
-    if (!listServerAccessKeysResponse.data) throw new Error('No data')
+    if (!listServerAccessKeysResponse.data) {
+      throw new Error('No data')
+    }
     expect(listServerAccessKeysResponse.data.result[0].accessKeyHashId).toEqual(
       buildAccessKeyHashId({
         accessKeyId: 'dummyaccesskeyid',

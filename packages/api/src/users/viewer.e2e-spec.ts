@@ -25,7 +25,9 @@ describe('Viewer', () => {
       .apiClient(accessToken)
       .GET('/api/v1/viewer')
     expect(viewerResponse.response.status).toEqual(200)
-    if (!viewerResponse.data) throw new Error('No data')
+    if (!viewerResponse.data) {
+      throw new Error('No data')
+    }
     expect(viewerResponse.data.user.username).toEqual('testuser')
     expect(viewerResponse.data.user.isAdmin).toEqual(false)
     expect(viewerResponse.data.user.permissions).toEqual([])

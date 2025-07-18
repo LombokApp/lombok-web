@@ -75,7 +75,7 @@ export function UserStorageProvisions() {
                 ...values,
                 secretAccessKey: values.secretAccessKey.length
                   ? values.secretAccessKey
-                  : undefined,
+                  : '',
               },
             })
           }

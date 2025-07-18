@@ -9,6 +9,8 @@ import { addMs, earliest } from '@stellariscloud/utils'
 import { eq, or } from 'drizzle-orm'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { OrmService } from 'src/orm/orm.service'
+import { SIGNUP_ENABLED_CONFIG } from 'src/server/constants/server.constants'
+import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
 import type { NewUser, User } from 'src/users/entities/user.entity'
 import { usersTable } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
@@ -21,8 +23,6 @@ import { LoginInvalidException } from '../exceptions/login-invalid.exception'
 import { SessionInvalidException } from '../exceptions/session-invalid.exception'
 import { authHelper } from '../utils/auth-helper'
 import { SessionService } from './session.service'
-import { SIGNUP_ENABLED_CONFIG } from 'src/server/constants/server.constants'
-import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
 
 /**
  * Calculates the sliding expiration of a session token based on the initial

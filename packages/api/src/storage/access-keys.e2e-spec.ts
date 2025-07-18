@@ -46,7 +46,9 @@ describe('Access Keys', () => {
       '/api/v1/access-keys',
       {},
     )
-    if (!listAccessKeysResponse.data) throw new Error('No data')
+    if (!listAccessKeysResponse.data) {
+      throw new Error('No data')
+    }
 
     expect(listAccessKeysResponse.response.status).toEqual(200)
     expect(listAccessKeysResponse.data.result.length).toEqual(1)
