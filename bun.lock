@@ -78,48 +78,6 @@
         "tsconfig-paths": "4.2.0",
       },
     },
-    "packages/app-browser-sdk": {
-      "name": "@stellariscloud/app-browser-sdk",
-      "version": "0.0.1-6",
-      "dependencies": {
-        "axios": "1.9.0",
-      },
-      "devDependencies": {
-        "@rollup/plugin-alias": "5.1.1",
-        "@rollup/plugin-node-resolve": "16.0.0",
-        "@rollup/plugin-typescript": "12.1.2",
-        "@stellariscloud/auth-utils": "workspace:*",
-        "@stellariscloud/types": "workspace:*",
-        "@stellariscloud/utils": "workspace:*",
-        "@types/jest": "29.5.14",
-        "jest": "29.7.0",
-        "prettier": "3.4.2",
-        "rollup": "4.30.1",
-        "rollup-plugin-dts": "6.1.1",
-        "ts-jest": "29.2.5",
-        "tslib": "2.8.1",
-      },
-    },
-    "packages/app-worker-example": {
-      "name": "@stellariscloud/app-worker-example",
-      "dependencies": {
-        "axios": "1.9.0",
-      },
-      "devDependencies": {
-        "@jest/types": "29.6.3",
-        "@rollup/plugin-alias": "5.1.1",
-        "@rollup/plugin-node-resolve": "16.0.0",
-        "@rollup/plugin-typescript": "12.1.2",
-        "@stellariscloud/types": "workspace:*",
-        "@types/jest": "29.5.14",
-        "jest": "29.7.0",
-        "prettier": "3.4.2",
-        "rollup": "4.30.1",
-        "rollup-plugin-dts": "6.1.1",
-        "ts-jest": "29.2.5",
-        "tslib": "2.8.1",
-      },
-    },
     "packages/app-worker-sdk": {
       "name": "@stellariscloud/app-worker-sdk",
       "version": "0.0.1-6",
@@ -147,7 +105,6 @@
         "@stellariscloud/types": "workspace:*",
         "@stellariscloud/utils": "workspace:*",
         "axios": "1.9.0",
-        "js-cookie": "3.0.5",
         "jwt-decode": "4.0.0",
         "openapi-fetch": "^0.14.0",
         "react": "18.3.1",
@@ -186,6 +143,28 @@
         "ts-jest": "29.2.5",
       },
     },
+    "packages/sdk": {
+      "name": "@stellariscloud/sdk",
+      "version": "0.0.1-6",
+      "dependencies": {
+        "axios": "1.9.0",
+      },
+      "devDependencies": {
+        "@rollup/plugin-alias": "5.1.1",
+        "@rollup/plugin-node-resolve": "16.0.0",
+        "@rollup/plugin-typescript": "12.1.2",
+        "@stellariscloud/auth-utils": "workspace:*",
+        "@stellariscloud/types": "workspace:*",
+        "@stellariscloud/utils": "workspace:*",
+        "@types/jest": "29.5.14",
+        "jest": "29.7.0",
+        "prettier": "3.4.2",
+        "rollup": "4.30.1",
+        "rollup-plugin-dts": "6.1.1",
+        "ts-jest": "29.2.5",
+        "tslib": "2.8.1",
+      },
+    },
     "packages/stellaris-types": {
       "name": "@stellariscloud/types",
       "devDependencies": {
@@ -217,7 +196,7 @@
       "dependencies": {
         "@headlessui/react": "^2.2.0",
         "@heroicons/react": "^2.2.0",
-        "@stellariscloud/app-browser-sdk": "workspace:*",
+        "@stellariscloud/sdk": "workspace:*",
         "@stellariscloud/types": "workspace:*",
         "@stellariscloud/ui-toolkit": "workspace:*",
         "@stellariscloud/utils": "workspace:*",
@@ -1231,15 +1210,13 @@
 
     "@stellariscloud/api": ["@stellariscloud/api@workspace:packages/api"],
 
-    "@stellariscloud/app-browser-sdk": ["@stellariscloud/app-browser-sdk@workspace:packages/app-browser-sdk"],
-
-    "@stellariscloud/app-worker-example": ["@stellariscloud/app-worker-example@workspace:packages/app-worker-example"],
-
     "@stellariscloud/app-worker-sdk": ["@stellariscloud/app-worker-sdk@workspace:packages/app-worker-sdk"],
 
     "@stellariscloud/auth-utils": ["@stellariscloud/auth-utils@workspace:packages/auth-utils"],
 
     "@stellariscloud/core-worker": ["@stellariscloud/core-worker@workspace:packages/core-worker"],
+
+    "@stellariscloud/sdk": ["@stellariscloud/sdk@workspace:packages/sdk"],
 
     "@stellariscloud/types": ["@stellariscloud/types@workspace:packages/stellaris-types"],
 
@@ -2597,7 +2574,7 @@
 
     "jiti": ["jiti@2.4.2", "", { "bin": { "jiti": "lib/jiti-cli.mjs" } }, "sha512-rg9zJN+G4n2nfJl5MW3BMygZX56zKPNVEYYqq7adpmMh4Jn2QNEwhvQlFy6jPVdcod7txZtKHWnyZiA3a0zP7A=="],
 
-    "js-cookie": ["js-cookie@3.0.5", "", {}, "sha512-cEiJEAEoIbWfCZYKWhVwFuvPX1gETRYPw6LlaTKoxD3s2AkXzkCjnp6h0V77ozyqj0jakteJ4YqDJT830+lVGw=="],
+    "js-cookie": ["js-cookie@2.2.1", "", {}, "sha512-HvdH2LzI/EAZcUwA8+0nKNtWHqS+ZmijLA30RwZA0bo7ToCckjK5MkGhjED9KoRcXO6BaGI3I9UIzSA1FKFPOQ=="],
 
     "js-levenshtein": ["js-levenshtein@1.1.6", "", {}, "sha512-X2BB11YZtrRqY4EnQcLX5Rh373zbK4alC1FW7D7MBhL2gtcC17cTnr6DmfHZeS0s2rTHjUTMMHfG7gO8SSdw+g=="],
 
@@ -3880,8 +3857,6 @@
     "react-router/cookie": ["cookie@1.0.2", "", {}, "sha512-9Kr/j4O16ISv8zBBhJoi4bXOYNTkFLOqSL3UDB0njXxCXNezjeyVrJyGOWtgfs/q2km1gwBcfH8q1yEGoMYunA=="],
 
     "react-use/@types/js-cookie": ["@types/js-cookie@2.2.7", "", {}, "sha512-aLkWa0C0vO5b4Sr798E26QgOkss68Un0bLjs7u9qxzPT5CG+8DuNTffWES58YzJs3hrVAOs1wonycqEBqNJubA=="],
-
-    "react-use/js-cookie": ["js-cookie@2.2.1", "", {}, "sha512-HvdH2LzI/EAZcUwA8+0nKNtWHqS+ZmijLA30RwZA0bo7ToCckjK5MkGhjED9KoRcXO6BaGI3I9UIzSA1FKFPOQ=="],
 
     "read-cache/pify": ["pify@2.3.0", "", {}, "sha512-udgsAY+fTnvv7kI7aaxbqwWNb0AHiB0qBO89PZKPkoTmGOgdbrHDKD+0B2X4uTfJ/FT1R09r9gTsjUjNJotuog=="],
 
