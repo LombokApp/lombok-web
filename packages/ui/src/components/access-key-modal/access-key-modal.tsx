@@ -1,9 +1,6 @@
 'use client'
 
-import type {
-  AccessKeyBucketsListResponseDTO,
-  AccessKeyPublicDTO,
-} from '@stellariscloud/api-client'
+import type { AccessKeyPublicDTO } from '@stellariscloud/types'
 import {
   Dialog,
   DialogContent,
@@ -11,7 +8,6 @@ import {
   DialogTitle,
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
-import React from 'react'
 
 import { AccessKeyRotateForm } from '../access-key-rotate-form/access-key-rotate-form'
 
@@ -24,7 +20,7 @@ export const AccessKeyModal = ({
   modalData,
   setModalData,
   onSubmit,
-  listBuckets,
+  buckets,
 }: {
   modalData: AccessKeyModalData
   setModalData: (modalData: AccessKeyModalData) => void
@@ -32,14 +28,8 @@ export const AccessKeyModal = ({
     accessKeyId: string
     secretAccessKey: string
   }) => Promise<void>
-  listBuckets: () => Promise<AccessKeyBucketsListResponseDTO['result']>
+  buckets: { name: string }[]
 }) => {
-  const [buckets, setBuckets] = React.useState<
-    AccessKeyBucketsListResponseDTO['result']
-  >([])
-  React.useEffect(() => {
-    void listBuckets().then(setBuckets)
-  }, [listBuckets])
   return (
     <Dialog
       open={!!modalData.isOpen}
@@ -86,7 +76,7 @@ export const AccessKeyModal = ({
             </span>
           </div>
           <div className="py-4">
-            <AccessKeyRotateForm onSubmit={(input) => onSubmit(input)} />
+            <AccessKeyRotateForm onSubmit={onSubmit} />
           </div>
         </div>
         <div className="flex flex-col gap-2">

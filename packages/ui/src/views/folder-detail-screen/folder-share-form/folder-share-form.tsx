@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import type {
+  FolderPermissionName,
   FolderShareListResponse,
   FolderShareUserListResponse,
-} from '@stellariscloud/api-client'
-import type { FolderPermissionName } from '@stellariscloud/types'
+} from '@stellariscloud/types'
 import { FolderPermissionEnum } from '@stellariscloud/types'
 import {
   Button,

@@ -1,4 +1,4 @@
-import type { MetadataEntry } from '@stellariscloud/types'
+import type { ContentMetadataEntry } from '@stellariscloud/types'
 import { MediaType } from '@stellariscloud/types'
 import { mediaTypeFromMimeType } from '@stellariscloud/utils'
 import fs from 'fs'
@@ -98,7 +98,7 @@ export const analyzeObjectTaskHandler = async (
       : ['video/webm', 'webm']
 
   let scaleResult: VideoOperationOutput | ImageOperationOutput | undefined
-  let metadataDescription: { [key: string]: MetadataEntry } = {}
+  let metadataDescription: { [key: string]: ContentMetadataEntry } = {}
   const contentHash = await hashLocalFile(inFilepath)
   const rotation = await getNecessaryContentRotation(inFilepath, mimeType)
 

@@ -1,4 +1,4 @@
-FROM oven/bun:1.2.17-alpine AS base
+FROM oven/bun:1.2.18-alpine AS base
 
 WORKDIR /usr/src/app
 
@@ -28,7 +28,6 @@ RUN cd /temp/dev && \
   bun install --frozen-lockfile && \
   # build the packages
   bun --cwd ./packages/api build && \
-  bun --cwd ./packages/api-client build && \
   bun --cwd ./packages/core-worker build && \
   bun --cwd ./packages/stellaris-types build && \
   bun --cwd ./packages/stellaris-utils build && \
@@ -46,9 +45,8 @@ RUN cd /temp/dev && \
   rm -rf ./packages/api/src && \
   rm -rf ./packages/auth-utils && \
   rm -rf ./packages/app-worker-sdk/node_modules && \
-  rm -rf ./packages/app-browser-sdk && \
+  rm -rf ./packages/sdk && \
   rm -rf ./packages/stellaris-types/node_modules && \
-  rm -rf ./packages/app-worker-example && \
   rm -rf ./packages/ui-toolkit && \
   rm -rf ./packages/stellaris-utils/node_modules/ && \
   rm -rf ./packages/core-worker/node_modules/ && \

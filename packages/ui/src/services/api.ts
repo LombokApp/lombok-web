@@ -1,105 +1,45 @@
-import type { paths } from '@stellariscloud/api-client'
-import type { StellarisCloudAPI } from '@stellariscloud/app-browser-sdk'
-import { StellarisCloudAppBrowserSdk } from '@stellariscloud/app-browser-sdk'
-import type { ApiQueryHooks } from '@stellariscloud/auth-utils'
-import { capitalize } from '@stellariscloud/utils'
-import type {
-  QueryFunctionContext,
-  UseQueryOptions,
-} from '@tanstack/react-query'
-import { useQuery } from '@tanstack/react-query'
-import type { AxiosRequestConfig, AxiosResponse } from 'axios'
-import createFetchClient from 'openapi-fetch'
+import Cookies from 'js-cookie'
+
+// TODO: Modify this with a better name.
+const COOKIES_NAME = 'stellariscloud:auth'
+const COOKIES_ACCESS_TOKEN = `${COOKIES_NAME}:accessToken`
+const COOKIES_REFRESH_TOKEN = `${COOKIES_NAME}:refreshToken`
+
+import type { TokensType } from '@stellariscloud/auth-utils'
+import { StellarisCloudSdk } from '@stellariscloud/sdk'
 import createClient from 'openapi-react-query'
 
-const basePath = (import.meta.env.VITE_BACKEND_HOST as string | undefined) ?? ''
+export const basePath =
+  (import.meta.env.VITE_BACKEND_HOST as string | undefined) ?? ''
 
-export const sdkInstance = new StellarisCloudAppBrowserSdk({
-  basePath,
-})
+const loadTokens = () => {
+  const accessToken = Cookies.get(COOKIES_ACCESS_TOKEN)
+  const refreshToken = Cookies.get(COOKIES_REFRESH_TOKEN)
 
-export const $apiClient = createFetchClient<paths>({
-  baseUrl: basePath,
-  fetch: async (request) => {
-    const token = await sdkInstance.authenticator.getAccessToken()
-    const headers = new Headers(request.headers)
-    if (token) {
-      headers.set('Authorization', `Bearer ${token}`)
-    }
-    return fetch(new Request(request, { headers }))
-  },
-})
-
-export const $api = createClient($apiClient)
-export const createApiHooks = <
-  T extends StellarisCloudAPI[keyof StellarisCloudAPI],
->(
-  api: T,
-) => {
-  const queryHooks: Partial<ApiQueryHooks<T>> = {}
-  Object.getOwnPropertyNames(api.constructor.prototype).forEach((key) => {
-    const method = key as string & keyof T
-
-    if (typeof api[method] === 'function') {
-      const hook = `use${capitalize(method)}` as keyof ApiQueryHooks<T>
-      const queryFunction = (
-        requestParameters: unknown,
-        options: UseQueryOptions<unknown, Error, unknown, unknown[]>,
-      ) => {
-        return useQuery({
-          ...options,
-          queryKey: [String(method), requestParameters],
-          queryFn: ({ signal }: QueryFunctionContext) => {
-            const fn = api[method] as unknown as (
-              params: typeof requestParameters,
-              config: AxiosRequestConfig,
-            ) => Promise<AxiosResponse>
-            return (
-              fn
-                .call(api, requestParameters, { signal })
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-                .then((response: AxiosResponse) => response.data)
-            )
-          },
-        })
-      }
-      queryHooks[hook] =
-        queryFunction as unknown as ApiQueryHooks<T>[keyof ApiQueryHooks<T>]
-    }
-  })
-
-  return queryHooks as unknown as ApiQueryHooks<T>
+  return {
+    accessToken,
+    refreshToken,
+  }
 }
 
-export const authApiHooks = createApiHooks(sdkInstance.apiClient.authApi)
+const saveTokens = ({ accessToken, refreshToken }: TokensType) => {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  Cookies.set(COOKIES_ACCESS_TOKEN, accessToken!, {
+    sameSite: 'strict',
+  })
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  Cookies.set(COOKIES_REFRESH_TOKEN, refreshToken!, {
+    sameSite: 'strict',
+  })
+}
 
-export const foldersApiHooks = createApiHooks(sdkInstance.apiClient.foldersApi)
+export const sdkInstance = new StellarisCloudSdk({
+  basePath,
+  accessToken: () => loadTokens().accessToken,
+  refreshToken: () => loadTokens().refreshToken,
+  onTokensRefreshed: (tokens) => saveTokens(tokens),
+  onTokensCreated: (tokens) => saveTokens(tokens),
+})
 
-export const tasksApiHooks = createApiHooks(sdkInstance.apiClient.tasksApi)
-
-export const serverEventsApiHooks = createApiHooks(
-  sdkInstance.apiClient.serverEventsApi,
-)
-
-export const folderEventsApiHooks = createApiHooks(
-  sdkInstance.apiClient.folderEventsApi,
-)
-
-export const serverAccessKeysApiHooks = createApiHooks(
-  sdkInstance.apiClient.serverAccessKeysApi,
-)
-
-export const userStorageProvisionsApiHooks = createApiHooks(
-  sdkInstance.apiClient.userStorageProvisionsApi,
-)
-
-export const accessKeysApiHooks = createApiHooks(
-  sdkInstance.apiClient.accessKeysApi,
-)
-
-export const apiClient = sdkInstance.apiClient
-
-export type UserDTO =
-  paths['/api/v1/server/users/{userId}']['get']['responses']['200']['content']['application/json']['user']
-export type AppDTO =
-  paths['/api/v1/server/apps/{appIdentifier}']['get']['responses']['200']['content']['application/json']['app']
+export const $apiClient = sdkInstance.apiClient
+export const $api = createClient($apiClient)

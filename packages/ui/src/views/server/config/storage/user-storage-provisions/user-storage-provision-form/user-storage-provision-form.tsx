@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
+import type { UserStorageProvisionDTO } from '@stellariscloud/types'
 import {
   s3LocationEndpointSchema,
   UserStorageProvisionTypeEnum,
@@ -55,20 +55,22 @@ export const UserStorageProvisionForm = ({
 }) => {
   const form = useForm<UserStorageProvisionFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: userStorageProvision ?? {
-      label: '',
-      description: '',
-      provisionTypes: [
-        UserStorageProvisionTypeEnum.CONTENT,
-        UserStorageProvisionTypeEnum.METADATA,
-      ],
-      accessKeyId: '',
-      secretAccessKey: '',
-      bucket: '',
-      endpoint: '',
-      prefix: '',
-      region: '',
-    },
+    defaultValues: userStorageProvision
+      ? { ...userStorageProvision, secretAccessKey: '' }
+      : {
+          label: '',
+          description: '',
+          provisionTypes: [
+            UserStorageProvisionTypeEnum.CONTENT,
+            UserStorageProvisionTypeEnum.METADATA,
+          ],
+          accessKeyId: '',
+          secretAccessKey: '',
+          bucket: '',
+          endpoint: '',
+          prefix: '',
+          region: '',
+        },
   })
 
   React.useEffect(() => {

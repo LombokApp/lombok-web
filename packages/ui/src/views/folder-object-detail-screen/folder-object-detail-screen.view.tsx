@@ -1,5 +1,5 @@
 import { ArrowDownTrayIcon, TrashIcon } from '@heroicons/react/24/outline'
-import type { FolderObjectDTOContentMetadataValueValue } from '@stellariscloud/api-client'
+import type { ContentMetadataEntry } from '@stellariscloud/types'
 import {
   FolderPermissionEnum,
   FolderPushMessage,
@@ -50,10 +50,7 @@ export const FolderObjectDetailScreen = ({
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       (folderObject?.hash && folderObject.contentMetadata[folderObject.hash]
         ? (folderObject.contentMetadata[folderObject.hash] ?? {})
-        : {}) as Record<
-        string,
-        FolderObjectDTOContentMetadataValueValue | undefined
-      >,
+        : {}) as Record<string, ContentMetadataEntry | undefined>,
     [folderObject?.contentMetadata, folderObject?.hash],
   )
 

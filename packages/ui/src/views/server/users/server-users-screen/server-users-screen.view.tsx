@@ -1,18 +1,17 @@
-import type { UsersApiListUsersRequest } from '@stellariscloud/api-client'
 import { Button, cn, DataTable } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { Plus } from 'lucide-react'
 import React from 'react'
 
-import type { UserDTO } from '@/src/services/api'
+import { $api } from '@/src/services/api'
 
-import { apiClient } from '../../../../services/api'
-import type { UserFormValues } from '../server-user-modal/server-user-form/server-user-form'
+import type {
+  CreateUserValues,
+  UpdateUserValues,
+} from '../server-user-detail-screen/server-user-detail-screen.view'
 import type { ServerUserModalData } from '../server-user-modal/server-user-modal'
 import { ServerUserModal } from '../server-user-modal/server-user-modal'
 import { serverUsersTableColumns } from './server-users-table-columns'
-
-type UserWithPermissions = UserDTO & { permissions: { label: string }[] }
 
 export function ServerUsersScreen() {
   const [modalData, setModalData] = React.useState<ServerUserModalData>({
@@ -20,11 +19,6 @@ export function ServerUsersScreen() {
     mutationType: 'CREATE',
     isOpen: false,
   })
-
-  const [users, setUsers] = React.useState<{
-    result: UserWithPermissions[]
-    meta: { totalCount: number }
-  }>()
 
   const [filters, setFilters] = React.useState<
     { id: string; value: unknown }[]
@@ -37,55 +31,42 @@ export function ServerUsersScreen() {
   })
   const searchFilter = filters.find((f) => f.id === '__HIDDEN__')
 
-  React.useEffect(() => {
-    void apiClient.usersApi
-      .listUsers({
+  const { data: users, refetch: refetchUsers } = $api.useQuery(
+    'get',
+    '/api/v1/server/users',
+    {
+      queries: {
         limit: pagination.pageSize,
         offset: pagination.pageSize * pagination.pageIndex,
-        ...(sorting[0]
-          ? {
-              sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as UsersApiListUsersRequest['sort'],
-            }
-          : {}),
-        ...(typeof searchFilter?.value === 'string'
-          ? {
-              search: searchFilter.value,
-            }
-          : {}),
-      })
-      .then((response) => {
-        const usersWithPermissions: UserWithPermissions[] =
-          response.data.result.map((r) => ({
-            ...r,
-            name: r.name ?? '',
-            permissions: [],
-          }))
-        setUsers({
-          result: usersWithPermissions,
-          meta: response.data.meta,
-        })
-      })
-  }, [filters, sorting, pagination, searchFilter?.value])
-
-  const handleSubmit = async (
-    mutationType: 'CREATE' | 'UPDATE',
-    values: {
-      username: string
-      name?: string
-      email?: string
-      isAdmin: boolean
-      permissions: string[]
-      password: typeof mutationType extends 'UPDATE'
-        ? string | undefined
-        : string
+        sort: sorting[0]
+          ? `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}`
+          : undefined,
+        search:
+          typeof searchFilter?.value === 'string'
+            ? searchFilter.value
+            : undefined,
+      },
     },
-  ) => {
+  )
+
+  const createUserMutation = $api.useMutation('post', '/api/v1/server/users')
+  const updateUserMutation = $api.useMutation(
+    'patch',
+    '/api/v1/server/users/{userId}',
+  )
+
+  type HandleSubmitParams =
+    | { mutationType: 'CREATE'; values: CreateUserValues }
+    | { mutationType: 'UPDATE'; values: UpdateUserValues }
+
+  const handleSubmit = async (params: HandleSubmitParams) => {
+    const { mutationType, values } = params
     if (mutationType === 'CREATE') {
       if (!values.password) {
         throw new Error('Password is required when creating a new user')
       }
-      await apiClient.usersApi.createUser({
-        userCreateInputDTO: {
+      await createUserMutation.mutateAsync({
+        body: {
           ...values,
           name: values.name?.length ? values.name : undefined,
           email: values.email?.length ? values.email : undefined,
@@ -93,29 +74,19 @@ export function ServerUsersScreen() {
         },
       })
     } else if (modalData.user?.id) {
-      await apiClient.usersApi.updateUser({
-        userId: modalData.user.id,
-        userUpdateInputDTO: values,
+      await updateUserMutation.mutateAsync({
+        params: {
+          path: {
+            userId: modalData.user.id,
+          },
+        },
+        body: {
+          ...values,
+          password: values.password?.length ? values.password : undefined,
+        },
       })
     }
-    // Refresh the users list
-    void apiClient.usersApi
-      .listUsers({
-        limit: pagination.pageSize,
-        offset: pagination.pageSize * pagination.pageIndex,
-      })
-      .then((response) => {
-        const usersWithPermissions: UserWithPermissions[] =
-          response.data.result.map((r) => ({
-            ...r,
-            name: r.name ?? '',
-            permissions: [],
-          }))
-        setUsers({
-          result: usersWithPermissions,
-          meta: response.data.meta,
-        })
-      })
+    void refetchUsers()
   }
 
   return (
@@ -149,12 +120,7 @@ export function ServerUsersScreen() {
       <ServerUserModal
         modalData={modalData}
         setModalData={setModalData}
-        onSubmit={
-          handleSubmit as (
-            mutationType: 'CREATE' | 'UPDATE',
-            values: UserFormValues,
-          ) => Promise<void>
-        }
+        onSubmit={handleSubmit}
       />
     </div>
   )

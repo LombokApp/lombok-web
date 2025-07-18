@@ -1,12 +1,12 @@
-import type {
+import React from 'react'
+import type { Authenticator } from '..'
+import type { AuthenticatorStateType } from '../authenticator'
+import {
   LoginCredentialsDTO,
   SignupCredentialsDTO,
   ViewerGetResponse,
-} from '@stellariscloud/api-client'
-import React from 'react'
-
-import type { Authenticator } from '..'
-import type { AuthenticatorStateType } from '../authenticator'
+} from '@stellariscloud/types'
+import { FetchResponse } from 'openapi-fetch'
 
 export class AuthError extends Error {}
 export interface IAuthContext {
@@ -16,8 +16,13 @@ export interface IAuthContext {
   isAuthenticated: boolean
   viewer?: ViewerGetResponse['user']
   isLoggingOut: boolean
-  login: (loginParams: LoginCredentialsDTO) => Promise<boolean>
-  signup: (signupParams: SignupCredentialsDTO) => Promise<boolean>
+  login: (
+    loginParams: LoginCredentialsDTO,
+  ) => ReturnType<Authenticator['login']>
+  signup: (
+    signupParams: SignupCredentialsDTO,
+  ) => ReturnType<Authenticator['signup']>
+
   logout: () => Promise<void>
   getAccessToken: () => Promise<string | undefined>
 }
@@ -77,15 +82,19 @@ export const AuthContextProvider = ({
     setIsLoggingIn(true)
 
     try {
-      if (isAuthenticated) {
-        return true
-      }
+      setError(undefined)
       try {
-        await authenticator.login(loginParams)
-        return true
+        const loginResult = await authenticator.login(loginParams)
+        if (loginResult.response.status !== 201 || !loginResult.data) {
+          const loginError = new AuthError('Login failed', {
+            cause: loginResult.data,
+          })
+          setError(loginError)
+        }
+        return loginResult
       } catch (err: unknown) {
         setError(err as AuthError)
-        return false
+        throw err
       }
     } finally {
       setIsLoggingIn(false)
@@ -94,10 +103,15 @@ export const AuthContextProvider = ({
 
   const signup = async (signupParams: SignupCredentialsDTO) => {
     setError(undefined)
-
     try {
-      await authenticator.signup(signupParams)
-      return true
+      const signupResult = await authenticator.signup(signupParams)
+      if (signupResult.response.status !== 201 || !signupResult.data) {
+        const loginError = new AuthError('Signup failed', {
+          cause: signupResult.data,
+        })
+        setError(loginError)
+      }
+      return signupResult
     } finally {
       setIsLoggingIn(false)
     }
@@ -118,7 +132,7 @@ export const AuthContextProvider = ({
       authState.isAuthenticated &&
       !viewerRequested.current[viewerRefreshKey]
     ) {
-      void authenticator.getViewer().then(({ user }) => {
+      void authenticator.getViewer().then((user) => {
         setViewer((_viewerMap) => ({ [viewerRefreshKey]: user }))
       })
     }

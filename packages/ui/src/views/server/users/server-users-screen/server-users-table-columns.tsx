@@ -1,13 +1,12 @@
 'use client'
 
+import type { UserDTO } from '@stellariscloud/types'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
 import type { ColumnDef } from '@tanstack/react-table'
 import { Link } from 'react-router-dom'
 
-import type { UserDTO } from '@/src/services/api'
-
-import { invertColour, stringToColour } from '../../../../utils/colors'
+import { invertColour, stringToColour } from '@/src/utils/colors'
 
 export const serverUsersTableColumns: ColumnDef<UserDTO>[] = [
   {
@@ -52,7 +51,11 @@ export const serverUsersTableColumns: ColumnDef<UserDTO>[] = [
           </span>
         </div>
         <div className="flex flex-col">
-          <div>{user.email}</div>
+          <div>
+            {user.email ?? (
+              <span className="italic text-muted-foreground">No Email</span>
+            )}
+          </div>
           <div>{user.username}</div>
         </div>
       </div>

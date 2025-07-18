@@ -1,7 +1,7 @@
-import type { FolderObjectDTO } from '@stellariscloud/api-client'
+import type { FolderObjectDTO } from '@stellariscloud/types'
 import React from 'react'
 
-import { foldersApiHooks } from '../../services/api'
+import { $api } from '@/src/services/api'
 
 export interface IFocusedFolderObjectContext {
   focusedFolderObject?: FolderObjectDTO
@@ -22,20 +22,26 @@ export const FocusedFolderObjectContextProvider = ({
   folderId: string
   focusedFolderObjectKey: string
 }) => {
-  const fetchFolderObject = foldersApiHooks.useGetFolderObject({
-    folderId,
-    objectKey: focusedFolderObjectKey,
-  })
-
-  const handleRefetch = React.useCallback(async () => {
-    await fetchFolderObject.refetch()
-  }, [fetchFolderObject])
+  const { data: fetchFolderObject, refetch } = $api.useQuery(
+    'get',
+    '/api/v1/folders/{folderId}/objects/{objectKey}',
+    {
+      params: {
+        path: {
+          folderId,
+          objectKey: focusedFolderObjectKey,
+        },
+      },
+    },
+  )
 
   return (
     <FocusedFolderObjectContext.Provider
       value={{
-        focusedFolderObject: fetchFolderObject.data?.folderObject,
-        refetch: handleRefetch,
+        focusedFolderObject: fetchFolderObject?.folderObject,
+        refetch: async () => {
+          await refetch()
+        },
       }}
     >
       {children}

@@ -1,6 +1,7 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import type { UserDTO } from '@stellariscloud/types'
 import {
   Button,
   Form,
@@ -14,8 +15,6 @@ import {
 } from '@stellariscloud/ui-toolkit'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-
-import type { UserDTO } from '@/src/services/api'
 
 export type MutationType = 'CREATE' | 'UPDATE'
 

@@ -1,0 +1,5 @@
+---
+description: Always use curly braces for if statements and for loops. Never omit them in order to reduce a block to a single line.
+globs: **/*.(ts|tsx|js)
+alwaysApply: false
+---

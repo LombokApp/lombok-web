@@ -1,8 +1,8 @@
 import { Button, cn } from '@stellariscloud/ui-toolkit'
 import { useNavigate, useParams } from 'react-router-dom'
 
-import { useFolderContext } from '../../pages/folders/folder.context'
-import { tasksApiHooks } from '../../services/api'
+import { useFolderContext } from '@/src/pages/folders/folder.context'
+import { $api } from '@/src/services/api'
 
 // Define a minimal Task interface for what we need
 interface Task {
@@ -30,8 +30,14 @@ export function FolderTaskDetailScreen() {
   const taskId = pathParts[2]
   const { folderId } = useFolderContext()
 
-  const taskQuery = tasksApiHooks.useGetFolderTask(
-    { folderId, taskId },
+  const taskQuery = $api.useQuery(
+    'get',
+    '/api/v1/folders/{folderId}/tasks/{taskId}',
+    {
+      params: {
+        path: { folderId, taskId },
+      },
+    },
     {
       enabled: !!taskId && !!folderId,
       refetchOnWindowFocus: false,
@@ -88,7 +94,7 @@ export function FolderTaskDetailScreen() {
         <div className="inline-block min-w-full py-2 align-middle">
           {taskQuery.isLoading ? (
             <div>Loading task details...</div>
-          ) : taskQuery.error ? (
+          ) : taskQuery.isError ? (
             <div className="text-red-500">Failed to load task details</div>
           ) : taskData ? (
             <div className="space-y-4">

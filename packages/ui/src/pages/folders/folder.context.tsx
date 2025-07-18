@@ -1,17 +1,16 @@
-import type {
-  FolderGetMetadataResponse,
+import type {   FolderGetMetadataResponse,
   FolderGetResponse,
-} from '@stellariscloud/api-client'
-import type { FolderMetadata } from '@stellariscloud/types'
+FolderMetadata ,
+} from '@stellariscloud/types'
 import { FolderPushMessage } from '@stellariscloud/types'
 import { useToast } from '@stellariscloud/ui-toolkit'
 import type { QueryObserverResult } from '@tanstack/react-query'
 import React from 'react'
 import type { Socket } from 'socket.io-client'
 
-import { LogLevel } from '../../contexts/logging.context'
-import { useWebsocket } from '../../hooks/use-websocket'
-import { apiClient, foldersApiHooks } from '../../services/api'
+import { LogLevel } from '@/src/contexts/logging.context'
+import { useWebsocket } from '@/src/hooks/use-websocket'
+import { $api } from '@/src/services/api'
 
 export interface Notification {
   level: LogLevel
@@ -54,8 +53,16 @@ export const FolderContextProvider = ({
 }) => {
   //   const loggingContext = useLoggingContext(
 
-  const folderQuery = foldersApiHooks.useGetFolder({ folderId })
-  const folderMetadataQuery = foldersApiHooks.useGetFolderMetadata({ folderId })
+  const folderQuery = $api.useQuery('get', '/api/v1/folders/{folderId}', {
+    params: { path: { folderId } },
+  })
+  const folderMetadataQuery = $api.useQuery(
+    'get',
+    '/api/v1/folders/{folderId}/metadata',
+    {
+      params: { path: { folderId } },
+    },
+  )
   const { toast } = useToast()
 
   const messageHandler = React.useCallback(
@@ -124,10 +131,15 @@ export const FolderContextProvider = ({
   const unsubscribeFromMessages = (handler: SocketMessageHandler) => {
     socket?.offAny(handler)
   }
+
+  const deleteFolderObjectMutation = $api.useMutation(
+    'delete',
+    '/api/v1/folders/{folderId}/objects/{objectKey}',
+  )
+
   const deleteFolderObject = async (objectKey: string): Promise<void> => {
-    await apiClient.foldersApi.deleteFolderObject({
-      folderId,
-      objectKey,
+    await deleteFolderObjectMutation.mutateAsync({
+      params: { path: { folderId, objectKey } },
     })
 
     // if (folderMetadataQuery.data) {

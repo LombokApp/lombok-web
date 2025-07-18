@@ -15,13 +15,11 @@ import {
   TvIcon,
   VideoCameraIcon,
 } from '@heroicons/react/24/outline'
-import type {
+import type { ContentMetadataType ,
   FolderDTO,
   FolderGetResponse,
   FolderObjectDTO,
-  FolderObjectDTOContentMetadataValueValue,
-  TaskDTO,
-} from '@stellariscloud/api-client'
+} from '@stellariscloud/types'
 import { MediaType } from '@stellariscloud/types'
 import { Button, Card, cn } from '@stellariscloud/ui-toolkit'
 import {
@@ -31,13 +29,14 @@ import {
 } from '@stellariscloud/utils'
 import React from 'react'
 
+import { $api } from '@/src/services/api'
+
 import { ActionsList } from '../../components/actions-list/actions-list.component'
 import { TasksList } from '../../components/tasks-list/tasks-list.component'
 import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
 import type { IconProps } from '../../design-system/icon'
 import { Icon } from '../../design-system/icon'
 import { useServerContext } from '../../hooks/use-server-context'
-import { apiClient } from '../../services/api'
 
 export const FolderObjectSidebar = ({
   folder,
@@ -57,23 +56,18 @@ export const FolderObjectSidebar = ({
   const [metadataContent, setMetadataContent] = React.useState<
     Record<string, string>
   >({})
-  const [tasks, setTasks] = React.useState<TaskDTO[]>()
-
-  const fetchTasks = React.useCallback(() => {
-    if (folder.id) {
-      void apiClient.tasksApi
-        .listFolderTasks({ folderId: folder.id, objectKey })
-        .then((resp) => setTasks(resp.data.result))
-    }
-  }, [folder.id, objectKey])
-
-  React.useEffect(() => {
-    if (folder.id && objectKey) {
-      fetchTasks()
-    }
-  }, [fetchTasks, folder.id, objectKey])
-
-  const serverContext = useServerContext()
+  const listFolderTasksQuery = $api.useQuery(
+    'get',
+    '/api/v1/folders/{folderId}/tasks',
+    {
+      params: {
+        path: { folderId },
+        query: { objectKey },
+      },
+    },
+    { enabled: !!folderId && !!objectKey },
+  )
+  const tasks = listFolderTasksQuery.data?.result
 
   React.useEffect(() => {
     if (
@@ -106,9 +100,15 @@ export const FolderObjectSidebar = ({
 
   const metadata = folderObject.hash
     ? (folderObject.contentMetadata[folderObject.hash] ??
-      ({} as Record<string, FolderObjectDTOContentMetadataValueValue>))
-    : ({} as Record<string, FolderObjectDTOContentMetadataValueValue>)
+      ({} as ContentMetadataType))
+    : ({} as ContentMetadataType)
 
+  const handleAppTaskTrigger = $api.useMutation(
+    'post',
+    '/api/v1/folders/{folderId}/apps/{appIdentifier}/trigger/{taskKey}',
+  )
+
+  const serverContext = useServerContext()
   const actionItems: {
     id: string
     key: string
@@ -116,25 +116,27 @@ export const FolderObjectSidebar = ({
     description: string
     icon: IconProps['icon']
     onExecute: () => void
-  }[] = serverContext.appFolderObjectTaskTriggers.map(
-    ({ taskTrigger, appIdentifier }) => ({
-      description: taskTrigger.description,
-      icon: CheckIcon,
-      id: taskTrigger.taskKey,
-      key: taskTrigger.taskKey,
-      label: taskTrigger.label,
-      onExecute: () =>
-        apiClient.foldersApi.handleAppTaskTrigger({
-          folderId,
-          taskKey: taskTrigger.taskKey,
-          appIdentifier,
-          triggerAppTaskInputDTO: {
-            inputParams: {},
-            objectKey,
+  }[] = serverContext.appFolderObjectTaskTriggers.map((trigger) => ({
+    description: trigger.taskTrigger.description,
+    icon: CheckIcon,
+    id: trigger.taskTrigger.taskKey,
+    key: trigger.taskTrigger.taskKey,
+    label: trigger.taskTrigger.label,
+    onExecute: () =>
+      handleAppTaskTrigger.mutate({
+        params: {
+          path: {
+            folderId,
+            taskKey: trigger.taskTrigger.taskKey,
+            appIdentifier: trigger.appIdentifier,
           },
-        }),
-    }),
-  )
+        },
+        body: {
+          inputParams: {},
+          objectKey,
+        },
+      }),
+  }))
 
   return (
     <div className="flex h-full min-w-full flex-col overflow-hidden">
@@ -192,7 +194,7 @@ export const FolderObjectSidebar = ({
                   <span className="font-mono">{`(${folderObject.sizeBytes.toLocaleString()} bytes)`}</span>
                 </dd>
               </div>
-              {metadata.height.content && metadata.width.content ? (
+              {metadata.height?.content && metadata.width?.content ? (
                 <div className="mt-4 flex w-full flex-none items-center gap-x-4 px-2">
                   <dt className="flex flex-none">
                     <span className="sr-only">Dimensions</span>

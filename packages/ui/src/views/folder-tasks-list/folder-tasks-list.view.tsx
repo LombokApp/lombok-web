@@ -1,8 +1,4 @@
-import {
-  type FolderGetResponse,
-  ListTasksSortEnum,
-  type TaskDTO,
-} from '@stellariscloud/api-client'
+import type { FolderGetResponse, TaskDTO } from '@stellariscloud/types'
 import { FolderPushMessage } from '@stellariscloud/types'
 import {
   Card,
@@ -16,9 +12,10 @@ import { ListChecks } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
+import { $api } from '@/src/services/api'
+
 import { Icon } from '../../design-system/icon'
 import { useFolderContext } from '../../pages/folders/folder.context'
-import { tasksApiHooks } from '../../services/api'
 
 const TASK_PREVIEW_LENGTH = 5
 
@@ -90,11 +87,17 @@ export const FolderTasksList = ({
 }) => {
   const { folder } = folderAndPermission ?? {}
 
-  const listFolderTasksQuery = tasksApiHooks.useListFolderTasks(
+  const listFolderTasksQuery = $api.useQuery(
+    'get',
+    '/api/v1/folders/{folderId}/tasks',
     {
-      folderId: folder?.id ?? '',
-      sort: ListTasksSortEnum.CreatedAtDesc,
-      limit: TASK_PREVIEW_LENGTH,
+      params: {
+        path: { folderId: folder?.id ?? '' },
+        query: {
+          sort: 'createdAt-desc',
+          limit: TASK_PREVIEW_LENGTH,
+        },
+      },
     },
     { enabled: !!folder?.id },
   )

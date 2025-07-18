@@ -19,18 +19,17 @@ describe('Server - Settings', () => {
   it(`should get the server settings`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'mekpans',
       password: '123',
       admin: true,
     })
 
-    const settings = await apiClient
-      .serverApi({ accessToken })
-      .getServerSettings()
-
-    expect(settings.status).toEqual(200)
-    expect(settings.data).toEqual({
+    const getSettingsResponse = await apiClient(accessToken).GET(
+      '/api/v1/server/settings',
+    )
+    expect(getSettingsResponse.response.status).toEqual(200)
+    expect(getSettingsResponse.data).toEqual({
       settings: {
         SERVER_HOSTNAME: null,
         SIGNUP_ENABLED: true,
@@ -42,26 +41,26 @@ describe('Server - Settings', () => {
   it(`should set the SIGNUP_ENABLED setting`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'mekpans',
       password: '123',
       admin: true,
     })
 
-    const settings = await apiClient
-      .serverApi({ accessToken })
-      .setServerSetting({
-        settingKey: 'SIGNUP_ENABLED',
-        setSettingInputDTO: { value: true },
-      })
-    expect(settings.status).toEqual(200)
-    expect(settings.data.settingKey).toEqual('SIGNUP_ENABLED')
+    const setSettingsResponse = await apiClient(accessToken).PUT(
+      '/api/v1/server/settings/{settingKey}',
+      {
+        params: { path: { settingKey: 'SIGNUP_ENABLED' } },
+        body: { value: true },
+      },
+    )
+    expect(setSettingsResponse.response.status).toEqual(200)
+    expect(setSettingsResponse.data?.settingKey).toEqual('SIGNUP_ENABLED')
 
-    const newSettings = await apiClient
-      .serverApi({ accessToken })
-      .getServerSettings()
-
-    expect(newSettings.data).toEqual({
+    const newSettingsResponse = await apiClient(accessToken).GET(
+      '/api/v1/server/settings',
+    )
+    expect(newSettingsResponse.data).toEqual({
       settings: {
         SERVER_HOSTNAME: null,
         SIGNUP_ENABLED: true,
@@ -73,26 +72,26 @@ describe('Server - Settings', () => {
   it(`should set the SIGNUP_PERMISSIONS server setting`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'mekpans',
       password: '123',
       admin: true,
     })
 
-    const settings = await apiClient
-      .serverApi({ accessToken })
-      .setServerSetting({
-        settingKey: 'SIGNUP_PERMISSIONS',
-        setSettingInputDTO: { value: ['TEST_PERMISSION'] },
-      })
-    expect(settings.status).toEqual(200)
-    expect(settings.data.settingKey).toEqual('SIGNUP_PERMISSIONS')
+    const setSettingsResponse = await apiClient(accessToken).PUT(
+      '/api/v1/server/settings/{settingKey}',
+      {
+        params: { path: { settingKey: 'SIGNUP_PERMISSIONS' } },
+        body: { value: ['TEST_PERMISSION'] },
+      },
+    )
+    expect(setSettingsResponse.response.status).toEqual(200)
+    expect(setSettingsResponse.data?.settingKey).toEqual('SIGNUP_PERMISSIONS')
 
-    const newSettings = await apiClient
-      .serverApi({ accessToken })
-      .getServerSettings()
-
-    expect(newSettings.data).toEqual({
+    const newSettingsResponse = await apiClient(accessToken).GET(
+      '/api/v1/server/settings',
+    )
+    expect(newSettingsResponse.data).toEqual({
       settings: {
         SIGNUP_PERMISSIONS: ['TEST_PERMISSION'],
         SERVER_HOSTNAME: null,
@@ -104,26 +103,26 @@ describe('Server - Settings', () => {
   it(`should reset a server setting`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'mekpans',
       password: '123',
       admin: true,
     })
 
-    const settings = await apiClient
-      .serverApi({ accessToken })
-      .setServerSetting({
-        settingKey: 'SIGNUP_ENABLED',
-        setSettingInputDTO: { value: true },
-      })
-    expect(settings.status).toEqual(200)
-    expect(settings.data.settingKey).toEqual('SIGNUP_ENABLED')
+    const setSettingsResponse = await apiClient(accessToken).PUT(
+      '/api/v1/server/settings/{settingKey}',
+      {
+        params: { path: { settingKey: 'SIGNUP_ENABLED' } },
+        body: { value: true },
+      },
+    )
+    expect(setSettingsResponse.response.status).toEqual(200)
+    expect(setSettingsResponse.data?.settingKey).toEqual('SIGNUP_ENABLED')
 
-    const newSettings = await apiClient
-      .serverApi({ accessToken })
-      .getServerSettings()
-
-    expect(newSettings.data).toEqual({
+    const newSettingsResponse = await apiClient(accessToken).GET(
+      '/api/v1/server/settings',
+    )
+    expect(newSettingsResponse.data).toEqual({
       settings: {
         SIGNUP_ENABLED: true,
         SERVER_HOSTNAME: null,
@@ -131,14 +130,14 @@ describe('Server - Settings', () => {
       },
     })
 
-    await apiClient.serverApi({ accessToken }).resetServerSetting({
-      settingKey: 'SIGNUP_ENABLED',
-    })
+    await apiClient(accessToken).DELETE(
+      '/api/v1/server/settings/{settingKey}',
+      { params: { path: { settingKey: 'SIGNUP_ENABLED' } } },
+    )
 
-    const settingsAfterKeyReset = await apiClient
-      .serverApi({ accessToken })
-      .getServerSettings()
-
+    const settingsAfterKeyReset = await apiClient(accessToken).GET(
+      '/api/v1/server/settings',
+    )
     expect(settingsAfterKeyReset.data).toEqual({
       settings: {
         SERVER_HOSTNAME: null,
@@ -149,30 +148,29 @@ describe('Server - Settings', () => {
   })
 
   it(`should fail to set the server setting if not admin`, async () => {
-    const admin = await createTestUser(testModule, {
+    const admin = await createTestUser(testModule!, {
       username: 'mekpans',
       password: '123',
       admin: true,
     })
 
-    const regularUser = await createTestUser(testModule, {
+    const regularUser = await createTestUser(testModule!, {
       username: 'userA',
       password: '123',
     })
 
-    const settings = await apiClient
-      .serverApi({ accessToken: regularUser.session.accessToken })
-      .setServerSetting({
-        settingKey: 'SIGNUP_ENABLED',
-        setSettingInputDTO: { value: true },
-      })
-    expect(settings.status).toEqual(401)
+    const setSettingsResponse = await apiClient(
+      regularUser.session.accessToken,
+    ).PUT('/api/v1/server/settings/{settingKey}', {
+      params: { path: { settingKey: 'SIGNUP_ENABLED' } },
+      body: { value: true },
+    })
+    expect(setSettingsResponse.response.status).toEqual(401)
 
-    const newSettings = await apiClient
-      .serverApi({ accessToken: admin.session.accessToken })
-      .getServerSettings()
-
-    expect(newSettings.data).toEqual({
+    const newSettingsResponse = await apiClient(admin.session.accessToken).GET(
+      '/api/v1/server/settings',
+    )
+    expect(newSettingsResponse.data).toEqual({
       settings: {
         SERVER_HOSTNAME: null,
         SIGNUP_ENABLED: true,

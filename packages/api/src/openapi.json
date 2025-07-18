@@ -1342,7 +1342,9 @@
         "tags": [
           "AccessKeys"
         ]
-      },
+      }
+    },
+    "/api/v1/access-keys/{accessKeyHashId}/rotate": {
       "post": {
         "operationId": "rotateAccessKey",
         "parameters": [
@@ -1522,7 +1524,9 @@
         "tags": [
           "ServerAccessKeys"
         ]
-      },
+      }
+    },
+    "/api/v1/server/access-keys/{accessKeyHashId}/rotate": {
       "post": {
         "operationId": "rotateServerAccessKey",
         "parameters": [
@@ -3240,8 +3244,7 @@
                   "oneOf": [
                     {
                       "type": "string"
-                    },
-                    {}
+                    }
                   ],
                   "nullable": true
                 },
@@ -3279,6 +3282,7 @@
               },
               "required": [
                 "id",
+                "name",
                 "email",
                 "emailVerified",
                 "isAdmin",

@@ -1,5 +1,5 @@
 import { TrashIcon } from '@heroicons/react/24/outline'
-import type { FolderObjectDTO } from '@stellariscloud/api-client'
+import type { FolderObjectDTO } from '@stellariscloud/types'
 import {
   Button,
   Dialog,

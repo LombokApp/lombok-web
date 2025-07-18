@@ -1,5 +1,6 @@
 'use client'
 
+import type { AppDTO } from '@stellariscloud/types'
 import { Button } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import type { UseMutationResult } from '@tanstack/react-query'
@@ -9,7 +10,6 @@ import type { FetchOptions } from 'openapi-fetch'
 import { useState } from 'react'
 
 import { EnvVarModal } from '@/src/components/env-var-modal/env-var-modal'
-import type { AppDTO } from '@/src/services/api'
 
 export function configureServerAppWorkerScriptTableColumns(
   appIdentifier: string,
@@ -107,7 +107,7 @@ export function configureServerAppWorkerScriptTableColumns(
             <EnvVarModal
               isOpen={modalOpen}
               onClose={() => setModalOpen(false)}
-              envVars={appWorker.envVars || {}}
+              envVars={appWorker.envVars}
               onSubmit={async (envVarArray) => {
                 // Convert array of {key, value} to Record<string, string>
                 const envVars: Record<string, string> = {}

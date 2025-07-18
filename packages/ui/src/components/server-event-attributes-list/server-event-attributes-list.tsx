@@ -1,4 +1,4 @@
-import type { EventDTO } from '@stellariscloud/api-client'
+import type { EventDTO } from '@stellariscloud/types'
 import { Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
 import { Link } from 'react-router-dom'

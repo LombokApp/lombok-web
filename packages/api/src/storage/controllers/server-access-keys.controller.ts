@@ -77,7 +77,7 @@ export class ServerAccessKeysController {
   /**
    * Rotate a server access key.
    */
-  @Post('/:accessKeyHashId')
+  @Post('/:accessKeyHashId/rotate')
   async rotateServerAccessKey(
     @Req() req: express.Request,
     @Param('accessKeyHashId') accessKeyHashId: string,
@@ -109,10 +109,11 @@ export class ServerAccessKeysController {
     if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
-    const result = await this.storageLocationService.listAccessKeyBucketAsAdmin(
-      req.user,
-      accessKeyHashId,
-    )
+    const result =
+      await this.storageLocationService.listAccessKeyBucketsAsAdmin(
+        req.user,
+        accessKeyHashId,
+      )
     return {
       result:
         result.Buckets?.map((bucket) => ({

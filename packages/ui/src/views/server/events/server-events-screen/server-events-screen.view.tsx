@@ -1,13 +1,11 @@
-import type {
-  EventDTO,
-  ServerEventsApiListEventsRequest,
-} from '@stellariscloud/api-client'
+import type { ListServerEventsRequest } from '@stellariscloud/types'
 import { cn, DataTable } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { BugIcon, InfoIcon, OctagonAlert, TriangleAlert } from 'lucide-react'
 import React from 'react'
 
-import { apiClient } from '../../../../services/api'
+import { $api } from '@/src/services/api'
+
 import { serverEventsTableColumns } from './server-events-table-columns'
 
 export function ServerEventsScreen() {
@@ -21,20 +19,16 @@ export function ServerEventsScreen() {
     pageSize: 10,
   })
   const searchFilter = filters.find((f) => f.id === '__HIDDEN__')
-  const [events, setEvents] = React.useState<{
-    result: EventDTO[]
-    meta: { totalCount: number }
-  }>()
+  const levelFilterValue = filters.find((f) => f.id === 'level')?.value ?? []
 
-  React.useEffect(() => {
-    const levelFilterValue = filters.find((f) => f.id === 'level')?.value ?? []
-    void apiClient.serverEventsApi
-      .listEvents({
+  const listServerEventsQuery = $api.useQuery('get', '/api/v1/server/events', {
+    params: {
+      query: {
         limit: pagination.pageSize,
         offset: pagination.pageSize * pagination.pageIndex,
         ...(sorting[0]
           ? {
-              sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ServerEventsApiListEventsRequest['sort'],
+              sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ListServerEventsRequest['sort'],
             }
           : {}),
         ...(typeof searchFilter?.value === 'string'
@@ -57,9 +51,10 @@ export function ServerEventsScreen() {
         ...((levelFilterValue as string[]).includes('ERROR')
           ? { includeError: 'true' as const }
           : {}),
-      })
-      .then((response) => setEvents(response.data))
-  }, [filters, sorting, pagination, searchFilter?.value])
+      },
+    },
+  })
+  const events = listServerEventsQuery.data
   return (
     <div className={cn('flex h-full flex-1 flex-col items-center')}>
       <DataTable

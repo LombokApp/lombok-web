@@ -20,16 +20,16 @@ describe('Server - User Storage Provisions', () => {
   it(`should create a storage provision`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'mekpans',
       password: '123',
       admin: true,
     })
 
-    const createProvisionResponse = await apiClient
-      .userStorageProvisionsApi({ accessToken })
-      .createUserStorageProvision({
-        userStorageProvisionInputDTO: {
+    const createProvisionResponse = await apiClient(accessToken).POST(
+      '/api/v1/server/user-storage-provisions',
+      {
+        body: {
           accessKeyId: 'dummyaccesskeyid',
           secretAccessKey: 'dummysecretAccessKey',
           bucket: 'dummybucket',
@@ -40,8 +40,12 @@ describe('Server - User Storage Provisions', () => {
           region: 'auto',
           prefix: '',
         },
-      })
-    expect(createProvisionResponse.status).toEqual(201)
+      },
+    )
+    expect(createProvisionResponse.response.status).toEqual(201)
+    if (!createProvisionResponse.data) {
+      throw new Error('No data')
+    }
     expect(createProvisionResponse.data.result[0].accessKeyId).toEqual(
       'dummyaccesskeyid',
     )
@@ -50,16 +54,16 @@ describe('Server - User Storage Provisions', () => {
   it(`should update a storage provision`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'mekpans',
       password: '123',
       admin: true,
     })
 
-    const createProvisionResponse = await apiClient
-      .userStorageProvisionsApi({ accessToken })
-      .createUserStorageProvision({
-        userStorageProvisionInputDTO: {
+    const createProvisionResponse = await apiClient(accessToken).POST(
+      '/api/v1/server/user-storage-provisions',
+      {
+        body: {
           accessKeyId: 'dummyaccesskeyid',
           secretAccessKey: 'dummysecretAccessKey',
           bucket: 'dummybucket',
@@ -70,63 +74,77 @@ describe('Server - User Storage Provisions', () => {
           region: 'auto',
           prefix: '',
         },
-      })
-    expect(createProvisionResponse.status).toEqual(201)
+      },
+    )
+    expect(createProvisionResponse.response.status).toEqual(201)
+    if (!createProvisionResponse.data) {
+      throw new Error('No data')
+    }
     expect(createProvisionResponse.data.result[0].accessKeyId).toEqual(
       'dummyaccesskeyid',
     )
 
-    const updateProvisionResponse = await apiClient
-      .userStorageProvisionsApi({ accessToken })
-      .updateUserStorageProvision({
-        userStorageProvisionId: createProvisionResponse.data.result[0].id,
-        userStorageProvisionInputDTO: {
-          accessKeyId: '__dummyaccesskeyid',
+    const provisionId = createProvisionResponse.data.result[0].id
+    if (!provisionId) {
+      throw new Error('No provision id')
+    }
+    const updateProvisionResponse = await apiClient(accessToken).PUT(
+      '/api/v1/server/user-storage-provisions/{userStorageProvisionId}',
+      {
+        params: { path: { userStorageProvisionId: provisionId } },
+        body: {
+          accessKeyId: 'dummyaccesskeyid',
           secretAccessKey: '__dummysecretAccessKey',
-          bucket: '__dummybucket',
-          description: '__dummydescription',
-          endpoint: 'http://dummyendpoint__',
-          label: '__dummylabel',
+          bucket: 'dummybucket',
+          description: 'dummydescription',
+          endpoint: 'http://dummyendpoint',
+          label: 'dummylabel',
           provisionTypes: [
             UserStorageProvisionTypeEnum.CONTENT,
             UserStorageProvisionTypeEnum.REDUNDANCY,
           ],
-          region: '__auto',
-          prefix: '__prefix',
+          region: 'auto',
+          prefix: 'prefix',
         },
-      })
+      },
+    )
 
-    expect(updateProvisionResponse.status).toEqual(200)
+    expect(updateProvisionResponse.response.status).toEqual(200)
+    if (!updateProvisionResponse.data) {
+      throw new Error('No data')
+    }
     expect(updateProvisionResponse.data.result[0].accessKeyId).toEqual(
-      '__dummyaccesskeyid',
-    )
-    expect(updateProvisionResponse.data.result[0].bucket).toEqual(
-      '__dummybucket',
-    )
-    expect(updateProvisionResponse.data.result[0].description).toEqual(
-      '__dummydescription',
+      'dummyaccesskeyid',
     )
     expect(updateProvisionResponse.data.result[0].endpoint).toEqual(
-      'http://dummyendpoint__',
+      'http://dummyendpoint',
     )
-    expect(updateProvisionResponse.data.result[0].label).toEqual('__dummylabel')
-    expect(updateProvisionResponse.data.result[0].region).toEqual('__auto')
-    expect(updateProvisionResponse.data.result[0].prefix).toEqual('__prefix')
+    expect(updateProvisionResponse.data.result[0].bucket).toEqual('dummybucket')
+    expect(updateProvisionResponse.data.result[0].region).toEqual('auto')
+    expect(updateProvisionResponse.data.result[0].prefix).toEqual('prefix')
+    expect(updateProvisionResponse.data.result[0].label).toEqual('dummylabel')
+    expect(updateProvisionResponse.data.result[0].description).toEqual(
+      'dummydescription',
+    )
+    expect(updateProvisionResponse.data.result[0].provisionTypes).toEqual([
+      UserStorageProvisionTypeEnum.CONTENT,
+      UserStorageProvisionTypeEnum.REDUNDANCY,
+    ])
   })
 
   it(`should delete a storage provision`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'mekpans',
       password: '123',
       admin: true,
     })
 
-    const createProvisionResponse = await apiClient
-      .userStorageProvisionsApi({ accessToken })
-      .createUserStorageProvision({
-        userStorageProvisionInputDTO: {
+    const createProvisionResponse = await apiClient(accessToken).POST(
+      '/api/v1/server/user-storage-provisions',
+      {
+        body: {
           accessKeyId: 'dummyaccesskeyid',
           secretAccessKey: 'dummysecretAccessKey',
           bucket: 'dummybucket',
@@ -137,24 +155,35 @@ describe('Server - User Storage Provisions', () => {
           region: 'auto',
           prefix: '',
         },
-      })
-    expect(createProvisionResponse.status).toEqual(201)
+      },
+    )
+    expect(createProvisionResponse.response.status).toEqual(201)
+    if (!createProvisionResponse.data) {
+      throw new Error('No data')
+    }
     expect(createProvisionResponse.data.result[0].accessKeyId).toEqual(
       'dummyaccesskeyid',
     )
 
-    const deleteProvisionResponse = await apiClient
-      .userStorageProvisionsApi({ accessToken })
-      .deleteUserStorageProvision({
-        userStorageProvisionId: createProvisionResponse.data.result[0].id,
-      })
-    expect(deleteProvisionResponse.status).toEqual(200)
+    const provisionId = createProvisionResponse.data.result[0].id
+    if (!provisionId) {
+      throw new Error('No provision id')
+    }
+    const deleteProvisionResponse = await apiClient(accessToken).DELETE(
+      '/api/v1/server/user-storage-provisions/{userStorageProvisionId}',
+      { params: { path: { userStorageProvisionId: provisionId } } },
+    )
+    expect(deleteProvisionResponse.response.status).toEqual(200)
 
-    const listProvisionsResponse = await apiClient
-      .userStorageProvisionsApi({ accessToken })
-      .listUserStorageProvisions()
+    const listProvisionsResponse = await apiClient(accessToken).GET(
+      '/api/v1/server/user-storage-provisions',
+      {},
+    )
 
-    expect(listProvisionsResponse.status).toEqual(200)
+    expect(listProvisionsResponse.response.status).toEqual(200)
+    if (!listProvisionsResponse.data) {
+      throw new Error('No data')
+    }
     expect(listProvisionsResponse.data.result.length).toEqual(0)
   })
 

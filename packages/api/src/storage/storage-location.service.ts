@@ -1,3 +1,4 @@
+import { S3ServiceException } from '@aws-sdk/client-s3'
 import {
   Injectable,
   NotFoundException,
@@ -200,7 +201,7 @@ export class StorageLocationService {
     return newHashId
   }
 
-  async listAccessKeyBucketAsUser(actor: User, accessKeyHashId: string) {
+  async listAccessKeyBucketsAsUser(actor: User, accessKeyHashId: string) {
     const accessKey = await this.getAccessKeyAsUser(actor, accessKeyHashId)
     const location =
       await this.ormService.db.query.storageLocationsTable.findFirst({
@@ -214,19 +215,29 @@ export class StorageLocationService {
     if (!location) {
       throw new NotFoundException()
     }
-    const buckets = await this.s3Service.s3ListBuckets({
-      s3Client: configureS3Client({
-        accessKeyId: accessKey.accessKeyId,
-        secretAccessKey: location.secretAccessKey,
-        endpoint: location.endpoint,
-        region: location.region,
-      }),
-    })
+    const buckets = await this.s3Service
+      .s3ListBuckets({
+        s3Client: configureS3Client({
+          accessKeyId: accessKey.accessKeyId,
+          secretAccessKey: location.secretAccessKey,
+          endpoint: location.endpoint,
+          region: location.region,
+        }),
+      })
+      .catch((e) => {
+        if (
+          e instanceof S3ServiceException &&
+          e.name === 'InvalidAccessKeyId'
+        ) {
+          throw new NotFoundException()
+        }
+        throw e
+      })
 
     return buckets
   }
 
-  async listAccessKeyBucketAsAdmin(actor: User, accessKeyHashId: string) {
+  async listAccessKeyBucketsAsAdmin(actor: User, accessKeyHashId: string) {
     const accessKey = await this.getServerAccessKeyAsAdmin(
       actor,
       accessKeyHashId,
@@ -242,14 +253,24 @@ export class StorageLocationService {
     if (!location) {
       throw new NotFoundException()
     }
-    const buckets = await this.s3Service.s3ListBuckets({
-      s3Client: configureS3Client({
-        accessKeyId: accessKey.accessKeyId,
-        secretAccessKey: location.secretAccessKey,
-        endpoint: accessKey.endpoint,
-        region: accessKey.region,
-      }),
-    })
+    const buckets = await this.s3Service
+      .s3ListBuckets({
+        s3Client: configureS3Client({
+          accessKeyId: accessKey.accessKeyId,
+          secretAccessKey: location.secretAccessKey,
+          endpoint: accessKey.endpoint,
+          region: accessKey.region,
+        }),
+      })
+      .catch((e) => {
+        if (
+          e instanceof S3ServiceException &&
+          e.name === 'InvalidAccessKeyId'
+        ) {
+          throw new NotFoundException()
+        }
+        throw e
+      })
 
     return buckets
   }

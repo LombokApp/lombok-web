@@ -1,6 +1,4 @@
-'use client'
-
-import type { TaskDTO } from '@stellariscloud/api-client'
+import type { TaskDTO } from '@stellariscloud/types'
 import { cn } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { timeSinceOrUntil } from '@stellariscloud/utils'

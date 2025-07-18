@@ -1,4 +1,4 @@
-import type { SettingsGetResponse } from '@stellariscloud/api-client'
+import type { ServerSettingsGetResponse } from '@stellariscloud/types'
 import {
   Button,
   Card,
@@ -13,7 +13,7 @@ import {
 import React from 'react'
 
 interface ServerGeneralConfigTabProps {
-  settings?: SettingsGetResponse['settings']
+  settings?: ServerSettingsGetResponse['settings']
   onSaveServerHostname?: (hostname: string) => Promise<void>
   onSaveEnableNewSignups?: (enabled: boolean) => Promise<void>
 }

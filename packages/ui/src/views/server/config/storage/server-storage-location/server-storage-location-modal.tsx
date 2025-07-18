@@ -1,6 +1,4 @@
-'use client'
-
-import type { ServerStorageLocationInputDTO } from '@stellariscloud/api-client'
+import type { ServerStorageLocationInputDTO } from '@stellariscloud/types'
 import {
   Dialog,
   DialogContent,
@@ -8,7 +6,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@stellariscloud/ui-toolkit'
-import React from 'react'
 
 import { ServerStorageLocationForm } from './server-storage-location-form/server-storage-location-form.component'
 

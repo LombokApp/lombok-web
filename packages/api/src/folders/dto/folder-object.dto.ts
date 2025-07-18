@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { MediaType, metadataEntrySchema } from '@stellariscloud/types'
+import { contentMetadataByHashSchema, MediaType } from '@stellariscloud/types'
 import { z } from 'zod'
 
 export const folderObjectSchema = z.object({
@@ -12,10 +12,7 @@ export const folderObjectSchema = z.object({
   sizeBytes: z.number(),
   mimeType: z.string(),
   mediaType: z.nativeEnum(MediaType),
-  contentMetadata: z.record(
-    z.string(),
-    z.record(z.string(), metadataEntrySchema),
-  ),
+  contentMetadata: contentMetadataByHashSchema,
 })
 
 export class FolderObjectDTO extends createZodDto(folderObjectSchema) {}

@@ -1,4 +1,4 @@
-import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
+import type { UserStorageProvisionDTO } from '@stellariscloud/types'
 import { Badge, cn } from '@stellariscloud/ui-toolkit'
 
 const ROW_SPACING = 'px-4 py-3'

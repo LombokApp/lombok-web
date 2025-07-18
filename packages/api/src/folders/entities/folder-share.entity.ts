@@ -1,8 +1,8 @@
+import type { FolderPermissionName } from '@stellariscloud/types'
 import { relations, sql } from 'drizzle-orm'
-import { pgTable, text, uuid, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import { index, pgTable, text, uniqueIndex, uuid } from 'drizzle-orm/pg-core'
 
 import { foldersTable } from './folder.entity'
-import { FolderPermissionName } from '@stellariscloud/types'
 
 export const folderSharesTable = pgTable(
   'folder_shares',

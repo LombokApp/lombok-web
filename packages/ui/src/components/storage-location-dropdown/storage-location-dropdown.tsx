@@ -1,4 +1,4 @@
-import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
+import type { UserStorageProvisionDTO } from '@stellariscloud/types'
 import {
   Button,
   DropdownMenu,

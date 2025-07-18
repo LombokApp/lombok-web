@@ -1,4 +1,4 @@
-import type { UserStorageProvisionDTO } from '@stellariscloud/api-client'
+import type { UserStorageProvisionDTO } from '@stellariscloud/types'
 import { DataTable } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 

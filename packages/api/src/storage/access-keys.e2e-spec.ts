@@ -27,7 +27,7 @@ describe('Access Keys', () => {
   it(`should list DISTINCT user access keys`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'testuser',
       password: '123',
     })
@@ -42,13 +42,17 @@ describe('Access Keys', () => {
 
     expect(testFolder.folder.id).toBeTruthy()
 
-    const accessKeysListResponse = await apiClient
-      .accessKeysApi({ accessToken })
-      .listAccessKeys()
+    const listAccessKeysResponse = await apiClient(accessToken).GET(
+      '/api/v1/access-keys',
+      {},
+    )
+    if (!listAccessKeysResponse.data) {
+      throw new Error('No data')
+    }
 
-    expect(accessKeysListResponse.status).toEqual(200)
-    expect(accessKeysListResponse.data.result.length).toEqual(1)
-    expect(accessKeysListResponse.data.result[0].accessKeyHashId).toEqual(
+    expect(listAccessKeysResponse.response.status).toEqual(200)
+    expect(listAccessKeysResponse.data.result.length).toEqual(1)
+    expect(listAccessKeysResponse.data.result[0].accessKeyHashId).toEqual(
       buildAccessKeyHashId({
         accessKeyId: 'testaccesskeyid',
         secretAccessKey: 'testsecretaccesskey',
@@ -56,21 +60,19 @@ describe('Access Keys', () => {
         endpoint: 'http://miniotest:9000',
       }),
     )
-    expect(accessKeysListResponse.data.result[0].accessKeyId).toEqual(
+    expect(listAccessKeysResponse.data.result[0].accessKeyId).toEqual(
       'testaccesskeyid',
     )
-    expect(accessKeysListResponse.data.result[0].endpointDomain).toEqual(
+    expect(listAccessKeysResponse.data.result[0].endpointDomain).toEqual(
       'miniotest:9000',
     )
-    expect(accessKeysListResponse.data.result[0].folderCount).toEqual(1)
+    expect(listAccessKeysResponse.data.result[0].folderCount).toEqual(1)
   })
 
   it(`should 401 on list access keys without token`, async () => {
-    const accessKeysListResponse = await apiClient
-      .accessKeysApi()
-      .listAccessKeys()
+    const listAccessKeysResponse = await apiClient().GET('/api/v1/access-keys')
 
-    expect(accessKeysListResponse.status).toEqual(401)
+    expect(listAccessKeysResponse.response.status).toEqual(401)
   })
 
   afterAll(async () => {

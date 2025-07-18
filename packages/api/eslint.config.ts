@@ -26,6 +26,12 @@ const conf: ConfigArray = tseslint.config(
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,
   ...tseslint.configs.recommendedTypeChecked,
+  {
+    files: ['src/**/*.e2e-spec.ts'],
+    rules: {
+      '@typescript-eslint/no-non-null-assertion': 'off',
+    },
+  },
 )
 
 export default conf

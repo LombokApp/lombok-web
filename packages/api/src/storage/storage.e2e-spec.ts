@@ -1,6 +1,5 @@
 import type { S3Client } from '@aws-sdk/client-s3'
 import { SignedURLsRequestMethod } from '@stellariscloud/types'
-import axios from 'axios'
 import { buildTestModule } from 'src/test/test.util'
 
 import { S3Service } from './s3.service'
@@ -51,8 +50,8 @@ describe('S3', () => {
 
     const files = await Promise.all(
       downloadUrls
-        .map((downloadUrl) => axios.get(downloadUrl))
-        .map((response) => response.then((r) => r.data as never)),
+        .map((downloadUrl) => fetch(downloadUrl))
+        .map((response) => response.then((r) => r.json())),
     )
 
     expect(files.length).toEqual(1)

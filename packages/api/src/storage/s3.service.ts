@@ -7,7 +7,6 @@ import { Injectable } from '@nestjs/common'
 import type { S3Object, S3ObjectInternal } from '@stellariscloud/types'
 import { SignedURLsRequestMethod } from '@stellariscloud/types'
 import aws4 from 'aws4'
-import axios from 'axios'
 
 export const transformFolderObjectToInternal = (
   obj: S3Object,
@@ -183,7 +182,7 @@ export class S3Service {
       },
     ])[0]
 
-    const getObjectResponse = await axios.get(url).catch((e) => {
+    const getObjectResponse = await fetch(url).catch((e) => {
       // eslint-disable-next-line no-console
       console.log('Error getting object:', e)
       throw e
@@ -224,11 +223,13 @@ export class S3Service {
       },
     ])[0]
 
-    const deleteObjectResponse = await axios.delete(url).catch((e) => {
-      // eslint-disable-next-line no-console
-      console.log('Error deleting object:', e)
-      throw e
-    })
+    const deleteObjectResponse = await fetch(url, { method: 'DELETE' }).catch(
+      (e) => {
+        // eslint-disable-next-line no-console
+        console.log('Error deleting object:', e)
+        throw e
+      },
+    )
     return deleteObjectResponse
   }
 

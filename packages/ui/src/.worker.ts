@@ -1,8 +1,8 @@
-import { FoldersApi } from '@stellariscloud/api-client'
-import { bindApiConfig } from '@stellariscloud/auth-utils'
+import type { paths, StellarisApiClient } from '@stellariscloud/types'
 import { SignedURLsRequestMethod } from '@stellariscloud/types'
 import { objectIdentifierToObjectKey } from '@stellariscloud/utils'
 import axios from 'axios'
+import createFetchClient from 'openapi-fetch'
 
 export enum LogLevel {
   TRACE = 'TRACE',
@@ -18,7 +18,7 @@ import { addFileToLocalFileStorage } from './services/local-cache/local-cache.se
 const downloading: Record<string, { progressPercent: number } | undefined> = {}
 
 // updated on incoming auth udpate message
-let foldersApi: FoldersApi
+let $apiClient: StellarisApiClient
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AsyncWorkerMessage = [string, any]
@@ -84,24 +84,30 @@ const maybeSendBatch = (folderId: string) => {
       folderBatch.batchBuffer.length,
     )
     folderBatch.lastTimeExecuted = Date.now()
-    void foldersApi
-      .createPresignedUrls({
+    void $apiClient
+      .POST('/api/v1/folders/{folderId}/presigned-urls', {
+        params: {
+          path: {
             folderId,
-        folderCreateSignedUrlInputDTOInner: toFetch.map((k) => ({
+          },
+        },
+        body: toFetch.map((k) => ({
           method: SignedURLsRequestMethod.GET,
           objectIdentifier: k,
         })),
       })
-      .then((response) => {
-        response.data.urls.forEach((result, i) => {
-          const entry = recentlyRequested[`${folderId}:${toFetch[i]}`]
-          if (entry?.callbacks?.resolve) {
-            entry.callbacks.resolve(result)
-          }
-          setTimeout(() => {
-            recentlyRequested[`${folderId}:${toFetch[i]}`] = undefined
-          }, 10000)
-        })
+      .then(({ response, data }) => {
+        if (response.status === 201 && data) {
+          data.urls.forEach((result, i) => {
+            const entry = recentlyRequested[`${folderId}:${toFetch[i]}`]
+            if (entry?.callbacks?.resolve) {
+              entry.callbacks.resolve(result)
+            }
+            setTimeout(() => {
+              recentlyRequested[`${folderId}:${toFetch[i]}`] = undefined
+            }, 10000)
+          })
+        }
       })
       .catch((e) => {
         toFetch.forEach((k) => {
@@ -239,17 +245,26 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
     // TODO: type check this with zod
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const uploadFile: File = message[1].uploadFile
-    void foldersApi
-      .createPresignedUrls({
-        folderId,
-        folderCreateSignedUrlInputDTOInner: [
+    void $apiClient
+      .POST('/api/v1/folders/{folderId}/presigned-urls', {
+        params: {
+          path: {
+            folderId,
+          },
+        },
+        body: [
           {
             objectIdentifier,
             method: SignedURLsRequestMethod.PUT,
           },
         ],
       })
-      .then((response) => response.data)
+      .then((response) => {
+        if (response.response.status === 201 && response.data) {
+          return response.data
+        }
+        throw new Error('Failed to get presigned url')
+      })
       .then(async ({ urls }) => {
         const uploadSlot = urls[0]
         if (!uploadSlot) {
@@ -275,10 +290,18 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
         })
 
         // have the app ingest the file
-        await foldersApi.refreshFolderObjectS3Metadata({
-          folderId,
-          objectKey: objectIdentifierToObjectKey(objectIdentifier).objectKey,
-        })
+        await $apiClient.POST(
+          '/api/v1/folders/{folderId}/objects/{objectKey}',
+          {
+            params: {
+              path: {
+                folderId,
+                objectKey:
+                  objectIdentifierToObjectKey(objectIdentifier).objectKey,
+              },
+            },
+          },
+        )
 
         log({
           level: LogLevel.INFO,
@@ -327,15 +350,17 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
         delete downloading[folderIdAndKey]
       })
   } else if (message[0] === 'AUTH_UPDATED') {
-    foldersApi = bindApiConfig(
-      {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-        basePath: message[1].basePath,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-        accessToken: message[1].accessToken,
+    $apiClient = createFetchClient<paths>({
+      baseUrl: (message[1] as { basePath: string }).basePath,
+      fetch: async (request) => {
+        const headers = new Headers(request.headers)
+        headers.set(
+          'Authorization',
+          `Bearer ${(message[1] as { accessToken: string }).accessToken}`,
+        )
+        return fetch(new Request(request, { headers }))
       },
-      FoldersApi,
-    )()
+    })
   }
 }
 

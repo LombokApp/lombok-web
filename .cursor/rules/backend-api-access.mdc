@@ -1,0 +1,5 @@
+---
+description: Backend API access, from the frontend, should use the openapi-react-query based approach which is a hook based approach. Import `$api` from packages/ui/src/services/api.ts and use either useQuery or useMutation on that object.
+globs: packages/ui/src/**/*.tsx
+alwaysApply: false
+---

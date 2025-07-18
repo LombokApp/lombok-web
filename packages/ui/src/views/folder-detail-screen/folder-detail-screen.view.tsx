@@ -4,8 +4,7 @@ import {
   ShareIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline'
-import type { FolderObjectDTO } from '@stellariscloud/api-client'
-import type { FolderPermissionName } from '@stellariscloud/types'
+import type { FolderObjectDTO,FolderPermissionName  } from '@stellariscloud/types'
 import { FolderPermissionEnum, FolderPushMessage } from '@stellariscloud/types'
 import {
   Button,
@@ -26,20 +25,21 @@ import { Ellipsis, Folder } from 'lucide-react'
 import React from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
-import type { DeleteFolderModalData } from '../../components/delete-folder-modal/delete-folder-modal'
-import { DeleteFolderModal } from '../../components/delete-folder-modal/delete-folder-modal'
-import { EditableTitle } from '../../components/editable-title'
+import type { DeleteFolderModalData } from '@/src/components/delete-folder-modal/delete-folder-modal'
+import { DeleteFolderModal } from '@/src/components/delete-folder-modal/delete-folder-modal'
+import { EditableTitle } from '@/src/components/editable-title'
 import {
   ReindexFolderModal,
   type ReindexFolderModalData,
-} from '../../components/reindex-folder-modal/reindex-folder-modal'
+} from '@/src/components/reindex-folder-modal/reindex-folder-modal'
 import {
   UploadModal,
   type UploadModalData,
-} from '../../components/upload-modal/upload-modal'
-import { useLocalFileCacheContext } from '../../contexts/local-file-cache.context'
-import { useFolderContext } from '../../pages/folders/folder.context'
-import { $api, apiClient } from '../../services/api'
+} from '@/src/components/upload-modal/upload-modal'
+import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache.context'
+import { useFolderContext } from '@/src/pages/folders/folder.context'
+import { $api } from '@/src/services/api'
+
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
 import { folderObjectsTableColumns } from './folder-objects-table-columns'
 import { FolderShareModal } from './folder-share-modal/folder-share-modal'
@@ -155,23 +155,37 @@ export const FolderDetailScreen = () => {
   )
   const folderContext = useFolderContext(messageHandler)
 
+  const reindexFolderMutation = $api.useMutation(
+    'post',
+    '/api/v1/folders/{folderId}/reindex',
+  )
+
   const startOrContinueFolderReindex = React.useCallback(
     (_t?: string) => {
       if (folderContext.folderMetadata) {
-        void apiClient.foldersApi.reindexFolder({
-          folderId: folderContext.folderId,
+        void reindexFolderMutation.mutateAsync({
+          params: {
+            path: {
+              folderId: folderContext.folderId,
+            },
+          },
         })
       }
     },
-    [folderContext.folderId, folderContext.folderMetadata],
+    [
+      folderContext.folderId,
+      folderContext.folderMetadata,
+      reindexFolderMutation,
+    ],
   )
 
-  const handleForgetFolder = React.useCallback(async () => {
-    setForgetFolderConfirmationModelData({ isOpen: false })
-    await apiClient.foldersApi
-      .deleteFolder({ folderId: folderContext.folderId })
-      .then(() => navigate('/folders'))
-  }, [folderContext.folderId, navigate])
+  const deleteFolderMutation = $api.useMutation(
+    'delete',
+    '/api/v1/folders/{folderId}',
+    {
+      onSuccess: () => navigate('/folders'),
+    },
+  )
 
   // eslint-disable-next-line @typescript-eslint/require-await
   const handleReindexFolder = React.useCallback(async () => {
@@ -248,21 +262,35 @@ export const FolderDetailScreen = () => {
         }
       } catch (error) {
         console.error('Failed to fetch folder shares:', error)
+        toast({
+          title: 'Error',
+          variant: 'destructive',
+          description: 'Could not fetch folder shares.',
+        })
       }
     }
-  }, [shareModalData.isOpen, listFolderSharesQuery])
+  }, [shareModalData.isOpen, listFolderSharesQuery, toast])
 
-  const handleUpdateShares = React.useCallback(
+  const upsertFolderShareMutation = $api.useMutation(
+    'post',
+    '/api/v1/folders/{folderId}/shares/{userId}',
+  )
+
+  const handleUpsertManyShares = React.useCallback(
     async (values: {
       shares: { userId: string; permissions: FolderPermissionName[] }[]
     }) => {
       try {
         // Update each share individually
         for (const share of values.shares) {
-          await apiClient.foldersApi.upsertFolderShare({
-            folderId,
-            userId: share.userId,
-            folderShareCreateInputDTO: {
+          await upsertFolderShareMutation.mutateAsync({
+            params: {
+              path: {
+                folderId,
+                userId: share.userId,
+              },
+            },
+            body: {
               permissions: share.permissions,
             },
           })
@@ -271,78 +299,39 @@ export const FolderDetailScreen = () => {
         console.error('Failed to update folder shares:', error)
       }
     },
-    [folderId],
-  )
-
-  const handleFolderNameChange = React.useCallback(
-    async (newName: string) => {
-      try {
-        await folderUpdateMutation.mutateAsync({
-          params: {
-            path: {
-              folderId,
-            },
-          },
-          body: {
-            name: newName,
-          },
-        })
-
-        // Refresh the folder data to show the updated name
-        await folderContext.refreshFolder()
-
-        toast({
-          title: 'Folder name updated',
-          description: `Folder name has been updated to: "${newName}"`,
-        })
-      } catch (error) {
-        console.error('Failed to update folder name:', error)
-        toast({
-          title: 'Error updating folder name',
-          description: 'Failed to update the folder name. Please try again.',
-          variant: 'destructive',
-        })
-        // Re-throw the error so the EditableTitle component can handle the UI state
-        throw error
-      }
-    },
-    [folderUpdateMutation, folderId, folderContext, toast],
+    [folderId, upsertFolderShareMutation],
   )
 
   return (
     <>
-      {uploadModalData.isOpen && (
-        <UploadModal
-          onUpload={(file: File) =>
-            uploadFile(folderContext.folderId, file.name, file)
-          }
-          modalData={uploadModalData}
-          setModalData={setUploadModalData}
-        />
-      )}
-      {forgetFolderConfirmationModelData.isOpen && (
-        <DeleteFolderModal
-          onConfirm={handleForgetFolder}
-          modalData={forgetFolderConfirmationModelData}
-          setModalData={setForgetFolderConfirmationModelData}
-        />
-      )}
-      {reindexFolderModalData.isOpen && (
-        <ReindexFolderModal
-          modalData={reindexFolderModalData}
-          setModalData={setReindexFolderModalData}
-          onSubmit={handleReindexFolder}
-        />
-      )}
-      {shareModalData.isOpen && (
-        <FolderShareModal
-          folderId={folderId}
-          modalData={shareModalData}
-          setModalData={setShareModalData}
-          onSubmit={handleUpdateShares}
-        />
-      )}
-      <div className="relative flex size-full flex-1 justify-around">
+      <DeleteFolderModal
+        modalData={forgetFolderConfirmationModelData}
+        setModalData={setForgetFolderConfirmationModelData}
+        onConfirm={() =>
+          deleteFolderMutation.mutateAsync({
+            params: { path: { folderId: folderContext.folderId } },
+          })
+        }
+      />
+      <ReindexFolderModal
+        modalData={reindexFolderModalData}
+        setModalData={setReindexFolderModalData}
+        onSubmit={handleReindexFolder}
+      />
+      <UploadModal
+        modalData={uploadModalData}
+        setModalData={setUploadModalData}
+        onUpload={(file: File) =>
+          uploadFile(folderContext.folderId, file.name, file)
+        }
+      />
+      <FolderShareModal
+        modalData={shareModalData}
+        setModalData={setShareModalData}
+        onSubmit={handleUpsertManyShares}
+        folderId={folderContext.folderId}
+      />
+      <div className="flex flex-1 justify-around">
         <div
           className={cn(
             'z-10 flex size-full flex-1',
@@ -400,7 +389,12 @@ export const FolderDetailScreen = () => {
                       <div className="flex justify-between">
                         <EditableTitle
                           value={folderContext.folder?.name ?? ''}
-                          onChange={handleFolderNameChange}
+                          onChange={async (name) => {
+                            await folderUpdateMutation.mutateAsync({
+                              body: { name },
+                              params: { path: { folderId } },
+                            })
+                          }}
                           placeholder="Enter folder name..."
                         />
                         <DropdownMenu>

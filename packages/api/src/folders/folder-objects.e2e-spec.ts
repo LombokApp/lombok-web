@@ -26,38 +26,49 @@ describe('Folder Objects', () => {
   })
 
   it(`should 401 on list folder objects without token`, async () => {
-    const response = await apiClient
-      .foldersApi()
-      .listFolderObjects({ folderId: '__dummy__' })
+    const response = await apiClient().GET(
+      '/api/v1/folders/{folderId}/objects',
+      {
+        params: { path: { folderId: '__dummy__' } },
+      },
+    )
 
-    expect(response.status).toEqual(401)
+    expect(response.error).toBeDefined()
+    expect(response.response.status).toBe(401)
   })
 
   it(`should 401 on get folder object without token`, async () => {
-    const response = await apiClient
-      .foldersApi()
-      .getFolderObject({ folderId: '__dummy__', objectKey: '__dummy__' })
+    const response = await apiClient().GET(
+      '/api/v1/folders/{folderId}/objects/{objectKey}',
+      {
+        params: { path: { folderId: '__dummy__', objectKey: '__dummy__' } },
+      },
+    )
 
-    expect(response.status).toEqual(401)
+    expect(response.error).toBeDefined()
+    expect(response.response.status).toBe(401)
   })
 
   it(`should 401 on delete folder object without token`, async () => {
-    const response = await apiClient
-      .foldersApi()
-      .deleteFolderObject({ folderId: '__dummy__', objectKey: '__dummy__' })
+    const response = await apiClient().DELETE(
+      '/api/v1/folders/{folderId}/objects/{objectKey}',
+      {
+        params: { path: { folderId: '__dummy__', objectKey: '__dummy__' } },
+      },
+    )
 
-    expect(response.status).toEqual(401)
+    expect(response.response.status).toBe(401)
   })
 
   it(`should 401 on refresh folder object S3 metadata without token`, async () => {
-    const response = await apiClient
-      .foldersApi()
-      .refreshFolderObjectS3Metadata({
-        folderId: '__dummy__',
-        objectKey: '__dummy__',
-      })
+    const { response } = await apiClient().POST(
+      '/api/v1/folders/{folderId}/objects/{objectKey}',
+      {
+        params: { path: { folderId: '__dummy__', objectKey: '__dummy__' } },
+      },
+    )
 
-    expect(response.status).toEqual(401)
+    expect(response.status).toBe(401)
   })
 
   // it(`should get a folder object by folderId and objectKey`, async () => {
@@ -103,12 +114,14 @@ describe('Folder Objects', () => {
   //     { retryPeriod: 100, maxRetries: 10 },
   //   )
 
-  //   const folderObjectGetResponse = await apiClient
-  //     .foldersApi({ accessToken })
-  //     .getFolderObject({ folderId: testFolder.folder.id, objectKey: 'key3' })
+  //   const folderObjectGetResponse = await apiClient(accessToken).GET('/api/v1/folders/{folderId}/objects/{objectKey}', {
+  //     params: { path: { folderId: testFolder.folder.id, objectKey: 'key3' } },
+  //   })
 
   //   // console.log('folderObjectGetResponse.body:', folderObjectGetResponse.body)
-  //   expect(folderObjectGetResponse.status).toEqual(200)
+  //   if (!folderObjectGetResponse.data) {
+  //     throw new Error('No response data received')
+  //   }
   //   expect(folderObjectGetResponse.data.folderObject.objectKey).toEqual('key3')
   //   expect(folderObjectGetResponse.data.folderObject.sizeBytes).toEqual(16)
   // })
@@ -139,11 +152,13 @@ describe('Folder Objects', () => {
 
   //   expect(testFolder.folder.id).toBeTruthy()
 
-  //   const folderGetResponse = await apiClient
-  //     .foldersApi({ accessToken })
-  //     .getFolder({ folderId: testFolder.folder.id })
+  //   const folderGetResponse = await apiClient(accessToken).GET('/api/v1/folders/{folderId}', {
+  //     params: { path: { folderId: testFolder.folder.id } },
+  //   })
 
-  //   expect(folderGetResponse.status).toEqual(200)
+  //   if (!folderGetResponse.data) {
+  //     throw new Error('No response data received')
+  //   }
   //   expect(folderGetResponse.data.folder.id).toEqual(testFolder.folder.id)
 
   //   const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
@@ -162,10 +177,13 @@ describe('Folder Objects', () => {
   //     { retryPeriod: 100, maxRetries: 10 },
   //   )
 
-  //   const listObjectsResponse = await apiClient
-  //     .foldersApi({ accessToken })
-  //     .listFolderObjects({ folderId: testFolder.folder.id })
+  //   const listObjectsResponse = await apiClient(accessToken).GET('/api/v1/folders/{folderId}/objects', {
+  //     params: { path: { folderId: testFolder.folder.id } },
+  //   })
 
+  //   if (!listObjectsResponse.data) {
+  //     throw new Error('No response data received')
+  //   }
   //   expect(listObjectsResponse.data.result.length).toBe(5)
   // })
 
@@ -191,11 +209,13 @@ describe('Folder Objects', () => {
 
   //   expect(testFolder.folder.id).toBeTruthy()
 
-  //   const folderGetResponse = await apiClient
-  //     .foldersApi({ accessToken })
-  //     .getFolder({ folderId: testFolder.folder.id })
+  //   const folderGetResponse = await apiClient(accessToken).GET('/api/v1/folders/{folderId}', {
+  //     params: { path: { folderId: testFolder.folder.id } },
+  //   })
 
-  //   expect(folderGetResponse.status).toEqual(200)
+  //   if (!folderGetResponse.data) {
+  //     throw new Error('No response data received')
+  //   }
   //   expect(folderGetResponse.data.folder.id).toEqual(testFolder.folder.id)
 
   //   const queue: InMemoryQueue | undefined = await testModule?.app.resolve(
@@ -214,17 +234,19 @@ describe('Folder Objects', () => {
   //     { retryPeriod: 100, maxRetries: 10 },
   //   )
 
-  //   const deleteObjectResponse = await apiClient
-  //     .foldersApi({ accessToken })
-  //     .deleteFolderObject({ folderId: testFolder.folder.id, objectKey: 'key1' })
+  //   const deleteObjectResponse = await apiClient(accessToken).DELETE('/api/v1/folders/{folderId}/objects/{objectKey}', {
+  //     params: { path: { folderId: testFolder.folder.id, objectKey: 'key1' } },
+  //   })
 
-  //   expect(deleteObjectResponse.status).toBe(200)
+  //   expect(deleteObjectResponse.data).toBeDefined()
 
-  //   const listObjectsResponse = await apiClient
-  //     .foldersApi({ accessToken })
-  //     .listFolderObjects({ folderId: testFolder.folder.id })
+  //   const listObjectsResponse = await apiClient(accessToken).GET('/api/v1/folders/{folderId}/objects', {
+  //     params: { path: { folderId: testFolder.folder.id } },
+  //   })
 
-  //   expect(listObjectsResponse.status).toBe(200)
+  //   if (!listObjectsResponse.data) {
+  //     throw new Error('No response data received')
+  //   }
   //   expect(listObjectsResponse.data.meta.totalCount).toBe(0)
   //   expect(listObjectsResponse.data.result.length).toBe(0)
   // })
@@ -232,7 +254,7 @@ describe('Folder Objects', () => {
   it(`should update existing objects, not duplicate`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'testuser-reindex',
       password: '123',
     })
@@ -264,25 +286,42 @@ describe('Folder Objects', () => {
     })
 
     // Check initial state
-    const initialListObjectsResponse = await apiClient
-      .foldersApi({ accessToken })
-      .listFolderObjects({ folderId: testFolder.folder.id })
+    const initialListObjectsResponse = await apiClient(accessToken).GET(
+      '/api/v1/folders/{folderId}/objects',
+      {
+        params: { path: { folderId: testFolder.folder.id } },
+      },
+    )
 
-    expect(initialListObjectsResponse.status).toBe(200)
+    if (!initialListObjectsResponse.data) {
+      throw new Error('No response data received')
+    }
     expect(initialListObjectsResponse.data.meta.totalCount).toBe(1)
 
-    await apiClient.foldersApi({ accessToken }).refreshFolderObjectS3Metadata({
-      folderId: testFolder.folder.id,
-      objectKey: initialListObjectsResponse.data.result[0].objectKey,
-    })
+    await apiClient(accessToken).POST(
+      '/api/v1/folders/{folderId}/objects/{objectKey}',
+      {
+        params: {
+          path: {
+            folderId: testFolder.folder.id,
+            objectKey: initialListObjectsResponse.data.result[0].objectKey,
+          },
+        },
+      },
+    )
 
     // Check state after object update
-    const afterListObjectsResponse = await apiClient
-      .foldersApi({ accessToken })
-      .listFolderObjects({ folderId: testFolder.folder.id })
+    const afterListObjectsResponse = await apiClient(accessToken).GET(
+      '/api/v1/folders/{folderId}/objects',
+      {
+        params: { path: { folderId: testFolder.folder.id } },
+      },
+    )
 
     // Total count should still be 1 (no duplicates)
-    expect(afterListObjectsResponse.status).toBe(200)
+    if (!afterListObjectsResponse.data) {
+      throw new Error('No response data received')
+    }
     expect(afterListObjectsResponse.data.meta.totalCount).toBe(1)
   })
 

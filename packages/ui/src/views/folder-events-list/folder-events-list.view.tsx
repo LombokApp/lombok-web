@@ -1,8 +1,4 @@
-import {
-  type EventDTO,
-  type FolderGetResponse,
-  ListEventsSortEnum,
-} from '@stellariscloud/api-client'
+import type { EventDTO, FolderGetResponse } from '@stellariscloud/types'
 import { FolderPushMessage } from '@stellariscloud/types'
 import {
   Card,
@@ -16,9 +12,10 @@ import { ActivityIcon } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-import { Icon } from '../../design-system/icon'
+import { Icon } from '@/src/design-system/icon'
+import { $api } from '@/src/services/api'
+
 import { useFolderContext } from '../../pages/folders/folder.context'
-import { folderEventsApiHooks } from '../../services/api'
 
 const EVENT_PREVIEW_LENGTH = 5
 
@@ -97,22 +94,29 @@ export const FolderEventsList = ({
 }) => {
   const { folder } = folderAndPermission ?? {}
   const { folderId } = useFolderContext()
-  const listFolderEventsQuery = folderEventsApiHooks.useListFolderEvents(
-    {
-      folderId,
-      sort: ListEventsSortEnum.CreatedAtDesc,
-      limit: EVENT_PREVIEW_LENGTH,
+  const {
+    data: listFolderEventsQuery,
+    refetch,
+    isLoading,
+  } = $api.useQuery('get', '/api/v1/folders/{folderId}/events', {
+    params: {
+      path: {
+        folderId,
+      },
+      query: {
+        sort: 'createdAt-desc',
+        limit: EVENT_PREVIEW_LENGTH,
+      },
     },
-    { enabled: !!folderId },
-  )
+  })
 
   const messageHandler = React.useCallback(
     (name: FolderPushMessage, _payload: unknown) => {
       if ([FolderPushMessage.EVENT_CREATED].includes(name)) {
-        void listFolderEventsQuery.refetch()
+        void refetch()
       }
     },
-    [listFolderEventsQuery],
+    [refetch],
   )
 
   useFolderContext(messageHandler)
@@ -136,27 +140,25 @@ export const FolderEventsList = ({
         </div>
       </CardHeader>
       <CardContent className="overflow-hidden p-4 pt-3">
-        {listFolderEventsQuery.isLoading ? (
+        {isLoading ? (
           <div className="flex flex-col gap-3">
             <Skeleton className="h-14 w-full" />
             <Skeleton className="h-14 w-full" />
           </div>
-        ) : listFolderEventsQuery.data?.result &&
-          listFolderEventsQuery.data.result.length > 0 ? (
+        ) : listFolderEventsQuery?.result &&
+          listFolderEventsQuery.result.length > 0 ? (
           <div className="flex flex-col gap-3">
-            {listFolderEventsQuery.data.result.map((event) => (
+            {listFolderEventsQuery.result.map((event) => (
               <EventCard key={event.id} event={event} folderId={folderId} />
             ))}
-            {listFolderEventsQuery.data.meta.totalCount >
-              EVENT_PREVIEW_LENGTH && (
+            {listFolderEventsQuery.meta.totalCount > EVENT_PREVIEW_LENGTH && (
               <div className="text-center text-xs">
                 <Link
                   to={`/folders/${folder?.id}/events`}
                   className="text-primary hover:underline"
                 >
                   +{' '}
-                  {listFolderEventsQuery.data.meta.totalCount -
-                    EVENT_PREVIEW_LENGTH}{' '}
+                  {listFolderEventsQuery.meta.totalCount - EVENT_PREVIEW_LENGTH}{' '}
                   more events
                 </Link>
               </div>

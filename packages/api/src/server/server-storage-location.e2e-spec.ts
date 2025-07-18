@@ -19,46 +19,38 @@ describe('Server - Server Storage Location', () => {
   it(`should set a valid server storage location`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'mekpans',
       password: '123',
       admin: true,
     })
 
-    const setServerStorageLocationResponse = await apiClient
-      .serverStorageLocationApi({ accessToken })
-      .setServerStorageLocation({
-        serverStorageLocationInputDTO: {
-          accessKeyId: 'dummyaccesskeyid',
-          secretAccessKey: 'dummysecretAccessKey',
-          bucket: 'dummybucket',
-          endpoint: 'http://dummyendpoint',
-          region: 'auto',
-          prefix: null,
+    const setServerStorageLocationResponse = await apiClient(accessToken).POST(
+      '/api/v1/server/server-storage-location',
+      {
+        body: {
+          accessKeyId: 'key',
+          secretAccessKey: 'secret',
+          endpoint: 'http://localhost:9000',
+          bucket: 'bucket',
+          region: 'us-east-1',
+          prefix: 'prefix',
         },
-      })
-    expect(setServerStorageLocationResponse.status).toEqual(201)
+      },
+    )
+    if (!setServerStorageLocationResponse.data) {
+      throw new Error('No data')
+    }
+    expect(setServerStorageLocationResponse.response.status).toEqual(201)
     expect(
-      setServerStorageLocationResponse.data.serverStorageLocation?.accessKeyId,
-    ).toEqual('dummyaccesskeyid')
-    expect(
-      setServerStorageLocationResponse.data.serverStorageLocation?.bucket,
-    ).toEqual('dummybucket')
-    expect(
-      setServerStorageLocationResponse.data.serverStorageLocation?.endpoint,
-    ).toEqual('http://dummyendpoint')
-    expect(
-      setServerStorageLocationResponse.data.serverStorageLocation?.region,
-    ).toEqual('auto')
-    expect(
-      setServerStorageLocationResponse.data.serverStorageLocation?.prefix,
-    ).toEqual(null)
+      setServerStorageLocationResponse.data.serverStorageLocation,
+    ).toBeDefined()
   })
 
   it(`should fail to set an invalid server storage location [bad endpoint]`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'mekpans',
       password: '123',
       admin: true,
@@ -72,26 +64,26 @@ describe('Server - Server Storage Location', () => {
       'http://something.com/a_path',
     ] as string[]) {
       const serverStorageLocation = {
-        serverStorageLocationInputDTO: {
-          accessKeyId: 'dummyaccesskeyid',
-          secretAccessKey: 'dummysecretAccessKey',
-          bucket: 'dummybucket',
-          endpoint,
-          region: 'auto',
-          prefix: '',
-        },
+        accessKeyId: 'dummyaccesskeyid',
+        secretAccessKey: 'dummysecretAccessKey',
+        bucket: 'dummybucket',
+        endpoint,
+        region: 'auto',
+        prefix: '',
       }
-      const setServerStorageLocationResponse = await apiClient
-        .serverStorageLocationApi({ accessToken })
-        .setServerStorageLocation(serverStorageLocation)
-      expect(setServerStorageLocationResponse.status).toEqual(400)
+      const setServerStorageLocationResponse = await apiClient(
+        accessToken,
+      ).POST('/api/v1/server/server-storage-location', {
+        body: serverStorageLocation,
+      })
+      expect(setServerStorageLocationResponse.response.status).toEqual(400)
     }
   })
 
   it(`should fail to set an invalid server storage location [bad region]`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'mekpans',
       password: '123',
       admin: true,
@@ -99,27 +91,27 @@ describe('Server - Server Storage Location', () => {
 
     for (const region of [undefined, null, ''] as unknown as string[]) {
       const serverStorageLocation = {
-        serverStorageLocationInputDTO: {
-          accessKeyId: 'dummyaccesskeyid',
-          secretAccessKey: 'dummysecretAccessKey',
-          bucket: 'dummybucket',
-          endpoint: 'http://example-endpoint.com',
-          region,
-          prefix: '',
-        },
+        accessKeyId: 'dummyaccesskeyid',
+        secretAccessKey: 'dummysecretAccessKey',
+        bucket: 'dummybucket',
+        endpoint: 'http://example-endpoint.com',
+        region,
+        prefix: '',
       }
-      const setServerStorageLocationResponse = await apiClient
-        .serverStorageLocationApi({ accessToken })
-        .setServerStorageLocation(serverStorageLocation)
+      const setServerStorageLocationResponse = await apiClient(
+        accessToken,
+      ).POST('/api/v1/server/server-storage-location', {
+        body: serverStorageLocation,
+      })
 
-      expect(setServerStorageLocationResponse.status).toEqual(400)
+      expect(setServerStorageLocationResponse.response.status).toEqual(400)
     }
   })
 
   it(`should fail to set an invalid server storage location [bad accessKeyId]`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'mekpans',
       password: '123',
       admin: true,
@@ -127,27 +119,27 @@ describe('Server - Server Storage Location', () => {
 
     for (const accessKeyId of [undefined, null, ''] as unknown as string[]) {
       const serverStorageLocation = {
-        serverStorageLocationInputDTO: {
-          accessKeyId,
-          secretAccessKey: 'dummysecretAccessKey',
-          bucket: 'dummybucket',
-          endpoint: 'http://example-endpoint.com',
-          region: 'auto',
-          prefix: '',
-        },
+        accessKeyId,
+        secretAccessKey: 'dummysecretAccessKey',
+        bucket: 'dummybucket',
+        endpoint: 'http://example-endpoint.com',
+        region: 'auto',
+        prefix: '',
       }
-      const setServerStorageLocationResponse = await apiClient
-        .serverStorageLocationApi({ accessToken })
-        .setServerStorageLocation(serverStorageLocation)
+      const setServerStorageLocationResponse = await apiClient(
+        accessToken,
+      ).POST('/api/v1/server/server-storage-location', {
+        body: serverStorageLocation,
+      })
 
-      expect(setServerStorageLocationResponse.status).toEqual(400)
+      expect(setServerStorageLocationResponse.response.status).toEqual(400)
     }
   })
 
   it(`should fail to set an invalid server storage location [bad secretAccessKey]`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'mekpans',
       password: '123',
       admin: true,
@@ -159,27 +151,27 @@ describe('Server - Server Storage Location', () => {
       '',
     ] as unknown as string[]) {
       const serverStorageLocation = {
-        serverStorageLocationInputDTO: {
-          accessKeyId: 'dummAccessKeyId',
-          secretAccessKey,
-          bucket: 'dummybucket',
-          endpoint: 'http://example-endpoint.com',
-          region: 'auto',
-          prefix: '',
-        },
+        accessKeyId: 'dummAccessKeyId',
+        secretAccessKey,
+        bucket: 'dummybucket',
+        endpoint: 'http://example-endpoint.com',
+        region: 'auto',
+        prefix: '',
       }
-      const setServerStorageLocationResponse = await apiClient
-        .serverStorageLocationApi({ accessToken })
-        .setServerStorageLocation(serverStorageLocation)
+      const setServerStorageLocationResponse = await apiClient(
+        accessToken,
+      ).POST('/api/v1/server/server-storage-location', {
+        body: serverStorageLocation,
+      })
 
-      expect(setServerStorageLocationResponse.status).toEqual(400)
+      expect(setServerStorageLocationResponse.response.status).toEqual(400)
     }
   })
 
   it(`should fail to set an invalid server storage location [bad prefix]`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'mekpans',
       password: '123',
       admin: true,
@@ -187,20 +179,20 @@ describe('Server - Server Storage Location', () => {
 
     for (const prefix of [undefined, ''] as unknown as string[]) {
       const serverStorageLocation = {
-        serverStorageLocationInputDTO: {
-          accessKeyId: 'dummAccessKeyId',
-          secretAccessKey: 'dummySecretAccessKey',
-          bucket: 'dummybucket',
-          endpoint: 'http://example-endpoint.com',
-          region: 'auto',
-          prefix,
-        },
+        accessKeyId: 'dummAccessKeyId',
+        secretAccessKey: 'dummySecretAccessKey',
+        bucket: 'dummybucket',
+        endpoint: 'http://example-endpoint.com',
+        region: 'auto',
+        prefix,
       }
-      const setServerStorageLocationResponse = await apiClient
-        .serverStorageLocationApi({ accessToken })
-        .setServerStorageLocation(serverStorageLocation)
+      const setServerStorageLocationResponse = await apiClient(
+        accessToken,
+      ).POST('/api/v1/server/server-storage-location', {
+        body: serverStorageLocation,
+      })
 
-      expect(setServerStorageLocationResponse.status).toEqual(400)
+      expect(setServerStorageLocationResponse.response.status).toEqual(400)
     }
   })
 

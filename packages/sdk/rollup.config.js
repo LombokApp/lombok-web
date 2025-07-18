@@ -19,7 +19,6 @@ const workspaceAliases = {
 const rollupConfig = defineConfig([
   {
     input: './src/index.ts', // Entry point for your application
-    external: (id) => ['axios'].includes(id),
     output: {
       dir: 'dist',
       format: 'es',
@@ -32,7 +31,6 @@ const rollupConfig = defineConfig([
   },
   {
     input: './src/index.ts', // Entry point for your application
-    external: (id) => ['axios'].includes(id),
     output: {
       dir: 'dist',
       format: 'es',

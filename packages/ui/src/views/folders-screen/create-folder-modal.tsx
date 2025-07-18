@@ -3,7 +3,7 @@
 import type {
   FolderCreateInputDTO,
   UserStorageProvisionDTO,
-} from '@stellariscloud/api-client'
+} from '@stellariscloud/types'
 import {
   Dialog,
   DialogContent,

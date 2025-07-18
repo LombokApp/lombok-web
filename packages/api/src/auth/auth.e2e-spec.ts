@@ -30,13 +30,14 @@ describe('Auth', () => {
   })
 
   it(`POST /api/v1/auth/signup (without email)`, async () => {
-    const signupResponse = await apiClient.authApi().signup({
-      signupCredentialsDTO: {
+    const signupResponse = await apiClient().POST('/api/v1/auth/signup', {
+      body: {
         username: 'mekpans',
         password: '123',
       },
     })
-    expect(signupResponse.status).toBe(201)
+    expect(signupResponse.response.status).toBe(201)
+    expect(signupResponse.data).toBeDefined()
   })
 
   it(`POST /api/v1/auth/signup (with conflict)`, async () => {
@@ -132,18 +133,23 @@ describe('Auth', () => {
       })
       .expect(201)
 
-    const response = await apiClient.authApi().login({
-      loginCredentialsDTO: {
+    const loginResponse = await apiClient().POST('/api/v1/auth/login', {
+      body: {
         login: 'mekpans',
         password: '123',
       },
     })
 
-    expect(response.status).toEqual(201)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-    expect((response.data.session as any).user).toBeUndefined()
-    expect(response.data.session.accessToken.length).toBeGreaterThan(0)
-    expect(response.data.session.refreshToken.length).toBeGreaterThan(0)
+    expect(loginResponse.response.status).toEqual(201)
+    expect(loginResponse.error).toBeUndefined()
+    expect(loginResponse.data).toBeDefined()
+
+    if (!loginResponse.data) {
+      throw new Error('No response data received')
+    }
+
+    expect(loginResponse.data.session.accessToken.length).toBeGreaterThan(0)
+    expect(loginResponse.data.session.refreshToken.length).toBeGreaterThan(0)
   })
 
   it(`should succeed in fetching viewer with token`, async () => {
@@ -156,22 +162,29 @@ describe('Auth', () => {
       })
       .expect(201)
 
-    const {
-      data: {
-        session: { accessToken },
-      },
-    } = await apiClient.authApi().login({
-      loginCredentialsDTO: {
+    const loginResponse = await apiClient().POST('/api/v1/auth/login', {
+      body: {
         login: 'mekpans',
         password: '123',
       },
     })
 
-    const viewerResponse = await apiClient
-      .viewerApi({ accessToken })
-      .getViewer()
+    expect(loginResponse.data).toBeDefined()
 
-    expect(viewerResponse.status).toEqual(200)
+    if (!loginResponse.data) {
+      throw new Error('Login failed - no response data')
+    }
+
+    const { accessToken } = loginResponse.data.session
+
+    const viewerResponse = await apiClient(accessToken).GET('/api/v1/viewer')
+    expect(viewerResponse.response.status).toEqual(200)
+    expect(viewerResponse.data).toBeDefined()
+
+    if (!viewerResponse.data) {
+      throw new Error('Viewer request failed - no response data')
+    }
+
     expect(viewerResponse.data.user.username).toEqual('mekpans')
     expect(viewerResponse.data.user.isAdmin).toEqual(false)
     expect(viewerResponse.data.user.permissions).toEqual([])
@@ -198,22 +211,36 @@ describe('Auth', () => {
       })
       .expect(201)
 
-    const {
-      data: {
-        session: { refreshToken },
-      },
-    } = await apiClient.authApi().login({
-      loginCredentialsDTO: {
+    const loginResponse = await apiClient().POST('/api/v1/auth/login', {
+      body: {
         login: 'mekpans',
         password: '123',
       },
     })
 
-    const refreshTokenResponse = await apiClient
-      .authApi()
-      .refreshToken({ refreshToken })
+    expect(loginResponse.error).toBeUndefined()
+    expect(loginResponse.data).toBeDefined()
 
-    expect(refreshTokenResponse.status).toEqual(201)
+    if (!loginResponse.data) {
+      throw new Error('Login failed - no response data')
+    }
+
+    const { refreshToken } = loginResponse.data.session
+
+    const refreshTokenResponse = await apiClient().POST(
+      '/api/v1/auth/{refreshToken}',
+      {
+        params: { path: { refreshToken } },
+      },
+    )
+
+    expect(refreshTokenResponse.data).toBeDefined()
+
+    if (!refreshTokenResponse.data) {
+      throw new Error('Refresh token request failed - no response data')
+    }
+
+    expect(refreshTokenResponse.response.status).toEqual(201)
     const sessionRows = await testModule
       ?.getOrmService()
       .db.query.sessionsTable.findMany()
@@ -230,22 +257,35 @@ describe('Auth', () => {
       })
       .expect(201)
 
-    const {
-      data: {
-        session: { refreshToken },
-      },
-    } = await apiClient.authApi().login({
-      loginCredentialsDTO: {
+    const loginResponse = await apiClient().POST('/api/v1/auth/login', {
+      body: {
         login: 'mekpans',
         password: '123',
       },
     })
 
-    const refreshTokenResponse = await apiClient.authApi().refreshToken({
-      refreshToken: `${refreshToken.split(':')[0]}:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwOi8vc3RlbGxhcmlzY2xvdWQubG9jYWxob3N0IiwianRpIjoiMTk2YjM1ZjctYTJiNy00YTk0LTg4NjUtZTYyMmVlNjNjY2E3OjM3M2I0NWMxLTI1MzEtNDM4Yy1iZTdlLTJkZTY1YjBlMzI4NyIsInNjcCI6W10sInN1YiI6IlVTRVI6YmYwNTMyNDctMDA3NC00ZjVmLWFiOWYtNTFiYTBlYzdiMWFhIiwiaWF0IjoxNzM5NjMwMjAwLCJleHAiOjE3NDA5MjYyMDB9.Nu2n6b9EEotEp6an0I2T_hbRnYISTaaBtU4h74hGQN8`,
-    })
+    expect(loginResponse.error).toBeUndefined()
+    expect(loginResponse.data).toBeDefined()
 
-    expect(refreshTokenResponse.status).toEqual(401)
+    if (!loginResponse.data) {
+      throw new Error('Login failed - no response data')
+    }
+
+    const { refreshToken } = loginResponse.data.session
+
+    const refreshTokenResponse = await apiClient().POST(
+      '/api/v1/auth/{refreshToken}',
+      {
+        params: {
+          path: {
+            refreshToken: `${refreshToken.split(':')[0]}:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwOi8vc3RlbGxhcmlzY2xvdWQubG9jYWxob3N0IiwianRpIjoiMTk2YjM1ZjctYTJiNy00YTk0LTg4NjUtZTYyMmVlNjNjY2E3OjM3M2I0NWMxLTI1MzEtNDM4Yy1iZTdlLTJkZTY1YjBlMzI4NyIsInNjcCI6W10sInN1YiI6IlVTRVI6YmYwNTMyNDctMDA3NC00ZjVmLWFiOWYtNTFiYTBlYzdiMWFhIiwiaWF0IjoxNzM5NjMwMjAwLCJleHAiOjE3NDA5MjYyMDB9.Nu2n6b9EEotEp6an0I2T_hbRnYISTaaBtU4h74hGQN8`,
+          },
+        },
+      },
+    )
+
+    expect(refreshTokenResponse.response.status).toEqual(401)
+    expect(refreshTokenResponse.response.status).toBe(401)
   })
 
   it(`should return a 401 when attempting to extend session with malformed refreshToken`, async () => {
@@ -258,10 +298,14 @@ describe('Auth', () => {
       })
       .expect(201)
 
-    const refreshTokenResponse = await apiClient.authApi().refreshToken({
-      refreshToken: '_pooprefreshtoken_',
-    })
-    expect(refreshTokenResponse.status).toEqual(401)
+    const refreshTokenResponse = await apiClient().POST(
+      '/api/v1/auth/{refreshToken}',
+      {
+        params: { path: { refreshToken: '_pooprefreshtoken_' } },
+      },
+    )
+    expect(refreshTokenResponse.error).toBeDefined()
+    expect(refreshTokenResponse.response.status).toBe(401)
   })
 
   afterAll(async () => {

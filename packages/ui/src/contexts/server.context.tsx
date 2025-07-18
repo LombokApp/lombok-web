@@ -1,19 +1,19 @@
-import type {
-  AppListResponse,
-  SettingsGetResponseSettings,
-} from '@stellariscloud/api-client'
 import { useAuthContext } from '@stellariscloud/auth-utils'
 import type {
   AppMenuItem,
   AppPushMessage,
+  AppsListResponse,
   AppTaskTrigger,
+  ServerSettingsListResponse,
 } from '@stellariscloud/types'
 import { ServerPushMessage } from '@stellariscloud/types'
+import type { QueryObserverResult } from '@tanstack/react-query'
 import React from 'react'
 import type { Socket } from 'socket.io-client'
 
+import { $api } from '@/src/services/api'
+
 import { useWebsocket } from '../hooks/use-websocket'
-import { apiClient } from '../services/api'
 import type { LogLevel } from './logging.context'
 
 export type SocketMessageHandler = (
@@ -34,8 +34,10 @@ export type AppMenuItemAndHref = {
 } & AppMenuItem
 
 export interface IServerContext {
-  refreshApps: () => Promise<void>
-  refreshSettings: () => Promise<void>
+  refreshApps: () => Promise<QueryObserverResult<AppsListResponse>>
+  refreshSettings: () => Promise<
+    QueryObserverResult<ServerSettingsListResponse>
+  >
   menuItems: AppMenuItemAndHref[]
   appFolderTaskTriggers: {
     taskTrigger: AppTaskTrigger
@@ -45,8 +47,8 @@ export interface IServerContext {
     taskTrigger: AppTaskTrigger
     appIdentifier: string
   }[]
-  settings?: SettingsGetResponseSettings
-  apps?: AppListResponse
+  settings?: ServerSettingsListResponse['settings']
+  apps?: AppsListResponse
   subscribeToMessages: (handler: SocketMessageHandler) => void
   unsubscribeFromMessages: (handler: SocketMessageHandler) => void
   socketConnected: boolean
@@ -62,98 +64,85 @@ export const ServerContextProvider = ({
 }: {
   children: React.ReactNode
 }) => {
-  const [serverSettings, setServerSettings] =
-    React.useState<SettingsGetResponseSettings>()
-  const [menuItems, setMenuItems] = React.useState<AppMenuItemAndHref[]>()
-  const [appFolderActions, setAppFolderActions] =
-    React.useState<{ taskTrigger: AppTaskTrigger; appIdentifier: string }[]>()
-  const [appFolderObjectActions, setAppFolderObjectActions] =
-    React.useState<{ taskTrigger: AppTaskTrigger; appIdentifier: string }[]>()
-  const [serverApps, setServerApps] = React.useState<AppListResponse>()
   const authContext = useAuthContext()
 
-  const fetchServerSettings = React.useCallback(async () => {
-    if (authContext.viewer?.isAdmin) {
-      await apiClient.serverApi
-        .getServerSettings()
-        .then((response) => setServerSettings(response.data.settings))
-    }
-  }, [authContext.viewer?.isAdmin])
+  // Only fetch settings if admin
+  const settingsQuery = $api.useQuery('get', '/api/v1/server/settings', {
+    enabled: !!authContext.viewer?.isAdmin,
+  })
+  const appsQuery = $api.useQuery('get', '/api/v1/server/apps')
 
-  const fetchServerApps = React.useCallback(
-    async () =>
-      apiClient.appsApi.listApps().then((response) => {
-        setServerApps(response.data)
-        setMenuItems(
-          response.data.result.reduce<AppMenuItemAndHref[]>((acc, next) => {
-            return acc.concat(
-              next.config.menuItems.map((item) => ({
-                iconPath: item.iconPath,
-                href: `/apps/${next.identifier}/${item.uiName}`,
+  // Derived state from API data
+  const serverSettings = settingsQuery.data?.settings
+  const serverApps = appsQuery.data
+  const menuItems = React.useMemo(
+    () =>
+      serverApps?.result.reduce<AppMenuItemAndHref[]>((acc, next) => {
+        return acc.concat(
+          next.config.menuItems.map((item) => ({
+            iconPath: item.iconPath,
+            href: `/apps/${next.identifier}/${item.uiName}`,
+            label: item.label,
+            uiName: item.uiName,
+            appIdentifier: next.identifier,
+          })),
+        )
+      }, []) ?? [],
+    [serverApps],
+  )
+  const appFolderActions = React.useMemo(
+    () =>
+      serverApps?.result.reduce<
+        { taskTrigger: AppTaskTrigger; appIdentifier: string }[]
+      >((acc, next) => {
+        return acc.concat(
+          next.config.tasks
+            .filter((item) => item.folderAction)
+            .map((item) => ({
+              taskTrigger: {
+                description: item.description,
                 label: item.label,
-                uiName: item.uiName,
-                appIdentifier: next.identifier,
-              })),
-            )
-          }, []),
+                taskKey: item.key,
+              },
+              appIdentifier: next.identifier,
+            })),
         )
-        setAppFolderActions(
-          response.data.result.reduce<
-            { taskTrigger: AppTaskTrigger; appIdentifier: string }[]
-          >((acc, next) => {
-            return acc.concat(
-              next.config.tasks
-                .filter((item) => item.folderAction)
-                .map((item) => ({
-                  taskTrigger: {
-                    description: item.description,
-                    label: item.label,
-                    taskKey: item.key,
-                  },
-                  appIdentifier: next.identifier,
-                })),
-            )
-          }, []),
+      }, []) ?? [],
+    [serverApps],
+  )
+  const appFolderObjectActions = React.useMemo(
+    () =>
+      serverApps?.result.reduce<
+        { taskTrigger: AppTaskTrigger; appIdentifier: string }[]
+      >((acc, next) => {
+        return acc.concat(
+          next.config.tasks
+            .filter((item) => item.objectAction)
+            .map((item) => ({
+              taskTrigger: {
+                description: item.description,
+                label: item.label,
+                taskKey: item.key,
+              },
+              appIdentifier: next.identifier,
+            })),
         )
-        setAppFolderObjectActions(
-          response.data.result.reduce<
-            { taskTrigger: AppTaskTrigger; appIdentifier: string }[]
-          >((acc, next) => {
-            return acc.concat(
-              next.config.tasks
-                .filter((item) => item.objectAction)
-                .map((item) => ({
-                  taskTrigger: {
-                    description: item.description,
-                    label: item.label,
-                    taskKey: item.key,
-                  },
-                  appIdentifier: next.identifier,
-                })),
-            )
-          }, []),
-        )
-      }),
-    [],
+      }, []) ?? [],
+    [serverApps],
   )
 
   const messageHandler = React.useCallback(
     (name: AppPushMessage) => {
       if (ServerPushMessage.APPS_UPDATED === name) {
-        void fetchServerApps()
+        void appsQuery.refetch()
       } else if (ServerPushMessage.SETTINGS_UPDATED === name) {
-        void fetchServerSettings()
+        void settingsQuery.refetch()
       }
     },
-    [fetchServerApps, fetchServerSettings],
+    [appsQuery, settingsQuery],
   )
 
   const { socket } = useWebsocket('user', messageHandler)
-
-  React.useEffect(() => {
-    void fetchServerApps()
-    void fetchServerSettings()
-  }, [fetchServerApps, fetchServerSettings])
 
   const subscribeToMessages = (handler: SocketMessageHandler) => {
     socket?.onAny(handler)
@@ -166,12 +155,12 @@ export const ServerContextProvider = ({
   return (
     <ServerContext.Provider
       value={{
-        refreshApps: fetchServerApps,
-        refreshSettings: fetchServerSettings,
+        refreshApps: appsQuery.refetch,
+        refreshSettings: settingsQuery.refetch,
         socketConnected: socket?.connected ?? false,
-        menuItems: menuItems ?? [],
-        appFolderTaskTriggers: appFolderActions ?? [],
-        appFolderObjectTaskTriggers: appFolderObjectActions ?? [],
+        menuItems,
+        appFolderTaskTriggers: appFolderActions,
+        appFolderObjectTaskTriggers: appFolderObjectActions,
         settings: serverSettings,
         apps: serverApps,
         subscribeToMessages,
