@@ -10,7 +10,7 @@
     "prettier:write": "prettier --write \"./**/*.(ts|tsx)\"",
     "build:standalone": "(cd ./deploy && sh ./build-standalone.sh)",
     "build:separate-db": "(cd ./deploy && sh ./build-separate-db.sh)",
-    "generate:api-client": "bun --cwd packages/api api-client:generate",
+    "generate:openapi": "bun --cwd packages/api openapi:generate",
     "dev:docker:clean": "(rm -rf ./.docker/postgres/* || true) && (rm -rf ./.docker/minio || true)",
     "dev:docker:api:build": "bun --cwd packages/api dev:docker:api:build",
     "dev:docker:api": "bun --cwd packages/api dev:docker:api",
