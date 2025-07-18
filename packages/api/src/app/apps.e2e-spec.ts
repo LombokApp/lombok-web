@@ -17,19 +17,31 @@ describe('Apps', () => {
   it(`should list apps`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'mekpans',
       password: '123',
       admin: true,
     })
 
-    const listAppsResponse = await apiClient.appsApi({ accessToken }).listApps()
+    const listAppsResponse = await apiClient(accessToken).GET(
+      '/api/v1/server/apps',
+    )
 
-    expect(listAppsResponse.status).toEqual(200)
+    expect(listAppsResponse.response.status).toEqual(200)
+    expect(listAppsResponse.data).toBeDefined()
+    if (!listAppsResponse.data) {
+      throw new Error('No response data received')
+    }
     expect(listAppsResponse.data.result.length).toEqual(1)
     expect(listAppsResponse.data.result.length).toEqual(
       listAppsResponse.data.meta.totalCount,
     )
+  })
+
+  it(`should test error response structure`, async () => {
+    // Test a 401 response to see the structure
+    const appsListResponse = await apiClient().GET('/api/v1/server/apps')
+    expect(appsListResponse.response.status).toBe(401)
   })
 
   afterAll(async () => {

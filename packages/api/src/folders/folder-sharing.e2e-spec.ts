@@ -23,65 +23,94 @@ describe('Shared folders', () => {
   it(`should create a folder and share it with another user`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'testuser',
       password: '123',
     })
 
     const {
       session: { accessToken: secondUserAccessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'testuser2',
       password: '123',
     })
 
-    const secondUser = await apiClient
-      .viewerApi({ accessToken: secondUserAccessToken })
-      .getViewer()
+    const secondUser = await apiClient(secondUserAccessToken).GET(
+      '/api/v1/viewer',
+    )
+
+    if (!secondUser.data) {
+      throw new Error('Failed to get second user')
+    }
 
     const bucketName = (await testModule?.initMinioTestBucket([])) ?? ''
     const metadataBucketName = (await testModule?.initMinioTestBucket()) ?? ''
 
-    const createResponse = await apiClient
-      .foldersApi({ accessToken })
-      .createFolder({
-        folderCreateInputDTO: {
+    const createResponse = await apiClient(accessToken).POST(
+      '/api/v1/folders',
+      {
+        body: {
           name: 'My test folder',
           contentLocation: testS3Location({ bucketName }),
           metadataLocation: testS3Location({ bucketName: metadataBucketName }),
         },
-      })
+      },
+    )
+
+    if (!createResponse.data) {
+      throw new Error('Failed to create folder')
+    }
 
     expect(createResponse.data.folder.id).toBeTruthy()
 
-    const shareFolderResponse = await apiClient
-      .foldersApi({ accessToken })
-      .upsertFolderShare({
-        folderShareCreateInputDTO: {
+    const shareFolderResponse = await apiClient(accessToken).POST(
+      '/api/v1/folders/{folderId}/shares/{userId}',
+      {
+        params: {
+          path: {
+            folderId: createResponse.data.folder.id,
+            userId: secondUser.data.user.id,
+          },
+        },
+        body: {
           permissions: ['OBJECT_EDIT', 'OBJECT_MANAGE'],
         },
-        folderId: createResponse.data.folder.id,
-        userId: secondUser.data.user.id,
-      })
+      },
+    )
 
-    expect(shareFolderResponse.status).toEqual(201)
+    expect(shareFolderResponse.response.status).toEqual(201)
+    expect(shareFolderResponse.data).toBeDefined()
 
     // test we can get the folder by id as the shared user
-    const folderGetResponse = await apiClient
-      .foldersApi({ accessToken: secondUserAccessToken })
-      .getFolder({ folderId: createResponse.data.folder.id })
+    const folderGetResponse = await apiClient(secondUserAccessToken).GET(
+      '/api/v1/folders/{folderId}',
+      {
+        params: { path: { folderId: createResponse.data.folder.id } },
+      },
+    )
 
-    expect(folderGetResponse.status).toEqual(200)
+    expect(folderGetResponse.data).toBeDefined()
+
+    if (!folderGetResponse.data) {
+      throw new Error('Failed to get folder')
+    }
+
     expect(folderGetResponse.data.folder.id).toEqual(
       createResponse.data.folder.id,
     )
 
     // test we can see the folder in the list folders request as the shared user
-    const folderListResponse = await apiClient
-      .foldersApi({ accessToken: secondUserAccessToken })
-      .listFolders()
+    const folderListResponse = await apiClient(secondUserAccessToken).GET(
+      '/api/v1/folders',
+    )
 
-    expect(folderListResponse.status).toEqual(200)
+    expect(folderListResponse.data).toBeDefined()
+
+    if (!folderListResponse.data) {
+      throw new Error('Failed to list folders')
+    }
+
+    expect(folderListResponse.response.status).toEqual(200)
     expect(folderListResponse.data.meta.totalCount).toEqual(1)
     expect(folderListResponse.data.result[0].folder.id).toEqual(
       folderGetResponse.data.folder.id,
@@ -96,67 +125,94 @@ describe('Shared folders', () => {
   it('should modify folder share permissions', async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'testuser',
       password: '123',
     })
 
     const {
       session: { accessToken: secondUserAccessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'testuser2',
       password: '123',
     })
 
-    const secondUser = await apiClient
-      .viewerApi({ accessToken: secondUserAccessToken })
-      .getViewer()
+    const secondUser = await apiClient(secondUserAccessToken).GET(
+      '/api/v1/viewer',
+    )
+
+    if (!secondUser.data) {
+      throw new Error('Failed to get second user')
+    }
 
     const bucketName = (await testModule?.initMinioTestBucket([])) ?? ''
     const metadataBucketName = (await testModule?.initMinioTestBucket()) ?? ''
 
-    const createResponse = await apiClient
-      .foldersApi({ accessToken })
-      .createFolder({
-        folderCreateInputDTO: {
+    const createResponse = await apiClient(accessToken).POST(
+      '/api/v1/folders',
+      {
+        body: {
           name: 'My test folder',
           contentLocation: testS3Location({ bucketName }),
           metadataLocation: testS3Location({ bucketName: metadataBucketName }),
         },
-      })
+      },
+    )
+
+    if (!createResponse.data) {
+      throw new Error('Failed to create folder')
+    }
 
     // Initially share with OBJECT_EDIT permission
-    const initialShareResponse = await apiClient
-      .foldersApi({ accessToken })
-      .upsertFolderShare({
-        folderShareCreateInputDTO: {
+    const initialShareResponse = await apiClient(accessToken).POST(
+      '/api/v1/folders/{folderId}/shares/{userId}',
+      {
+        params: {
+          path: {
+            folderId: createResponse.data.folder.id,
+            userId: secondUser.data.user.id,
+          },
+        },
+        body: {
           permissions: ['OBJECT_EDIT'],
         },
-        folderId: createResponse.data.folder.id,
-        userId: secondUser.data.user.id,
-      })
+      },
+    )
 
-    expect(initialShareResponse.status).toEqual(201)
+    expect(initialShareResponse.error).toBeUndefined()
+    expect(initialShareResponse.data).toBeDefined()
 
     // Modify share to add OBJECT_MANAGE permission
-    const modifyShareResponse = await apiClient
-      .foldersApi({ accessToken })
-      .upsertFolderShare({
-        folderShareCreateInputDTO: {
+    const modifyShareResponse = await apiClient(accessToken).POST(
+      '/api/v1/folders/{folderId}/shares/{userId}',
+      {
+        params: {
+          path: {
+            folderId: createResponse.data.folder.id,
+            userId: secondUser.data.user.id,
+          },
+        },
+        body: {
           permissions: ['OBJECT_EDIT', 'OBJECT_MANAGE'],
         },
-        folderId: createResponse.data.folder.id,
-        userId: secondUser.data.user.id,
-      })
+      },
+    )
 
-    expect(modifyShareResponse.status).toEqual(201)
+    expect(modifyShareResponse.error).toBeUndefined()
+    expect(modifyShareResponse.data).toBeDefined()
 
     // Verify the updated permissions
-    const folderListResponse = await apiClient
-      .foldersApi({ accessToken: secondUserAccessToken })
-      .listFolders()
+    const folderListResponse = await apiClient(secondUserAccessToken).GET(
+      '/api/v1/folders',
+    )
 
-    expect(folderListResponse.status).toEqual(200)
+    expect(folderListResponse.error).toBeUndefined()
+    expect(folderListResponse.data).toBeDefined()
+
+    if (!folderListResponse.data) {
+      throw new Error('Failed to list folders')
+    }
+
     expect(folderListResponse.data.result[0].permissions).toEqual([
       'OBJECT_EDIT',
       'OBJECT_MANAGE',
@@ -166,80 +222,116 @@ describe('Shared folders', () => {
   it('should remove folder share and prevent access', async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'testuser',
       password: '123',
     })
 
     const {
       session: { accessToken: secondUserAccessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'testuser2',
       password: '123',
     })
 
-    const secondUser = await apiClient
-      .viewerApi({ accessToken: secondUserAccessToken })
-      .getViewer()
+    const secondUser = await apiClient(secondUserAccessToken).GET(
+      '/api/v1/viewer',
+    )
+
+    if (!secondUser.data) {
+      throw new Error('Failed to get second user')
+    }
 
     const bucketName = (await testModule?.initMinioTestBucket([])) ?? ''
     const metadataBucketName = (await testModule?.initMinioTestBucket()) ?? ''
 
-    const createResponse = await apiClient
-      .foldersApi({ accessToken })
-      .createFolder({
-        folderCreateInputDTO: {
+    const createResponse = await apiClient(accessToken).POST(
+      '/api/v1/folders',
+      {
+        body: {
           name: 'My test folder',
           contentLocation: testS3Location({ bucketName }),
           metadataLocation: testS3Location({ bucketName: metadataBucketName }),
         },
-      })
+      },
+    )
+
+    if (!createResponse.data) {
+      throw new Error('Failed to create folder')
+    }
 
     // Initially share the folder
-    const shareResponse = await apiClient
-      .foldersApi({ accessToken })
-      .upsertFolderShare({
-        folderShareCreateInputDTO: {
+    const shareResponse = await apiClient(accessToken).POST(
+      '/api/v1/folders/{folderId}/shares/{userId}',
+      {
+        params: {
+          path: {
+            folderId: createResponse.data.folder.id,
+            userId: secondUser.data.user.id,
+          },
+        },
+        body: {
           permissions: ['OBJECT_EDIT'],
         },
-        folderId: createResponse.data.folder.id,
-        userId: secondUser.data.user.id,
-      })
+      },
+    )
 
-    expect(shareResponse.status).toEqual(201)
+    expect(shareResponse.error).toBeUndefined()
+    expect(shareResponse.data).toBeDefined()
 
     // Verify initial access
-    const initialFolderListResponse = await apiClient
-      .foldersApi({ accessToken: secondUserAccessToken })
-      .listFolders()
+    const initialFolderListResponse = await apiClient(
+      secondUserAccessToken,
+    ).GET('/api/v1/folders')
 
-    expect(initialFolderListResponse.status).toEqual(200)
+    expect(initialFolderListResponse.error).toBeUndefined()
+    expect(initialFolderListResponse.data).toBeDefined()
+
+    if (!initialFolderListResponse.data) {
+      throw new Error('Failed to list folders')
+    }
+
     expect(initialFolderListResponse.data.meta.totalCount).toEqual(1)
 
     // Remove the share
-    const removeShareResponse = await apiClient
-      .foldersApi({ accessToken })
-      .removeFolderShare({
-        folderId: createResponse.data.folder.id,
-        userId: secondUser.data.user.id,
-      })
+    const removeShareResponse = await apiClient(accessToken).DELETE(
+      '/api/v1/folders/{folderId}/shares/{userId}',
+      {
+        params: {
+          path: {
+            folderId: createResponse.data.folder.id,
+            userId: secondUser.data.user.id,
+          },
+        },
+      },
+    )
 
-    expect(removeShareResponse.status).toEqual(200)
+    expect(removeShareResponse.error).toBeUndefined()
 
     // Verify the second user can no longer access the folder
-    const finalFolderListResponse = await apiClient
-      .foldersApi({ accessToken: secondUserAccessToken })
-      .listFolders()
+    const finalFolderListResponse = await apiClient(secondUserAccessToken).GET(
+      '/api/v1/folders',
+    )
 
-    expect(finalFolderListResponse.status).toEqual(200)
+    expect(finalFolderListResponse.error).toBeUndefined()
+    expect(finalFolderListResponse.data).toBeDefined()
+
+    if (!finalFolderListResponse.data) {
+      throw new Error('Failed to list folders')
+    }
+
     expect(finalFolderListResponse.data.meta.totalCount).toEqual(0)
 
     // Verify direct folder access is also denied
-    const folderGetResponse = await apiClient
-      .foldersApi({ accessToken: secondUserAccessToken })
-      .getFolder({ folderId: createResponse.data.folder.id })
+    const folderGetResponse = await apiClient(secondUserAccessToken).GET(
+      '/api/v1/folders/{folderId}',
+      {
+        params: { path: { folderId: createResponse.data.folder.id } },
+      },
+    )
 
-    expect(folderGetResponse.status).toEqual(404)
+    expect(folderGetResponse.error).toBeDefined()
+    expect(folderGetResponse.response.status).toBe(404)
   })
 
   afterAll(async () => {

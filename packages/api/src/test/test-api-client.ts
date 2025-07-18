@@ -1,128 +1,144 @@
 import type { INestApplication } from '@nestjs/common'
-import {
-  AccessKeysApi,
-  AppsApi,
-  AuthApi,
-  Configuration,
-  FoldersApi,
-  ServerAccessKeysApi,
-  ServerApi,
-  ServerStorageLocationApi,
-  UsersApi,
-  UserStorageProvisionsApi,
-  ViewerApi,
-} from '@stellariscloud/api-client'
-import type { AxiosInstance, AxiosRequestConfig } from 'axios'
+import createFetch from 'openapi-fetch'
+import type { paths } from '@stellariscloud/types'
 import request from 'supertest'
-
-export * from '@stellariscloud/api-client'
 
 export interface SupertestApiClientConfigParams {
   accessToken?: string
 }
 
-type FnType = 'get' | 'post' | 'options' | 'patch' | 'put' | 'delete'
-
+/**
+ * Builds a supertest-based API client using openapi-fetch
+ *
+ * Usage example:
+ * ```typescript
+ * const client = buildSupertestApiClient(app)('access-token')
+ *
+ * // Make API calls
+ * const response = await client.GET('/api/v1/folders/{folderId}', {
+ *   params: { folderId: '123' }
+ * })
+ *
+ * const createResponse = await client.POST('/api/v1/folders', {
+ *   body: { name: 'New Folder', ... }
+ * })
+ * ```
+ */
 export function buildSupertestApiClient(app: INestApplication) {
-  function buildMockAxios(accessToken?: string) {
-    const requestFunc = async <D extends string | object | undefined>(
-      config: AxiosRequestConfig<D>,
-    ) => {
-      const { url, headers, data, method = 'GET' } = config
+  function buildMockFetch(accessToken?: string) {
+    return async (input: Request | string, init?: RequestInit) => {
+      let method: string
+      let headers: HeadersInit
+      let body: any
 
-      const fn: FnType = method.toLowerCase() as FnType
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      const supertestReq = request(app.getHttpServer())
-      const response = await supertestReq[fn](url ?? '')
-        .set(
-          accessToken ? 'Authorization' : '__DUMMY__',
-          accessToken ? `Bearer ${accessToken}` : '',
-        )
-        .set(headers as never)
-        .send(data)
-
-      return {
-        data: response.body as never,
-        status: response.status,
+      if (typeof input === 'string') {
+        method = init?.method || 'GET'
+        headers = init?.headers || {}
+        body = init?.body
+      } else {
+        method = input.method || 'GET'
+        headers = input.headers || {}
+        // Read the body from the Request stream
+        body = await input.text()
+        if (body === '') body = undefined
       }
+
+      // Parse the URL to extract path and query parameters
+      const urlObj = new URL(
+        typeof input === 'string' ? input : input.url,
+        'http://localhost',
+      )
+      const path = urlObj.pathname
+
+      // Create supertest request
+      const supertestReq = request(app.getHttpServer())
+      let req =
+        supertestReq[
+          method.toLowerCase() as
+            | 'get'
+            | 'post'
+            | 'put'
+            | 'patch'
+            | 'delete'
+            | 'options'
+            | 'head'
+        ](path)
+
+      // Set headers
+      if (accessToken) {
+        req = req.set('Authorization', `Bearer ${accessToken}`)
+      }
+
+      // Set additional headers
+      if (headers) {
+        if (
+          typeof (headers as Headers).forEach === 'function' &&
+          headers instanceof Headers
+        ) {
+          // Headers object
+          ;(headers as Headers).forEach((value: string, key: string) => {
+            req = req.set(key, value)
+          })
+        } else if (typeof headers === 'object') {
+          // Plain object
+          Object.entries(headers).forEach(([key, value]) => {
+            if (typeof value === 'string') {
+              req = req.set(key, value)
+            }
+          })
+        }
+      }
+
+      // Set query parameters
+      urlObj.searchParams.forEach((value, key) => {
+        req = req.query({ [key]: value })
+      })
+
+      // Send body if present
+      if (body !== undefined) {
+        // Determine content type
+        let contentType: string | undefined
+        if (headers) {
+          if (headers instanceof Headers) {
+            contentType =
+              headers.get('content-type') ||
+              headers.get('Content-Type') ||
+              undefined
+          } else if (typeof headers === 'object') {
+            contentType =
+              (headers['content-type'] as string) ||
+              (headers['Content-Type'] as string)
+          }
+        }
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            req = req.send(JSON.parse(body))
+          } catch {
+            req = req.send(body)
+          }
+        } else {
+          req = req.send(body)
+        }
+      }
+
+      const response = await req
+
+      // Return a real Response object as expected by openapi-fetch
+      return new Response(JSON.stringify(response.body), {
+        status: response.status,
+        headers: response.headers as Record<string, string>,
+      })
     }
-    return {
-      defaults: {
-        headers: { Authorization: `Bearer: ${accessToken}` } as unknown,
-      },
-      request: requestFunc,
-    } as AxiosInstance
   }
 
-  return {
-    foldersApi: (
-      configParams: {
-        accessToken?: string
-      } = {},
-    ) =>
-      new FoldersApi(
-        new Configuration(configParams),
-        '',
-        buildMockAxios(configParams.accessToken),
-      ),
-    serverApi: (configParams: SupertestApiClientConfigParams = {}) =>
-      new ServerApi(
-        new Configuration(configParams),
-        '',
-        buildMockAxios(configParams.accessToken),
-      ),
-    serverStorageLocationApi: (
-      configParams: SupertestApiClientConfigParams = {},
-    ) =>
-      new ServerStorageLocationApi(
-        new Configuration(configParams),
-        '',
-        buildMockAxios(configParams.accessToken),
-      ),
-    accessKeysApi: (configParams: SupertestApiClientConfigParams = {}) =>
-      new AccessKeysApi(
-        new Configuration(configParams),
-        '',
-        buildMockAxios(configParams.accessToken),
-      ),
-    serverAccessKeysApi: (configParams: SupertestApiClientConfigParams = {}) =>
-      new ServerAccessKeysApi(
-        new Configuration(configParams),
-        '',
-        buildMockAxios(configParams.accessToken),
-      ),
-    userStorageProvisionsApi: (
-      configParams: SupertestApiClientConfigParams = {},
-    ) =>
-      new UserStorageProvisionsApi(
-        new Configuration(configParams),
-        '',
-        buildMockAxios(configParams.accessToken),
-      ),
-    usersApi: (configParams: SupertestApiClientConfigParams = {}) =>
-      new UsersApi(
-        new Configuration(configParams),
-        '',
-        buildMockAxios(configParams.accessToken),
-      ),
-    appsApi: (configParams: SupertestApiClientConfigParams = {}) =>
-      new AppsApi(
-        new Configuration(configParams),
-        '',
-        buildMockAxios(configParams.accessToken),
-      ),
-    viewerApi: (configParams: SupertestApiClientConfigParams = {}) =>
-      new ViewerApi(
-        new Configuration(configParams),
-        '',
-        buildMockAxios(configParams.accessToken),
-      ),
-    authApi: (configParams: SupertestApiClientConfigParams = {}) =>
-      new AuthApi(
-        new Configuration(configParams),
-        '',
-        buildMockAxios(configParams.accessToken),
-      ),
+  const createApiClient = (accessToken?: string) => {
+    const fetch = buildMockFetch(accessToken)
+    return createFetch<paths>({
+      baseUrl: 'http://localhost',
+      fetch,
+    })
   }
+
+  // Return a single client instance that can be used for all API calls
+  return (accessToken?: string) => createApiClient(accessToken)
 }

@@ -146,7 +146,7 @@ export async function buildTestModule({
 }
 
 export async function createTestUser(
-  testModule: TestModule | undefined,
+  testModule: TestModule,
   {
     username,
     name,
@@ -163,13 +163,15 @@ export async function createTestUser(
 ): Promise<{
   session: { expiresAt: string; accessToken: string; refreshToken: string }
 }> {
-  const signupResponse = await testModule?.apiClient.authApi().signup({
-    signupCredentialsDTO: {
-      username,
-      password,
-      email: email ?? `${username}@example.com`,
-    },
-  })
+  const signupResponse = await testModule
+    .apiClient()
+    .POST('/api/v1/auth/signup', {
+      body: {
+        username,
+        password,
+        email: email ?? `${username}@example.com`,
+      },
+    })
   if (admin) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     await testModule!
@@ -179,13 +181,17 @@ export async function createTestUser(
         isAdmin: true,
         name,
       })
-      .where(eq(usersTable.username, signupResponse?.data.user.username ?? ''))
+      .where(eq(usersTable.username, signupResponse?.data?.user.username ?? ''))
   }
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const result = await testModule!.apiClient
-    .authApi()
-    .login({ loginCredentialsDTO: { login: username, password } })
+  const result = await testModule!.apiClient().POST('/api/v1/auth/login', {
+    body: { login: username, password },
+  })
+
+  if (!result.data) {
+    throw new Error('Login failed - no response data')
+  }
 
   return result.data
 }
@@ -227,15 +233,20 @@ export async function createTestFolder({
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const metadataBucketName = await testModule!.initMinioTestBucket()
 
-  const folderCreateResponse = await apiClient
-    .foldersApi({ accessToken })
-    .createFolder({
-      folderCreateInputDTO: {
+  const folderCreateResponse = await apiClient(accessToken).POST(
+    '/api/v1/folders',
+    {
+      body: {
         name: folderName,
         contentLocation: testS3Location({ bucketName }),
         metadataLocation: testS3Location({ bucketName: metadataBucketName }),
       },
-    })
+    },
+  )
+
+  if (!folderCreateResponse?.data?.folder) {
+    throw new Error('Folder creation failed - no folder data in response')
+  }
 
   return {
     folder: folderCreateResponse.data.folder,
@@ -251,7 +262,9 @@ export async function reindexTestFolder({
   accessToken: string
   apiClient: TestApiClient
 }): Promise<void> {
-  await apiClient.foldersApi({ accessToken }).reindexFolder({ folderId })
+  await apiClient(accessToken).POST('/api/v1/folders/{folderId}/reindex', {
+    params: { path: { folderId } },
+  })
 }
 
 export async function waitForTrue(

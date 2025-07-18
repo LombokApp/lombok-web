@@ -23,73 +23,96 @@ describe('Server Access Keys', () => {
   it(`should list DISTINCT server access keys`, async () => {
     const {
       session: { accessToken },
-    } = await createTestUser(testModule, {
+    } = await createTestUser(testModule!, {
       username: 'testuser',
       password: '123',
       admin: true,
     })
 
-    const createStorageProvisionResponse = await apiClient
-      .userStorageProvisionsApi({ accessToken })
-      .createUserStorageProvision({
-        userStorageProvisionInputDTO: {
-          accessKeyId: '__dummyak__',
-          secretAccessKey: '__dummysecret__',
-          endpoint: 'http://dummyendpoint.com',
-          bucket: '__dummybucket__',
-          description: '__dummydescription__',
-          label: '__dummylabel__',
-          provisionTypes: ['CONTENT', 'METADATA'],
-          region: '__dummyregion__',
-          prefix: '__dummyprefix__',
+    const createProvisionResponse = await apiClient(accessToken).POST(
+      '/api/v1/server/user-storage-provisions',
+      {
+        body: {
+          accessKeyId: 'dummyaccesskeyid',
+          secretAccessKey: 'dummysecretAccessKey',
+          endpoint: 'http://dummyendpoint',
+          bucket: 'dummybucket',
+          region: 'auto',
+          prefix: '',
+          label: 'dummylabel',
+          description: 'Test',
+          provisionTypes: ['CONTENT'],
         },
-      })
-    const storageProvisionId = createStorageProvisionResponse.data.result[0].id
-    await apiClient.foldersApi({ accessToken }).createFolder({
-      folderCreateInputDTO: {
+      },
+    )
+    if (!createProvisionResponse.data) throw new Error('No data')
+    const storageProvisionId = createProvisionResponse.data.result[0].id
+    await apiClient(accessToken).POST('/api/v1/folders', {
+      body: {
+        name: 'Test Folder',
+        contentLocation: {
+          accessKeyId: 'testaccesskeyid',
+          secretAccessKey: 'testsecretaccesskey',
+          endpoint: 'http://localhost:9000',
+          bucket: 'testbucket',
+          region: 'us-east-1',
+        },
+        metadataLocation: {
+          accessKeyId: 'testaccesskeyid',
+          secretAccessKey: 'testsecretaccesskey',
+          endpoint: 'http://localhost:9000',
+          bucket: 'testbucket',
+          region: 'us-east-1',
+        },
+      },
+    })
+
+    await apiClient(accessToken).POST('/api/v1/folders', {
+      body: {
         name: '__dummyfolder__',
         contentLocation: { storageProvisionId },
         metadataLocation: { storageProvisionId },
       },
     })
 
-    await apiClient.foldersApi({ accessToken }).createFolder({
-      folderCreateInputDTO: {
+    await apiClient(accessToken).POST('/api/v1/folders', {
+      body: {
         name: '__dummyfolder2__',
         contentLocation: { storageProvisionId },
         metadataLocation: { storageProvisionId },
       },
     })
 
-    const serverAccessKeysListResponse = await apiClient
-      .serverAccessKeysApi({ accessToken })
-      .listServerAccessKeys()
-    expect(serverAccessKeysListResponse.data.result[0].accessKeyHashId).toEqual(
+    const listServerAccessKeysResponse = await apiClient(accessToken).GET(
+      '/api/v1/server/access-keys',
+    )
+    if (!listServerAccessKeysResponse.data) throw new Error('No data')
+    expect(listServerAccessKeysResponse.data.result[0].accessKeyHashId).toEqual(
       buildAccessKeyHashId({
-        accessKeyId: '__dummyak__',
-        secretAccessKey: '__dummysecret__',
-        region: '__dummyregion__',
-        endpoint: 'http://dummyendpoint.com',
+        accessKeyId: 'dummyaccesskeyid',
+        secretAccessKey: 'dummysecretAccessKey',
+        region: 'auto',
+        endpoint: 'http://dummyendpoint',
       }),
     )
 
-    expect(serverAccessKeysListResponse.status).toEqual(200)
-    expect(serverAccessKeysListResponse.data.result.length).toEqual(1)
-    expect(serverAccessKeysListResponse.data.result[0].accessKeyId).toEqual(
-      '__dummyak__',
+    expect(listServerAccessKeysResponse.response.status).toEqual(200)
+    expect(listServerAccessKeysResponse.data.result.length).toEqual(1)
+    expect(listServerAccessKeysResponse.data.result[0].accessKeyId).toEqual(
+      'dummyaccesskeyid',
     )
-    expect(serverAccessKeysListResponse.data.result[0].endpointDomain).toEqual(
-      'dummyendpoint.com',
+    expect(listServerAccessKeysResponse.data.result[0].endpointDomain).toEqual(
+      'dummyendpoint',
     )
-    expect(serverAccessKeysListResponse.data.result[0].folderCount).toEqual(2)
+    expect(listServerAccessKeysResponse.data.result[0].folderCount).toEqual(2)
   })
 
   it(`should 401 on list server access keys without token`, async () => {
-    const accessKeysListResponse = await apiClient
-      .serverAccessKeysApi()
-      .listServerAccessKeys()
+    const accessKeysListResponse = await apiClient().GET(
+      '/api/v1/server/access-keys',
+    )
 
-    expect(accessKeysListResponse.status).toEqual(401)
+    expect(accessKeysListResponse.response.status).toEqual(401)
   })
 
   afterAll(async () => {
