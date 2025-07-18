@@ -47,7 +47,6 @@ RUN cd /temp/dev && \
   rm -rf ./packages/app-worker-sdk/node_modules && \
   rm -rf ./packages/sdk && \
   rm -rf ./packages/stellaris-types/node_modules && \
-  rm -rf ./packages/app-worker-example && \
   rm -rf ./packages/ui-toolkit && \
   rm -rf ./packages/stellaris-utils/node_modules/ && \
   rm -rf ./packages/core-worker/node_modules/ && \
