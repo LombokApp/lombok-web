@@ -33,6 +33,6 @@
     "postcss.config.ts",
     "eslint.config.ts",
     "index.d.ts",
-    "src/.worker.ts"
+    "src/worker.ts"
   ]
 }

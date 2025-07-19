@@ -32,7 +32,7 @@ function createReactPluginWithWorkerExclusion(workerFileNames: string[] = []) {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [createReactPluginWithWorkerExclusion(['.worker.ts'])],
+  plugins: [createReactPluginWithWorkerExclusion(['worker.ts'])],
   resolve: {
     alias: {
       '@/src': path.resolve(__dirname, './src'),

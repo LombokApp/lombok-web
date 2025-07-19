@@ -1,10 +1,10 @@
 import React from 'react'
 
-import StellarisWorker from '../.worker.ts?worker'
 import { sdkInstance } from '../services/api'
 import { indexedDb } from '../services/indexed-db'
 import { getDataFromDisk } from '../services/local-cache/local-cache.service'
 import { downloadData } from '../utils/file'
+import StellarisWorker from '../worker.ts?worker'
 import type { LogLine } from './logging.context'
 import { useLoggingContext } from './logging.context'
 
