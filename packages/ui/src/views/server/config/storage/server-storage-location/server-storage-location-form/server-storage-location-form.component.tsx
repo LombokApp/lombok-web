@@ -37,7 +37,7 @@ const serverLocationFormSchema = z.object({
     ),
   bucket: z.string().min(1),
   region: z.string().min(1),
-  prefix: z.string(),
+  prefix: z.string().optional(),
 })
 
 export type ServerStorageLocationFormValues = z.infer<
@@ -50,14 +50,22 @@ export function ServerStorageLocationForm({
   // onCancel,
 }: {
   className?: string
-  onSubmit: (values: ServerStorageLocationFormValues) => Promise<void>
+  onSubmit: (
+    values: Omit<ServerStorageLocationFormValues, 'prefix'> & {
+      prefix: string | null
+    },
+  ) => Promise<void>
   onCancel: () => void
 }) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
 
   async function handleSubmit(values: ServerStorageLocationFormValues) {
     setIsLoading(true)
-    await onSubmit(values).then(() => {
+    const prefix = values.prefix?.length ? values.prefix : null
+    await onSubmit({
+      ...values,
+      prefix,
+    }).then(() => {
       setIsLoading(false)
     })
     setTimeout(() => {

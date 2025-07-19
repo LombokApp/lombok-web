@@ -1474,7 +1474,7 @@ export interface components {
             endpoint: string;
             bucket: string;
             region: string;
-            prefix?: (string | null) | unknown;
+            prefix: string | null;
         };
         TaskGetResponse: {
             task: {

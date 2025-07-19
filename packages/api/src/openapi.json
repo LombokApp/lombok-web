@@ -5571,14 +5571,9 @@
             "minLength": 1
           },
           "prefix": {
-            "oneOf": [
-              {
-                "type": "string",
-                "minLength": 1,
-                "nullable": true
-              },
-              {}
-            ]
+            "type": "string",
+            "minLength": 1,
+            "nullable": true
           }
         },
         "required": [
@@ -5586,7 +5581,8 @@
           "secretAccessKey",
           "endpoint",
           "bucket",
-          "region"
+          "region",
+          "prefix"
         ]
       },
       "TaskGetResponse": {
