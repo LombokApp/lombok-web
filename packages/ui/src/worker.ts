@@ -1,7 +1,6 @@
 import type { paths, StellarisApiClient } from '@stellariscloud/types'
 import { SignedURLsRequestMethod } from '@stellariscloud/types'
 import { objectIdentifierToObjectKey } from '@stellariscloud/utils'
-import axios from 'axios'
 import createFetchClient from 'openapi-fetch'
 
 export enum LogLevel {
@@ -63,9 +62,6 @@ const maybeSendBatch = (folderId: string) => {
     folderId in presignedURLBufferContext
       ? presignedURLBufferContext[folderId]
       : { batchBuffer: [], lastTimeExecuted: Date.now() }
-  if (!folderBatch) {
-    return
-  }
   presignedURLBufferContext[folderId] = folderBatch
   if (
     folderBatch.batchBuffer.length > 0 &&
@@ -132,9 +128,6 @@ const requestDownloadUrlAndMaybeSendBatch = (
     folderId in presignedURLBufferContext
       ? presignedURLBufferContext[folderId]
       : { batchBuffer: [], lastTimeExecuted: Date.now() }
-  if (!folderBatch) {
-    return
-  }
   presignedURLBufferContext[folderId] = folderBatch
   presignedURLBufferContext[folderId].batchBuffer.push(objectIdentifier)
   if (presignedURLBufferContext[folderId].batchBuffer.length === 1) {
@@ -184,46 +177,60 @@ const downloadLocally = async (
       objectIdentifier,
       message: `Downloading '${objectIdentifier}' ...`,
     })
-    await axios
-      .get(downloadURL, {
-        responseType: 'blob',
-        onDownloadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / (progressEvent.total ?? 0),
-          )
-          // console.log('download progress... %d%', percentCompleted)
-          downloading[folderIdAndKey] = { progressPercent: percentCompleted }
-        },
-      })
-      .then((response) => {
-        // console.log('COMPLETED download...')
-        log({
-          level: LogLevel.INFO,
-          folderId,
-          objectIdentifier,
-          message: `Downloaded '${objectIdentifier}'`,
-        })
+    try {
+      const response = await fetch(downloadURL)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
 
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-        delete downloading[folderIdAndKey]
-        return addFileToLocalFileStorage(
-          folderId,
-          objectIdentifier,
-          response.data as Blob,
-        )
+      const reader = response.body?.getReader()
+      if (!reader) {
+        throw new Error('No response body reader available')
+      }
+
+      const chunks: Uint8Array[] = []
+      let loaded = 0
+      const contentLength = response.headers.get('content-length')
+      const total = contentLength ? parseInt(contentLength, 10) : 0
+
+      for (;;) {
+        const { done, value } = await reader.read()
+        if (done) {
+          break
+        }
+
+        chunks.push(value)
+        loaded += value.length
+        if (total > 0) {
+          const percentCompleted = Math.round((loaded * 100) / total)
+          downloading[folderIdAndKey] = { progressPercent: percentCompleted }
+        }
+      }
+
+      const blob = new Blob(chunks)
+
+      log({
+        level: LogLevel.INFO,
+        folderId,
+        objectIdentifier,
+        message: `Downloaded '${objectIdentifier}'`,
       })
-      .catch((e) => {
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-        delete downloading[folderIdAndKey]
-        log({
-          level: LogLevel.ERROR,
-          folderId,
-          objectIdentifier,
-          message: `Error downloading '${objectIdentifier}'`,
-        })
-        throw e
+
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete downloading[folderIdAndKey]
+      await addFileToLocalFileStorage(folderId, objectIdentifier, blob)
+      return true
+    } catch (e) {
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete downloading[folderIdAndKey]
+      log({
+        level: LogLevel.ERROR,
+        folderId,
+        objectIdentifier,
+        message: `Error downloading '${objectIdentifier}'`,
       })
-    return true
+      throw e
+    }
   }
   return false
 }
@@ -270,23 +277,40 @@ const messageHandler = (event: MessageEvent<AsyncWorkerMessage>) => {
         if (!uploadSlot) {
           return
         }
-        await axios.put(uploadSlot, uploadFile, {
-          headers: {
-            'Content-Type': uploadFile.type,
-            'Content-Encoding': 'base64',
-          },
-          onUploadProgress: (progressEvent) => {
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / (progressEvent.total ?? 0),
-            )
-            postMessage([
-              'UPLOAD_PROGRESS',
-              {
-                progress: percentCompleted,
-                objectKey: uploadFile.name,
-              },
-            ])
-          },
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest()
+
+          xhr.upload.addEventListener('progress', (progressEvent) => {
+            if (progressEvent.lengthComputable) {
+              const percentCompleted = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total,
+              )
+              postMessage([
+                'UPLOAD_PROGRESS',
+                {
+                  progress: percentCompleted,
+                  objectKey: uploadFile.name,
+                },
+              ])
+            }
+          })
+
+          xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve()
+            } else {
+              reject(new Error(`Upload failed with status: ${xhr.status}`))
+            }
+          })
+
+          xhr.addEventListener('error', () => {
+            reject(new Error('Upload failed'))
+          })
+
+          xhr.open('PUT', uploadSlot)
+          xhr.setRequestHeader('Content-Type', uploadFile.type)
+          xhr.setRequestHeader('Content-Encoding', 'base64')
+          xhr.send(uploadFile)
         })
 
         // have the app ingest the file
