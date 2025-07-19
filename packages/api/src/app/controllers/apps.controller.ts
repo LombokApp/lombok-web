@@ -11,12 +11,11 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AppService } from 'src/app/services/app.service'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
-import { AppDTO } from '../dto/app.dto'
 import { AppGetResponse } from '../dto/responses/app-get-response.dto'
 import { AppListResponse } from '../dto/responses/app-list-response.dto'
 import { SetWorkerScriptEnvVarsInputDTO } from '../dto/set-worker-script-env-vars-input.dto'
@@ -27,7 +26,6 @@ import { transformAppToDTO } from '../dto/transforms/app.transforms'
 @UsePipes(ZodValidationPipe)
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
-@ApiExtraModels(AppDTO)
 export class AppsController {
   constructor(private readonly appService: AppService) {}
 

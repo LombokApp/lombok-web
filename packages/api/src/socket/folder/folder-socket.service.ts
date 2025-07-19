@@ -6,7 +6,7 @@ import { safeZodParse } from '@stellariscloud/utils'
 import { Namespace, Socket } from 'socket.io'
 import { FolderService } from 'src/folders/services/folder.service'
 import { UserService } from 'src/users/services/users.service'
-import * as z from 'zod'
+import { z } from 'zod'
 
 import {
   AccessTokenJWT,

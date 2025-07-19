@@ -1,7 +1,6 @@
 import { createZodDto } from '@anatine/zod-nestjs'
+import { serverStorageLocationSchema } from '@stellariscloud/types'
 import { z } from 'zod'
-
-import { serverStorageLocationSchema } from '../server-storage-location.dto'
 
 export class ServerStorageLocationGetResponse extends createZodDto(
   z.object({

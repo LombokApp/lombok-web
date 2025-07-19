@@ -11,12 +11,11 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
 import { AccessKeyListQueryParamsDTO } from '../dto/access-key-list-query-params.dto'
-import { AccessKeyPublicDTO } from '../dto/access-key-public.dto'
 import type { AccessKeyBucketsListResponseDTO } from '../dto/responses/access-key-buckets-list-response.dto'
 import type { AccessKeyGetResponse } from '../dto/responses/access-key-get-response.dto'
 import type { AccessKeyListResponse } from '../dto/responses/access-key-list-response.dto'
@@ -29,7 +28,6 @@ import { StorageLocationService } from '../storage-location.service'
 @UseGuards(AuthGuard)
 @UsePipes(ZodValidationPipe)
 @ApiBearerAuth()
-@ApiExtraModels(AccessKeyPublicDTO)
 export class AccessKeysController {
   constructor(
     private readonly storageLocationService: StorageLocationService,

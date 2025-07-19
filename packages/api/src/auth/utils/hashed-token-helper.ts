@@ -1,6 +1,6 @@
 import { UnauthorizedException } from '@nestjs/common'
 import * as crypto from 'crypto'
-import * as z from 'zod'
+import { z } from 'zod'
 
 export const hashedTokenHelper = {
   createSecretKey: (length = 32) => {

@@ -18,7 +18,7 @@ import {
   USERNAME_VALIDATORS_COMBINED,
 } from '@stellariscloud/utils'
 import { useForm } from 'react-hook-form'
-import * as z from 'zod'
+import { z } from 'zod'
 
 // import { UserPermissions } from './user-permissions'
 

@@ -811,20 +811,6 @@ export interface components {
         ViewerUpdateInputDTO: {
             name: string;
         };
-        UserDTO: {
-            /** Format: uuid */
-            id: string;
-            name: string | null;
-            email: string | null;
-            emailVerified: boolean;
-            isAdmin: boolean;
-            username: string;
-            permissions: string[];
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
         UserCreateInputDTO: {
             name?: string;
             email?: string;
@@ -891,113 +877,6 @@ export interface components {
                 /** Format: date-time */
                 updatedAt: string;
             }[];
-        };
-        FolderDTO: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            ownerId: string;
-            name: string;
-            metadataLocation: {
-                /** Format: uuid */
-                id: string;
-                /** Format: uuid */
-                userId?: string;
-                /** @enum {string} */
-                providerType: "SERVER" | "USER";
-                label: string;
-                endpoint: string;
-                region: string;
-                bucket: string;
-                prefix?: string;
-                accessKeyId: string;
-                accessKeyHashId: string;
-            };
-            contentLocation: {
-                /** Format: uuid */
-                id: string;
-                /** Format: uuid */
-                userId?: string;
-                /** @enum {string} */
-                providerType: "SERVER" | "USER";
-                label: string;
-                endpoint: string;
-                region: string;
-                bucket: string;
-                prefix?: string;
-                accessKeyId: string;
-                accessKeyHashId: string;
-            };
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        FolderObjectDTO: {
-            /** Format: uuid */
-            id: string;
-            objectKey: string;
-            /** Format: uuid */
-            folderId: string;
-            hash?: string;
-            lastModified: number;
-            eTag: string;
-            sizeBytes: number;
-            mimeType: string;
-            /** @enum {string} */
-            mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
-            contentMetadata: {
-                [key: string]: {
-                    [key: string]: {
-                        mimeType: string;
-                        size: number;
-                        hash: string;
-                        storageKey: string;
-                        /** @enum {string} */
-                        content: "";
-                    } | {
-                        mimeType: string;
-                        size: number;
-                        /** @enum {string} */
-                        hash: "";
-                        /** @enum {string} */
-                        storageKey: "";
-                        content: string;
-                    };
-                };
-            };
-        };
-        FolderObjectContentMetadataDTO: {
-            mimeType: string;
-            size: number;
-            hash: string;
-            storageKey: string;
-            /** @enum {string} */
-            content: "";
-        } | {
-            mimeType: string;
-            size: number;
-            /** @enum {string} */
-            hash: "";
-            /** @enum {string} */
-            storageKey: "";
-            content: string;
-        };
-        StorageLocationInputDTO: {
-            accessKeyId: string;
-            secretAccessKey: string;
-            endpoint: string;
-            bucket: string;
-            region: string;
-            prefix?: string;
-        } | {
-            /** Format: uuid */
-            storageProvisionId: string;
-        } | {
-            /** Format: uuid */
-            userLocationId: string;
-            userLocationBucketOverride: string;
-            userLocationPrefixOverride?: string;
         };
         FolderGetResponse: {
             folder: {
@@ -1194,19 +1073,17 @@ export interface components {
                 contentMetadata: {
                     [key: string]: {
                         [key: string]: {
+                            /** @enum {boolean} */
+                            external: true;
+                            storageKey: string;
                             mimeType: string;
                             size: number;
                             hash: string;
-                            storageKey: string;
-                            /** @enum {string} */
-                            content: "";
                         } | {
+                            /** @enum {boolean} */
+                            external: false;
                             mimeType: string;
                             size: number;
-                            /** @enum {string} */
-                            hash: "";
-                            /** @enum {string} */
-                            storageKey: "";
                             content: string;
                         };
                     };
@@ -1230,19 +1107,17 @@ export interface components {
                 contentMetadata: {
                     [key: string]: {
                         [key: string]: {
+                            /** @enum {boolean} */
+                            external: true;
+                            storageKey: string;
                             mimeType: string;
                             size: number;
                             hash: string;
-                            storageKey: string;
-                            /** @enum {string} */
-                            content: "";
                         } | {
+                            /** @enum {boolean} */
+                            external: false;
                             mimeType: string;
                             size: number;
-                            /** @enum {string} */
-                            hash: "";
-                            /** @enum {string} */
-                            storageKey: "";
                             content: string;
                         };
                     };
@@ -1336,14 +1211,6 @@ export interface components {
                 updatedAt: string;
             };
         };
-        AccessKeyPublicDTO: {
-            accessKeyId: string;
-            accessKeyHashId: string;
-            endpoint: string;
-            endpointDomain: string;
-            region: string;
-            folderCount: number;
-        };
         AccessKeyListResponse: {
             meta: {
                 totalCount: number;
@@ -1395,19 +1262,6 @@ export interface components {
             settingKey: string;
             settingValue?: unknown;
         };
-        UserStorageProvisionDTO: {
-            /** Format: uuid */
-            id: string;
-            accessKeyHashId: string;
-            endpoint: string;
-            bucket: string;
-            region: string;
-            accessKeyId: string;
-            prefix?: string;
-            provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
-            label: string;
-            description: string;
-        };
         UserStorageProvisionListResponse: {
             result: {
                 /** Format: uuid */
@@ -1448,14 +1302,6 @@ export interface components {
             secretAccessKey: string;
             prefix?: string;
             provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
-        };
-        ServerStorageLocationDTO: {
-            accessKeyHashId: string;
-            accessKeyId: string;
-            endpoint: string;
-            bucket: string;
-            region: string;
-            prefix: string | null;
         };
         ServerStorageLocationGetResponse: {
             serverStorageLocation?: {
@@ -1551,56 +1397,6 @@ export interface components {
                 updatedAt: string;
             }[];
         };
-        TaskDTO: {
-            /** Format: uuid */
-            id: string;
-            taskKey: string;
-            ownerIdentifier: string;
-            /** Format: uuid */
-            triggeringEventId: string;
-            /** Format: uuid */
-            subjectFolderId?: string;
-            subjectObjectKey?: string;
-            handlerId?: string;
-            inputData: {
-                [key: string]: string | number;
-            };
-            /** Format: date-time */
-            errorAt?: string;
-            errorCode?: string;
-            errorMessage?: string;
-            taskDescription: {
-                textKey: string;
-                variables: {
-                    [key: string]: string;
-                };
-            };
-            updates: unknown[];
-            /** Format: date-time */
-            startedAt?: string;
-            /** Format: date-time */
-            completedAt?: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
-        };
-        EventDTO: {
-            /** Format: uuid */
-            id: string;
-            eventKey: string;
-            /** @enum {string} */
-            level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
-            emitterIdentifier: string;
-            locationContext?: {
-                /** Format: uuid */
-                folderId: string;
-                objectKey?: string;
-            };
-            data?: unknown;
-            /** Format: date-time */
-            createdAt: string;
-        };
         EventGetResponse: {
             event: {
                 /** Format: uuid */
@@ -1639,98 +1435,6 @@ export interface components {
                 /** Format: date-time */
                 createdAt: string;
             }[];
-        };
-        AppDTO: {
-            identifier: string;
-            publicKey: string;
-            config: {
-                description: string;
-                requiresStorage: boolean;
-                emittableEvents: string[];
-                tasks: {
-                    key: string;
-                    label: string;
-                    triggers?: ({
-                        /** @enum {string} */
-                        type: "event";
-                        event: string;
-                        inputParams: {
-                            [key: string]: string;
-                        };
-                    } | {
-                        /** @enum {string} */
-                        type: "objectAction";
-                        description: string;
-                        inputParams: {
-                            [key: string]: string;
-                        };
-                    } | {
-                        /** @enum {string} */
-                        type: "folderAction";
-                        actionLabel: string;
-                        inputParams: {
-                            [key: string]: string;
-                        };
-                    })[];
-                    folderAction?: {
-                        description: string;
-                    };
-                    objectAction?: {
-                        description: string;
-                    };
-                    description: string;
-                    inputParams?: {
-                        [key: string]: {
-                            /** @enum {string} */
-                            type: "boolean" | "string" | "number";
-                            default?: (string | number | boolean) | null;
-                        };
-                    };
-                    worker?: string;
-                }[];
-                externalWorkers?: string[];
-                workerScripts?: {
-                    [key: string]: {
-                        description: string;
-                        envVars?: {
-                            [key: string]: string;
-                        };
-                    };
-                };
-                menuItems: {
-                    label: string;
-                    iconPath?: string;
-                    uiName: string;
-                }[];
-            };
-            manifest: {
-                path: string;
-                hash: string;
-                size: number;
-            }[];
-            externalWorkers: {
-                appIdentifier: string;
-                workerId: string;
-                handledTaskKeys: string[];
-                socketClientId: string;
-                ip: string;
-            }[];
-            workerScripts: {
-                description: string;
-                files: {
-                    path: string;
-                    hash: string;
-                    size: number;
-                }[];
-                envVars: {
-                    [key: string]: string;
-                };
-                identifier: string;
-            }[];
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            updatedAt: string;
         };
         AppListResponse: {
             meta: {

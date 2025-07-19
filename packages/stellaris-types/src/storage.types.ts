@@ -40,3 +40,40 @@ export const s3LocationSchema = z.object({
   region: z.string().min(1),
   prefix: z.string().nonempty().optional(),
 })
+
+export const accessKeyPublicSchema = z.object({
+  accessKeyId: z.string(),
+  accessKeyHashId: z.string(),
+  endpoint: z.string(),
+  endpointDomain: z.string(),
+  region: z.string(),
+  folderCount: z.number(),
+})
+
+export const accessKeySchema = z
+  .object({
+    secretAccessKey: z.string(),
+  })
+  .extend(accessKeyPublicSchema.shape)
+
+export const userStorageProvisionSchema = z.object({
+  id: z.string().uuid(),
+  accessKeyHashId: z.string(),
+  endpoint: z.string(),
+  bucket: z.string(),
+  region: z.string(),
+  accessKeyId: z.string(),
+  prefix: z.string().optional(),
+  provisionTypes: z.array(UserStorageProvisionTypeZodEnum).min(1),
+  label: z.string().max(32),
+  description: z.string().max(128),
+})
+
+export const serverStorageLocationSchema = z.object({
+  accessKeyHashId: z.string(),
+  accessKeyId: z.string(),
+  endpoint: z.string(),
+  bucket: z.string(),
+  region: z.string(),
+  prefix: z.string().nonempty().nullable(),
+})

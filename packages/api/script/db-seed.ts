@@ -1,3 +1,4 @@
+import type { UserStorageProvisionDTO } from '@stellariscloud/types'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import { foldersTable } from 'src/folders/entities/folder.entity'
@@ -5,7 +6,6 @@ import {
   SERVER_STORAGE_LOCATION_CONFIG,
   USER_STORAGE_PROVISIONS_CONFIG,
 } from 'src/server/constants/server.constants'
-import type { UserStorageProvisionDTO } from 'src/server/dto/user-storage-provision.dto'
 import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
 import { buildAccessKeyHashId } from 'src/storage/access-key.utils'
 import type { NewStorageLocation } from 'src/storage/entities/storage-location.entity'

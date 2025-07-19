@@ -9,11 +9,10 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
-import { EventDTO } from '../dto/event.dto'
 import { FolderEventsListQueryParamsDTO } from '../dto/folder-events-list-query-params.dto'
 import type { EventGetResponse } from '../dto/responses/event-get-response.dto'
 import type { EventListResponse } from '../dto/responses/event-list-response.dto'
@@ -25,8 +24,7 @@ import { transformEventToDTO } from '../transforms/event.transforms'
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
 @UsePipes(ZodValidationPipe)
-@ApiExtraModels(EventDTO)
-export class EventsController {
+export class FolderEventsController {
   constructor(private readonly eventService: EventService) {}
 
   /**

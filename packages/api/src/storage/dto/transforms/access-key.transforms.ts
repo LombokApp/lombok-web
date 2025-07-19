@@ -1,13 +1,12 @@
+import type {
+  accessKeyPublicSchema,
+  accessKeySchema,
+} from '@stellariscloud/types'
 import type { z } from 'zod'
 
-import type {
-  AccessKeyPublicDTO,
-  accessKeyPublicSchema,
-} from '../access-key-public.dto'
-
 export function transformAccessKeyToPublicDTO(
-  accessKey: z.infer<typeof accessKeyPublicSchema>,
-): AccessKeyPublicDTO {
+  accessKey: z.infer<typeof accessKeySchema>,
+): z.infer<typeof accessKeyPublicSchema> {
   return {
     accessKeyHashId: accessKey.accessKeyHashId,
     accessKeyId: accessKey.accessKeyId,

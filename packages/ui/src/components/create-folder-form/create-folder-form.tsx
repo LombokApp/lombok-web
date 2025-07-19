@@ -18,7 +18,7 @@ import {
 import { safeZodParse } from '@stellariscloud/utils'
 import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import * as z from 'zod'
+import { z } from 'zod'
 
 import type { CustomLocationFormValues } from '../custom-location-form/custom-location-form'
 import { CustomLocationForm } from '../custom-location-form/custom-location-form'

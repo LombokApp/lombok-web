@@ -1,6 +1,6 @@
 import { registerAs } from '@nestjs/config'
 import { isBoolean, isInteger, parseEnv } from 'src/core/utils/config.util'
-import * as z from 'zod'
+import { z } from 'zod'
 
 export const ormConfig = registerAs('orm', () => {
   const env = parseEnv({

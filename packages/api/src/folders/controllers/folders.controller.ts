@@ -14,17 +14,13 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import { FolderPermissionEnum } from '@stellariscloud/types'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
-import { StorageLocationInputDTO } from 'src/storage/dto/storage-location-input.dto'
 
-import { FolderDTO } from '../dto/folder.dto'
 import { FolderCreateInputDTO } from '../dto/folder-create-input.dto'
 import { FolderCreateSignedUrlInputDTO } from '../dto/folder-create-signed-url-input.dto'
-import { FolderObjectDTO } from '../dto/folder-object.dto'
-import { FolderObjectContentMetadataDTO } from '../dto/folder-object-content-metadata.dto'
 import { FolderObjectsListQueryParamsDTO } from '../dto/folder-objects-list-query-params.dto'
 import { FolderShareCreateInputDTO } from '../dto/folder-share-create-input.dto'
 import { FolderShareUsersListQueryParamsDTO } from '../dto/folder-shares-list-query-params.dto'
@@ -52,12 +48,6 @@ import { FolderService } from '../services/folder.service'
 @UseGuards(AuthGuard)
 @UsePipes(ZodValidationPipe)
 @ApiBearerAuth()
-@ApiExtraModels(
-  FolderDTO,
-  FolderObjectDTO,
-  FolderObjectContentMetadataDTO,
-  StorageLocationInputDTO,
-)
 export class FoldersController {
   constructor(private readonly folderService: FolderService) {}
 

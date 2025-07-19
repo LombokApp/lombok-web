@@ -1,4 +1,4 @@
-import * as z from 'zod'
+import { z } from 'zod'
 
 // eslint-disable-next-line regexp/no-super-linear-backtracking
 export const EMAIL_REGEX = /^\w+(?:[.-]?\w+)*@\w+(?:[.-]?\w+)*.\w{2,3}$/

@@ -168,55 +168,51 @@ export const analyzeObjectTaskHandler = async (
       })
 
     metadataDescription.compressedVersion = {
+      external: true,
       hash: metadataHashes.compressedVersion,
       mimeType: outMimeType,
       size: fs.statSync(compressedOutFilePath).size,
       storageKey: metadataHashes.compressedVersion,
-      content: '',
     }
     metadataDescription.thumbnailLg = {
+      external: true,
       hash: metadataHashes.thumbnailLg,
       mimeType: outMimeType,
       size: fs.statSync(lgThumbnailOutFilePath).size,
       storageKey: metadataHashes.thumbnailLg,
-      content: '',
     }
     metadataDescription.thumbnailSm = {
+      external: true,
       hash: metadataHashes.thumbnailSm,
       mimeType: outMimeType,
       size: fs.statSync(smThumbnailOutFilePath).size,
       storageKey: metadataHashes.thumbnailSm,
-      content: '',
     }
     metadataDescription.height = {
+      external: false,
       size: Buffer.from(JSON.stringify(scaleResult?.originalHeight ?? 0))
         .length,
-      hash: '',
-      storageKey: '',
       content: `${scaleResult?.originalHeight ?? 0}`,
       mimeType: 'application/json',
     }
     metadataDescription.width = {
+      external: false,
       size: Buffer.from(JSON.stringify(scaleResult?.originalWidth ?? 0)).length,
-      hash: '',
-      storageKey: '',
       content: `${scaleResult?.originalWidth ?? 0}`,
       mimeType: 'application/json',
     }
     metadataDescription.orientation = {
+      external: false,
       size: Buffer.from(JSON.stringify(rotation ?? 0)).length,
-      hash: '',
-      storageKey: '',
       content: `${rotation ?? 0}`,
       mimeType: 'application/json',
     }
     if (MediaType.Video === mediaType) {
       metadataDescription.lengthMs = {
+        external: false,
         size: Buffer.from(
           JSON.stringify((scaleResult as any | undefined)?.lengthMs ?? 0),
         ).length,
-        hash: '',
-        storageKey: '',
         content: `${(scaleResult as any | undefined)?.lengthMs ?? 0}`,
         mimeType: 'application/json',
       }

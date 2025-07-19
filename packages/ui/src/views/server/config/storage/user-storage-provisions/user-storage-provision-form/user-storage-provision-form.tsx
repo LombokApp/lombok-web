@@ -20,7 +20,7 @@ import {
 } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 import { useForm } from 'react-hook-form'
-import * as z from 'zod'
+import { z } from 'zod'
 
 export type MutationType = 'CREATE' | 'UPDATE'
 

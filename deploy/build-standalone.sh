@@ -7,4 +7,4 @@ VERSION=$BRANCH-$SHA1-$(date +%s)
 NAME=stellariscloud-standalone
 
 echo "Building version: $VERSION"
-docker build --platform linux/amd64 --target pgrelease -t $NAME:$VERSION -f "../docker/app.Dockerfile" ../
+docker build --platform linux/amd64 --no-cache --target pgrelease -t $NAME:$VERSION -f "../docker/app.Dockerfile" ../

@@ -1,4 +1,4 @@
-import * as z from 'zod'
+import { z } from 'zod'
 
 export const AppSocketMessage = z.enum([
   'GET_WORKER_EXECUTION_DETAILS',

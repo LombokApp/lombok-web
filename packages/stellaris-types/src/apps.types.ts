@@ -1,4 +1,5 @@
-import z from 'zod'
+import { z } from 'zod'
+
 export interface AppTaskTrigger {
   taskKey: string
   label: string

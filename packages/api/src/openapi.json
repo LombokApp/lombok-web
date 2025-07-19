@@ -3028,57 +3028,6 @@
           "name"
         ]
       },
-      "UserDTO": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "email": {
-            "type": "string",
-            "nullable": true
-          },
-          "emailVerified": {
-            "type": "boolean"
-          },
-          "isAdmin": {
-            "type": "boolean"
-          },
-          "username": {
-            "type": "string"
-          },
-          "permissions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "email",
-          "emailVerified",
-          "isAdmin",
-          "username",
-          "permissions",
-          "createdAt",
-          "updatedAt"
-        ]
-      },
       "UserCreateInputDTO": {
         "type": "object",
         "properties": {
@@ -3347,398 +3296,6 @@
         "required": [
           "meta",
           "result"
-        ]
-      },
-      "FolderDTO": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "ownerId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "name": {
-            "type": "string"
-          },
-          "metadataLocation": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "userId": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "providerType": {
-                "type": "string",
-                "enum": [
-                  "SERVER",
-                  "USER"
-                ]
-              },
-              "label": {
-                "type": "string"
-              },
-              "endpoint": {
-                "type": "string"
-              },
-              "region": {
-                "type": "string"
-              },
-              "bucket": {
-                "type": "string"
-              },
-              "prefix": {
-                "type": "string"
-              },
-              "accessKeyId": {
-                "type": "string"
-              },
-              "accessKeyHashId": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "id",
-              "providerType",
-              "label",
-              "endpoint",
-              "region",
-              "bucket",
-              "accessKeyId",
-              "accessKeyHashId"
-            ]
-          },
-          "contentLocation": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "userId": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "providerType": {
-                "type": "string",
-                "enum": [
-                  "SERVER",
-                  "USER"
-                ]
-              },
-              "label": {
-                "type": "string"
-              },
-              "endpoint": {
-                "type": "string"
-              },
-              "region": {
-                "type": "string"
-              },
-              "bucket": {
-                "type": "string"
-              },
-              "prefix": {
-                "type": "string"
-              },
-              "accessKeyId": {
-                "type": "string"
-              },
-              "accessKeyHashId": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "id",
-              "providerType",
-              "label",
-              "endpoint",
-              "region",
-              "bucket",
-              "accessKeyId",
-              "accessKeyHashId"
-            ]
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "ownerId",
-          "name",
-          "metadataLocation",
-          "contentLocation",
-          "createdAt",
-          "updatedAt"
-        ]
-      },
-      "FolderObjectDTO": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "objectKey": {
-            "type": "string"
-          },
-          "folderId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "hash": {
-            "type": "string"
-          },
-          "lastModified": {
-            "type": "number"
-          },
-          "eTag": {
-            "type": "string"
-          },
-          "sizeBytes": {
-            "type": "number"
-          },
-          "mimeType": {
-            "type": "string"
-          },
-          "mediaType": {
-            "type": "string",
-            "enum": [
-              "IMAGE",
-              "VIDEO",
-              "AUDIO",
-              "DOCUMENT",
-              "UNKNOWN"
-            ]
-          },
-          "contentMetadata": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "object",
-              "additionalProperties": {
-                "oneOf": [
-                  {
-                    "type": "object",
-                    "properties": {
-                      "mimeType": {
-                        "type": "string"
-                      },
-                      "size": {
-                        "type": "number"
-                      },
-                      "hash": {
-                        "type": "string"
-                      },
-                      "storageKey": {
-                        "type": "string"
-                      },
-                      "content": {
-                        "type": "string",
-                        "enum": [
-                          ""
-                        ]
-                      }
-                    },
-                    "required": [
-                      "mimeType",
-                      "size",
-                      "hash",
-                      "storageKey",
-                      "content"
-                    ]
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "mimeType": {
-                        "type": "string"
-                      },
-                      "size": {
-                        "type": "number"
-                      },
-                      "hash": {
-                        "type": "string",
-                        "enum": [
-                          ""
-                        ]
-                      },
-                      "storageKey": {
-                        "type": "string",
-                        "enum": [
-                          ""
-                        ]
-                      },
-                      "content": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "mimeType",
-                      "size",
-                      "hash",
-                      "storageKey",
-                      "content"
-                    ]
-                  }
-                ]
-              }
-            }
-          }
-        },
-        "required": [
-          "id",
-          "objectKey",
-          "folderId",
-          "lastModified",
-          "eTag",
-          "sizeBytes",
-          "mimeType",
-          "mediaType",
-          "contentMetadata"
-        ]
-      },
-      "FolderObjectContentMetadataDTO": {
-        "oneOf": [
-          {
-            "type": "object",
-            "properties": {
-              "mimeType": {
-                "type": "string"
-              },
-              "size": {
-                "type": "number"
-              },
-              "hash": {
-                "type": "string"
-              },
-              "storageKey": {
-                "type": "string"
-              },
-              "content": {
-                "type": "string",
-                "enum": [
-                  ""
-                ]
-              }
-            },
-            "required": [
-              "mimeType",
-              "size",
-              "hash",
-              "storageKey",
-              "content"
-            ]
-          },
-          {
-            "type": "object",
-            "properties": {
-              "mimeType": {
-                "type": "string"
-              },
-              "size": {
-                "type": "number"
-              },
-              "hash": {
-                "type": "string",
-                "enum": [
-                  ""
-                ]
-              },
-              "storageKey": {
-                "type": "string",
-                "enum": [
-                  ""
-                ]
-              },
-              "content": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "mimeType",
-              "size",
-              "hash",
-              "storageKey",
-              "content"
-            ]
-          }
-        ]
-      },
-      "StorageLocationInputDTO": {
-        "oneOf": [
-          {
-            "type": "object",
-            "properties": {
-              "accessKeyId": {
-                "type": "string"
-              },
-              "secretAccessKey": {
-                "type": "string"
-              },
-              "endpoint": {
-                "type": "string"
-              },
-              "bucket": {
-                "type": "string"
-              },
-              "region": {
-                "type": "string"
-              },
-              "prefix": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "accessKeyId",
-              "secretAccessKey",
-              "endpoint",
-              "bucket",
-              "region"
-            ]
-          },
-          {
-            "type": "object",
-            "properties": {
-              "storageProvisionId": {
-                "type": "string",
-                "format": "uuid"
-              }
-            },
-            "required": [
-              "storageProvisionId"
-            ]
-          },
-          {
-            "type": "object",
-            "properties": {
-              "userLocationId": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "userLocationBucketOverride": {
-                "type": "string"
-              },
-              "userLocationPrefixOverride": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "userLocationId",
-              "userLocationBucketOverride"
-            ]
-          }
         ]
       },
       "FolderGetResponse": {
@@ -4441,10 +3998,22 @@
                   "additionalProperties": {
                     "type": "object",
                     "additionalProperties": {
+                      "discriminator": {
+                        "propertyName": "external"
+                      },
                       "oneOf": [
                         {
                           "type": "object",
                           "properties": {
+                            "external": {
+                              "type": "boolean",
+                              "enum": [
+                                true
+                              ]
+                            },
+                            "storageKey": {
+                              "type": "string"
+                            },
                             "mimeType": {
                               "type": "string"
                             },
@@ -4453,55 +4022,39 @@
                             },
                             "hash": {
                               "type": "string"
-                            },
-                            "storageKey": {
-                              "type": "string"
-                            },
-                            "content": {
-                              "type": "string",
-                              "enum": [
-                                ""
-                              ]
                             }
                           },
                           "required": [
+                            "external",
+                            "storageKey",
                             "mimeType",
                             "size",
-                            "hash",
-                            "storageKey",
-                            "content"
+                            "hash"
                           ]
                         },
                         {
                           "type": "object",
                           "properties": {
+                            "external": {
+                              "type": "boolean",
+                              "enum": [
+                                false
+                              ]
+                            },
                             "mimeType": {
                               "type": "string"
                             },
                             "size": {
                               "type": "number"
                             },
-                            "hash": {
-                              "type": "string",
-                              "enum": [
-                                ""
-                              ]
-                            },
-                            "storageKey": {
-                              "type": "string",
-                              "enum": [
-                                ""
-                              ]
-                            },
                             "content": {
                               "type": "string"
                             }
                           },
                           "required": [
+                            "external",
                             "mimeType",
                             "size",
-                            "hash",
-                            "storageKey",
                             "content"
                           ]
                         }
@@ -4576,10 +4129,22 @@
                 "additionalProperties": {
                   "type": "object",
                   "additionalProperties": {
+                    "discriminator": {
+                      "propertyName": "external"
+                    },
                     "oneOf": [
                       {
                         "type": "object",
                         "properties": {
+                          "external": {
+                            "type": "boolean",
+                            "enum": [
+                              true
+                            ]
+                          },
+                          "storageKey": {
+                            "type": "string"
+                          },
                           "mimeType": {
                             "type": "string"
                           },
@@ -4588,55 +4153,39 @@
                           },
                           "hash": {
                             "type": "string"
-                          },
-                          "storageKey": {
-                            "type": "string"
-                          },
-                          "content": {
-                            "type": "string",
-                            "enum": [
-                              ""
-                            ]
                           }
                         },
                         "required": [
+                          "external",
+                          "storageKey",
                           "mimeType",
                           "size",
-                          "hash",
-                          "storageKey",
-                          "content"
+                          "hash"
                         ]
                       },
                       {
                         "type": "object",
                         "properties": {
+                          "external": {
+                            "type": "boolean",
+                            "enum": [
+                              false
+                            ]
+                          },
                           "mimeType": {
                             "type": "string"
                           },
                           "size": {
                             "type": "number"
                           },
-                          "hash": {
-                            "type": "string",
-                            "enum": [
-                              ""
-                            ]
-                          },
-                          "storageKey": {
-                            "type": "string",
-                            "enum": [
-                              ""
-                            ]
-                          },
                           "content": {
                             "type": "string"
                           }
                         },
                         "required": [
+                          "external",
                           "mimeType",
                           "size",
-                          "hash",
-                          "storageKey",
                           "content"
                         ]
                       }
@@ -5006,37 +4555,6 @@
           "folder"
         ]
       },
-      "AccessKeyPublicDTO": {
-        "type": "object",
-        "properties": {
-          "accessKeyId": {
-            "type": "string"
-          },
-          "accessKeyHashId": {
-            "type": "string"
-          },
-          "endpoint": {
-            "type": "string"
-          },
-          "endpointDomain": {
-            "type": "string"
-          },
-          "region": {
-            "type": "string"
-          },
-          "folderCount": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "accessKeyId",
-          "accessKeyHashId",
-          "endpoint",
-          "endpointDomain",
-          "region",
-          "folderCount"
-        ]
-      },
       "AccessKeyListResponse": {
         "type": "object",
         "properties": {
@@ -5230,64 +4748,6 @@
           "settingKey"
         ]
       },
-      "UserStorageProvisionDTO": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "accessKeyHashId": {
-            "type": "string"
-          },
-          "endpoint": {
-            "type": "string"
-          },
-          "bucket": {
-            "type": "string"
-          },
-          "region": {
-            "type": "string"
-          },
-          "accessKeyId": {
-            "type": "string"
-          },
-          "prefix": {
-            "type": "string"
-          },
-          "provisionTypes": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "CONTENT",
-                "METADATA",
-                "REDUNDANCY"
-              ]
-            },
-            "minItems": 1
-          },
-          "label": {
-            "type": "string",
-            "maxLength": 32
-          },
-          "description": {
-            "type": "string",
-            "maxLength": 128
-          }
-        },
-        "required": [
-          "id",
-          "accessKeyHashId",
-          "endpoint",
-          "bucket",
-          "region",
-          "accessKeyId",
-          "provisionTypes",
-          "label",
-          "description"
-        ]
-      },
       "UserStorageProvisionListResponse": {
         "type": "object",
         "properties": {
@@ -5474,39 +4934,6 @@
           "accessKeyId",
           "secretAccessKey",
           "provisionTypes"
-        ]
-      },
-      "ServerStorageLocationDTO": {
-        "type": "object",
-        "properties": {
-          "accessKeyHashId": {
-            "type": "string"
-          },
-          "accessKeyId": {
-            "type": "string"
-          },
-          "endpoint": {
-            "type": "string"
-          },
-          "bucket": {
-            "type": "string"
-          },
-          "region": {
-            "type": "string"
-          },
-          "prefix": {
-            "type": "string",
-            "minLength": 1,
-            "nullable": true
-          }
-        },
-        "required": [
-          "accessKeyHashId",
-          "accessKeyId",
-          "endpoint",
-          "bucket",
-          "region",
-          "prefix"
         ]
       },
       "ServerStorageLocationGetResponse": {
@@ -5818,159 +5245,6 @@
           "result"
         ]
       },
-      "TaskDTO": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "taskKey": {
-            "type": "string"
-          },
-          "ownerIdentifier": {
-            "type": "string"
-          },
-          "triggeringEventId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "subjectFolderId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "subjectObjectKey": {
-            "type": "string"
-          },
-          "handlerId": {
-            "type": "string"
-          },
-          "inputData": {
-            "type": "object",
-            "additionalProperties": {
-              "oneOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "number"
-                }
-              ]
-            }
-          },
-          "errorAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "errorCode": {
-            "type": "string"
-          },
-          "errorMessage": {
-            "type": "string"
-          },
-          "taskDescription": {
-            "type": "object",
-            "properties": {
-              "textKey": {
-                "type": "string"
-              },
-              "variables": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "string"
-                }
-              }
-            },
-            "required": [
-              "textKey",
-              "variables"
-            ]
-          },
-          "updates": {
-            "type": "array",
-            "items": {}
-          },
-          "startedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "completedAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "taskKey",
-          "ownerIdentifier",
-          "triggeringEventId",
-          "inputData",
-          "taskDescription",
-          "updates",
-          "createdAt",
-          "updatedAt"
-        ]
-      },
-      "EventDTO": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "eventKey": {
-            "type": "string"
-          },
-          "level": {
-            "type": "string",
-            "enum": [
-              "TRACE",
-              "DEBUG",
-              "INFO",
-              "WARN",
-              "ERROR"
-            ]
-          },
-          "emitterIdentifier": {
-            "type": "string"
-          },
-          "locationContext": {
-            "type": "object",
-            "properties": {
-              "folderId": {
-                "type": "string",
-                "format": "uuid"
-              },
-              "objectKey": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "folderId"
-            ]
-          },
-          "data": {},
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "eventKey",
-          "level",
-          "emitterIdentifier",
-          "createdAt"
-        ]
-      },
       "EventGetResponse": {
         "type": "object",
         "properties": {
@@ -6104,374 +5378,6 @@
         "required": [
           "meta",
           "result"
-        ]
-      },
-      "AppDTO": {
-        "type": "object",
-        "properties": {
-          "identifier": {
-            "type": "string"
-          },
-          "publicKey": {
-            "type": "string"
-          },
-          "config": {
-            "type": "object",
-            "properties": {
-              "description": {
-                "type": "string"
-              },
-              "requiresStorage": {
-                "type": "boolean"
-              },
-              "emittableEvents": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "tasks": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "key": {
-                      "type": "string"
-                    },
-                    "label": {
-                      "type": "string"
-                    },
-                    "triggers": {
-                      "type": "array",
-                      "items": {
-                        "discriminator": {
-                          "propertyName": "type"
-                        },
-                        "oneOf": [
-                          {
-                            "type": "object",
-                            "properties": {
-                              "type": {
-                                "type": "string",
-                                "enum": [
-                                  "event"
-                                ]
-                              },
-                              "event": {
-                                "type": "string"
-                              },
-                              "inputParams": {
-                                "type": "object",
-                                "additionalProperties": {
-                                  "type": "string"
-                                }
-                              }
-                            },
-                            "required": [
-                              "type",
-                              "event",
-                              "inputParams"
-                            ]
-                          },
-                          {
-                            "type": "object",
-                            "properties": {
-                              "type": {
-                                "type": "string",
-                                "enum": [
-                                  "objectAction"
-                                ]
-                              },
-                              "description": {
-                                "type": "string"
-                              },
-                              "inputParams": {
-                                "type": "object",
-                                "additionalProperties": {
-                                  "type": "string"
-                                }
-                              }
-                            },
-                            "required": [
-                              "type",
-                              "description",
-                              "inputParams"
-                            ]
-                          },
-                          {
-                            "type": "object",
-                            "properties": {
-                              "type": {
-                                "type": "string",
-                                "enum": [
-                                  "folderAction"
-                                ]
-                              },
-                              "actionLabel": {
-                                "type": "string"
-                              },
-                              "inputParams": {
-                                "type": "object",
-                                "additionalProperties": {
-                                  "type": "string"
-                                }
-                              }
-                            },
-                            "required": [
-                              "type",
-                              "actionLabel",
-                              "inputParams"
-                            ]
-                          }
-                        ]
-                      }
-                    },
-                    "folderAction": {
-                      "type": "object",
-                      "properties": {
-                        "description": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "description"
-                      ]
-                    },
-                    "objectAction": {
-                      "type": "object",
-                      "properties": {
-                        "description": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "description"
-                      ]
-                    },
-                    "description": {
-                      "type": "string"
-                    },
-                    "inputParams": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "object",
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "enum": [
-                              "boolean",
-                              "string",
-                              "number"
-                            ]
-                          },
-                          "default": {
-                            "oneOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "boolean"
-                              }
-                            ],
-                            "nullable": true
-                          }
-                        },
-                        "required": [
-                          "type"
-                        ]
-                      }
-                    },
-                    "worker": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "key",
-                    "label",
-                    "description"
-                  ]
-                }
-              },
-              "externalWorkers": {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "workerScripts": {
-                "type": "object",
-                "additionalProperties": {
-                  "type": "object",
-                  "properties": {
-                    "description": {
-                      "type": "string"
-                    },
-                    "envVars": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  },
-                  "required": [
-                    "description"
-                  ]
-                }
-              },
-              "menuItems": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "label": {
-                      "type": "string"
-                    },
-                    "iconPath": {
-                      "type": "string"
-                    },
-                    "uiName": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "label",
-                    "uiName"
-                  ]
-                }
-              }
-            },
-            "required": [
-              "description",
-              "requiresStorage",
-              "emittableEvents",
-              "tasks",
-              "menuItems"
-            ]
-          },
-          "manifest": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "path": {
-                  "type": "string"
-                },
-                "hash": {
-                  "type": "string"
-                },
-                "size": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "path",
-                "hash",
-                "size"
-              ]
-            }
-          },
-          "externalWorkers": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "appIdentifier": {
-                  "type": "string"
-                },
-                "workerId": {
-                  "type": "string"
-                },
-                "handledTaskKeys": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "socketClientId": {
-                  "type": "string"
-                },
-                "ip": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "appIdentifier",
-                "workerId",
-                "handledTaskKeys",
-                "socketClientId",
-                "ip"
-              ]
-            }
-          },
-          "workerScripts": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "description": {
-                  "type": "string"
-                },
-                "files": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "path": {
-                        "type": "string"
-                      },
-                      "hash": {
-                        "type": "string"
-                      },
-                      "size": {
-                        "type": "number"
-                      }
-                    },
-                    "required": [
-                      "path",
-                      "hash",
-                      "size"
-                    ]
-                  }
-                },
-                "envVars": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "string"
-                  }
-                },
-                "identifier": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "description",
-                "files",
-                "envVars",
-                "identifier"
-              ]
-            }
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "identifier",
-          "publicKey",
-          "config",
-          "manifest",
-          "externalWorkers",
-          "workerScripts",
-          "createdAt",
-          "updatedAt"
         ]
       },
       "AppListResponse": {

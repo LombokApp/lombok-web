@@ -1,5 +1,5 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import * as z from 'zod'
+import { z } from 'zod'
 
 const serverStorageLocationInputSchema = z.object({
   accessKeyId: z.string().min(1),

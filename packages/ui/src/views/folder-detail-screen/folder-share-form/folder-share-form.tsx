@@ -24,7 +24,7 @@ import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 import type { FetchOptions } from 'openapi-fetch'
 import React from 'react'
 import { useForm } from 'react-hook-form'
-import * as z from 'zod'
+import { z } from 'zod'
 
 const AVAILABLE_PERMISSIONS = [
   { label: 'Reindex', value: FolderPermissionEnum.FOLDER_REINDEX },
