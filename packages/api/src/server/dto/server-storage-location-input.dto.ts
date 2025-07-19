@@ -21,7 +21,7 @@ const serverStorageLocationInputSchema = z.object({
     ),
   bucket: z.string().min(1),
   region: z.string().min(1),
-  prefix: z.string().nonempty().nullable().or(z.undefined()),
+  prefix: z.string().nonempty().nullable(),
 })
 
 export class ServerStorageLocationInputDTO extends createZodDto(
