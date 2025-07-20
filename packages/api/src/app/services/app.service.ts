@@ -61,7 +61,7 @@ export type MetadataUploadUrlsResponse = {
   url: string
 }[]
 
-const LogEntryValidator = z.object({
+const logEntrySchema = z.object({
   name: z.string(),
   message: z.string(),
   level: z.string(),
@@ -74,20 +74,20 @@ const LogEntryValidator = z.object({
   data: z.unknown().optional(),
 })
 
-const AttemptStartHandleTaskValidator = z.object({
+const attemptStartHandleTaskSchema = z.object({
   taskKeys: z.array(z.string()),
 })
 
-const AttemptStartHandleTaskByIdValidator = z.object({
+const attemptStartHandleTaskByIdSchema = z.object({
   taskId: z.string().uuid(),
 })
 
-const GetWorkerExecutionDetailsValidator = z.object({
+const getWorkerExecutionDetailsSchema = z.object({
   appIdentifier: z.string(),
   workerIdentifier: z.string(),
 })
 
-const GetContentSignedURLsValidator = z.object({
+const getContentSignedUrlsSchema = z.object({
   requests: z.array(
     z.object({
       folderId: z.string(),
@@ -98,7 +98,7 @@ const GetContentSignedURLsValidator = z.object({
   eventId: z.string().optional(),
 })
 
-const GetMetadataSignedURLsValidator = z.object({
+const getMetadataSignedUrlsSchema = z.object({
   requests: z.array(
     z.object({
       folderId: z.string(),
@@ -110,7 +110,7 @@ const GetMetadataSignedURLsValidator = z.object({
   ),
 })
 
-const updateMetadataSchema = z.object({
+export const updateMetadataSchema = z.object({
   updates: z.array(
     z.object({
       folderId: z.string(),
@@ -182,7 +182,7 @@ export class AppService {
       const isCoreApp = appIdentifierPrefixed === `${APP_NS_PREFIX}core`
       switch (message.name) {
         case 'SAVE_LOG_ENTRY':
-          if (safeZodParse(requestData, LogEntryValidator)) {
+          if (safeZodParse(requestData, logEntrySchema)) {
             await this.ormService.db.insert(eventsTable).values([
               {
                 ...requestData,
@@ -201,23 +201,26 @@ export class AppService {
             error: {
               code: 400,
               message: 'Invalid request.',
+              details: logEntrySchema.safeParse(requestData).error,
             },
           }
 
         case 'GET_CONTENT_SIGNED_URLS': {
-          if (safeZodParse(requestData, GetContentSignedURLsValidator)) {
+          if (safeZodParse(requestData, getContentSignedUrlsSchema)) {
             return { result: await this.createSignedContentUrls(requestData) }
           } else {
             return {
               error: {
                 code: 400,
                 message: 'Invalid request.',
+                details:
+                  getContentSignedUrlsSchema.safeParse(requestData).error,
               },
             }
           }
         }
         case 'GET_METADATA_SIGNED_URLS': {
-          if (safeZodParse(requestData, GetMetadataSignedURLsValidator)) {
+          if (safeZodParse(requestData, getMetadataSignedUrlsSchema)) {
             return {
               result: await this.createSignedMetadataUrls(requestData),
             }
@@ -226,6 +229,8 @@ export class AppService {
               error: {
                 code: 400,
                 message: 'Invalid request.',
+                details:
+                  getMetadataSignedUrlsSchema.safeParse(requestData).error,
               },
             }
           }
@@ -244,6 +249,7 @@ export class AppService {
               error: {
                 code: 400,
                 message: 'Invalid request.',
+                details: updateMetadataSchema.safeParse(requestData).error,
               },
             }
           }
@@ -269,6 +275,7 @@ export class AppService {
                 error: {
                   code: 400,
                   message: 'Invalid request.',
+                  details: z.string().safeParse(requestData).error,
                 },
               }
             }
@@ -282,7 +289,7 @@ export class AppService {
           break
         }
         case 'ATTEMPT_START_HANDLE_TASK': {
-          if (safeZodParse(requestData, AttemptStartHandleTaskValidator)) {
+          if (safeZodParse(requestData, attemptStartHandleTaskSchema)) {
             let securedTask: Task | undefined = undefined
             for (let attempt = 0; attempt < 5; attempt++) {
               const task = await this.ormService.db.query.tasksTable.findFirst({
@@ -335,19 +342,21 @@ export class AppService {
               result: securedTask,
             }
           }
-          break
+          return {
+            error: {
+              code: 400,
+              message: 'Invalid request.',
+              details:
+                attemptStartHandleTaskSchema.safeParse(requestData).error,
+            },
+          }
         }
         case 'ATTEMPT_START_HANDLE_TASK_BY_ID': {
-          if (safeZodParse(requestData, AttemptStartHandleTaskByIdValidator)) {
+          if (safeZodParse(requestData, attemptStartHandleTaskByIdSchema)) {
             const task = await this.ormService.db.query.tasksTable.findFirst({
               where: eq(tasksTable.id, requestData.taskId),
             })
-            console.log({
-              isCoreApp,
-              isWorkerTask: !!task?.workerIdentifier,
-              appIdentifier,
-              appIdentifierPrefixed,
-            })
+
             if (
               !task ||
               (task.workerIdentifier && !isCoreApp) ||
@@ -441,7 +450,7 @@ export class AppService {
           break
         }
         case 'GET_WORKER_EXECUTION_DETAILS': {
-          if (safeZodParse(requestData, GetWorkerExecutionDetailsValidator)) {
+          if (safeZodParse(requestData, getWorkerExecutionDetailsSchema)) {
             // verify the app is the installed "core" app, and that the specified worker payload exists and is specified in the config
             if (appIdentifier !== 'core') {
               // must be "core" app to access app worker payloads
@@ -516,7 +525,7 @@ export class AppService {
             console.log(
               'GET_WORKER_EXECUTION_DETAILS error:',
               requestData,
-              GetWorkerExecutionDetailsValidator.safeParse(requestData).error,
+              getWorkerExecutionDetailsSchema.safeParse(requestData).error,
             )
             return {
               result: undefined,

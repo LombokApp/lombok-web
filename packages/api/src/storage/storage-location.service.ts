@@ -4,6 +4,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
+import { accessKeyPublicSchema, accessKeySchema } from '@stellariscloud/types'
 import { and, count, countDistinct, eq, or, SQLWrapper } from 'drizzle-orm'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { OrmService } from 'src/orm/orm.service'
@@ -12,10 +13,6 @@ import { User } from 'src/users/entities/user.entity'
 import { z } from 'zod'
 
 import { buildAccessKeyHashId } from './access-key.utils'
-import {
-  AccessKeyPublicDTO,
-  accessKeySchema,
-} from './dto/access-key-public.dto'
 import { RotateAccessKeyInputDTO } from './dto/rotate-access-key-input.dto'
 import { storageLocationsTable } from './entities/storage-location.entity'
 
@@ -227,7 +224,7 @@ export class StorageLocationService {
       .catch((e) => {
         if (
           e instanceof S3ServiceException &&
-          e.name === 'InvalidAccessKeyId'
+          ['InvalidAccessKeyId', 'AccessDenied'].includes(e.name)
         ) {
           throw new NotFoundException()
         }
@@ -278,7 +275,7 @@ export class StorageLocationService {
   async getAccessKeyAsUser(
     actor: User,
     accessKeyHashId: string,
-  ): Promise<AccessKeyPublicDTO> {
+  ): Promise<z.infer<typeof accessKeyPublicSchema>> {
     const where = and(
       eq(storageLocationsTable.accessKeyHashId, accessKeyHashId),
       eq(storageLocationsTable.userId, actor.id),

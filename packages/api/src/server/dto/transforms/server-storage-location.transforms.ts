@@ -1,4 +1,5 @@
-import type { ServerStorageLocationDTO } from '../server-storage-location.dto'
+import type { ServerStorageLocationDTO } from '@stellariscloud/types'
+
 import type { ServerStorageLocationInputDTO } from '../server-storage-location-input.dto'
 
 export function transformServerStorageLocationToDTO(

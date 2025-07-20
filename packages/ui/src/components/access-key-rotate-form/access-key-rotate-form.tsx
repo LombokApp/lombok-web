@@ -12,7 +12,7 @@ import {
   Input,
 } from '@stellariscloud/ui-toolkit'
 import { useForm } from 'react-hook-form'
-import * as z from 'zod'
+import { z } from 'zod'
 
 const formSchema = z.object({
   accessKeyId: z.string().min(1, {

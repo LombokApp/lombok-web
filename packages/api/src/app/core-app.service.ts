@@ -27,11 +27,15 @@ export class CoreAppService {
       !this._coreConfig.disableEmbeddedCoreAppWorker
     if (!this.workers[appWorkerId] && isEmbeddedCoreAppEnabled) {
       // run the core-app-worker.ts script in a child thread
-      const child = spawn('bun', [path.join(__dirname, 'core-app-worker')], {
-        uid: 1000,
-        gid: 1000,
-        stdio: ['pipe', 'inherit', 'inherit'],
-      })
+      const child = spawn(
+        'bun',
+        [path.join(import.meta.dirname, 'core-app-worker')],
+        {
+          uid: 1000,
+          gid: 1000,
+          stdio: ['pipe', 'inherit', 'inherit'],
+        },
+      )
       const appToken = !this._coreConfig.embeddedCoreAppToken
         ? await this.generateEmbeddedAppKeys()
         : this._coreConfig.embeddedCoreAppToken

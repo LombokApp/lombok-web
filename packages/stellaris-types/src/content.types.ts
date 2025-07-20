@@ -13,23 +13,21 @@ export enum ThumbnailSize {
   Small = 'small',
 }
 
-export const metadataEntrySchema = z
-  .object({
+export const metadataEntrySchema = z.discriminatedUnion('external', [
+  z.object({
+    external: z.literal(true),
+    storageKey: z.string(),
     mimeType: z.string(),
     size: z.number(),
     hash: z.string(),
-    storageKey: z.string(),
-    content: z.literal(''),
-  })
-  .or(
-    z.object({
-      mimeType: z.string(),
-      size: z.number(),
-      hash: z.literal(''),
-      storageKey: z.literal(''),
-      content: z.string(),
-    }),
-  )
+  }),
+  z.object({
+    external: z.literal(false),
+    mimeType: z.string(),
+    size: z.number(),
+    content: z.string(),
+  }),
+])
 
 export type ContentMetadataEntry = z.infer<typeof metadataEntrySchema>
 

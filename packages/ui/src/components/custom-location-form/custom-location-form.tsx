@@ -11,7 +11,7 @@ import {
   Input,
 } from '@stellariscloud/ui-toolkit'
 import { useForm } from 'react-hook-form'
-import type * as z from 'zod'
+import type { z } from 'zod'
 
 export type CustomLocationFormValues = z.infer<typeof s3LocationSchema>
 

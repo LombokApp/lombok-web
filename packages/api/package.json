@@ -4,7 +4,7 @@
   "scripts": {
     "start": "bun --bun dist/src/main.js",
     "dev": "bun --watch --bun src/main.ts",
-    "build": "bun --bun nest build -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "build": "rm -rf ./dist && NODE_ENV=production bun run script/build.ts",
     "test:unit:watch": "bun test $(find src -type f -name '*.unit-spec.ts' | sed 's|^|./|') --watch",
     "test:unit": "bun test $(find src -type f -name '*.unit-spec.ts' | sed 's|^|./|')",
     "test:e2e:watch": "bun ./test/e2e.setup.ts && bun test $(find src -type f -name '*.e2e-spec.ts' | sed 's|^|./|') --watch",
@@ -68,7 +68,7 @@
     "socket.io": "4.8.1",
     "utility-types": "3.11.0",
     "uuid": "11.0.4",
-    "zod": "3.24.2"
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "@nestjs/cli": "11.0.5",
@@ -81,7 +81,6 @@
     "drizzle-kit": "0.30.1",
     "prettier": "3.4.2",
     "supertest": "7.0.0",
-    "tsc-alias": "^1.8.16",
     "tsconfig-paths": "4.2.0"
   }
 }

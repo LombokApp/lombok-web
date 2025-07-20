@@ -47,7 +47,7 @@ import { type User, usersTable } from 'src/users/entities/user.entity'
 import { UserNotFoundException } from 'src/users/exceptions/user-not-found.exception'
 import { UserService } from 'src/users/services/users.service'
 import { v4 as uuidV4 } from 'uuid'
-import * as z from 'zod'
+import { z } from 'zod'
 
 import { FolderShareDTO } from '../dto/folder-share.dto'
 import { FolderShareUsersListQueryParamsDTO } from '../dto/folder-shares-list-query-params.dto'

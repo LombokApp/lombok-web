@@ -1,5 +1,5 @@
 import { registerAs } from '@nestjs/config'
-import * as z from 'zod'
+import { z } from 'zod'
 
 import { isBoolean, parseEnv } from '../utils/config.util'
 

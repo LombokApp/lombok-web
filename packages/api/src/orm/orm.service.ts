@@ -128,7 +128,7 @@ export class OrmService {
 
   async migrate() {
     await migrate(this.db, {
-      migrationsFolder: path.join(__dirname, './migrations'),
+      migrationsFolder: path.join(import.meta.dirname, './migrations'),
     })
   }
 

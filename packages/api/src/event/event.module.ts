@@ -12,7 +12,7 @@ import { ServerConfigurationService } from 'src/server/services/server-configura
 import { SocketModule } from 'src/socket/socket.module'
 import { StorageModule } from 'src/storage/storage.module'
 
-import { EventsController } from './controllers/folder-events.controller'
+import { FolderEventsController } from './controllers/folder-events.controller'
 import { ServerEventsController } from './controllers/server-events.controller'
 import { EventService } from './services/event.service'
 
@@ -27,7 +27,7 @@ import { EventService } from './services/event.service'
     forwardRef(() => StorageModule),
     ServerModule,
   ],
-  controllers: [ServerEventsController, EventsController],
+  controllers: [ServerEventsController, FolderEventsController],
   providers: [
     EventService,
     FolderService,

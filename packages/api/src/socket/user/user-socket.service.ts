@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common'
 import type { UserPushMessage } from '@stellariscloud/types'
 import { safeZodParse } from '@stellariscloud/utils'
 import type { Namespace, Socket } from 'socket.io'
-import * as z from 'zod'
+import { z } from 'zod'
 
 import {
   AccessTokenJWT,

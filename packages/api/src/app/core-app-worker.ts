@@ -3,7 +3,7 @@ import {
   connectAndPerformWork,
   runWorkerScriptHandler,
 } from '@stellariscloud/core-worker'
-import * as z from 'zod'
+import { z } from 'zod'
 
 const WorkerDataPayloadRunType = z.object({
   appWorkerId: z.string(),

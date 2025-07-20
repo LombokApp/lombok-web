@@ -10,12 +10,11 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
 import { ServerStorageLocationGetResponse } from '../dto/responses/server-storage-location-get-response.dto'
-import { ServerStorageLocationDTO } from '../dto/server-storage-location.dto'
 import { ServerStorageLocationInputDTO } from '../dto/server-storage-location-input.dto'
 import { ServerConfigurationService } from '../services/server-configuration.service'
 
@@ -24,7 +23,6 @@ import { ServerConfigurationService } from '../services/server-configuration.ser
 @ApiBearerAuth()
 @UsePipes(ZodValidationPipe)
 @UseGuards(AuthGuard)
-@ApiExtraModels(ServerStorageLocationDTO)
 export class ServerStorageLocationController {
   constructor(
     private readonly serverConfigurationService: ServerConfigurationService,

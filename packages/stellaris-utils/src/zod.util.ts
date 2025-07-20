@@ -1,4 +1,4 @@
-import * as z from 'zod'
+import { z } from 'zod'
 
 export function safeZodParse<T extends z.ZodType>(
   input: unknown,

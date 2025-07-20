@@ -18,7 +18,7 @@ import type { Session } from 'src/auth/entities/session.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { usersTable } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
-import * as z from 'zod'
+import { z } from 'zod'
 
 import { coreConfig } from '../../core/config'
 

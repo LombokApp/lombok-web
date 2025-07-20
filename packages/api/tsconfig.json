@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "strict": true,
-    "module": "CommonJS",
+    "module": "es2022",
+    "moduleResolution": "Node",
     "declaration": true,
-    "resolveJsonModule": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
