@@ -1,5 +1,4 @@
 import { Switch } from '@stellariscloud/ui-toolkit'
-import React from 'react'
 
 const PERMISSIONS = ['one_permission', 'two_permission']
 

@@ -4,7 +4,7 @@ import {
   ShareIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline'
-import type { FolderObjectDTO,FolderPermissionName  } from '@stellariscloud/types'
+import type { FolderPermissionName } from '@stellariscloud/types'
 import { FolderPermissionEnum, FolderPushMessage } from '@stellariscloud/types'
 import {
   Button,
@@ -134,7 +134,7 @@ export const FolderDetailScreen = () => {
   )
 
   const messageHandler = React.useCallback(
-    (name: FolderPushMessage, payload: unknown) => {
+    (name: FolderPushMessage, _payload: unknown) => {
       // console.log('folder socker messageHandler message:', { name, payload })
       if (
         [
@@ -147,7 +147,6 @@ export const FolderDetailScreen = () => {
       ) {
         void listFolderObjectsQuery.refetch()
       } else if (FolderPushMessage.OBJECT_UPDATED === name) {
-        const _folderObject = payload as FolderObjectDTO
         void listFolderObjectsQuery.refetch()
       }
     },
@@ -260,8 +259,7 @@ export const FolderDetailScreen = () => {
             shares: shares.data.result,
           })
         }
-      } catch (error) {
-        console.error('Failed to fetch folder shares:', error)
+      } catch {
         toast({
           title: 'Error',
           variant: 'destructive',
@@ -339,174 +337,160 @@ export const FolderDetailScreen = () => {
             focusedObjectKeyFromParams && 'opacity-0',
           )}
         >
-          <div className="flex size-full flex-1 flex-col">
-            <div className="flex flex-1 overflow-hidden">
-              <div className="flex flex-1 overflow-hidden">
-                <div className="h-full flex-1 overflow-hidden pr-2">
-                  {folderContext.folderMetadata?.totalCount === 0 ? (
-                    <div className="flex size-full flex-col items-center justify-center">
-                      <div className="flex w-full max-w-md flex-col items-center p-8">
-                        <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-foreground/[.04] p-4">
-                          <Folder
-                            className="size-20 text-gray-400"
-                            strokeWidth={1}
-                          />
+          <div className="flex size-full flex-1 gap-4 overflow-hidden">
+            <div className="flex h-full flex-1">
+              {folderContext.folderMetadata?.totalCount === 0 ? (
+                <div className="flex size-full flex-col items-center justify-center">
+                  <div className="flex w-full max-w-md flex-col items-center p-8">
+                    <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-foreground/[.04] p-4">
+                      <Folder
+                        className="size-20 text-gray-400"
+                        strokeWidth={1}
+                      />
+                    </div>
+                    <h3 className="mb-3 text-xl font-medium">
+                      This folder is empty
+                    </h3>
+                    <p className="mb-8 text-center text-sm opacity-75">
+                      You can upload files or reindex the folder to discover
+                      existing files.
+                    </p>
+                    <div className="flex">
+                      <Button
+                        onClick={() =>
+                          setUploadModalData({
+                            isOpen: true,
+                            uploadingProgress,
+                          })
+                        }
+                        variant="default"
+                        className="flex items-center gap-2"
+                      >
+                        <ArrowUpOnSquareIcon className="size-4" />
+                        Upload files
+                      </Button>
+                      <Button
+                        onClick={() => void handleReindexFolder()}
+                        variant="outline"
+                        className="flex items-center gap-2"
+                      >
+                        <ArrowPathIcon className="size-4" />
+                        Reindex folder
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex size-full flex-col">
+                  <div className="flex justify-between">
+                    <EditableTitle
+                      value={folderContext.folder?.name ?? ''}
+                      onChange={async (name) => {
+                        await folderUpdateMutation.mutateAsync({
+                          body: { name },
+                          params: { path: { folderId } },
+                        })
+                      }}
+                      placeholder="Enter folder name..."
+                    />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="m-1 rounded-full">
+                        <div className="flex size-8 items-center justify-around rounded-full border">
+                          <Ellipsis className="size-5 shrink-0" />
                         </div>
-                        <h3 className="mb-3 text-xl font-medium">
-                          This folder is empty
-                        </h3>
-                        <p className="mb-8 text-center text-sm opacity-75">
-                          You can upload files or reindex the folder to discover
-                          existing files.
-                        </p>
-                        <div className="flex gap-4">
-                          <Button
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        {folderContext.folderPermissions?.includes(
+                          FolderPermissionEnum.OBJECT_EDIT,
+                        ) && (
+                          <DropdownMenuItem
                             onClick={() =>
                               setUploadModalData({
                                 isOpen: true,
                                 uploadingProgress,
                               })
                             }
-                            variant="default"
-                            className="flex items-center gap-2"
+                            className="gap-2"
                           >
-                            <ArrowUpOnSquareIcon className="size-4" />
-                            Upload files
-                          </Button>
-                          <Button
-                            onClick={() => void handleReindexFolder()}
-                            variant="outline"
-                            className="flex items-center gap-2"
+                            <ArrowUpOnSquareIcon className="size-5" />
+                            Upload
+                          </DropdownMenuItem>
+                        )}
+                        {folderContext.folderPermissions?.includes(
+                          FolderPermissionEnum.FOLDER_REINDEX,
+                        ) && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              setReindexFolderModalData({
+                                ...reindexFolderModalData,
+                                isOpen: true,
+                              })
+                            }
+                            className="gap-2"
                           >
-                            <ArrowPathIcon className="size-4" />
-                            Reindex folder
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex h-full flex-col">
-                      <div className="flex justify-between">
-                        <EditableTitle
-                          value={folderContext.folder?.name ?? ''}
-                          onChange={async (name) => {
-                            await folderUpdateMutation.mutateAsync({
-                              body: { name },
-                              params: { path: { folderId } },
-                            })
-                          }}
-                          placeholder="Enter folder name..."
-                        />
-                        <DropdownMenu>
-                          <DropdownMenuTrigger className="m-1 rounded-full">
-                            <div className="flex size-8 items-center justify-around rounded-full border">
-                              <Ellipsis className="size-5 shrink-0" />
-                            </div>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            {folderContext.folderPermissions?.includes(
-                              FolderPermissionEnum.OBJECT_EDIT,
-                            ) && (
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  setUploadModalData({
-                                    isOpen: true,
-                                    uploadingProgress,
-                                  })
-                                }
-                                className="gap-2"
-                              >
-                                <ArrowUpOnSquareIcon className="size-5" />
-                                Upload
-                              </DropdownMenuItem>
-                            )}
-                            {folderContext.folderPermissions?.includes(
-                              FolderPermissionEnum.FOLDER_REINDEX,
-                            ) && (
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  setReindexFolderModalData({
-                                    ...reindexFolderModalData,
-                                    isOpen: true,
-                                  })
-                                }
-                                className="gap-2"
-                              >
-                                <ArrowPathIcon className="size-5" />
-                                Reindex
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem
-                              onClick={() => void handleShareFolder()}
-                              className="gap-2"
-                            >
-                              <ShareIcon className="size-5" />
-                              Share
-                            </DropdownMenuItem>
-                            {folderContext.folderPermissions?.includes(
-                              FolderPermissionEnum.FOLDER_FORGET,
-                            ) && (
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  setForgetFolderConfirmationModelData({
-                                    ...forgetFolderConfirmationModelData,
-                                    isOpen: true,
-                                  })
-                                }
-                                className="gap-2"
-                              >
-                                <TrashIcon className="size-5" />
-                                Delete
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                      <div className="flex min-h-0 flex-1 flex-col">
-                        <DataTable
-                          cellPadding={'p-1.5'}
-                          hideHeader={true}
-                          enableSearch={true}
-                          searchColumn={'main'}
-                          onColumnFiltersChange={handleFiltersChange}
-                          rowCount={
-                            folderContext.folderMetadata?.totalCount ?? 0
-                          }
-                          data={listFolderObjectsQuery.data?.result ?? []}
-                          columns={folderObjectsTableColumns}
-                          onPaginationChange={handlePaginationChange}
-                          pageIndex={pagination.pageIndex}
-                          onSortingChange={(updater) => {
-                            setSorting((old) =>
-                              updater instanceof Function
-                                ? updater(old)
-                                : updater,
-                            )
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              {sidebarOpen &&
-                folderContext.folder &&
-                folderContext.folderPermissions && (
-                  <div className="xs:w-full h-full overflow-hidden md:w-[1/2] lg:w-[1/2] xl:w-2/5 2xl:w-[35%] 2xl:max-w-[35rem]">
-                    <div className="h-full overflow-y-auto pr-1">
-                      <div>
-                        <FolderSidebar
-                          folderMetadata={folderContext.folderMetadata}
-                          folderAndPermission={{
-                            folder: folderContext.folder,
-                            permissions: folderContext.folderPermissions,
-                          }}
-                        />
-                      </div>
-                    </div>
+                            <ArrowPathIcon className="size-5" />
+                            Reindex
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem
+                          onClick={() => void handleShareFolder()}
+                          className="gap-2"
+                        >
+                          <ShareIcon className="size-5" />
+                          Share
+                        </DropdownMenuItem>
+                        {folderContext.folderPermissions?.includes(
+                          FolderPermissionEnum.FOLDER_FORGET,
+                        ) && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              setForgetFolderConfirmationModelData({
+                                ...forgetFolderConfirmationModelData,
+                                isOpen: true,
+                              })
+                            }
+                            className="gap-2"
+                          >
+                            <TrashIcon className="size-5" />
+                            Delete
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                )}
+                  <div className="flex min-h-0 flex-1 flex-col">
+                    <DataTable
+                      cellPadding={'p-1.5'}
+                      hideHeader={true}
+                      enableSearch={true}
+                      searchColumn={'main'}
+                      onColumnFiltersChange={handleFiltersChange}
+                      rowCount={folderContext.folderMetadata?.totalCount ?? 0}
+                      data={listFolderObjectsQuery.data?.result ?? []}
+                      columns={folderObjectsTableColumns}
+                      onPaginationChange={handlePaginationChange}
+                      pageIndex={pagination.pageIndex}
+                      onSortingChange={setSorting}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
+            {sidebarOpen &&
+              folderContext.folder &&
+              folderContext.folderPermissions && (
+                <div className="xs:w-full h-full md:w-[1/2] lg:w-[1/2] xl:w-2/5 2xl:w-[35%] 2xl:max-w-[35rem]">
+                  <div className="h-full pr-1">
+                    <FolderSidebar
+                      folderMetadata={folderContext.folderMetadata}
+                      folderAndPermission={{
+                        folder: folderContext.folder,
+                        permissions: folderContext.folderPermissions,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
           </div>
         </div>
       </div>

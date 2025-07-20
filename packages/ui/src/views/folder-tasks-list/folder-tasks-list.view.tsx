@@ -12,10 +12,8 @@ import { ListChecks } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
+import { useFolderContext } from '@/src/pages/folders/folder.context'
 import { $api } from '@/src/services/api'
-
-import { Icon } from '../../design-system/icon'
-import { useFolderContext } from '../../pages/folders/folder.context'
 
 const TASK_PREVIEW_LENGTH = 5
 
@@ -123,7 +121,7 @@ export const FolderTasksList = ({
         <div className="flex items-center justify-between">
           <TypographyH3>
             <div className="flex items-center gap-2">
-              <Icon icon={ListChecks} size="md" className="text-primary" />
+              <ListChecks className="size-6" />
               Tasks
             </div>
           </TypographyH3>

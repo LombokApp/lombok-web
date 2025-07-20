@@ -38,10 +38,6 @@ export default defineConfig({
       '@/src': path.resolve(__dirname, './src'),
       '@/utils': path.resolve(__dirname, '../ui-toolkit/src/utils'),
       '@/components': path.resolve(__dirname, '../ui-toolkit/src/components'),
-      '@/components/*': path.resolve(
-        __dirname,
-        '../ui-toolkit/src/components/*',
-      ),
     },
   },
   server: {

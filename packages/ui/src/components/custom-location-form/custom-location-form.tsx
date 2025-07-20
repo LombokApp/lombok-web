@@ -40,7 +40,6 @@ export const CustomLocationForm = ({
     <Form {...form}>
       <form
         onSubmit={(e) => {
-          console.log('Got custom location form submit event', e)
           e.preventDefault()
           void form.trigger().then(() => {
             if (form.formState.isValid) {

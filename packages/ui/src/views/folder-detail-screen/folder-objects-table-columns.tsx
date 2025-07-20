@@ -8,15 +8,15 @@ import { Link } from 'react-router-dom'
 import { FolderObjectPreview } from '../folder-object-preview/folder-object-preview.view'
 
 function previewObjectKeyForFolderObject(folderObject: FolderObjectDTO) {
-  if (
-    folderObject.hash &&
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    folderObject.contentMetadata[folderObject.hash]?.['compressedVersion']
-  ) {
-    return toMetadataObjectIdentifier(
-      folderObject.objectKey,
-      folderObject.contentMetadata[folderObject.hash]['thumbnailLg'].hash,
-    )
+  if (folderObject.hash) {
+    const previewMetadata =
+      folderObject.contentMetadata[folderObject.hash]['thumbnailLg']
+    if (previewMetadata.external) {
+      return toMetadataObjectIdentifier(
+        folderObject.objectKey,
+        previewMetadata.hash,
+      )
+    }
   }
 }
 
