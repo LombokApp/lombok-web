@@ -1,6 +1,5 @@
 import { ArrowUpTrayIcon } from '@heroicons/react/24/outline'
 import { cn } from '@stellariscloud/ui-toolkit'
-import React from 'react'
 import type { FileRejection } from 'react-dropzone'
 import { useDropzone } from 'react-dropzone'
 

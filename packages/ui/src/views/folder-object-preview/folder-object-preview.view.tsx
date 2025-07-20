@@ -71,9 +71,10 @@ export const FolderObjectPreview = ({
     folderObject?.hash && contentMetadata ? contentMetadata.mimeType : undefined
 
   const dataURL = file === false ? undefined : file.dataURL
-  const mediaType = mimeType
-    ? mediaTypeFromMimeType(mimeType.content)
-    : mediaTypeFromExtension(folderObject?.objectKey.split('.').at(-1) ?? '')
+  const mediaType =
+    mimeType && !mimeType.external
+      ? mediaTypeFromMimeType(mimeType.content)
+      : mediaTypeFromExtension(folderObject?.objectKey.split('.').at(-1) ?? '')
 
   const isCoverView = displayMode === 'object-cover'
   return (

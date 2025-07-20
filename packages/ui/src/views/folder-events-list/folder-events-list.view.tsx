@@ -12,7 +12,6 @@ import { ActivityIcon } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-import { Icon } from '@/src/design-system/icon'
 import { $api } from '@/src/services/api'
 
 import { useFolderContext } from '../../pages/folders/folder.context'
@@ -127,7 +126,7 @@ export const FolderEventsList = ({
         <div className="flex items-center justify-between">
           <TypographyH3>
             <div className="flex items-center gap-2">
-              <Icon icon={ActivityIcon} size="md" className="text-primary" />
+              <ActivityIcon className="size-6" />
               Events
             </div>
           </TypographyH3>

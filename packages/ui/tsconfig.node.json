@@ -19,13 +19,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
-
-    "paths": {
-      "@/utils": ["../ui-toolkit/src/utils"],
-      "@/components": ["../ui-toolkit/src/components"],
-      "@/components/*": ["../ui-toolkit/src/components/*"]
-    }
+    "noUncheckedSideEffectImports": true
   },
   "include": [
     "vite.config.ts",

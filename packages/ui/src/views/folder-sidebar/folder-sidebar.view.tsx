@@ -1,5 +1,4 @@
-import { KeyIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
-import type { FolderGetResponse,FolderMetadata  } from '@stellariscloud/types'
+import type { FolderGetResponse, FolderMetadata } from '@stellariscloud/types'
 import {
   Card,
   CardContent,
@@ -9,9 +8,8 @@ import {
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
 import { formatBytes } from '@stellariscloud/utils'
-import { Calculator, Globe } from 'lucide-react'
+import { Calculator, Globe, KeyRound, Search } from 'lucide-react'
 
-import { Icon } from '../../design-system/icon'
 import { FolderEventsList } from '../folder-events-list/folder-events-list.view'
 import { FolderTasksList } from '../folder-tasks-list/folder-tasks-list.view'
 
@@ -25,14 +23,14 @@ export const FolderSidebar = ({
   const { folder } = folderAndPermission ?? {}
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex flex-1 flex-col gap-4 overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="vertical-scrollbar-container flex flex-1 flex-col gap-4 overflow-y-auto">
         <Card className="shrink-0">
           <CardHeader className="p-4 pt-3">
             <TypographyH3>
               <div className="flex items-center gap-2">
-                <Icon icon={MagnifyingGlassIcon} size="md" />
-                <TypographyH3>Folder Overview</TypographyH3>
+                <Search className="size-6" />
+                <TypographyH3>Folder overview</TypographyH3>
               </div>
             </TypographyH3>
           </CardHeader>
@@ -43,7 +41,7 @@ export const FolderSidebar = ({
                   <div className="mt-0 flex w-full flex-none items-center gap-x-4">
                     <dt className="flex flex-none">
                       <span className="sr-only">Access Key</span>
-                      <Icon icon={KeyIcon} size="md" />
+                      <KeyRound className="size-5" />
                     </dt>
                     <dd className={cn('text-sm leading-6')}>
                       {folder.contentLocation.providerType === 'USER' ? (
@@ -61,7 +59,7 @@ export const FolderSidebar = ({
                   <div className="mt-4 flex w-full flex-none items-center gap-x-4">
                     <dt className="flex flex-none">
                       <span className="sr-only">Bucket</span>
-                      <Icon icon={Globe} size="md" />
+                      <Globe className="size-5" />
                     </dt>
                     <dd className={cn('text-sm leading-6')}>
                       <span className="opacity-50">Bucket: </span>
@@ -79,7 +77,7 @@ export const FolderSidebar = ({
               <div className="mt-4 flex w-full flex-none items-center gap-x-4">
                 <dt className="flex flex-none">
                   <span className="sr-only">Size</span>
-                  <Calculator />
+                  <Calculator className="size-5" />
                 </dt>
                 <dd className={cn('text-sm leading-6')}>
                   {`${folderMetadata ? folderMetadata.totalCount : 'unknown'}`}{' '}

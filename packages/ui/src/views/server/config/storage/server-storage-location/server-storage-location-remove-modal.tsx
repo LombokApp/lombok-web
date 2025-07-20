@@ -1,5 +1,3 @@
-'use client'
-
 import {
   Button,
   Dialog,
@@ -8,7 +6,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@stellariscloud/ui-toolkit'
-import React from 'react'
 
 const ServerStorageLocationRemoveModal = ({
   modalData,

@@ -1,6 +1,7 @@
-import type {   FolderGetMetadataResponse,
+import type {
+  FolderGetMetadataResponse,
   FolderGetResponse,
-FolderMetadata ,
+  FolderMetadata,
 } from '@stellariscloud/types'
 import { FolderPushMessage } from '@stellariscloud/types'
 import { useToast } from '@stellariscloud/ui-toolkit'
@@ -66,8 +67,7 @@ export const FolderContextProvider = ({
   const { toast } = useToast()
 
   const messageHandler = React.useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    (message: FolderPushMessage, payload: Record<string, unknown>) => {
+    (message: FolderPushMessage, _payload: Record<string, unknown>) => {
       if (
         [
           FolderPushMessage.OBJECTS_ADDED,

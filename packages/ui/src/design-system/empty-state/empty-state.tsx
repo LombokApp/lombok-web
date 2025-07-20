@@ -1,5 +1,4 @@
 import { Button } from '@stellariscloud/ui-toolkit'
-import React from 'react'
 
 import type { IconProps } from '../icon'
 import { Icon } from '../icon'

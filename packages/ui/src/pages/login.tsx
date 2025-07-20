@@ -9,10 +9,8 @@ export const Login = () => {
   const navigate = useNavigate()
   const handleLoginSubmit = React.useCallback(
     async ({ login, password }: { login: string; password: string }) => {
-      const loginSuccess = await authContext.login({ login, password })
-      if (loginSuccess) {
-        void navigate('/folders')
-      }
+      await authContext.login({ login, password })
+      void navigate('/folders')
     },
     [authContext, navigate],
   )

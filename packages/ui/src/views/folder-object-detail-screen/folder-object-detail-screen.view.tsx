@@ -60,7 +60,8 @@ export const FolderObjectDetailScreen = ({
         ? `content:${objectKey}`
         : displaySize === 'compressed' &&
             folderObject?.hash &&
-            currentVersionMetadata['compressedVersion']?.hash
+            currentVersionMetadata['compressedVersion']?.external &&
+            currentVersionMetadata['compressedVersion'].hash
           ? `metadata:${objectKey}:${currentVersionMetadata['compressedVersion'].hash}`
           : undefined,
     )
@@ -193,7 +194,7 @@ export const FolderObjectDetailScreen = ({
           <div
             className={cn(
               'flex w-full flex-1 overflow-hidden',
-              sidebarOpen && 'pr-2',
+              sidebarOpen && 'pr-4',
             )}
           >
             {folderObject && (
