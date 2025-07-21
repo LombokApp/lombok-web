@@ -1073,15 +1073,15 @@ export interface components {
                 contentMetadata: {
                     [key: string]: {
                         [key: string]: {
-                            /** @enum {boolean} */
-                            external: true;
+                            /** @enum {string} */
+                            external: "true";
                             storageKey: string;
                             mimeType: string;
                             size: number;
                             hash: string;
                         } | {
-                            /** @enum {boolean} */
-                            external: false;
+                            /** @enum {string} */
+                            external: "false";
                             mimeType: string;
                             size: number;
                             content: string;
@@ -1107,15 +1107,15 @@ export interface components {
                 contentMetadata: {
                     [key: string]: {
                         [key: string]: {
-                            /** @enum {boolean} */
-                            external: true;
+                            /** @enum {string} */
+                            external: "true";
                             storageKey: string;
                             mimeType: string;
                             size: number;
                             hash: string;
                         } | {
-                            /** @enum {boolean} */
-                            external: false;
+                            /** @enum {string} */
+                            external: "false";
                             mimeType: string;
                             size: number;
                             content: string;

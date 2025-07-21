@@ -15,14 +15,14 @@ export enum ThumbnailSize {
 
 export const metadataEntrySchema = z.discriminatedUnion('external', [
   z.object({
-    external: z.literal(true),
+    external: z.literal("true"),
     storageKey: z.string(),
     mimeType: z.string(),
     size: z.number(),
     hash: z.string(),
   }),
   z.object({
-    external: z.literal(false),
+    external: z.literal("false"),
     mimeType: z.string(),
     size: z.number(),
     content: z.string(),

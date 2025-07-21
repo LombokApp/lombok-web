@@ -60,7 +60,7 @@ export const FolderObjectDetailScreen = ({
         ? `content:${objectKey}`
         : displaySize === 'compressed' &&
             folderObject?.hash &&
-            currentVersionMetadata['compressedVersion']?.external &&
+            currentVersionMetadata['compressedVersion']?.external === 'true' &&
             currentVersionMetadata['compressedVersion'].hash
           ? `metadata:${objectKey}:${currentVersionMetadata['compressedVersion'].hash}`
           : undefined,
