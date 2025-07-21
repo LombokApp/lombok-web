@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
-    "@heroicons/react": "^2.2.0",
     "@stellariscloud/sdk": "workspace:*",
     "@stellariscloud/types": "workspace:*",
     "@stellariscloud/ui-toolkit": "workspace:*",

@@ -1,5 +1,3 @@
-'use client'
-
 import {
   Button,
   Dialog,
@@ -9,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@stellariscloud/ui-toolkit'
-
+import { FolderSync } from 'lucide-react'
 export interface ReindexFolderModalData {
   isOpen: boolean
 }
@@ -35,7 +33,10 @@ const ReindexFolderModal = ({
         aria-describedby={undefined}
       >
         <DialogHeader className="text-left">
-          <DialogTitle>Reindex folder</DialogTitle>
+          <div className="flex items-center gap-2">
+            <FolderSync className="size-6" />
+            <DialogTitle>Reindex folder</DialogTitle>
+          </div>
         </DialogHeader>
         <DialogDescription>
           This will reindex the entire folder, and may take some time.

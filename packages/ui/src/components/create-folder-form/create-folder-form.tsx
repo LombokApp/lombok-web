@@ -1,4 +1,3 @@
-import { XMarkIcon } from '@heroicons/react/24/outline'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { UserStorageProvisionDTO } from '@stellariscloud/types'
 import { s3LocationSchema } from '@stellariscloud/types'
@@ -16,6 +15,7 @@ import {
   Input,
 } from '@stellariscloud/ui-toolkit'
 import { safeZodParse } from '@stellariscloud/utils'
+import { X } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -251,7 +251,7 @@ export const CreateFolderForm = ({
                   {customContentLocationDescription}
                 </Badge>
                 <Button variant="link" onClick={handleContentLocationRemove}>
-                  <XMarkIcon className="size-4 opacity-50" />
+                  <X className="size-4 opacity-50" />
                 </Button>
               </div>
             ) : formConfig.useStorageProvisionContentLocation ? (
@@ -260,7 +260,7 @@ export const CreateFolderForm = ({
                   {serverProvisionContentLocationLabel}
                 </Badge>
                 <Button variant="link" onClick={handleContentLocationRemove}>
-                  <XMarkIcon className="size-4 opacity-50" />
+                  <X className="size-4 opacity-50" />
                 </Button>
               </div>
             ) : customContentLocationFormOpen ? (
@@ -315,7 +315,7 @@ export const CreateFolderForm = ({
                 {customMetadataLocationDescription}
               </Badge>
               <Button variant="link" onClick={handleMetadataLocationRemove}>
-                <XMarkIcon className="size-4 opacity-50" />
+                <X className="size-4 opacity-50" />
               </Button>
             </div>
           ) : formConfig.useStorageProvisionMetadataLocation ? (
@@ -324,7 +324,7 @@ export const CreateFolderForm = ({
                 {serverProvisionMetadataLocationLabel}
               </Badge>
               <Button variant="link" onClick={handleMetadataLocationRemove}>
-                <XMarkIcon className="size-4 opacity-50" />
+                <X className="size-4 opacity-50" />
               </Button>
             </div>
           ) : customMetadataLocationFormOpen ? (

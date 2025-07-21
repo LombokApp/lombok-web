@@ -1,5 +1,5 @@
-import { ArrowUpTrayIcon } from '@heroicons/react/24/outline'
 import { cn } from '@stellariscloud/ui-toolkit'
+import { CloudUpload } from 'lucide-react'
 import type { FileRejection } from 'react-dropzone'
 import { useDropzone } from 'react-dropzone'
 
@@ -26,19 +26,19 @@ export const FolderUploadDropzone = ({
         {...getRootProps()}
       >
         <input {...getInputProps()} />
-        <ArrowUpTrayIcon
+        <CloudUpload
           className={cn(
             'mb-2 size-8 transition-colors',
             isDragActive ? 'text-blue-500' : 'text-gray-400',
           )}
         />
         {isDragActive ? (
-          <p className="text-center font-medium text-blue-600 dark:text-blue-400">
+          <p className="dark:text-blue-400 text-center font-medium text-blue-600">
             Drop files here
           </p>
         ) : (
           <div className="cursor-pointer text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="dark:text-gray-400 text-sm text-gray-600">
               <span className="font-medium">Drop files here to upload</span>
               <br />
               or click to select files

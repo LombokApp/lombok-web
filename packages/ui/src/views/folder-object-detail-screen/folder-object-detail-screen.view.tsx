@@ -1,4 +1,3 @@
-import { ArrowDownTrayIcon, TrashIcon } from '@heroicons/react/24/outline'
 import type { ContentMetadataEntry } from '@stellariscloud/types'
 import {
   FolderPermissionEnum,
@@ -6,6 +5,7 @@ import {
   MediaType,
 } from '@stellariscloud/types'
 import { Button, cn, TypographyH3, useToast } from '@stellariscloud/ui-toolkit'
+import { Download, Trash } from 'lucide-react'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -177,7 +177,7 @@ export const FolderObjectDetailScreen = ({
                       onClick={() => setDeleteModalData({ isOpen: true })}
                       variant={'outline'}
                     >
-                      <TrashIcon className="size-5" />
+                      <Trash className="size-5" />
                     </Button>
                   )}
                   <Button
@@ -185,7 +185,7 @@ export const FolderObjectDetailScreen = ({
                     variant={'outline'}
                     onClick={handleDownload}
                   >
-                    <ArrowDownTrayIcon className="size-5" />
+                    <Download className="size-5" />
                   </Button>
                 </div>
               </div>

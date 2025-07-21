@@ -1,6 +1,6 @@
-import { FolderIcon, PlusIcon } from '@heroicons/react/24/outline'
 import type { UserStorageProvisionDTO } from '@stellariscloud/types'
 import { Button } from '@stellariscloud/ui-toolkit'
+import { Folder, Plus } from 'lucide-react'
 import React from 'react'
 
 import { UserStorageProvisionsTable } from '@/src/components/user-storage-provisions-table/user-storage-provisions-table'
@@ -116,14 +116,14 @@ export function UserStorageProvisions() {
                     })
                   }}
                 >
-                  <PlusIcon className="size-5" />
+                  <Plus className="size-5" />
                   Add Storage Provision
                 </Button>
               </div>
             ) : (
               <EmptyState
                 buttonText="Add storage provision"
-                icon={FolderIcon}
+                icon={Folder}
                 text="No storage provisions have been created"
                 onButtonPress={() => {
                   // TODO: Update add provision logic

@@ -1,9 +1,3 @@
-import {
-  ArrowPathIcon,
-  ArrowUpOnSquareIcon,
-  ShareIcon,
-  TrashIcon,
-} from '@heroicons/react/24/outline'
 import type { FolderPermissionName } from '@stellariscloud/types'
 import { FolderPermissionEnum, FolderPushMessage } from '@stellariscloud/types'
 import {
@@ -21,7 +15,14 @@ import type {
   PaginationState,
   SortingState,
 } from '@tanstack/table-core'
-import { Ellipsis, Folder } from 'lucide-react'
+import {
+  CloudUpload,
+  Ellipsis,
+  Folder,
+  FolderSync,
+  Share2,
+  Trash,
+} from 'lucide-react'
 import React from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
@@ -355,7 +356,7 @@ export const FolderDetailScreen = () => {
                       You can upload files or reindex the folder to discover
                       existing files.
                     </p>
-                    <div className="flex">
+                    <div className="flex gap-2">
                       <Button
                         onClick={() =>
                           setUploadModalData({
@@ -366,7 +367,7 @@ export const FolderDetailScreen = () => {
                         variant="default"
                         className="flex items-center gap-2"
                       >
-                        <ArrowUpOnSquareIcon className="size-4" />
+                        <CloudUpload className="size-6" />
                         Upload files
                       </Button>
                       <Button
@@ -374,7 +375,7 @@ export const FolderDetailScreen = () => {
                         variant="outline"
                         className="flex items-center gap-2"
                       >
-                        <ArrowPathIcon className="size-4" />
+                        <FolderSync className="size-6" />
                         Reindex folder
                       </Button>
                     </div>
@@ -412,7 +413,7 @@ export const FolderDetailScreen = () => {
                             }
                             className="gap-2"
                           >
-                            <ArrowUpOnSquareIcon className="size-5" />
+                            <CloudUpload className="size-5" />
                             Upload
                           </DropdownMenuItem>
                         )}
@@ -428,7 +429,7 @@ export const FolderDetailScreen = () => {
                             }
                             className="gap-2"
                           >
-                            <ArrowPathIcon className="size-5" />
+                            <FolderSync className="size-5" />
                             Reindex
                           </DropdownMenuItem>
                         )}
@@ -436,7 +437,7 @@ export const FolderDetailScreen = () => {
                           onClick={() => void handleShareFolder()}
                           className="gap-2"
                         >
-                          <ShareIcon className="size-5" />
+                          <Share2 className="size-5" />
                           Share
                         </DropdownMenuItem>
                         {folderContext.folderPermissions?.includes(
@@ -451,7 +452,7 @@ export const FolderDetailScreen = () => {
                             }
                             className="gap-2"
                           >
-                            <TrashIcon className="size-5" />
+                            <Trash className="size-5" />
                             Delete
                           </DropdownMenuItem>
                         )}

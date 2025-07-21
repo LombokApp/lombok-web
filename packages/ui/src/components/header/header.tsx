@@ -1,6 +1,6 @@
-import { ArrowRightIcon, FolderOpenIcon } from '@heroicons/react/24/outline'
 import { useAuthContext } from '@stellariscloud/auth-utils'
 import { Button, cn } from '@stellariscloud/ui-toolkit'
+import { ArrowRight, FolderOpen } from 'lucide-react'
 import type { MouseEvent } from 'react'
 import React from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
@@ -21,18 +21,6 @@ export const Header = () => {
       setIsDrawerOpen(false)
     }
   }, [isDrawerOpen, md])
-
-  // React.useEffect(() => {
-  //   if (isDrawerOpen) {
-  //     const closeDrawer = () => setIsDrawerOpen(false)
-  //     router.events.on('routeChangeStart', closeDrawer)
-  //     router.events.on('hashChangeStart', closeDrawer)
-  //     return () => {
-  //       router.events.off('routeChangeStart', closeDrawer)
-  //       router.events.off('hashChangeStart', closeDrawer)
-  //     }
-  //   }
-  // }, [isDrawerOpen, router])
 
   const handleLoginSignupClick = (
     e:
@@ -73,7 +61,7 @@ export const Header = () => {
         {authState.isAuthenticated && (
           <Link to="/folders">
             <Button size="sm" className={cn('text-left')}>
-              <FolderOpenIcon />
+              <FolderOpen />
               Folders
             </Button>
           </Link>
@@ -90,7 +78,7 @@ export const Header = () => {
                   <div className="flex items-center gap-2">
                     <div className="shrink-0">Signup</div>
                     <Icon
-                      icon={ArrowRightIcon}
+                      icon={ArrowRight}
                       className="dark:text-white"
                       size="sm"
                     />
@@ -102,7 +90,7 @@ export const Header = () => {
                   <div className="flex items-center gap-2">
                     <div className="shrink-0">Login</div>
                     <Icon
-                      icon={ArrowRightIcon}
+                      icon={ArrowRight}
                       className="dark:text-white"
                       size="sm"
                     />
