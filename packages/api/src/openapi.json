@@ -4006,9 +4006,9 @@
                           "type": "object",
                           "properties": {
                             "external": {
-                              "type": "boolean",
+                              "type": "string",
                               "enum": [
-                                true
+                                "true"
                               ]
                             },
                             "storageKey": {
@@ -4036,9 +4036,9 @@
                           "type": "object",
                           "properties": {
                             "external": {
-                              "type": "boolean",
+                              "type": "string",
                               "enum": [
-                                false
+                                "false"
                               ]
                             },
                             "mimeType": {
@@ -4137,9 +4137,9 @@
                         "type": "object",
                         "properties": {
                           "external": {
-                            "type": "boolean",
+                            "type": "string",
                             "enum": [
-                              true
+                              "true"
                             ]
                           },
                           "storageKey": {
@@ -4167,9 +4167,9 @@
                         "type": "object",
                         "properties": {
                           "external": {
-                            "type": "boolean",
+                            "type": "string",
                             "enum": [
-                              false
+                              "false"
                             ]
                           },
                           "mimeType": {
