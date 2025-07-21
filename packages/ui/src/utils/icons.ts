@@ -1,9 +1,3 @@
-import {
-  DocumentIcon,
-  FilmIcon,
-  MusicalNoteIcon,
-  PhotoIcon,
-} from '@heroicons/react/24/outline'
 import { MediaType } from '@stellariscloud/types'
 import type {
   AudioMediaMimeTypes,
@@ -15,25 +9,26 @@ import {
   IMAGE_MEDIA_MIME_TYPES,
   VIDEO_MEDIA_MIME_TYPES,
 } from '@stellariscloud/utils'
+import { FileIcon, Film, Image, Music } from 'lucide-react'
 
 export const iconForMimeType = (mimeType: string) => {
   if (AUDIO_MEDIA_MIME_TYPES.includes(mimeType as AudioMediaMimeTypes)) {
-    return MusicalNoteIcon
+    return Music
   } else if (IMAGE_MEDIA_MIME_TYPES.includes(mimeType as ImageMediaMimeTypes)) {
-    return PhotoIcon
+    return Image
   } else if (VIDEO_MEDIA_MIME_TYPES.includes(mimeType as VideoMediaMimeTypes)) {
-    return FilmIcon
+    return Film
   }
-  return DocumentIcon
+  return FileIcon
 }
 
 export const iconForMediaType = (mediaType: MediaType) => {
   if (mediaType === MediaType.Audio) {
-    return MusicalNoteIcon
+    return Music
   } else if (mediaType === MediaType.Image) {
-    return PhotoIcon
+    return Image
   } else if (mediaType === MediaType.Video) {
-    return FilmIcon
+    return Film
   }
-  return DocumentIcon
+  return FileIcon
 }

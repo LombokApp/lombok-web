@@ -1,4 +1,3 @@
-import { TrashIcon } from '@heroicons/react/24/outline'
 import type { FolderObjectDTO } from '@stellariscloud/types'
 import {
   Button,
@@ -9,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@stellariscloud/ui-toolkit'
+import { Trash } from 'lucide-react'
 
 export interface DeleteObjectModalData {
   isOpen: boolean
@@ -46,15 +46,15 @@ export const DeleteObjectModal = ({
       >
         <DialogHeader className="text-left">
           <div className="flex items-center gap-2">
-            <TrashIcon className="size-6 text-red-500" />
+            <Trash className="size-6 text-red-500" />
             <DialogTitle className="text-xl font-semibold">
               Delete object
             </DialogTitle>
           </div>
         </DialogHeader>
-        <DialogDescription className="text-sm text-gray-600 dark:text-gray-400">
+        <DialogDescription className="dark:text-gray-400 text-sm text-gray-600">
           This will permanently delete the object:
-          <div className="mt-2 rounded-md bg-gray-100 p-2 font-mono text-sm dark:bg-gray-800">
+          <div className="dark:bg-gray-800 mt-2 rounded-md bg-gray-100 p-2 font-mono text-sm">
             {modalData.folderObject?.objectKey}
           </div>
         </DialogDescription>

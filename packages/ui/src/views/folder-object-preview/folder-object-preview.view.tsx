@@ -10,7 +10,6 @@ import React from 'react'
 import { AudioPlayer } from '@/src/components/audio-player/audio-player'
 import { VideoPlayer } from '@/src/components/video-player/video-player'
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache.context'
-import { Icon } from '@/src/design-system/icon'
 import { $api } from '@/src/services/api'
 import { iconForMediaType } from '@/src/utils/icons'
 
@@ -77,6 +76,9 @@ export const FolderObjectPreview = ({
       : mediaTypeFromExtension(folderObject?.objectKey.split('.').at(-1) ?? '')
 
   const isCoverView = displayMode === 'object-cover'
+
+  const IconComponent = iconForMediaType(mediaType)
+
   return (
     <div
       className={cn(
@@ -109,8 +111,10 @@ export const FolderObjectPreview = ({
             </div>
           </div>
         ) : (
-          <div className="flex size-full flex-col items-center justify-around bg-black text-white">
-            <Icon size={'xl'} icon={iconForMediaType(mediaType)} />
+          <div className="flex size-full flex-col items-center justify-around">
+            <div className="flex items-center justify-center rounded-full p-10">
+              <IconComponent className="size-24 stroke-foreground opacity-30 md:size-36 lg:size-48" />
+            </div>
           </div>
         )}
       </div>

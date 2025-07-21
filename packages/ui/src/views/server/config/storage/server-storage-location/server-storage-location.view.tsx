@@ -1,9 +1,9 @@
-import { FolderIcon } from 'lucide-react'
+import { Folder } from 'lucide-react'
 import React from 'react'
 
+import { EmptyState } from '@/src/components/empty-state/empty-state'
 import { $api } from '@/src/services/api'
 
-import { EmptyState } from '../../../../../design-system/empty-state/empty-state'
 import { ServerStorageLocationCard } from './server-storage-location-card'
 import { ServerStorageLocationModal } from './server-storage-location-modal'
 import { ServerStorageLocationRemoveModal } from './server-storage-location-remove-modal'
@@ -77,7 +77,7 @@ export function ServerStorageLocation() {
       ) : (
         <EmptyState
           buttonText="Add location"
-          icon={FolderIcon}
+          icon={Folder}
           text="No server storage location has been set"
           onButtonPress={() =>
             setServerStorageLocationModalData({ open: true })
