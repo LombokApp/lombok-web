@@ -10,8 +10,11 @@ import { FolderObjectPreview } from '../folder-object-preview/folder-object-prev
 function previewObjectKeyForFolderObject(folderObject: FolderObjectDTO) {
   if (folderObject.hash) {
     const previewMetadata =
-      folderObject.contentMetadata[folderObject.hash]['thumbnailLg']
-    if (previewMetadata.external) {
+      folderObject.hash &&
+      'thumbnailLg' in folderObject.contentMetadata[folderObject.hash]
+        ? folderObject.contentMetadata[folderObject.hash]['thumbnailLg']
+        : undefined
+    if (previewMetadata?.external) {
       return toMetadataObjectIdentifier(
         folderObject.objectKey,
         previewMetadata.hash,

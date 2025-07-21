@@ -3,8 +3,8 @@ import { Button } from '@stellariscloud/ui-toolkit'
 import { Folder, Plus } from 'lucide-react'
 import React from 'react'
 
+import { EmptyState } from '@/src/components/empty-state/empty-state'
 import { UserStorageProvisionsTable } from '@/src/components/user-storage-provisions-table/user-storage-provisions-table'
-import { EmptyState } from '@/src/design-system/empty-state/empty-state'
 import { $api } from '@/src/services/api'
 
 import type { MutationType } from './user-storage-provision-form/user-storage-provision-form'

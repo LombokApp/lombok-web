@@ -5,7 +5,6 @@ import type { MouseEvent } from 'react'
 import React from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 
-import { Icon } from '../../design-system/icon'
 import { useBreakPoints } from '../../utils/hooks'
 import { ModeToggle } from '../mode-toggle/mode-toggle'
 
@@ -77,11 +76,7 @@ export const Header = () => {
                 >
                   <div className="flex items-center gap-2">
                     <div className="shrink-0">Signup</div>
-                    <Icon
-                      icon={ArrowRight}
-                      className="dark:text-white"
-                      size="sm"
-                    />
+                    <ArrowRight className="dark:text-white" size="sm" />
                   </div>
                 </Button>
               )}
@@ -89,11 +84,7 @@ export const Header = () => {
                 <Button size="sm" onClick={handleLoginSignupClick}>
                   <div className="flex items-center gap-2">
                     <div className="shrink-0">Login</div>
-                    <Icon
-                      icon={ArrowRight}
-                      className="dark:text-white"
-                      size="sm"
-                    />
+                    <ArrowRight className="dark:text-white" size="sm" />
                   </div>
                 </Button>
               )}
