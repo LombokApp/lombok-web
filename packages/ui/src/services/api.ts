@@ -39,6 +39,10 @@ export const sdkInstance = new StellarisCloudSdk({
   refreshToken: () => loadTokens().refreshToken,
   onTokensRefreshed: (tokens) => saveTokens(tokens),
   onTokensCreated: (tokens) => saveTokens(tokens),
+  onLogout: () => {
+    Cookies.remove(COOKIES_ACCESS_TOKEN)
+    Cookies.remove(COOKIES_REFRESH_TOKEN)
+  },
 })
 
 export const $apiClient = sdkInstance.apiClient

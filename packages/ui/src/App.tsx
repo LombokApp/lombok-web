@@ -74,21 +74,22 @@ const AuthenticatedContent = () => {
   const { menuItems } = useServerContext()
 
   React.useEffect(() => {
-    if (
-      'isAuthenticated' in authContext.authState &&
-      !authContext.authState.isAuthenticated &&
-      !UNAUTHENTICATED_PAGES.includes(location.pathname)
-    ) {
-      void navigate('/')
-    } else if (
-      authContext.authState.isAuthenticated &&
-      location.pathname === '/'
-    ) {
-      void navigate('/folders')
+    if (authContext.authState.isLoaded) {
+      if (
+        !authContext.authState.isAuthenticated &&
+        !UNAUTHENTICATED_PAGES.includes(location.pathname)
+      ) {
+        void navigate('/login')
+      } else if (
+        authContext.authState.isAuthenticated &&
+        location.pathname !== '/'
+      ) {
+        void navigate('/folders')
+      }
     }
   }, [
     authContext.authState.isAuthenticated,
-    authContext.authState,
+    authContext.authState.isLoaded,
     location.pathname,
     navigate,
   ])
@@ -126,7 +127,6 @@ const AuthenticatedContent = () => {
 
 const AuthStateRouter = () => {
   const { authState } = useAuthContext()
-
   return (
     <div className="size-full">
       {authState.isAuthenticated && authState.isLoaded ? (
