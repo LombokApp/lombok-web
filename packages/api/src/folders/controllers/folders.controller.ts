@@ -14,11 +14,16 @@ import {
   UseGuards,
   UsePipes,
 } from '@nestjs/common'
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import { FolderPermissionEnum } from '@stellariscloud/types'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
+import {
+  ContentMetadataEntryDTO,
+  ExternalMetadataEntryDTO,
+  InlineMetadataEntryDTO,
+} from '../dto/content-metadata.dto'
 import { FolderCreateInputDTO } from '../dto/folder-create-input.dto'
 import { FolderCreateSignedUrlInputDTO } from '../dto/folder-create-signed-url-input.dto'
 import { FolderObjectsListQueryParamsDTO } from '../dto/folder-objects-list-query-params.dto'
@@ -48,6 +53,11 @@ import { FolderService } from '../services/folder.service'
 @UseGuards(AuthGuard)
 @UsePipes(ZodValidationPipe)
 @ApiBearerAuth()
+@ApiExtraModels(
+  InlineMetadataEntryDTO,
+  ExternalMetadataEntryDTO,
+  ContentMetadataEntryDTO,
+)
 export class FoldersController {
   constructor(private readonly folderService: FolderService) {}
 

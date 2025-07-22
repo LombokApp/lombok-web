@@ -171,8 +171,8 @@ export const FolderObjectSidebar = ({
                     <span className="font-mono">{`(${folderObject.sizeBytes.toLocaleString()} bytes)`}</span>
                   </dd>
                 </div>
-                {metadata.width?.external === 'false' &&
-                metadata.height?.external === 'false' &&
+                {metadata.width?.type === 'inline' &&
+                metadata.height?.type === 'inline' &&
                 metadata.height.content &&
                 metadata.width.content ? (
                   <div className="flex w-full flex-none items-center gap-x-4">

@@ -878,6 +878,28 @@ export interface components {
                 updatedAt: string;
             }[];
         };
+        InlineMetadataEntryDTO: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "inline";
+            mimeType: string;
+            size: number;
+            content: string;
+        };
+        ExternalMetadataEntryDTO: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "external";
+            storageKey: string;
+            mimeType: string;
+            size: number;
+            hash: string;
+        };
+        ContentMetadataEntryDTO: components["schemas"]["InlineMetadataEntryDTO"] | components["schemas"]["ExternalMetadataEntryDTO"];
         FolderGetResponse: {
             folder: {
                 /** Format: uuid */
@@ -1072,20 +1094,7 @@ export interface components {
                 mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
                 contentMetadata: {
                     [key: string]: {
-                        [key: string]: {
-                            /** @enum {string} */
-                            external: "true";
-                            storageKey: string;
-                            mimeType: string;
-                            size: number;
-                            hash: string;
-                        } | {
-                            /** @enum {string} */
-                            external: "false";
-                            mimeType: string;
-                            size: number;
-                            content: string;
-                        };
+                        [key: string]: components["schemas"]["ContentMetadataEntryDTO"];
                     };
                 };
             }[];
@@ -1106,20 +1115,7 @@ export interface components {
                 mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
                 contentMetadata: {
                     [key: string]: {
-                        [key: string]: {
-                            /** @enum {string} */
-                            external: "true";
-                            storageKey: string;
-                            mimeType: string;
-                            size: number;
-                            hash: string;
-                        } | {
-                            /** @enum {string} */
-                            external: "false";
-                            mimeType: string;
-                            size: number;
-                            content: string;
-                        };
+                        [key: string]: components["schemas"]["ContentMetadataEntryDTO"];
                     };
                 };
             };
