@@ -71,7 +71,7 @@ export const FolderObjectPreview = ({
 
   const dataURL = file === false ? undefined : file.dataURL
   const mediaType =
-    mimeType && !mimeType.external
+    mimeType && mimeType.type === 'inline'
       ? mediaTypeFromMimeType(mimeType.content)
       : mediaTypeFromExtension(folderObject?.objectKey.split('.').at(-1) ?? '')
 

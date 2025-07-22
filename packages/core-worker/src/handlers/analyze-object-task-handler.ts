@@ -168,48 +168,48 @@ export const analyzeObjectTaskHandler = async (
       })
 
     metadataDescription.compressedVersion = {
-      external: 'true',
+      type: 'external',
       hash: metadataHashes.compressedVersion,
       mimeType: outMimeType,
       size: fs.statSync(compressedOutFilePath).size,
       storageKey: metadataHashes.compressedVersion,
     }
     metadataDescription.thumbnailLg = {
-      external: 'true',
+      type: 'external',
       hash: metadataHashes.thumbnailLg,
       mimeType: outMimeType,
       size: fs.statSync(lgThumbnailOutFilePath).size,
       storageKey: metadataHashes.thumbnailLg,
     }
     metadataDescription.thumbnailSm = {
-      external: 'true',
+      type: 'external',
       hash: metadataHashes.thumbnailSm,
       mimeType: outMimeType,
       size: fs.statSync(smThumbnailOutFilePath).size,
       storageKey: metadataHashes.thumbnailSm,
     }
     metadataDescription.height = {
-      external: 'false',
+      type: 'inline',
       size: Buffer.from(JSON.stringify(scaleResult?.originalHeight ?? 0))
         .length,
       content: `${scaleResult?.originalHeight ?? 0}`,
       mimeType: 'application/json',
     }
     metadataDescription.width = {
-      external: 'false',
+      type: 'inline',
       size: Buffer.from(JSON.stringify(scaleResult?.originalWidth ?? 0)).length,
       content: `${scaleResult?.originalWidth ?? 0}`,
       mimeType: 'application/json',
     }
     metadataDescription.orientation = {
-      external: 'false',
+      type: 'inline',
       size: Buffer.from(JSON.stringify(rotation ?? 0)).length,
       content: `${rotation ?? 0}`,
       mimeType: 'application/json',
     }
     if (MediaType.Video === mediaType) {
       metadataDescription.lengthMs = {
-        external: 'false',
+        type: 'inline',
         size: Buffer.from(
           JSON.stringify((scaleResult as any | undefined)?.lengthMs ?? 0),
         ).length,

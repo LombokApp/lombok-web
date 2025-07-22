@@ -13,32 +13,40 @@ export enum ThumbnailSize {
   Small = 'small',
 }
 
-export const metadataEntrySchema = z.discriminatedUnion('external', [
-  z.object({
-    external: z.literal("true"),
-    storageKey: z.string(),
-    mimeType: z.string(),
-    size: z.number(),
-    hash: z.string(),
-  }),
-  z.object({
-    external: z.literal("false"),
-    mimeType: z.string(),
-    size: z.number(),
-    content: z.string(),
-  }),
+export const externalMetadataEntrySchema = z.object({
+  type: z.literal("external"),
+  storageKey: z.string(),
+  mimeType: z.string(),
+  size: z.number(),
+  hash: z.string(),
+})
+
+export const inlineMetadataEntrySchema = z.object({
+  type: z.literal("inline"),
+  mimeType: z.string(),
+  size: z.number(),
+  content: z.string(),
+})
+
+export type ExternalMetadataEntry = z.infer<typeof externalMetadataEntrySchema>
+
+export type InlineMetadataEntry = z.infer<typeof inlineMetadataEntrySchema>
+
+export const metadataEntrySchema = z.discriminatedUnion('type', [
+  inlineMetadataEntrySchema,
+  externalMetadataEntrySchema,
 ])
 
 export type ContentMetadataEntry = z.infer<typeof metadataEntrySchema>
 
-export const contentMetadataTypeSchema = z.record(
+export const contentMetadataSchema = z.record(
   z.string(),
   metadataEntrySchema.optional(),
 )
 export const contentMetadataByHashSchema = z.record(
   z.string(),
-  contentMetadataTypeSchema.optional(),
+  contentMetadataSchema.optional(),
 )
 
-export type ContentMetadataType = z.infer<typeof contentMetadataTypeSchema>
+export type ContentMetadataType = z.infer<typeof contentMetadataSchema>
 export type ContentMetadataByHash = z.infer<typeof contentMetadataByHashSchema>
