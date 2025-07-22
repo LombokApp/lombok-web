@@ -9,8 +9,8 @@ export interface AuthenticatorStateType {
 }
 
 export interface TokensType {
-  accessToken?: string
-  refreshToken?: string
+  accessToken: string
+  refreshToken: string
 }
 
 export type AuthenticatorEventNames = 'onStateChanged'
@@ -22,7 +22,7 @@ export class Authenticator {
   }
   private readonly eventTarget =
     typeof window !== 'undefined' ? new EventTarget() : undefined
-  private readonly tokens: TokensType = {}
+  private readonly tokens: Partial<TokensType> = {}
   private readonly $apiClient: ReturnType<typeof createFetchClient<paths>>
   private readonly onTokensCreated?: (tokens: {
     accessToken: string

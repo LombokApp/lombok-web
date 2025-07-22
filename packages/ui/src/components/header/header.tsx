@@ -76,7 +76,7 @@ export const Header = () => {
                 >
                   <div className="flex items-center gap-2">
                     <div className="shrink-0">Signup</div>
-                    <ArrowRight className="dark:text-white" size="sm" />
+                    <ArrowRight className="text-background" />
                   </div>
                 </Button>
               )}
@@ -84,7 +84,7 @@ export const Header = () => {
                 <Button size="sm" onClick={handleLoginSignupClick}>
                   <div className="flex items-center gap-2">
                     <div className="shrink-0">Login</div>
-                    <ArrowRight className="dark:text-white" size="sm" />
+                    <ArrowRight className="text-background" />
                   </div>
                 </Button>
               )}

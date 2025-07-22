@@ -23,12 +23,10 @@ const loadTokens = () => {
 }
 
 const saveTokens = ({ accessToken, refreshToken }: TokensType) => {
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  Cookies.set(COOKIES_ACCESS_TOKEN, accessToken!, {
+  Cookies.set(COOKIES_ACCESS_TOKEN, accessToken, {
     sameSite: 'strict',
   })
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  Cookies.set(COOKIES_REFRESH_TOKEN, refreshToken!, {
+  Cookies.set(COOKIES_REFRESH_TOKEN, refreshToken, {
     sameSite: 'strict',
   })
 }
@@ -39,6 +37,10 @@ export const sdkInstance = new StellarisCloudSdk({
   refreshToken: () => loadTokens().refreshToken,
   onTokensRefreshed: (tokens) => saveTokens(tokens),
   onTokensCreated: (tokens) => saveTokens(tokens),
+  onLogout: () => {
+    Cookies.remove(COOKIES_ACCESS_TOKEN)
+    Cookies.remove(COOKIES_REFRESH_TOKEN)
+  },
 })
 
 export const $apiClient = sdkInstance.apiClient
