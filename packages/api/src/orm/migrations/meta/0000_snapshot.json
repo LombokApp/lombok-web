@@ -1,5 +1,5 @@
 {
-  "id": "d9ab54ce-461b-4d75-a52c-75904f1c28db",
+  "id": "320fc0bc-01ea-4fbf-8a17-9ba0c7f87ab0",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -258,7 +258,56 @@
           "notNull": true
         }
       },
-      "indexes": {},
+      "indexes": {
+        "folder_objects_folder_id_media_type_size_bytes_idx": {
+          "name": "folder_objects_folder_id_media_type_size_bytes_idx",
+          "columns": [
+            {
+              "expression": "folderId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "sizeBytes",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "mediaType",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "folder_objects_folder_id_media_type_idx": {
+          "name": "folder_objects_folder_id_media_type_idx",
+          "columns": [
+            {
+              "expression": "folderId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "mediaType",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},

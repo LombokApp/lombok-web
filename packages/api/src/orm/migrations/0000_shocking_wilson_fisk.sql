@@ -131,5 +131,7 @@ ALTER TABLE "folders" ADD CONSTRAINT "folders_ownerId_users_id_fk" FOREIGN KEY (
 ALTER TABLE "storage_locations" ADD CONSTRAINT "storage_locations_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tasks" ADD CONSTRAINT "tasks_triggeringEventId_events_id_fk" FOREIGN KEY ("triggeringEventId") REFERENCES "public"."events"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tasks" ADD CONSTRAINT "tasks_subjectFolderId_folders_id_fk" FOREIGN KEY ("subjectFolderId") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "folder_objects_folder_id_media_type_size_bytes_idx" ON "folder_objects" USING btree ("folderId","sizeBytes","mediaType");--> statement-breakpoint
+CREATE INDEX "folder_objects_folder_id_media_type_idx" ON "folder_objects" USING btree ("folderId","mediaType");--> statement-breakpoint
 CREATE INDEX "user_idx" ON "folder_shares" USING btree ("userId");--> statement-breakpoint
 CREATE UNIQUE INDEX "folder_user_unique" ON "folder_shares" USING btree ("folderId","userId");
