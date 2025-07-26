@@ -57,10 +57,6 @@ export const FolderObjectPreview = ({
     }
   }, [file, folderId, getData, previewObjectKey])
 
-  if (file === undefined) {
-    return null
-  }
-
   const contentMetadata =
     folderObject?.hash && folderObject.hash in folderObject.contentMetadata
       ? folderObject.contentMetadata[folderObject.hash]
@@ -69,7 +65,7 @@ export const FolderObjectPreview = ({
   const mimeType =
     folderObject?.hash && contentMetadata ? contentMetadata.mimeType : undefined
 
-  const dataURL = file === false ? undefined : file.dataURL
+  const dataURL = file === false ? undefined : file?.dataURL
   const mediaType =
     mimeType && mimeType.type === 'inline'
       ? mediaTypeFromMimeType(mimeType.content)
@@ -78,7 +74,6 @@ export const FolderObjectPreview = ({
   const isCoverView = displayMode === 'object-cover'
 
   const IconComponent = iconForMediaType(mediaType)
-
   return (
     <div
       className={cn(
@@ -112,8 +107,8 @@ export const FolderObjectPreview = ({
           </div>
         ) : (
           <div className="flex size-full flex-col items-center justify-around">
-            <div className="flex items-center justify-center rounded-full p-10">
-              <IconComponent className="size-24 stroke-foreground opacity-30 md:size-36 lg:size-48" />
+            <div className="flex items-center justify-center rounded-full">
+              <IconComponent className="size-20 stroke-foreground opacity-30 lg:size-24" />
             </div>
           </div>
         )}
