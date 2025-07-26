@@ -26,7 +26,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.3.5",
-    "@tanstack/react-query": "^5.75.4",
+    "@tanstack/react-query": "^5.83.0",
     "react-router-dom": "^7.2.0",
     "react-use": "^17.6.0",
     "socket.io-client": "^4.8.1",
