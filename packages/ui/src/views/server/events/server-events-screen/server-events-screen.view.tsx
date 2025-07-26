@@ -1,25 +1,50 @@
 import type { ListServerEventsRequest } from '@stellariscloud/types'
-import { cn, DataTable } from '@stellariscloud/ui-toolkit'
+import {
+  cn,
+  convertFiltersToSearchParams,
+  DataTable,
+  type FilterConfig,
+  readFiltersFromSearchParams,
+} from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { BugIcon, InfoIcon, OctagonAlert, TriangleAlert } from 'lucide-react'
 import React from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 import { $api } from '@/src/services/api'
 
 import { serverEventsTableColumns } from './server-events-table-columns'
 
+const FILTER_CONFIGS: Record<string, FilterConfig> = {
+  search: { isSearchFilter: true },
+  level: { paramPrefix: 'level' },
+}
+
 export function ServerEventsScreen() {
-  const [filters, setFilters] = React.useState<
-    { id: string; value: unknown }[]
-  >([])
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [filters, setFilters] = React.useState<Record<string, string[]>>(
+    readFiltersFromSearchParams(searchParams, FILTER_CONFIGS),
+  )
+
+  const onFiltersChange = React.useCallback(
+    (newFilters: Record<string, string[]>) => {
+      setFilters(newFilters)
+      setSearchParams(
+        convertFiltersToSearchParams(newFilters, searchParams, FILTER_CONFIGS),
+      )
+    },
+    [setSearchParams, searchParams],
+  )
 
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   })
-  const searchFilter = filters.find((f) => f.id === '__HIDDEN__')
-  const levelFilterValue = filters.find((f) => f.id === 'level')?.value ?? []
+
+  const searchFilterValue =
+    'search' in filters ? filters['search'][0] : undefined
+  const levelFilterValue = filters['level'] ?? []
 
   const listServerEventsQuery = $api.useQuery('get', '/api/v1/server/events', {
     params: {
@@ -29,26 +54,15 @@ export function ServerEventsScreen() {
         sort: sorting[0]
           ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ListServerEventsRequest['sort'])
           : undefined,
-        ...(typeof searchFilter?.value === 'string'
-          ? {
-              search: searchFilter.value,
-            }
-          : {}),
-        ...((levelFilterValue as string[]).includes('TRACE')
-          ? { includeTrace: 'true' as const }
-          : {}),
-        ...((levelFilterValue as string[]).includes('DEBUG')
-          ? { includeDebug: 'true' as const }
-          : {}),
-        ...((levelFilterValue as string[]).includes('INFO')
-          ? { includeInfo: 'true' as const }
-          : {}),
-        ...((levelFilterValue as string[]).includes('WARNING')
-          ? { includeWarning: 'true' as const }
-          : {}),
-        ...((levelFilterValue as string[]).includes('ERROR')
-          ? { includeError: 'true' as const }
-          : {}),
+        search:
+          typeof searchFilterValue === 'string' ? searchFilterValue : undefined,
+        includeTrace: levelFilterValue.includes('TRACE') ? 'true' : undefined,
+        includeDebug: levelFilterValue.includes('DEBUG') ? 'true' : undefined,
+        includeInfo: levelFilterValue.includes('INFO') ? 'true' : undefined,
+        includeWarning: levelFilterValue.includes('WARNING')
+          ? 'true'
+          : undefined,
+        includeError: levelFilterValue.includes('ERROR') ? 'true' : undefined,
       },
     },
   })
@@ -58,13 +72,13 @@ export function ServerEventsScreen() {
       <DataTable
         title="Events"
         enableSearch={true}
-        searchColumn="__HIDDEN__"
-        onColumnFiltersChange={(updatedValues) => setFilters(updatedValues)}
+        filters={filters}
+        onColumnFiltersChange={onFiltersChange}
         rowCount={events?.meta.totalCount}
         data={events?.result ?? []}
         columns={serverEventsTableColumns}
-        onPaginationChange={(updatedValues) => setPagination(updatedValues)}
-        onSortingChange={(updatedValues) => setSorting(updatedValues)}
+        onPaginationChange={setPagination}
+        onSortingChange={setSorting}
         filterOptions={{
           level: {
             label: 'Level',

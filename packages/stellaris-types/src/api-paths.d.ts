@@ -2058,6 +2058,11 @@ export interface operations {
                 limit?: number;
                 search?: string;
                 sort?: "size-asc" | "size-desc" | "filename-asc" | "filename-desc" | "objectKey-asc" | "objectKey-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc";
+                includeImage?: "true";
+                includeVideo?: "true";
+                includeAudio?: "true";
+                includeDocument?: "true";
+                includeUnknown?: "true";
             };
             header?: never;
             path: {

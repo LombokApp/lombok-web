@@ -1,8 +1,16 @@
-import { Button, DataTable, useToast } from '@stellariscloud/ui-toolkit'
+import type { FolderListRequest } from '@stellariscloud/types'
+import {
+  Button,
+  convertFiltersToSearchParams,
+  DataTable,
+  type FilterConfig,
+  readFiltersFromSearchParams,
+  useToast,
+} from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { PlusIcon } from 'lucide-react'
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { $api } from '@/src/services/api'
 
@@ -10,18 +18,35 @@ import type { CreateFolderModalData } from './create-folder-modal'
 import { CreateFolderModal } from './create-folder-modal'
 import { foldersTableColumns } from './folders-table-columns'
 
+const FILTER_CONFIGS: Record<string, FilterConfig> = {
+  search: { isSearchFilter: true },
+}
+
 export const FoldersScreen = () => {
   const navigate = useNavigate()
-  const [filters, setFilters] = React.useState<
-    { id: string; value: unknown }[]
-  >([])
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [filters, setFilters] = React.useState<Record<string, string[]>>(
+    readFiltersFromSearchParams(searchParams, FILTER_CONFIGS),
+  )
+
+  const onFiltersChange = React.useCallback(
+    (newFilters: Record<string, string[]>) => {
+      setFilters(newFilters)
+      setSearchParams(
+        convertFiltersToSearchParams(newFilters, searchParams, FILTER_CONFIGS),
+      )
+    },
+    [setSearchParams, searchParams],
+  )
 
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   })
-  const searchFilter = filters.find((f) => f.id === 'name')
+
+  const searchFilterValue =
+    'search' in filters ? filters['search'][0] : undefined
 
   const { data: userStorageProvisions, refetch: refetchUserStorageProvisions } =
     $api.useQuery(
@@ -43,16 +68,18 @@ export const FoldersScreen = () => {
     'get',
     '/api/v1/folders',
     {
-      queries: {
-        limit: pagination.pageSize,
-        offset: pagination.pageSize * pagination.pageIndex,
-        sort: sorting[0]
-          ? `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}`
-          : undefined,
-        search:
-          typeof searchFilter?.value === 'string'
-            ? searchFilter.value
+      params: {
+        query: {
+          limit: pagination.pageSize,
+          offset: pagination.pageSize * pagination.pageIndex,
+          sort: sorting[0]
+            ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as FolderListRequest['sort'])
             : undefined,
+          search:
+            typeof searchFilterValue === 'string'
+              ? searchFilterValue
+              : undefined,
+        },
       },
     },
   )
@@ -76,8 +103,8 @@ export const FoldersScreen = () => {
       <DataTable
         title="Folders"
         enableSearch={true}
-        searchColumn="name"
-        onColumnFiltersChange={setFilters}
+        filters={filters}
+        onColumnFiltersChange={onFiltersChange}
         searchPlaceholder="Search Folders..."
         rowCount={folders?.meta.totalCount}
         data={folders?.result ?? []}

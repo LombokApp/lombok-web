@@ -18,6 +18,11 @@ export const folderObjectsListQueryParamsSchema = z.object({
     .optional(),
   search: z.string().optional(),
   sort: z.nativeEnum(FolderObjectSort).optional(),
+  includeImage: z.literal('true').optional(),
+  includeVideo: z.literal('true').optional(),
+  includeAudio: z.literal('true').optional(),
+  includeDocument: z.literal('true').optional(),
+  includeUnknown: z.literal('true').optional(),
 })
 
 export class FolderObjectsListQueryParamsDTO extends createZodDto(

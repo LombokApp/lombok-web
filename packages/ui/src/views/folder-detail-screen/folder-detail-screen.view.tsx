@@ -6,25 +6,29 @@ import { FolderPermissionEnum, FolderPushMessage } from '@stellariscloud/types'
 import {
   Button,
   cn,
+  convertFiltersToSearchParams,
   DataTable,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  type FilterConfig,
+  readFiltersFromSearchParams,
   useToast,
 } from '@stellariscloud/ui-toolkit'
-import type {
-  ColumnFiltersState,
-  PaginationState,
-  SortingState,
-} from '@tanstack/table-core'
+import type { PaginationState, SortingState } from '@tanstack/table-core'
 import {
   CloudUpload,
   Ellipsis,
+  FileText,
   Folder,
   FolderSync,
+  HelpCircle,
+  Image,
+  Radio,
   Share2,
   Trash,
+  Video,
 } from 'lucide-react'
 import React from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -48,9 +52,13 @@ import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
 import { folderObjectsTableColumns } from './folder-objects-table-columns'
 import { FolderShareModal } from './folder-share-modal/folder-share-modal'
 
+const FILTER_CONFIGS: Record<string, FilterConfig> = {
+  search: { isSearchFilter: true },
+  mediaType: { paramPrefix: 'mediaType' },
+}
+
 export const FolderDetailScreen = () => {
   const navigate = useNavigate()
-  // const query = useQuery()
   const [searchParams, setSearchParams] = useSearchParams()
   const { toast } = useToast()
 
@@ -61,15 +69,9 @@ export const FolderDetailScreen = () => {
 
   const params = useParams()
   const [folderId, focusedObjectKeyFromParams] = params['*']?.split('/') ?? []
-  // const [queryParams] = useSearchParams()
-  const [filters, setFilters] = React.useState<
-    { id: string; value: unknown }[]
-  >(
-    searchParams.get('search')
-      ? [{ id: 'search', value: searchParams.get('search') }]
-      : [],
+  const [filters, setFilters] = React.useState<Record<string, string[]>>(
+    readFiltersFromSearchParams(searchParams, FILTER_CONFIGS),
   )
-  const searchFilter = filters.find((f) => f.id === 'main')
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
   const { uploadFile, uploadingProgress } = useLocalFileCacheContext()
 
@@ -117,6 +119,11 @@ export const FolderDetailScreen = () => {
     pageIndex: pageFromUrl ? parseInt(pageFromUrl, 10) - 1 : 0,
     pageSize: 10,
   })
+
+  const searchFilterValue =
+    'search' in filters ? filters['search'][0] : undefined
+  const mediaTypeFilterValue = filters['mediaType'] ?? []
+
   const listFolderObjectsQuery = $api.useQuery(
     'get',
     '/api/v1/folders/{folderId}/objects',
@@ -128,9 +135,25 @@ export const FolderDetailScreen = () => {
         query: {
           limit: pagination.pageSize,
           offset: pagination.pageIndex * pagination.pageSize,
-          ...(searchFilter?.value
-            ? { search: searchFilter.value as string }
-            : {}),
+          search:
+            typeof searchFilterValue === 'string'
+              ? searchFilterValue
+              : undefined,
+          includeImage: mediaTypeFilterValue.includes('IMAGE')
+            ? 'true'
+            : undefined,
+          includeVideo: mediaTypeFilterValue.includes('VIDEO')
+            ? 'true'
+            : undefined,
+          includeAudio: mediaTypeFilterValue.includes('AUDIO')
+            ? 'true'
+            : undefined,
+          includeDocument: mediaTypeFilterValue.includes('DOCUMENT')
+            ? 'true'
+            : undefined,
+          includeUnknown: mediaTypeFilterValue.includes('UNKNOWN')
+            ? 'true'
+            : undefined,
           sort: sorting[0]
             ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ListFolderObjectsSortRequest['sort'])
             : undefined,
@@ -221,16 +244,11 @@ export const FolderDetailScreen = () => {
   )
 
   const handleFiltersChange = React.useCallback(
-    (newFilters: ColumnFiltersState) => {
+    (newFilters: Record<string, string[]>) => {
       setFilters(newFilters)
-      setSearchParams({
-        ...searchParams,
-        ...('search' in newFilters ? { search: newFilters.search } : {}),
-      })
-      const newSearchParams = {}
-
-      // newSearchParams[]
-      setSearchParams(newSearchParams)
+      setSearchParams(
+        convertFiltersToSearchParams(newFilters, searchParams, FILTER_CONFIGS),
+      )
     },
     [setSearchParams, searchParams],
   )
@@ -469,7 +487,7 @@ export const FolderDetailScreen = () => {
                       cellPadding={'p-1.5'}
                       hideHeader={true}
                       enableSearch={true}
-                      searchColumn={'main'}
+                      filters={filters}
                       onColumnFiltersChange={handleFiltersChange}
                       rowCount={folderContext.folderMetadata?.totalCount ?? 0}
                       data={listFolderObjectsQuery.data?.result ?? []}
@@ -477,6 +495,34 @@ export const FolderDetailScreen = () => {
                       onPaginationChange={handlePaginationChange}
                       pageIndex={pagination.pageIndex}
                       onSortingChange={setSorting}
+                      filterOptions={{
+                        mediaType: {
+                          label: 'Media Type',
+                          options: [
+                            {
+                              value: 'IMAGE',
+                              label: 'Images',
+                              icon: Image,
+                            },
+                            {
+                              value: 'VIDEO',
+                              label: 'Videos',
+                              icon: Video,
+                            },
+                            { value: 'AUDIO', label: 'Audio', icon: Radio },
+                            {
+                              value: 'DOCUMENT',
+                              label: 'Documents',
+                              icon: FileText,
+                            },
+                            {
+                              value: 'UNKNOWN',
+                              label: 'Unknown',
+                              icon: HelpCircle,
+                            },
+                          ],
+                        },
+                      }}
                     />
                   </div>
                 </div>

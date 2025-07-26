@@ -6,22 +6,42 @@ import {
   CardHeader,
   CardTitle,
   cn,
+  convertFiltersToSearchParams,
   DataTable,
+  type FilterConfig,
+  readFiltersFromSearchParams,
 } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { AlertTriangle, InfoIcon, MessageSquare, XCircle } from 'lucide-react'
 import React from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 import { useFolderContext } from '@/src/pages/folders/folder.context'
 import { $api } from '@/src/services/api'
 
 import { folderEventsTableColumns } from './folder-events-table-columns'
 
+const FILTER_CONFIGS: Record<string, FilterConfig> = {
+  search: { isSearchFilter: true },
+  level: { paramPrefix: 'level' },
+}
+
 export function FolderEventsScreen() {
   const { folderId, folder } = useFolderContext()
-  const [filters, setFilters] = React.useState<
-    { id: string; value: unknown }[]
-  >([])
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [filters, setFilters] = React.useState<Record<string, string[]>>(
+    readFiltersFromSearchParams(searchParams, FILTER_CONFIGS),
+  )
+
+  const onFiltersChange = React.useCallback(
+    (newFilters: Record<string, string[]>) => {
+      setFilters(newFilters)
+      setSearchParams(
+        convertFiltersToSearchParams(newFilters, searchParams, FILTER_CONFIGS),
+      )
+    },
+    [setSearchParams, searchParams],
+  )
 
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [pagination, setPagination] = React.useState<PaginationState>({
@@ -29,8 +49,9 @@ export function FolderEventsScreen() {
     pageSize: 10,
   })
 
-  const searchFilter = filters.find((f) => f.id === 'eventKey')
-  const levelFilterValue = filters.find((f) => f.id === 'level')?.value ?? []
+  const searchFilterValue =
+    'search' in filters ? filters['search'][0] : undefined
+  const levelFilterValue = filters['level'] ?? []
 
   const { data: listFolderEventsQuery } = $api.useQuery(
     'get',
@@ -47,24 +68,16 @@ export function FolderEventsScreen() {
             ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as FolderEventsListRequest['sort'])
             : undefined,
           search:
-            typeof searchFilter?.value === 'string'
-              ? searchFilter.value
+            typeof searchFilterValue === 'string'
+              ? searchFilterValue
               : undefined,
-          includeError: (levelFilterValue as string[]).includes('ERROR')
+          includeError: levelFilterValue.includes('ERROR') ? 'true' : undefined,
+          includeWarning: levelFilterValue.includes('WARN')
             ? 'true'
             : undefined,
-          includeWarning: (levelFilterValue as string[]).includes('WARN')
-            ? 'true'
-            : undefined,
-          includeInfo: (levelFilterValue as string[]).includes('INFO')
-            ? 'true'
-            : undefined,
-          includeDebug: (levelFilterValue as string[]).includes('DEBUG')
-            ? 'true'
-            : undefined,
-          includeTrace: (levelFilterValue as string[]).includes('TRACE')
-            ? 'true'
-            : undefined,
+          includeInfo: levelFilterValue.includes('INFO') ? 'true' : undefined,
+          includeDebug: levelFilterValue.includes('DEBUG') ? 'true' : undefined,
+          includeTrace: levelFilterValue.includes('TRACE') ? 'true' : undefined,
         },
       },
     },
@@ -81,8 +94,8 @@ export function FolderEventsScreen() {
           <CardContent className="p-0">
             <DataTable
               enableSearch={true}
-              searchColumn={'eventKey'}
-              onColumnFiltersChange={setFilters}
+              filters={filters}
+              onColumnFiltersChange={onFiltersChange}
               rowCount={listFolderEventsQuery?.meta.totalCount}
               data={listFolderEventsQuery?.result ?? []}
               columns={folderEventsTableColumns}

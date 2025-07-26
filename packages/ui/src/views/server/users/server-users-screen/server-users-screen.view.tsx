@@ -1,7 +1,16 @@
-import { Button, cn, DataTable } from '@stellariscloud/ui-toolkit'
+import type { ServerUsersListRequest } from '@stellariscloud/types'
+import {
+  Button,
+  cn,
+  convertFiltersToSearchParams,
+  DataTable,
+  type FilterConfig,
+  readFiltersFromSearchParams,
+} from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { Plus } from 'lucide-react'
 import React from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 import { $api } from '@/src/services/api'
 
@@ -13,6 +22,10 @@ import type { ServerUserModalData } from '../server-user-modal/server-user-modal
 import { ServerUserModal } from '../server-user-modal/server-user-modal'
 import { serverUsersTableColumns } from './server-users-table-columns'
 
+const FILTER_CONFIGS: Record<string, FilterConfig> = {
+  search: { isSearchFilter: true },
+}
+
 export function ServerUsersScreen() {
   const [modalData, setModalData] = React.useState<ServerUserModalData>({
     user: undefined,
@@ -20,31 +33,46 @@ export function ServerUsersScreen() {
     isOpen: false,
   })
 
-  const [filters, setFilters] = React.useState<
-    { id: string; value: unknown }[]
-  >([])
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [filters, setFilters] = React.useState<Record<string, string[]>>(
+    readFiltersFromSearchParams(searchParams, FILTER_CONFIGS),
+  )
+
+  const onFiltersChange = React.useCallback(
+    (newFilters: Record<string, string[]>) => {
+      setFilters(newFilters)
+      setSearchParams(
+        convertFiltersToSearchParams(newFilters, searchParams, FILTER_CONFIGS),
+      )
+    },
+    [setSearchParams, searchParams],
+  )
 
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   })
-  const searchFilter = filters.find((f) => f.id === '__HIDDEN__')
+
+  const searchFilterValue =
+    'search' in filters ? filters['search'][0] : undefined
 
   const { data: users, refetch: refetchUsers } = $api.useQuery(
     'get',
     '/api/v1/server/users',
     {
-      queries: {
-        limit: pagination.pageSize,
-        offset: pagination.pageSize * pagination.pageIndex,
-        sort: sorting[0]
-          ? `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}`
-          : undefined,
-        search:
-          typeof searchFilter?.value === 'string'
-            ? searchFilter.value
+      params: {
+        query: {
+          limit: pagination.pageSize,
+          offset: pagination.pageSize * pagination.pageIndex,
+          sort: sorting[0]
+            ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ServerUsersListRequest['sort'])
             : undefined,
+          search:
+            typeof searchFilterValue === 'string'
+              ? searchFilterValue
+              : undefined,
+        },
       },
     },
   )
@@ -109,8 +137,8 @@ export function ServerUsersScreen() {
       </div>
       <DataTable
         enableSearch={true}
-        searchColumn="__HIDDEN__"
-        onColumnFiltersChange={setFilters}
+        filters={filters}
+        onColumnFiltersChange={onFiltersChange}
         rowCount={users?.meta.totalCount}
         data={users?.result ?? []}
         columns={serverUsersTableColumns}

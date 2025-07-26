@@ -2,8 +2,6 @@
 
 import type {
   ColumnDef,
-  ColumnFiltersState,
-  FilterFn,
   PaginationState,
   SortingState,
   TableOptions,
@@ -12,9 +10,6 @@ import type {
 import {
   flexRender,
   getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
@@ -39,13 +34,10 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   title?: string
-  filterFns?: Record<string, FilterFn<TValue>>
+  filters?: Record<string, string[]>
   filterOptions?: Record<string, ColumnFilterOptions>
-  manualFiltering?: boolean
-  manualSorting?: boolean
   enableRowSelection?: boolean
   enableSearch?: boolean
-  searchColumn?: string
   searchPlaceholder?: string
   actionComponent?: React.ReactNode
   cellPadding?: string
@@ -54,7 +46,7 @@ interface DataTableProps<TData, TValue> {
 }
 
 interface TableHandlerProps<TData> {
-  onColumnFiltersChange?: (columnFiltersState: ColumnFiltersState) => void
+  onColumnFiltersChange?: (filters: Record<string, string[]>) => void
   onSortingChange?: TableOptions<TData>['onSortingChange']
   onPaginationChange?: (paginationState: PaginationState) => void
   rowCount?: TableOptions<TData>['rowCount']
@@ -64,7 +56,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   title,
-  filterFns,
+  filters = {},
   filterOptions = {},
   rowCount = data.length,
   onColumnFiltersChange,
@@ -73,20 +65,15 @@ export function DataTable<TData, TValue>({
   onPaginationChange,
   enableRowSelection = false,
   enableSearch = false,
-  searchColumn,
   hideHeader = false,
   pageIndex = 0,
   searchPlaceholder,
-  manualFiltering = true,
-  manualSorting = true,
   actionComponent,
 }: DataTableProps<TData, TValue> & TableHandlerProps<TData>) {
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
-  )
+
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex,
@@ -96,17 +83,15 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     rowCount,
-    manualFiltering,
-    manualSorting,
+    manualFiltering: true,
+    manualSorting: true,
     manualPagination: true,
     columns,
-    filterFns,
     enableGlobalFilter: false,
     state: {
       sorting,
       columnVisibility,
       rowSelection,
-      columnFilters,
       pagination,
     },
     enableRowSelection,
@@ -126,27 +111,12 @@ export function DataTable<TData, TValue>({
       }
       setPagination(updated)
     },
-    onColumnFiltersChange: (updater) => {
-      const updated =
-        updater instanceof Function ? updater(columnFilters) : updater
-      if (onColumnFiltersChange) {
-        onColumnFiltersChange(updated)
-      }
-      setColumnFilters(updated)
-    },
     autoResetPageIndex: false,
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
   })
-
-  if (enableSearch && !searchColumn) {
-    throw new Error('Must set `searchColumn` if `enableSearch` is true.')
-  }
 
   return (
     <div className={cn('size-full gap-2 flex flex-col')}>
@@ -157,10 +127,10 @@ export function DataTable<TData, TValue>({
           title={title}
           actionComponent={actionComponent}
           enableSearch={enableSearch}
-          searchColumn={searchColumn}
           searchPlaceholder={searchPlaceholder}
           filterOptions={filterOptions}
-          table={table}
+          filters={filters}
+          onFiltersChange={onColumnFiltersChange}
         />
       )}
       <div className="vertical-scrollbar-container">
