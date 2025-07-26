@@ -1,5 +1,4 @@
 import { cn, DataTable } from '@stellariscloud/ui-toolkit'
-import type { ColumnFiltersState, Updater } from '@tanstack/react-table'
 import React from 'react'
 
 import { $api } from '@/src/services/api'
@@ -12,15 +11,6 @@ export function ServerAppsScreen() {
   const [filters, setFilters] = React.useState<
     { id: string; value: unknown }[]
   >([])
-
-  const handleColumnFiltersChange = React.useCallback(
-    (updater: Updater<ColumnFiltersState>) => {
-      setFilters((old) =>
-        updater instanceof Function ? updater(old) : updater,
-      )
-    },
-    [],
-  )
 
   const searchFilterValue = filters.find((f) => f.id === 'identifier')
     ?.value as string | undefined
@@ -40,7 +30,7 @@ export function ServerAppsScreen() {
               : installedApps.result
             : []
         }
-        onColumnFiltersChange={handleColumnFiltersChange}
+        onColumnFiltersChange={setFilters}
         columns={serverAppsTableColumns}
       />
     </div>

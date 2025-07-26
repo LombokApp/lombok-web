@@ -41,7 +41,9 @@ export function FolderTasksScreen() {
         query: {
           limit: pagination.pageSize,
           offset: pagination.pageSize * pagination.pageIndex,
-          sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ServerTasksApiListTasksRequest['sort'],
+          sort: sorting[0]
+            ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ServerTasksApiListTasksRequest['sort'])
+            : undefined,
           ...(typeof searchFilter?.value === 'string'
             ? {
                 search: searchFilter.value,
@@ -82,11 +84,7 @@ export function FolderTasksScreen() {
               data={listFolderTasksQuery.data?.result ?? []}
               columns={folderTasksTableColumns}
               onPaginationChange={setPagination}
-              onSortingChange={(updater) => {
-                setSorting((old) =>
-                  updater instanceof Function ? updater(old) : updater,
-                )
-              }}
+              onSortingChange={setSorting}
               filterOptions={{
                 status: {
                   label: 'Status',

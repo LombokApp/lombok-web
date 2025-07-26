@@ -26,11 +26,9 @@ export function ServerEventsScreen() {
       query: {
         limit: pagination.pageSize,
         offset: pagination.pageSize * pagination.pageIndex,
-        ...(sorting[0]
-          ? {
-              sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ListServerEventsRequest['sort'],
-            }
-          : {}),
+        sort: sorting[0]
+          ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ListServerEventsRequest['sort'])
+          : undefined,
         ...(typeof searchFilter?.value === 'string'
           ? {
               search: searchFilter.value,

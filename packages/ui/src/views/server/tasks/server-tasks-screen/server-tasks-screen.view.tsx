@@ -26,11 +26,9 @@ export function ServerTasksScreen() {
       query: {
         limit: pagination.pageSize,
         offset: pagination.pageSize * pagination.pageIndex,
-        ...(sorting[0]
-          ? {
-              sort: `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ListServerTasksRequest['sort'],
-            }
-          : {}),
+        sort: sorting[0]
+          ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ListServerTasksRequest['sort'])
+          : undefined,
         ...(typeof searchFilter?.value === 'string'
           ? {
               search: searchFilter.value,
@@ -63,11 +61,7 @@ export function ServerTasksScreen() {
         data={events?.result ?? []}
         columns={serverTasksTableColumns}
         onPaginationChange={setPagination}
-        onSortingChange={(updater) => {
-          setSorting((old) =>
-            updater instanceof Function ? updater(old) : updater,
-          )
-        }}
+        onSortingChange={setSorting}
         filterOptions={{
           status: {
             label: 'Status',
