@@ -46,8 +46,12 @@ export const ServerUserModal = ({
       }}
     >
       <DialogContent
-        className="top-0 mt-[50%] rounded-none border-0 sm:top-1/2 sm:mt-0 [&_svg]:size-6"
-        aria-describedby={undefined}
+        className="top-0 mt-[50%] sm:top-1/2 sm:mt-0"
+        aria-description={
+          modalData.mutationType === 'CREATE'
+            ? 'Create a user'
+            : 'Edit this user'
+        }
       >
         <DialogHeader>
           <DialogTitle>

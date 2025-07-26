@@ -41,20 +41,21 @@ export const DeleteObjectModal = ({
       }
     >
       <DialogContent
-        className="top-0 mt-[50%] max-w-md rounded-lg border sm:top-1/2 sm:mt-0 [&_svg]:size-6"
-        aria-describedby={undefined}
+        className="top-0 mt-[50%] sm:top-1/2 sm:mt-0"
+        aria-description={`Delete object ${modalData.folderObject?.objectKey}`}
       >
-        <DialogHeader className="text-left">
+        <DialogHeader>
           <div className="flex items-center gap-2">
-            <Trash className="size-6 text-red-500" />
-            <DialogTitle className="text-xl font-semibold">
-              Delete object
-            </DialogTitle>
+            <Trash className="size-6 text-destructive" />
+            <DialogTitle>Delete object</DialogTitle>
           </div>
         </DialogHeader>
-        <DialogDescription className="dark:text-gray-400 text-sm text-gray-600">
-          This will permanently delete the object:
-          <span className="dark:bg-gray-800 mt-2 rounded-md bg-gray-100 p-2 font-mono text-sm">
+        <DialogDescription>
+          Do you want to permanently delete this object? This action cannot be
+          undone.
+          <br />
+          <br />
+          <span className="clear-left rounded-md font-mono font-bold">
             {modalData.folderObject?.objectKey}
           </span>
         </DialogDescription>

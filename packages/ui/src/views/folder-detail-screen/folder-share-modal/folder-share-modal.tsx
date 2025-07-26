@@ -75,8 +75,11 @@ export const FolderShareModal = ({
         }
       }}
     >
-      <DialogContent aria-describedby={undefined}>
-        <DialogHeader className="text-left">
+      <DialogContent
+        className="top-0 mt-[50%] sm:top-1/2 sm:mt-0"
+        aria-description="Share this folder"
+      >
+        <DialogHeader>
           <DialogTitle>Share Folder</DialogTitle>
           <DialogDescription>
             Manage who has access to this folder and what permissions they have.

@@ -45,10 +45,14 @@ const UserStorageProvisionModal = ({
       }}
     >
       <DialogContent
-        className="top-0 mt-[50%] rounded-none border-0 sm:top-1/2 sm:mt-0 [&_svg]:size-6"
-        aria-describedby={undefined}
+        className="top-0 mt-[50%] sm:top-1/2 sm:mt-0"
+        aria-description={
+          modalData.mutationType === 'CREATE'
+            ? 'Add a user storage provision'
+            : 'Edit this user storage provision'
+        }
       >
-        <DialogHeader className="text-left">
+        <DialogHeader>
           <DialogTitle>
             {modalData.mutationType === 'CREATE' ? 'Add a' : 'Edit a'} user
             storage provision.

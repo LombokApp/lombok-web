@@ -32,12 +32,12 @@ export const DeleteFolderModal = ({
     >
       <DialogContent
         className="top-0 mt-[50%] rounded-none border-0 sm:top-1/2 sm:mt-0 [&_svg]:size-6"
-        aria-describedby={undefined}
+        aria-description="Delete folder"
       >
-        <DialogHeader className="text-left">
+        <DialogHeader>
           <DialogTitle>Delete folder</DialogTitle>
         </DialogHeader>
-        <DialogDescription className="text-sm text-gray-600 dark:text-gray-400">
+        <DialogDescription>
           This action will remove the folder from your account, but will not
           delete any files from the underlying storage.
         </DialogDescription>

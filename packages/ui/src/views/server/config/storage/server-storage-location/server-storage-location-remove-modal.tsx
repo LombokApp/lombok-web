@@ -26,10 +26,10 @@ const ServerStorageLocationRemoveModal = ({
       }}
     >
       <DialogContent
-        className="top-0 mt-[50%] rounded-none border-0 sm:top-1/2 sm:mt-0 [&_svg]:size-6"
-        aria-describedby={undefined}
+        className="top-0 mt-[50%] sm:top-1/2 sm:mt-0"
+        aria-description="Remove server storage location"
       >
-        <DialogHeader className="text-left">
+        <DialogHeader>
           <DialogTitle>Remove server storage location</DialogTitle>
           <DialogDescription>
             This will uninstall any apps which rely on server storage.
