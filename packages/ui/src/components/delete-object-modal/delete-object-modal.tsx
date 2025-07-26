@@ -54,9 +54,9 @@ export const DeleteObjectModal = ({
         </DialogHeader>
         <DialogDescription className="dark:text-gray-400 text-sm text-gray-600">
           This will permanently delete the object:
-          <div className="dark:bg-gray-800 mt-2 rounded-md bg-gray-100 p-2 font-mono text-sm">
+          <span className="dark:bg-gray-800 mt-2 rounded-md bg-gray-100 p-2 font-mono text-sm">
             {modalData.folderObject?.objectKey}
-          </div>
+          </span>
         </DialogDescription>
         <DialogFooter className="mt-4 flex justify-end gap-3">
           <Button variant="ghost" onClick={handleCancel}>
