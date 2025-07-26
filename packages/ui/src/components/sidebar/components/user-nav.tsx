@@ -1,5 +1,4 @@
-'use client'
-
+import type { UserDTO } from '@stellariscloud/types'
 import {
   Avatar,
   AvatarFallback,
@@ -13,14 +12,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   Tooltip,
-  TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@stellariscloud/ui-toolkit'
 import { LayoutGrid, LogOut, User } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-export function UserNav({ onSignout }: { onSignout: () => Promise<void> }) {
+export function UserNav({
+  onSignout,
+  viewer,
+}: {
+  onSignout: () => Promise<void>
+  viewer: UserDTO
+}) {
   return (
     <DropdownMenu>
       <TooltipProvider disableHoverableContent>
@@ -33,36 +37,45 @@ export function UserNav({ onSignout }: { onSignout: () => Promise<void> }) {
               >
                 <Avatar className="size-8">
                   <AvatarImage src="#" alt="Avatar" />
-                  <AvatarFallback className="bg-transparent">JD</AvatarFallback>
+                  <AvatarFallback className="bg-transparent">
+                    {(viewer.name?.length ?? 0) > 0
+                      ? viewer.name?.[0]
+                      : viewer.username.length > 0
+                        ? viewer.username[0]
+                        : '?'}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
           </TooltipTrigger>
-          <TooltipContent side="bottom">Profile</TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">John Doe</p>
-            <p className="text-xs leading-none text-foreground">
-              johndoe@example.com
+            <p className="text-sm font-medium leading-none">
+              {viewer.username}
             </p>
+            {viewer.email && (
+              <p className="text-xs leading-none text-foreground">
+                {viewer.email}
+              </p>
+            )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
-            <Link to="/dashboard" className="flex items-center">
+            <Link to="/folders" className="flex items-center">
               <LayoutGrid className="mr-3 size-4 text-muted-foreground" />
-              Dashboard
+              Folders
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
-            <Link to="/account" className="flex items-center">
+            <Link to="/access-keys" className="flex items-center">
               <User className="mr-3 size-4 text-muted-foreground" />
-              Account
+              Access Keys
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>

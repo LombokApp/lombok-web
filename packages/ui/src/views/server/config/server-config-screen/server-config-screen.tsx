@@ -1,3 +1,4 @@
+import { useAuthContext } from '@stellariscloud/auth-utils'
 import {
   Button,
   Card,
@@ -18,9 +19,14 @@ import { ServerStorageConfigTab } from '../storage/server-storage-config-tab/ser
 import { ServerGeneralConfigTab } from './server-general-config-tab'
 
 export function ServerSettingsScreen({ tab }: { tab: string }) {
+  const authContext = useAuthContext()
   const { data, refetch: reloadSettings } = $api.useQuery(
     'get',
     '/api/v1/server/settings',
+    {},
+    {
+      enabled: !!authContext.viewer?.isAdmin,
+    },
   )
 
   const updateSettingMutation = $api.useMutation(

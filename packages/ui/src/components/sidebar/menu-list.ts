@@ -1,3 +1,4 @@
+import type { UserDTO } from '@stellariscloud/types'
 import type { LucideIcon } from 'lucide-react'
 import {
   AppWindow,
@@ -29,7 +30,10 @@ interface Group {
   menus: Menu[]
 }
 
-export function getMenuList(pathname: string | undefined): Group[] {
+export function getMenuList(
+  pathname: string | undefined,
+  viewer: UserDTO,
+): Group[] {
   return [
     {
       groupLabel: '',
@@ -46,41 +50,45 @@ export function getMenuList(pathname: string | undefined): Group[] {
         },
       ],
     },
-    {
-      groupLabel: 'Server',
-      menus: [
-        {
-          href: '/server',
-          active: pathname === '/server',
-          label: 'Overview',
-          icon: LayoutGrid,
-        },
-        {
-          href: '/server/users',
-          label: 'Users',
-          icon: Users,
-        },
-        {
-          href: '/server/apps',
-          label: 'Apps',
-          icon: AppWindow,
-        },
-        {
-          href: '/server/events',
-          label: 'Events',
-          icon: ChartLine,
-        },
-        {
-          href: '/server/tasks',
-          label: 'Tasks',
-          icon: ListChecks,
-        },
-        {
-          href: '/server/settings',
-          label: 'Settings',
-          icon: Settings,
-        },
-      ],
-    },
+    ...(viewer.isAdmin
+      ? [
+          {
+            groupLabel: 'Server',
+            menus: [
+              {
+                href: '/server',
+                active: pathname === '/server',
+                label: 'Overview',
+                icon: LayoutGrid,
+              },
+              {
+                href: '/server/users',
+                label: 'Users',
+                icon: Users,
+              },
+              {
+                href: '/server/apps',
+                label: 'Apps',
+                icon: AppWindow,
+              },
+              {
+                href: '/server/events',
+                label: 'Events',
+                icon: ChartLine,
+              },
+              {
+                href: '/server/tasks',
+                label: 'Tasks',
+                icon: ListChecks,
+              },
+              {
+                href: '/server/settings',
+                label: 'Settings',
+                icon: Settings,
+              },
+            ],
+          },
+        ]
+      : []),
   ]
 }

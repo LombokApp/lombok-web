@@ -36,7 +36,7 @@ export type AppMenuItemAndHref = {
 export interface IServerContext {
   refreshApps: () => Promise<QueryObserverResult<AppsListResponse>>
   refreshSettings: () => Promise<
-    QueryObserverResult<ServerSettingsListResponse>
+    ServerSettingsListResponse['settings'] | undefined
   >
   menuItems: AppMenuItemAndHref[]
   appFolderTaskTriggers: {
@@ -65,12 +65,24 @@ export const ServerContextProvider = ({
   children: React.ReactNode
 }) => {
   const authContext = useAuthContext()
-
-  // Only fetch settings if admin
-  const settingsQuery = $api.useQuery('get', '/api/v1/server/settings', {
-    enabled: !!authContext.viewer?.isAdmin,
-  })
   const appsQuery = $api.useQuery('get', '/api/v1/server/apps')
+  const settingsQuery = $api.useQuery(
+    'get',
+    '/api/v1/server/settings',
+    {},
+    {
+      enabled: () => !!authContext.viewer?.isAdmin,
+    },
+  )
+
+  const refetchSettings = React.useCallback(async () => {
+    // Only fetch settings if admin
+    if (authContext.viewer?.isAdmin) {
+      await settingsQuery.refetch()
+      return settingsQuery.data?.settings
+    }
+    return undefined
+  }, [authContext.viewer?.isAdmin, settingsQuery])
 
   // Derived state from API data
   const serverSettings = settingsQuery.data?.settings
@@ -136,10 +148,10 @@ export const ServerContextProvider = ({
       if (ServerPushMessage.APPS_UPDATED === name) {
         void appsQuery.refetch()
       } else if (ServerPushMessage.SETTINGS_UPDATED === name) {
-        void settingsQuery.refetch()
+        void refetchSettings()
       }
     },
-    [appsQuery, settingsQuery],
+    [appsQuery, refetchSettings],
   )
 
   const { socket } = useWebsocket('user', messageHandler)
@@ -156,7 +168,7 @@ export const ServerContextProvider = ({
     <ServerContext.Provider
       value={{
         refreshApps: appsQuery.refetch,
-        refreshSettings: settingsQuery.refetch,
+        refreshSettings: refetchSettings,
         socketConnected: socket?.connected ?? false,
         menuItems,
         appFolderTaskTriggers: appFolderActions,

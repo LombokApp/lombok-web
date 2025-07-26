@@ -24,9 +24,14 @@ export const FoldersScreen = () => {
   const searchFilter = filters.find((f) => f.id === 'name')
 
   const { data: userStorageProvisions, refetch: refetchUserStorageProvisions } =
-    $api.useQuery('get', '/api/v1/server/user-storage-provisions', {
-      enabled: false,
-    })
+    $api.useQuery(
+      'get',
+      '/api/v1/server/user-storage-provisions',
+      {},
+      {
+        enabled: false,
+      },
+    )
 
   const [createFolderModalData, setCreateFolderModalData] =
     React.useState<CreateFolderModalData>({

@@ -11,6 +11,7 @@ import { useSidebar } from './use-sidebar'
 
 export function Sidebar({
   onSignOut,
+  authContext,
   // menuItems,
 }: {
   onSignOut: () => Promise<void>
@@ -18,7 +19,7 @@ export function Sidebar({
   menuItems: AppMenuItemAndHref[]
 }) {
   const sidebar = useStore(useSidebar, (x) => x)
-  if (!sidebar) {
+  if (!sidebar || !authContext.viewer) {
     return null
   }
   const { isOpen, toggleOpen, getOpenState, setIsHover, settings } = sidebar
@@ -34,7 +35,7 @@ export function Sidebar({
       <div
         onMouseEnter={() => setIsHover(true)}
         onMouseLeave={() => setIsHover(false)}
-        className="dark:border-foreground/5 dark:shadow-zinc-900 relative flex h-screen flex-col overflow-y-auto border-r shadow-md"
+        className="relative flex h-screen flex-col overflow-y-auto border-r shadow-md dark:border-foreground/5 dark:shadow-zinc-900"
       >
         <div className="border-b bg-black/5 pb-0 pl-4 pr-2 pt-1">
           <Button
@@ -66,7 +67,11 @@ export function Sidebar({
           </Button>
         </div>
         <div className="h-full overflow-hidden p-0 px-3">
-          <Menu isOpen={getOpenState()} onSignOut={onSignOut} />
+          <Menu
+            viewer={authContext.viewer}
+            isOpen={getOpenState()}
+            onSignOut={onSignOut}
+          />
         </div>
       </div>
     </aside>
