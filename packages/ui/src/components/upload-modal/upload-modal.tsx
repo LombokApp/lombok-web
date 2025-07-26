@@ -77,14 +77,12 @@ const UploadModal = ({
       }
     >
       <DialogContent
-        className="top-0 mt-[50%] max-h-[90vh] max-w-md overflow-hidden rounded-lg border sm:top-1/2 sm:mt-0 [&_svg]:size-6"
-        aria-describedby={undefined}
+        className="top-0 mt-[50%] sm:top-1/2 sm:mt-0"
+        aria-description="Upload files to this folder"
       >
-        <DialogHeader className="text-left">
-          <DialogTitle className="text-xl font-semibold">
-            Upload files
-          </DialogTitle>
-          <DialogDescription className="text-sm text-gray-500 dark:text-gray-400">
+        <DialogHeader>
+          <DialogTitle>Upload files</DialogTitle>
+          <DialogDescription>
             Drop files to upload them to this folder.
           </DialogDescription>
         </DialogHeader>
@@ -95,7 +93,7 @@ const UploadModal = ({
         >
           <FolderUploadDropzone onDrop={onDrop} />
           {uploadingFiles.length > 0 && (
-            <div className="mt-4 flex flex-col gap-3 rounded-md border border-gray-200 p-3 dark:border-gray-700">
+            <div className="mt-4 flex flex-col gap-3 rounded-md border border-gray-200 p-3">
               <h3 className="text-sm font-medium">Uploading files</h3>
               <div className="flex max-h-[200px] flex-col gap-3 overflow-y-auto pr-1">
                 {uploadingFiles.map((uploadingFile, i) => (
@@ -104,7 +102,7 @@ const UploadModal = ({
                       <span className="max-w-[80%] truncate">
                         {uploadingFile.name}
                       </span>
-                      <span className="ml-2 whitespace-nowrap text-xs font-medium text-gray-500">
+                      <span className="ml-2 whitespace-nowrap text-xs font-medium text-muted-foreground">
                         {`${Math.round(modalData.uploadingProgress[uploadingFile.name] ?? 0)}%`}
                       </span>
                     </div>

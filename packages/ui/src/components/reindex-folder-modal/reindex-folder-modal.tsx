@@ -29,10 +29,10 @@ const ReindexFolderModal = ({
       }
     >
       <DialogContent
-        className="top-0 mt-[50%] rounded-none border-0 sm:top-1/2 sm:mt-0 [&_svg]:size-6"
-        aria-describedby={undefined}
+        className="top-0 mt-[50%] sm:top-1/2 sm:mt-0"
+        aria-description="Reindex this folder"
       >
-        <DialogHeader className="text-left">
+        <DialogHeader>
           <div className="flex items-center gap-2">
             <FolderSync className="size-6" />
             <DialogTitle>Reindex folder</DialogTitle>

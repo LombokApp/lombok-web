@@ -27,9 +27,12 @@ export function EnvVarModal({
         }
       }}
     >
-      <DialogContent className="top-0 mt-[50%] rounded-none border-0 sm:top-1/2 sm:mt-0">
-        <DialogHeader className="text-left">
-          <DialogTitle>Edit Environment Variables</DialogTitle>
+      <DialogContent
+        className="top-0 mt-[50%] sm:top-1/2 sm:mt-0"
+        aria-description="Edit worker environment variables"
+      >
+        <DialogHeader>
+          <DialogTitle>Edit Worker Environment Variables</DialogTitle>
         </DialogHeader>
         <EnvVarForm
           envVars={Object.entries(envVars).map(([key, value]) => ({
