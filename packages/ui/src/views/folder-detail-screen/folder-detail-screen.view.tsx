@@ -1,4 +1,7 @@
-import type { FolderPermissionName } from '@stellariscloud/types'
+import type {
+  FolderPermissionName,
+  ListFolderObjectsSortRequest,
+} from '@stellariscloud/types'
 import { FolderPermissionEnum, FolderPushMessage } from '@stellariscloud/types'
 import {
   Button,
@@ -108,7 +111,7 @@ export const FolderDetailScreen = () => {
   ] = React.useState<DeleteFolderModalData>({
     isOpen: false,
   })
-  const [_sorting, setSorting] = React.useState<SortingState>([])
+  const [sorting, setSorting] = React.useState<SortingState>([])
   const pageFromUrl = searchParams.get('page')
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: pageFromUrl ? parseInt(pageFromUrl, 10) - 1 : 0,
@@ -128,7 +131,9 @@ export const FolderDetailScreen = () => {
           ...(searchFilter?.value
             ? { search: searchFilter.value as string }
             : {}),
-          // sort: sorting[0].id,
+          sort: sorting[0]
+            ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ListFolderObjectsSortRequest['sort'])
+            : undefined,
         },
       },
     },

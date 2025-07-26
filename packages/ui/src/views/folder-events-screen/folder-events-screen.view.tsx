@@ -43,9 +43,9 @@ export function FolderEventsScreen() {
         query: {
           limit: pagination.pageSize,
           offset: pagination.pageSize * pagination.pageIndex,
-          sort: (sorting[0]
-            ? `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}`
-            : undefined) as FolderEventsListRequest['sort'] | undefined,
+          sort: sorting[0]
+            ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as FolderEventsListRequest['sort'])
+            : undefined,
           search:
             typeof searchFilter?.value === 'string'
               ? searchFilter.value
@@ -87,11 +87,7 @@ export function FolderEventsScreen() {
               data={listFolderEventsQuery?.result ?? []}
               columns={folderEventsTableColumns}
               onPaginationChange={setPagination}
-              onSortingChange={(updater) => {
-                setSorting((old) =>
-                  updater instanceof Function ? updater(old) : updater,
-                )
-              }}
+              onSortingChange={setSorting}
               filterOptions={{
                 level: {
                   label: 'Level',
