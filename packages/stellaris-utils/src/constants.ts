@@ -134,7 +134,11 @@ export const MIME_TYPE_TO_EXTENSION_MAP = {
 }
 
 export const EXTENSION_TO_MIME_TYPE_MAP: {
-  [key: string]: ImageMediaMimeTypes | VideoMediaMimeTypes | AudioMediaMimeTypes
+  [key: string]:
+    | ImageMediaMimeTypes
+    | VideoMediaMimeTypes
+    | AudioMediaMimeTypes
+    | DocumentMediaMimeTypes
 } = Object.keys(MIME_TYPE_TO_EXTENSION_MAP).reduce(
   (acc, next) => {
     return {

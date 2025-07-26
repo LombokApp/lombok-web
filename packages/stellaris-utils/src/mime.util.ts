@@ -45,6 +45,10 @@ export const mediaTypeFromExtension = (extension: string) => {
     return MediaType.Video
   } else if (AUDIO_MEDIA_MIME_TYPES.includes(mimeType as AudioMediaMimeTypes)) {
     return MediaType.Audio
+  } else if (
+    DOCUMENT_MEDIA_MIME_TYPES.includes(mimeType as DocumentMediaMimeTypes)
+  ) {
+    return MediaType.Document
   }
   return MediaType.Unknown
 }
