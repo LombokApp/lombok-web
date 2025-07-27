@@ -61,7 +61,6 @@ import { z } from 'zod'
 
 import { FolderShareDTO } from '../dto/folder-share.dto'
 import { FolderShareUsersListQueryParamsDTO } from '../dto/folder-shares-list-query-params.dto'
-import { FoldersListQueryParamsDTO } from '../dto/folders-list-query-params.dto'
 import type { Folder } from '../entities/folder.entity'
 import { foldersTable } from '../entities/folder.entity'
 import type { FolderObject } from '../entities/folder-object.entity'
@@ -377,8 +376,13 @@ export class FolderService {
       offset,
       limit,
       search,
-      sort = FolderSort.CreatedAtDesc,
-    }: FoldersListQueryParamsDTO,
+      sort = [FolderSort.CreatedAtDesc],
+    }: {
+      search?: string
+      offset?: number
+      limit?: number
+      sort?: FolderSort[]
+    },
   ) {
     const contentLocationTable = aliasedTable(
       storageLocationsTable,
@@ -428,9 +432,10 @@ export class FolderService {
           search ? ilike(foldersTable.name, `%${search}%`) : undefined,
         ),
       )
-      .orderBy(parseSort(foldersTable, sort))
+      .orderBy(...parseSort(foldersTable, sort))
       .limit(limit ?? 25)
       .offset(offset ?? 0)
+
     return {
       result: folders.map(({ totalCount, ...folder }) => ({
         folder: {
@@ -644,7 +649,7 @@ export class FolderService {
       search,
       offset = 0,
       limit = 25,
-      sort = FolderObjectSort.CreatedAtAsc,
+      sort = [FolderObjectSort.CreatedAtAsc],
       includeImage,
       includeVideo,
       includeAudio,
@@ -655,7 +660,7 @@ export class FolderService {
       search?: string
       offset?: number
       limit?: number
-      sort?: FolderObjectSort
+      sort?: FolderObjectSort[]
       includeImage?: string
       includeVideo?: string
       includeAudio?: string

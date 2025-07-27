@@ -1,29 +1,22 @@
 'use client'
 
 import type { EventDTO } from '@stellariscloud/types'
+import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { cn } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
-import type { ColumnDef } from '@tanstack/react-table'
-import { Link } from 'react-router-dom'
 
-import { invertColour, stringToColour } from '../../../../utils/colors'
+import { TableLinkColumn } from '@/src/components/table-link-column/table-link-column'
+import { invertColour, stringToColour } from '@/src/utils/colors'
 
-export const serverEventsTableColumns: ColumnDef<EventDTO>[] = [
+export const serverEventsTableColumns: HideableColumnDef<EventDTO>[] = [
   {
-    id: '__HIDDEN__',
-    cell: ({ row }) => {
-      return (
-        <div className="size-0 max-w-0 overflow-hidden">
-          <Link
-            to={`/server/events/${row.original.id}`}
-            className="absolute inset-0"
-          />
-        </div>
-      )
-    },
+    id: 'link',
+    cell: ({ row }) => (
+      <TableLinkColumn to={`/server/events/${row.original.id}`} />
+    ),
     enableSorting: false,
-    enableHiding: false,
+    zeroWidth: true,
   },
   {
     accessorKey: 'eventKey',

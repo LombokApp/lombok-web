@@ -17,7 +17,10 @@ export const folderObjectsListQueryParamsSchema = z.object({
     )
     .optional(),
   search: z.string().optional(),
-  sort: z.nativeEnum(FolderObjectSort).optional(),
+  sort: z
+    .array(z.nativeEnum(FolderObjectSort))
+    .or(z.nativeEnum(FolderObjectSort).optional())
+    .optional(),
   includeImage: z.literal('true').optional(),
   includeVideo: z.literal('true').optional(),
   includeAudio: z.literal('true').optional(),

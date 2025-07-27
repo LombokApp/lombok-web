@@ -1771,7 +1771,7 @@ export interface operations {
                 offset?: number;
                 limit?: number;
                 isAdmin?: boolean;
-                sort?: "createdAt-asc" | "createdAt-desc" | "email-asc" | "email-desc" | "name-asc" | "name-desc" | "username-asc" | "username-desc" | "updatedAt-asc" | "updatedAt-desc";
+                sort?: ("createdAt-asc" | "createdAt-desc" | "email-asc" | "email-desc" | "name-asc" | "name-desc" | "username-asc" | "username-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "email-asc" | "email-desc" | "name-asc" | "name-desc" | "username-asc" | "username-desc" | "updatedAt-asc" | "updatedAt-desc");
                 search?: string;
             };
             header?: never;
@@ -1990,7 +1990,7 @@ export interface operations {
             query?: {
                 offset?: number;
                 limit?: number;
-                sort?: "name-asc" | "name-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc";
+                sort?: ("name-asc" | "name-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("name-asc" | "name-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
                 search?: string;
             };
             header?: never;
@@ -2057,7 +2057,7 @@ export interface operations {
                 offset?: number;
                 limit?: number;
                 search?: string;
-                sort?: "size-asc" | "size-desc" | "filename-asc" | "filename-desc" | "objectKey-asc" | "objectKey-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc";
+                sort?: ("size-asc" | "size-desc" | "filename-asc" | "filename-desc" | "objectKey-asc" | "objectKey-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("size-asc" | "size-desc" | "filename-asc" | "filename-desc" | "objectKey-asc" | "objectKey-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
                 includeImage?: "true";
                 includeVideo?: "true";
                 includeAudio?: "true";
@@ -2315,7 +2315,7 @@ export interface operations {
             query?: {
                 offset?: number;
                 limit?: number;
-                sort?: "accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc" | "updatedAt-asc" | "updatedAt-desc";
+                sort?: ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc" | "updatedAt-asc" | "updatedAt-desc");
             };
             header?: never;
             path?: never;
@@ -2405,7 +2405,7 @@ export interface operations {
             query?: {
                 offset?: number;
                 limit?: number;
-                sort?: "accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc" | "updatedAt-asc" | "updatedAt-desc";
+                sort?: ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc" | "updatedAt-asc" | "updatedAt-desc");
             };
             header?: never;
             path?: never;
@@ -2750,7 +2750,7 @@ export interface operations {
         parameters: {
             query?: {
                 objectKey?: string;
-                sort?: "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc";
+                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
                 search?: string;
                 includeWaiting?: "true";
                 includeRunning?: "true";
@@ -2802,7 +2802,7 @@ export interface operations {
         parameters: {
             query?: {
                 objectKey?: string;
-                sort?: "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc";
+                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
                 search?: string;
                 includeWaiting?: "true";
                 includeRunning?: "true";
@@ -2853,7 +2853,7 @@ export interface operations {
     listEvents: {
         parameters: {
             query?: {
-                sort?: "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc";
+                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
                 folderId?: string;
                 objectKey?: string;
                 search?: string;
@@ -2906,7 +2906,7 @@ export interface operations {
     listFolderEvents: {
         parameters: {
             query?: {
-                sort?: "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc";
+                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
                 objectKey?: string;
                 search?: string;
                 includeTrace?: "true";

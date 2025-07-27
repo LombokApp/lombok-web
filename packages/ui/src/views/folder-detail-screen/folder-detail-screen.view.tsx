@@ -1,19 +1,16 @@
 import type {
+  FolderObjectsListRequest,
   FolderPermissionName,
-  ListFolderObjectsSortRequest,
 } from '@stellariscloud/types'
 import { FolderPermissionEnum, FolderPushMessage } from '@stellariscloud/types'
 import {
   Button,
   cn,
-  convertFiltersToSearchParams,
   DataTable,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  type FilterConfig,
-  readFiltersFromSearchParams,
   useToast,
 } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/table-core'
@@ -47,12 +44,19 @@ import {
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache.context'
 import { useFolderContext } from '@/src/pages/folders/folder.context'
 import { $api } from '@/src/services/api'
+import type { DataTableFilterConfig } from '@/src/utils/tables'
+import {
+  convertFiltersToSearchParams,
+  convertSortingToSearchParams,
+  readFiltersFromSearchParams,
+  readSortingFromSearchParams,
+} from '@/src/utils/tables'
 
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
 import { folderObjectsTableColumns } from './folder-objects-table-columns'
 import { FolderShareModal } from './folder-share-modal/folder-share-modal'
 
-const FILTER_CONFIGS: Record<string, FilterConfig> = {
+const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   search: { isSearchFilter: true },
   mediaType: { paramPrefix: 'mediaType' },
 }
@@ -113,7 +117,9 @@ export const FolderDetailScreen = () => {
   ] = React.useState<DeleteFolderModalData>({
     isOpen: false,
   })
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [sorting, setSorting] = React.useState<SortingState>(
+    readSortingFromSearchParams(searchParams),
+  )
   const pageFromUrl = searchParams.get('page')
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: pageFromUrl ? parseInt(pageFromUrl, 10) - 1 : 0,
@@ -154,9 +160,12 @@ export const FolderDetailScreen = () => {
           includeUnknown: mediaTypeFilterValue.includes('UNKNOWN')
             ? 'true'
             : undefined,
-          sort: sorting[0]
-            ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ListFolderObjectsSortRequest['sort'])
-            : undefined,
+          sort:
+            sorting.length > 0
+              ? (sorting.map(
+                  (s) => `${s.id}-${s.desc ? 'desc' : 'asc'}`,
+                ) as FolderObjectsListRequest['sort'])
+              : undefined,
         },
       },
     },
@@ -249,6 +258,15 @@ export const FolderDetailScreen = () => {
       setSearchParams(
         convertFiltersToSearchParams(newFilters, searchParams, FILTER_CONFIGS),
       )
+    },
+    [setSearchParams, searchParams],
+  )
+
+  const handleSortingChange = React.useCallback(
+    (newSorting: SortingState) => {
+      setSorting(newSorting)
+      const newParams = convertSortingToSearchParams(newSorting, searchParams)
+      setSearchParams(newParams)
     },
     [setSearchParams, searchParams],
   )
@@ -405,7 +423,7 @@ export const FolderDetailScreen = () => {
                   </div>
                 </div>
               ) : (
-                <div className="flex size-full flex-col">
+                <div className="flex size-full flex-col gap-2">
                   <div className="flex justify-between">
                     <EditableTitle
                       value={folderContext.folder?.name ?? ''}
@@ -488,13 +506,14 @@ export const FolderDetailScreen = () => {
                       hideHeader={true}
                       enableSearch={true}
                       filters={filters}
+                      sorting={sorting}
                       onColumnFiltersChange={handleFiltersChange}
                       rowCount={folderContext.folderMetadata?.totalCount ?? 0}
                       data={listFolderObjectsQuery.data?.result ?? []}
                       columns={folderObjectsTableColumns}
                       onPaginationChange={handlePaginationChange}
-                      pageIndex={pagination.pageIndex}
-                      onSortingChange={setSorting}
+                      pagination={pagination}
+                      onSortingChange={handleSortingChange}
                       filterOptions={{
                         mediaType: {
                           label: 'Media Type',

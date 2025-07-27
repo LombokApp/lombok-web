@@ -1,21 +1,22 @@
-import type { ListServerTasksRequest } from '@stellariscloud/types'
-import {
-  cn,
-  convertFiltersToSearchParams,
-  DataTable,
-  type FilterConfig,
-  readFiltersFromSearchParams,
-} from '@stellariscloud/ui-toolkit'
+import type { ServerTasksListRequest } from '@stellariscloud/types'
+import { cn, DataTable } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
 import React from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { $api } from '@/src/services/api'
+import type { DataTableFilterConfig } from '@/src/utils/tables'
+import {
+  convertFiltersToSearchParams,
+  convertSortingToSearchParams,
+  readFiltersFromSearchParams,
+  readSortingFromSearchParams,
+} from '@/src/utils/tables'
 
 import { serverTasksTableColumns } from './server-tasks-table-columns'
 
-const FILTER_CONFIGS: Record<string, FilterConfig> = {
+const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   search: { isSearchFilter: true },
   status: { paramPrefix: 'status' },
 }
@@ -29,14 +30,28 @@ export function ServerTasksScreen() {
   const onFiltersChange = React.useCallback(
     (newFilters: Record<string, string[]>) => {
       setFilters(newFilters)
-      setSearchParams(
-        convertFiltersToSearchParams(newFilters, searchParams, FILTER_CONFIGS),
+      const newParams = convertFiltersToSearchParams(
+        newFilters,
+        searchParams,
+        FILTER_CONFIGS,
       )
+      setSearchParams(newParams)
     },
     [setSearchParams, searchParams],
   )
 
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [sorting, setSorting] = React.useState<SortingState>(
+    readSortingFromSearchParams(searchParams),
+  )
+
+  const handleSortingChange = React.useCallback(
+    (newSorting: SortingState) => {
+      setSorting(newSorting)
+      const newParams = convertSortingToSearchParams(newSorting, searchParams)
+      setSearchParams(newParams)
+    },
+    [setSearchParams, searchParams],
+  )
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -51,9 +66,13 @@ export function ServerTasksScreen() {
       query: {
         limit: pagination.pageSize,
         offset: pagination.pageSize * pagination.pageIndex,
-        sort: sorting[0]
-          ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ListServerTasksRequest['sort'])
-          : undefined,
+        sort:
+          sorting.length > 0
+            ? (sorting.map(
+                (s) =>
+                  `${s.id}-${s.desc ? 'desc' : 'asc'}` as ServerTasksListRequest['sort'],
+              ) as ServerTasksListRequest['sort'])
+            : undefined,
         search:
           typeof searchFilterValue === 'string' ? searchFilterValue : undefined,
         includeComplete: statusFilterValue.includes('COMPLETE')
@@ -82,8 +101,9 @@ export function ServerTasksScreen() {
         rowCount={events?.meta.totalCount}
         data={events?.result ?? []}
         columns={serverTasksTableColumns}
+        sorting={sorting}
         onPaginationChange={setPagination}
-        onSortingChange={setSorting}
+        onSortingChange={handleSortingChange}
         filterOptions={{
           status: {
             label: 'Status',

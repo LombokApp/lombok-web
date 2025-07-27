@@ -17,6 +17,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { SessionService } from 'src/auth/services/session.service'
+import { normalizeSortParam } from 'src/core/utils/sort.util'
 import { UserGetResponse } from 'src/server/dto/responses/user-get-response.dto'
 import { UserListResponse } from 'src/server/dto/responses/user-list-response.dto'
 import { UserSessionListResponse } from 'src/server/dto/responses/user-session-list-response.dto'
@@ -92,7 +93,10 @@ export class UsersController {
     }
     const { results, totalCount } = await this.userService.listUsersAsAdmin(
       req.user,
-      { ...queryParams },
+      {
+        ...queryParams,
+        sort: normalizeSortParam(queryParams.sort),
+      },
     )
     return {
       result: results.map((user) => transformUserToDTO(user)),

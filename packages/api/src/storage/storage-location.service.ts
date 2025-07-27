@@ -1,11 +1,13 @@
 import { S3ServiceException } from '@aws-sdk/client-s3'
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
 import { accessKeyPublicSchema, accessKeySchema } from '@stellariscloud/types'
 import { and, count, countDistinct, eq, or, SQLWrapper } from 'drizzle-orm'
+import { parseSort } from 'src/core/utils/sort.util'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { configureS3Client, S3Service } from 'src/storage/s3.service'
@@ -25,8 +27,6 @@ export enum AccessKeySort {
   EndpointDesc = 'endpoint-desc',
   RegionAsc = 'region-asc',
   RegionDesc = 'region-desc',
-  UpdatedAtAsc = 'updatedAt-asc',
-  UpdatedAtDesc = 'updatedAt-desc',
 }
 @Injectable()
 export class StorageLocationService {
@@ -56,9 +56,11 @@ export class StorageLocationService {
     {
       offset,
       limit,
+      sort = [AccessKeySort.AccessKeyIdAsc],
     }: {
       offset?: number
       limit?: number
+      sort?: AccessKeySort[]
     },
   ) {
     const accessKeys = await this.ormService.db
@@ -83,6 +85,7 @@ export class StorageLocationService {
       )
       .offset(offset ?? 0)
       .limit(limit ?? 25)
+      .orderBy(...parseSort(storageLocationsTable, sort))
 
     const accessKeysCountResult = await this.ormService.db
       .select({
@@ -222,11 +225,15 @@ export class StorageLocationService {
         }),
       })
       .catch((e) => {
-        if (
-          e instanceof S3ServiceException &&
-          ['InvalidAccessKeyId', 'AccessDenied'].includes(e.name)
-        ) {
-          throw new NotFoundException()
+        if (e instanceof S3ServiceException) {
+          if (e.name === 'InvalidAccessKeyId') {
+            throw new BadRequestException('InvalidAccessKeyId')
+          } else if (e.name === 'AccessDenied') {
+            throw new UnauthorizedException('AccessDenied')
+          }
+          throw new BadRequestException(
+            `Unexpected error reading bucket: ${e.name}`,
+          )
         }
         throw e
       })
@@ -358,9 +365,11 @@ export class StorageLocationService {
     {
       offset,
       limit,
+      sort = [AccessKeySort.AccessKeyIdAsc],
     }: {
       offset?: number
       limit?: number
+      sort?: AccessKeySort[]
     },
   ) {
     if (!actor.isAdmin) {
@@ -383,6 +392,7 @@ export class StorageLocationService {
       .where(and(eq(storageLocationsTable.providerType, 'SERVER')))
       .offset(offset ?? 0)
       .limit(limit ?? 25)
+      .orderBy(...parseSort(storageLocationsTable, sort))
 
     const accessKeysCountResult = await this.ormService.db
       .select({

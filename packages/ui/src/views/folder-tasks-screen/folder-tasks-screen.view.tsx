@@ -8,11 +8,6 @@ import {
   cn,
   DataTable,
 } from '@stellariscloud/ui-toolkit'
-import {
-  convertFiltersToSearchParams,
-  type FilterConfig,
-  readFiltersFromSearchParams,
-} from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
 import React from 'react'
@@ -20,6 +15,13 @@ import { useSearchParams } from 'react-router-dom'
 
 import { useFolderContext } from '@/src/pages/folders/folder.context'
 import { $api } from '@/src/services/api'
+import type { DataTableFilterConfig } from '@/src/utils/tables'
+import {
+  convertFiltersToSearchParams,
+  convertSortingToSearchParams,
+  readFiltersFromSearchParams,
+  readSortingFromSearchParams,
+} from '@/src/utils/tables'
 
 import { folderTasksTableColumns } from './folder-tasks-table-columns'
 
@@ -35,7 +37,7 @@ const FILTER_OPTIONS = {
   },
 }
 
-const FILTER_CONFIGS: Record<string, FilterConfig> = {
+const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   search: { isSearchFilter: true },
   status: { paramPrefix: 'status' },
 }
@@ -51,14 +53,28 @@ export function FolderTasksScreen() {
   const onFiltersChange = React.useCallback(
     (newFilters: Record<string, string[]>) => {
       setFilters(newFilters)
-      setSearchParams(
-        convertFiltersToSearchParams(newFilters, searchParams, FILTER_CONFIGS),
+      const newParams = convertFiltersToSearchParams(
+        newFilters,
+        searchParams,
+        FILTER_CONFIGS,
       )
+      setSearchParams(newParams)
     },
     [setSearchParams, searchParams],
   )
 
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [sorting, setSorting] = React.useState<SortingState>(
+    readSortingFromSearchParams(searchParams),
+  )
+
+  const handleSortingChange = React.useCallback(
+    (newSorting: SortingState) => {
+      setSorting(newSorting)
+      const newParams = convertSortingToSearchParams(newSorting, searchParams)
+      setSearchParams(newParams)
+    },
+    [setSearchParams, searchParams],
+  )
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -77,9 +93,13 @@ export function FolderTasksScreen() {
         query: {
           limit: pagination.pageSize,
           offset: pagination.pageSize * pagination.pageIndex,
-          sort: sorting[0]
-            ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ServerTasksApiListTasksRequest['sort'])
-            : undefined,
+          sort:
+            sorting.length > 0
+              ? (sorting.map(
+                  (s) =>
+                    `${s.id}-${s.desc ? 'desc' : 'asc'}` as ServerTasksApiListTasksRequest['sort'],
+                ) as ServerTasksApiListTasksRequest['sort'])
+              : undefined,
           search:
             typeof searchFilterValue === 'string'
               ? searchFilterValue
@@ -118,8 +138,9 @@ export function FolderTasksScreen() {
               rowCount={listFolderTasksQuery.data?.meta.totalCount}
               data={listFolderTasksQuery.data?.result ?? []}
               columns={folderTasksTableColumns}
+              sorting={sorting}
               onPaginationChange={setPagination}
-              onSortingChange={setSorting}
+              onSortingChange={handleSortingChange}
               filterOptions={FILTER_OPTIONS}
             />
           </CardContent>

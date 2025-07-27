@@ -4,7 +4,10 @@ import { z } from 'zod'
 import { EventSort } from '../services/event.service'
 
 export const eventsListQueryParamsSchema = z.object({
-  sort: z.nativeEnum(EventSort).optional(),
+  sort: z
+    .array(z.nativeEnum(EventSort))
+    .or(z.nativeEnum(EventSort).optional())
+    .optional(),
   objectKey: z.string().optional(),
   search: z.string().optional(),
   includeTrace: z.literal('true').optional(),

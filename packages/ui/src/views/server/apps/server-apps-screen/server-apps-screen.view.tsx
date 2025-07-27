@@ -1,18 +1,17 @@
-import {
-  cn,
-  convertFiltersToSearchParams,
-  DataTable,
-  type FilterConfig,
-  readFiltersFromSearchParams,
-} from '@stellariscloud/ui-toolkit'
+import { cn, DataTable } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { $api } from '@/src/services/api'
+import type { DataTableFilterConfig } from '@/src/utils/tables'
+import {
+  convertFiltersToSearchParams,
+  readFiltersFromSearchParams,
+} from '@/src/utils/tables'
 
 import { serverAppsTableColumns } from './server-apps-table-columns'
 
-const FILTER_CONFIGS: Record<string, FilterConfig> = {
+const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   search: { isSearchFilter: true },
 }
 

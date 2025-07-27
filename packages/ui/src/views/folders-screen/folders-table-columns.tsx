@@ -1,29 +1,23 @@
 'use client'
 
 import type { FolderDTO } from '@stellariscloud/types'
+import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
-import type { ColumnDef } from '@tanstack/react-table'
-import { Link } from 'react-router-dom'
 
-export const foldersTableColumns: ColumnDef<{
+import { TableLinkColumn } from '../../components/table-link-column/table-link-column'
+
+export const foldersTableColumns: HideableColumnDef<{
   folder: FolderDTO
   permissions: string[]
 }>[] = [
   {
-    id: '__HIDDEN__',
-    cell: ({ row }) => {
-      return (
-        <div className="size-0 max-w-0 overflow-hidden">
-          <Link
-            to={`/folders/${row.original.folder.id}`}
-            className="absolute inset-0"
-          />
-        </div>
-      )
-    },
+    id: 'link',
+    cell: ({ row }) => (
+      <TableLinkColumn to={`/folders/${row.original.folder.id}`} />
+    ),
     enableSorting: false,
-    enableHiding: false,
+    zeroWidth: true,
   },
   {
     accessorKey: 'name',
@@ -37,7 +31,7 @@ export const foldersTableColumns: ColumnDef<{
     cell: ({ row }) => (
       <div className="flex items-start gap-2">{row.original.folder.name}</div>
     ),
-    enableSorting: false,
+    enableSorting: true,
     enableHiding: false,
   },
   {

@@ -14,6 +14,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
+import { normalizeSortParam } from 'src/core/utils/sort.util'
 
 import { AccessKeyListQueryParamsDTO } from '../dto/access-key-list-query-params.dto'
 import { AccessKeyBucketsListResponseDTO } from '../dto/responses/access-key-buckets-list-response.dto'
@@ -46,10 +47,10 @@ export class ServerAccessKeysController {
       throw new UnauthorizedException()
     }
     const result =
-      await this.storageLocationService.listServerAccessKeysAsAdmin(
-        req.user,
-        queryParams,
-      )
+      await this.storageLocationService.listServerAccessKeysAsAdmin(req.user, {
+        ...queryParams,
+        sort: normalizeSortParam(queryParams.sort),
+      })
     return result
   }
 

@@ -1,10 +1,8 @@
 import type { FolderListRequest } from '@stellariscloud/types'
 import {
   Button,
-  convertFiltersToSearchParams,
   DataTable,
-  type FilterConfig,
-  readFiltersFromSearchParams,
+  TypographyH3,
   useToast,
 } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
@@ -13,12 +11,19 @@ import React from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { $api } from '@/src/services/api'
+import type { DataTableFilterConfig } from '@/src/utils/tables'
+import {
+  convertFiltersToSearchParams,
+  convertSortingToSearchParams,
+  readFiltersFromSearchParams,
+  readSortingFromSearchParams,
+} from '@/src/utils/tables'
 
 import type { CreateFolderModalData } from './create-folder-modal'
 import { CreateFolderModal } from './create-folder-modal'
 import { foldersTableColumns } from './folders-table-columns'
 
-const FILTER_CONFIGS: Record<string, FilterConfig> = {
+const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   search: { isSearchFilter: true },
 }
 
@@ -32,18 +37,32 @@ export const FoldersScreen = () => {
   const onFiltersChange = React.useCallback(
     (newFilters: Record<string, string[]>) => {
       setFilters(newFilters)
-      setSearchParams(
-        convertFiltersToSearchParams(newFilters, searchParams, FILTER_CONFIGS),
+      const newParams = convertFiltersToSearchParams(
+        newFilters,
+        searchParams,
+        FILTER_CONFIGS,
       )
+      setSearchParams(newParams)
     },
     [setSearchParams, searchParams],
   )
 
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [sorting, setSorting] = React.useState<SortingState>(
+    readSortingFromSearchParams(searchParams),
+  )
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   })
+
+  const handleSortingChange = React.useCallback(
+    (newSorting: SortingState) => {
+      setSorting(newSorting)
+      const newParams = convertSortingToSearchParams(newSorting, searchParams)
+      setSearchParams(newParams)
+    },
+    [setSearchParams, searchParams],
+  )
 
   const searchFilterValue =
     'search' in filters ? filters['search'][0] : undefined
@@ -72,9 +91,12 @@ export const FoldersScreen = () => {
         query: {
           limit: pagination.pageSize,
           offset: pagination.pageSize * pagination.pageIndex,
-          sort: sorting[0]
-            ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as FolderListRequest['sort'])
-            : undefined,
+          sort:
+            sorting.length > 0
+              ? (sorting.map(
+                  (s) => `${s.id}-${s.desc ? 'desc' : 'asc'}`,
+                ) as FolderListRequest['sort'])
+              : undefined,
           search:
             typeof searchFilterValue === 'string'
               ? searchFilterValue
@@ -100,8 +122,41 @@ export const FoldersScreen = () => {
 
   return (
     <div className="container flex h-full flex-col gap-3 self-center">
+      <div className="flex justify-between gap-2">
+        <div className="pl-2">
+          <TypographyH3>Folders</TypographyH3>
+        </div>
+        <div>
+          <Button
+            variant={'outline'}
+            onClick={() => {
+              void refetchUserStorageProvisions().then(() => {
+                setCreateFolderModalData({
+                  ...createFolderModalData,
+                  userStorageProvisions: userStorageProvisions?.result ?? [],
+                  isOpen: true,
+                })
+              })
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <PlusIcon className="size-5" />
+              Create folder
+            </div>
+          </Button>
+          <CreateFolderModal
+            setModalData={setCreateFolderModalData}
+            modalData={createFolderModalData}
+            onSubmit={async (folderValues) => {
+              await createFolderMutation.mutateAsync({
+                body: folderValues,
+              })
+            }}
+          />
+        </div>
+      </div>
+
       <DataTable
-        title="Folders"
         enableSearch={true}
         filters={filters}
         onColumnFiltersChange={onFiltersChange}
@@ -109,38 +164,9 @@ export const FoldersScreen = () => {
         rowCount={folders?.meta.totalCount}
         data={folders?.result ?? []}
         columns={foldersTableColumns}
+        sorting={sorting}
         onPaginationChange={setPagination}
-        onSortingChange={setSorting}
-        actionComponent={
-          <div>
-            <Button
-              variant={'outline'}
-              onClick={() => {
-                void refetchUserStorageProvisions().then(() => {
-                  setCreateFolderModalData({
-                    ...createFolderModalData,
-                    userStorageProvisions: userStorageProvisions?.result ?? [],
-                    isOpen: true,
-                  })
-                })
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <PlusIcon className="size-5" />
-                Create folder
-              </div>
-            </Button>
-            <CreateFolderModal
-              setModalData={setCreateFolderModalData}
-              modalData={createFolderModalData}
-              onSubmit={async (folderValues) => {
-                await createFolderMutation.mutateAsync({
-                  body: folderValues,
-                })
-              }}
-            />
-          </div>
-        }
+        onSortingChange={handleSortingChange}
       />
     </div>
   )

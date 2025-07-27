@@ -2,10 +2,12 @@
 
 import { Cross2Icon } from '@radix-ui/react-icons'
 import { Button, Input, TypographyH3 } from '@stellariscloud/ui-toolkit'
+import type { Table } from '@tanstack/react-table'
 import { Filter } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 
 import { DataTableFilter } from './data-table-filter'
+import { DataTableSortList } from './data-table-sort-list'
 export interface ColumnFilterOptions {
   label: string
   options: {
@@ -14,25 +16,25 @@ export interface ColumnFilterOptions {
     icon?: React.ComponentType<{ className?: string }>
   }[]
 }
-interface DataTableToolbarProps {
+interface DataTableToolbarProps<TData> {
   title?: string
+  table: Table<TData>
   filters: Record<string, string[]>
   filterOptions?: Record<string, ColumnFilterOptions>
   enableSearch?: boolean
   searchPlaceholder?: string
-  actionComponent?: React.ReactNode
   onFiltersChange?: (filters: Record<string, string[]>) => void
 }
 
-export function DataTableToolbar({
+export function DataTableToolbar<TData>({
   title,
   filterOptions,
   enableSearch = false,
   searchPlaceholder,
-  actionComponent,
+  table,
   filters,
   onFiltersChange,
-}: DataTableToolbarProps) {
+}: DataTableToolbarProps<TData>) {
   const isFiltered =
     Object.keys(filters).filter((key) => filters[key].length).length > 0
 
@@ -47,7 +49,7 @@ export function DataTableToolbar({
   }, [_searchFilterValue])
 
   return (
-    <div className="flex flex-row items-start justify-between">
+    <div className="flex flex-row items-center justify-between">
       <div className="flex flex-col items-start xl:flex-row xl:items-center">
         {title && (
           <div className="pl-2">
@@ -109,7 +111,7 @@ export function DataTableToolbar({
           )}
         </div>
       </div>
-      {actionComponent ? <div>{actionComponent}</div> : null}
+      <DataTableSortList table={table} />
     </div>
   )
 }

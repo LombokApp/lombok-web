@@ -115,7 +115,7 @@ const AuthenticatedContent = () => {
       )}
       <main
         className={cn(
-          'bg-background min-h-[calc(100vh_-_56px)] flex-1 transition-[margin-left] duration-300 ease-in-out',
+          'bg-foreground/[.01] min-h-[calc(100vh_-_56px)] flex-1 transition-[margin-left] duration-300 ease-in-out',
           !sidebarDisabled && (!getOpenState() ? 'lg:ml-[70px]' : 'lg:ml-64'),
         )}
       >

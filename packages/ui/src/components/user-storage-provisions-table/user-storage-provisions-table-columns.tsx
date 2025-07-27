@@ -1,13 +1,13 @@
 import type { UserStorageProvisionDTO } from '@stellariscloud/types'
+import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { Badge, DataTableColumnHeader } from '@stellariscloud/ui-toolkit'
-import type { ColumnDef } from '@tanstack/react-table'
 import { Link } from 'react-router-dom'
 
 export const userStorageProvisionsTableColumns = (
   onUpdate: (userStorageProvision: UserStorageProvisionDTO) => void,
-): ColumnDef<UserStorageProvisionDTO>[] => [
+): HideableColumnDef<UserStorageProvisionDTO>[] => [
   {
-    id: '__HIDDEN__',
+    id: 'link',
     cell: ({ row }) => {
       return (
         <div className="size-0 max-w-0 overflow-hidden">
@@ -19,6 +19,7 @@ export const userStorageProvisionsTableColumns = (
         </div>
       )
     },
+    zeroWidth: true,
   },
   {
     accessorKey: 'label',

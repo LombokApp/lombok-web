@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { and, eq, ilike, or, SQL, sql } from 'drizzle-orm'
 import { authHelper } from 'src/auth/utils/auth-helper'
-import { parseSort } from 'src/core/utils/sort.util'
+import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { OrmService } from 'src/orm/orm.service'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -31,15 +31,14 @@ export class UserService {
   constructor(private readonly ormService: OrmService) {}
 
   async updateViewer(actor: User, { name }: { name: string }): Promise<User> {
-    const updatedUser = (
-      await this.ormService.db
-        .update(usersTable)
-        .set({
-          name,
-        })
-        .where(eq(usersTable.id, actor.id))
-        .returning()
-    )[0]
+    const [updatedUser] = await this.ormService.db
+      .update(usersTable)
+      .set({
+        name,
+        updatedAt: new Date(),
+      })
+      .where(eq(usersTable.id, actor.id))
+      .returning()
 
     return updatedUser
   }
@@ -48,11 +47,9 @@ export class UserService {
     const user = await this.ormService.db.query.usersTable.findFirst({
       where: eq(usersTable.email, email),
     })
-
     if (!user) {
       throw new UserNotFoundException()
     }
-
     return user
   }
 
@@ -60,24 +57,22 @@ export class UserService {
     const user = await this.ormService.db.query.usersTable.findFirst({
       where: eq(usersTable.id, id),
     })
-
     if (!user) {
       throw new UserNotFoundException()
     }
-
     return user
   }
 
   async listUsers({
     limit = 10,
     offset = 0,
-    sort = UserSort.CreatedAtDesc,
+    sort = [UserSort.CreatedAtDesc],
     search,
     isAdmin,
   }: {
     limit?: number
     offset?: number
-    sort?: UserSort
+    sort?: UserSort[]
     search?: string
     isAdmin?: boolean
   }) {
@@ -101,7 +96,10 @@ export class UserService {
       where,
       limit: Math.min(100, limit),
       offset: Math.max(0, offset),
-      orderBy: parseSort(usersTable, sort),
+      orderBy: parseSort(
+        usersTable,
+        normalizeSortParam(sort) ?? [UserSort.CreatedAtDesc],
+      ),
     })
 
     const [userCountResult] = await this.ormService.db
@@ -121,14 +119,20 @@ export class UserService {
       limit = 10,
       offset = 0,
       search,
-      sort = UserSort.CreatedAtDesc,
+      sort = [UserSort.CreatedAtDesc],
       isAdmin,
     }: UsersListQueryParamsDTO,
   ) {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
-    return this.listUsers({ limit, offset, search, sort, isAdmin })
+    return this.listUsers({
+      limit,
+      offset,
+      search,
+      sort: normalizeSortParam(sort) ?? [UserSort.CreatedAtDesc],
+      isAdmin,
+    })
   }
 
   getUserByIdAsAdmin(actor: User, userId: string) {

@@ -18,6 +18,7 @@ import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import { FolderPermissionEnum } from '@stellariscloud/types'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
+import { normalizeSortParam } from 'src/core/utils/sort.util'
 
 import {
   ContentMetadataEntryDTO,
@@ -111,7 +112,10 @@ export class FoldersController {
     }
     const { result, meta } = await this.folderService.listFoldersAsUser(
       req.user,
-      queryParams,
+      {
+        ...queryParams,
+        sort: normalizeSortParam(queryParams.sort),
+      },
     )
     return {
       result: result.map(({ folder, permissions }) => ({
@@ -190,11 +194,13 @@ export class FoldersController {
     if (!req.user) {
       throw new UnauthorizedException()
     }
+
     const { result, meta } = await this.folderService.listFolderObjectsAsUser(
       req.user,
       {
         folderId,
         ...queryParams,
+        sort: normalizeSortParam(queryParams.sort),
       },
     )
     return {

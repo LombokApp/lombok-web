@@ -16,7 +16,10 @@ export const accessKeyListQueryParamsSchema = z.object({
       z.number().refine((a) => a > 0),
     )
     .optional(),
-  sort: z.nativeEnum(AccessKeySort).optional(),
+  sort: z
+    .array(z.nativeEnum(AccessKeySort))
+    .or(z.nativeEnum(AccessKeySort).optional())
+    .optional(),
 })
 
 export class AccessKeyListQueryParamsDTO extends createZodDto(

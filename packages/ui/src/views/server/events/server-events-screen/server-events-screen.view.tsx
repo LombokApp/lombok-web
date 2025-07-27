@@ -1,21 +1,22 @@
-import type { ListServerEventsRequest } from '@stellariscloud/types'
-import {
-  cn,
-  convertFiltersToSearchParams,
-  DataTable,
-  type FilterConfig,
-  readFiltersFromSearchParams,
-} from '@stellariscloud/ui-toolkit'
+import type { ServerEventsListRequest } from '@stellariscloud/types'
+import { cn, DataTable } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { BugIcon, InfoIcon, OctagonAlert, TriangleAlert } from 'lucide-react'
 import React from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { $api } from '@/src/services/api'
+import type { DataTableFilterConfig } from '@/src/utils/tables'
+import {
+  convertFiltersToSearchParams,
+  convertSortingToSearchParams,
+  readFiltersFromSearchParams,
+  readSortingFromSearchParams,
+} from '@/src/utils/tables'
 
 import { serverEventsTableColumns } from './server-events-table-columns'
 
-const FILTER_CONFIGS: Record<string, FilterConfig> = {
+const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   search: { isSearchFilter: true },
   level: { paramPrefix: 'level' },
 }
@@ -29,14 +30,28 @@ export function ServerEventsScreen() {
   const onFiltersChange = React.useCallback(
     (newFilters: Record<string, string[]>) => {
       setFilters(newFilters)
-      setSearchParams(
-        convertFiltersToSearchParams(newFilters, searchParams, FILTER_CONFIGS),
+      const newParams = convertFiltersToSearchParams(
+        newFilters,
+        searchParams,
+        FILTER_CONFIGS,
       )
+      setSearchParams(newParams)
     },
     [setSearchParams, searchParams],
   )
 
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [sorting, setSorting] = React.useState<SortingState>(
+    readSortingFromSearchParams(searchParams),
+  )
+
+  const handleSortingChange = React.useCallback(
+    (newSorting: SortingState) => {
+      setSorting(newSorting)
+      const newParams = convertSortingToSearchParams(newSorting, searchParams)
+      setSearchParams(newParams)
+    },
+    [setSearchParams, searchParams],
+  )
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -51,9 +66,12 @@ export function ServerEventsScreen() {
       query: {
         limit: pagination.pageSize,
         offset: pagination.pageSize * pagination.pageIndex,
-        sort: sorting[0]
-          ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ListServerEventsRequest['sort'])
-          : undefined,
+        sort:
+          sorting.length > 0
+            ? (sorting.map(
+                (s) => `${s.id}-${s.desc ? 'desc' : 'asc'}`,
+              ) as ServerEventsListRequest['sort'])
+            : undefined,
         search:
           typeof searchFilterValue === 'string' ? searchFilterValue : undefined,
         includeTrace: levelFilterValue.includes('TRACE') ? 'true' : undefined,
@@ -77,8 +95,9 @@ export function ServerEventsScreen() {
         rowCount={events?.meta.totalCount}
         data={events?.result ?? []}
         columns={serverEventsTableColumns}
+        sorting={sorting}
         onPaginationChange={setPagination}
-        onSortingChange={setSorting}
+        onSortingChange={handleSortingChange}
         filterOptions={{
           level: {
             label: 'Level',

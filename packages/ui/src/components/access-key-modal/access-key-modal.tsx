@@ -8,6 +8,7 @@ import {
   DialogTitle,
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
+import type { QueryObserverResult } from '@tanstack/react-query'
 
 import { AccessKeyRotateForm } from '../access-key-rotate-form/access-key-rotate-form'
 
@@ -20,6 +21,7 @@ export const AccessKeyModal = ({
   modalData,
   setModalData,
   onSubmit,
+  loadBuckets,
   buckets,
 }: {
   modalData: AccessKeyModalData
@@ -29,7 +31,19 @@ export const AccessKeyModal = ({
     secretAccessKey: string
   }) => Promise<void>
   buckets: { name: string }[]
+  loadBuckets: () => Promise<
+    QueryObserverResult<
+      {
+        result: {
+          name: string
+          createdDate?: string
+        }[]
+      },
+      never
+    >
+  >
 }) => {
+  void loadBuckets()
   return (
     <Dialog
       open={!!modalData.isOpen}

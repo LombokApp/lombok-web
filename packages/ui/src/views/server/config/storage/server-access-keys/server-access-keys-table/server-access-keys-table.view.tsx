@@ -22,9 +22,13 @@ export function ServerAccessKeysTable() {
         query: {
           limit: pagination.pageSize,
           offset: pagination.pageSize * pagination.pageIndex,
-          sort: sorting[0]
-            ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as AccessKeysListRequest['sort'])
-            : undefined,
+          sort:
+            sorting.length > 0
+              ? (sorting.map(
+                  (s) =>
+                    `${s.id}-${s.desc ? 'desc' : 'asc'}` as AccessKeysListRequest['sort'],
+                ) as AccessKeysListRequest['sort'])
+              : undefined,
         },
       },
     },

@@ -1,12 +1,10 @@
-'use client'
-
 import type {
   AccessKeyPublicDTO,
   RotateAccessKeyInputDTO,
 } from '@stellariscloud/types'
+import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { useToast } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
-import type { ColumnDef } from '@tanstack/react-table'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
@@ -16,9 +14,9 @@ import { AccessKeyModal } from '../../components/access-key-modal/access-key-mod
 
 export const configureUserAccessKeysTableColumns: (
   onKeyRotate: (accessKey: AccessKeyPublicDTO) => void,
-) => ColumnDef<AccessKeyPublicDTO>[] = (onKeyRotate) => [
+) => HideableColumnDef<AccessKeyPublicDTO>[] = (onKeyRotate) => [
   {
-    id: '__HIDDEN__',
+    id: 'modal',
     cell: ({ row }) => {
       const [rotateAccessKeyModalData, setRotateAccessKeyModalData] =
         React.useState<{
@@ -35,8 +33,8 @@ export const configureUserAccessKeysTableColumns: (
         {
           params: { path: { accessKeyHashId: accessKey.accessKeyHashId } },
         },
+        { enabled: false },
       )
-      const buckets = bucketsQuery.data?.result ?? []
 
       const { toast } = useToast()
 
@@ -57,22 +55,24 @@ export const configureUserAccessKeysTableColumns: (
 
       return (
         <>
-          <AccessKeyModal
-            modalData={rotateAccessKeyModalData}
-            setModalData={setRotateAccessKeyModalData}
-            buckets={buckets}
-            onSubmit={async (input: RotateAccessKeyInputDTO) => {
-              await rotateAccessKeyMutation.mutateAsync({
-                params: {
-                  path: {
-                    accessKeyHashId: accessKey.accessKeyHashId,
+          {rotateAccessKeyModalData.isOpen && (
+            <AccessKeyModal
+              modalData={rotateAccessKeyModalData}
+              setModalData={setRotateAccessKeyModalData}
+              loadBuckets={bucketsQuery.refetch}
+              buckets={bucketsQuery.data?.result ?? []}
+              onSubmit={async (input: RotateAccessKeyInputDTO) => {
+                await rotateAccessKeyMutation.mutateAsync({
+                  params: {
+                    path: {
+                      accessKeyHashId: accessKey.accessKeyHashId,
+                    },
                   },
-                },
-                body: input,
-              })
-            }}
-          />
-
+                  body: input,
+                })
+              }}
+            />
+          )}
           <div className="size-0 max-w-0 overflow-hidden">
             <Link
               onClick={(e) => {
@@ -89,6 +89,7 @@ export const configureUserAccessKeysTableColumns: (
         </>
       )
     },
+    zeroWidth: true,
     enableSorting: false,
     enableHiding: false,
   },
