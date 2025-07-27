@@ -1399,9 +1399,7 @@
                       "endpoint-asc",
                       "endpoint-desc",
                       "region-asc",
-                      "region-desc",
-                      "updatedAt-asc",
-                      "updatedAt-desc"
+                      "region-desc"
                     ]
                   }
                 },
@@ -1415,9 +1413,7 @@
                     "endpoint-asc",
                     "endpoint-desc",
                     "region-asc",
-                    "region-desc",
-                    "updatedAt-asc",
-                    "updatedAt-desc"
+                    "region-desc"
                   ]
                 }
               ]
@@ -1603,9 +1599,7 @@
                       "endpoint-asc",
                       "endpoint-desc",
                       "region-asc",
-                      "region-desc",
-                      "updatedAt-asc",
-                      "updatedAt-desc"
+                      "region-desc"
                     ]
                   }
                 },
@@ -1619,9 +1613,7 @@
                     "endpoint-asc",
                     "endpoint-desc",
                     "region-asc",
-                    "region-desc",
-                    "updatedAt-asc",
-                    "updatedAt-desc"
+                    "region-desc"
                   ]
                 }
               ]

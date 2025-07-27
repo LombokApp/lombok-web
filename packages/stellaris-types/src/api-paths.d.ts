@@ -2315,7 +2315,7 @@ export interface operations {
             query?: {
                 offset?: number;
                 limit?: number;
-                sort?: ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc" | "updatedAt-asc" | "updatedAt-desc");
+                sort?: ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc")[] | ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc");
             };
             header?: never;
             path?: never;
@@ -2405,7 +2405,7 @@ export interface operations {
             query?: {
                 offset?: number;
                 limit?: number;
-                sort?: ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc" | "updatedAt-asc" | "updatedAt-desc");
+                sort?: ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc")[] | ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc");
             };
             header?: never;
             path?: never;

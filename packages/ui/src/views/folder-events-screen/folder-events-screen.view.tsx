@@ -18,8 +18,10 @@ import { $api } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'
 import {
   convertFiltersToSearchParams,
+  convertPaginationToSearchParams,
   convertSortingToSearchParams,
   readFiltersFromSearchParams,
+  readPaginationFromSearchParams,
   readSortingFromSearchParams,
 } from '@/src/utils/tables'
 
@@ -62,10 +64,22 @@ export function FolderEventsScreen() {
     },
     [setSearchParams, searchParams],
   )
-  const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  })
+
+  const [pagination, setPagination] = React.useState<PaginationState>(
+    readPaginationFromSearchParams(searchParams),
+  )
+
+  const handlePaginationChange = React.useCallback(
+    (newPagination: PaginationState) => {
+      setPagination(newPagination)
+      const newParams = convertPaginationToSearchParams(
+        newPagination,
+        searchParams,
+      )
+      setSearchParams(newParams)
+    },
+    [setSearchParams, searchParams],
+  )
 
   const searchFilterValue =
     'search' in filters ? filters['search'][0] : undefined
@@ -122,7 +136,8 @@ export function FolderEventsScreen() {
               data={listFolderEventsQuery?.result ?? []}
               columns={folderEventsTableColumns}
               sorting={sorting}
-              onPaginationChange={setPagination}
+              pagination={pagination}
+              onPaginationChange={handlePaginationChange}
               onSortingChange={handleSortingChange}
               filterOptions={{
                 level: {

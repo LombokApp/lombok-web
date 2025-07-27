@@ -1,4 +1,4 @@
-import type { SortingState } from '@tanstack/table-core'
+import type { PaginationState, SortingState } from '@tanstack/table-core'
 
 /**
  * Configuration for filter types
@@ -134,6 +134,54 @@ export function convertSortingToSearchParams(
   sorting.forEach((sort) => {
     newSearchParams.append('sort', `${sort.id}-${sort.desc ? 'desc' : 'asc'}`)
   })
+
+  return newSearchParams
+}
+
+/**
+ * Reads pagination state from search params on initial load
+ * @param searchParams - The URL search params object
+ * @returns PaginationState - The pagination state object
+ */
+export function readPaginationFromSearchParams(
+  searchParams: URLSearchParams,
+): PaginationState {
+  const pageFromUrl = searchParams.get('page')
+  const pageSizeFromUrl = searchParams.get('pageSize')
+
+  return {
+    pageIndex: pageFromUrl ? parseInt(pageFromUrl, 10) - 1 : 0,
+    pageSize: pageSizeFromUrl ? parseInt(pageSizeFromUrl, 10) : 10,
+  }
+}
+
+/**
+ * Converts pagination state to search params
+ * @param pagination - The current pagination state
+ * @param currentSearchParams - The current search params object
+ * @param defaultPageSize - The default page size (defaults to 10)
+ * @returns URLSearchParams - The new search params object
+ */
+export function convertPaginationToSearchParams(
+  pagination: PaginationState,
+  currentSearchParams: URLSearchParams,
+  defaultPageSize = 10,
+): URLSearchParams {
+  const newSearchParams = new URLSearchParams(currentSearchParams)
+
+  // Update page (1-indexed for URL, 0-indexed in state)
+  if (pagination.pageIndex > 0) {
+    newSearchParams.set('page', `${pagination.pageIndex + 1}`)
+  } else {
+    newSearchParams.delete('page')
+  }
+
+  // Update pageSize if not default
+  if (pagination.pageSize !== defaultPageSize) {
+    newSearchParams.set('pageSize', `${pagination.pageSize}`)
+  } else {
+    newSearchParams.delete('pageSize')
+  }
 
   return newSearchParams
 }

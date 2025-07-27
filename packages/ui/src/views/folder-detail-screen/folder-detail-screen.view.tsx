@@ -49,6 +49,7 @@ import {
   convertFiltersToSearchParams,
   convertSortingToSearchParams,
   readFiltersFromSearchParams,
+  readPaginationFromSearchParams,
   readSortingFromSearchParams,
 } from '@/src/utils/tables'
 
@@ -120,12 +121,9 @@ export const FolderDetailScreen = () => {
   const [sorting, setSorting] = React.useState<SortingState>(
     readSortingFromSearchParams(searchParams),
   )
-  const pageFromUrl = searchParams.get('page')
-  const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: pageFromUrl ? parseInt(pageFromUrl, 10) - 1 : 0,
-    pageSize: 10,
-  })
-
+  const [pagination, setPagination] = React.useState<PaginationState>(
+    readPaginationFromSearchParams(searchParams),
+  )
   const searchFilterValue =
     'search' in filters ? filters['search'][0] : undefined
   const mediaTypeFilterValue = filters['mediaType'] ?? []
@@ -247,6 +245,7 @@ export const FolderDetailScreen = () => {
       setSearchParams({
         ...searchParams,
         page: `${newPagination.pageIndex + 1}`,
+        pageSize: `${newPagination.pageSize}`,
       })
     },
     [searchParams, setSearchParams],

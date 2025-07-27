@@ -112,17 +112,12 @@ export function DataTable<TData, TValue>({
     enableRowSelection,
     onRowSelectionChange: setRowSelection,
     onSortingChange: (updater) => {
-      const updated =
-        updater instanceof Function
-          ? updater(table.getState().sorting)
-          : updater
+      const updated = updater instanceof Function ? updater(sorting) : updater
       onSortingChange?.(updated)
     },
     onPaginationChange: (updater) => {
       const updated =
-        updater instanceof Function
-          ? updater(table.getState().pagination)
-          : updater
+        updater instanceof Function ? updater(pagination) : updater
       onPaginationChange?.(updated)
     },
     autoResetPageIndex: false,

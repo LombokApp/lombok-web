@@ -14,8 +14,10 @@ import { $api } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'
 import {
   convertFiltersToSearchParams,
+  convertPaginationToSearchParams,
   convertSortingToSearchParams,
   readFiltersFromSearchParams,
+  readPaginationFromSearchParams,
   readSortingFromSearchParams,
 } from '@/src/utils/tables'
 
@@ -50,15 +52,26 @@ export const FoldersScreen = () => {
   const [sorting, setSorting] = React.useState<SortingState>(
     readSortingFromSearchParams(searchParams),
   )
-  const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  })
+  const [pagination, setPagination] = React.useState<PaginationState>(
+    readPaginationFromSearchParams(searchParams),
+  )
 
   const handleSortingChange = React.useCallback(
     (newSorting: SortingState) => {
       setSorting(newSorting)
       const newParams = convertSortingToSearchParams(newSorting, searchParams)
+      setSearchParams(newParams)
+    },
+    [setSearchParams, searchParams],
+  )
+
+  const handlePaginationChange = React.useCallback(
+    (newPagination: PaginationState) => {
+      setPagination(newPagination)
+      const newParams = convertPaginationToSearchParams(
+        newPagination,
+        searchParams,
+      )
       setSearchParams(newParams)
     },
     [setSearchParams, searchParams],
@@ -165,7 +178,8 @@ export const FoldersScreen = () => {
         data={folders?.result ?? []}
         columns={foldersTableColumns}
         sorting={sorting}
-        onPaginationChange={setPagination}
+        pagination={pagination}
+        onPaginationChange={handlePaginationChange}
         onSortingChange={handleSortingChange}
       />
     </div>

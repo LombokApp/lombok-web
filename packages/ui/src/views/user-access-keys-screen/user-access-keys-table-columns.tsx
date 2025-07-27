@@ -94,7 +94,7 @@ export const configureUserAccessKeysTableColumns: (
     enableHiding: false,
   },
   {
-    accessorKey: 'hashId',
+    accessorKey: 'accessKeyHashId',
     header: ({ column }) => (
       <DataTableColumnHeader
         canHide={column.getCanHide()}
@@ -161,6 +161,25 @@ export const configureUserAccessKeysTableColumns: (
       return (
         <div className="flex items-center gap-2 font-normal">
           {accessKey.region}
+        </div>
+      )
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: 'folderCount',
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Folders"
+      />
+    ),
+    cell: ({ row: { original: accessKey } }) => {
+      return (
+        <div className="flex items-center gap-2 font-normal">
+          {accessKey.folderCount}
         </div>
       )
     },
