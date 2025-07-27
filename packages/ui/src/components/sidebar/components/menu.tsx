@@ -13,24 +13,33 @@ import {
 import { Ellipsis, LogOut } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
+import type { AppMenuItemAndHref } from '@/src/contexts/server.context'
+
 import { getMenuList } from '../menu-list'
 import { CollapseMenuButton } from './collapse-menu-button'
 
 interface MenuProps {
   isOpen: boolean | undefined
   viewer: UserDTO
+  appMenuItems: AppMenuItemAndHref[]
 }
+
+const protocol = window.location.protocol
+const hostname = window.location.hostname
+const port = window.location.port
+const API_HOST = `${hostname}${port ? `:${port}` : ''}`
 
 export function Menu({
   onSignOut,
   isOpen,
   viewer,
+  appMenuItems,
 }: { onSignOut: () => Promise<void> } & MenuProps) {
   const location = useLocation()
-  const menuList = getMenuList(location.pathname, viewer)
 
+  const menuList = getMenuList(location.pathname, viewer, appMenuItems)
   return (
-    <div className="flex h-full flex-col pb-3">
+    <div className="flex h-full flex-col  pb-3">
       <ScrollArea className="h-full flex-1 [&>div>div[style]]:!block">
         <nav className="size-full pt-2">
           <ul className="flex h-full flex-col items-start space-y-1 px-0">
@@ -60,7 +69,10 @@ export function Menu({
                   <p className="pb-2"></p>
                 )}
                 {menus.map(
-                  ({ href, label, icon: Icon, active, submenus }, _index) =>
+                  (
+                    { href, label, icon: Icon, active, submenus, context },
+                    _index,
+                  ) =>
                     !submenus || submenus.length === 0 ? (
                       <div className="w-full" key={_index}>
                         <TooltipProvider disableHoverableContent>
@@ -90,7 +102,14 @@ export function Menu({
                                       isOpen === false ? '' : 'mr-4',
                                     )}
                                   >
-                                    <Icon size={18} />
+                                    {typeof Icon === 'string' ? (
+                                      <img
+                                        src={`${protocol}//${context?.uiName}.${context?.appIdentifier}.apps.${API_HOST}${Icon}`}
+                                        className="size-12"
+                                      />
+                                    ) : (
+                                      <Icon className="size-4" />
+                                    )}
                                   </span>
                                   <p
                                     className={cn(
@@ -115,17 +134,19 @@ export function Menu({
                       </div>
                     ) : (
                       <div className="w-full" key={_index}>
-                        <CollapseMenuButton
-                          icon={Icon}
-                          label={label}
-                          active={
-                            active === undefined
-                              ? location.pathname.startsWith(href)
-                              : active
-                          }
-                          submenus={submenus}
-                          isOpen={isOpen}
-                        />
+                        {typeof Icon !== 'string' && (
+                          <CollapseMenuButton
+                            icon={Icon}
+                            label={label}
+                            active={
+                              active === undefined
+                                ? location.pathname.startsWith(href)
+                                : active
+                            }
+                            submenus={submenus}
+                            isOpen={isOpen}
+                          />
+                        )}
                       </div>
                     ),
                 )}

@@ -38,7 +38,7 @@ export interface IServerContext {
   refreshSettings: () => Promise<
     ServerSettingsListResponse['settings'] | undefined
   >
-  menuItems: AppMenuItemAndHref[]
+  appMenuItems: AppMenuItemAndHref[]
   appFolderTaskTriggers: {
     taskTrigger: AppTaskTrigger
     appIdentifier: string
@@ -170,7 +170,7 @@ export const ServerContextProvider = ({
         refreshApps: appsQuery.refetch,
         refreshSettings: refetchSettings,
         socketConnected: socket?.connected ?? false,
-        menuItems,
+        appMenuItems: menuItems,
         appFolderTaskTriggers: appFolderActions,
         appFolderObjectTaskTriggers: appFolderObjectActions,
         settings: serverSettings,

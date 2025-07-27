@@ -12,11 +12,11 @@ import { useSidebar } from './use-sidebar'
 export function Sidebar({
   onSignOut,
   authContext,
-  // menuItems,
+  appMenuItems,
 }: {
   onSignOut: () => Promise<void>
   authContext: IAuthContext
-  menuItems: AppMenuItemAndHref[]
+  appMenuItems: AppMenuItemAndHref[]
 }) {
   const sidebar = useStore(useSidebar, (x) => x)
   if (!sidebar) {
@@ -72,6 +72,7 @@ export function Sidebar({
               viewer={authContext.viewer}
               isOpen={getOpenState()}
               onSignOut={onSignOut}
+              appMenuItems={appMenuItems}
             />
           )}
         </div>

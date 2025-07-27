@@ -71,7 +71,7 @@ const AuthenticatedContent = () => {
   const authContext = useAuthContext()
   const navigate = useNavigate()
   const location = useLocation()
-  const { menuItems } = useServerContext()
+  const { appMenuItems } = useServerContext()
 
   React.useEffect(() => {
     if (authContext.authState.isLoaded) {
@@ -110,7 +110,7 @@ const AuthenticatedContent = () => {
         <Sidebar
           onSignOut={authContext.logout}
           authContext={authContext}
-          menuItems={menuItems}
+          appMenuItems={appMenuItems}
         />
       )}
       <main
