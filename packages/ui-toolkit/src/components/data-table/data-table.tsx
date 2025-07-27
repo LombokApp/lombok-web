@@ -2,9 +2,9 @@
 
 import type {
   ColumnDef,
-  ColumnFiltersState,
-  FilterFn,
+  ColumnSort,
   PaginationState,
+  RowData,
   SortingState,
   TableOptions,
   VisibilityState,
@@ -12,9 +12,6 @@ import type {
 import {
   flexRender,
   getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
@@ -35,27 +32,32 @@ import { DataTablePagination } from './data-table-pagination'
 import type { ColumnFilterOptions } from './data-table-toolbar'
 import { DataTableToolbar } from './data-table-toolbar'
 
+export type HideableColumnDef<
+  TData extends RowData,
+  TValue = unknown,
+> = ColumnDef<TData, TValue> & {
+  forceHiding?: boolean
+  zeroWidth?: boolean
+}
+
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
+  columns: HideableColumnDef<TData, TValue>[]
   data: TData[]
   title?: string
-  filterFns?: Record<string, FilterFn<TValue>>
+  filters?: Record<string, string[]>
+  sorting?: SortingState
   filterOptions?: Record<string, ColumnFilterOptions>
-  manualFiltering?: boolean
-  manualSorting?: boolean
   enableRowSelection?: boolean
   enableSearch?: boolean
-  searchColumn?: string
   searchPlaceholder?: string
-  actionComponent?: React.ReactNode
   cellPadding?: string
   hideHeader?: boolean
-  pageIndex?: number
+  pagination?: PaginationState
 }
 
 interface TableHandlerProps<TData> {
-  onColumnFiltersChange?: (columnFiltersState: ColumnFiltersState) => void
-  onSortingChange?: TableOptions<TData>['onSortingChange']
+  onColumnFiltersChange?: (filterState: Record<string, string[]>) => void
+  onSortingChange?: (sortState: ColumnSort[]) => void
   onPaginationChange?: (paginationState: PaginationState) => void
   rowCount?: TableOptions<TData>['rowCount']
 }
@@ -64,7 +66,8 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   title,
-  filterFns,
+  filters = {},
+  sorting = [],
   filterOptions = {},
   rowCount = data.length,
   onColumnFiltersChange,
@@ -73,125 +76,103 @@ export function DataTable<TData, TValue>({
   onPaginationChange,
   enableRowSelection = false,
   enableSearch = false,
-  searchColumn,
   hideHeader = false,
-  pageIndex = 0,
+  pagination = {
+    pageIndex: 0,
+    pageSize: 10,
+  },
   searchPlaceholder,
-  manualFiltering = true,
-  manualSorting = true,
-  actionComponent,
 }: DataTableProps<TData, TValue> & TableHandlerProps<TData>) {
   const [rowSelection, setRowSelection] = React.useState({})
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
+  const columnVisibility = React.useMemo<VisibilityState>(
+    () =>
+      columns.reduce<VisibilityState>((acc, column) => {
+        if (column.id && column.forceHiding) {
+          acc[column.id] = false
+        }
+        return acc
+      }, {}),
+    [columns],
   )
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex,
-    pageSize: 10,
-  })
 
   const table = useReactTable({
     data,
     rowCount,
-    manualFiltering,
-    manualSorting,
+    manualFiltering: true,
+    manualSorting: true,
     manualPagination: true,
     columns,
-    filterFns,
     enableGlobalFilter: false,
     state: {
       sorting,
       columnVisibility,
       rowSelection,
-      columnFilters,
       pagination,
     },
     enableRowSelection,
     onRowSelectionChange: setRowSelection,
     onSortingChange: (updater) => {
       const updated = updater instanceof Function ? updater(sorting) : updater
-      if (onSortingChange) {
-        onSortingChange(updated)
-      }
-      setSorting(updated)
+      onSortingChange?.(updated)
     },
     onPaginationChange: (updater) => {
       const updated =
         updater instanceof Function ? updater(pagination) : updater
-      if (onPaginationChange) {
-        onPaginationChange(updated)
-      }
-      setPagination(updated)
-    },
-    onColumnFiltersChange: (updater) => {
-      const updated =
-        updater instanceof Function ? updater(columnFilters) : updater
-      if (onColumnFiltersChange) {
-        onColumnFiltersChange(updated)
-      }
-      setColumnFilters(updated)
+      onPaginationChange?.(updated)
     },
     autoResetPageIndex: false,
-    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
   })
-
-  if (enableSearch && !searchColumn) {
-    throw new Error('Must set `searchColumn` if `enableSearch` is true.')
-  }
 
   return (
     <div className={cn('size-full gap-2 flex flex-col')}>
-      {(Object.keys(filterOptions).length > 0 ||
-        enableSearch ||
-        actionComponent) && (
+      {(Object.keys(filterOptions).length > 0 || enableSearch) && (
         <DataTableToolbar
+          table={table}
           title={title}
-          actionComponent={actionComponent}
           enableSearch={enableSearch}
-          searchColumn={searchColumn}
           searchPlaceholder={searchPlaceholder}
           filterOptions={filterOptions}
-          table={table}
+          filters={filters}
+          onFiltersChange={onColumnFiltersChange}
         />
       )}
       <div className="vertical-scrollbar-container">
-        <div className="rounded-md border border-foreground/10 bg-card">
+        <div className="rounded-md border border-foreground/10 bg-background">
           <Table>
             {!hideHeader && (
               <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead
-                          key={header.id}
-                          colSpan={header.colSpan}
-                          className={
-                            header.column.columnDef.id?.startsWith('__HIDDEN__')
-                              ? 'p-0'
-                              : undefined
-                          }
-                        >
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
-                        </TableHead>
-                      )
-                    })}
-                  </TableRow>
-                ))}
+                {table.getHeaderGroups().map((headerGroup) => {
+                  return (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => {
+                        return (
+                          <TableHead
+                            key={header.id}
+                            colSpan={header.colSpan}
+                            className={
+                              (
+                                header.column
+                                  .columnDef as HideableColumnDef<TData>
+                              ).zeroWidth
+                                ? 'w-0 p-0'
+                                : undefined
+                            }
+                          >
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext(),
+                                )}
+                          </TableHead>
+                        )
+                      })}
+                    </TableRow>
+                  )
+                })}
               </TableHeader>
             )}
             <TableBody>
@@ -206,13 +187,15 @@ export function DataTable<TData, TValue>({
                       return (
                         <TableCell
                           width={
-                            cell.column.columnDef.id?.startsWith('__HIDDEN__')
+                            (cell.column.columnDef as HideableColumnDef<TData>)
+                              .zeroWidth
                               ? 0
                               : undefined
                           }
                           key={cell.id}
                           className={
-                            cell.column.columnDef.id?.startsWith('__HIDDEN__')
+                            (cell.column.columnDef as HideableColumnDef<TData>)
+                              .zeroWidth
                               ? 'w-0 p-0'
                               : cellPadding
                           }

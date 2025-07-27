@@ -7,16 +7,16 @@ export type UserDTO =
   paths['/api/v1/server/users/{userId}']['get']['responses']['200']['content']['application/json']['user']
 export type AppDTO =
   paths['/api/v1/server/apps/{appIdentifier}']['get']['responses']['200']['content']['application/json']['app']
-export type ListServerTasksRequest = NonNullable<
+export type ServerTasksListRequest = NonNullable<
   paths['/api/v1/server/tasks']['get']['parameters']['query']
 >
-export type ListServerTasksResponse =
+export type ServerTasksListResponse =
   paths['/api/v1/server/tasks']['get']['responses']['200']['content']['application/json']
 
-export type ListServerEventsRequest = NonNullable<
+export type ServerEventsListRequest = NonNullable<
   paths['/api/v1/server/events']['get']['parameters']['query']
 >
-export type ListServerEventsResponse =
+export type ServerEventsListResponse =
   paths['/api/v1/server/events']['get']['responses']['200']['content']['application/json']
 
 // API Types for UI imports
@@ -52,7 +52,11 @@ export type ServerSettingsGetResponse =
 export type AppsListResponse =
   paths['/api/v1/server/apps']['get']['responses']['200']['content']['application/json']
 
-export type ListFolderObjectsSortRequest = NonNullable<
+export type FolderListRequest = NonNullable<
+  paths['/api/v1/folders']['get']['parameters']['query']
+>
+
+export type FolderObjectsListRequest = NonNullable<
   paths['/api/v1/folders/{folderId}/objects']['get']['parameters']['query']
 >
 

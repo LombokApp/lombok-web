@@ -10,7 +10,7 @@ import {
 import { CoreEvent, FolderPushMessage } from '@stellariscloud/types'
 import { and, count, eq, ilike, inArray, or, SQL } from 'drizzle-orm'
 import { AppService } from 'src/app/services/app.service'
-import { parseSort } from 'src/core/utils/sort.util'
+import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
@@ -18,8 +18,6 @@ import { type NewTask, tasksTable } from 'src/task/entities/task.entity'
 import type { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
-import { EventsListQueryParamsDTO } from '../dto/events-list-query-params.dto'
-import { FolderEventsListQueryParamsDTO } from '../dto/folder-events-list-query-params.dto'
 import type { Event } from '../entities/event.entity'
 import { EventLevel, eventsTable } from '../entities/event.entity'
 
@@ -258,7 +256,12 @@ export class EventService {
   async listFolderEventsAsUser(
     actor: User,
     { folderId }: { folderId: string },
-    queryParams: FolderEventsListQueryParamsDTO,
+    queryParams: {
+      search?: string
+      offset?: number
+      limit?: number
+      sort?: EventSort[]
+    },
   ) {
     // ACL check
     const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
@@ -280,7 +283,7 @@ export class EventService {
     {
       offset,
       limit,
-      sort = EventSort.CreatedAtDesc,
+      sort = [EventSort.CreatedAtDesc],
       search,
       folderId,
       objectKey,
@@ -289,7 +292,19 @@ export class EventService {
       includeInfo,
       includeTrace,
       includeWarning,
-    }: EventsListQueryParamsDTO,
+    }: {
+      folderId?: string
+      objectKey?: string
+      search?: string
+      offset?: number
+      limit?: number
+      sort?: EventSort[]
+      includeTrace?: 'true'
+      includeDebug?: 'true'
+      includeInfo?: 'true'
+      includeWarning?: 'true'
+      includeError?: 'true'
+    },
   ): Promise<{ meta: { totalCount: number }; result: Event[] }> {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
@@ -313,7 +328,7 @@ export class EventService {
     offset,
     limit,
     search,
-    sort = EventSort.CreatedAtAsc,
+    sort = [EventSort.CreatedAtAsc],
     objectKey,
     folderId,
     includeDebug,
@@ -321,7 +336,19 @@ export class EventService {
     includeInfo,
     includeTrace,
     includeWarning,
-  }: EventsListQueryParamsDTO) {
+  }: {
+    folderId?: string
+    objectKey?: string
+    search?: string
+    offset?: number
+    limit?: number
+    sort?: EventSort[]
+    includeTrace?: 'true'
+    includeDebug?: 'true'
+    includeInfo?: 'true'
+    includeWarning?: 'true'
+    includeError?: 'true'
+  }) {
     const conditions: (SQL | undefined)[] = []
     if (folderId) {
       conditions.push(eq(eventsTable.folderId, folderId))
@@ -364,7 +391,10 @@ export class EventService {
       ...(conditions.length ? { where: and(...conditions) } : {}),
       offset: Math.max(0, offset ?? 0),
       limit: Math.min(100, limit ?? 25),
-      orderBy: parseSort(eventsTable, sort),
+      orderBy: parseSort(
+        eventsTable,
+        normalizeSortParam(sort) ?? [EventSort.CreatedAtAsc],
+      ),
     })
 
     const eventsCountResult = await this.ormService.db

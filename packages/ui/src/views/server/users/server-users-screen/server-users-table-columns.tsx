@@ -1,28 +1,22 @@
 'use client'
 
 import type { UserDTO } from '@stellariscloud/types'
+import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { timeSinceOrUntil } from '@stellariscloud/utils'
-import type { ColumnDef } from '@tanstack/react-table'
-import { Link } from 'react-router-dom'
 
 import { invertColour, stringToColour } from '@/src/utils/colors'
 
-export const serverUsersTableColumns: ColumnDef<UserDTO>[] = [
+import { TableLinkColumn } from '../../../../components/table-link-column/table-link-column'
+
+export const serverUsersTableColumns: HideableColumnDef<UserDTO>[] = [
   {
-    id: '__HIDDEN__',
-    cell: ({ row }) => {
-      return (
-        <div className="size-0 max-w-0 overflow-hidden">
-          <Link
-            to={`/server/users/${row.original.id}`}
-            className="absolute inset-0"
-          />
-        </div>
-      )
-    },
+    id: 'link',
+    cell: ({ row }) => (
+      <TableLinkColumn to={`/server/users/${row.original.id}`} />
+    ),
     enableSorting: false,
-    enableHiding: false,
+    zeroWidth: true,
   },
   {
     id: 'icon',

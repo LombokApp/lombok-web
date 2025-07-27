@@ -1,6 +1,6 @@
 import type {
+  FolderObjectsListRequest,
   FolderPermissionName,
-  ListFolderObjectsSortRequest,
 } from '@stellariscloud/types'
 import { FolderPermissionEnum, FolderPushMessage } from '@stellariscloud/types'
 import {
@@ -13,18 +13,19 @@ import {
   DropdownMenuTrigger,
   useToast,
 } from '@stellariscloud/ui-toolkit'
-import type {
-  ColumnFiltersState,
-  PaginationState,
-  SortingState,
-} from '@tanstack/table-core'
+import type { PaginationState, SortingState } from '@tanstack/table-core'
 import {
   CloudUpload,
   Ellipsis,
+  FileText,
   Folder,
   FolderSync,
+  HelpCircle,
+  Image,
+  Radio,
   Share2,
   Trash,
+  Video,
 } from 'lucide-react'
 import React from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -43,14 +44,26 @@ import {
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache.context'
 import { useFolderContext } from '@/src/pages/folders/folder.context'
 import { $api } from '@/src/services/api'
+import type { DataTableFilterConfig } from '@/src/utils/tables'
+import {
+  convertFiltersToSearchParams,
+  convertSortingToSearchParams,
+  readFiltersFromSearchParams,
+  readPaginationFromSearchParams,
+  readSortingFromSearchParams,
+} from '@/src/utils/tables'
 
 import { FolderSidebar } from '../folder-sidebar/folder-sidebar.view'
 import { folderObjectsTableColumns } from './folder-objects-table-columns'
 import { FolderShareModal } from './folder-share-modal/folder-share-modal'
 
+const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
+  search: { isSearchFilter: true },
+  mediaType: { paramPrefix: 'mediaType' },
+}
+
 export const FolderDetailScreen = () => {
   const navigate = useNavigate()
-  // const query = useQuery()
   const [searchParams, setSearchParams] = useSearchParams()
   const { toast } = useToast()
 
@@ -61,15 +74,9 @@ export const FolderDetailScreen = () => {
 
   const params = useParams()
   const [folderId, focusedObjectKeyFromParams] = params['*']?.split('/') ?? []
-  // const [queryParams] = useSearchParams()
-  const [filters, setFilters] = React.useState<
-    { id: string; value: unknown }[]
-  >(
-    searchParams.get('search')
-      ? [{ id: 'search', value: searchParams.get('search') }]
-      : [],
+  const [filters, setFilters] = React.useState<Record<string, string[]>>(
+    readFiltersFromSearchParams(searchParams, FILTER_CONFIGS),
   )
-  const searchFilter = filters.find((f) => f.id === 'main')
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
   const { uploadFile, uploadingProgress } = useLocalFileCacheContext()
 
@@ -111,12 +118,16 @@ export const FolderDetailScreen = () => {
   ] = React.useState<DeleteFolderModalData>({
     isOpen: false,
   })
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const pageFromUrl = searchParams.get('page')
-  const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: pageFromUrl ? parseInt(pageFromUrl, 10) - 1 : 0,
-    pageSize: 10,
-  })
+  const [sorting, setSorting] = React.useState<SortingState>(
+    readSortingFromSearchParams(searchParams),
+  )
+  const [pagination, setPagination] = React.useState<PaginationState>(
+    readPaginationFromSearchParams(searchParams),
+  )
+  const searchFilterValue =
+    'search' in filters ? filters['search'][0] : undefined
+  const mediaTypeFilterValue = filters['mediaType'] ?? []
+
   const listFolderObjectsQuery = $api.useQuery(
     'get',
     '/api/v1/folders/{folderId}/objects',
@@ -128,12 +139,31 @@ export const FolderDetailScreen = () => {
         query: {
           limit: pagination.pageSize,
           offset: pagination.pageIndex * pagination.pageSize,
-          ...(searchFilter?.value
-            ? { search: searchFilter.value as string }
-            : {}),
-          sort: sorting[0]
-            ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as ListFolderObjectsSortRequest['sort'])
+          search:
+            typeof searchFilterValue === 'string'
+              ? searchFilterValue
+              : undefined,
+          includeImage: mediaTypeFilterValue.includes('IMAGE')
+            ? 'true'
             : undefined,
+          includeVideo: mediaTypeFilterValue.includes('VIDEO')
+            ? 'true'
+            : undefined,
+          includeAudio: mediaTypeFilterValue.includes('AUDIO')
+            ? 'true'
+            : undefined,
+          includeDocument: mediaTypeFilterValue.includes('DOCUMENT')
+            ? 'true'
+            : undefined,
+          includeUnknown: mediaTypeFilterValue.includes('UNKNOWN')
+            ? 'true'
+            : undefined,
+          sort:
+            sorting.length > 0
+              ? (sorting.map(
+                  (s) => `${s.id}-${s.desc ? 'desc' : 'asc'}`,
+                ) as FolderObjectsListRequest['sort'])
+              : undefined,
         },
       },
     },
@@ -215,22 +245,27 @@ export const FolderDetailScreen = () => {
       setSearchParams({
         ...searchParams,
         page: `${newPagination.pageIndex + 1}`,
+        pageSize: `${newPagination.pageSize}`,
       })
     },
     [searchParams, setSearchParams],
   )
 
   const handleFiltersChange = React.useCallback(
-    (newFilters: ColumnFiltersState) => {
+    (newFilters: Record<string, string[]>) => {
       setFilters(newFilters)
-      setSearchParams({
-        ...searchParams,
-        ...('search' in newFilters ? { search: newFilters.search } : {}),
-      })
-      const newSearchParams = {}
+      setSearchParams(
+        convertFiltersToSearchParams(newFilters, searchParams, FILTER_CONFIGS),
+      )
+    },
+    [setSearchParams, searchParams],
+  )
 
-      // newSearchParams[]
-      setSearchParams(newSearchParams)
+  const handleSortingChange = React.useCallback(
+    (newSorting: SortingState) => {
+      setSorting(newSorting)
+      const newParams = convertSortingToSearchParams(newSorting, searchParams)
+      setSearchParams(newParams)
     },
     [setSearchParams, searchParams],
   )
@@ -387,7 +422,7 @@ export const FolderDetailScreen = () => {
                   </div>
                 </div>
               ) : (
-                <div className="flex size-full flex-col">
+                <div className="flex size-full flex-col gap-2">
                   <div className="flex justify-between">
                     <EditableTitle
                       value={folderContext.folder?.name ?? ''}
@@ -469,14 +504,43 @@ export const FolderDetailScreen = () => {
                       cellPadding={'p-1.5'}
                       hideHeader={true}
                       enableSearch={true}
-                      searchColumn={'main'}
+                      filters={filters}
+                      sorting={sorting}
                       onColumnFiltersChange={handleFiltersChange}
                       rowCount={folderContext.folderMetadata?.totalCount ?? 0}
                       data={listFolderObjectsQuery.data?.result ?? []}
                       columns={folderObjectsTableColumns}
                       onPaginationChange={handlePaginationChange}
-                      pageIndex={pagination.pageIndex}
-                      onSortingChange={setSorting}
+                      pagination={pagination}
+                      onSortingChange={handleSortingChange}
+                      filterOptions={{
+                        mediaType: {
+                          label: 'Media Type',
+                          options: [
+                            {
+                              value: 'IMAGE',
+                              label: 'Images',
+                              icon: Image,
+                            },
+                            {
+                              value: 'VIDEO',
+                              label: 'Videos',
+                              icon: Video,
+                            },
+                            { value: 'AUDIO', label: 'Audio', icon: Radio },
+                            {
+                              value: 'DOCUMENT',
+                              label: 'Documents',
+                              icon: FileText,
+                            },
+                            {
+                              value: 'UNKNOWN',
+                              label: 'Unknown',
+                              icon: HelpCircle,
+                            },
+                          ],
+                        },
+                      }}
                     />
                   </div>
                 </div>

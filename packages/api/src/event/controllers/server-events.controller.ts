@@ -12,6 +12,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
+import { normalizeSortParam } from 'src/core/utils/sort.util'
 
 import { EventsListQueryParamsDTO } from '../dto/events-list-query-params.dto'
 import { EventGetResponse } from '../dto/responses/event-get-response.dto'
@@ -58,7 +59,10 @@ export class ServerEventsController {
     }
     const { result, meta } = await this.eventService.listEventsAsAdmin(
       req.user,
-      queryParams,
+      {
+        ...queryParams,
+        sort: normalizeSortParam(queryParams.sort),
+      },
     )
     return {
       result: result.map((event) => transformEventToDTO(event)),

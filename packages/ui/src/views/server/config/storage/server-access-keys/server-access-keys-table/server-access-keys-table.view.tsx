@@ -1,3 +1,4 @@
+import type { AccessKeysListRequest } from '@stellariscloud/sdk'
 import { cn, DataTable } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import React from 'react'
@@ -17,12 +18,18 @@ export function ServerAccessKeysTable() {
     'get',
     '/api/v1/server/access-keys',
     {
-      queries: {
-        limit: pagination.pageSize,
-        offset: pagination.pageSize * pagination.pageIndex,
-        sort: sorting[0]
-          ? `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}`
-          : undefined,
+      params: {
+        query: {
+          limit: pagination.pageSize,
+          offset: pagination.pageSize * pagination.pageIndex,
+          sort:
+            sorting.length > 0
+              ? (sorting.map(
+                  (s) =>
+                    `${s.id}-${s.desc ? 'desc' : 'asc'}` as AccessKeysListRequest['sort'],
+                ) as AccessKeysListRequest['sort'])
+              : undefined,
+        },
       },
     },
   )

@@ -12,6 +12,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
+import { normalizeSortParam } from 'src/core/utils/sort.util'
 
 import { TaskGetResponse } from '../dto/responses/task-get-response.dto'
 import { TaskListResponse } from '../dto/responses/task-list-response.dto'
@@ -56,10 +57,10 @@ export class ServerTasksController {
     if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
-    const { result, meta } = await this.taskService.listTasksAsAdmin(
-      req.user,
-      queryParams,
-    )
+    const { result, meta } = await this.taskService.listTasksAsAdmin(req.user, {
+      ...queryParams,
+      sort: normalizeSortParam(queryParams.sort),
+    })
     return {
       result: result.map((task) => transformTaskToDTO(task)),
       meta,

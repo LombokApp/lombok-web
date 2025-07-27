@@ -19,9 +19,19 @@ interface DataTablePaginationProps<TData> {
   table: Table<TData>
 }
 
+const PAGE_SIZES = [10, 20, 30, 40, 50]
+
 export function DataTablePagination<TData>({
   table,
 }: DataTablePaginationProps<TData>) {
+  const ALL_PAGE_SIZES = !PAGE_SIZES.includes(
+    table.getState().pagination.pageSize,
+  )
+    ? PAGE_SIZES.concat([table.getState().pagination.pageSize]).sort(
+        (a, b) => a - b,
+      )
+    : PAGE_SIZES
+
   return (
     <div className="flex items-center justify-between rounded-md">
       <div className="flex-1" />
@@ -38,7 +48,7 @@ export function DataTablePagination<TData>({
               <SelectValue placeholder={table.getState().pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top">
-              {[10, 20, 30, 40, 50].map((pageSize) => (
+              {ALL_PAGE_SIZES.map((pageSize) => (
                 <SelectItem key={pageSize} value={`${pageSize}`}>
                   {pageSize}
                 </SelectItem>

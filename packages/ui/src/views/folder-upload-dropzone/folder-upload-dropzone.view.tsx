@@ -33,12 +33,12 @@ export const FolderUploadDropzone = ({
           )}
         />
         {isDragActive ? (
-          <p className="dark:text-blue-400 text-center font-medium text-blue-600">
+          <p className="text-center font-medium text-blue-600 dark:text-blue-400">
             Drop files here
           </p>
         ) : (
           <div className="cursor-pointer text-center">
-            <p className="dark:text-gray-400 text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               <span className="font-medium">Drop files here to upload</span>
               <br />
               or click to select files

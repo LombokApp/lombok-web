@@ -17,7 +17,7 @@ import {
   sql,
 } from 'drizzle-orm'
 import { APP_NS_PREFIX } from 'src/app/services/app.service'
-import { parseSort } from 'src/core/utils/sort.util'
+import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { AppSocketService } from 'src/socket/app/app-socket.service'
@@ -40,6 +40,7 @@ export class TaskService {
   get appSocketService(): AppSocketService {
     return this._appSocketService as AppSocketService
   }
+
   constructor(
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => AppSocketService))
@@ -51,20 +52,16 @@ export class TaskService {
     actor: User,
     { folderId, taskId }: { folderId: string; taskId: string },
   ): Promise<Task> {
-    const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
-
+    await this.folderService.getFolderAsUser(actor, folderId)
     const task = await this.ormService.db.query.tasksTable.findFirst({
       where: and(
-        eq(tasksTable.subjectFolderId, folder.id),
         eq(tasksTable.id, taskId),
+        eq(tasksTable.subjectFolderId, folderId),
       ),
     })
-
     if (!task) {
-      // no task matching the given input
       throw new NotFoundException()
     }
-
     return task
   }
 
@@ -73,13 +70,14 @@ export class TaskService {
     { folderId }: { folderId: string },
     queryParams: FolderTasksListQueryParamsDTO,
   ) {
-    // ACL check
-    const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
-    return this.listTasks({ ...queryParams, folderId: folder.id })
+    await this.folderService.getFolderAsUser(actor, folderId)
+    return this.listTasks({
+      ...queryParams,
+      folderId,
+    })
   }
 
   listTasksAsAdmin(actor: User, queryParams: TasksListQueryParamsDTO) {
-    // ACL check
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
@@ -87,20 +85,15 @@ export class TaskService {
   }
 
   async getTaskAsAdmin(actor: User, taskId: string): Promise<Task> {
-    // ACL check
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
-
     const task = await this.ormService.db.query.tasksTable.findFirst({
       where: eq(tasksTable.id, taskId),
     })
-
     if (!task) {
-      // no task matching the given input
       throw new NotFoundException()
     }
-
     return task
   }
 
@@ -108,7 +101,7 @@ export class TaskService {
     offset,
     limit,
     search,
-    sort = TaskSort.CreatedAtAsc,
+    sort = [TaskSort.CreatedAtAsc],
     objectKey,
     includeComplete,
     includeFailed,
@@ -158,7 +151,10 @@ export class TaskService {
       ...(conditions.length ? { where: and(...conditions) } : {}),
       offset: Math.max(0, offset ?? 0),
       limit: Math.min(100, limit ?? 25),
-      orderBy: parseSort(tasksTable, sort),
+      orderBy: parseSort(
+        tasksTable,
+        normalizeSortParam(sort) ?? [TaskSort.CreatedAtAsc],
+      ),
     })
 
     const tasksCountResult = await this.ormService.db

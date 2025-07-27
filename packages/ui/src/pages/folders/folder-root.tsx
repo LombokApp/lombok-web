@@ -89,7 +89,7 @@ function FolderRootInner() {
   }
   return (
     <ContentLayout
-      contentPadding={false}
+      contentPadding={true}
       breadcrumbs={[
         { label: 'Folders', href: '/folders' },
         {
@@ -98,7 +98,7 @@ function FolderRootInner() {
         },
       ].concat(extraBreadcrumbs)}
     >
-      <div className="flex size-full p-2">
+      <div className="flex size-full">
         {focusedFolderObjectKey ? (
           <FolderObjectRootInner />
         ) : isFolderDetailPage ? (

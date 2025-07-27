@@ -11,26 +11,79 @@ import {
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { AlertTriangle, InfoIcon, MessageSquare, XCircle } from 'lucide-react'
 import React from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 import { useFolderContext } from '@/src/pages/folders/folder.context'
 import { $api } from '@/src/services/api'
+import type { DataTableFilterConfig } from '@/src/utils/tables'
+import {
+  convertFiltersToSearchParams,
+  convertPaginationToSearchParams,
+  convertSortingToSearchParams,
+  readFiltersFromSearchParams,
+  readPaginationFromSearchParams,
+  readSortingFromSearchParams,
+} from '@/src/utils/tables'
 
 import { folderEventsTableColumns } from './folder-events-table-columns'
 
+const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
+  search: { isSearchFilter: true },
+  level: { paramPrefix: 'level' },
+}
+
 export function FolderEventsScreen() {
   const { folderId, folder } = useFolderContext()
-  const [filters, setFilters] = React.useState<
-    { id: string; value: unknown }[]
-  >([])
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [filters, setFilters] = React.useState<Record<string, string[]>>(
+    readFiltersFromSearchParams(searchParams, FILTER_CONFIGS),
+  )
 
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  })
+  const onFiltersChange = React.useCallback(
+    (newFilters: Record<string, string[]>) => {
+      setFilters(newFilters)
+      const newParams = convertFiltersToSearchParams(
+        newFilters,
+        searchParams,
+        FILTER_CONFIGS,
+      )
+      setSearchParams(newParams)
+    },
+    [setSearchParams, searchParams],
+  )
 
-  const searchFilter = filters.find((f) => f.id === 'eventKey')
-  const levelFilterValue = filters.find((f) => f.id === 'level')?.value ?? []
+  const [sorting, setSorting] = React.useState<SortingState>(
+    readSortingFromSearchParams(searchParams),
+  )
+
+  const handleSortingChange = React.useCallback(
+    (newSorting: SortingState) => {
+      setSorting(newSorting)
+      const newParams = convertSortingToSearchParams(newSorting, searchParams)
+      setSearchParams(newParams)
+    },
+    [setSearchParams, searchParams],
+  )
+
+  const [pagination, setPagination] = React.useState<PaginationState>(
+    readPaginationFromSearchParams(searchParams),
+  )
+
+  const handlePaginationChange = React.useCallback(
+    (newPagination: PaginationState) => {
+      setPagination(newPagination)
+      const newParams = convertPaginationToSearchParams(
+        newPagination,
+        searchParams,
+      )
+      setSearchParams(newParams)
+    },
+    [setSearchParams, searchParams],
+  )
+
+  const searchFilterValue =
+    'search' in filters ? filters['search'][0] : undefined
+  const levelFilterValue = filters['level'] ?? []
 
   const { data: listFolderEventsQuery } = $api.useQuery(
     'get',
@@ -43,28 +96,24 @@ export function FolderEventsScreen() {
         query: {
           limit: pagination.pageSize,
           offset: pagination.pageSize * pagination.pageIndex,
-          sort: sorting[0]
-            ? (`${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` as FolderEventsListRequest['sort'])
-            : undefined,
-          search:
-            typeof searchFilter?.value === 'string'
-              ? searchFilter.value
+          sort:
+            sorting.length > 0
+              ? (sorting.map(
+                  (s) =>
+                    `${s.id}-${s.desc ? 'desc' : 'asc'}` as FolderEventsListRequest['sort'],
+                ) as FolderEventsListRequest['sort'])
               : undefined,
-          includeError: (levelFilterValue as string[]).includes('ERROR')
+          search:
+            typeof searchFilterValue === 'string'
+              ? searchFilterValue
+              : undefined,
+          includeError: levelFilterValue.includes('ERROR') ? 'true' : undefined,
+          includeWarning: levelFilterValue.includes('WARN')
             ? 'true'
             : undefined,
-          includeWarning: (levelFilterValue as string[]).includes('WARN')
-            ? 'true'
-            : undefined,
-          includeInfo: (levelFilterValue as string[]).includes('INFO')
-            ? 'true'
-            : undefined,
-          includeDebug: (levelFilterValue as string[]).includes('DEBUG')
-            ? 'true'
-            : undefined,
-          includeTrace: (levelFilterValue as string[]).includes('TRACE')
-            ? 'true'
-            : undefined,
+          includeInfo: levelFilterValue.includes('INFO') ? 'true' : undefined,
+          includeDebug: levelFilterValue.includes('DEBUG') ? 'true' : undefined,
+          includeTrace: levelFilterValue.includes('TRACE') ? 'true' : undefined,
         },
       },
     },
@@ -81,13 +130,15 @@ export function FolderEventsScreen() {
           <CardContent className="p-0">
             <DataTable
               enableSearch={true}
-              searchColumn={'eventKey'}
-              onColumnFiltersChange={setFilters}
+              filters={filters}
+              onColumnFiltersChange={onFiltersChange}
               rowCount={listFolderEventsQuery?.meta.totalCount}
               data={listFolderEventsQuery?.result ?? []}
               columns={folderEventsTableColumns}
-              onPaginationChange={setPagination}
-              onSortingChange={setSorting}
+              sorting={sorting}
+              pagination={pagination}
+              onPaginationChange={handlePaginationChange}
+              onSortingChange={handleSortingChange}
               filterOptions={{
                 level: {
                   label: 'Level',

@@ -24,7 +24,17 @@ import {
   objectIdentifierToObjectKey,
   safeZodParse,
 } from '@stellariscloud/utils'
-import { aliasedTable, and, eq, ilike, isNotNull, or, sql } from 'drizzle-orm'
+import {
+  aliasedTable,
+  and,
+  eq,
+  ilike,
+  inArray,
+  isNotNull,
+  or,
+  type SQL,
+  sql,
+} from 'drizzle-orm'
 import mime from 'mime'
 import { APP_NS_PREFIX, AppService } from 'src/app/services/app.service'
 import { parseSort } from 'src/core/utils/sort.util'
@@ -51,7 +61,6 @@ import { z } from 'zod'
 
 import { FolderShareDTO } from '../dto/folder-share.dto'
 import { FolderShareUsersListQueryParamsDTO } from '../dto/folder-shares-list-query-params.dto'
-import { FoldersListQueryParamsDTO } from '../dto/folders-list-query-params.dto'
 import type { Folder } from '../entities/folder.entity'
 import { foldersTable } from '../entities/folder.entity'
 import type { FolderObject } from '../entities/folder-object.entity'
@@ -367,8 +376,13 @@ export class FolderService {
       offset,
       limit,
       search,
-      sort = FolderSort.CreatedAtDesc,
-    }: FoldersListQueryParamsDTO,
+      sort = [FolderSort.CreatedAtDesc],
+    }: {
+      search?: string
+      offset?: number
+      limit?: number
+      sort?: FolderSort[]
+    },
   ) {
     const contentLocationTable = aliasedTable(
       storageLocationsTable,
@@ -418,9 +432,10 @@ export class FolderService {
           search ? ilike(foldersTable.name, `%${search}%`) : undefined,
         ),
       )
-      .orderBy(parseSort(foldersTable, sort))
+      .orderBy(...parseSort(foldersTable, sort))
       .limit(limit ?? 25)
       .offset(offset ?? 0)
+
     return {
       result: folders.map(({ totalCount, ...folder }) => ({
         folder: {
@@ -634,21 +649,59 @@ export class FolderService {
       search,
       offset = 0,
       limit = 25,
-      sort = FolderObjectSort.CreatedAtAsc,
+      sort = [FolderObjectSort.CreatedAtAsc],
+      includeImage,
+      includeVideo,
+      includeAudio,
+      includeDocument,
+      includeUnknown,
     }: {
       folderId: string
       search?: string
       offset?: number
       limit?: number
-      sort?: FolderObjectSort
+      sort?: FolderObjectSort[]
+      includeImage?: string
+      includeVideo?: string
+      includeAudio?: string
+      includeDocument?: string
+      includeUnknown?: string
     },
   ) {
     const { folder } = await this.getFolderAsUser(actor, folderId)
-    const where = and(
-      ...[eq(folderObjectsTable.folderId, folder.id)].concat(
-        search ? [ilike(folderObjectsTable.objectKey, `%${search}%`)] : [],
-      ),
-    )
+
+    const conditions: (SQL | undefined)[] = [
+      eq(folderObjectsTable.folderId, folder.id),
+    ]
+
+    if (search) {
+      conditions.push(ilike(folderObjectsTable.objectKey, `%${search}%`))
+    }
+
+    // Add mediaType filters
+    const mediaTypeFilters: MediaType[] = []
+    if (includeImage) {
+      mediaTypeFilters.push(MediaType.Image)
+    }
+    if (includeVideo) {
+      mediaTypeFilters.push(MediaType.Video)
+    }
+    if (includeAudio) {
+      mediaTypeFilters.push(MediaType.Audio)
+    }
+    if (includeDocument) {
+      mediaTypeFilters.push(MediaType.Document)
+    }
+    if (includeUnknown) {
+      mediaTypeFilters.push(MediaType.Unknown)
+    }
+
+    if (mediaTypeFilters.length > 0) {
+      conditions.push(inArray(folderObjectsTable.mediaType, mediaTypeFilters))
+    }
+
+    const where = and(...conditions.filter(Boolean))
+
     const folderObjects =
       await this.ormService.db.query.folderObjectsTable.findMany({
         where,

@@ -5,7 +5,10 @@ import { TaskSort } from '../services/task.service'
 
 export const folderTasksListQueryParamsSchema = z.object({
   objectKey: z.string().optional(),
-  sort: z.nativeEnum(TaskSort).optional(),
+  sort: z
+    .array(z.nativeEnum(TaskSort))
+    .or(z.nativeEnum(TaskSort).optional())
+    .optional(),
   search: z.string().optional(),
   includeWaiting: z.literal('true').optional(),
   includeRunning: z.literal('true').optional(),

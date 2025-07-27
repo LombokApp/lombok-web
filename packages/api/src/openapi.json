@@ -251,18 +251,40 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string",
-              "enum": [
-                "createdAt-asc",
-                "createdAt-desc",
-                "email-asc",
-                "email-desc",
-                "name-asc",
-                "name-desc",
-                "username-asc",
-                "username-desc",
-                "updatedAt-asc",
-                "updatedAt-desc"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "createdAt-asc",
+                      "createdAt-desc",
+                      "email-asc",
+                      "email-desc",
+                      "name-asc",
+                      "name-desc",
+                      "username-asc",
+                      "username-desc",
+                      "updatedAt-asc",
+                      "updatedAt-desc"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "createdAt-asc",
+                    "createdAt-desc",
+                    "email-asc",
+                    "email-desc",
+                    "name-asc",
+                    "name-desc",
+                    "username-asc",
+                    "username-desc",
+                    "updatedAt-asc",
+                    "updatedAt-desc"
+                  ]
+                }
               ]
             }
           },
@@ -608,14 +630,32 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string",
-              "enum": [
-                "name-asc",
-                "name-desc",
-                "createdAt-asc",
-                "createdAt-desc",
-                "updatedAt-asc",
-                "updatedAt-desc"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "name-asc",
+                      "name-desc",
+                      "createdAt-asc",
+                      "createdAt-desc",
+                      "updatedAt-asc",
+                      "updatedAt-desc"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "name-asc",
+                    "name-desc",
+                    "createdAt-asc",
+                    "createdAt-desc",
+                    "updatedAt-asc",
+                    "updatedAt-desc"
+                  ]
+                }
               ]
             }
           },
@@ -756,18 +796,95 @@
             "required": false,
             "in": "query",
             "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "size-asc",
+                      "size-desc",
+                      "filename-asc",
+                      "filename-desc",
+                      "objectKey-asc",
+                      "objectKey-desc",
+                      "createdAt-asc",
+                      "createdAt-desc",
+                      "updatedAt-asc",
+                      "updatedAt-desc"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "size-asc",
+                    "size-desc",
+                    "filename-asc",
+                    "filename-desc",
+                    "objectKey-asc",
+                    "objectKey-desc",
+                    "createdAt-asc",
+                    "createdAt-desc",
+                    "updatedAt-asc",
+                    "updatedAt-desc"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "includeImage",
+            "required": false,
+            "in": "query",
+            "schema": {
               "type": "string",
               "enum": [
-                "size-asc",
-                "size-desc",
-                "filename-asc",
-                "filename-desc",
-                "objectKey-asc",
-                "objectKey-desc",
-                "createdAt-asc",
-                "createdAt-desc",
-                "updatedAt-asc",
-                "updatedAt-desc"
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeVideo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeAudio",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeDocument",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeUnknown",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
               ]
             }
           }
@@ -1269,18 +1386,36 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string",
-              "enum": [
-                "accessKeyId-asc",
-                "accessKeyId-desc",
-                "accessKeyHashId-asc",
-                "accessKeyHashId-desc",
-                "endpoint-asc",
-                "endpoint-desc",
-                "region-asc",
-                "region-desc",
-                "updatedAt-asc",
-                "updatedAt-desc"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "accessKeyId-asc",
+                      "accessKeyId-desc",
+                      "accessKeyHashId-asc",
+                      "accessKeyHashId-desc",
+                      "endpoint-asc",
+                      "endpoint-desc",
+                      "region-asc",
+                      "region-desc"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "accessKeyId-asc",
+                    "accessKeyId-desc",
+                    "accessKeyHashId-asc",
+                    "accessKeyHashId-desc",
+                    "endpoint-asc",
+                    "endpoint-desc",
+                    "region-asc",
+                    "region-desc"
+                  ]
+                }
               ]
             }
           }
@@ -1451,18 +1586,36 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string",
-              "enum": [
-                "accessKeyId-asc",
-                "accessKeyId-desc",
-                "accessKeyHashId-asc",
-                "accessKeyHashId-desc",
-                "endpoint-asc",
-                "endpoint-desc",
-                "region-asc",
-                "region-desc",
-                "updatedAt-asc",
-                "updatedAt-desc"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "accessKeyId-asc",
+                      "accessKeyId-desc",
+                      "accessKeyHashId-asc",
+                      "accessKeyHashId-desc",
+                      "endpoint-asc",
+                      "endpoint-desc",
+                      "region-asc",
+                      "region-desc"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "accessKeyId-asc",
+                    "accessKeyId-desc",
+                    "accessKeyHashId-asc",
+                    "accessKeyHashId-desc",
+                    "endpoint-asc",
+                    "endpoint-desc",
+                    "region-asc",
+                    "region-desc"
+                  ]
+                }
               ]
             }
           }
@@ -2038,12 +2191,28 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string",
-              "enum": [
-                "createdAt-asc",
-                "createdAt-desc",
-                "updatedAt-asc",
-                "updatedAt-desc"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "createdAt-asc",
+                      "createdAt-desc",
+                      "updatedAt-asc",
+                      "updatedAt-desc"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "createdAt-asc",
+                    "createdAt-desc",
+                    "updatedAt-asc",
+                    "updatedAt-desc"
+                  ]
+                }
               ]
             }
           },
@@ -2209,12 +2378,28 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string",
-              "enum": [
-                "createdAt-asc",
-                "createdAt-desc",
-                "updatedAt-asc",
-                "updatedAt-desc"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "createdAt-asc",
+                      "createdAt-desc",
+                      "updatedAt-asc",
+                      "updatedAt-desc"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "createdAt-asc",
+                    "createdAt-desc",
+                    "updatedAt-asc",
+                    "updatedAt-desc"
+                  ]
+                }
               ]
             }
           },
@@ -2363,12 +2548,28 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string",
-              "enum": [
-                "createdAt-asc",
-                "createdAt-desc",
-                "updatedAt-asc",
-                "updatedAt-desc"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "createdAt-asc",
+                      "createdAt-desc",
+                      "updatedAt-asc",
+                      "updatedAt-desc"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "createdAt-asc",
+                    "createdAt-desc",
+                    "updatedAt-asc",
+                    "updatedAt-desc"
+                  ]
+                }
               ]
             }
           },
@@ -2545,12 +2746,28 @@
             "required": false,
             "in": "query",
             "schema": {
-              "type": "string",
-              "enum": [
-                "createdAt-asc",
-                "createdAt-desc",
-                "updatedAt-asc",
-                "updatedAt-desc"
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "createdAt-asc",
+                      "createdAt-desc",
+                      "updatedAt-asc",
+                      "updatedAt-desc"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "createdAt-asc",
+                    "createdAt-desc",
+                    "updatedAt-asc",
+                    "updatedAt-desc"
+                  ]
+                }
               ]
             }
           },

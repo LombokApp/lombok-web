@@ -16,7 +16,10 @@ export const foldersListQueryParamsSchema = z.object({
       z.number().refine((a) => a > 0),
     )
     .optional(),
-  sort: z.nativeEnum(FolderSort).optional(),
+  sort: z
+    .array(z.nativeEnum(FolderSort))
+    .or(z.nativeEnum(FolderSort).optional())
+    .optional(),
   search: z.string().optional(),
 })
 

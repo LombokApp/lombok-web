@@ -21,7 +21,7 @@ export function ServerTabControls({
     <div
       role="tablist"
       aria-orientation="horizontal"
-      className="inline-flex h-10 grow-0 items-center justify-center rounded-md bg-muted-foreground/10 p-1 text-muted-foreground"
+      className="inline-flex h-10 grow-0 items-center justify-center rounded-md bg-foreground/[.06] p-1 text-muted-foreground"
       tabIndex={0}
       data-orientation="horizontal"
       style={{ outline: 'none' }}

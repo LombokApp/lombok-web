@@ -1,8 +1,8 @@
 'use client'
 
 import type { FolderObjectDTO } from '@stellariscloud/types'
+import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { toMetadataObjectIdentifier } from '@stellariscloud/utils'
-import type { ColumnDef } from '@tanstack/react-table'
 import { Link } from 'react-router-dom'
 
 import { FolderObjectPreview } from '../folder-object-preview/folder-object-preview.view'
@@ -23,9 +23,9 @@ function previewObjectKeyForFolderObject(folderObject: FolderObjectDTO) {
   }
 }
 
-export const folderObjectsTableColumns: ColumnDef<FolderObjectDTO>[] = [
+export const folderObjectsTableColumns: HideableColumnDef<FolderObjectDTO>[] = [
   {
-    id: '__HIDDEN__',
+    id: 'link',
     cell: ({ row }) => {
       return (
         <div className="size-0 max-w-0 overflow-hidden">
@@ -37,7 +37,19 @@ export const folderObjectsTableColumns: ColumnDef<FolderObjectDTO>[] = [
       )
     },
     enableSorting: false,
-    enableHiding: false,
+    zeroWidth: true,
+  },
+  {
+    id: 'createdAt',
+    accessorKey: 'createdAt',
+    enableSorting: true,
+    forceHiding: true,
+  },
+  {
+    id: 'updatedAt',
+    accessorKey: 'updatedAt',
+    enableSorting: true,
+    forceHiding: true,
   },
   {
     accessorKey: 'main',

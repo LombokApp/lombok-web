@@ -83,7 +83,7 @@ export function UserStorageProvisions() {
         setModalData={setModalData}
         modalData={modalData}
       />
-      <dl className="dark:divide-gray-700 divide-y divide-gray-100">
+      <dl className="divide-y divide-gray-100 dark:divide-gray-700">
         <div className="flex flex-col sm:gap-4">
           <dd className="mt-1 text-sm leading-6 sm:col-span-5 sm:mt-0">
             {(userStorageProvisionsQuery.data?.result.length ?? 0) > 0 ? (
