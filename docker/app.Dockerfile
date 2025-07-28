@@ -19,6 +19,7 @@ FROM base AS install
 COPY package.json bun.lock /temp/dev/
 COPY packages /temp/dev/packages
 COPY apps/core /temp/dev/apps/core
+COPY apps/dev /temp/dev/apps/dev
 COPY eslint-config /temp/dev/eslint-config
 
 RUN cd /temp/dev && \

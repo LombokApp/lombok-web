@@ -100,9 +100,9 @@ process.stdin.once('data', (data) => {
 
     const serverClient = buildAppClient(socket, workerData.socketBaseUrl)
 
-    // start a http server on port 3002
+    // start a http server on port 3001
     server = Bun.serve({
-      port: 3002,
+      port: 3001,
 
       routes: {
         '/health': () => {
@@ -124,10 +124,7 @@ process.stdin.once('data', (data) => {
             JSON.stringify({
               name: 'Core App Worker',
               version: '1.0.0',
-              endpoints: [
-                '/health - Health check endpoint',
-                '/api/info - API information',
-              ],
+              endpoints: ['/health - Health check endpoint'],
             }),
             {
               headers: { 'Content-Type': 'application/json' },
@@ -142,7 +139,7 @@ process.stdin.once('data', (data) => {
         const pathname = url.pathname
 
         // Skip if it's a known route
-        if (pathname === '/health' || pathname === '/api/info') {
+        if (pathname === '/health') {
           return new Response('Not Found', { status: 404 })
         }
 
@@ -202,6 +199,9 @@ process.stdin.once('data', (data) => {
               return new Response('Bundle URL not found', { status: 404 })
             }
 
+            // Create the cache directory first
+            await fsPromises.mkdir(bundleCacheDir, { recursive: true })
+
             // Save manifest to file for future use
             await fsPromises.writeFile(
               manifestFilePath,
@@ -209,7 +209,6 @@ process.stdin.once('data', (data) => {
             )
 
             // Download and extract the bundle
-            await fsPromises.mkdir(bundleCacheDir, { recursive: true })
 
             // Download the bundle
             const downloadResponse = await fetch(bundleUrl)
@@ -248,7 +247,6 @@ process.stdin.once('data', (data) => {
         const targetPath = pathname === '/' ? 'index.html' : pathname
         const filePath = path.join(bundleCacheDir, uiName, targetPath)
         const manifestPath = path.join('/', 'ui', uiName, targetPath)
-        console.log('manifest', { manifestPath, manifest })
         const manifestEntry =
           manifestPath in manifest ? manifest[manifestPath] : null
         if (manifestEntry) {

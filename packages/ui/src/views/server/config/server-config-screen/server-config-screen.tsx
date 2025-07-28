@@ -1,21 +1,12 @@
 import { useAuthContext } from '@stellariscloud/auth-utils'
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  cn,
-  Input,
-} from '@stellariscloud/ui-toolkit'
+import { cn } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
 import { $api } from '@/src/services/api'
 
 import { ServerStorageConfigTab } from '../storage/server-storage-config-tab/server-storage-config-tab'
+import { ServerAppsConfigTab } from './server-apps-config-tab'
 import { ServerGeneralConfigTab } from './server-general-config-tab'
 
 export function ServerSettingsScreen({ tab }: { tab: string }) {
@@ -113,24 +104,7 @@ export function ServerSettingsScreen({ tab }: { tab: string }) {
             onSaveEnableNewSignups={handleUpdateSignupEnabled}
           />
         ) : tab === 'apps' ? (
-          <div className="grid gap-6">
-            <Card x-chunk="dashboard-04-chunk-1">
-              <CardHeader>
-                <CardTitle>Local Apps</CardTitle>
-                <CardDescription>
-                  Install apps that already exist local to your server.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form>
-                  <Input placeholder="Server Name" />
-                </form>
-              </CardContent>
-              <CardFooter className="border-t px-6 py-4">
-                <Button>Save</Button>
-              </CardFooter>
-            </Card>
-          </div>
+          <ServerAppsConfigTab />
         ) : (
           <></>
         )}

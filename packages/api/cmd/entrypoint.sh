@@ -1,7 +1,11 @@
 #!/bin/sh
 
-# Copy the NGINX configuration
-cp ./packages/api/nginx/nginx.conf /etc/nginx/http.d/default.conf
+# Set default domain if not provided
+ROOT_DOMAIN=${ROOT_DOMAIN:-"stellariscloudtest.localhost"}
+
+# Copy the NGINX configuration and replace the domain placeholder
+sed "s/{{ROOT_DOMAIN}}/$ROOT_DOMAIN/g" ./packages/api/nginx/nginx.conf > /etc/nginx/http.d/default.conf
+
 
 # Start or reload NGINX
 if [ -f /run/nginx/nginx.pid ] && kill -0 $(cat /run/nginx/nginx.pid) 2>/dev/null; then

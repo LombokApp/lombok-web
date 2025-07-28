@@ -1868,6 +1868,25 @@
         ]
       }
     },
+    "/api/v1/server/install-local-apps": {
+      "post": {
+        "operationId": "installLocalApps",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Server"
+        ]
+      }
+    },
     "/api/v1/server/user-storage-provisions": {
       "get": {
         "operationId": "listUserStorageProvisions",

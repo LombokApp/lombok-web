@@ -506,6 +506,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/install-local-apps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["installLocalApps"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/server/user-storage-provisions": {
         parameters: {
             query?: never;
@@ -2608,6 +2624,23 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SettingSetResponse"];
                 };
+            };
+        };
+    };
+    installLocalApps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
