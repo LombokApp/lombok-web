@@ -1438,8 +1438,11 @@ export interface components {
             };
             result: {
                 identifier: string;
+                label: string;
                 publicKey: string;
                 config: {
+                    identifier: string;
+                    label: string;
                     description: string;
                     requiresStorage: boolean;
                     emittableEvents: string[];
@@ -1508,6 +1511,7 @@ export interface components {
                     path: string;
                     hash: string;
                     size: number;
+                    mimeType: string;
                 }[];
                 externalWorkers: {
                     appIdentifier: string;
@@ -1522,6 +1526,7 @@ export interface components {
                         path: string;
                         hash: string;
                         size: number;
+                        mimeType: string;
                     }[];
                     envVars: {
                         [key: string]: string;
@@ -1539,6 +1544,7 @@ export interface components {
                         path: string;
                         hash: string;
                         size: number;
+                        mimeType: string;
                     }[];
                     identifier: string;
                 }[];
@@ -1551,8 +1557,11 @@ export interface components {
         AppGetResponse: {
             app: {
                 identifier: string;
+                label: string;
                 publicKey: string;
                 config: {
+                    identifier: string;
+                    label: string;
                     description: string;
                     requiresStorage: boolean;
                     emittableEvents: string[];
@@ -1621,6 +1630,7 @@ export interface components {
                     path: string;
                     hash: string;
                     size: number;
+                    mimeType: string;
                 }[];
                 externalWorkers: {
                     appIdentifier: string;
@@ -1640,6 +1650,7 @@ export interface components {
                         path: string;
                         hash: string;
                         size: number;
+                        mimeType: string;
                     }[];
                     identifier: string;
                 }[];
@@ -1653,6 +1664,7 @@ export interface components {
                         path: string;
                         hash: string;
                         size: number;
+                        mimeType: string;
                     }[];
                     envVars: {
                         [key: string]: string;

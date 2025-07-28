@@ -31,6 +31,7 @@ export interface Notification {
 export type AppMenuItemAndHref = {
   href: string
   appIdentifier: string
+  appLabel: string
 } & AppMenuItem
 
 export interface IServerContext {
@@ -89,19 +90,20 @@ export const ServerContextProvider = ({
   const serverApps = appsQuery.data
   const menuItems = React.useMemo(
     () =>
-      serverApps?.result.reduce<AppMenuItemAndHref[]>((acc, next) => {
+      serverApps?.result.reduce<AppMenuItemAndHref[]>((acc, nextApp) => {
         return acc.concat(
-          next.uis
+          nextApp.uis
             .reduce<AppMenuItem[]>(
               (uiAcc, nextUi) => uiAcc.concat(nextUi.menuItems),
               [],
             )
             .map((item) => ({
               iconPath: item.iconPath,
-              href: `/apps/${next.identifier}/${item.uiName}`,
+              href: `/apps/${nextApp.identifier}/${item.uiName}`,
               label: item.label,
+              appLabel: nextApp.label,
               uiName: item.uiName,
-              appIdentifier: next.identifier,
+              appIdentifier: nextApp.identifier,
             })),
         )
       }, []) ?? [],

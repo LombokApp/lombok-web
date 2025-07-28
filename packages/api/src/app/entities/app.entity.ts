@@ -8,6 +8,7 @@ import { jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
 export const appsTable = pgTable('apps', {
   identifier: text('identifier').primaryKey(),
+  label: text('label').notNull(),
   publicKey: text('publicKey').notNull(),
   contentHash: text('contentHash').notNull(),
   config: jsonb('config').$type<AppConfig>().notNull(),

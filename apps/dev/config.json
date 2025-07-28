@@ -1,5 +1,7 @@
 {
   "description": "The dev app.",
+  "identifier": "dev",
+  "label": "Dev",
   "requiresStorage": true,
   "tasks": [
     {

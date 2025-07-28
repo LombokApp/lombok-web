@@ -5572,12 +5572,21 @@
                 "identifier": {
                   "type": "string"
                 },
+                "label": {
+                  "type": "string"
+                },
                 "publicKey": {
                   "type": "string"
                 },
                 "config": {
                   "type": "object",
                   "properties": {
+                    "identifier": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
                     "description": {
                       "type": "string"
                     },
@@ -5819,6 +5828,8 @@
                     }
                   },
                   "required": [
+                    "identifier",
+                    "label",
                     "description",
                     "requiresStorage",
                     "emittableEvents",
@@ -5838,12 +5849,16 @@
                       },
                       "size": {
                         "type": "number"
+                      },
+                      "mimeType": {
+                        "type": "string"
                       }
                     },
                     "required": [
                       "path",
                       "hash",
-                      "size"
+                      "size",
+                      "mimeType"
                     ]
                   }
                 },
@@ -5901,12 +5916,16 @@
                             },
                             "size": {
                               "type": "number"
+                            },
+                            "mimeType": {
+                              "type": "string"
                             }
                           },
                           "required": [
                             "path",
                             "hash",
-                            "size"
+                            "size",
+                            "mimeType"
                           ]
                         }
                       },
@@ -5970,12 +5989,16 @@
                             },
                             "size": {
                               "type": "number"
+                            },
+                            "mimeType": {
+                              "type": "string"
                             }
                           },
                           "required": [
                             "path",
                             "hash",
-                            "size"
+                            "size",
+                            "mimeType"
                           ]
                         }
                       },
@@ -6002,6 +6025,7 @@
               },
               "required": [
                 "identifier",
+                "label",
                 "publicKey",
                 "config",
                 "manifest",
@@ -6028,12 +6052,21 @@
               "identifier": {
                 "type": "string"
               },
+              "label": {
+                "type": "string"
+              },
               "publicKey": {
                 "type": "string"
               },
               "config": {
                 "type": "object",
                 "properties": {
+                  "identifier": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
                   "description": {
                     "type": "string"
                   },
@@ -6275,6 +6308,8 @@
                   }
                 },
                 "required": [
+                  "identifier",
+                  "label",
                   "description",
                   "requiresStorage",
                   "emittableEvents",
@@ -6294,12 +6329,16 @@
                     },
                     "size": {
                       "type": "number"
+                    },
+                    "mimeType": {
+                      "type": "string"
                     }
                   },
                   "required": [
                     "path",
                     "hash",
-                    "size"
+                    "size",
+                    "mimeType"
                   ]
                 }
               },
@@ -6378,12 +6417,16 @@
                           },
                           "size": {
                             "type": "number"
+                          },
+                          "mimeType": {
+                            "type": "string"
                           }
                         },
                         "required": [
                           "path",
                           "hash",
-                          "size"
+                          "size",
+                          "mimeType"
                         ]
                       }
                     },
@@ -6428,12 +6471,16 @@
                           },
                           "size": {
                             "type": "number"
+                          },
+                          "mimeType": {
+                            "type": "string"
                           }
                         },
                         "required": [
                           "path",
                           "hash",
-                          "size"
+                          "size",
+                          "mimeType"
                         ]
                       }
                     },
@@ -6458,6 +6505,7 @@
             },
             "required": [
               "identifier",
+              "label",
               "publicKey",
               "config",
               "manifest",

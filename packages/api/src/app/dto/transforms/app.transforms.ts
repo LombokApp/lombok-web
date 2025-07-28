@@ -8,6 +8,7 @@ export function transformAppToDTO(
 ): AppDTO {
   return {
     identifier: app.identifier,
+    label: app.label,
     publicKey: app.publicKey,
     config: app.config,
     manifest: app.manifest,

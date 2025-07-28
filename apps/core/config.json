@@ -1,5 +1,7 @@
 {
   "description": "An app implementing core functionality. This is a separate node process and can be run alongside the core app or deployed on another host.",
+  "identifier": "core",
+  "label": "Core",
   "requiresStorage": false,
   "tasks": [
     {

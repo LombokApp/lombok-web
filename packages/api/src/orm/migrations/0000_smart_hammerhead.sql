@@ -1,5 +1,6 @@
 CREATE TABLE "apps" (
 	"identifier" text PRIMARY KEY NOT NULL,
+	"label" text NOT NULL,
 	"publicKey" text NOT NULL,
 	"contentHash" text NOT NULL,
 	"config" jsonb NOT NULL,

@@ -106,6 +106,7 @@ export function getMenuList(
               context: {
                 uiName: item.uiName,
                 appIdentifier: item.appIdentifier,
+                appLabel: item.appLabel,
               },
             })),
           },

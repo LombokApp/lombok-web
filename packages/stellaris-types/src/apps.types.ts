@@ -91,13 +91,21 @@ export const appUISchema = z.object({
 })
 
 export const appConfigSchema = z.object({
-  description: z.string(),
+  identifier: z
+    .string()
+    .nonempty()
+    .regex(/^[a-z0-9]+$/)
+    .refine((v) => v.toLowerCase() === v),
+  label: z.string().nonempty(),
+  description: z.string().nonempty(),
   requiresStorage: z.boolean(),
-  emittableEvents: z.array(z.string()),
+  emittableEvents: z.array(z.string().nonempty()),
   tasks: z.array(taskConfigSchema),
-  externalWorkers: z.array(z.string()).optional(),
-  workerScripts: z.record(z.string(), appWorkerScriptConfigSchema).optional(),
-  uis: z.record(z.string(), appUIConfigSchema).optional(),
+  externalWorkers: z.array(z.string().nonempty()).optional(),
+  workerScripts: z
+    .record(z.string().nonempty(), appWorkerScriptConfigSchema)
+    .optional(),
+  uis: z.record(z.string().nonempty(), appUIConfigSchema).optional(),
 })
 
 export const appWorkerScriptSchema = z.object({

@@ -132,7 +132,15 @@ export function Menu({
                                         : 'translate-x-0 opacity-100',
                                     )}
                                   >
-                                    {label}
+                                    {context?.appLabel && (
+                                      <>
+                                        <span className="font-bold">
+                                          {context.appLabel}
+                                        </span>
+                                        {' / '}
+                                      </>
+                                    )}
+                                    <span>{label}</span>
                                   </p>
                                 </Link>
                               </Button>

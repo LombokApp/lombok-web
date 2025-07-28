@@ -1070,12 +1070,13 @@ export class AppService {
   }
 
   public async attemptParseAndInstallAppFromDisk(
-    appIdentifier: string,
+    directoryName: string,
     update: boolean,
   ) {
-    const app = await this.parseAppFromDisk(appIdentifier)
+    const app = await this.parseAppFromDisk(directoryName)
 
-    if (app.validation.value) {
+    const appIdentifier = app.definition?.identifier
+    if (app.validation.value && app.definition) {
       try {
         await this.installApp(app.definition, update)
       } catch (error) {
@@ -1102,7 +1103,7 @@ export class AppService {
     } else {
       // eslint-disable-next-line no-console
       console.log(
-        `APP PARSE ERROR - APP[${appIdentifier}]: DEFINITION_INVALID`,
+        `APP PARSE ERROR - APP[${appIdentifier ?? '__UNKNONW__'}] - (directory: ${directoryName}): DEFINITION_INVALID`,
         app.validation.error,
       )
     }
@@ -1120,8 +1121,8 @@ export class AppService {
       )
   }
 
-  public async parseAppFromDisk(appIdentifier: string): Promise<{
-    definition: App
+  public async parseAppFromDisk(appDirectoryName: string): Promise<{
+    definition?: App
     validation: { value: boolean; error?: z.ZodError }
   }> {
     const now = new Date()
@@ -1129,12 +1130,12 @@ export class AppService {
     let currentTotalSize = 0
     const publicKeyPath = path.join(
       this._appConfig.appsLocalPath,
-      appIdentifier,
+      appDirectoryName,
       '.publicKey',
     )
     const configPath = path.join(
       this._appConfig.appsLocalPath,
-      appIdentifier,
+      appDirectoryName,
       'config.json',
     )
     const publicKey =
@@ -1150,8 +1151,10 @@ export class AppService {
       throw new Error(`Config file not found when parsing app.`)
     }
 
+    const appIdentifier = config.identifier
+
     // console.log('READ APP CONFIG', { config, configPath, publicKeyPath, publicKey })
-    const appRoot = path.join(this._appConfig.appsLocalPath, appIdentifier)
+    const appRoot = path.join(this._appConfig.appsLocalPath, appDirectoryName)
     const manifest = await Promise.all(
       readDirRecursive(appRoot).map(async (absoluteAssetPath) => {
         const size = fs.statSync(absoluteAssetPath).size
@@ -1205,25 +1208,25 @@ export class AppService {
       {},
     )
 
-    const appDefinition: App = {
-      identifier: appIdentifier,
-      manifest,
-      publicKey,
-      workerScripts,
-      uis,
-      config,
-      createdAt: now,
-      updatedAt: now,
-      contentHash: '', // TODO: calculate the exact content hash
-    }
+    const parseResult = appConfigSchema.safeParse(config)
 
-    const parseResult = appConfigSchema.safeParse(appDefinition.config)
     const app = {
       validation: {
         value: parseResult.success,
         error: parseResult.success ? undefined : parseResult.error,
       },
-      definition: appDefinition,
+      definition: {
+        identifier: appIdentifier,
+        label: config.label,
+        manifest,
+        publicKey,
+        workerScripts,
+        uis,
+        config,
+        createdAt: now,
+        updatedAt: now,
+        contentHash: '', // TODO: calculate the exact content hash
+      },
     }
     return app
   }

@@ -10,6 +10,7 @@ import { z } from 'zod'
 
 export const appSchema = z.object({
   identifier: z.string(),
+  label: z.string(),
   publicKey: z.string(),
   config: appConfigSchema,
   manifest: appManifestSchema,
