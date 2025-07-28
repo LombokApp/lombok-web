@@ -1,9 +1,11 @@
 CREATE TABLE "apps" (
 	"identifier" text PRIMARY KEY NOT NULL,
+	"label" text NOT NULL,
 	"publicKey" text NOT NULL,
 	"contentHash" text NOT NULL,
 	"config" jsonb NOT NULL,
 	"workerScripts" jsonb NOT NULL,
+	"uis" jsonb NOT NULL,
 	"manifest" jsonb NOT NULL,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL

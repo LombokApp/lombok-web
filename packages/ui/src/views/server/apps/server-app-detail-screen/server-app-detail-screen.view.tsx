@@ -117,7 +117,10 @@ export function ServerAppDetailScreen({
         </CardHeader>
         <CardContent className="p-0">
           <DataTable
-            data={app?.manifest ?? []}
+            data={Object.entries(app?.manifest ?? {}).map(([path, file]) => ({
+              path,
+              ...file,
+            }))}
             columns={serverAppManifestTableColumns}
           />
         </CardContent>

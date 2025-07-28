@@ -24,6 +24,7 @@ import { useServerContext } from './hooks/use-server-context'
 import { useStore } from './hooks/use-store'
 import { LandingPage } from './pages'
 import { AccessKeysPage } from './pages/access-keys'
+import { AppUIContainer } from './pages/apps/app-ui-container'
 import { FolderRoot } from './pages/folders/folder-root'
 import { FoldersPage } from './pages/folders/folders'
 import { Login } from './pages/login'
@@ -34,7 +35,7 @@ import { sdkInstance } from './services/api'
 const queryClient = new QueryClient()
 
 const UNAUTHENTICATED_PAGES = ['/', '/login', '/signup']
-const SIDEBAR_PAGES = ['/access-keys', '/folders', '/server']
+const SIDEBAR_PAGES = ['/access-keys', '/folders', '/server', '/apps']
 
 const Content = () => {
   return (
@@ -46,6 +47,7 @@ const Content = () => {
       <Route path="/folders" element={<FoldersPage />} />
       <Route path="/server/*" element={<ServerIndexPage />} />
       <Route path="/folders/*" element={<FolderRoot />} />
+      <Route path="/apps/*" element={<AppUIContainer />} />
     </Routes>
   )
 }
@@ -71,7 +73,7 @@ const AuthenticatedContent = () => {
   const authContext = useAuthContext()
   const navigate = useNavigate()
   const location = useLocation()
-  const { menuItems } = useServerContext()
+  const { appMenuItems } = useServerContext()
 
   React.useEffect(() => {
     if (authContext.authState.isLoaded) {
@@ -110,7 +112,7 @@ const AuthenticatedContent = () => {
         <Sidebar
           onSignOut={authContext.logout}
           authContext={authContext}
-          menuItems={menuItems}
+          appMenuItems={appMenuItems}
         />
       )}
       <main

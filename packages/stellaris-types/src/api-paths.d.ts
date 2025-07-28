@@ -506,6 +506,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/install-local-apps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["installLocalApps"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/server/user-storage-provisions": {
         parameters: {
             query?: never;
@@ -1438,8 +1454,11 @@ export interface components {
             };
             result: {
                 identifier: string;
+                label: string;
                 publicKey: string;
                 config: {
+                    identifier: string;
+                    label: string;
                     description: string;
                     requiresStorage: boolean;
                     emittableEvents: string[];
@@ -1493,17 +1512,24 @@ export interface components {
                             };
                         };
                     };
-                    menuItems: {
-                        label: string;
-                        iconPath?: string;
-                        uiName: string;
-                    }[];
+                    uis?: {
+                        [key: string]: {
+                            description: string;
+                            menuItems: {
+                                label: string;
+                                iconPath?: string;
+                                uiName: string;
+                            }[];
+                        };
+                    };
                 };
                 manifest: {
-                    path: string;
-                    hash: string;
-                    size: number;
-                }[];
+                    [key: string]: {
+                        hash: string;
+                        size: number;
+                        mimeType: string;
+                    };
+                };
                 externalWorkers: {
                     appIdentifier: string;
                     workerId: string;
@@ -1514,12 +1540,30 @@ export interface components {
                 workerScripts: {
                     description: string;
                     files: {
-                        path: string;
-                        hash: string;
-                        size: number;
-                    }[];
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
                     envVars: {
                         [key: string]: string;
+                    };
+                    identifier: string;
+                }[];
+                uis: {
+                    description: string;
+                    menuItems: {
+                        label: string;
+                        iconPath?: string;
+                        uiName: string;
+                    }[];
+                    files: {
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
                     };
                     identifier: string;
                 }[];
@@ -1532,8 +1576,11 @@ export interface components {
         AppGetResponse: {
             app: {
                 identifier: string;
+                label: string;
                 publicKey: string;
                 config: {
+                    identifier: string;
+                    label: string;
                     description: string;
                     requiresStorage: boolean;
                     emittableEvents: string[];
@@ -1587,23 +1634,46 @@ export interface components {
                             };
                         };
                     };
-                    menuItems: {
-                        label: string;
-                        iconPath?: string;
-                        uiName: string;
-                    }[];
+                    uis?: {
+                        [key: string]: {
+                            description: string;
+                            menuItems: {
+                                label: string;
+                                iconPath?: string;
+                                uiName: string;
+                            }[];
+                        };
+                    };
                 };
                 manifest: {
-                    path: string;
-                    hash: string;
-                    size: number;
-                }[];
+                    [key: string]: {
+                        hash: string;
+                        size: number;
+                        mimeType: string;
+                    };
+                };
                 externalWorkers: {
                     appIdentifier: string;
                     workerId: string;
                     handledTaskKeys: string[];
                     socketClientId: string;
                     ip: string;
+                }[];
+                uis: {
+                    description: string;
+                    menuItems: {
+                        label: string;
+                        iconPath?: string;
+                        uiName: string;
+                    }[];
+                    files: {
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
+                    identifier: string;
                 }[];
                 /** Format: date-time */
                 createdAt: string;
@@ -1612,10 +1682,12 @@ export interface components {
                 workerScripts: {
                     description: string;
                     files: {
-                        path: string;
-                        hash: string;
-                        size: number;
-                    }[];
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
                     envVars: {
                         [key: string]: string;
                     };
@@ -2552,6 +2624,23 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SettingSetResponse"];
                 };
+            };
+        };
+    };
+    installLocalApps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

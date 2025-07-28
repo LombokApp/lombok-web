@@ -6,7 +6,6 @@ import {
   SignupCredentialsDTO,
   ViewerGetResponse,
 } from '@stellariscloud/types'
-import { FetchResponse } from 'openapi-fetch'
 
 export class AuthError extends Error {}
 export interface IAuthContext {

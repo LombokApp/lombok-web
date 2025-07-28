@@ -1868,6 +1868,25 @@
         ]
       }
     },
+    "/api/v1/server/install-local-apps": {
+      "post": {
+        "operationId": "installLocalApps",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Server"
+        ]
+      }
+    },
     "/api/v1/server/user-storage-provisions": {
       "get": {
         "operationId": "listUserStorageProvisions",
@@ -5572,14 +5591,27 @@
                 "identifier": {
                   "type": "string"
                 },
+                "label": {
+                  "type": "string"
+                },
                 "publicKey": {
                   "type": "string"
                 },
                 "config": {
                   "type": "object",
                   "properties": {
+                    "identifier": {
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-z0-9]+$"
+                    },
+                    "label": {
+                      "type": "string",
+                      "minLength": 1
+                    },
                     "description": {
-                      "type": "string"
+                      "type": "string",
+                      "minLength": 1
                     },
                     "requiresStorage": {
                       "type": "boolean"
@@ -5587,7 +5619,8 @@
                     "emittableEvents": {
                       "type": "array",
                       "items": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                       }
                     },
                     "tasks": {
@@ -5758,7 +5791,8 @@
                     "externalWorkers": {
                       "type": "array",
                       "items": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                       }
                     },
                     "workerScripts": {
@@ -5781,55 +5815,71 @@
                         ]
                       }
                     },
-                    "menuItems": {
-                      "type": "array",
-                      "items": {
+                    "uis": {
+                      "type": "object",
+                      "additionalProperties": {
                         "type": "object",
                         "properties": {
-                          "label": {
+                          "description": {
                             "type": "string"
                           },
-                          "iconPath": {
-                            "type": "string"
-                          },
-                          "uiName": {
-                            "type": "string"
+                          "menuItems": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "label": {
+                                  "type": "string"
+                                },
+                                "iconPath": {
+                                  "type": "string"
+                                },
+                                "uiName": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "label",
+                                "uiName"
+                              ]
+                            }
                           }
                         },
                         "required": [
-                          "label",
-                          "uiName"
+                          "description",
+                          "menuItems"
                         ]
                       }
                     }
                   },
                   "required": [
+                    "identifier",
+                    "label",
                     "description",
                     "requiresStorage",
                     "emittableEvents",
-                    "tasks",
-                    "menuItems"
+                    "tasks"
                   ]
                 },
                 "manifest": {
-                  "type": "array",
-                  "items": {
+                  "type": "object",
+                  "additionalProperties": {
                     "type": "object",
                     "properties": {
-                      "path": {
-                        "type": "string"
-                      },
                       "hash": {
                         "type": "string"
                       },
                       "size": {
                         "type": "number"
+                      },
+                      "mimeType": {
+                        "type": "string"
                       }
                     },
                     "required": [
-                      "path",
                       "hash",
-                      "size"
+                      "size",
+                      "mimeType"
                     ]
                   }
                 },
@@ -5875,24 +5925,24 @@
                         "type": "string"
                       },
                       "files": {
-                        "type": "array",
-                        "items": {
+                        "type": "object",
+                        "additionalProperties": {
                           "type": "object",
                           "properties": {
-                            "path": {
-                              "type": "string"
-                            },
                             "hash": {
                               "type": "string"
                             },
                             "size": {
                               "type": "number"
+                            },
+                            "mimeType": {
+                              "type": "string"
                             }
                           },
                           "required": [
-                            "path",
                             "hash",
-                            "size"
+                            "size",
+                            "mimeType"
                           ]
                         }
                       },
@@ -5914,6 +5964,69 @@
                     ]
                   }
                 },
+                "uis": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "menuItems": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string"
+                            },
+                            "iconPath": {
+                              "type": "string"
+                            },
+                            "uiName": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "uiName"
+                          ]
+                        }
+                      },
+                      "files": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "object",
+                          "properties": {
+                            "hash": {
+                              "type": "string"
+                            },
+                            "size": {
+                              "type": "number"
+                            },
+                            "mimeType": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "hash",
+                            "size",
+                            "mimeType"
+                          ]
+                        }
+                      },
+                      "identifier": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "description",
+                      "menuItems",
+                      "files",
+                      "identifier"
+                    ]
+                  }
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time"
@@ -5925,11 +6038,13 @@
               },
               "required": [
                 "identifier",
+                "label",
                 "publicKey",
                 "config",
                 "manifest",
                 "externalWorkers",
                 "workerScripts",
+                "uis",
                 "createdAt",
                 "updatedAt"
               ]
@@ -5950,14 +6065,27 @@
               "identifier": {
                 "type": "string"
               },
+              "label": {
+                "type": "string"
+              },
               "publicKey": {
                 "type": "string"
               },
               "config": {
                 "type": "object",
                 "properties": {
+                  "identifier": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "^[a-z0-9]+$"
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 1
+                  },
                   "description": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1
                   },
                   "requiresStorage": {
                     "type": "boolean"
@@ -5965,7 +6093,8 @@
                   "emittableEvents": {
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "type": "string",
+                      "minLength": 1
                     }
                   },
                   "tasks": {
@@ -6136,7 +6265,8 @@
                   "externalWorkers": {
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "type": "string",
+                      "minLength": 1
                     }
                   },
                   "workerScripts": {
@@ -6159,55 +6289,71 @@
                       ]
                     }
                   },
-                  "menuItems": {
-                    "type": "array",
-                    "items": {
+                  "uis": {
+                    "type": "object",
+                    "additionalProperties": {
                       "type": "object",
                       "properties": {
-                        "label": {
+                        "description": {
                           "type": "string"
                         },
-                        "iconPath": {
-                          "type": "string"
-                        },
-                        "uiName": {
-                          "type": "string"
+                        "menuItems": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string"
+                              },
+                              "iconPath": {
+                                "type": "string"
+                              },
+                              "uiName": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "uiName"
+                            ]
+                          }
                         }
                       },
                       "required": [
-                        "label",
-                        "uiName"
+                        "description",
+                        "menuItems"
                       ]
                     }
                   }
                 },
                 "required": [
+                  "identifier",
+                  "label",
                   "description",
                   "requiresStorage",
                   "emittableEvents",
-                  "tasks",
-                  "menuItems"
+                  "tasks"
                 ]
               },
               "manifest": {
-                "type": "array",
-                "items": {
+                "type": "object",
+                "additionalProperties": {
                   "type": "object",
                   "properties": {
-                    "path": {
-                      "type": "string"
-                    },
                     "hash": {
                       "type": "string"
                     },
                     "size": {
                       "type": "number"
+                    },
+                    "mimeType": {
+                      "type": "string"
                     }
                   },
                   "required": [
-                    "path",
                     "hash",
-                    "size"
+                    "size",
+                    "mimeType"
                   ]
                 }
               },
@@ -6244,6 +6390,69 @@
                   ]
                 }
               },
+              "uis": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    },
+                    "menuItems": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string"
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          },
+                          "uiName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "label",
+                          "uiName"
+                        ]
+                      }
+                    },
+                    "files": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "hash": {
+                            "type": "string"
+                          },
+                          "size": {
+                            "type": "number"
+                          },
+                          "mimeType": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "hash",
+                          "size",
+                          "mimeType"
+                        ]
+                      }
+                    },
+                    "identifier": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "description",
+                    "menuItems",
+                    "files",
+                    "identifier"
+                  ]
+                }
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -6261,24 +6470,24 @@
                       "type": "string"
                     },
                     "files": {
-                      "type": "array",
-                      "items": {
+                      "type": "object",
+                      "additionalProperties": {
                         "type": "object",
                         "properties": {
-                          "path": {
-                            "type": "string"
-                          },
                           "hash": {
                             "type": "string"
                           },
                           "size": {
                             "type": "number"
+                          },
+                          "mimeType": {
+                            "type": "string"
                           }
                         },
                         "required": [
-                          "path",
                           "hash",
-                          "size"
+                          "size",
+                          "mimeType"
                         ]
                       }
                     },
@@ -6303,10 +6512,12 @@
             },
             "required": [
               "identifier",
+              "label",
               "publicKey",
               "config",
               "manifest",
               "externalWorkers",
+              "uis",
               "createdAt",
               "updatedAt",
               "workerScripts"

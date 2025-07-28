@@ -1,4 +1,8 @@
-import { AppLogEntry, ContentMetadataType } from '@stellariscloud/types'
+import {
+  AppLogEntry,
+  AppManifest,
+  ContentMetadataType,
+} from '@stellariscloud/types'
 import type { Socket } from 'socket.io-client'
 
 const SOCKET_RESPONSE_TIMEOUT = 2000
@@ -29,6 +33,9 @@ export const buildAppClient = (
         appIdentifier,
         workerIdentifier,
       })
+    },
+    getAppUIbundle(appIdentifier, uiName) {
+      return emitWithAck('GET_APP_UI_BUNDLE', { appIdentifier, uiName })
     },
     saveLogEntry(entry) {
       return emitWithAck('SAVE_LOG_ENTRY', entry)
@@ -73,6 +80,10 @@ export interface CoreServerMessageInterface {
       envVars: Record<string, string>
     }>
   >
+  getAppUIbundle: (
+    appIdentifier: string,
+    uiName: string,
+  ) => Promise<AppAPIResponse<{ manifest: AppManifest; bundleUrl: string }>>
   saveLogEntry: (entry: AppLogEntry) => Promise<boolean>
   attemptStartHandleTaskById: (
     taskId: string,

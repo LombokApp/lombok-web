@@ -31,6 +31,7 @@ export interface Notification {
 export type AppMenuItemAndHref = {
   href: string
   appIdentifier: string
+  appLabel: string
 } & AppMenuItem
 
 export interface IServerContext {
@@ -38,7 +39,7 @@ export interface IServerContext {
   refreshSettings: () => Promise<
     ServerSettingsListResponse['settings'] | undefined
   >
-  menuItems: AppMenuItemAndHref[]
+  appMenuItems: AppMenuItemAndHref[]
   appFolderTaskTriggers: {
     taskTrigger: AppTaskTrigger
     appIdentifier: string
@@ -89,15 +90,21 @@ export const ServerContextProvider = ({
   const serverApps = appsQuery.data
   const menuItems = React.useMemo(
     () =>
-      serverApps?.result.reduce<AppMenuItemAndHref[]>((acc, next) => {
+      serverApps?.result.reduce<AppMenuItemAndHref[]>((acc, nextApp) => {
         return acc.concat(
-          next.config.menuItems.map((item) => ({
-            iconPath: item.iconPath,
-            href: `/apps/${next.identifier}/${item.uiName}`,
-            label: item.label,
-            uiName: item.uiName,
-            appIdentifier: next.identifier,
-          })),
+          nextApp.uis
+            .reduce<AppMenuItem[]>(
+              (uiAcc, nextUi) => uiAcc.concat(nextUi.menuItems),
+              [],
+            )
+            .map((item) => ({
+              iconPath: item.iconPath,
+              href: `/apps/${nextApp.identifier}/${item.uiName}`,
+              label: item.label,
+              appLabel: nextApp.label,
+              uiName: item.uiName,
+              appIdentifier: nextApp.identifier,
+            })),
         )
       }, []) ?? [],
     [serverApps],
@@ -170,7 +177,7 @@ export const ServerContextProvider = ({
         refreshApps: appsQuery.refetch,
         refreshSettings: refetchSettings,
         socketConnected: socket?.connected ?? false,
-        menuItems,
+        appMenuItems: menuItems,
         appFolderTaskTriggers: appFolderActions,
         appFolderObjectTaskTriggers: appFolderObjectActions,
         settings: serverSettings,

@@ -73,13 +73,13 @@ export function configureServerAppWorkerScriptTableColumns(
       cell: ({ row: { original: appWorker } }) => {
         return (
           <div className="flex items-center gap-2 font-normal">
-            ({appWorker.files.length}){' '}
-            {appWorker.files
-              .map((file) => {
+            ({Object.keys(appWorker.files).length}){' '}
+            {Object.keys(appWorker.files)
+              .map((fileName) => {
                 const prefix = `/workers/${appWorker.identifier}/`
-                return file.path.startsWith(prefix)
-                  ? file.path.slice(prefix.length)
-                  : file.path
+                return fileName.startsWith(prefix)
+                  ? fileName.slice(prefix.length)
+                  : fileName
               })
               .join(', ')}
           </div>

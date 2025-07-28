@@ -65,32 +65,51 @@ export const appIdentitySchema = z.object({
   identifier: z.string(),
 })
 
-export const appManifestFileSchema = z.object({
-  path: z.string(),
+export const appManifestEntrySchema = z.object({
   hash: z.string(),
   size: z.number(),
+  mimeType: z.string(),
 })
 
-export const appManifestSchema = z.array(appManifestFileSchema)
+export const appManifestSchema = z.record(z.string(), appManifestEntrySchema)
 
 export const appWorkerScriptConfigSchema = z.object({
   description: z.string(),
   envVars: z.record(z.string(), z.string()).optional(),
 })
 
-export const appConfigSchema = z.object({
+export const appUIConfigSchema = z.object({
   description: z.string(),
-  requiresStorage: z.boolean(),
-  emittableEvents: z.array(z.string()),
-  tasks: z.array(taskConfigSchema),
-  externalWorkers: z.array(z.string()).optional(),
-  workerScripts: z.record(z.string(), appWorkerScriptConfigSchema).optional(),
   menuItems: z.array(appMenuItemConfigSchema),
+})
+
+export const appUISchema = z.object({
+  description: z.string(),
+  menuItems: z.array(appMenuItemConfigSchema),
+  files: appManifestSchema,
+})
+
+export const appConfigSchema = z.object({
+  identifier: z
+    .string()
+    .nonempty()
+    .regex(/^[a-z0-9]+$/)
+    .refine((v) => v.toLowerCase() === v),
+  label: z.string().nonempty(),
+  description: z.string().nonempty(),
+  requiresStorage: z.boolean(),
+  emittableEvents: z.array(z.string().nonempty()),
+  tasks: z.array(taskConfigSchema),
+  externalWorkers: z.array(z.string().nonempty()).optional(),
+  workerScripts: z
+    .record(z.string().nonempty(), appWorkerScriptConfigSchema)
+    .optional(),
+  uis: z.record(z.string().nonempty(), appUIConfigSchema).optional(),
 })
 
 export const appWorkerScriptSchema = z.object({
   description: z.string(),
-  files: z.array(appManifestFileSchema),
+  files: appManifestSchema,
   envVars: z.record(z.string(), z.string()),
 })
 
@@ -106,6 +125,16 @@ export const appWorkerScriptsSchema = z.array(
     }),
   ),
 )
+
+export const appUIsSchema = z.array(
+  appUISchema.merge(
+    z.object({
+      identifier: z.string(),
+    }),
+  ),
+)
+
+export const appUIMapSchema = z.record(z.string(), appUISchema)
 
 export const externalAppWorkerSchema = z.object({
   appIdentifier: z.string(),
@@ -126,6 +155,8 @@ export type AppConfig = z.infer<typeof appConfigSchema>
 export type AppWorkerScript = z.infer<typeof appWorkerScriptSchema>
 
 export type AppWorkerScriptMap = z.infer<typeof appWorkerScriptMapSchema>
+
+export type AppUIMap = z.infer<typeof appUIMapSchema>
 
 export type AppManifest = z.infer<typeof appManifestSchema>
 

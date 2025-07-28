@@ -2,6 +2,7 @@ import type { UserDTO } from '@stellariscloud/types'
 import type { LucideIcon } from 'lucide-react'
 import {
   AppWindow,
+  Box,
   ChartLine,
   Folders,
   KeySquare,
@@ -10,6 +11,8 @@ import {
   Settings,
   Users,
 } from 'lucide-react'
+
+import type { AppMenuItemAndHref } from '@/src/contexts/server.context'
 
 interface Submenu {
   href: string
@@ -21,8 +24,9 @@ interface Menu {
   href: string
   label: string
   active?: boolean
-  icon: LucideIcon
   submenus?: Submenu[]
+  icon: LucideIcon | string
+  context?: Record<string, string>
 }
 
 interface Group {
@@ -33,6 +37,7 @@ interface Group {
 export function getMenuList(
   pathname: string | undefined,
   viewer: UserDTO,
+  appMenuItems: AppMenuItemAndHref[],
 ): Group[] {
   return [
     {
@@ -87,6 +92,23 @@ export function getMenuList(
                 icon: Settings,
               },
             ],
+          },
+        ]
+      : []),
+    ...(appMenuItems.length > 0
+      ? [
+          {
+            groupLabel: 'Apps',
+            menus: appMenuItems.map((item) => ({
+              href: item.href,
+              label: item.label,
+              icon: item.iconPath ? item.iconPath : Box,
+              context: {
+                uiName: item.uiName,
+                appIdentifier: item.appIdentifier,
+                appLabel: item.appLabel,
+              },
+            })),
           },
         ]
       : []),

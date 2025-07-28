@@ -8,6 +8,7 @@ export function transformAppToDTO(
 ): AppDTO {
   return {
     identifier: app.identifier,
+    label: app.label,
     publicKey: app.publicKey,
     config: app.config,
     manifest: app.manifest,
@@ -18,6 +19,10 @@ export function transformAppToDTO(
         ...app.workerScripts[workerScriptIdentifier],
       }),
     ),
+    uis: Object.keys(app.uis).map((uiIdentifier) => ({
+      identifier: uiIdentifier,
+      ...app.uis[uiIdentifier],
+    })),
     createdAt: app.createdAt,
     updatedAt: app.updatedAt,
   }

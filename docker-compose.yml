@@ -13,6 +13,7 @@ services:
     command: ['bun', '--cwd', 'packages/api', 'dev']
     ports:
       - 3000:3000
+      - 3002:3002
     privileged: true
   minio:
     image: minio/minio

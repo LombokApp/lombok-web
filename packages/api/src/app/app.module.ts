@@ -26,7 +26,7 @@ import { AppService } from './services/app.service'
     ConfigModule.forFeature(coreConfig),
     EventModule,
     StorageModule,
-    ServerModule,
+    forwardRef(() => ServerModule),
     forwardRef(() => FoldersModule),
   ],
   controllers: [AppsController],

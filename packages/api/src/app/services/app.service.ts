@@ -8,6 +8,8 @@ import nestJsConfig from '@nestjs/config'
 import { hashLocalFile } from '@stellariscloud/core-worker'
 import type {
   AppConfig,
+  AppManifest,
+  AppUIMap,
   AppWorkerScriptMap,
   ExternalAppWorker,
 } from '@stellariscloud/types'
@@ -21,6 +23,7 @@ import { spawn } from 'bun'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
 import fs from 'fs'
 import fsPromises from 'fs/promises'
+import mime from 'mime'
 import os from 'os'
 import path from 'path'
 import { JWTService } from 'src/auth/services/jwt.service'
@@ -85,6 +88,11 @@ const attemptStartHandleTaskByIdSchema = z.object({
 const getWorkerExecutionDetailsSchema = z.object({
   appIdentifier: z.string(),
   workerIdentifier: z.string(),
+})
+
+const getAppUIbundleSchema = z.object({
+  appIdentifier: z.string(),
+  uiName: z.string(),
 })
 
 const getContentSignedUrlsSchema = z.object({
@@ -172,13 +180,13 @@ export class AppService {
 
   async handleAppRequest(
     handlerId: string,
-    appIdentifier: string,
+    requestingAppIdentifier: string,
     message: unknown,
   ) {
     const now = new Date()
     if (safeZodParse(message, AppSocketAPIRequest)) {
       const requestData = message.data
-      const appIdentifierPrefixed = `${APP_NS_PREFIX}${appIdentifier.toLowerCase()}`
+      const appIdentifierPrefixed = `${APP_NS_PREFIX}${requestingAppIdentifier.toLowerCase()}`
       const isCoreApp = appIdentifierPrefixed === `${APP_NS_PREFIX}core`
       switch (message.name) {
         case 'SAVE_LOG_ENTRY':
@@ -188,7 +196,7 @@ export class AppService {
                 ...requestData,
                 createdAt: now,
                 level: EventLevel.INFO, // TODO: translate app log level to event level
-                emitterIdentifier: appIdentifier,
+                emitterIdentifier: requestingAppIdentifier,
                 eventKey: `${appIdentifierPrefixed}:LOG_ENTRY`,
                 id: uuidV4(),
               },
@@ -447,12 +455,28 @@ export class AppService {
               },
             }
           }
-          break
+        }
+        case 'GET_APP_UI_BUNDLE': {
+          if (safeZodParse(requestData, getAppUIbundleSchema)) {
+            return {
+              result: await this.getAppUIbundle(
+                requestingAppIdentifier,
+                requestData,
+              ),
+            }
+          }
+          return {
+            result: undefined,
+            error: {
+              code: 400,
+              message: 'Malformed GET_APP_UI_BUNDLE request.',
+            },
+          }
         }
         case 'GET_WORKER_EXECUTION_DETAILS': {
           if (safeZodParse(requestData, getWorkerExecutionDetailsSchema)) {
             // verify the app is the installed "core" app, and that the specified worker payload exists and is specified in the config
-            if (appIdentifier !== 'core') {
+            if (requestingAppIdentifier !== 'core') {
               // must be "core" app to access app worker payloads
               return {
                 result: undefined,
@@ -774,6 +798,80 @@ export class AppService {
     }))
   }
 
+  async getAppUIbundle(
+    requestingAppIdentifier: string,
+    requestData: { appIdentifier: string; uiName: string },
+  ) {
+    // verify the app is the installed "core" app
+    if (requestingAppIdentifier !== 'core') {
+      // must be "core" app to access app UI bundles
+      return {
+        result: undefined,
+        error: {
+          code: 403,
+          message: 'Unauthorized.',
+        },
+      }
+    }
+
+    const workerApp = await this.getApp(requestData.appIdentifier)
+    if (!workerApp) {
+      // app by appIdentifier not found
+      return {
+        result: undefined,
+        error: {
+          code: 404,
+          message: 'App not found.',
+        },
+      }
+    }
+
+    // Check if the UI exists in the app's menuItems
+    const uiExists = requestData.uiName in workerApp.uis
+
+    if (!uiExists) {
+      // UI by uiName not found in app by appIdentifier
+      return {
+        result: undefined,
+        error: {
+          code: 404,
+          message: 'UI not found.',
+        },
+      }
+    }
+
+    const serverStorageLocation =
+      await this.serverConfigurationService.getServerStorageLocation()
+
+    if (!serverStorageLocation) {
+      return {
+        result: undefined,
+        error: {
+          code: 500,
+          message: 'Server storage location not available.',
+        },
+      }
+    }
+
+    const presignedGetURL = this.s3Service.createS3PresignedUrls([
+      {
+        method: SignedURLsRequestMethod.GET,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}${requestData.appIdentifier}/ui/${requestData.uiName}.zip`,
+        accessKeyId: serverStorageLocation.accessKeyId,
+        secretAccessKey: serverStorageLocation.secretAccessKey,
+        bucket: serverStorageLocation.bucket,
+        endpoint: serverStorageLocation.endpoint,
+        expirySeconds: 3600,
+        region: serverStorageLocation.region,
+      },
+    ])
+
+    return {
+      manifest: workerApp.uis[requestData.uiName]['files'],
+      bundleUrl: presignedGetURL[0],
+    }
+  }
+
   public getContentForAppAsset(
     appIdentifier: string,
     appUi: string,
@@ -804,10 +902,10 @@ export class AppService {
       await this.serverConfigurationService.getServerStorageLocation()
     const appRequiresStorage =
       app.config.requiresStorage ||
-      app.manifest.filter(
-        (manifestItem) =>
-          manifestItem.path.startsWith('/ui') ||
-          manifestItem.path.startsWith('/workers'),
+      Object.keys(app.manifest).filter(
+        (manifestItemPath) =>
+          manifestItemPath.startsWith('/ui') ||
+          manifestItemPath.startsWith('/workers'),
       ).length
 
     if (appRequiresStorage && serverStorageLocation) {
@@ -830,16 +928,16 @@ export class AppService {
     if (installedApp && !update) {
       throw new AppAlreadyInstalledException()
     }
-    const assetManifestEntries = app.manifest.filter(
-      (manifestItem) =>
-        manifestItem.path.startsWith('/ui') ||
-        manifestItem.path.startsWith('/workers'),
+    const assetManifestEntryPaths = Object.keys(app.manifest).filter(
+      (manifestItemPath) =>
+        manifestItemPath.startsWith('/ui') ||
+        manifestItemPath.startsWith('/workers'),
     )
 
     const serverStorageLocation =
       await this.serverConfigurationService.getServerStorageLocation()
     const appRequiresStorage =
-      app.config.requiresStorage || assetManifestEntries.length
+      app.config.requiresStorage || assetManifestEntryPaths.length
 
     if (appRequiresStorage && !serverStorageLocation) {
       throw new AppRequirementsNotSatisfiedException()
@@ -857,12 +955,12 @@ export class AppService {
         {
           groupType: 'ui' | 'worker'
           groupName: string
-          entries: typeof assetManifestEntries
+          entries: typeof assetManifestEntryPaths
         }
       >()
 
-      for (const entry of assetManifestEntries) {
-        const match = entry.path.match(/^\/(ui|workers)\/([^/]+)\//)
+      for (const entryPath of assetManifestEntryPaths) {
+        const match = entryPath.match(/^\/(ui|workers)\/([^/]+)\//)
         if (!match) {
           continue
         }
@@ -877,7 +975,7 @@ export class AppService {
         }
         const group = groupedAssets.get(key)
         if (group) {
-          group.entries.push(entry)
+          group.entries.push(entryPath)
         }
       }
 
@@ -895,14 +993,14 @@ export class AppService {
           groupType === 'ui' ? `/ui/${groupName}/` : `/workers/${groupName}/`
 
         // Copy files into temp dir, preserving structure
-        for (const entry of entries) {
-          const relPath = entry.path.slice(relRoot.length)
+        for (const entryPath of entries) {
+          const relPath = entryPath.slice(relRoot.length)
           const destPath = path.join(groupDir, relPath)
           await fsPromises.mkdir(path.dirname(destPath), { recursive: true })
           const srcPath = path.join(
             this._appConfig.appsLocalPath,
             app.identifier,
-            entry.path,
+            entryPath,
           )
           await fsPromises.copyFile(srcPath, destPath)
         }
@@ -973,12 +1071,13 @@ export class AppService {
   }
 
   public async attemptParseAndInstallAppFromDisk(
-    appIdentifier: string,
+    directoryName: string,
     update: boolean,
   ) {
-    const app = await this.parseAppFromDisk(appIdentifier)
+    const app = await this.parseAppFromDisk(directoryName)
 
-    if (app.validation.value) {
+    const appIdentifier = app.definition?.identifier
+    if (app.validation.value && app.definition) {
       try {
         await this.installApp(app.definition, update)
       } catch (error) {
@@ -1005,7 +1104,7 @@ export class AppService {
     } else {
       // eslint-disable-next-line no-console
       console.log(
-        `APP PARSE ERROR - APP[${appIdentifier}]: DEFINITION_INVALID`,
+        `APP PARSE ERROR - APP[${appIdentifier ?? '__UNKNONW__'}] - (directory: ${directoryName}): DEFINITION_INVALID`,
         app.validation.error,
       )
     }
@@ -1023,8 +1122,8 @@ export class AppService {
       )
   }
 
-  public async parseAppFromDisk(appIdentifier: string): Promise<{
-    definition: App
+  public async parseAppFromDisk(appDirectoryName: string): Promise<{
+    definition?: App
     validation: { value: boolean; error?: z.ZodError }
   }> {
     const now = new Date()
@@ -1032,12 +1131,12 @@ export class AppService {
     let currentTotalSize = 0
     const publicKeyPath = path.join(
       this._appConfig.appsLocalPath,
-      appIdentifier,
+      appDirectoryName,
       '.publicKey',
     )
     const configPath = path.join(
       this._appConfig.appsLocalPath,
-      appIdentifier,
+      appDirectoryName,
       'config.json',
     )
     const publicKey =
@@ -1053,64 +1152,114 @@ export class AppService {
       throw new Error(`Config file not found when parsing app.`)
     }
 
-    // console.log('READ APP CONFIG', { config, configPath, publicKeyPath, publicKey })
-    const appRoot = path.join(this._appConfig.appsLocalPath, appIdentifier)
-    const manifest = await Promise.all(
-      readDirRecursive(appRoot).map(async (absoluteAssetPath) => {
-        const size = fs.statSync(absoluteAssetPath).size
-        if (size > MAX_APP_FILE_SIZE) {
-          throw new Error(`App file too large! MAX: ${MAX_APP_FILE_SIZE}`)
-        }
-        currentTotalSize += size
-        if (currentTotalSize > MAX_APP_TOTAL_SIZE) {
-          throw new Error(
-            `Total app files size is too large! MAX: ${MAX_APP_TOTAL_SIZE}`,
-          )
-        }
-        const relativeAssetPath = absoluteAssetPath.slice(appRoot.length)
+    const appIdentifier = config.identifier
 
-        return {
-          size: fs.statSync(absoluteAssetPath).size,
-          path: relativeAssetPath,
-          hash: await hashLocalFile(absoluteAssetPath),
-        }
-      }),
-    )
+    // console.log('READ APP CONFIG', { config, configPath, publicKeyPath, publicKey })
+    const appRoot = path.join(this._appConfig.appsLocalPath, appDirectoryName)
+    const manifest = (
+      await Promise.all(
+        readDirRecursive(appRoot).map(async (absoluteAssetPath) => {
+          const size = fs.statSync(absoluteAssetPath).size
+          if (size > MAX_APP_FILE_SIZE) {
+            throw new Error(`App file too large! MAX: ${MAX_APP_FILE_SIZE}`)
+          }
+          currentTotalSize += size
+          if (currentTotalSize > MAX_APP_TOTAL_SIZE) {
+            throw new Error(
+              `Total app files size is too large! MAX: ${MAX_APP_TOTAL_SIZE}`,
+            )
+          }
+          const relativeAssetPath = absoluteAssetPath.slice(appRoot.length)
+
+          return {
+            size: fs.statSync(absoluteAssetPath).size,
+            path: relativeAssetPath,
+            hash: await hashLocalFile(absoluteAssetPath),
+            mimeType:
+              mime.getType(relativeAssetPath) ?? 'application/octet-stream',
+          }
+        }),
+      )
+    ).reduce<AppManifest>((acc, nextManifestEntry) => {
+      acc[nextManifestEntry.path] = {
+        hash: nextManifestEntry.hash,
+        size: nextManifestEntry.size,
+        mimeType: nextManifestEntry.mimeType,
+      }
+      return acc
+    }, {})
 
     const workerScripts = Object.entries(
       config.workerScripts ?? {},
-    ).reduce<AppWorkerScriptMap>(
-      (acc, [workerIdentifier, value]) => ({
+    ).reduce<AppWorkerScriptMap>((acc, [workerIdentifier, value]) => {
+      return {
         ...acc,
         [workerIdentifier]: {
           ...value,
-          files: manifest.filter((manifestEntry) =>
-            manifestEntry.path.startsWith(`/workers/${workerIdentifier}/`),
-          ),
+          files: Object.keys(manifest)
+            .filter((manifestEntryPath) =>
+              manifestEntryPath.startsWith(`/workers/${workerIdentifier}/`),
+            )
+            .reduce(
+              (manifestEntryAcc, manifestEntryPath) => ({
+                ...manifestEntryAcc,
+                [manifestEntryPath]: {
+                  hash: manifest[manifestEntryPath].hash,
+                  size: manifest[manifestEntryPath].size,
+                  mimeType: manifest[manifestEntryPath].mimeType,
+                },
+              }),
+              {},
+            ),
           envVars: value.envVars ?? {},
+        },
+      }
+    }, {})
+
+    const uis = Object.entries(config.uis ?? {}).reduce<AppUIMap>(
+      (acc, [uiIdentifier, value]) => ({
+        ...acc,
+        [uiIdentifier]: {
+          ...value,
+          files: Object.keys(manifest)
+            .filter((manifestEntryPath) =>
+              manifestEntryPath.startsWith(`/ui/${uiIdentifier}/`),
+            )
+            .reduce(
+              (manifestEntryAcc, manifestEntryPath) => ({
+                ...manifestEntryAcc,
+                [manifestEntryPath]: {
+                  hash: manifest[manifestEntryPath].hash,
+                  size: manifest[manifestEntryPath].size,
+                  mimeType: manifest[manifestEntryPath].mimeType,
+                },
+              }),
+              {},
+            ),
         },
       }),
       {},
     )
 
-    const appDefinition: App = {
-      identifier: appIdentifier,
-      manifest,
-      publicKey,
-      workerScripts,
-      config,
-      createdAt: now,
-      updatedAt: now,
-      contentHash: '', // TODO: calculate the exact content hash
-    }
+    const parseResult = appConfigSchema.safeParse(config)
 
-    const parseResult = appConfigSchema.safeParse(appDefinition.config)
     const app = {
       validation: {
         value: parseResult.success,
         error: parseResult.success ? undefined : parseResult.error,
       },
-      definition: appDefinition,
+      definition: {
+        identifier: appIdentifier,
+        label: config.label,
+        manifest,
+        publicKey,
+        workerScripts,
+        uis,
+        config,
+        createdAt: now,
+        updatedAt: now,
+        contentHash: '', // TODO: calculate the exact content hash
+      },
     }
     return app
   }

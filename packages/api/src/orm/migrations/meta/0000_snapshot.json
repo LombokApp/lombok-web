@@ -1,5 +1,5 @@
 {
-  "id": "320fc0bc-01ea-4fbf-8a17-9ba0c7f87ab0",
+  "id": "e3bc5da3-c4e4-401d-aca3-f87aef80576d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -12,6 +12,12 @@
           "name": "identifier",
           "type": "text",
           "primaryKey": true,
+          "notNull": true
+        },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
           "notNull": true
         },
         "publicKey": {
@@ -34,6 +40,12 @@
         },
         "workerScripts": {
           "name": "workerScripts",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "uis": {
+          "name": "uis",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true
