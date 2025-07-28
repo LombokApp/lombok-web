@@ -166,7 +166,7 @@ process.stdin.once('data', (data) => {
         )
         const manifestFilePath = path.join(bundleCacheDir, 'manifest.json')
 
-        let manifest: AppManifest = []
+        let manifest: AppManifest = {}
 
         // Try to load existing manifest (denoting bundle has been downloaded)
         if (fs.existsSync(manifestFilePath)) {
@@ -248,10 +248,9 @@ process.stdin.once('data', (data) => {
         const targetPath = pathname === '/' ? 'index.html' : pathname
         const filePath = path.join(bundleCacheDir, uiName, targetPath)
         const manifestPath = path.join('/', 'ui', uiName, targetPath)
-
-        const manifestEntry = manifest.find(
-          (_manifestEntry) => _manifestEntry.path === manifestPath,
-        )
+        console.log('manifest', { manifestPath, manifest })
+        const manifestEntry =
+          manifestPath in manifest ? manifest[manifestPath] : null
         if (manifestEntry) {
           try {
             const fileBuffer = fs.readFileSync(filePath)

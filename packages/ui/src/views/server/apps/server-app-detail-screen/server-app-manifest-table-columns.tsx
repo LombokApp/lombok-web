@@ -5,7 +5,9 @@ import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components
 import { formatBytes } from '@stellariscloud/utils'
 import type { ColumnDef } from '@tanstack/react-table'
 
-export const serverAppManifestTableColumns: ColumnDef<AppDTOManifestInner>[] = [
+export const serverAppManifestTableColumns: ColumnDef<
+  AppDTOManifestInner[keyof AppDTOManifestInner] & { path: string }
+>[] = [
   {
     accessorKey: 'path',
     header: ({ column }) => (
@@ -51,9 +53,26 @@ export const serverAppManifestTableColumns: ColumnDef<AppDTOManifestInner>[] = [
     ),
     cell: ({ row }) => (
       <div className="flex flex-col">
-        <div className="w-[80px] truncate font-mono">
+        <div className="w-[140px] truncate font-mono">
           {formatBytes(row.original.size)}
         </div>
+      </div>
+    ),
+    enableSorting: true,
+    enableHiding: false,
+  },
+  {
+    accessorKey: 'mimeType',
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Mime Type"
+      />
+    ),
+    cell: ({ row }) => (
+      <div className="flex flex-col">
+        <div className="truncate font-mono">{row.original.mimeType}</div>
       </div>
     ),
     enableSorting: true,

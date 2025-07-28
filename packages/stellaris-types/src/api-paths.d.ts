@@ -1508,11 +1508,12 @@ export interface components {
                     };
                 };
                 manifest: {
-                    path: string;
-                    hash: string;
-                    size: number;
-                    mimeType: string;
-                }[];
+                    [key: string]: {
+                        hash: string;
+                        size: number;
+                        mimeType: string;
+                    };
+                };
                 externalWorkers: {
                     appIdentifier: string;
                     workerId: string;
@@ -1523,11 +1524,12 @@ export interface components {
                 workerScripts: {
                     description: string;
                     files: {
-                        path: string;
-                        hash: string;
-                        size: number;
-                        mimeType: string;
-                    }[];
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
                     envVars: {
                         [key: string]: string;
                     };
@@ -1541,11 +1543,12 @@ export interface components {
                         uiName: string;
                     }[];
                     files: {
-                        path: string;
-                        hash: string;
-                        size: number;
-                        mimeType: string;
-                    }[];
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
                     identifier: string;
                 }[];
                 /** Format: date-time */
@@ -1627,11 +1630,12 @@ export interface components {
                     };
                 };
                 manifest: {
-                    path: string;
-                    hash: string;
-                    size: number;
-                    mimeType: string;
-                }[];
+                    [key: string]: {
+                        hash: string;
+                        size: number;
+                        mimeType: string;
+                    };
+                };
                 externalWorkers: {
                     appIdentifier: string;
                     workerId: string;
@@ -1647,11 +1651,12 @@ export interface components {
                         uiName: string;
                     }[];
                     files: {
-                        path: string;
-                        hash: string;
-                        size: number;
-                        mimeType: string;
-                    }[];
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
                     identifier: string;
                 }[];
                 /** Format: date-time */
@@ -1661,11 +1666,12 @@ export interface components {
                 workerScripts: {
                     description: string;
                     files: {
-                        path: string;
-                        hash: string;
-                        size: number;
-                        mimeType: string;
-                    }[];
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
                     envVars: {
                         [key: string]: string;
                     };

@@ -65,14 +65,13 @@ export const appIdentitySchema = z.object({
   identifier: z.string(),
 })
 
-export const appManifestFileSchema = z.object({
-  path: z.string(),
+export const appManifestEntrySchema = z.object({
   hash: z.string(),
   size: z.number(),
   mimeType: z.string(),
 })
 
-export const appManifestSchema = z.array(appManifestFileSchema)
+export const appManifestSchema = z.record(z.string(), appManifestEntrySchema)
 
 export const appWorkerScriptConfigSchema = z.object({
   description: z.string(),
@@ -87,7 +86,7 @@ export const appUIConfigSchema = z.object({
 export const appUISchema = z.object({
   description: z.string(),
   menuItems: z.array(appMenuItemConfigSchema),
-  files: z.array(appManifestFileSchema),
+  files: appManifestSchema,
 })
 
 export const appConfigSchema = z.object({
@@ -110,7 +109,7 @@ export const appConfigSchema = z.object({
 
 export const appWorkerScriptSchema = z.object({
   description: z.string(),
-  files: z.array(appManifestFileSchema),
+  files: appManifestSchema,
   envVars: z.record(z.string(), z.string()),
 })
 

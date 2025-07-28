@@ -8,6 +8,7 @@ import nestJsConfig from '@nestjs/config'
 import { hashLocalFile } from '@stellariscloud/core-worker'
 import type {
   AppConfig,
+  AppManifest,
   AppUIMap,
   AppWorkerScriptMap,
   ExternalAppWorker,
@@ -901,10 +902,10 @@ export class AppService {
       await this.serverConfigurationService.getServerStorageLocation()
     const appRequiresStorage =
       app.config.requiresStorage ||
-      app.manifest.filter(
-        (manifestItem) =>
-          manifestItem.path.startsWith('/ui') ||
-          manifestItem.path.startsWith('/workers'),
+      Object.keys(app.manifest).filter(
+        (manifestItemPath) =>
+          manifestItemPath.startsWith('/ui') ||
+          manifestItemPath.startsWith('/workers'),
       ).length
 
     if (appRequiresStorage && serverStorageLocation) {
@@ -927,16 +928,16 @@ export class AppService {
     if (installedApp && !update) {
       throw new AppAlreadyInstalledException()
     }
-    const assetManifestEntries = app.manifest.filter(
-      (manifestItem) =>
-        manifestItem.path.startsWith('/ui') ||
-        manifestItem.path.startsWith('/workers'),
+    const assetManifestEntryPaths = Object.keys(app.manifest).filter(
+      (manifestItemPath) =>
+        manifestItemPath.startsWith('/ui') ||
+        manifestItemPath.startsWith('/workers'),
     )
 
     const serverStorageLocation =
       await this.serverConfigurationService.getServerStorageLocation()
     const appRequiresStorage =
-      app.config.requiresStorage || assetManifestEntries.length
+      app.config.requiresStorage || assetManifestEntryPaths.length
 
     if (appRequiresStorage && !serverStorageLocation) {
       throw new AppRequirementsNotSatisfiedException()
@@ -954,12 +955,12 @@ export class AppService {
         {
           groupType: 'ui' | 'worker'
           groupName: string
-          entries: typeof assetManifestEntries
+          entries: typeof assetManifestEntryPaths
         }
       >()
 
-      for (const entry of assetManifestEntries) {
-        const match = entry.path.match(/^\/(ui|workers)\/([^/]+)\//)
+      for (const entryPath of assetManifestEntryPaths) {
+        const match = entryPath.match(/^\/(ui|workers)\/([^/]+)\//)
         if (!match) {
           continue
         }
@@ -974,7 +975,7 @@ export class AppService {
         }
         const group = groupedAssets.get(key)
         if (group) {
-          group.entries.push(entry)
+          group.entries.push(entryPath)
         }
       }
 
@@ -992,14 +993,14 @@ export class AppService {
           groupType === 'ui' ? `/ui/${groupName}/` : `/workers/${groupName}/`
 
         // Copy files into temp dir, preserving structure
-        for (const entry of entries) {
-          const relPath = entry.path.slice(relRoot.length)
+        for (const entryPath of entries) {
+          const relPath = entryPath.slice(relRoot.length)
           const destPath = path.join(groupDir, relPath)
           await fsPromises.mkdir(path.dirname(destPath), { recursive: true })
           const srcPath = path.join(
             this._appConfig.appsLocalPath,
             app.identifier,
-            entry.path,
+            entryPath,
           )
           await fsPromises.copyFile(srcPath, destPath)
         }
@@ -1155,54 +1156,86 @@ export class AppService {
 
     // console.log('READ APP CONFIG', { config, configPath, publicKeyPath, publicKey })
     const appRoot = path.join(this._appConfig.appsLocalPath, appDirectoryName)
-    const manifest = await Promise.all(
-      readDirRecursive(appRoot).map(async (absoluteAssetPath) => {
-        const size = fs.statSync(absoluteAssetPath).size
-        if (size > MAX_APP_FILE_SIZE) {
-          throw new Error(`App file too large! MAX: ${MAX_APP_FILE_SIZE}`)
-        }
-        currentTotalSize += size
-        if (currentTotalSize > MAX_APP_TOTAL_SIZE) {
-          throw new Error(
-            `Total app files size is too large! MAX: ${MAX_APP_TOTAL_SIZE}`,
-          )
-        }
-        const relativeAssetPath = absoluteAssetPath.slice(appRoot.length)
+    const manifest = (
+      await Promise.all(
+        readDirRecursive(appRoot).map(async (absoluteAssetPath) => {
+          const size = fs.statSync(absoluteAssetPath).size
+          if (size > MAX_APP_FILE_SIZE) {
+            throw new Error(`App file too large! MAX: ${MAX_APP_FILE_SIZE}`)
+          }
+          currentTotalSize += size
+          if (currentTotalSize > MAX_APP_TOTAL_SIZE) {
+            throw new Error(
+              `Total app files size is too large! MAX: ${MAX_APP_TOTAL_SIZE}`,
+            )
+          }
+          const relativeAssetPath = absoluteAssetPath.slice(appRoot.length)
 
-        return {
-          size: fs.statSync(absoluteAssetPath).size,
-          path: relativeAssetPath,
-          hash: await hashLocalFile(absoluteAssetPath),
-          mimeType:
-            mime.getType(relativeAssetPath) ?? 'application/octet-stream',
-        }
-      }),
-    )
+          return {
+            size: fs.statSync(absoluteAssetPath).size,
+            path: relativeAssetPath,
+            hash: await hashLocalFile(absoluteAssetPath),
+            mimeType:
+              mime.getType(relativeAssetPath) ?? 'application/octet-stream',
+          }
+        }),
+      )
+    ).reduce<AppManifest>((acc, nextManifestEntry) => {
+      acc[nextManifestEntry.path] = {
+        hash: nextManifestEntry.hash,
+        size: nextManifestEntry.size,
+        mimeType: nextManifestEntry.mimeType,
+      }
+      return acc
+    }, {})
 
     const workerScripts = Object.entries(
       config.workerScripts ?? {},
-    ).reduce<AppWorkerScriptMap>(
-      (acc, [workerIdentifier, value]) => ({
+    ).reduce<AppWorkerScriptMap>((acc, [workerIdentifier, value]) => {
+      return {
         ...acc,
         [workerIdentifier]: {
           ...value,
-          files: manifest.filter((manifestEntry) =>
-            manifestEntry.path.startsWith(`/workers/${workerIdentifier}/`),
-          ),
+          files: Object.keys(manifest)
+            .filter((manifestEntryPath) =>
+              manifestEntryPath.startsWith(`/workers/${workerIdentifier}/`),
+            )
+            .reduce(
+              (manifestEntryAcc, manifestEntryPath) => ({
+                ...manifestEntryAcc,
+                [manifestEntryPath]: {
+                  hash: manifest[manifestEntryPath].hash,
+                  size: manifest[manifestEntryPath].size,
+                  mimeType: manifest[manifestEntryPath].mimeType,
+                },
+              }),
+              {},
+            ),
           envVars: value.envVars ?? {},
         },
-      }),
-      {},
-    )
+      }
+    }, {})
 
     const uis = Object.entries(config.uis ?? {}).reduce<AppUIMap>(
       (acc, [uiIdentifier, value]) => ({
         ...acc,
         [uiIdentifier]: {
           ...value,
-          files: manifest.filter((manifestEntry) =>
-            manifestEntry.path.startsWith(`/ui/${uiIdentifier}/`),
-          ),
+          files: Object.keys(manifest)
+            .filter((manifestEntryPath) =>
+              manifestEntryPath.startsWith(`/ui/${uiIdentifier}/`),
+            )
+            .reduce(
+              (manifestEntryAcc, manifestEntryPath) => ({
+                ...manifestEntryAcc,
+                [manifestEntryPath]: {
+                  hash: manifest[manifestEntryPath].hash,
+                  size: manifest[manifestEntryPath].size,
+                  mimeType: manifest[manifestEntryPath].mimeType,
+                },
+              }),
+              {},
+            ),
         },
       }),
       {},
