@@ -78,6 +78,17 @@ export const appWorkerScriptConfigSchema = z.object({
   envVars: z.record(z.string(), z.string()).optional(),
 })
 
+export const appUIConfigSchema = z.object({
+  description: z.string(),
+  menuItems: z.array(appMenuItemConfigSchema),
+})
+
+export const appUISchema = z.object({
+  description: z.string(),
+  menuItems: z.array(appMenuItemConfigSchema),
+  files: z.array(appManifestFileSchema),
+})
+
 export const appConfigSchema = z.object({
   description: z.string(),
   requiresStorage: z.boolean(),
@@ -85,7 +96,7 @@ export const appConfigSchema = z.object({
   tasks: z.array(taskConfigSchema),
   externalWorkers: z.array(z.string()).optional(),
   workerScripts: z.record(z.string(), appWorkerScriptConfigSchema).optional(),
-  menuItems: z.array(appMenuItemConfigSchema),
+  uis: z.record(z.string(), appUIConfigSchema).optional(),
 })
 
 export const appWorkerScriptSchema = z.object({
@@ -107,6 +118,16 @@ export const appWorkerScriptsSchema = z.array(
   ),
 )
 
+export const appUIsSchema = z.array(
+  appUISchema.merge(
+    z.object({
+      identifier: z.string(),
+    }),
+  ),
+)
+
+export const appUIMapSchema = z.record(z.string(), appUISchema)
+
 export const externalAppWorkerSchema = z.object({
   appIdentifier: z.string(),
   workerId: z.string(),
@@ -126,6 +147,8 @@ export type AppConfig = z.infer<typeof appConfigSchema>
 export type AppWorkerScript = z.infer<typeof appWorkerScriptSchema>
 
 export type AppWorkerScriptMap = z.infer<typeof appWorkerScriptMapSchema>
+
+export type AppUIMap = z.infer<typeof appUIMapSchema>
 
 export type AppManifest = z.infer<typeof appManifestSchema>
 

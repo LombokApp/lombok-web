@@ -8,6 +8,7 @@ import nestJsConfig from '@nestjs/config'
 import { hashLocalFile } from '@stellariscloud/core-worker'
 import type {
   AppConfig,
+  AppUIMap,
   AppWorkerScriptMap,
   ExternalAppWorker,
 } from '@stellariscloud/types'
@@ -85,6 +86,11 @@ const attemptStartHandleTaskByIdSchema = z.object({
 const getWorkerExecutionDetailsSchema = z.object({
   appIdentifier: z.string(),
   workerIdentifier: z.string(),
+})
+
+const getAppUIbundleSchema = z.object({
+  appIdentifier: z.string(),
+  uiName: z.string(),
 })
 
 const getContentSignedUrlsSchema = z.object({
@@ -172,13 +178,13 @@ export class AppService {
 
   async handleAppRequest(
     handlerId: string,
-    appIdentifier: string,
+    requestingAppIdentifier: string,
     message: unknown,
   ) {
     const now = new Date()
     if (safeZodParse(message, AppSocketAPIRequest)) {
       const requestData = message.data
-      const appIdentifierPrefixed = `${APP_NS_PREFIX}${appIdentifier.toLowerCase()}`
+      const appIdentifierPrefixed = `${APP_NS_PREFIX}${requestingAppIdentifier.toLowerCase()}`
       const isCoreApp = appIdentifierPrefixed === `${APP_NS_PREFIX}core`
       switch (message.name) {
         case 'SAVE_LOG_ENTRY':
@@ -188,7 +194,7 @@ export class AppService {
                 ...requestData,
                 createdAt: now,
                 level: EventLevel.INFO, // TODO: translate app log level to event level
-                emitterIdentifier: appIdentifier,
+                emitterIdentifier: requestingAppIdentifier,
                 eventKey: `${appIdentifierPrefixed}:LOG_ENTRY`,
                 id: uuidV4(),
               },
@@ -447,12 +453,28 @@ export class AppService {
               },
             }
           }
-          break
+        }
+        case 'GET_APP_UI_BUNDLE': {
+          if (safeZodParse(requestData, getAppUIbundleSchema)) {
+            return {
+              result: await this.getAppUIbundle(
+                requestingAppIdentifier,
+                requestData,
+              ),
+            }
+          }
+          return {
+            result: undefined,
+            error: {
+              code: 400,
+              message: 'Malformed GET_APP_UI_BUNDLE request.',
+            },
+          }
         }
         case 'GET_WORKER_EXECUTION_DETAILS': {
           if (safeZodParse(requestData, getWorkerExecutionDetailsSchema)) {
             // verify the app is the installed "core" app, and that the specified worker payload exists and is specified in the config
-            if (appIdentifier !== 'core') {
+            if (requestingAppIdentifier !== 'core') {
               // must be "core" app to access app worker payloads
               return {
                 result: undefined,
@@ -774,6 +796,81 @@ export class AppService {
     }))
   }
 
+  async getAppUIbundle(
+    requestingAppIdentifier: string,
+    requestData: { appIdentifier: string; uiName: string },
+  ) {
+    // verify the app is the installed "core" app
+    if (requestingAppIdentifier !== 'core') {
+      // must be "core" app to access app UI bundles
+      return {
+        result: undefined,
+        error: {
+          code: 403,
+          message: 'Unauthorized.',
+        },
+      }
+    }
+
+    const workerApp = await this.getApp(requestData.appIdentifier)
+    if (!workerApp) {
+      // app by appIdentifier not found
+      return {
+        result: undefined,
+        error: {
+          code: 404,
+          message: 'App not found.',
+        },
+      }
+    }
+
+    // Check if the UI exists in the app's menuItems
+    const uiExists = requestData.uiName in workerApp.uis
+
+    if (!uiExists) {
+      // UI by uiName not found in app by appIdentifier
+      return {
+        result: undefined,
+        error: {
+          code: 404,
+          message: 'UI not found.',
+        },
+      }
+    }
+
+    const serverStorageLocation =
+      await this.serverConfigurationService.getServerStorageLocation()
+
+    if (!serverStorageLocation) {
+      return {
+        result: undefined,
+        error: {
+          code: 500,
+          message: 'Server storage location not available.',
+        },
+      }
+    }
+
+    const presignedGetURL = this.s3Service.createS3PresignedUrls([
+      {
+        method: SignedURLsRequestMethod.GET,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}${requestData.appIdentifier}/ui/${requestData.uiName}.zip`,
+        accessKeyId: serverStorageLocation.accessKeyId,
+        secretAccessKey: serverStorageLocation.secretAccessKey,
+        bucket: serverStorageLocation.bucket,
+        endpoint: serverStorageLocation.endpoint,
+        expirySeconds: 3600,
+        region: serverStorageLocation.region,
+      },
+    ])
+
+    return {
+      result: {
+        url: presignedGetURL[0],
+      },
+    }
+  }
+
   public getContentForAppAsset(
     appIdentifier: string,
     appUi: string,
@@ -1093,11 +1190,25 @@ export class AppService {
       {},
     )
 
+    const uis = Object.entries(config.uis ?? {}).reduce<AppUIMap>(
+      (acc, [uiIdentifier, value]) => ({
+        ...acc,
+        [uiIdentifier]: {
+          ...value,
+          files: manifest.filter((manifestEntry) =>
+            manifestEntry.path.startsWith(`/ui/${uiIdentifier}/`),
+          ),
+        },
+      }),
+      {},
+    )
+
     const appDefinition: App = {
       identifier: appIdentifier,
       manifest,
       publicKey,
       workerScripts,
+      uis,
       config,
       createdAt: now,
       updatedAt: now,

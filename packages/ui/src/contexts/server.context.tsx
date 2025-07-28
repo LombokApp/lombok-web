@@ -91,13 +91,18 @@ export const ServerContextProvider = ({
     () =>
       serverApps?.result.reduce<AppMenuItemAndHref[]>((acc, next) => {
         return acc.concat(
-          next.config.menuItems.map((item) => ({
-            iconPath: item.iconPath,
-            href: `/apps/${next.identifier}/${item.uiName}`,
-            label: item.label,
-            uiName: item.uiName,
-            appIdentifier: next.identifier,
-          })),
+          next.uis
+            .reduce<AppMenuItem[]>(
+              (uiAcc, nextUi) => uiAcc.concat(nextUi.menuItems),
+              [],
+            )
+            .map((item) => ({
+              iconPath: item.iconPath,
+              href: `/apps/${next.identifier}/${item.uiName}`,
+              label: item.label,
+              uiName: item.uiName,
+              appIdentifier: next.identifier,
+            })),
         )
       }, []) ?? [],
     [serverApps],

@@ -30,6 +30,9 @@ export const buildAppClient = (
         workerIdentifier,
       })
     },
+    getAppUIbundle(appIdentifier, uiName) {
+      return emitWithAck('GET_APP_UI_BUNDLE', { appIdentifier, uiName })
+    },
     saveLogEntry(entry) {
       return emitWithAck('SAVE_LOG_ENTRY', entry)
     },
@@ -73,6 +76,10 @@ export interface CoreServerMessageInterface {
       envVars: Record<string, string>
     }>
   >
+  getAppUIbundle: (
+    appIdentifier: string,
+    uiName: string,
+  ) => Promise<AppAPIResponse<{ url: string }>>
   saveLogEntry: (entry: AppLogEntry) => Promise<boolean>
   attemptStartHandleTaskById: (
     taskId: string,

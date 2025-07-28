@@ -24,11 +24,15 @@
       "description": "Manages special things for objects."
     }
   },
-  "emittableEvents": [],
-  "menuItems": [{
-    "name": "dev-main",
-    "label": "Videos",
-    "iconPath": "/assets/logo.png",
-    "uiName": "main"
-  }]
+  "uis": {
+    "main": {
+      "description": "The main UI for the dev app",
+      "menuItems": [{
+        "label": "Videos",
+        "iconPath": "/assets/logo.png",
+        "uiName": "main"
+      }]    
+    }
+  },
+  "emittableEvents": []
 }

@@ -5781,24 +5781,39 @@
                         ]
                       }
                     },
-                    "menuItems": {
-                      "type": "array",
-                      "items": {
+                    "uis": {
+                      "type": "object",
+                      "additionalProperties": {
                         "type": "object",
                         "properties": {
-                          "label": {
+                          "description": {
                             "type": "string"
                           },
-                          "iconPath": {
-                            "type": "string"
-                          },
-                          "uiName": {
-                            "type": "string"
+                          "menuItems": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "label": {
+                                  "type": "string"
+                                },
+                                "iconPath": {
+                                  "type": "string"
+                                },
+                                "uiName": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "label",
+                                "uiName"
+                              ]
+                            }
                           }
                         },
                         "required": [
-                          "label",
-                          "uiName"
+                          "description",
+                          "menuItems"
                         ]
                       }
                     }
@@ -5807,8 +5822,7 @@
                     "description",
                     "requiresStorage",
                     "emittableEvents",
-                    "tasks",
-                    "menuItems"
+                    "tasks"
                   ]
                 },
                 "manifest": {
@@ -5914,6 +5928,69 @@
                     ]
                   }
                 },
+                "uis": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "description": {
+                        "type": "string"
+                      },
+                      "menuItems": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string"
+                            },
+                            "iconPath": {
+                              "type": "string"
+                            },
+                            "uiName": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "uiName"
+                          ]
+                        }
+                      },
+                      "files": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string"
+                            },
+                            "hash": {
+                              "type": "string"
+                            },
+                            "size": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "path",
+                            "hash",
+                            "size"
+                          ]
+                        }
+                      },
+                      "identifier": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "description",
+                      "menuItems",
+                      "files",
+                      "identifier"
+                    ]
+                  }
+                },
                 "createdAt": {
                   "type": "string",
                   "format": "date-time"
@@ -5930,6 +6007,7 @@
                 "manifest",
                 "externalWorkers",
                 "workerScripts",
+                "uis",
                 "createdAt",
                 "updatedAt"
               ]
@@ -6159,24 +6237,39 @@
                       ]
                     }
                   },
-                  "menuItems": {
-                    "type": "array",
-                    "items": {
+                  "uis": {
+                    "type": "object",
+                    "additionalProperties": {
                       "type": "object",
                       "properties": {
-                        "label": {
+                        "description": {
                           "type": "string"
                         },
-                        "iconPath": {
-                          "type": "string"
-                        },
-                        "uiName": {
-                          "type": "string"
+                        "menuItems": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string"
+                              },
+                              "iconPath": {
+                                "type": "string"
+                              },
+                              "uiName": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "uiName"
+                            ]
+                          }
                         }
                       },
                       "required": [
-                        "label",
-                        "uiName"
+                        "description",
+                        "menuItems"
                       ]
                     }
                   }
@@ -6185,8 +6278,7 @@
                   "description",
                   "requiresStorage",
                   "emittableEvents",
-                  "tasks",
-                  "menuItems"
+                  "tasks"
                 ]
               },
               "manifest": {
@@ -6241,6 +6333,69 @@
                     "handledTaskKeys",
                     "socketClientId",
                     "ip"
+                  ]
+                }
+              },
+              "uis": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    },
+                    "menuItems": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "label": {
+                            "type": "string"
+                          },
+                          "iconPath": {
+                            "type": "string"
+                          },
+                          "uiName": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "label",
+                          "uiName"
+                        ]
+                      }
+                    },
+                    "files": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "hash": {
+                            "type": "string"
+                          },
+                          "size": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "hash",
+                          "size"
+                        ]
+                      }
+                    },
+                    "identifier": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "description",
+                    "menuItems",
+                    "files",
+                    "identifier"
                   ]
                 }
               },
@@ -6307,6 +6462,7 @@
               "config",
               "manifest",
               "externalWorkers",
+              "uis",
               "createdAt",
               "updatedAt",
               "workerScripts"

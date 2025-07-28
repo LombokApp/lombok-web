@@ -1493,11 +1493,16 @@ export interface components {
                             };
                         };
                     };
-                    menuItems: {
-                        label: string;
-                        iconPath?: string;
-                        uiName: string;
-                    }[];
+                    uis?: {
+                        [key: string]: {
+                            description: string;
+                            menuItems: {
+                                label: string;
+                                iconPath?: string;
+                                uiName: string;
+                            }[];
+                        };
+                    };
                 };
                 manifest: {
                     path: string;
@@ -1521,6 +1526,20 @@ export interface components {
                     envVars: {
                         [key: string]: string;
                     };
+                    identifier: string;
+                }[];
+                uis: {
+                    description: string;
+                    menuItems: {
+                        label: string;
+                        iconPath?: string;
+                        uiName: string;
+                    }[];
+                    files: {
+                        path: string;
+                        hash: string;
+                        size: number;
+                    }[];
                     identifier: string;
                 }[];
                 /** Format: date-time */
@@ -1587,11 +1606,16 @@ export interface components {
                             };
                         };
                     };
-                    menuItems: {
-                        label: string;
-                        iconPath?: string;
-                        uiName: string;
-                    }[];
+                    uis?: {
+                        [key: string]: {
+                            description: string;
+                            menuItems: {
+                                label: string;
+                                iconPath?: string;
+                                uiName: string;
+                            }[];
+                        };
+                    };
                 };
                 manifest: {
                     path: string;
@@ -1604,6 +1628,20 @@ export interface components {
                     handledTaskKeys: string[];
                     socketClientId: string;
                     ip: string;
+                }[];
+                uis: {
+                    description: string;
+                    menuItems: {
+                        label: string;
+                        iconPath?: string;
+                        uiName: string;
+                    }[];
+                    files: {
+                        path: string;
+                        hash: string;
+                        size: number;
+                    }[];
+                    identifier: string;
                 }[];
                 /** Format: date-time */
                 createdAt: string;

@@ -2,6 +2,7 @@ import { createZodDto } from '@anatine/zod-nestjs'
 import {
   appConfigSchema,
   appManifestSchema,
+  appUIsSchema,
   appWorkerScriptsSchema,
   externalAppWorkerSchema,
 } from '@stellariscloud/types'
@@ -14,6 +15,7 @@ export const appSchema = z.object({
   manifest: appManifestSchema,
   externalWorkers: z.array(externalAppWorkerSchema),
   workerScripts: appWorkerScriptsSchema,
+  uis: appUIsSchema,
   createdAt: z.date(),
   updatedAt: z.date(),
 })
