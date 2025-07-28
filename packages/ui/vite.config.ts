@@ -42,6 +42,20 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      // Proxy for subdomain-based app routing
+      '^/.*': {
+        target: 'http://localhost:3002',
+        changeOrigin: true,
+        bypass: (req) => {
+          const host = req.headers.host
+          // Only proxy if it's an apps subdomain, otherwise let Vite handle it
+          if (!host?.match(/\.apps\./)) {
+            // Don't proxy, let Vite handle it
+            return req.url
+          }
+          return undefined // Proxy this request
+        },
+      },
       '/api': {
         target: 'http://localhost:3000',
         changeOrigin: true,

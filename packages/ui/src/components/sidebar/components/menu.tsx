@@ -96,16 +96,29 @@ export function Menu({
                                 )}
                                 asChild
                               >
-                                <Link to={href}>
+                                <Link
+                                  to={href}
+                                  className={
+                                    typeof Icon === 'string' ? 'pl-2' : ''
+                                  }
+                                >
                                   <span
                                     className={cn(
+                                      typeof Icon === 'string'
+                                        ? 'pl-0 rounded-sm overflow-hidden'
+                                        : '',
                                       isOpen === false ? '' : 'mr-4',
                                     )}
                                   >
                                     {typeof Icon === 'string' ? (
                                       <img
-                                        src={`${protocol}//${context?.uiName}.${context?.appIdentifier}.apps.${API_HOST}${Icon}`}
-                                        className="size-12"
+                                        src={`${protocol}//${context?.uiName}.${context?.appIdentifier}.apps.${API_HOST}/${Icon}`}
+                                        // src={`/apps${Icon}`}
+                                        className={cn(
+                                          typeof Icon === 'string'
+                                            ? 'size-6 rounded-md overflow-hidden'
+                                            : '',
+                                        )}
                                       />
                                     ) : (
                                       <Icon className="size-4" />
