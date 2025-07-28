@@ -1,8 +1,15 @@
+import { buildAppClient } from '@stellariscloud/app-worker-sdk'
 import {
   analyzeObjectTaskHandler,
   connectAndPerformWork,
   runWorkerScriptHandler,
 } from '@stellariscloud/core-worker'
+import type { AppManifest } from '@stellariscloud/types'
+import { spawn } from 'bun'
+import fs from 'fs'
+import fsPromises from 'fs/promises'
+import os from 'os'
+import path from 'path'
 import { z } from 'zod'
 
 const WorkerDataPayloadRunType = z.object({
@@ -91,6 +98,8 @@ process.stdin.once('data', (data) => {
         cleanup()
       })
 
+    const serverClient = buildAppClient(socket, workerData.socketBaseUrl)
+
     // start a http server on port 3002
     server = Bun.serve({
       port: 3002,
@@ -118,7 +127,6 @@ process.stdin.once('data', (data) => {
               endpoints: [
                 '/health - Health check endpoint',
                 '/api/info - API information',
-                '/logo - Logo image',
               ],
             }),
             {
@@ -126,177 +134,138 @@ process.stdin.once('data', (data) => {
             },
           )
         },
-
-        '/assets/logo.png': () => {
-          const logoPath = new URL(
-            '../../../../apps/dev/ui/main/assets/logo.png',
-            import.meta.url,
-          )
-          const logoFile = Bun.file(logoPath)
-          return new Response(logoFile, {
-            headers: { 'Content-Type': 'image/png' },
-          })
-        },
-
-        '/': (req: Request) => {
-          // Parse the host header to extract app identifier and UI name
-          const host = req.headers.get('host') || ''
-          const xAppSubdomain = req.headers.get('x-app-subdomain') || ''
-
-          // Parse host like "main.dev.apps.example.com"
-          // Extract UI name (first part) and app identifier (second part)
-          const hostParts = host.split('.')
-          const uiName = hostParts[0] || 'unknown'
-          const appIdentifier = hostParts[1] || 'unknown'
-
-          // Use the X-App-Subdomain header if available, otherwise use parsed host
-          const finalUiName = xAppSubdomain || uiName
-
-          const html = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stellaris Cloud App Worker - ${finalUiName}.${appIdentifier}</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .container {
-            text-align: center;
-            max-width: 600px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 40px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-        p {
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-            opacity: 0.9;
-        }
-        .status {
-            display: inline-block;
-            background: rgba(76, 175, 80, 0.2);
-            color: #4CAF50;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-weight: 600;
-            border: 2px solid rgba(76, 175, 80, 0.3);
-        }
-        .app-info {
-            margin: 20px 0;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .app-info h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: #FFD700;
-        }
-        .app-info .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 10px 0;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .app-info .info-row:last-child {
-            border-bottom: none;
-        }
-        .app-info .label {
-            font-weight: 600;
-            color: #FFD700;
-        }
-        .app-info .value {
-            font-family: 'Courier New', monospace;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-        .endpoints {
-            margin-top: 30px;
-            text-align: left;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 10px;
-        }
-        .endpoints h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-        }
-        .endpoints ul {
-            list-style: none;
-            padding: 0;
-        }
-        .endpoints li {
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .endpoints li:last-child {
-            border-bottom: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🚀 Stellaris Cloud</h1>
-        <p>Core App Worker is running successfully!</p>
-        <div class="status">✅ Active</div>
-        
-        <div class="app-info">
-            <h3>📋 App Information</h3>
-            <div class="info-row">
-                <span class="label">UI Name:</span>
-                <span class="value">${finalUiName}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">App Identifier:</span>
-                <span class="value">${appIdentifier}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Full Host:</span>
-                <span class="value">${host}</span>
-            </div>
-        </div>
-        
-        <div class="endpoints">
-            <h3>Available Endpoints:</h3>
-            <ul>
-                <li><strong>/health</strong> - Health check endpoint</li>
-                <li><strong>/api/info</strong> - API information</li>
-                <li><strong>/apps/assets/logo.png</strong> - Logo image</li>
-            </ul>
-        </div>
-    </div>
-</body>
-</html>`
-
-          return new Response(html, {
-            headers: { 'Content-Type': 'text/html' },
-          })
-        },
       },
 
-      // Fallback for unmatched routes
-      fetch(_req) {
+      // Handle all UI bundle requests (root and static assets)
+      fetch: async (req) => {
+        const url = new URL(req.url)
+        const pathname = url.pathname
+
+        // Skip if it's a known route
+        if (pathname === '/health' || pathname === '/api/info') {
+          return new Response('Not Found', { status: 404 })
+        }
+
+        // Parse the host to get app and UI info
+        const host = req.headers.get('host') || ''
+        const hostParts = host.split('.')
+
+        // Validate host format: should have at least 3 parts with "apps" as the third part
+        if (hostParts.length < 3 || hostParts[2] !== 'apps') {
+          return new Response('Invalid host format', { status: 404 })
+        }
+
+        const uiName = hostParts[0] || 'unknown'
+        const appIdentifier = hostParts[1] || 'unknown'
+
+        // Create cache key and directory
+        const bundleCacheKey = `${appIdentifier}-${uiName}`
+        const bundleCacheDir = path.join(
+          os.tmpdir(),
+          `stellaris-bundle-${bundleCacheKey}`,
+        )
+        const manifestFilePath = path.join(bundleCacheDir, 'manifest.json')
+
+        let manifest: AppManifest = []
+
+        // Try to load existing manifest (denoting bundle has been downloaded)
+        if (fs.existsSync(manifestFilePath)) {
+          try {
+            const manifestContent = await fsPromises.readFile(
+              manifestFilePath,
+              'utf-8',
+            )
+            manifest = JSON.parse(manifestContent) as AppManifest
+          } catch (error) {
+            console.error('Error loading manifest:', error)
+          }
+        } else {
+          try {
+            // Get the UI bundle URL from the server
+            const bundleResponse = await serverClient.getAppUIbundle(
+              appIdentifier,
+              uiName,
+            )
+
+            if (bundleResponse.error) {
+              return new Response(`Error: ${bundleResponse.error.message}`, {
+                status:
+                  typeof bundleResponse.error.code === 'number'
+                    ? bundleResponse.error.code
+                    : 500,
+              })
+            }
+
+            const bundleUrl = bundleResponse.result.bundleUrl
+            manifest = bundleResponse.result.manifest
+            if (!bundleUrl) {
+              return new Response('Bundle URL not found', { status: 404 })
+            }
+
+            // Save manifest to file for future use
+            await fsPromises.writeFile(
+              manifestFilePath,
+              JSON.stringify(manifest, null, 2),
+            )
+
+            // Download and extract the bundle
+            await fsPromises.mkdir(bundleCacheDir, { recursive: true })
+
+            // Download the bundle
+            const downloadResponse = await fetch(bundleUrl)
+            if (!downloadResponse.ok) {
+              return new Response('Failed to download bundle', {
+                status: 500,
+              })
+            }
+
+            const bundleBuffer = await downloadResponse.arrayBuffer()
+            const bundlePath = path.join(bundleCacheDir, 'bundle.zip')
+            await fsPromises.writeFile(bundlePath, new Uint8Array(bundleBuffer))
+
+            // Extract the bundle
+            const unzipProc = spawn({
+              cmd: ['unzip', '-o', bundlePath],
+              cwd: bundleCacheDir,
+              stdout: 'inherit',
+              stderr: 'inherit',
+            })
+
+            const unzipCode = await unzipProc.exited
+            if (unzipCode !== 0) {
+              return new Response('Failed to extract bundle', { status: 500 })
+            }
+
+            // Clean up the zip file
+            await fsPromises.unlink(bundlePath)
+          } catch (error) {
+            console.error('Error downloading/extracting bundle:', error)
+            return new Response('Internal server error', { status: 500 })
+          }
+        }
+
+        // Determine the file path to serve
+        const targetPath = pathname === '/' ? 'index.html' : pathname
+        const filePath = path.join(bundleCacheDir, uiName, targetPath)
+        const manifestPath = path.join('/', 'ui', uiName, targetPath)
+
+        const manifestEntry = manifest.find(
+          (_manifestEntry) => _manifestEntry.path === manifestPath,
+        )
+        if (manifestEntry) {
+          try {
+            const fileBuffer = fs.readFileSync(filePath)
+            const contentType =
+              pathname === '/' ? 'text/html' : manifestEntry.mimeType
+            return new Response(fileBuffer, {
+              headers: { 'Content-Type': contentType },
+            })
+          } catch (error) {
+            console.error('Error reading file:', error)
+            return new Response('Internal server error', { status: 500 })
+          }
+        }
+
         return new Response('Not Found', { status: 404 })
       },
     })

@@ -22,6 +22,7 @@ import { spawn } from 'bun'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
 import fs from 'fs'
 import fsPromises from 'fs/promises'
+import mime from 'mime'
 import os from 'os'
 import path from 'path'
 import { JWTService } from 'src/auth/services/jwt.service'
@@ -865,9 +866,8 @@ export class AppService {
     ])
 
     return {
-      result: {
-        url: presignedGetURL[0],
-      },
+      manifest: workerApp.uis[requestData.uiName]['files'],
+      bundleUrl: presignedGetURL[0],
     }
   }
 
@@ -1170,6 +1170,8 @@ export class AppService {
           size: fs.statSync(absoluteAssetPath).size,
           path: relativeAssetPath,
           hash: await hashLocalFile(absoluteAssetPath),
+          mimeType:
+            mime.getType(relativeAssetPath) ?? 'application/octet-stream',
         }
       }),
     )

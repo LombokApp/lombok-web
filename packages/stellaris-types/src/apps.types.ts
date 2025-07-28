@@ -69,6 +69,7 @@ export const appManifestFileSchema = z.object({
   path: z.string(),
   hash: z.string(),
   size: z.number(),
+  mimeType: z.string(),
 })
 
 export const appManifestSchema = z.array(appManifestFileSchema)
