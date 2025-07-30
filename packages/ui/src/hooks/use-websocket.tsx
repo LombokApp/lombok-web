@@ -27,7 +27,8 @@ export const useWebsocket = (
     if (typeof window === 'undefined') {
       return
     }
-    const configuredBaseURL = import.meta.env.VITE_BACKEND_HOST as string
+    const configuredBaseURL = (import.meta.env.VITE_BACKEND_HOST ??
+      '') as string
     const baseURL = configuredBaseURL.length
       ? configuredBaseURL
       : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`
