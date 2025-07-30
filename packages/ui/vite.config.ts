@@ -57,14 +57,18 @@ function subdomainProxyPlugin(env: Record<string, string>): PluginOption {
           ? new URL(env[appProxyHostConfigEnvKey])
           : undefined
 
+        const defaultProxyHostConfig = env.SC_APP_PROXY_DEFAULT_HOST
+          ? new URL(env.SC_APP_PROXY_DEFAULT_HOST)
+          : undefined
+
         const targetHost =
           appIdentifier && uiName && appProxyHostConfig
             ? appProxyHostConfig.hostname
-            : 'localhost'
+            : defaultProxyHostConfig?.hostname || 'localhost'
         const targetPort =
           appIdentifier && uiName && appProxyHostConfig
             ? parseInt(appProxyHostConfig.port, 10) || 80
-            : 3001
+            : parseInt(defaultProxyHostConfig?.port || '3001', 10)
 
         const requestDetails = {
           hostname: targetHost,
