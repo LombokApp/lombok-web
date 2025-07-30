@@ -1,5 +1,3 @@
-'use client'
-
 import type { FolderObjectDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { toMetadataObjectIdentifier } from '@stellariscloud/utils'

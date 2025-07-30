@@ -1,5 +1,3 @@
-'use client'
-
 import type { UserDTO } from '@stellariscloud/types'
 import {
   Button,
@@ -40,7 +38,7 @@ export function Menu({
   const menuList = getMenuList(location.pathname, viewer, appMenuItems)
   return (
     <div className="flex h-full flex-col  pb-3">
-      <ScrollArea className="h-full flex-1 [&>div>div[style]]:!block">
+      <ScrollArea className="h-full flex-1 overflow-x-visible [&>div>div[style]]:!block">
         <nav className="size-full pt-2">
           <ul className="flex h-full flex-col items-start space-y-1 px-0">
             {menuList.map(({ groupLabel, menus }, index) => (
@@ -112,7 +110,7 @@ export function Menu({
                                   >
                                     {typeof Icon === 'string' ? (
                                       <img
-                                        src={`${protocol}//${context?.uiName}.${context?.appIdentifier}.apps.${API_HOST}/${Icon}`}
+                                        src={`${protocol}//${context?.uiName}.${context?.appIdentifier}.apps.${API_HOST}${Icon}`}
                                         // src={`/apps${Icon}`}
                                         className={cn(
                                           typeof Icon === 'string'

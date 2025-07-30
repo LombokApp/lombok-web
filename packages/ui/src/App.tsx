@@ -1,16 +1,18 @@
 import './styles/globals.css'
 import './fonts/inter/inter.css'
 
-import { AuthContextProvider, useAuthContext } from '@stellariscloud/auth-utils'
+import {
+  AuthContextProvider,
+  SIDEBAR_PAGES,
+  useAuthContext,
+} from '@stellariscloud/auth-utils'
 import { cn, Toaster } from '@stellariscloud/ui-toolkit'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import React from 'react'
 import {
   BrowserRouter as Router,
   Route,
   Routes,
   useLocation,
-  useNavigate,
 } from 'react-router-dom'
 
 import { Header } from './components/header'
@@ -34,20 +36,32 @@ import { sdkInstance } from './services/api'
 
 const queryClient = new QueryClient()
 
-const UNAUTHENTICATED_PAGES = ['/', '/login', '/signup']
-const SIDEBAR_PAGES = ['/access-keys', '/folders', '/server', '/apps']
-
-const Content = () => {
+const Content = ({ authenticated }: { authenticated: boolean }) => {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/access-keys" element={<AccessKeysPage />} />
-      <Route path="/folders" element={<FoldersPage />} />
-      <Route path="/server/*" element={<ServerIndexPage />} />
-      <Route path="/folders/*" element={<FolderRoot />} />
-      <Route path="/apps/*" element={<AppUIContainer />} />
+      <Route
+        path="/folders"
+        element={authenticated ? <FoldersPage /> : <></>}
+      />
+      <Route
+        path="/access-keys"
+        element={authenticated ? <AccessKeysPage /> : <></>}
+      />
+      <Route
+        path="/server/*"
+        element={authenticated ? <ServerIndexPage /> : <></>}
+      />
+      <Route
+        path="/folders/*"
+        element={authenticated ? <FolderRoot /> : <></>}
+      />
+      <Route
+        path="/apps/*"
+        element={authenticated ? <AppUIContainer /> : <></>}
+      />
+      <Route path="/login" element={!authenticated ? <Login /> : <></>} />
+      <Route path="/signup" element={!authenticated ? <Signup /> : <></>} />
     </Routes>
   )
 }
@@ -61,7 +75,7 @@ const UnauthenticatedContent = () => {
       <main className={cn('flex-1 justify-center overflow-hidden')}>
         <div className={cn('relative flex size-full')}>
           <div className="relative w-full">
-            <Content />
+            <Content authenticated={false} />
           </div>
         </div>
       </main>
@@ -71,30 +85,8 @@ const UnauthenticatedContent = () => {
 
 const AuthenticatedContent = () => {
   const authContext = useAuthContext()
-  const navigate = useNavigate()
   const location = useLocation()
   const { appMenuItems } = useServerContext()
-
-  React.useEffect(() => {
-    if (authContext.authState.isLoaded) {
-      if (
-        !authContext.authState.isAuthenticated &&
-        !UNAUTHENTICATED_PAGES.includes(location.pathname)
-      ) {
-        void navigate('/login')
-      } else if (
-        authContext.authState.isAuthenticated &&
-        UNAUTHENTICATED_PAGES.includes(location.pathname)
-      ) {
-        void navigate('/folders')
-      }
-    }
-  }, [
-    authContext.authState.isAuthenticated,
-    authContext.authState.isLoaded,
-    location.pathname,
-    navigate,
-  ])
 
   const sidebar = useStore(useSidebar, (x) => x)
   if (!sidebar) {
@@ -106,6 +98,7 @@ const AuthenticatedContent = () => {
     !SIDEBAR_PAGES.find((pagePrefix) =>
       location.pathname.startsWith(pagePrefix),
     )
+
   return (
     <div className="flex h-full">
       {!sidebarDisabled && (
@@ -121,7 +114,7 @@ const AuthenticatedContent = () => {
           !sidebarDisabled && (!getOpenState() ? 'lg:ml-[70px]' : 'lg:ml-64'),
         )}
       >
-        <Content />
+        <Content authenticated={true} />
       </main>
     </div>
   )

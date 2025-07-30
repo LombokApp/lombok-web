@@ -6,7 +6,7 @@ import {
   SignupCredentialsDTO,
   ViewerGetResponse,
 } from '@stellariscloud/types'
-
+import { useNavigate } from 'react-router-dom'
 export class AuthError extends Error {}
 export interface IAuthContext {
   error?: AuthError
@@ -24,8 +24,11 @@ export interface IAuthContext {
 
   logout: () => Promise<void>
   getAccessToken: () => Promise<string | undefined>
+  redirectToLogin: (hard?: boolean) => void
 }
 const AuthContext = React.createContext<IAuthContext>({} as IAuthContext)
+export const UNAUTHENTICATED_PAGES = ['/', '/login', '/signup']
+export const SIDEBAR_PAGES = ['/access-keys', '/folders', '/server', '/apps']
 
 export const AuthContextProvider = ({
   children,
@@ -39,6 +42,7 @@ export const AuthContextProvider = ({
   const [authState, setAuthState] = React.useState<AuthenticatorStateType>(
     {} as AuthenticatorStateType,
   )
+  const navigate = useNavigate()
   const viewerRequested = React.useRef<Record<string, boolean>>({
     ___: false,
   })
@@ -119,11 +123,25 @@ export const AuthContextProvider = ({
   const logout = async () => {
     setError(undefined)
     setIsLoggingOut(true)
+
     await authenticator
       .logout()
-      .then(() => (window.location.href = '/login'))
       .catch((err) => setError(err as AuthError))
       .finally(() => setIsLoggingOut(false))
+    redirectToLogin()
+  }
+
+  const redirectToLogin = (hard = false) => {
+    if (
+      typeof window !== 'undefined' &&
+      window.location.pathname !== '/login'
+    ) {
+      if (hard) {
+        window.location.href = '/login'
+      } else {
+        void navigate('/login')
+      }
+    }
   }
 
   React.useEffect(() => {
@@ -136,6 +154,22 @@ export const AuthContextProvider = ({
       })
     }
   }, [authState.isAuthenticated, viewerRefreshKey])
+
+  React.useEffect(() => {
+    if (authState.isLoaded) {
+      if (
+        !authState.isAuthenticated &&
+        !UNAUTHENTICATED_PAGES.includes(location.pathname)
+      ) {
+        redirectToLogin()
+      } else if (
+        authState.isAuthenticated &&
+        UNAUTHENTICATED_PAGES.includes(location.pathname)
+      ) {
+        void navigate('/folders')
+      }
+    }
+  }, [authState.isAuthenticated, authState.isLoaded, navigate])
 
   const getAccessToken = React.useCallback(
     () => authenticator.getAccessToken(),
@@ -155,6 +189,7 @@ export const AuthContextProvider = ({
         logout,
         authState,
         getAccessToken,
+        redirectToLogin,
       }}
     >
       {children}

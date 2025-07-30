@@ -24,12 +24,15 @@ export const useWebsocket = (
   const [socketBaseURL, setSocketBaseURL] = React.useState<string>()
 
   React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setSocketBaseURL(
-        (import.meta.env.VITE_BACKEND_HOST as string | undefined) ??
-          `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`,
-      )
+    if (typeof window === 'undefined') {
+      return
     }
+    const configuredBaseURL = (import.meta.env.VITE_BACKEND_HOST ??
+      '') as string
+    const baseURL = configuredBaseURL.length
+      ? configuredBaseURL
+      : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`
+    setSocketBaseURL(baseURL)
   }, [])
 
   const authContext = useAuthContext()
@@ -48,6 +51,7 @@ export const useWebsocket = (
       void authContext.getAccessToken().then((token) => {
         const socketUrl = `${socketBaseURL}/${namespace}`
         const s = io(socketUrl, {
+          transports: ['websocket'],
           auth: {
             userId: authContext.viewer?.id,
             ...authParams,

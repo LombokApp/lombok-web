@@ -40,6 +40,9 @@ export const sdkInstance = new StellarisCloudSdk({
   onLogout: () => {
     Cookies.remove(COOKIES_ACCESS_TOKEN)
     Cookies.remove(COOKIES_REFRESH_TOKEN)
+    if (window.location.pathname !== '/login') {
+      window.location.href = '/login'
+    }
   },
 })
 

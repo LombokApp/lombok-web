@@ -1,5 +1,3 @@
-'use client'
-
 import type { UserStorageProvisionDTO } from '@stellariscloud/types'
 import {
   Dialog,

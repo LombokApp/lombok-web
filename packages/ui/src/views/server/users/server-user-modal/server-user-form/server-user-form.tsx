@@ -1,5 +1,3 @@
-'use client'
-
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { UserDTO } from '@stellariscloud/types'
 import {

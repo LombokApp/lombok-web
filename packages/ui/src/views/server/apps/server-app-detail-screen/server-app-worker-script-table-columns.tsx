@@ -1,5 +1,3 @@
-'use client'
-
 import type { AppDTO } from '@stellariscloud/types'
 import { Button } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
