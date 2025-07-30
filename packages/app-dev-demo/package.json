@@ -14,6 +14,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@stellariscloud/app-browser-sdk": "workspace:*",
     "@stellariscloud/ui-toolkit": "workspace:*",
     "@stellariscloud/utils": "workspace:*",
     "react": "^18.3.1",

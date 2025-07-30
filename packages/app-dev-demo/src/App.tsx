@@ -1,4 +1,5 @@
 import './styles/globals.css'
+import { SdkDemo } from './components/SdkDemo'
 
 export const App = () => {
   return (
@@ -154,6 +155,22 @@ export const App = () => {
               optimizes costs automatically.
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* SDK Demo Section */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold text-white mb-4">
+            SDK Integration Demo
+          </h2>
+          <p className="text-xl text-white/70 max-w-2xl mx-auto">
+            This demonstrates the app-browser-sdk integration for iframe
+            applications.
+          </p>
+        </div>
+        <div className="max-w-4xl mx-auto">
+          <SdkDemo />
         </div>
       </section>
 
