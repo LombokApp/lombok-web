@@ -1,5 +1,3 @@
-'use client'
-
 import type { UserDTO } from '@stellariscloud/types'
 import {
   Dialog,

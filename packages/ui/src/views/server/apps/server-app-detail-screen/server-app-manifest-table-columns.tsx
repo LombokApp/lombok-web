@@ -1,5 +1,3 @@
-'use client'
-
 import type { AppDTOManifestInner } from '@stellariscloud/types'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 import { formatBytes } from '@stellariscloud/utils'

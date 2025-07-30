@@ -1,5 +1,3 @@
-'use client'
-
 import type { AccessKeyPublicDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { useToast } from '@stellariscloud/ui-toolkit'

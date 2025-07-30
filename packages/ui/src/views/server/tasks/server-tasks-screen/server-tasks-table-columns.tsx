@@ -1,5 +1,3 @@
-'use client'
-
 import type { TaskDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { cn } from '@stellariscloud/ui-toolkit'

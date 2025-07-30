@@ -1,5 +1,3 @@
-'use client'
-
 import type { AccessKeyPublicDTO } from '@stellariscloud/types'
 import {
   Dialog,

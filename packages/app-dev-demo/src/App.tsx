@@ -21,7 +21,9 @@ export const App = () => {
                 Features
               </a>
               <a
-                href="#"
+                href="https://stellariscloud.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-white/70 hover:text-white transition-colors"
               >
                 Documentation
