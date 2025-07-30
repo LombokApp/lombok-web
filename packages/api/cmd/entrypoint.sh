@@ -2,11 +2,10 @@
 
 # Set default domain if not provided
 ROOT_DOMAIN=${ROOT_DOMAIN:-"stellariscloudtest.localhost"}
-APP_UI_HOST=${APP_UI_HOST:-"127.0.0.1:3001"}
+APP_UI_HOST=${APP_UI_HOST:-"http://127.0.0.1:3001"}
 
 # Copy the NGINX configuration and replace the domain placeholder
-sed -e "s/{{ROOT_DOMAIN}}/$ROOT_DOMAIN/g" -e "s/{{APP_UI_HOST}}/$APP_UI_HOST/g" ./packages/api/nginx/nginx.conf > /etc/nginx/http.d/default.conf
-
+sed -e "s|{{ROOT_DOMAIN}}|$ROOT_DOMAIN|g" -e "s|{{APP_UI_HOST}}|$APP_UI_HOST|g" ./packages/api/nginx/nginx.conf > /etc/nginx/http.d/default.conf
 
 # Start or reload NGINX
 if [ -f /run/nginx/nginx.pid ] && kill -0 $(cat /run/nginx/nginx.pid) 2>/dev/null; then
