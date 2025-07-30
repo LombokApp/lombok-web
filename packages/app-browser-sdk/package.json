@@ -4,15 +4,6 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
-  },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target node --format esm --external @stellariscloud/sdk --external @stellariscloud/types --external @stellariscloud/auth-utils",
     "build:types": "tsc --emitDeclarationOnly --outDir dist",

@@ -22,7 +22,7 @@ export function SdkDemo() {
     try {
       setLoading(true)
       const apiClient = getApiClient()
-      const response = await apiClient.GET('/api/v1/users/me')
+      const response = await apiClient.GET('/api/v1/viewer')
       setApiResponse(response)
     } catch (err) {
       console.error('API call failed:', err)
