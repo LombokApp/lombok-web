@@ -1,9 +1,10 @@
-import type { StellarisCloudSdk } from '@stellariscloud/sdk'
+import type { StellarisApiClient, StellarisCloudSdk } from '@stellariscloud/sdk'
+import { IframeCommunicator } from './iframe-communicator'
+import { Authenticator } from '@stellariscloud/auth-utils'
 
 export interface TokenData {
   accessToken: string
   refreshToken?: string
-  expiresAt?: number
 }
 
 export interface IframeMessage {
@@ -13,19 +14,16 @@ export interface IframeMessage {
 }
 
 export interface AppBrowserSdkConfig {
-  basePath: string
-  appId: string
-  onTokenReceived?: (token: TokenData) => void
-  onTokenRefreshed?: (token: TokenData) => void
   onLogout?: () => void
   onError?: (error: Error) => void
+  onInitialize?: () => void
 }
 
 export interface AppBrowserSdkInstance {
   sdk: StellarisCloudSdk
-  communicator: import('./iframe-communicator').IframeCommunicator
-  tokenManager: import('./token-manager').TokenManager
+  communicator: Promise<IframeCommunicator>
+  apiClient: StellarisApiClient
+  authenticator: Authenticator
   isInitialized: boolean
-  initialize: () => Promise<void>
   destroy: () => void
 }

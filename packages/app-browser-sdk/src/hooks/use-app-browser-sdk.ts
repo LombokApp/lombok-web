@@ -1,71 +1,62 @@
-import { useEffect, useRef, useState } from 'react'
+import React from 'react'
 import { AppBrowserSdk } from '../app-browser-sdk'
-import type { AppBrowserSdkConfig, TokenData } from '../types'
+import type { AppBrowserSdkConfig } from '../types'
+import { AuthenticatorStateType } from '@stellariscloud/auth-utils'
 
 export function useAppBrowserSdk(config: AppBrowserSdkConfig) {
-  const [isInitialized, setIsInitialized] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
-  const sdkRef = useRef<AppBrowserSdk | null>(null)
+  const [error, setError] = React.useState<Error>()
+  const [isInitialized, setIsInitialized] = React.useState(false)
 
-  useEffect(() => {
-    const initializeSdk = async () => {
-      try {
-        const sdk = new AppBrowserSdk({
-          ...config,
-          onError: (error) => {
-            setError(error)
-            config.onError?.(error)
-          },
-        })
+  // Use refs to store the latest state setters and config callbacks
+  const stateRef = React.useRef({
+    setError,
+    setIsInitialized,
+    onError: config.onError,
+    onInitialize: config.onInitialize,
+  })
 
-        await sdk.initialize()
-        sdkRef.current = sdk
-        setIsInitialized(true)
-        setError(null)
-      } catch (err) {
-        const error =
-          err instanceof Error ? err : new Error('Failed to initialize SDK')
-        setError(error)
-        config.onError?.(error)
-      }
+  // Update the ref with latest values on every render
+  stateRef.current = {
+    setError,
+    setIsInitialized,
+    onError: config.onError,
+    onInitialize: config.onInitialize,
+  }
+
+  const [sdk] = React.useState<AppBrowserSdk>(() => {
+    return new AppBrowserSdk({
+      ...config,
+      onError: (error) => {
+        stateRef.current.setError(error)
+        stateRef.current.onError?.(error)
+      },
+      onInitialize: () => {
+        stateRef.current.setIsInitialized(true)
+        stateRef.current.onInitialize?.()
+      },
+    })
+  })
+
+  const [authState, setAuthState] = React.useState<AuthenticatorStateType>(
+    sdk.authenticator.state,
+  )
+
+  React.useEffect(() => {
+    const handleStateChange = () => {
+      setAuthState(sdk.authenticator.state)
     }
 
-    initializeSdk()
+    sdk.authenticator.addEventListener('onStateChanged', handleStateChange)
 
     return () => {
-      sdkRef.current?.destroy()
-      sdkRef.current = null
-      setIsInitialized(false)
+      sdk.authenticator.removeEventListener('onStateChanged', handleStateChange)
     }
-  }, [config.basePath, config.appId])
-
-  const requestToken = async (): Promise<TokenData> => {
-    if (!sdkRef.current) {
-      throw new Error('SDK not initialized')
-    }
-    return sdkRef.current.requestToken()
-  }
-
-  const getApiClient = () => {
-    if (!sdkRef.current) {
-      throw new Error('SDK not initialized')
-    }
-    return sdkRef.current.getApiClient()
-  }
-
-  const getAuthenticator = () => {
-    if (!sdkRef.current) {
-      throw new Error('SDK not initialized')
-    }
-    return sdkRef.current.getAuthenticator()
-  }
+  }, [])
 
   return {
     isInitialized,
     error,
-    sdk: sdkRef.current,
-    requestToken,
-    getApiClient,
-    getAuthenticator,
+    apiClient: sdk.apiClient,
+    authState,
   }
 }

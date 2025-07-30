@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "type": "module",
   "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "exports": {
+    "default": "./index.ts"
+  },
   "scripts": {
     "build": "bun build ./src/index.ts --outdir ./dist --target node --format esm --external @stellariscloud/sdk --external @stellariscloud/types --external @stellariscloud/auth-utils",
     "build:types": "tsc --emitDeclarationOnly --outDir dist",
@@ -26,6 +28,6 @@
     "eslint": "^9.0.0"
   },
   "peerDependencies": {
-    "react": "^18.0.0"
+    "react": "^18.3.1"
   }
 }

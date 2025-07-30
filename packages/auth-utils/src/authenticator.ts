@@ -116,6 +116,21 @@ export class Authenticator {
     throw new Error('Access token is invalid')
   }
 
+  public async setTokens(tokens: TokensType) {
+    if (!verifyToken(tokens.accessToken)) {
+      throw new Error('Access token is invalid')
+    }
+    this.tokens.accessToken = tokens.accessToken
+    this.tokens.refreshToken = tokens.refreshToken
+    this.state = { isAuthenticated: true, isLoaded: true }
+    if (this.onTokensCreated) {
+      await this.onTokensCreated({
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+      })
+    }
+  }
+
   public async login(loginParams: { login: string; password: string }) {
     try {
       const loginResponse = await this.$apiClient.POST('/api/v1/auth/login', {
@@ -214,13 +229,6 @@ export class Authenticator {
     }
   }
 
-  public toggleState() {
-    this.state = {
-      isAuthenticated: !this.state.isAuthenticated,
-      isLoaded: true,
-    }
-  }
-
   public addEventListener(
     type: AuthenticatorEventNames,
     callback: EventListenerOrEventListenerObject | null,
@@ -300,9 +308,12 @@ export class Authenticator {
   }
 
   private set state(newState: AuthenticatorStateType) {
-    const eventName: AuthenticatorEventNames = 'onStateChanged'
+    const shouldFireChange =
+      this._state.isAuthenticated !== newState.isAuthenticated ||
+      this._state.isLoaded !== newState.isLoaded
     this._state = newState
-    if (typeof window !== 'undefined') {
+    const eventName: AuthenticatorEventNames = 'onStateChanged'
+    if (typeof window !== 'undefined' && shouldFireChange) {
       this.eventTarget?.dispatchEvent(
         new CustomEvent<AuthenticatorStateType>(eventName, {
           detail: newState,

@@ -1,3 +1,5 @@
+import { useAuthContext } from '@stellariscloud/auth-utils'
+import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { ContentLayout } from '@/src/components/sidebar/components/content-layout'
@@ -11,6 +13,7 @@ const API_HOST = `${hostname}${port ? `:${port}` : ''}`
 
 export const AppUIContainer = () => {
   const navigate = useNavigate()
+  const authContext = useAuthContext()
   const { '*': subPath } = useParams()
   const pathParts = subPath?.split('/') ?? []
   const appIdentifier = pathParts[0]
@@ -30,6 +33,12 @@ export const AppUIContainer = () => {
     return null
   }
 
+  // if the access token is not available we'll be redirecting away from this screen anyway
+  const getAccessTokeOrEmptyString = React.useCallback(async () => {
+    const accessToken = await authContext.getAccessToken()
+    return accessToken ?? ''
+  }, [authContext])
+
   return (
     <ContentLayout
       breadcrumbs={[{ label: `App: ${appLabel ?? appIdentifier}` }].concat(
@@ -39,6 +48,7 @@ export const AppUIContainer = () => {
     >
       <div className="flex size-full">
         <AppUI
+          getAccessToken={getAccessTokeOrEmptyString}
           appIdentifier={appIdentifier}
           uiName={uiName}
           host={API_HOST}

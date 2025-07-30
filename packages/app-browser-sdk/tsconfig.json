@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "emitDeclarationOnly": true,
@@ -21,4 +21,4 @@
   },
   "include": ["index.ts", "src/**/*"],
   "exclude": ["node_modules", "dist"]
-} 
+}
