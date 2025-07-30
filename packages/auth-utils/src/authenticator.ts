@@ -87,6 +87,7 @@ export class Authenticator {
         this.state = { isAuthenticated: true, isLoaded: true }
         return
       }
+      this.reset()
       this.state = { isAuthenticated: false, isLoaded: true }
     })
   }
@@ -109,7 +110,10 @@ export class Authenticator {
     if (refreshToken) {
       await this.refresh()
     }
-    return this.tokens.accessToken
+    if (this.state.isAuthenticated) {
+      await this.logout()
+    }
+    throw new Error('Access token is invalid')
   }
 
   public async login(loginParams: { login: string; password: string }) {
@@ -147,6 +151,7 @@ export class Authenticator {
       headers: { Authorization: `Bearer ${this.tokens.accessToken}` },
     })
     if (viewerResponse.response.status !== 200 || !viewerResponse.data) {
+      await this.logout()
       throw new Error(
         'Failed to get viewer',
         viewerResponse.data
@@ -187,7 +192,7 @@ export class Authenticator {
 
   public async logout() {
     let error: unknown
-    let failed = false
+    let backendLogoutFailed = false
 
     const { accessToken } = this.tokens
 
@@ -198,26 +203,13 @@ export class Authenticator {
         })
       } catch (err) {
         error = err
-        failed = true
+        backendLogoutFailed = true
       }
     }
 
-    // TODO: fix logout with refresh
-    // if (failed && refreshToken !== undefined) {
-    //   try {
-    //     const authApi = this.newAuthApi({ apiKey: refreshToken })
-    //     await authApi.logout()
-    //   } catch (err) {
-    //     error = err
-    //     failed = true
-    //   }
-    // }
-
     this.reset()
-    if (this.onLogout) {
-      await this.onLogout()
-    }
-    if (failed) {
+
+    if (backendLogoutFailed) {
       throw error
     }
   }
@@ -297,7 +289,9 @@ export class Authenticator {
   private reset() {
     this.tokens.accessToken = undefined
     this.tokens.refreshToken = undefined
-    this.onLogout?.()
+    if (this.state.isAuthenticated) {
+      this.onLogout?.()
+    }
     this.state = { isAuthenticated: false, isLoaded: true }
   }
 

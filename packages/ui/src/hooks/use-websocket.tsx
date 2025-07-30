@@ -24,6 +24,9 @@ export const useWebsocket = (
   const [socketBaseURL, setSocketBaseURL] = React.useState<string>()
 
   React.useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
     const configuredBaseURL = import.meta.env.VITE_BACKEND_HOST as string
     const baseURL = configuredBaseURL.length
       ? configuredBaseURL
