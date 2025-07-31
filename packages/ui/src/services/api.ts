@@ -1,9 +1,7 @@
-import Cookies from 'js-cookie'
-
 // TODO: Modify this with a better name.
-const COOKIES_NAME = 'stellariscloud:auth'
-const COOKIES_ACCESS_TOKEN = `${COOKIES_NAME}:accessToken`
-const COOKIES_REFRESH_TOKEN = `${COOKIES_NAME}:refreshToken`
+const STORAGE_KEY_PREFIX = 'stellariscloud:auth'
+const STORAGE_ACCESS_TOKEN = `${STORAGE_KEY_PREFIX}:accessToken`
+const STORAGE_REFRESH_TOKEN = `${STORAGE_KEY_PREFIX}:refreshToken`
 
 import type { TokensType } from '@stellariscloud/auth-utils'
 import { StellarisCloudSdk } from '@stellariscloud/sdk'
@@ -13,8 +11,8 @@ export const basePath =
   (import.meta.env.VITE_BACKEND_HOST as string | undefined) ?? ''
 
 const loadTokens = () => {
-  const accessToken = Cookies.get(COOKIES_ACCESS_TOKEN)
-  const refreshToken = Cookies.get(COOKIES_REFRESH_TOKEN)
+  const accessToken = localStorage.getItem(STORAGE_ACCESS_TOKEN) ?? undefined
+  const refreshToken = localStorage.getItem(STORAGE_REFRESH_TOKEN) ?? undefined
 
   return {
     accessToken,
@@ -23,12 +21,8 @@ const loadTokens = () => {
 }
 
 const saveTokens = ({ accessToken, refreshToken }: TokensType) => {
-  Cookies.set(COOKIES_ACCESS_TOKEN, accessToken, {
-    sameSite: 'strict',
-  })
-  Cookies.set(COOKIES_REFRESH_TOKEN, refreshToken, {
-    sameSite: 'strict',
-  })
+  localStorage.setItem(STORAGE_ACCESS_TOKEN, accessToken)
+  localStorage.setItem(STORAGE_REFRESH_TOKEN, refreshToken)
 }
 
 export const sdkInstance = new StellarisCloudSdk({
@@ -38,8 +32,8 @@ export const sdkInstance = new StellarisCloudSdk({
   onTokensRefreshed: (tokens) => saveTokens(tokens),
   onTokensCreated: (tokens) => saveTokens(tokens),
   onLogout: () => {
-    Cookies.remove(COOKIES_ACCESS_TOKEN)
-    Cookies.remove(COOKIES_REFRESH_TOKEN)
+    localStorage.removeItem(STORAGE_ACCESS_TOKEN)
+    localStorage.removeItem(STORAGE_REFRESH_TOKEN)
     if (window.location.pathname !== '/login') {
       window.location.href = '/login'
     }
