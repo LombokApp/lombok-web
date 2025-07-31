@@ -392,4 +392,6 @@ self.addEventListener('message', (m) =>
   messageHandler(m as MessageEvent<AsyncWorkerMessage>),
 )
 
+postMessage(['REQUEST_AUTH_UPDATE'])
+
 export {}

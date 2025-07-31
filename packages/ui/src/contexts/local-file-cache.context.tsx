@@ -198,6 +198,8 @@ export const LocalFileCacheContextProvider = ({
               ...up,
               [uploadObjectKey]: progress,
             }))
+          } else if (event.data[0] === 'REQUEST_AUTH_UPDATE') {
+            updateWorkerWithAuth()
           } else {
             // console.log(`WebWorker Response => ${event.data}`)
           }

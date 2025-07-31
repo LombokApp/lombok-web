@@ -2,6 +2,7 @@ import {
   AppLogEntry,
   AppManifest,
   ContentMetadataType,
+  TaskDTO,
 } from '@stellariscloud/types'
 import type { Socket } from 'socket.io-client'
 
@@ -146,5 +147,30 @@ export class AppAPIError extends Error {
     super()
     this.errorCode = errorCode
     this.message = errorMessage
+  }
+}
+
+export type RequestHandler = (
+  request: Request,
+  { serverClient }: { serverClient: CoreServerMessageInterface },
+) => Promise<SerializeableResponse> | SerializeableResponse
+
+export type TaskHandler = (
+  task: TaskDTO,
+  { serverClient }: { serverClient: CoreServerMessageInterface },
+) => Promise<void> | void
+
+export interface SerializeableResponse {
+  body: string
+  status: number
+}
+
+export const sendResponse = (
+  body: any,
+  status: number = 200,
+): SerializeableResponse => {
+  return {
+    body: JSON.stringify(body),
+    status,
   }
 }

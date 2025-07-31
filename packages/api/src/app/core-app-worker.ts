@@ -2,7 +2,9 @@ import { buildAppClient } from '@stellariscloud/app-worker-sdk'
 import {
   analyzeObjectTaskHandler,
   connectAndPerformWork,
-  runWorkerScriptHandler,
+  reconstructResponse,
+  runWorkerScript,
+  runWorkerScriptTaskHandler,
 } from '@stellariscloud/core-worker'
 import type { AppManifest } from '@stellariscloud/types'
 import { spawn } from 'bun'
@@ -48,7 +50,7 @@ process.stdin.once('data', (data) => {
       workerData.appToken,
       {
         ['ANALYZE_OBJECT']: analyzeObjectTaskHandler,
-        ['RUN_WORKER_SCRIPT']: runWorkerScriptHandler,
+        ['RUN_WORKER_SCRIPT']: runWorkerScriptTaskHandler,
       },
     )
 
@@ -105,6 +107,62 @@ process.stdin.once('data', (data) => {
       port: 3001,
 
       routes: {
+        '/worker-api/*': async (req) => {
+          const url = new URL(req.url)
+          const pathname = url.pathname
+          console.log('pathname:', pathname)
+
+          const workerIdentifierMatch = pathname.match(/^\/worker-api\/([^/]+)/)
+          console.log('workerIdentifierMatch:', workerIdentifierMatch)
+          if (!workerIdentifierMatch) {
+            return new Response('Invalid worker API path', { status: 400 })
+          }
+
+          const workerIdentifier = workerIdentifierMatch[1]
+
+          // Parse the host to get app info (same pattern as static assets)
+          const host = req.headers.get('host') || ''
+          const hostParts = host.split('.')
+          console.log('hostParts:', hostParts)
+
+          // Validate host format: should have at least 3 parts with "apps" as the third part
+          if (hostParts.length < 3 || hostParts[2] !== 'apps') {
+            return new Response('Invalid host format', { status: 400 })
+          }
+
+          const appIdentifier = hostParts[1] || 'unknown'
+
+          try {
+            // Call runWorkerScript with the request and parsed parameters
+            const serializableResponse = await runWorkerScript({
+              requestOrTask: req,
+              server: serverClient,
+              appIdentifier,
+              workerIdentifier,
+            })
+
+            // Return the response or 204 No Content if no response
+            if (serializableResponse) {
+              return reconstructResponse(serializableResponse)
+            } else {
+              return new Response(null, { status: 204 })
+            }
+          } catch (error: unknown) {
+            console.error('Worker script execution error:', error)
+            const errorMessage =
+              error instanceof Error ? error.message : String(error)
+            return new Response(
+              JSON.stringify({
+                error: 'Worker execution failed',
+                message: errorMessage,
+              }),
+              {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+              },
+            )
+          }
+        },
         '/health': () => {
           return new Response(
             JSON.stringify({
@@ -112,19 +170,6 @@ process.stdin.once('data', (data) => {
               timestamp: new Date().toISOString(),
               workerId: workerData.appWorkerId,
               message: 'Core app worker is running',
-            }),
-            {
-              headers: { 'Content-Type': 'application/json' },
-            },
-          )
-        },
-
-        '/api/info': () => {
-          return new Response(
-            JSON.stringify({
-              name: 'Core App Worker',
-              version: '1.0.0',
-              endpoints: ['/health - Health check endpoint'],
             }),
             {
               headers: { 'Content-Type': 'application/json' },
@@ -142,7 +187,6 @@ process.stdin.once('data', (data) => {
         if (pathname === '/health') {
           return new Response('Not Found', { status: 404 })
         }
-
         // Parse the host to get app and UI info
         const host = req.headers.get('host') || ''
         const hostParts = host.split('.')
