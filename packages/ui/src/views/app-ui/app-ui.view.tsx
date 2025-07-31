@@ -5,9 +5,9 @@ export function AppUI({
   host,
   uiName,
   scheme,
-  getAccessToken,
+  getAccessTokens,
 }: {
-  getAccessToken: () => Promise<string>
+  getAccessTokens: () => Promise<{ accessToken: string; refreshToken: string }>
   appIdentifier: string
   uiName: string
   host: string
@@ -44,14 +44,15 @@ export function AppUI({
           switch (message.type) {
             case 'APP_READY': {
               // Iframe is ready, we can send initial data if needed
-              const accessToken = await getAccessToken()
+              const { accessToken, refreshToken } = await getAccessTokens()
               if (!accessToken) {
                 throw new Error('No access token available')
               }
               const response = {
-                type: 'TOKEN',
+                type: 'AUTHENTICATION',
                 payload: {
                   accessToken,
+                  refreshToken,
                 },
               }
               iframeRef.current?.contentWindow?.postMessage(response, '*')
@@ -91,7 +92,7 @@ export function AppUI({
     return () => {
       window.removeEventListener('message', handleMessage)
     }
-  }, [getAccessToken])
+  }, [getAccessTokens])
 
   return (
     <div className="flex size-full flex-col justify-stretch">

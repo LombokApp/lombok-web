@@ -67,7 +67,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
 
   private static async setupMessageHandlers(_communicator: IframeCommunicator) {
     // Handle token messages from parent
-    _communicator.onMessage('TOKEN', (message) => {
+    _communicator.onMessage('AUTHENTICATION', (message) => {
       const tokenData = message.payload as TokenData
       this.setTokens(tokenData)
 
@@ -80,7 +80,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
 
     // Handle error messages
     _communicator.onMessage('ERROR', (message) => {
-      const error = new Error(message.payload?.message || 'Unknown error')
+      const _error = new Error(message.payload?.message || 'Unknown error')
       // this.config.onError?.(error)
     })
   }
@@ -93,7 +93,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
       this.config.onInitialize?.()
       this.sdk.authenticator.setTokens({
         accessToken: AppBrowserSdk.tokens?.accessToken || '',
-        refreshToken: '',
+        refreshToken: AppBrowserSdk.tokens?.refreshToken || '',
       })
     })
   }
@@ -107,7 +107,6 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
   }
 
   public destroy(): void {
-    // AppBrowserSdk.sdkMapping[this.basePath] = undefined
     AppBrowserSdk.tokens = undefined
     AppBrowserSdk.isInitialized = false
     AppBrowserSdk.initRequested = false

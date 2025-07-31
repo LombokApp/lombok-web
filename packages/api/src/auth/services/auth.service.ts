@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common'
 import { addMs, earliest } from '@stellariscloud/utils'
 import { eq, or } from 'drizzle-orm'
-import { JWTService } from 'src/auth/services/jwt.service'
 import { OrmService } from 'src/orm/orm.service'
 import { SIGNUP_ENABLED_CONFIG } from 'src/server/constants/server.constants'
 import { serverSettingsTable } from 'src/server/entities/server-configuration.entity'
@@ -39,7 +38,6 @@ export class AuthService {
   sessionService: SessionService
 
   constructor(
-    private readonly jwtService: JWTService,
     private readonly ormService: OrmService,
     @Inject(forwardRef(() => SessionService)) _sessionService,
   ) {
@@ -123,7 +121,7 @@ export class AuthService {
     }
 
     const { session, accessToken, refreshToken } =
-      await this.sessionService.createSession(user)
+      await this.sessionService.createUserSession(user)
 
     return {
       user,

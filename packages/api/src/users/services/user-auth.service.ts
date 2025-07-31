@@ -36,7 +36,7 @@ export class UserAuthService {
     }
 
     const { session, accessToken, refreshToken } =
-      await this.sessionService.createSession(user)
+      await this.sessionService.createUserSession(user)
 
     return {
       user: session,

@@ -4,6 +4,7 @@ import { SignedURLsRequestMethod } from '@stellariscloud/types'
 import { eq } from 'drizzle-orm'
 import fs from 'fs'
 import path from 'path'
+import { AppService } from 'src/app/services/app.service'
 import { KVService } from 'src/cache/kv.service'
 import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { HttpExceptionFilter } from 'src/shared/http-exception-filter'
@@ -49,6 +50,7 @@ export async function buildTestModule({
 
   const ormService = await app.resolve(OrmService)
   const kvService = await app.resolve(KVService)
+  const appService = await app.resolve(AppService)
 
   // truncate the db before running first init (which will migrate the db)
   await ormService.truncateAllTestTables()
@@ -67,12 +69,16 @@ export async function buildTestModule({
       // shutdown the app
       await app.close()
     },
+    getAppService: () => {
+      return appService
+    },
     getOrmService: () => {
       return ormService
     },
     resetAppState: async () => {
       kvService.ops.flushall()
       await ormService.resetTestDb()
+      await appService.installAllAppsFromDisk()
     },
     testS3ClientConfig: () => ({
       accessKeyId: MINIO_ACCESS_KEY_ID,

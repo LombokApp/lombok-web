@@ -21,7 +21,7 @@ export class SessionService {
     private readonly ormService: OrmService,
   ) {}
 
-  async createSession(user: User) {
+  async createUserSession(user: User) {
     const secret = hashedTokenHelper.createSecretKey()
 
     const now = new Date()
@@ -29,6 +29,7 @@ export class SessionService {
       id: uuidV4(),
       userId: user.id,
       hash: hashedTokenHelper.createHash(secret),
+      type: 'user',
       expiresAt: sessionExpiresAt(now),
       createdAt: now,
       updatedAt: now,
@@ -39,6 +40,40 @@ export class SessionService {
       .returning()
 
     const accessToken = await this.jwtService.createSessionAccessToken(session)
+    const refreshToken = hashedTokenHelper.encode(session.id, secret)
+
+    return {
+      session,
+      accessToken,
+      refreshToken,
+    }
+  }
+
+  async createAppUserSession(user: User, appIdentifier: string) {
+    const secret = hashedTokenHelper.createSecretKey()
+
+    const now = new Date()
+    const newSession: NewSession = {
+      id: uuidV4(),
+      userId: user.id,
+      hash: hashedTokenHelper.createHash(secret),
+      type: 'app_user',
+      typeDetails: {
+        app: appIdentifier,
+      },
+      expiresAt: sessionExpiresAt(now),
+      createdAt: now,
+      updatedAt: now,
+    }
+    const [session] = await this.ormService.db
+      .insert(sessionsTable)
+      .values(newSession)
+      .returning()
+
+    const accessToken = await this.jwtService.createAppUserAccessToken(
+      session,
+      appIdentifier,
+    )
     const refreshToken = hashedTokenHelper.encode(session.id, secret)
 
     return {

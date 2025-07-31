@@ -1874,7 +1874,14 @@
         "parameters": [],
         "responses": {
           "201": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InstallAppsResponse"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -1882,6 +1889,7 @@
             "bearer": []
           }
         ],
+        "summary": "Install all apps from disk.",
         "tags": [
           "Server"
         ]
@@ -3008,6 +3016,41 @@
               "application/json": {
                 "schema": {
                   "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
+    "/api/v1/server/apps/{appIdentifier}/user-access-token": {
+      "post": {
+        "operationId": "generateAppUserAccessToken",
+        "parameters": [
+          {
+            "name": "appIdentifier",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
                 }
               }
             }
@@ -4935,6 +4978,25 @@
         },
         "required": [
           "settingKey"
+        ]
+      },
+      "InstallAppsResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Success message",
+            "example": "Apps installation completed"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Timestamp when the installation was completed",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "message",
+          "timestamp"
         ]
       },
       "UserStorageProvisionListResponse": {

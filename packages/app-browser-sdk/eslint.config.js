@@ -1,22 +1,41 @@
-import js from '@eslint/js'
-import globals from 'globals'
+import eslint from '@eslint/js'
+import eslintStorybook from 'eslint-plugin-storybook'
+import eslintTailwind from 'eslint-plugin-tailwindcss'
+import tseslint from 'typescript-eslint'
 
-export default [
-  js.configs.recommended,
+import baseConfig from '../../eslint-config/base'
+import reactConfig from '../../eslint-config/react'
+import strictConfig from '../../eslint-config/strict'
+
+export default tseslint.config(
+  eslint.configs.recommended,
+  ...tseslint.configs.strict,
+  ...tseslint.configs.stylistic,
+  ...tseslint.configs.recommendedTypeChecked,
+  ...eslintTailwind.configs['flat/recommended'],
+  baseConfig,
+  reactConfig,
+  strictConfig,
+  {
+    ignores: ['node_modules/', 'dist/'],
+  },
   {
     languageOptions: {
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-      },
+      ecmaVersion: 2022,
       parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
+        tsconfigRootDir: __dirname,
+        projectService: true,
       },
-    },
-    rules: {
-      'no-unused-vars': 'error',
-      'no-console': 'warn',
     },
   },
-]
+  {
+    languageOptions: {
+      parserOptions: {
+        projectService: {
+          allowDefaultProject: ['*.js', '*.mjs'],
+        },
+        tsconfigRootDir: __dirname,
+      },
+    },
+  },
+)

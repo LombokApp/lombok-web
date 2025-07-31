@@ -4,7 +4,7 @@ import { Authenticator } from '@stellariscloud/auth-utils'
 
 export interface TokenData {
   accessToken: string
-  refreshToken?: string
+  refreshToken: string
 }
 
 export interface IframeMessage {
