@@ -1,5 +1,5 @@
 {
-  "id": "e3bc5da3-c4e4-401d-aca3-f87aef80576d",
+  "id": "17332c3b-16a0-4236-ba4a-5afc4503c598",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -98,6 +98,18 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "typeDetails": {
+          "name": "typeDetails",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
         },
         "expiresAt": {
           "name": "expiresAt",

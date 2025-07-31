@@ -515,6 +515,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Install all apps from disk. */
         post: operations["installLocalApps"];
         delete?: never;
         options?: never;
@@ -756,6 +757,22 @@ export interface paths {
         get?: never;
         put: operations["setWorkerScriptEnvVars"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/apps/{appIdentifier}/user-access-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["generateAppUserAccessToken"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1273,6 +1290,18 @@ export interface components {
         SettingSetResponse: {
             settingKey: string;
             settingValue?: unknown;
+        };
+        InstallAppsResponse: {
+            /**
+             * @description Success message
+             * @example Apps installation completed
+             */
+            message: string;
+            /**
+             * @description Timestamp when the installation was completed
+             * @example 2024-01-01T00:00:00.000Z
+             */
+            timestamp: string;
         };
         UserStorageProvisionListResponse: {
             result: {
@@ -2640,7 +2669,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["InstallAppsResponse"];
+                };
             };
         };
     };
@@ -3086,6 +3117,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    generateAppUserAccessToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResponse"];
                 };
             };
         };

@@ -5,6 +5,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  Post,
   Put,
   Req,
   UnauthorizedException,
@@ -14,6 +15,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AppService } from 'src/app/services/app.service'
+import { LoginResponse } from 'src/auth/dto/responses/login-response.dto'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
 import { AppGetResponse } from '../dto/responses/app-get-response.dto'
@@ -89,5 +91,28 @@ export class AppsController {
     })
 
     return savedEnvVars
+  }
+
+  @Post('/:appIdentifier/user-access-token')
+  async generateAppUserAccessToken(
+    @Req() req: express.Request,
+    @Param('appIdentifier') appIdentifier: string,
+  ): Promise<LoginResponse> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+
+    const session = await this.appService.createAppUserSession(
+      req.user,
+      appIdentifier,
+    )
+
+    return {
+      session: {
+        accessToken: session.accessToken,
+        refreshToken: session.refreshToken,
+        expiresAt: session.session.expiresAt,
+      },
+    }
   }
 }

@@ -1,0 +1,33 @@
+{
+  "name": "@stellariscloud/app-browser-sdk",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    "default": "./index.ts"
+  },
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node --format esm --external @stellariscloud/sdk --external @stellariscloud/types --external @stellariscloud/auth-utils",
+    "build:types": "tsc --emitDeclarationOnly --outDir dist",
+    "build:clean": "rm -rf dist && bun run build && bun run build:types",
+    "dev": "bun --watch src/index.ts",
+    "lint:check": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "ts:check": "tsc --noEmit",
+    "prettier:check": "prettier --check .",
+    "prettier:fix": "prettier --write ."
+  },
+  "dependencies": {
+    "@stellariscloud/sdk": "workspace:*",
+    "@stellariscloud/types": "workspace:*",
+    "@stellariscloud/auth-utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.6.3",
+    "eslint": "^9.0.0"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1"
+  }
+}

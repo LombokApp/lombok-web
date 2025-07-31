@@ -14,11 +14,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@stellariscloud/app-browser-sdk": "workspace:*",
     "@stellariscloud/ui-toolkit": "workspace:*",
     "@stellariscloud/utils": "workspace:*",
+    "@tanstack/react-query": "^5.83.0",
+    "openapi-react-query": "^0.5.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.2.0"
+    "react-router-dom": "^7.7.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
@@ -32,4 +35,4 @@
     "typescript": "^5.6.3",
     "vite": "^7.0.6"
   }
-} 
+}

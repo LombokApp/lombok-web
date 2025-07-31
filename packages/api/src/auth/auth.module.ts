@@ -2,6 +2,7 @@ import {
   forwardRef,
   Global,
   Inject,
+  Logger,
   Module,
   OnModuleInit,
 } from '@nestjs/common'
@@ -30,6 +31,7 @@ import { SessionService } from './services/session.service'
   exports: [AuthService, JWTService, SessionService],
 })
 export class AuthModule implements OnModuleInit {
+  private readonly logger = new Logger(AuthModule.name)
   constructor(
     private readonly authService: AuthService,
     private readonly ormService: OrmService,
@@ -44,7 +46,10 @@ export class AuthModule implements OnModuleInit {
           .from(usersTable)
         const userCount = parseInt(userCountStr ?? '0', 10)
         if (userCount === 0) {
-          console.log('Creating initial user:', this._coreConfig.initialUser)
+          this.logger.log(
+            'Creating initial user:',
+            this._coreConfig.initialUser,
+          )
           const initialUser = await this.authService.signup({
             password: '0000',
             username: this._coreConfig.initialUser,

@@ -15,6 +15,8 @@ CREATE TABLE "session" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"hash" text NOT NULL,
 	"userId" uuid NOT NULL,
+	"type" text NOT NULL,
+	"typeDetails" jsonb,
 	"expiresAt" timestamp NOT NULL,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL

@@ -27,6 +27,7 @@ import mime from 'mime'
 import os from 'os'
 import path from 'path'
 import { JWTService } from 'src/auth/services/jwt.service'
+import { SessionService } from 'src/auth/services/session.service'
 import { KVService } from 'src/cache/kv.service'
 import { readDirRecursive } from 'src/core/utils/fs.util'
 import { EventLevel, eventsTable } from 'src/event/entities/event.entity'
@@ -43,6 +44,7 @@ import { storageLocationsTable } from 'src/storage/entities/storage-location.ent
 import { S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { Task, tasksTable } from 'src/task/entities/task.entity'
+import { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
 
@@ -164,6 +166,7 @@ export class AppService {
     private readonly _appConfig: nestJsConfig.ConfigType<typeof appConfig>,
     private readonly ormService: OrmService,
     private readonly jwtService: JWTService,
+    private readonly sessionService: SessionService,
     private readonly serverConfigurationService: ServerConfigurationService,
     private readonly kvService: KVService,
     @Inject(forwardRef(() => FolderService)) _folderService,
@@ -176,6 +179,15 @@ export class AppService {
     return this.ormService.db.query.appsTable.findFirst({
       where: eq(appsTable.identifier, appIdentifier),
     })
+  }
+
+  async createAppUserSession(user: User, appIdentifier: string) {
+    const app = await this.getApp(appIdentifier)
+    if (!app) {
+      throw new NotFoundException(`App not found: ${appIdentifier}`)
+    }
+
+    return this.sessionService.createAppUserSession(user, appIdentifier)
   }
 
   async handleAppRequest(

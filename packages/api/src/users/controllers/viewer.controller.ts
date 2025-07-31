@@ -27,10 +27,16 @@ import { UserService } from '../services/users.service'
 @UseGuards(AuthGuard)
 @ApiBearerAuth()
 @UsePipes(ZodValidationPipe)
+@AuthGuardConfig({
+  allowedActors: [AllowedActor.USER],
+})
 export class ViewerController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
+  @AuthGuardConfig({
+    allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
+  })
   async getViewer(@Req() req: express.Request): Promise<ViewerGetResponse> {
     const user = await this.userService.getUserById({ id: req.user?.id ?? '' })
     return {
@@ -39,7 +45,6 @@ export class ViewerController {
   }
 
   @Put()
-  @AuthGuardConfig({ allowedActors: [AllowedActor.USER] })
   async updateViewer(
     @Req() req: express.Request,
     @Body() viewerUpdateInput: ViewerUpdateInputDTO,

@@ -5,6 +5,7 @@ import type {
 } from '@nestjs/common'
 import { forwardRef, Inject, Module, RequestMethod } from '@nestjs/common'
 import nestJSConfig, { ConfigModule } from '@nestjs/config'
+import { AuthModule } from 'src/auth/auth.module'
 import { coreConfig } from 'src/core/config'
 import { EventModule } from 'src/event/event.module'
 import { FoldersModule } from 'src/folders/folders.module'
@@ -24,6 +25,7 @@ import { AppService } from './services/app.service'
   imports: [
     ConfigModule.forFeature(appConfig),
     ConfigModule.forFeature(coreConfig),
+    AuthModule,
     EventModule,
     StorageModule,
     forwardRef(() => ServerModule),

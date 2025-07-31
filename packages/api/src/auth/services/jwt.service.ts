@@ -158,6 +158,35 @@ export class JWTService {
     return token
   }
 
+  async createAppUserAccessToken(
+    session: Session,
+    appIdentifier: string,
+  ): Promise<string> {
+    const payload: AccessTokenJWT = {
+      aud: this._coreConfig.hostId,
+      jti: `${session.id}:${uuidV4()}`,
+      scp: [],
+      sub: `${APP_USER_JWT_SUB_PREFIX}${session.userId}:${appIdentifier}`,
+    }
+
+    const user = await this.ormService.db.query.usersTable.findFirst({
+      where: eq(usersTable.id, session.userId),
+    })
+
+    if (!user) {
+      throw new InternalServerErrorException()
+    }
+
+    const token = jwt.sign(payload, this._authConfig.authJwtSecret, {
+      algorithm: ALGORITHM,
+      expiresIn: AuthDurationSeconds.SessionSliding,
+    })
+
+    AccessTokenJWT.parse(this.verifyUserJWT(token))
+
+    return token
+  }
+
   verifyUserJWT(token: string) {
     try {
       return jwt.verify(token, this._authConfig.authJwtSecret, {
@@ -177,15 +206,17 @@ export class JWTService {
 
   verifyAppUserJWT({
     appIdentifier,
+    userId,
     token,
   }: {
     appIdentifier: string
+    userId: string
     token: string
   }) {
     try {
       return jwt.verify(token, this._authConfig.authJwtSecret, {
-        algorithms: ['RS512'],
-        subject: `${APP_USER_JWT_SUB_PREFIX}${appIdentifier}`,
+        algorithms: [ALGORITHM],
+        subject: `${APP_USER_JWT_SUB_PREFIX}${userId}:${appIdentifier}`,
       }) as JwtPayload
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
