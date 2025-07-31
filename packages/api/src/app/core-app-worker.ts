@@ -2,12 +2,15 @@ import { buildAppClient } from '@stellariscloud/app-worker-sdk'
 import {
   analyzeObjectTaskHandler,
   connectAndPerformWork,
-  runWorkerScriptHandler,
+  reconstructResponse,
+  runWorkerScript,
+  runWorkerScriptTaskHandler,
 } from '@stellariscloud/core-worker'
 import type { AppManifest } from '@stellariscloud/types'
 import { spawn } from 'bun'
 import fs from 'fs'
 import fsPromises from 'fs/promises'
+import * as jwt from 'jsonwebtoken'
 import os from 'os'
 import path from 'path'
 import { z } from 'zod'
@@ -16,9 +19,131 @@ const WorkerDataPayloadRunType = z.object({
   appWorkerId: z.string(),
   appToken: z.string(),
   socketBaseUrl: z.string(),
+  jwtSecret: z.string(),
+  hostId: z.string(),
 })
 
 type WorkerDataPayload = z.infer<typeof WorkerDataPayloadRunType>
+
+// JWT constants and types (copied from jwt.service.ts)
+const APP_USER_JWT_SUB_PREFIX = 'app_user:'
+const ALGORITHM = 'HS256'
+
+class AuthTokenInvalidError extends Error {
+  name = 'AuthTokenInvalidError'
+  constructor(
+    readonly token: string,
+    message?: string,
+  ) {
+    super(message || 'Invalid token')
+  }
+}
+
+class AuthTokenExpiredError extends Error {
+  name = 'AuthTokenExpiredError'
+  constructor(
+    readonly token: string,
+    message?: string,
+  ) {
+    super(message || 'Token expired')
+  }
+}
+
+// JWT verification function
+function verifyAppUserJWT({
+  appIdentifier,
+  userId,
+  token,
+  jwtSecret,
+  hostId,
+}: {
+  appIdentifier: string
+  userId: string
+  token: string
+  jwtSecret: string
+  hostId: string
+}) {
+  try {
+    return jwt.verify(token, jwtSecret, {
+      algorithms: [ALGORITHM],
+      audience: hostId,
+      subject: `${APP_USER_JWT_SUB_PREFIX}${userId}:${appIdentifier}`,
+    })
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      throw new AuthTokenExpiredError(token, error.message)
+    }
+    if (error instanceof jwt.JsonWebTokenError) {
+      throw new AuthTokenInvalidError(token, error.message)
+    }
+    throw error
+  }
+}
+
+// Authentication middleware
+function authenticateAppUserRequest(
+  req: Request,
+  appIdentifier: string,
+  jwtSecret: string,
+  hostId: string,
+): { userId: string } {
+  const authHeader = req.headers.get('Authorization')
+
+  if (!authHeader?.startsWith('Bearer ')) {
+    throw new AuthTokenInvalidError(
+      '',
+      'Missing or invalid Authorization header',
+    )
+  }
+
+  const token = authHeader.slice('Bearer '.length)
+
+  try {
+    // First decode to get the subject
+    const decoded = jwt.decode(token, { complete: true })
+    if (!decoded?.payload || typeof decoded.payload === 'string') {
+      throw new AuthTokenInvalidError(token, 'Invalid token payload')
+    }
+
+    const subject = decoded.payload.sub
+    if (!subject?.startsWith(APP_USER_JWT_SUB_PREFIX)) {
+      throw new AuthTokenInvalidError(token, 'Invalid token type')
+    }
+
+    // Extract userId and app identifier from subject: app_user:{userId}:{appIdentifier}
+    const subjectParts = subject.split(':')
+    if (subjectParts.length !== 3) {
+      throw new AuthTokenInvalidError(token, 'Invalid token subject format')
+    }
+
+    const userId = subjectParts[1]
+    const tokenAppIdentifier = subjectParts[2]
+
+    // Verify the app identifier matches
+    if (tokenAppIdentifier !== appIdentifier) {
+      throw new AuthTokenInvalidError(token, 'Token app identifier mismatch')
+    }
+
+    // Verify and validate the token
+    verifyAppUserJWT({
+      appIdentifier,
+      userId,
+      token,
+      jwtSecret,
+      hostId,
+    })
+
+    return { userId }
+  } catch (error) {
+    if (
+      error instanceof AuthTokenInvalidError ||
+      error instanceof AuthTokenExpiredError
+    ) {
+      throw error
+    }
+    throw new AuthTokenInvalidError(token, 'Token verification failed')
+  }
+}
 
 let initialized = false
 let server: ReturnType<typeof Bun.serve> | null = null
@@ -48,7 +173,7 @@ process.stdin.once('data', (data) => {
       workerData.appToken,
       {
         ['ANALYZE_OBJECT']: analyzeObjectTaskHandler,
-        ['RUN_WORKER_SCRIPT']: runWorkerScriptHandler,
+        ['RUN_WORKER_SCRIPT']: runWorkerScriptTaskHandler,
       },
     )
 
@@ -105,6 +230,87 @@ process.stdin.once('data', (data) => {
       port: 3001,
 
       routes: {
+        '/worker-api/*': async (req) => {
+          const url = new URL(req.url)
+          const pathname = url.pathname
+
+          const workerIdentifierMatch = pathname.match(/^\/worker-api\/([^/]+)/)
+          if (!workerIdentifierMatch) {
+            return new Response('Invalid worker API path', { status: 400 })
+          }
+
+          const workerIdentifier = workerIdentifierMatch[1]
+
+          // Parse the host to get app info (same pattern as static assets)
+          const host = req.headers.get('host') || ''
+          const hostParts = host.split('.')
+
+          // Validate host format: should have at least 3 parts with "apps" as the third part
+          if (hostParts.length < 3 || hostParts[2] !== 'apps') {
+            return new Response('Invalid host format', { status: 400 })
+          }
+
+          const appIdentifier = hostParts[1] || 'unknown'
+
+          // Authenticate the request
+          try {
+            const { userId } = authenticateAppUserRequest(
+              req,
+              appIdentifier,
+              workerData.jwtSecret,
+              workerData.hostId,
+            )
+            console.log(
+              'Authenticated user:',
+              userId,
+              'for app:',
+              appIdentifier,
+            )
+          } catch (error) {
+            console.error('Authentication failed:', error)
+            return new Response(
+              JSON.stringify({
+                error: 'Authentication failed',
+                message: error instanceof Error ? error.message : String(error),
+              }),
+              {
+                status: 401,
+                headers: { 'Content-Type': 'application/json' },
+              },
+            )
+          }
+
+          try {
+            // Call runWorkerScript with the request and parsed parameters
+            const serializableResponse = await runWorkerScript({
+              requestOrTask: req,
+              server: serverClient,
+              appIdentifier,
+              workerIdentifier,
+            })
+
+            // Return the response or 204 No Content if no response
+            if (serializableResponse) {
+              return reconstructResponse(serializableResponse)
+            } else {
+              return new Response(null, { status: 204 })
+            }
+          } catch (error: unknown) {
+            console.error('Worker script execution error:', error)
+            const errorMessage =
+              error instanceof Error ? error.message : String(error)
+            return new Response(
+              JSON.stringify({
+                error: 'Worker execution failed',
+                message: errorMessage,
+              }),
+              {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' },
+              },
+            )
+          }
+        },
         '/health': () => {
           return new Response(
             JSON.stringify({
@@ -112,19 +318,6 @@ process.stdin.once('data', (data) => {
               timestamp: new Date().toISOString(),
               workerId: workerData.appWorkerId,
               message: 'Core app worker is running',
-            }),
-            {
-              headers: { 'Content-Type': 'application/json' },
-            },
-          )
-        },
-
-        '/api/info': () => {
-          return new Response(
-            JSON.stringify({
-              name: 'Core App Worker',
-              version: '1.0.0',
-              endpoints: ['/health - Health check endpoint'],
             }),
             {
               headers: { 'Content-Type': 'application/json' },
@@ -142,7 +335,6 @@ process.stdin.once('data', (data) => {
         if (pathname === '/health') {
           return new Response('Not Found', { status: 404 })
         }
-
         // Parse the host to get app and UI info
         const host = req.headers.get('host') || ''
         const hostParts = host.split('.')

@@ -414,7 +414,7 @@ export class AppService {
           break
         }
         case 'FAIL_HANDLE_TASK': {
-          if (failHandleTaskSchema.safeParse(requestData).success) {
+          if (safeZodParse(requestData, failHandleTaskSchema)) {
             const parsedFailHandleTaskMessage =
               failHandleTaskSchema.parse(requestData)
             const task = await this.ormService.db.query.tasksTable.findFirst({
@@ -426,7 +426,7 @@ export class AppService {
             if (
               !task?.startedAt ||
               task.completedAt ||
-              task.handlerId !== handlerId
+              (task.handlerId !== handlerId && !isCoreApp)
             ) {
               return {
                 result: undefined,

@@ -48,5 +48,6 @@ export function useAppBrowserSdk(config?: AppBrowserSdkConfig) {
     isInitialized,
     apiClient: sdk.apiClient,
     authState,
+    executeWorkerScript: sdk.executeWorkerScript,
   }
 }
