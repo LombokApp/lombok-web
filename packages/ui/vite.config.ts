@@ -52,23 +52,31 @@ function subdomainProxyPlugin(env: Record<string, string>): PluginOption {
         const hostParts = host.split('.')
         const appIdentifier = hostParts[1]
         const uiName = hostParts[0]
-        const appProxyHostConfigEnvKey = `SC_APP_PROXY_HOST_${appIdentifier?.toUpperCase()}_${uiName?.toUpperCase()}`
-        const appProxyHostConfig = env[appProxyHostConfigEnvKey]
-          ? new URL(env[appProxyHostConfigEnvKey])
+
+        if (!appIdentifier || !uiName) {
+          next()
+          return
+        }
+
+        const appFrontendProxyHostConfigEnvKey = `SC_APP_FRONTEND_PROXY_HOST_${appIdentifier.toUpperCase()}_${uiName.toUpperCase()}`
+        const appProxyHostConfig = env[appFrontendProxyHostConfigEnvKey]
+          ? new URL(env[appFrontendProxyHostConfigEnvKey])
           : undefined
 
         const defaultProxyHostConfig = env.SC_APP_PROXY_DEFAULT_HOST
           ? new URL(env.SC_APP_PROXY_DEFAULT_HOST)
           : undefined
 
-        const targetHost =
-          appIdentifier && uiName && appProxyHostConfig
-            ? appProxyHostConfig.hostname
-            : defaultProxyHostConfig?.hostname || 'localhost'
-        const targetPort =
-          appIdentifier && uiName && appProxyHostConfig
-            ? parseInt(appProxyHostConfig.port, 10) || 80
-            : parseInt(defaultProxyHostConfig?.port || '3001', 10)
+        // For /worker-api/ paths, always use default proxy host
+        const isWorkerApiCall = url.startsWith('/worker-api/')
+        const shouldBeReroutedByConfig = appProxyHostConfig && !isWorkerApiCall
+
+        const targetHost = shouldBeReroutedByConfig
+          ? appProxyHostConfig.hostname
+          : defaultProxyHostConfig?.hostname || 'localhost'
+        const targetPort = shouldBeReroutedByConfig
+          ? parseInt(appProxyHostConfig.port, 10) || 80
+          : parseInt(defaultProxyHostConfig?.port || '3001', 10)
 
         const requestDetails = {
           hostname: targetHost,
@@ -77,7 +85,6 @@ function subdomainProxyPlugin(env: Record<string, string>): PluginOption {
           method: req.method,
           headers: req.headers,
         }
-
         // Proxy to subdomain server
         const proxyReq = http.request(requestDetails, (proxyRes) => {
           res.writeHead(proxyRes.statusCode || 200, proxyRes.headers)

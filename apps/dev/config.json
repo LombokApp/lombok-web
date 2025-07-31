@@ -23,7 +23,10 @@
   ],
   "workerScripts": {
     "special_worker": {
-      "description": "Manages special things for objects."
+      "description": "Manages special things for objects.",
+      "envVars": {
+        "SPECIAL_THING_ENV_VAR": "pospopopwoerpower"
+      }
     }
   },
   "uis": {

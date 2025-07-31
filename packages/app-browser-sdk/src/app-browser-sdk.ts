@@ -105,6 +105,50 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     return this.sdk.authenticator
   }
 
+  executeWorkerScript = async (
+    workerIdentifier: string,
+    options?: {
+      method?: string
+      headers?: HeadersInit
+      body?: BodyInit | null
+      signal?: AbortSignal
+      // Allow any other fetch options
+    } & Omit<RequestInit, 'method' | 'headers' | 'body' | 'signal'>,
+  ): Promise<Response> => {
+    // Get the access token
+    const accessToken = await this.authenticator.getAccessToken()
+
+    // Build the worker API URL
+    const workerApiUrl = `/worker-api/${workerIdentifier}`
+
+    // Create headers object, starting with user-provided headers
+    const headers = new Headers(options?.headers)
+
+    // Add authorization header if we have a token
+    if (accessToken) {
+      headers.set('Authorization', `Bearer ${accessToken}`)
+    } else {
+      throw new Error('App user access token not found')
+    }
+
+    // Build the full request configuration
+    const requestConfig: RequestInit = {
+      method: options?.method || 'POST',
+      headers,
+      body: options?.body,
+      signal: options?.signal,
+      // Spread any other options (like cache, credentials, etc.)
+      ...Object.fromEntries(
+        Object.entries(options || {}).filter(
+          ([key]) => !['method', 'headers', 'body', 'signal'].includes(key),
+        ),
+      ),
+    }
+
+    // Make the request using the browser's fetch API
+    return fetch(workerApiUrl, requestConfig)
+  }
+
   public destroy(): void {
     AppBrowserSdk.tokens = undefined
     AppBrowserSdk.isInitialized = false

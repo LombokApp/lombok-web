@@ -74,9 +74,10 @@ export const handleRequest: RequestHandler = async function handleRequest(
     envVars: process.env,
   })
 
-  return sendResponse({
-    body: {
+  return sendResponse(
+    {
       message: 'Hello, world!',
     },
-  })
+    201,
+  )
 }

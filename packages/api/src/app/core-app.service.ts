@@ -5,6 +5,7 @@ import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import path from 'path'
+import { authConfig } from 'src/auth/config'
 import { coreConfig } from 'src/core/config'
 import { OrmService } from 'src/orm/orm.service'
 import { v4 as uuidV4 } from 'uuid'
@@ -19,6 +20,8 @@ export class CoreAppService {
   constructor(
     @Inject(coreConfig.KEY)
     private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
+    @Inject(authConfig.KEY)
+    private readonly _authConfig: nestjsConfig.ConfigType<typeof authConfig>,
     private readonly ormService: OrmService,
   ) {}
 
@@ -47,6 +50,8 @@ export class CoreAppService {
             socketBaseUrl: `http://127.0.0.1:3000`,
             appToken,
             appWorkerId,
+            jwtSecret: this._authConfig.authJwtSecret,
+            hostId: this._coreConfig.hostId,
           }),
         )
       }, 500)
