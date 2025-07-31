@@ -87,8 +87,8 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
 
   private config: AppBrowserSdkConfig
 
-  constructor(config: AppBrowserSdkConfig) {
-    this.config = config
+  constructor(config?: AppBrowserSdkConfig) {
+    this.config = config ?? {}
     this.communicator.then(() => {
       this.config.onInitialize?.()
       this.sdk.authenticator.setTokens({
