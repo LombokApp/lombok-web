@@ -14,8 +14,6 @@ export interface IframeMessage {
 }
 
 export interface AppBrowserSdkConfig {
-  onLogout?: () => void
-  onError?: (error: Error) => void
   onInitialize?: () => void
 }
 

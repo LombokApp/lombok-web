@@ -3,33 +3,24 @@ import { AppBrowserSdk } from '../app-browser-sdk'
 import type { AppBrowserSdkConfig } from '../types'
 import { AuthenticatorStateType } from '@stellariscloud/auth-utils'
 
-export function useAppBrowserSdk(config: AppBrowserSdkConfig) {
-  const [error, setError] = React.useState<Error>()
+export function useAppBrowserSdk(config?: AppBrowserSdkConfig) {
   const [isInitialized, setIsInitialized] = React.useState(false)
 
   // Use refs to store the latest state setters and config callbacks
   const stateRef = React.useRef({
-    setError,
     setIsInitialized,
-    onError: config.onError,
-    onInitialize: config.onInitialize,
+    onInitialize: config?.onInitialize,
   })
 
   // Update the ref with latest values on every render
   stateRef.current = {
-    setError,
     setIsInitialized,
-    onError: config.onError,
-    onInitialize: config.onInitialize,
+    onInitialize: config?.onInitialize,
   }
 
   const [sdk] = React.useState<AppBrowserSdk>(() => {
     return new AppBrowserSdk({
       ...config,
-      onError: (error) => {
-        stateRef.current.setError(error)
-        stateRef.current.onError?.(error)
-      },
       onInitialize: () => {
         stateRef.current.setIsInitialized(true)
         stateRef.current.onInitialize?.()
@@ -55,7 +46,6 @@ export function useAppBrowserSdk(config: AppBrowserSdkConfig) {
 
   return {
     isInitialized,
-    error,
     apiClient: sdk.apiClient,
     authState,
   }

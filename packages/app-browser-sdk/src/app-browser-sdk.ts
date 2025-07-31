@@ -12,7 +12,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
   private static isInitialized: boolean = false
   private static initRequested: boolean = false
   private static tokens?: TokenData
-  private static sdkMapping: Record<string, StellarisCloudSdk> = {}
+  private static sdk: StellarisCloudSdk
 
   public get communicator(): Promise<IframeCommunicator> {
     if (!AppBrowserSdk._communicator && !AppBrowserSdk.initRequested) {
@@ -23,11 +23,13 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     }
 
     return waitForTrue(() => AppBrowserSdk.isInitialized, {
-      retryPeriod: 200,
-      maxRetries: 10,
+      retryPeriod: 100,
+      maxRetries: 50,
     }).then(() => {
       if (!AppBrowserSdk._communicator) {
-        throw new Error('Communicator not initialized')
+        throw new Error(
+          'Communicator not initialized after 5 seconds. Please check your browser console for other errors.',
+        )
       }
       return AppBrowserSdk._communicator
     })
@@ -48,14 +50,14 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
   })()
 
   public get sdk(): StellarisCloudSdk {
-    if (!AppBrowserSdk.sdkMapping[this.basePath]) {
-      AppBrowserSdk.sdkMapping[this.basePath] = new StellarisCloudSdk({
+    if (!AppBrowserSdk.sdk) {
+      AppBrowserSdk.sdk = new StellarisCloudSdk({
         basePath: this.basePath,
         accessToken: () => AppBrowserSdk.tokens?.accessToken,
         refreshToken: () => AppBrowserSdk.tokens?.refreshToken,
       })
     }
-    return AppBrowserSdk.sdkMapping[this.basePath]
+    return AppBrowserSdk.sdk
   }
 
   private static setTokens(tokens: TokenData): void {
@@ -66,22 +68,19 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
   }
 
   private static async setupMessageHandlers(_communicator: IframeCommunicator) {
-    // Handle token messages from parent
     _communicator.onMessage('AUTHENTICATION', (message) => {
       const tokenData = message.payload as TokenData
       this.setTokens(tokenData)
-
       AppBrowserSdk.isInitialized = true
     })
 
     _communicator.onMessage('LOGOUT', () => {
-      // this.authenticator.logout()
+      this.sdk.authenticator.logout()
     })
 
-    // Handle error messages
     _communicator.onMessage('ERROR', (message) => {
       const _error = new Error(message.payload?.message || 'Unknown error')
-      // this.config.onError?.(error)
+      console.error('Stellaris Cloud IFrame Communication Error:', _error)
     })
   }
 
