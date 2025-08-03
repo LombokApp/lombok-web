@@ -1,5 +1,3 @@
-import { ConflictException } from '@nestjs/common'
-
-export class AppAlreadyInstalledException extends ConflictException {
+export class AppAlreadyInstalledException extends Error {
   name = AppAlreadyInstalledException.name
 }

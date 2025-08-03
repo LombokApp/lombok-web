@@ -60,7 +60,7 @@
     "express": "4.21.2",
     "i18next": "24.2.1",
     "jsonwebtoken": "9.0.2",
-    "mime": "4.0.6",
+    "mime": "4.0.7",
     "openapi-fetch": "^0.14.0",
     "openapi-typescript": "7.8.0",
     "postgres": "3.4.5",

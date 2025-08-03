@@ -48,59 +48,6 @@ export const hashLocalFile = async (filepath: string): Promise<string> => {
   return hashFileStream(readStream)
 }
 
-export const waitForFileOnDisk = (
-  filepath: string,
-  {
-    expectedSize,
-    maxTimeWithoutSizeChange = 1000,
-    checkInterval = 500,
-  }: {
-    expectedSize?: number
-    maxTimeWithoutSizeChange?: number
-    checkInterval?: number
-  } = {},
-) => {
-  return new Promise<void>((resolve, reject) => {
-    const startTime = Date.now()
-    let lastSize = 0
-    let lastSizeChange = startTime
-    const checkInt = setInterval(() => {
-      const now = Date.now()
-      let currentSize = 0
-      if (!fs.existsSync(filepath)) {
-        // not seen yet
-      } else {
-        currentSize = fs.statSync(filepath).size
-
-        // complete
-        if (expectedSize && currentSize === expectedSize) {
-          clearInterval(checkInt)
-          resolve()
-          return
-        }
-      }
-
-      // size has changed
-      if (currentSize !== lastSize) {
-        lastSize = currentSize
-        lastSizeChange = now
-      } else if (now > lastSizeChange + maxTimeWithoutSizeChange) {
-        if (expectedSize) {
-          clearInterval(checkInt)
-          reject(
-            new Error(
-              `File download stalled (No change in ${maxTimeWithoutSizeChange} ms)`,
-            ),
-          )
-        } else {
-          clearInterval(checkInt)
-          resolve()
-        }
-      }
-    }, checkInterval)
-  })
-}
-
 export const downloadFileToDisk = async (url: string, filepath: string) => {
   const response = await fetch(url)
   if (!response.ok) {

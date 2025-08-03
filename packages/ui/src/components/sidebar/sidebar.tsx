@@ -65,7 +65,7 @@ export function Sidebar({
             </Link>
           </Button>
         </div>
-        <div className="h-full overflow-hidden p-0 px-3">
+        <div className="h-full overflow-hidden p-0">
           {authContext.viewer && (
             <Menu
               viewer={authContext.viewer}

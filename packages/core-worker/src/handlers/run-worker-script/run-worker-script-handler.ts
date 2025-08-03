@@ -1,9 +1,13 @@
+import crypto from 'crypto'
+import { v4 as uuidV4 } from 'uuid'
+
 import {
   AppAPIError,
   AppTask,
   CoreServerMessageInterface,
 } from '@stellariscloud/app-worker-sdk'
 import { runWorkerScript } from '../../worker-scripts/run-worker-script'
+import { uniqueExecutionKey } from '../../utils/ids'
 
 export const runWorkerScriptTaskHandler = async (
   runWorkerScriptTask: AppTask,
@@ -24,6 +28,7 @@ export const runWorkerScriptTaskHandler = async (
   const workerScriptTask = attemptStartHandleResponse.result
   const appIdentifier = runWorkerScriptTask.inputData.appIdentifier
   const workerIdentifier = runWorkerScriptTask.inputData.workerIdentifier
+  const workerExecutionId = `${workerIdentifier.toLowerCase()}__task__${uniqueExecutionKey()}`
 
   try {
     await runWorkerScript({
@@ -31,6 +36,7 @@ export const runWorkerScriptTaskHandler = async (
       server,
       appIdentifier,
       workerIdentifier,
+      workerExecutionId,
     })
 
     // Report success

@@ -105,8 +105,14 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     return this.sdk.authenticator
   }
 
-  executeWorkerScript = async (
-    workerIdentifier: string,
+  executeWorkerScriptUrl = async (
+    {
+      workerIdentifier,
+      url,
+    }: {
+      workerIdentifier: string
+      url: string
+    },
     options?: {
       method?: string
       headers?: HeadersInit
@@ -119,7 +125,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     const accessToken = await this.authenticator.getAccessToken()
 
     // Build the worker API URL
-    const workerApiUrl = `/worker-api/${workerIdentifier}`
+    const workerApiUrl = `/worker-api/${workerIdentifier}/${url.startsWith('/') ? url.slice(1) : url}`
 
     // Create headers object, starting with user-provided headers
     const headers = new Headers(options?.headers)
