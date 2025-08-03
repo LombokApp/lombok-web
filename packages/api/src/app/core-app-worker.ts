@@ -5,6 +5,7 @@ import {
   reconstructResponse,
   runWorkerScript,
   runWorkerScriptTaskHandler,
+  uniqueExecutionKey,
 } from '@stellariscloud/core-worker'
 import type { AppManifest } from '@stellariscloud/types'
 import { spawn } from 'bun'
@@ -15,15 +16,23 @@ import os from 'os'
 import path from 'path'
 import { z } from 'zod'
 
-const WorkerDataPayloadRunType = z.object({
+const coreWorkerProcessDataPayloadSchema = z.object({
   appWorkerId: z.string(),
   appToken: z.string(),
   socketBaseUrl: z.string(),
   jwtSecret: z.string(),
   hostId: z.string(),
+  executionOptions: z
+    .object({
+      printWorkerOutput: z.boolean().optional(),
+      emptyWorkerTmpDir: z.boolean().optional(),
+    })
+    .optional(),
 })
 
-type WorkerDataPayload = z.infer<typeof WorkerDataPayloadRunType>
+export type CoreWorkerProcessDataPayload = z.infer<
+  typeof coreWorkerProcessDataPayloadSchema
+>
 
 // JWT constants and types (copied from jwt.service.ts)
 const APP_USER_JWT_SUB_PREFIX = 'app_user:'
@@ -164,8 +173,11 @@ process.on('exit', cleanup)
 
 process.stdin.once('data', (data) => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const workerData: WorkerDataPayload = JSON.parse(data.toString())
-  if (!initialized && WorkerDataPayloadRunType.safeParse(workerData).success) {
+  const workerData: CoreWorkerProcessDataPayload = JSON.parse(data.toString())
+  if (
+    !initialized &&
+    coreWorkerProcessDataPayloadSchema.safeParse(workerData).success
+  ) {
     initialized = true
     const { wait, log, socket } = connectAndPerformWork(
       workerData.socketBaseUrl,
@@ -287,6 +299,8 @@ process.stdin.once('data', (data) => {
               server: serverClient,
               appIdentifier,
               workerIdentifier,
+              workerExecutionId: `${workerIdentifier.toLowerCase()}__request__${uniqueExecutionKey()}`,
+              options: workerData.executionOptions,
             })
 
             // Return the response or 204 No Content if no response
@@ -296,7 +310,6 @@ process.stdin.once('data', (data) => {
               return new Response(null, { status: 204 })
             }
           } catch (error: unknown) {
-            console.error('Worker script execution error:', error)
             const errorMessage =
               error instanceof Error ? error.message : String(error)
             return new Response(

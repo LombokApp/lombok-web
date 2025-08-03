@@ -52,6 +52,7 @@ import { appConfig } from '../config'
 import { AppSocketAPIRequest } from '../constants/app-api-messages'
 import { App, appsTable } from '../entities/app.entity'
 import { AppAlreadyInstalledException } from '../exceptions/app-already-installed.exception'
+import { AppInvalidException } from '../exceptions/app-invalid.exception'
 import { AppNotParsableException } from '../exceptions/app-not-parsable.exception'
 import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirements-not-satisfied.exception'
 
@@ -85,6 +86,7 @@ const attemptStartHandleTaskSchema = z.object({
 
 const attemptStartHandleTaskByIdSchema = z.object({
   taskId: z.string().uuid(),
+  taskHandlerId: z.string().nonempty().max(512).optional(),
 })
 
 const getWorkerExecutionDetailsSchema = z.object({
@@ -332,7 +334,10 @@ export class AppService {
               securedTask = (
                 await this.ormService.db
                   .update(tasksTable)
-                  .set({ startedAt: new Date(), handlerId })
+                  .set({
+                    startedAt: new Date(),
+                    handlerId,
+                  })
                   .where(
                     and(
                       eq(tasksTable.id, task.id),
@@ -405,7 +410,13 @@ export class AppService {
               result: (
                 await this.ormService.db
                   .update(tasksTable)
-                  .set({ startedAt: new Date(), handlerId })
+                  .set({
+                    startedAt: new Date(),
+                    handlerId:
+                      requestData.taskHandlerId && isCoreApp
+                        ? requestData.taskHandlerId
+                        : handlerId,
+                  })
                   .where(eq(tasksTable.id, task.id))
                   .returning()
               )[0],
@@ -418,15 +429,14 @@ export class AppService {
             const parsedFailHandleTaskMessage =
               failHandleTaskSchema.parse(requestData)
             const task = await this.ormService.db.query.tasksTable.findFirst({
-              where: and(
-                eq(tasksTable.id, parsedFailHandleTaskMessage.taskId),
-                eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
-              ),
+              where: and(eq(tasksTable.id, parsedFailHandleTaskMessage.taskId)),
             })
             if (
               !task?.startedAt ||
               task.completedAt ||
-              (task.handlerId !== handlerId && !isCoreApp)
+              (!isCoreApp &&
+                (task.ownerIdentifier !== appIdentifierPrefixed ||
+                  task.handlerId !== handlerId))
             ) {
               return {
                 result: undefined,
@@ -1086,39 +1096,44 @@ export class AppService {
     directoryName: string,
     update: boolean,
   ) {
-    const app = await this.parseAppFromDisk(directoryName)
+    try {
+      const app = await this.parseAppFromDisk(directoryName)
 
-    const appIdentifier = app.definition?.identifier
-    if (app.validation.value && app.definition) {
-      try {
+      if (app.validation.value && app.definition) {
         await this.installApp(app.definition, update)
-      } catch (error) {
-        if (error instanceof AppAlreadyInstalledException) {
-          // eslint-disable-next-line no-console
-          console.log(
-            `APP INSTALL ERROR - APP[${appIdentifier}]: App is already installed.`,
-          )
-        } else if (error instanceof AppNotParsableException) {
-          // eslint-disable-next-line no-console
-          console.log(
-            `APP INSTALL ERROR - APP[${appIdentifier}]: App is not parsable.`,
-          )
-        } else if (error instanceof AppRequirementsNotSatisfiedException) {
-          // eslint-disable-next-line no-console
-          console.log(
-            `APP INSTALL ERROR - APP[${appIdentifier}]: App requirements are not met.`,
-          )
-        } else {
-          // eslint-disable-next-line no-console
-          console.log(`APP INSTALL ERROR - APP[${appIdentifier}]:`, error)
-        }
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(
+          `APP PARSE ERROR - (dir: '${directoryName}'): App config is invalid`,
+          app.validation.error?.errors,
+        )
       }
-    } else {
-      // eslint-disable-next-line no-console
-      console.log(
-        `APP PARSE ERROR - APP[${appIdentifier ?? '__UNKNONW__'}] - (directory: ${directoryName}): DEFINITION_INVALID`,
-        app.validation.error,
-      )
+    } catch (error) {
+      if (error instanceof AppAlreadyInstalledException) {
+        // eslint-disable-next-line no-console
+        console.log(
+          `APP INSTALL ERROR (dir: '${directoryName}'): App is already installed.`,
+        )
+      } else if (error instanceof AppNotParsableException) {
+        // eslint-disable-next-line no-console
+        console.log(
+          `APP INSTALL ERROR (dir: '${directoryName}'): App is not parsable.`,
+        )
+      } else if (error instanceof AppRequirementsNotSatisfiedException) {
+        // eslint-disable-next-line no-console
+        console.log(
+          `APP INSTALL ERROR (dir: '${directoryName}'): App requirements are not met.`,
+        )
+      } else if (error instanceof AppInvalidException) {
+        // eslint-disable-next-line no-console
+        console.log(
+          `APP INSTALL ERROR (dir: '${directoryName}'): App is invalid.`,
+          error.message,
+        )
+      } else {
+        // eslint-disable-next-line no-console
+        console.log(`APP INSTALL ERROR - (dir: '${directoryName}'):`, error)
+      }
     }
   }
 
@@ -1161,7 +1176,7 @@ export class AppService {
       : undefined
 
     if (!config) {
-      throw new Error(`Config file not found when parsing app.`)
+      throw new AppNotParsableException(`Config file not found`)
     }
 
     const appIdentifier = config.identifier
@@ -1228,6 +1243,23 @@ export class AppService {
       }
     }, {})
 
+    for (const workerScript of Object.keys(workerScripts)) {
+      if (
+        !(
+          `/workers/${workerScript}/index.ts` in
+          workerScripts[workerScript].files
+        ) &&
+        !(
+          `/workers/${workerScript}/index.js` in
+          workerScripts[workerScript].files
+        )
+      ) {
+        throw new AppInvalidException(
+          `App ${appIdentifier} has a worker script "${workerScript}" defined without have an index.ts or index.js file.`,
+        )
+      }
+    }
+
     const uis = Object.entries(config.uis ?? {}).reduce<AppUIMap>(
       (acc, [uiIdentifier, value]) => ({
         ...acc,
@@ -1253,6 +1285,17 @@ export class AppService {
       {},
     )
 
+    for (const uiName of Object.keys(uis)) {
+      if (
+        !Object.keys(uis[uiName].files).find((f) =>
+          f.startsWith(`/ui/${uiName}/`),
+        )
+      ) {
+        throw new AppInvalidException(
+          `App ${appIdentifier} has a ui "${uiName}" defined without have an index.ts or index.js file.`,
+        )
+      }
+    }
     const parseResult = appConfigSchema.safeParse(config)
 
     const app = {

@@ -18,6 +18,10 @@ import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger'
 import { FolderPermissionEnum } from '@stellariscloud/types'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
+import {
+  AllowedActor,
+  AuthGuardConfig,
+} from 'src/auth/guards/auth.guard-config'
 import { normalizeSortParam } from 'src/core/utils/sort.util'
 
 import {
@@ -271,6 +275,9 @@ export class FoldersController {
    * Scan the object again in the underlying storage, and update its state in our db.
    */
   @Post('/:folderId/objects/:objectKey')
+  @AuthGuardConfig({
+    allowedActors: [AllowedActor.USER, AllowedActor.APP_USER],
+  })
   async refreshFolderObjectS3Metadata(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,

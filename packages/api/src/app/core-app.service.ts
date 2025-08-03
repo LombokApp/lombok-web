@@ -10,6 +10,7 @@ import { coreConfig } from 'src/core/config'
 import { OrmService } from 'src/orm/orm.service'
 import { v4 as uuidV4 } from 'uuid'
 
+import { CoreWorkerProcessDataPayload } from './core-app-worker'
 import { appsTable } from './entities/app.entity'
 
 @Injectable()
@@ -42,18 +43,22 @@ export class CoreAppService {
       const appToken = !this._coreConfig.embeddedCoreAppToken
         ? await this.generateEmbeddedAppKeys()
         : this._coreConfig.embeddedCoreAppToken
-
       setTimeout(() => {
         // send the config as the first message
-        child.stdin.write(
-          JSON.stringify({
-            socketBaseUrl: `http://127.0.0.1:3000`,
-            appToken,
-            appWorkerId,
-            jwtSecret: this._authConfig.authJwtSecret,
-            hostId: this._coreConfig.hostId,
-          }),
-        )
+
+        const workerDataPayload: CoreWorkerProcessDataPayload = {
+          socketBaseUrl: `http://127.0.0.1:3000`,
+          appToken,
+          appWorkerId,
+          jwtSecret: this._authConfig.authJwtSecret,
+          hostId: this._coreConfig.hostId,
+          executionOptions: {
+            printWorkerOutput: this._coreConfig.printCoreProcessWorkerOutput,
+            emptyWorkerTmpDir: this._coreConfig.emptyCoreProcessWorkerTmpDirs,
+          },
+        }
+
+        child.stdin.write(JSON.stringify(workerDataPayload))
       }, 500)
 
       this.logger.debug('Embedded core app worker thread started')

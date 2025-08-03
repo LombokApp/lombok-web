@@ -21,5 +21,6 @@ services:
       RUN_MIGRATIONS: true
       APPS_LOCAL_PATH: /usr/src/app/apps
       DISABLE_EMBEDDED_CORE_APP_WORKER: false
+      PRINT_CORE_PROCESS_WORKER_OUTPUT: true
     ports:
       - 8090:80

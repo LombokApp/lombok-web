@@ -53,8 +53,11 @@ export const buildAppClient = (
     completeHandleTask(taskId) {
       return emitWithAck('COMPLETE_HANDLE_TASK', taskId)
     },
-    attemptStartHandleTaskById(taskId: string) {
-      return emitWithAck('ATTEMPT_START_HANDLE_TASK_BY_ID', { taskId })
+    attemptStartHandleTaskById(taskId: string, taskHandlerId?: string) {
+      return emitWithAck('ATTEMPT_START_HANDLE_TASK_BY_ID', {
+        taskId,
+        taskHandlerId,
+      })
     },
     attemptStartHandleTask(taskKeys: string[]) {
       return emitWithAck('ATTEMPT_START_HANDLE_TASK', { taskKeys })
@@ -88,6 +91,7 @@ export interface CoreServerMessageInterface {
   saveLogEntry: (entry: AppLogEntry) => Promise<boolean>
   attemptStartHandleTaskById: (
     taskId: string,
+    taskHandlerId?: string,
   ) => Promise<AppAPIResponse<AppTask>>
   attemptStartHandleTask: (
     taskKeys: string[],

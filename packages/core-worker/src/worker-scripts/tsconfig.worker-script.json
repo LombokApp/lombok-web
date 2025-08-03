@@ -2,7 +2,6 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@stellariscloud/app-worker-sdk": ["builtins/app-worker-sdk"]
     }
   }
 }

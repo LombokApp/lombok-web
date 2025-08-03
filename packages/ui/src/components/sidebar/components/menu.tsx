@@ -37,25 +37,28 @@ export function Menu({
 
   const menuList = getMenuList(location.pathname, viewer, appMenuItems)
   return (
-    <div className="flex h-full flex-col  pb-3">
+    <div className="flex h-full flex-col">
       <ScrollArea className="h-full flex-1 overflow-x-visible [&>div>div[style]]:!block">
-        <nav className="size-full pt-2">
-          <ul className="flex h-full flex-col items-start space-y-1 px-0">
+        <nav className="size-full py-2">
+          <ul className="flex h-full flex-col items-start space-y-1">
             {menuList.map(({ groupLabel, menus }, index) => (
               <li
-                className={cn('w-full', groupLabel ? 'pt-5' : '')}
+                className={cn(
+                  'w-full justify-center',
+                  groupLabel ? 'pt-6' : '',
+                )}
                 key={index}
               >
                 {(isOpen && groupLabel) || isOpen === undefined ? (
-                  <p className="max-w-[248px] truncate px-4 pb-2 text-sm font-medium text-muted-foreground">
+                  <p className="mb-2 px-3 text-xs font-medium text-muted-foreground/50">
                     {groupLabel}
                   </p>
                 ) : !isOpen && groupLabel ? (
                   <TooltipProvider>
                     <Tooltip delayDuration={100}>
                       <TooltipTrigger className="w-full">
-                        <div className="flex w-full items-center justify-center">
-                          <Ellipsis className="size-5" />
+                        <div className="mb-2 flex w-full items-center justify-center">
+                          <Ellipsis className="size-4 text-muted-foreground" />
                         </div>
                       </TooltipTrigger>
                       <TooltipContent side="right">
@@ -64,7 +67,7 @@ export function Menu({
                     </Tooltip>
                   </TooltipProvider>
                 ) : (
-                  <p className="pb-2"></p>
+                  <div className="mb-2"></div>
                 )}
                 {menus.map(
                   (
@@ -72,74 +75,56 @@ export function Menu({
                     _index,
                   ) =>
                     !submenus || submenus.length === 0 ? (
-                      <div className="w-full" key={_index}>
+                      <div className="w-full px-3" key={_index}>
                         <TooltipProvider disableHoverableContent>
                           <Tooltip delayDuration={100}>
                             <TooltipTrigger asChild>
                               <Button
-                                variant={
-                                  (active === undefined &&
-                                    location.pathname.startsWith(href)) ||
-                                  active
-                                    ? 'outline'
-                                    : 'ghost'
-                                }
+                                variant="ghost"
                                 className={cn(
-                                  'mb-1 h-10 w-full justify-start',
+                                  'h-9 w-full px-2 font-normal',
+                                  isOpen ? 'justify-start' : 'justify-center',
                                   (active === undefined &&
                                     location.pathname.startsWith(href)) ||
                                     active
-                                    ? 'bg-foreground/5'
-                                    : undefined,
+                                    ? 'bg-accent text-accent-foreground'
+                                    : 'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground',
                                 )}
                                 asChild
                               >
                                 <Link
                                   to={href}
-                                  className={
-                                    typeof Icon === 'string' ? 'pl-2' : ''
-                                  }
+                                  className={cn(
+                                    'flex w-full transition-all duration-300 ease-in-out',
+                                    isOpen
+                                      ? 'justify-start'
+                                      : 'justify-center pl-2',
+                                  )}
                                 >
-                                  <span
-                                    className={cn(
-                                      typeof Icon === 'string'
-                                        ? 'pl-0 rounded-sm overflow-hidden'
-                                        : '',
-                                      isOpen === false ? '' : 'mr-4',
-                                    )}
-                                  >
+                                  {!isOpen && <span></span>}
+                                  <span className={cn('', !isOpen ? '' : '')}>
                                     {typeof Icon === 'string' ? (
                                       <img
                                         src={`${protocol}//${context?.uiName}.${context?.appIdentifier}.apps.${API_HOST}${Icon}`}
-                                        // src={`/apps${Icon}`}
-                                        className={cn(
-                                          typeof Icon === 'string'
-                                            ? 'size-6 rounded-md overflow-hidden'
-                                            : '',
-                                        )}
+                                        alt={`${context?.appLabel || label} icon`}
+                                        className="size-4"
                                       />
                                     ) : (
                                       <Icon className="size-4" />
                                     )}
                                   </span>
-                                  <p
+                                  <span
                                     className={cn(
-                                      'max-w-[200px] truncate',
-                                      isOpen === false
-                                        ? '-translate-x-96 opacity-0'
-                                        : 'translate-x-0 opacity-100',
+                                      'text-sm truncate duration-300 ease-in-out',
+                                      !isOpen
+                                        ? '-translate-x-0 opacity-0 w-0'
+                                        : 'translate-x-0 opacity-100 pl-3',
                                     )}
                                   >
-                                    {context?.appLabel && (
-                                      <>
-                                        <span className="font-bold">
-                                          {context.appLabel}
-                                        </span>
-                                        {' / '}
-                                      </>
-                                    )}
-                                    <span>{label}</span>
-                                  </p>
+                                    {context?.appLabel
+                                      ? `${context.appLabel} / ${label}`
+                                      : label}
+                                  </span>
                                 </Link>
                               </Button>
                             </TooltipTrigger>
@@ -174,32 +159,36 @@ export function Menu({
           </ul>
         </nav>
       </ScrollArea>
-      <TooltipProvider disableHoverableContent>
-        <Tooltip delayDuration={100}>
-          <TooltipTrigger asChild>
-            <Button
-              onClick={() => void onSignOut()}
-              variant="outline"
-              className="mt-5 h-10 w-full justify-center"
-            >
-              <span className={cn(isOpen === false ? '' : 'mr-4')}>
-                <LogOut size={18} />
-              </span>
-              <p
-                className={cn(
-                  'whitespace-nowrap',
-                  isOpen === false ? 'hidden opacity-0' : 'opacity-100',
-                )}
+      <div className="px-3 pb-2">
+        <TooltipProvider disableHoverableContent>
+          <Tooltip delayDuration={100}>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => void onSignOut()}
+                variant="ghost"
+                className="h-9 w-full justify-start px-2 font-normal text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
               >
-                Sign out
-              </p>
-            </Button>
-          </TooltipTrigger>
-          {isOpen === false && (
-            <TooltipContent side="right">Sign out</TooltipContent>
-          )}
-        </Tooltip>
-      </TooltipProvider>
+                <span className={cn(isOpen === false ? '' : 'mr-3')}>
+                  <LogOut className="size-4" />
+                </span>
+                <span
+                  className={cn(
+                    'text-sm',
+                    isOpen === false
+                      ? '-translate-x-96 opacity-0'
+                      : 'translate-x-0 opacity-100',
+                  )}
+                >
+                  Sign out
+                </span>
+              </Button>
+            </TooltipTrigger>
+            {isOpen === false && (
+              <TooltipContent side="right">Sign out</TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
+      </div>
     </div>
   )
 }

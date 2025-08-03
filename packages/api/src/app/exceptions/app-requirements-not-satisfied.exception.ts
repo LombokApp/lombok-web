@@ -1,5 +1,3 @@
-import { ConflictException } from '@nestjs/common'
-
-export class AppRequirementsNotSatisfiedException extends ConflictException {
+export class AppRequirementsNotSatisfiedException extends Error {
   name = AppRequirementsNotSatisfiedException.name
 }

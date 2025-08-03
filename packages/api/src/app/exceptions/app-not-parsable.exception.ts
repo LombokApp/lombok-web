@@ -1,5 +1,3 @@
-import { ConflictException } from '@nestjs/common'
-
-export class AppNotParsableException extends ConflictException {
+export class AppNotParsableException extends Error {
   name = AppNotParsableException.name
 }

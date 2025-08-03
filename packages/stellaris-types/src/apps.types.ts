@@ -102,7 +102,14 @@ export const appConfigSchema = z.object({
   tasks: z.array(taskConfigSchema),
   externalWorkers: z.array(z.string().nonempty()).optional(),
   workerScripts: z
-    .record(z.string().nonempty(), appWorkerScriptConfigSchema)
+    .record(
+      z
+        .string()
+        .nonempty()
+        .regex(/^[a-z0-9_]+$/)
+        .refine((v) => v.toLowerCase() === v),
+      appWorkerScriptConfigSchema,
+    )
     .optional(),
   uis: z.record(z.string().nonempty(), appUIConfigSchema).optional(),
 })
