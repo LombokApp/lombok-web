@@ -7,10 +7,11 @@ services:
       target: local
     volumes:
       - ./:/usr/src/app:cached
+      - /usr/src/app/node_modules
     env_file: packages/api/.env
     environment:
       WAIT_HOSTS: db:${DB_PORT:-0}
-    command: ['bun', '--cwd', 'packages/api', 'dev']
+    command: ['/bin/sh', '-c', 'bun install && bun --cwd packages/api dev']
     ports:
       - 3000:3000
       - 3001:3001
