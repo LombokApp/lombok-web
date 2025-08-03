@@ -39,14 +39,6 @@ export function UserStorageProvisions() {
       onSuccess: () => userStorageProvisionsQuery.refetch(),
     },
   )
-  // TODO: Delete storage provision mutation (add ui to modal)
-  const _deleteStorageProvisionMutation = $api.useMutation(
-    'delete',
-    '/api/v1/server/user-storage-provisions/{userStorageProvisionId}',
-    {
-      onSuccess: () => userStorageProvisionsQuery.refetch(),
-    },
-  )
 
   // Define the update handler to pass to the table
   const handleUpdate = React.useCallback(

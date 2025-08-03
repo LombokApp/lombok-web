@@ -12,6 +12,7 @@
     "reset:sdk": "(rm -rf ./node_modules/@stellariscloud/app-worker-sdk || true)",
     "lint:check": "eslint",
     "lint:fix": "eslint --fix",
+    "tsc:check": "tsc --noEmit",
     "db:migrate:new": "bunx drizzle-kit generate --config ./src/orm/drizzle.config.ts",
     "db:migrate:up": "bun --bun ./script/db-migrate-up.ts",
     "db:migrate:check": "./cmd/db-migrate-check.sh",

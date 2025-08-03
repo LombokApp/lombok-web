@@ -1,8 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
 
-import type {
-  ChartConfig} from './chart'
+import type { ChartConfig } from './chart'
 import {
   ChartContainer,
   ChartLegend,

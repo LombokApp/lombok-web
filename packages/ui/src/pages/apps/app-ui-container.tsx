@@ -21,9 +21,10 @@ export const AppUIContainer = () => {
   const app = serverContext.apps?.result.find(
     (_app) => _app.identifier === appIdentifier,
   )
-  const uiLabel = app?.config.uis?.[uiName].menuItems.find(
-    (_menuItem) => _menuItem.uiName === uiName,
-  )?.label
+  const uiLabel =
+    app?.config.uis?.[uiName ?? '']?.menuItems.find(
+      (_menuItem) => _menuItem.uiName === uiName,
+    )?.label ?? ''
 
   const appLabel = app?.label
 

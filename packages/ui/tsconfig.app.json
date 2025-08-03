@@ -21,10 +21,14 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
+    "noUncheckedIndexedAccess": true,
     "paths": {
       "@/src": ["./src"],
-      "@/src/*": ["./src/*"]
+      "@/src/*": ["./src/*"],
+      "@/utils": ["../ui-toolkit/src/utils"],
+      "@/utils/*": ["../ui-toolkit/src/utils/*"],
+      "@/components/*": ["../ui-toolkit/src/components/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "worker.ts"]
 }

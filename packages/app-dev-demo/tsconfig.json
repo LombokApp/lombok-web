@@ -29,6 +29,5 @@
       "@/components/*": ["../ui-toolkit/src/components/*"]
     }
   },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
-} 
+  "include": ["src", "vite.config.ts", "eslint.config.ts"]
+}

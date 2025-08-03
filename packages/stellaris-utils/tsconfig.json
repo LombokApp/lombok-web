@@ -2,21 +2,26 @@
   "compilerOptions": {
     "target": "es6",
     "lib": ["dom", "dom.iterable", "esnext"],
+    "outDir": "dist",
     "allowJs": true,
-    "composite": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "strictNullChecks": true,
     "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
     "module": "commonjs",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "outDir": "dist"
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUncheckedIndexedAccess": true
   },
-  "include": [".", "index.ts", "index.d.ts", "eslint.config.js"],
+  "include": [".", "index.ts", "index.d.ts", "eslint.config.ts"],
   "exclude": ["dist"]
 }

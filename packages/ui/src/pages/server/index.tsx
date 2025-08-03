@@ -15,7 +15,7 @@ export const ServerIndexPage = () => {
       <ContentLayout
         breadcrumbs={[{ label: 'Server', href: '/server' }].concat(
           serverPage.map((serverPagePart, i) => ({
-            label: `${serverPagePart[0].toUpperCase()}${serverPagePart.slice(1)}`,
+            label: `${serverPagePart[0]?.toUpperCase() ?? ''}${serverPagePart.slice(1)}`,
             href:
               i === serverPage.length - 1
                 ? ''

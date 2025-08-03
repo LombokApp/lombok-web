@@ -1,22 +1,22 @@
-import fs from 'fs'
-import os from 'os'
-import path from 'path'
-
-import { downloadFileToDisk } from '../utils/file.util'
-import {
+import type {
   AppTask,
   CoreServerMessageInterface,
   SerializeableResponse,
 } from '@stellariscloud/app-worker-sdk'
-import {
+import type {
   SerializeableError,
-  serializeError,
-  WorkerError,
   WorkerModuleStartContext,
 } from '@stellariscloud/core-worker'
+import { serializeWorkerError, WorkerError } from '@stellariscloud/core-worker'
+import fs from 'fs'
+import os from 'os'
+import path from 'path'
+
+import { ScriptExecutionError } from '../errors'
+import { downloadFileToDisk } from '../utils/file.util'
 
 // Helper function to parse request body based on Content-Type and HTTP method
-async function parseRequestBody(request: Request): Promise<any> {
+async function parseRequestBody(request: Request): Promise<unknown> {
   // Methods that typically don't have request bodies
   const methodsWithoutBody = ['GET', 'HEAD', 'DELETE', 'OPTIONS']
 
@@ -123,7 +123,7 @@ export const runWorkerScript = async ({
     await server.getWorkerExecutionDetails(appIdentifier, workerIdentifier)
 
   const workerScriptEnvVars = Object.keys(
-    workerExecutionDetails.envVars ?? {},
+    workerExecutionDetails.envVars,
   ).reduce<string[]>(
     (acc, next) =>
       acc.concat(
@@ -163,7 +163,7 @@ export const runWorkerScript = async ({
     : `index.ts`
 
   // Serialize the request or task for the sandbox
-  let serializedRequestOrTask = isRequest
+  const serializedRequestOrTask = isRequest
     ? {
         url: requestOrTask.url.replace(
           new RegExp(`/worker-api/${workerIdentifier}`),
@@ -255,9 +255,16 @@ export const runWorkerScript = async ({
     const errStr = await Bun.file(errOutputPath).text()
 
     try {
-      parsedErr = JSON.parse(errStr).innerError
-    } catch (err) {
-      parsedErr = JSON.parse(serializeError(new WorkerError(String(errStr))))
+      const parsedErrObj = JSON.parse(errStr) as SerializeableError | undefined
+      parsedErr = !parsedErrObj
+        ? (JSON.parse(
+            serializeWorkerError(new WorkerError(String(errStr))),
+          ) as SerializeableError)
+        : (parsedErrObj.innerError ?? parsedErrObj)
+    } catch (err: unknown) {
+      parsedErr = JSON.parse(
+        serializeWorkerError(new WorkerError(String(errStr), err)),
+      ) as SerializeableError
     }
     const errorClassName = parsedErr.className
     console.log(
@@ -280,7 +287,9 @@ export const runWorkerScript = async ({
   // Parse the result from the response output file
   let response: SerializeableResponse
   try {
-    response = JSON.parse(await Bun.file(resultOutputPath).text())
+    response = JSON.parse(
+      await Bun.file(resultOutputPath).text(),
+    ) as SerializeableResponse
   } catch (parseError) {
     throw new ScriptExecutionError('Failed to parse worker response', {
       parseError:
@@ -289,13 +298,4 @@ export const runWorkerScript = async ({
     })
   }
   return response
-}
-
-export class ScriptExecutionError extends Error {
-  constructor(
-    message: string,
-    public readonly details: Record<string, unknown>,
-  ) {
-    super(message)
-  }
 }

@@ -41,7 +41,6 @@ export class LazyWeakMap<K extends object, V> extends WeakMap<K, V> {
    * @param key Entry key
    */
   get(key: K): V | undefined
-  // eslint-disable-next-line sonarjs/no-identical-functions
   get(key: K, init?: () => V): V | undefined {
     if (init && !this.has(key)) {
       this.set(key, init())
@@ -70,10 +69,10 @@ export const range = (start: number, end: number) => {
 }
 
 export const findAllByKey = <
-  R = any,
-  T extends { [key: string]: T } = { [key: string]: any },
+  R = unknown,
+  T extends Record<string, unknown> = Record<string, unknown>,
 >(
-  obj: { [key: string]: any },
+  obj: Record<string, unknown>,
   keyToFind: string,
 ): R[] => {
   return Object.entries(obj).reduce<R[]>(
@@ -81,15 +80,17 @@ export const findAllByKey = <
       key === keyToFind
         ? acc.concat(value as R[])
         : typeof value === 'object'
-        ? acc.concat(findAllByKey<R, T>(value as object, keyToFind))
-        : acc,
+          ? acc.concat(
+              findAllByKey<R, T>(value as Record<string, unknown>, keyToFind),
+            )
+          : acc,
     [],
   )
 }
 
-export const filterNonUnique = (arr: any[]) =>
+export const filterNonUnique = (arr: unknown[]) =>
   arr.filter((i) => arr.indexOf(i) === arr.lastIndexOf(i))
 
-export const removeDuplicates = (arr: any[]) => {
+export const removeDuplicates = (arr: unknown[]) => {
   return arr.filter((item, index) => arr.indexOf(item) === index)
 }

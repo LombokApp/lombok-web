@@ -28,23 +28,23 @@ import {
 } from '@stellariscloud/ui-toolkit'
 
 const formSchema = z.object({
-  email: z.string().min(2, {
-    message: 'Email must be at least 2 characters.',
-  }),
-  password: z.string().min(2, {
-    message: 'Password must be at least 2 characters.',
-  }),
-  confirmPassword: z.string().min(2, {
-    message: 'Password must be at least 2 characters.',
-  }),
+email: z.string().min(2, {
+message: 'Email must be at least 2 characters.',
+}),
+password: z.string().min(2, {
+message: 'Password must be at least 2 characters.',
+}),
+confirmPassword: z.string().min(2, {
+message: 'Password must be at least 2 characters.',
+}),
 })
 
 const form = useForm<z.infer<typeof formSchema>>({
-  defaultValues: {
-    email: '',
-    password: '',
-    confirmPassword: '',
-  },
+defaultValues: {
+email: '',
+password: '',
+confirmPassword: '',
+},
 })
 
 <Form {...form}>

@@ -13,7 +13,7 @@
     "dev": "bun --watch src/index.ts",
     "lint:check": "eslint .",
     "lint:fix": "eslint --fix .",
-    "ts:check": "tsc --noEmit",
+    "tsc:check": "tsc --noEmit",
     "prettier:check": "prettier --check .",
     "prettier:fix": "prettier --write ."
   },
@@ -23,9 +23,7 @@
     "@stellariscloud/auth-utils": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.6.3",
-    "eslint": "^9.0.0"
+    "@types/node": "^20.0.0"
   },
   "peerDependencies": {
     "react": "^18.3.1"

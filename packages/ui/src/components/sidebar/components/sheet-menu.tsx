@@ -1,3 +1,4 @@
+import type { IAuthContext } from '@stellariscloud/auth-utils'
 import {
   Button,
   Sheet,
@@ -9,9 +10,19 @@ import {
 import { MenuIcon, PanelsTopLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import type { AppMenuItemAndHref } from '@/src/contexts/server.context'
+
 import { Menu } from './menu'
 
-export function SheetMenu({ onSignout }: { onSignout: () => Promise<void> }) {
+export function SheetMenu({
+  onSignout,
+  viewer,
+  appMenuItems,
+}: {
+  onSignout: () => Promise<void>
+  viewer: NonNullable<IAuthContext['viewer']>
+  appMenuItems: AppMenuItemAndHref[]
+}) {
   return (
     <Sheet>
       <SheetTrigger className="lg:hidden" asChild>
@@ -32,7 +43,12 @@ export function SheetMenu({ onSignout }: { onSignout: () => Promise<void> }) {
             </Link>
           </Button>
         </SheetHeader>
-        <Menu isOpen onSignOut={onSignout} />
+        <Menu
+          isOpen
+          onSignOut={onSignout}
+          appMenuItems={appMenuItems}
+          viewer={viewer}
+        />
       </SheetContent>
     </Sheet>
   )

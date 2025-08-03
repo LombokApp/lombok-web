@@ -23,7 +23,13 @@ export function invertColour(hex: string, bw = true) {
   }
   // convert 3-digit hex to 6-digits.
   if (hex.length === 3) {
-    _hex = _hex[0] + _hex[0] + _hex[1] + _hex[1] + _hex[2] + _hex[2]
+    _hex =
+      (_hex[0] ?? '') +
+      (_hex[0] ?? '') +
+      (_hex[1] ?? '') +
+      (_hex[1] ?? '') +
+      (_hex[2] ?? '') +
+      (_hex[2] ?? '')
   }
   if (_hex.length !== 6) {
     throw new Error('Invalid HEX color.')

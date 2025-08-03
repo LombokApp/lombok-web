@@ -23,7 +23,7 @@ export const s3LocationEndpointSchema = z
     (e) => {
       try {
         return new URL(e).pathname === '/'
-      } catch (error) {
+      } catch {
         return false
       }
     },

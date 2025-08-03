@@ -38,7 +38,7 @@ export const serverEventsTableColumns: HideableColumnDef<EventDTO>[] = [
             <img width={30} height={30} alt="Core" src="/stellariscloud.png" />
           ) : (
             <span className="uppercase">
-              {row.original.emitterIdentifier.split(':')[1][0]}
+              {row.original.emitterIdentifier.split(':')[1]?.[0] ?? ''}
             </span>
           )}
         </div>

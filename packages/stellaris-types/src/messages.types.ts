@@ -26,7 +26,5 @@ export interface AppLogEntry {
   level: 'error' | 'warning' | 'info' | 'debug'
   name: string
   message: string
-  data: {
-    [key: string]: any
-  }
+  data: Record<string, unknown>
 }

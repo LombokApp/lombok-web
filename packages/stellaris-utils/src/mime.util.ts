@@ -31,10 +31,7 @@ export const mediaTypeFromMimeType = (mimeType: string) => {
 }
 
 export const mediaTypeFromExtension = (extension: string) => {
-  const mimeType =
-    EXTENSION_TO_MIME_TYPE_MAP[
-      extension.toLowerCase() as keyof typeof EXTENSION_TO_MIME_TYPE_MAP
-    ]
+  const mimeType = EXTENSION_TO_MIME_TYPE_MAP[extension.toLowerCase()]
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (!mimeType) {
     return MediaType.Unknown
@@ -54,5 +51,7 @@ export const mediaTypeFromExtension = (extension: string) => {
 }
 
 export const extensionFromMimeType = (mimeType: string): string | undefined => {
-  return (MIME_TYPE_TO_EXTENSION_MAP as any)[mimeType]
+  return MIME_TYPE_TO_EXTENSION_MAP[
+    mimeType as keyof typeof MIME_TYPE_TO_EXTENSION_MAP
+  ]
 }

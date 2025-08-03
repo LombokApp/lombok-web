@@ -1,3 +1,8 @@
+import type {
+  AppTask,
+  CoreServerMessageInterface,
+} from '@stellariscloud/app-worker-sdk'
+import { AppAPIError } from '@stellariscloud/app-worker-sdk'
 import type { ContentMetadataEntry } from '@stellariscloud/types'
 import { MediaType } from '@stellariscloud/types'
 import { mediaTypeFromMimeType } from '@stellariscloud/utils'
@@ -6,11 +11,6 @@ import os from 'os'
 import path from 'path'
 import { v4 as uuidV4 } from 'uuid'
 
-import {
-  CoreServerMessageInterface,
-  AppTask,
-  AppAPIError,
-} from '@stellariscloud/app-worker-sdk'
 import type {
   ImageOperationOutput,
   VideoOperationOutput,
@@ -98,7 +98,7 @@ export const analyzeObjectTaskHandler = async (
       : ['video/webm', 'webm']
 
   let scaleResult: VideoOperationOutput | ImageOperationOutput | undefined
-  let metadataDescription: { [key: string]: ContentMetadataEntry } = {}
+  const metadataDescription: Record<string, ContentMetadataEntry> = {}
   const contentHash = await hashLocalFile(inFilepath)
   const rotation = await getNecessaryContentRotation(inFilepath, mimeType)
 
@@ -141,8 +141,10 @@ export const analyzeObjectTaskHandler = async (
     const metadtaSignedUrlsResponse = await server
       .getMetadataSignedUrls(
         metadataKeys.map((k) => ({
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           folderId: task.subjectFolderId!,
           contentHash,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           objectKey: task.subjectObjectKey!,
           method: 'PUT',
           metadataHash: metadataHashes[k as keyof typeof metadataHashes],
@@ -190,30 +192,29 @@ export const analyzeObjectTaskHandler = async (
     }
     metadataDescription.height = {
       type: 'inline',
-      size: Buffer.from(JSON.stringify(scaleResult?.originalHeight ?? 0))
-        .length,
-      content: `${scaleResult?.originalHeight ?? 0}`,
+      size: Buffer.from(JSON.stringify(scaleResult.originalHeight)).length,
+      content: `${scaleResult.originalHeight}`,
       mimeType: 'application/json',
     }
     metadataDescription.width = {
       type: 'inline',
-      size: Buffer.from(JSON.stringify(scaleResult?.originalWidth ?? 0)).length,
-      content: `${scaleResult?.originalWidth ?? 0}`,
+      size: Buffer.from(JSON.stringify(scaleResult.originalWidth)).length,
+      content: `${scaleResult.originalWidth}`,
       mimeType: 'application/json',
     }
     metadataDescription.orientation = {
       type: 'inline',
-      size: Buffer.from(JSON.stringify(rotation ?? 0)).length,
-      content: `${rotation ?? 0}`,
+      size: Buffer.from(JSON.stringify(rotation)).length,
+      content: `${rotation}`,
       mimeType: 'application/json',
     }
-    if (MediaType.Video === mediaType) {
+    if (MediaType.Video === mediaType && 'lengthMs' in scaleResult) {
       metadataDescription.lengthMs = {
         type: 'inline',
         size: Buffer.from(
-          JSON.stringify((scaleResult as any | undefined)?.lengthMs ?? 0),
+          JSON.stringify((scaleResult as VideoOperationOutput).lengthMs),
         ).length,
-        content: `${(scaleResult as any | undefined)?.lengthMs ?? 0}`,
+        content: `${(scaleResult as VideoOperationOutput).lengthMs}`,
         mimeType: 'application/json',
       }
     }

@@ -1,6 +1,9 @@
-import { AppTask } from '@stellariscloud/app-worker-sdk'
+import type {
+  AppTask,
+  SerializeableRequest,
+} from '@stellariscloud/app-worker-sdk'
 
-export type WorkerModuleStartContext = {
+export interface WorkerModuleStartContext {
   resultFilepath: string
   outputLogFilepath: string
   errorLogFilepath: string
@@ -10,11 +13,6 @@ export type WorkerModuleStartContext = {
   scriptPath: string
   executionId: string
   executionType: 'request' | 'task'
-  request?: {
-    url: string
-    method: string
-    headers: Record<string, string>
-    body: any
-  }
+  request?: SerializeableRequest
   task?: AppTask
 }

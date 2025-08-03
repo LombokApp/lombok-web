@@ -1,4 +1,5 @@
 import './styles/globals.css'
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 const queryClient = new QueryClient()
@@ -9,18 +10,18 @@ export const App = () => {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         {/* Header */}
         <header className="border-b border-white/10 bg-white/5 backdrop-blur-sm">
-          <div className="container mx-auto px-4 py-4">
+          <div className="container mx-auto p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600"></div>
+                <div className="size-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600"></div>
                 <span className="text-xl font-bold text-white">
                   StellarisCloud
                 </span>
               </div>
-              <nav className="hidden md:flex space-x-6">
+              <nav className="hidden space-x-6 md:flex">
                 <a
                   href="#"
-                  className="text-white/70 hover:text-white transition-colors"
+                  className="text-white/70 transition-colors hover:text-white"
                 >
                   Features
                 </a>
@@ -28,13 +29,13 @@ export const App = () => {
                   href="https://stellariscloud.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-white/70 hover:text-white transition-colors"
+                  className="text-white/70 transition-colors hover:text-white"
                 >
                   Documentation
                 </a>
                 <a
                   href="#"
-                  className="text-white/70 hover:text-white transition-colors"
+                  className="text-white/70 transition-colors hover:text-white"
                 >
                   About
                 </a>
@@ -46,25 +47,25 @@ export const App = () => {
         {/* Hero Section */}
         <section className="container mx-auto px-4 py-20">
           <div className="text-center">
-            <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/10 text-white/90 border border-white/20 mb-4">
+            <div className="mb-4 inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm font-medium text-white/90">
               🚀 App Development Demo
             </div>
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
+            <h1 className="mb-6 text-5xl font-bold text-white md:text-7xl">
               Welcome to{' '}
               <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 StellarisCloud
               </span>
             </h1>
-            <p className="text-xl text-white/70 mb-8 max-w-3xl mx-auto">
+            <p className="mx-auto mb-8 max-w-3xl text-xl text-white/70">
               Experience the future of cloud computing with our powerful,
               scalable, and intuitive platform. Built for developers who demand
               excellence.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105">
+            <div className="flex flex-col justify-center gap-4 sm:flex-row">
+              <button className="rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-3 font-semibold text-white transition-all duration-200 hover:scale-105 hover:from-blue-600 hover:to-purple-700">
                 Get Started
               </button>
-              <button className="px-8 py-3 border border-white/20 text-white hover:bg-white/10 font-semibold rounded-lg transition-all duration-200">
+              <button className="rounded-lg border border-white/20 px-8 py-3 font-semibold text-white transition-all duration-200 hover:bg-white/10">
                 View Documentation
               </button>
             </div>
@@ -73,21 +74,21 @@ export const App = () => {
 
         {/* Features Section */}
         <section className="container mx-auto px-4 py-20">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">
+          <div className="mb-16 text-center">
+            <h2 className="mb-4 text-4xl font-bold text-white">
               Why Choose StellarisCloud?
             </h2>
-            <p className="text-xl text-white/70 max-w-2xl mx-auto">
+            <p className="mx-auto max-w-2xl text-xl text-white/70">
               Discover the features that make our platform the preferred choice
               for modern applications.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white/5 border border-white/10 backdrop-blur-sm rounded-lg p-6">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center mb-4">
+          <div className="grid gap-8 md:grid-cols-3">
+            <div className="rounded-lg border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+              <div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-gradient-to-r from-blue-500 to-blue-600">
                 <svg
-                  className="w-6 h-6 text-white"
+                  className="size-6 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -100,7 +101,7 @@ export const App = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 className="mb-2 text-xl font-semibold text-white">
                 Lightning Fast
               </h3>
               <p className="text-white/70">
@@ -109,10 +110,10 @@ export const App = () => {
               </p>
             </div>
 
-            <div className="bg-white/5 border border-white/10 backdrop-blur-sm rounded-lg p-6">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-purple-500 to-purple-600 flex items-center justify-center mb-4">
+            <div className="rounded-lg border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+              <div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-purple-600">
                 <svg
-                  className="w-6 h-6 text-white"
+                  className="size-6 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -125,7 +126,7 @@ export const App = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 className="mb-2 text-xl font-semibold text-white">
                 Enterprise Security
               </h3>
               <p className="text-white/70">
@@ -134,10 +135,10 @@ export const App = () => {
               </p>
             </div>
 
-            <div className="bg-white/5 border border-white/10 backdrop-blur-sm rounded-lg p-6">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-center mb-4">
+            <div className="rounded-lg border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+              <div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-gradient-to-r from-green-500 to-green-600">
                 <svg
-                  className="w-6 h-6 text-white"
+                  className="size-6 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -150,7 +151,7 @@ export const App = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 className="mb-2 text-xl font-semibold text-white">
                 Auto Scaling
               </h3>
               <p className="text-white/70">
@@ -163,21 +164,21 @@ export const App = () => {
 
         {/* Stats Section */}
         <section className="container mx-auto px-4 py-20">
-          <div className="grid md:grid-cols-4 gap-8 text-center">
+          <div className="grid gap-8 text-center md:grid-cols-4">
             <div>
-              <div className="text-4xl font-bold text-white mb-2">99.9%</div>
+              <div className="mb-2 text-4xl font-bold text-white">99.9%</div>
               <div className="text-white/70">Uptime</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-white mb-2">50ms</div>
+              <div className="mb-2 text-4xl font-bold text-white">50ms</div>
               <div className="text-white/70">Average Response</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-white mb-2">10M+</div>
+              <div className="mb-2 text-4xl font-bold text-white">10M+</div>
               <div className="text-white/70">Active Users</div>
             </div>
             <div>
-              <div className="text-4xl font-bold text-white mb-2">24/7</div>
+              <div className="mb-2 text-4xl font-bold text-white">24/7</div>
               <div className="text-white/70">Support</div>
             </div>
           </div>

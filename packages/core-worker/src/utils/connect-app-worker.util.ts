@@ -1,22 +1,26 @@
-import {
-  AppAPIError,
+import type {
   AppTask,
-  buildAppClient,
   CoreServerMessageInterface,
 } from '@stellariscloud/app-worker-sdk/src/app-worker-sdk'
+import {
+  AppAPIError,
+  buildAppClient,
+} from '@stellariscloud/app-worker-sdk/src/app-worker-sdk'
 import type { AppLogEntry } from '@stellariscloud/types'
+import { serializeError } from '@stellariscloud/utils'
 import { io } from 'socket.io-client'
 
-export const connectAndPerformWork = (
+import type { SerializeableError } from '../errors/errors'
+import { serializeWorkerError } from '../errors/errors'
+
+export const connectAndPerformWork = async (
   socketBaseUrl: string,
   appWorkerId: string,
   appToken: string,
-  taskHandlers: {
-    [taskKey: string]: (
-      task: AppTask,
-      serverClient: CoreServerMessageInterface,
-    ) => Promise<void>
-  },
+  taskHandlers: Record<
+    string,
+    (task: AppTask, serverClient: CoreServerMessageInterface) => Promise<void>
+  >,
 ) => {
   // TODO: send internal state back to the core via a message
   const taskKeys = Object.keys(taskHandlers)
@@ -30,16 +34,16 @@ export const connectAndPerformWork = (
     reconnection: false,
   })
   const serverClient = buildAppClient(socket, socketBaseUrl)
-  const log = (logEntryProperties: Partial<AppLogEntry>) => {
+  const log = async (logEntryProperties: Partial<AppLogEntry>) => {
     const logEntry: AppLogEntry = {
       data: logEntryProperties.data ?? {},
       name: logEntryProperties.name ?? 'info',
       level: logEntryProperties.level ?? 'info',
       message: logEntryProperties.message ?? '',
     }
-    serverClient.saveLogEntry(logEntry)
+    await serverClient.saveLogEntry(logEntry)
   }
-  log({ message: 'Connected.' })
+  await log({ message: 'Connected.' })
   let concurrentTasks = 0
 
   const shutdown = () => {
@@ -47,8 +51,8 @@ export const connectAndPerformWork = (
   }
 
   const wait = new Promise<void>((resolve, reject) => {
-    socket.on('connect', () => {
-      log({ message: `App Worker "${appWorkerId}" connected.` })
+    socket.on('connect', async () => {
+      await log({ message: `App Worker "${appWorkerId}" connected.` })
     })
 
     socket.on('disconnect', (reason) => {
@@ -63,8 +67,10 @@ export const connectAndPerformWork = (
     })
 
     socket.onAny((_data) => {
+      // eslint-disable-next-line no-console
       ;(socket.disconnected ? console.log : log)({
         message: 'Got event in worker thread',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         data: _data,
       })
     })
@@ -78,29 +84,30 @@ export const connectAndPerformWork = (
           const task = attemptStartHandleResponse.result
           if (attemptStartHandleResponse.error) {
             const errorMessage = `${attemptStartHandleResponse.error.code} - ${attemptStartHandleResponse.error.message}`
-            log({ message: errorMessage, name: 'Error' })
+            await log({ message: errorMessage, name: 'Error' })
           } else {
             await taskHandlers[task.taskKey](task, serverClient)
               .then(() => serverClient.completeHandleTask(task.id))
-              .catch((e) => {
+              .catch((e: unknown) => {
                 return serverClient.failHandleTask(task.id, {
                   code: String(
                     e instanceof AppAPIError
                       ? e.errorCode
                       : 'APP_TASK_EXECUTION_ERROR',
                   ),
-                  message: `${e.name}: ${e.message}`,
+                  message: serializeError(e),
                 })
               })
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           ;(socket.disconnected ? console.log : log)({
             level: 'error',
             message: 'Unexpected error during app worker execution',
             data: {
-              name: error?.name ?? '',
-              message: error?.message ?? '',
-              stack: error?.stack ?? '',
+              errorObj: JSON.parse(
+                serializeWorkerError(error),
+              ) as SerializeableError,
+              errorStr: serializeError(error),
             },
           })
         } finally {
@@ -116,13 +123,14 @@ export const connectAndPerformWork = (
         level: 'error',
         data: {
           appWorkerId,
-          name: error.name,
-          stacktrace: error.stacktrace,
-          message: error.message,
+          errorObj: JSON.parse(
+            serializeWorkerError(error),
+          ) as SerializeableError,
+          errorStr: serializeError(error),
         },
       })
       socket.close()
-      reject(error)
+      reject(error instanceof Error ? error : new Error(String(error)))
     })
   })
 

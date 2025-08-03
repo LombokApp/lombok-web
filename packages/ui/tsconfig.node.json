@@ -5,7 +5,6 @@
     "lib": ["ES2023", "WebWorker"],
     "module": "ESNext",
     "skipLibCheck": true,
-    "noUncheckedIndexedAccess": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -19,14 +18,14 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "noUncheckedIndexedAccess": true
   },
   "include": [
     "vite.config.ts",
     "tailwind.config.ts",
     "postcss.config.ts",
     "eslint.config.ts",
-    "index.d.ts",
     "src/worker.ts"
   ]
 }

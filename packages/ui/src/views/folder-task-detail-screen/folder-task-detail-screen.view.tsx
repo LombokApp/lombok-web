@@ -27,7 +27,7 @@ export function FolderTaskDetailScreen() {
   const navigate = useNavigate()
   const params = useParams()
   const pathParts = params['*']?.split('/') ?? []
-  const taskId = pathParts[2]
+  const taskId = pathParts[2] ?? ''
   const { folderId } = useFolderContext()
 
   const taskQuery = $api.useQuery(

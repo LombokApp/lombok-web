@@ -1,9 +1,9 @@
 export async function withRetry<R>(
-  func: (...args: any[]) => Promise<R>,
+  func: (...args: unknown[]) => Promise<R>,
   retries: number,
   timeout: number,
-  onRetry: (i: number, err: any) => void,
-  onFailure: (err: any) => void,
+  onRetry: (i: number, err: unknown) => void,
+  onFailure: (err: unknown) => void,
 ): Promise<R> {
   let error
   for (let i = 0; i < retries; i++) {

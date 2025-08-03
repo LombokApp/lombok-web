@@ -10,9 +10,18 @@ import * as Stories from './popover.stories'
 
 #### Displays rich content in a portal, triggered by a button.
 
-<Button variant="outline" size="sm" onClick={() => {
-  window.open('https://www.radix-ui.com/primitives/docs/components/popover#api-reference', '_blank')
-}}>API Reference</Button>
+<Button
+  variant="outline"
+  size="sm"
+  onClick={() => {
+    window.open(
+      'https://www.radix-ui.com/primitives/docs/components/popover#api-reference',
+      '_blank',
+    )
+  }}
+>
+  API Reference
+</Button>
 
 <Source
   dark
@@ -42,11 +51,7 @@ import {
       <div className="grid gap-2">
         <div className="grid grid-cols-3 items-center gap-4">
           <Label htmlFor="width">Width</Label>
-          <Input
-            id="width"
-            defaultValue="100%"
-            className="col-span-2 h-8"
-          />
+          <Input id="width" defaultValue="100%" className="col-span-2 h-8" />
         </div>
         <div className="grid grid-cols-3 items-center gap-4">
           <Label htmlFor="maxWidth">Max. width</Label>
@@ -58,11 +63,7 @@ import {
         </div>
         <div className="grid grid-cols-3 items-center gap-4">
           <Label htmlFor="height">Height</Label>
-          <Input
-            id="height"
-            defaultValue="25px"
-            className="col-span-2 h-8"
-          />
+          <Input id="height" defaultValue="25px" className="col-span-2 h-8" />
         </div>
         <div className="grid grid-cols-3 items-center gap-4">
           <Label htmlFor="maxHeight">Max. height</Label>

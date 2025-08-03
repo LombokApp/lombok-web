@@ -56,7 +56,7 @@ function FolderRootInner() {
   if (focusedFolderObjectKey) {
     extraBreadcrumbs.push({
       label: focusedFolderObjectKey,
-      href: pathParts[2],
+      href: pathParts[2] ?? '',
     })
   } else if (isEventDetailPage) {
     extraBreadcrumbs.push({
@@ -64,8 +64,8 @@ function FolderRootInner() {
       href: `/folders/${folderContext.folderId}/events`,
     })
     extraBreadcrumbs.push({
-      label: pathParts[2],
-      href: pathParts[2],
+      label: pathParts[2] ?? '',
+      href: pathParts[2] ?? '',
     })
   } else if (isTaskListPage) {
     extraBreadcrumbs.push({
@@ -83,8 +83,8 @@ function FolderRootInner() {
       href: `/folders/${folderContext.folderId}/tasks`,
     })
     extraBreadcrumbs.push({
-      label: pathParts[2],
-      href: pathParts[2],
+      label: pathParts[2] ?? '',
+      href: pathParts[2] ?? '',
     })
   }
   return (

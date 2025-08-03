@@ -5,9 +5,9 @@
     "build": "bun build . --target bun --outdir dist",
     "build:clean": "bun clean && bun run build",
     "clean": "rm -rf ./dist",
-    "lint:check": "eslint .",
-    "lint:fix": "eslint --fix .",
-    "ts:check": "tsc --noEmit --project tsconfig.json",
+    "lint:check": "eslint",
+    "lint:fix": "eslint --fix",
+    "tsc:check": "tsc --noEmit",
     "prettier:check": "prettier --check .",
     "prettier:fix": "prettier --write .",
     "test:unit": "jest"

@@ -71,7 +71,7 @@ export function ServerEventAttributesList({ event }: { event?: EventDTO }) {
                       />
                     ) : (
                       <span className="uppercase">
-                        {event.emitterIdentifier.split(':')[1][0]}
+                        {event.emitterIdentifier.split(':')[1]?.[0] ?? ''}
                       </span>
                     )}
                   </div>

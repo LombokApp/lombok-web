@@ -1,7 +1,8 @@
+import type { AuthenticatorStateType } from '@stellariscloud/auth-utils'
 import React from 'react'
+
 import { AppBrowserSdk } from '../app-browser-sdk'
 import type { AppBrowserSdkConfig } from '../types'
-import { AuthenticatorStateType } from '@stellariscloud/auth-utils'
 
 export function useAppBrowserSdk(config?: AppBrowserSdkConfig) {
   const [isInitialized, setIsInitialized] = React.useState(false)
@@ -42,7 +43,7 @@ export function useAppBrowserSdk(config?: AppBrowserSdkConfig) {
     return () => {
       sdk.authenticator.removeEventListener('onStateChanged', handleStateChange)
     }
-  }, [])
+  }, [sdk.authenticator])
 
   return {
     isInitialized,

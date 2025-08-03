@@ -3,7 +3,6 @@
     "target": "es6",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "composite": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "strictNullChecks": true,
@@ -18,6 +17,6 @@
     "isolatedModules": true,
     "outDir": "dist"
   },
-  "include": ["**/*.ts", "eslint.config.js"],
-  "exclude": ["dist"]
+  "include": ["src/**/*.ts", "index.ts", "eslint.config.ts"],
+  "exclude": ["dist", "src/api-paths.d.ts"]
 }

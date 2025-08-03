@@ -73,7 +73,10 @@ export const FolderDetailScreen = () => {
   )
 
   const params = useParams()
-  const [folderId, focusedObjectKeyFromParams] = params['*']?.split('/') ?? []
+  const folderPathParts = params['*']?.split('/') ?? []
+  const folderId = folderPathParts[0] ?? ''
+  const focusedObjectKeyFromParams = folderPathParts[1] ?? ''
+
   const [filters, setFilters] = React.useState<Record<string, string[]>>(
     readFiltersFromSearchParams(searchParams, FILTER_CONFIGS),
   )
@@ -167,6 +170,9 @@ export const FolderDetailScreen = () => {
         },
       },
     },
+    {
+      enabled: folderId.length > 0,
+    },
   )
 
   const messageHandler = React.useCallback(
@@ -195,23 +201,19 @@ export const FolderDetailScreen = () => {
     '/api/v1/folders/{folderId}/reindex',
   )
 
-  const startOrContinueFolderReindex = React.useCallback(
+  const startFolderReindex = React.useCallback(
     (_t?: string) => {
       if (folderContext.folderMetadata) {
         void reindexFolderMutation.mutateAsync({
           params: {
             path: {
-              folderId: folderContext.folderId,
+              folderId,
             },
           },
         })
       }
     },
-    [
-      folderContext.folderId,
-      folderContext.folderMetadata,
-      reindexFolderMutation,
-    ],
+    [folderId, folderContext.folderMetadata, reindexFolderMutation],
   )
 
   const deleteFolderMutation = $api.useMutation(
@@ -227,14 +229,14 @@ export const FolderDetailScreen = () => {
     if (!reindexFolderModalData.isOpen) {
       setReindexFolderModalData({ isOpen: true })
     } else {
-      startOrContinueFolderReindex(
+      startFolderReindex(
         folderContext.folderMetadata?.indexingJobContext
           ?.indexingContinuationKey,
       )
       setReindexFolderModalData({ isOpen: false })
     }
   }, [
-    startOrContinueFolderReindex,
+    startFolderReindex,
     reindexFolderModalData,
     folderContext.folderMetadata?.indexingJobContext?.indexingContinuationKey,
   ])
@@ -287,6 +289,9 @@ export const FolderDetailScreen = () => {
           folderId,
         },
       },
+    },
+    {
+      enabled: folderId.length > 0,
     },
   )
 

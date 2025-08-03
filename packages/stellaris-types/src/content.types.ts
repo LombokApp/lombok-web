@@ -14,7 +14,7 @@ export enum ThumbnailSize {
 }
 
 export const externalMetadataEntrySchema = z.object({
-  type: z.literal("external"),
+  type: z.literal('external'),
   storageKey: z.string(),
   mimeType: z.string(),
   size: z.number(),
@@ -22,7 +22,7 @@ export const externalMetadataEntrySchema = z.object({
 })
 
 export const inlineMetadataEntrySchema = z.object({
-  type: z.literal("inline"),
+  type: z.literal('inline'),
   mimeType: z.string(),
   size: z.number(),
   content: z.string(),

@@ -19,7 +19,7 @@ export const useInterval = (
   }, [callback])
 
   React.useEffect(() => {
-    let id: ReturnType<typeof setInterval>
+    let id: ReturnType<typeof setInterval> | undefined
     const clear = () => {
       if (id) {
         clearInterval(id)

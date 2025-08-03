@@ -10,7 +10,7 @@
     "lint:fix": "eslint --fix",
     "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
     "prettier:write": "prettier --write \"./**/*.(ts|tsx)\"",
-    "ts:check": "tsc -b",
+    "tsc:check": "tsc --noEmit",
     "preview": "vite preview"
   },
   "dependencies": {

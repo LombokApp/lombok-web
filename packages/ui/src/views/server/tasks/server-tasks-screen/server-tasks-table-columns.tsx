@@ -31,11 +31,13 @@ export const serverTasksTableColumns: HideableColumnDef<TaskDTO>[] = [
           className="flex size-8 items-center justify-center overflow-hidden rounded-full"
           style={{
             background: row.original.ownerIdentifier.includes(':')
-              ? stringToColour(row.original.ownerIdentifier.split(':')[1])
+              ? stringToColour(row.original.ownerIdentifier.split(':')[1] ?? '')
               : '',
             color: row.original.ownerIdentifier.includes(':')
               ? invertColour(
-                  stringToColour(row.original.ownerIdentifier.split(':')[1]),
+                  stringToColour(
+                    row.original.ownerIdentifier.split(':')[1] ?? '',
+                  ),
                 )
               : undefined,
           }}
@@ -44,7 +46,7 @@ export const serverTasksTableColumns: HideableColumnDef<TaskDTO>[] = [
             <img width={30} height={30} alt="Core" src="/stellariscloud.png" />
           ) : (
             <span className="uppercase">
-              {row.original.ownerIdentifier.split(':')[1][0]}
+              {row.original.ownerIdentifier.split(':')[1]?.[0] ?? ''}
             </span>
           )}
         </div>

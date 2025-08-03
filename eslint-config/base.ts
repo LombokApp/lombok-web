@@ -1,3 +1,4 @@
+import './types.d.ts'
 import tseslint from 'typescript-eslint'
 import type { ConfigArray } from 'typescript-eslint'
 import eslintImport from 'eslint-plugin-import'

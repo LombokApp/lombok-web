@@ -8,7 +8,6 @@
     "allowJs": true,
     "checkJs": true,
     "skipLibCheck": true,
-    "strict": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
@@ -18,7 +17,14 @@
     "paths": {
       "@/utils": ["./src/utils"],
       "@/components/*": ["src/components/*"]
-    }
+    },
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "noUncheckedIndexedAccess": true
   },
   "include": ["**/*.ts", "**/*.tsx", "eslint.config.ts", "tailwind.config.ts"],
   "exclude": ["node_modules"]

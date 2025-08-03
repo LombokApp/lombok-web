@@ -136,13 +136,13 @@ export const MIME_TYPE_TO_EXTENSION_MAP = {
   [DocumentMediaMimeTypes.JSON]: 'json',
 }
 
-export const EXTENSION_TO_MIME_TYPE_MAP: {
-  [key: string]:
-    | ImageMediaMimeTypes
-    | VideoMediaMimeTypes
-    | AudioMediaMimeTypes
-    | DocumentMediaMimeTypes
-} = Object.keys(MIME_TYPE_TO_EXTENSION_MAP).reduce(
+export const EXTENSION_TO_MIME_TYPE_MAP: Record<
+  string,
+  | ImageMediaMimeTypes
+  | VideoMediaMimeTypes
+  | AudioMediaMimeTypes
+  | DocumentMediaMimeTypes
+> = Object.keys(MIME_TYPE_TO_EXTENSION_MAP).reduce(
   (acc, next) => {
     return {
       ...acc,
