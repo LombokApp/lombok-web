@@ -167,8 +167,6 @@ export type AppUIMap = z.infer<typeof appUIMapSchema>
 
 export type AppManifest = z.infer<typeof appManifestSchema>
 
-export interface ExternalAppWorkerMap {
-  [appIdentifier: string]: ExternalAppWorker[]
-}
-
 export type ExternalAppWorker = z.infer<typeof externalAppWorkerSchema>
+
+export type ExternalAppWorkerMap = Record<string, ExternalAppWorker[]>

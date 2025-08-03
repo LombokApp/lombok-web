@@ -10,9 +10,18 @@ import * as Stories from './tooltip.stories'
 
 #### A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it.
 
-<Button variant="outline" size="sm" onClick={() => {
-  window.open('https://www.radix-ui.com/primitives/docs/components/tooltip#api-reference', '_blank')
-}}>API Reference</Button>
+<Button
+  variant="outline"
+  size="sm"
+  onClick={() => {
+    window.open(
+      'https://www.radix-ui.com/primitives/docs/components/tooltip#api-reference',
+      '_blank',
+    )
+  }}
+>
+  API Reference
+</Button>
 
 <Source
   dark
@@ -28,7 +37,7 @@ import {
 
 <TooltipProvider>
   <Tooltip>
-      <TooltipTrigger asChild>
+    <TooltipTrigger asChild>
       <Button variant="outline">Hover</Button>
     </TooltipTrigger>
     <TooltipContent>

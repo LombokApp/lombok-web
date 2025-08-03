@@ -1,6 +1,7 @@
+import type { Authenticator } from '@stellariscloud/auth-utils'
 import type { StellarisApiClient, StellarisCloudSdk } from '@stellariscloud/sdk'
-import { IframeCommunicator } from './iframe-communicator'
-import { Authenticator } from '@stellariscloud/auth-utils'
+
+import type { IframeCommunicator } from './iframe-communicator'
 
 export interface TokenData {
   accessToken: string
@@ -9,7 +10,7 @@ export interface TokenData {
 
 export interface IframeMessage {
   type: string
-  payload?: any
+  payload?: unknown
   id?: string
 }
 

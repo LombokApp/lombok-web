@@ -10,9 +10,18 @@ import * as Stories from './toast.stories'
 
 #### A succinct message that is displayed temporarily.
 
-<Button variant="outline" size="sm" onClick={() => {
-  window.open('https://www.radix-ui.com/primitives/docs/components/toast#api-reference', '_blank')
-}}>API Reference</Button>
+<Button
+  variant="outline"
+  size="sm"
+  onClick={() => {
+    window.open(
+      'https://www.radix-ui.com/primitives/docs/components/toast#api-reference',
+      '_blank',
+    )
+  }}
+>
+  API Reference
+</Button>
 
 <Source
   dark
@@ -57,7 +66,8 @@ toast({
   title: 'Uh oh! Something went wrong.',
   description: 'There was a problem with your request.',
 })
-`} />
+`}
+/>
 
 <Canvas of={Stories.WithTitle} sourceState="none" />
 
@@ -74,7 +84,8 @@ toast({
     <ToastAction altText="Goto schedule to undo">Undo</ToastAction>
   ),
 })
-`} />
+`}
+/>
 
 <Canvas of={Stories.WithAction} sourceState="none" />
 
@@ -92,6 +103,7 @@ toast({
     <ToastAction altText="Try again">Try again</ToastAction>
   ),
 })
-`} />
+`}
+/>
 
 <Canvas of={Stories.Destructive} sourceState="none" />

@@ -33,7 +33,9 @@ export const folderEventsTableColumns: HideableColumnDef<EventDTO>[] = [
           className="flex size-8 items-center justify-center overflow-hidden rounded-full"
           style={{
             background: row.original.emitterIdentifier.includes(':')
-              ? stringToColour(row.original.emitterIdentifier.split(':')[1])
+              ? stringToColour(
+                  row.original.emitterIdentifier.split(':')[1] ?? '',
+                )
               : '',
             color: row.original.emitterIdentifier.includes(':')
               ? invertColour(stringToColour(row.original.emitterIdentifier))
@@ -44,7 +46,7 @@ export const folderEventsTableColumns: HideableColumnDef<EventDTO>[] = [
             <img width={30} height={30} alt="Core" src="/stellariscloud.png" />
           ) : (
             <span className="uppercase">
-              {row.original.emitterIdentifier.split(':')[1][0]}
+              {row.original.emitterIdentifier.split(':')[1]?.[0] ?? ''}
             </span>
           )}
         </div>

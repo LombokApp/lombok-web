@@ -1,5 +1,31 @@
 import { z } from 'zod'
 
+export interface Owner {
+  /**
+   * <p>Container for the display name of the owner.</p>
+   */
+  DisplayName?: string
+  /**
+   * <p>Container for the ID of the owner.</p>
+   */
+  ID?: string
+}
+
+export declare enum ChecksumAlgorithm {
+  CRC32 = 'CRC32',
+  CRC32C = 'CRC32C',
+  SHA1 = 'SHA1',
+  SHA256 = 'SHA256',
+}
+export interface S3ObjectInternal {
+  lastModified: number
+  eTag: string
+  key: string
+  checksumAlgorithm: (ChecksumAlgorithm | string)[]
+  size: number
+  storageClass: string
+  owner: { displayName: string; id: string }
+}
 export interface IndexingJobContext {
   error?: string
   continuationToken?: string
@@ -13,7 +39,6 @@ export interface FolderMetadata {
   totalCount: number
   totalSizeBytes: number
 }
-
 export interface S3Object {
   /**
    * <p>The name that you assign to an object. You use the object key to retrieve the
@@ -65,34 +90,6 @@ export interface S3Object {
    * <p>The owner of the object</p>
    */
   Owner?: Owner
-}
-
-export declare enum ChecksumAlgorithm {
-  CRC32 = 'CRC32',
-  CRC32C = 'CRC32C',
-  SHA1 = 'SHA1',
-  SHA256 = 'SHA256',
-}
-
-export interface Owner {
-  /**
-   * <p>Container for the display name of the owner.</p>
-   */
-  DisplayName?: string
-  /**
-   * <p>Container for the ID of the owner.</p>
-   */
-  ID?: string
-}
-
-export interface S3ObjectInternal {
-  lastModified: number
-  eTag: string
-  key: string
-  checksumAlgorithm: (ChecksumAlgorithm | string)[]
-  size: number
-  storageClass: string
-  owner: { displayName: string; id: string }
 }
 
 export interface PresignedURLResult {

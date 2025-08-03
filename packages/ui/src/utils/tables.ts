@@ -59,8 +59,8 @@ export function convertFiltersToSearchParams(
       // Handle search filters
       if (filterKey in newFilters) {
         // Update or add search filter
-        if (newFilters[filterKey].length > 0) {
-          newSearchParams.set(filterKey, newFilters[filterKey][0])
+        if (filterKey in newFilters && newFilters[filterKey]) {
+          newSearchParams.set(filterKey, newFilters[filterKey][0] ?? '')
         } else {
           // Remove search filter if empty
           newSearchParams.delete(filterKey)
@@ -77,7 +77,7 @@ export function convertFiltersToSearchParams(
       newSearchParams.delete(prefix)
 
       // Add new dynamic filter params if present in new filters
-      if (filterKey in newFilters && newFilters[filterKey].length > 0) {
+      if (filterKey in newFilters && newFilters[filterKey]) {
         newFilters[filterKey].forEach((value) => {
           newSearchParams.append(prefix, value.toLowerCase())
         })
@@ -105,7 +105,7 @@ export function readSortingFromSearchParams(
     try {
       const [id, direction] = sortParam.split('-')
       sorting.push({
-        id,
+        id: id ?? '',
         desc: direction === 'desc',
       })
     } catch (error) {

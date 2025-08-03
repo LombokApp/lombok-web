@@ -1,4 +1,4 @@
-import tseslint from 'typescript-eslint'
+import tseslint, { ConfigArray } from 'typescript-eslint'
 import eslintJsxAlly from 'eslint-plugin-jsx-a11y'
 import eslintReact from 'eslint-plugin-react'
 import eslintReactHooks from 'eslint-plugin-react-hooks'
@@ -32,4 +32,4 @@ export default tseslint.config({
     'react/react-in-jsx-scope': 'off',
     'react/no-unescaped-entities': 'off',
   },
-})
+}) as ConfigArray

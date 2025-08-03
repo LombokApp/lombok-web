@@ -1,21 +1,33 @@
-import crypto from 'crypto'
-import { v4 as uuidV4 } from 'uuid'
-
-import {
-  AppAPIError,
+import type {
   AppTask,
   CoreServerMessageInterface,
 } from '@stellariscloud/app-worker-sdk'
-import { runWorkerScript } from '../../worker-scripts/run-worker-script'
+import { AppAPIError } from '@stellariscloud/app-worker-sdk'
+import { safeZodParse } from '@stellariscloud/utils'
+import { z } from 'zod'
+
 import { uniqueExecutionKey } from '../../utils/ids'
+import { runWorkerScript } from '../../worker-scripts/run-worker-script'
+
+const runWorkerScriptTaskInputDataSchema = z.object({
+  taskId: z.string(),
+  appIdentifier: z.string(),
+  workerIdentifier: z.string(),
+})
 
 export const runWorkerScriptTaskHandler = async (
   runWorkerScriptTask: AppTask,
   server: CoreServerMessageInterface,
 ) => {
-  if (!runWorkerScriptTask.id) {
+  if (
+    !safeZodParse(
+      runWorkerScriptTask.inputData,
+      runWorkerScriptTaskInputDataSchema,
+    )
+  ) {
     throw new AppAPIError('INVALID_TASK', 'Missing task id.')
   }
+
   const attemptStartHandleResponse = await server.attemptStartHandleTaskById(
     runWorkerScriptTask.inputData.taskId,
   )

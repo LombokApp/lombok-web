@@ -7,7 +7,7 @@
     "clean": "rm -rf ./dist",
     "lint:check": "eslint .",
     "lint:fix": "eslint --fix .",
-    "ts:check": "tsc --noEmit --project tsconfig.json",
+    "tsc:check": "tsc --noEmit",
     "prettier:check": "prettier --check .",
     "prettier:fix": "prettier --write .",
     "test:unit": "jest"

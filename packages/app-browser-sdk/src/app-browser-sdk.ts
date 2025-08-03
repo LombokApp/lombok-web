@@ -1,4 +1,5 @@
 import { StellarisCloudSdk } from '@stellariscloud/sdk'
+
 import { IframeCommunicator } from './iframe-communicator'
 import type {
   AppBrowserSdkConfig,
@@ -9,10 +10,10 @@ import { waitForTrue } from './util/wait-for-true'
 
 export class AppBrowserSdk implements AppBrowserSdkInstance {
   private static _communicator: IframeCommunicator | undefined = undefined
-  private static isInitialized: boolean = false
-  private static initRequested: boolean = false
+  private static isInitialized = false
+  private static initRequested = false
   private static tokens?: TokenData
-  private static sdk: StellarisCloudSdk
+  private static sdk: StellarisCloudSdk | undefined = undefined
 
   public get communicator(): Promise<IframeCommunicator> {
     if (!AppBrowserSdk._communicator && !AppBrowserSdk.initRequested) {
@@ -43,7 +44,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     return AppBrowserSdk.initRequested
   }
 
-  private basePath: string = (() => {
+  private readonly basePath: string = (() => {
     const urlParams = new URLSearchParams(window.location.search)
     const basePathParam = urlParams.get('basePath')
     return basePathParam || 'http://localhost:3000'
@@ -67,7 +68,7 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     }
   }
 
-  private static async setupMessageHandlers(_communicator: IframeCommunicator) {
+  private static setupMessageHandlers(_communicator: IframeCommunicator) {
     _communicator.onMessage('AUTHENTICATION', (message) => {
       const tokenData = message.payload as TokenData
       this.setTokens(tokenData)
@@ -75,22 +76,25 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     })
 
     _communicator.onMessage('LOGOUT', () => {
-      this.sdk.authenticator.logout()
+      void this.sdk?.authenticator.logout()
     })
 
     _communicator.onMessage('ERROR', (message) => {
-      const _error = new Error(message.payload?.message || 'Unknown error')
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      const _error = new Error(
+        (message.payload as { message: string }).message || 'Unknown error',
+      )
       console.error('Stellaris Cloud IFrame Communication Error:', _error)
     })
   }
 
-  private config: AppBrowserSdkConfig
+  private readonly config: AppBrowserSdkConfig
 
   constructor(config?: AppBrowserSdkConfig) {
     this.config = config ?? {}
-    this.communicator.then(() => {
+    void this.communicator.then(() => {
       this.config.onInitialize?.()
-      this.sdk.authenticator.setTokens({
+      void this.sdk.authenticator.setTokens({
         accessToken: AppBrowserSdk.tokens?.accessToken || '',
         refreshToken: AppBrowserSdk.tokens?.refreshToken || '',
       })
@@ -108,10 +112,10 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
   executeWorkerScriptUrl = async (
     {
       workerIdentifier,
-      url,
+      url = '',
     }: {
       workerIdentifier: string
-      url: string
+      url?: string
     },
     options?: {
       method?: string

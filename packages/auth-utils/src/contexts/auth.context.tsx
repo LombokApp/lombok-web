@@ -1,12 +1,13 @@
-import React from 'react'
-import type { Authenticator } from '..'
-import type { AuthenticatorStateType } from '../authenticator'
-import {
+import type {
   LoginCredentialsDTO,
   SignupCredentialsDTO,
   ViewerGetResponse,
 } from '@stellariscloud/types'
+import React from 'react'
 import { useNavigate } from 'react-router-dom'
+
+import type { Authenticator } from '..'
+import type { AuthenticatorStateType } from '../authenticator'
 export class AuthError extends Error {}
 export interface IAuthContext {
   error?: AuthError
@@ -47,21 +48,20 @@ export const AuthContextProvider = ({
     ___: false,
   })
   const [viewerRefreshKey, _setViewerRefreshKey] = React.useState('___')
-  const [viewer, setViewer] = React.useState<{
-    [key: string]: ViewerGetResponse['user'] | undefined
-  }>()
+  const [viewer, setViewer] =
+    React.useState<Record<string, ViewerGetResponse['user'] | undefined>>()
   const [error, setError] = React.useState<AuthError>()
   const { isAuthenticated } = authState
 
   React.useEffect(() => {
     // Refresh the token to verify authentication state.
+    let authStateSetter: (event: CustomEvent<AuthenticatorStateType>) => void
+
     authenticator
       .getAccessToken()
       .finally(() => {
         setAuthState(authenticator.state)
-        const authStateSetter = (
-          event: CustomEvent<AuthenticatorStateType>,
-        ) => {
+        authStateSetter = (event: CustomEvent<AuthenticatorStateType>) => {
           setAuthState(event.detail)
         }
 
@@ -69,15 +69,14 @@ export const AuthContextProvider = ({
           'onStateChanged',
           authStateSetter as EventListener,
         )
-
-        return () => {
-          authenticator.removeEventListener(
-            'onStateChanged',
-            authStateSetter as EventListener,
-          )
-        }
       })
       .catch((err) => setError(err as AuthError))
+    return () => {
+      authenticator.removeEventListener(
+        'onStateChanged',
+        authStateSetter as EventListener,
+      )
+    }
   }, [])
 
   const login = async (loginParams: LoginCredentialsDTO) => {
@@ -88,7 +87,7 @@ export const AuthContextProvider = ({
       setError(undefined)
       try {
         const loginResult = await authenticator.login(loginParams)
-        if (loginResult.response.status !== 201 || !loginResult.data) {
+        if (loginResult.response.status !== 201) {
           const loginError = new AuthError('Login failed', {
             cause: loginResult.data,
           })
@@ -108,7 +107,7 @@ export const AuthContextProvider = ({
     setError(undefined)
     try {
       const signupResult = await authenticator.signup(signupParams)
-      if (signupResult.response.status !== 201 || !signupResult.data) {
+      if (signupResult.response.status !== 201) {
         const loginError = new AuthError('Signup failed', {
           cause: signupResult.data,
         })
@@ -118,17 +117,6 @@ export const AuthContextProvider = ({
     } finally {
       setIsLoggingIn(false)
     }
-  }
-
-  const logout = async () => {
-    setError(undefined)
-    setIsLoggingOut(true)
-
-    await authenticator
-      .logout()
-      .catch((err) => setError(err as AuthError))
-      .finally(() => setIsLoggingOut(false))
-    redirectToLogin()
   }
 
   const redirectToLogin = (hard = false) => {
@@ -142,6 +130,17 @@ export const AuthContextProvider = ({
         void navigate('/login')
       }
     }
+  }
+
+  const logout = async () => {
+    setError(undefined)
+    setIsLoggingOut(true)
+
+    await authenticator
+      .logout()
+      .catch((err) => setError(err as AuthError))
+      .finally(() => setIsLoggingOut(false))
+    redirectToLogin()
   }
 
   React.useEffect(() => {

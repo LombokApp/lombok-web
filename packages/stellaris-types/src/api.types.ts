@@ -1,5 +1,6 @@
-import type { paths } from './api-paths'
 import type createFetchClient from 'openapi-fetch'
+
+import type { paths } from './api-paths'
 
 export type StellarisApiClient = ReturnType<typeof createFetchClient<paths>>
 

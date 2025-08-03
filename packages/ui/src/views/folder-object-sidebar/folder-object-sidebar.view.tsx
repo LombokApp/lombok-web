@@ -229,7 +229,7 @@ export const FolderObjectSidebar = ({
                     folderObject.contentMetadata[folderObject.hash] ?? {},
                   ).map((metadataKey, i) => {
                     const metadataEntry =
-                      folderObject.contentMetadata[folderObject.hash ?? ''][
+                      folderObject.contentMetadata[folderObject.hash ?? '']?.[
                         metadataKey
                       ]
 
@@ -238,22 +238,23 @@ export const FolderObjectSidebar = ({
                         <div className="flex justify-between gap-x-6 py-3">
                           <div className="flex min-w-0 items-center justify-center gap-x-4">
                             <div className="rounded-full p-2 pl-0">
-                              {metadataEntry.mimeType === 'application/json' ? (
+                              {metadataEntry?.mimeType ===
+                              'application/json' ? (
                                 <FileJson className="size-5" />
                               ) : mediaTypeFromMimeType(
-                                  metadataEntry.mimeType,
+                                  metadataEntry?.mimeType ?? '',
                                 ) === MediaType.Image ? (
                                 <Image className="size-5" />
                               ) : mediaTypeFromMimeType(
-                                  metadataEntry.mimeType,
+                                  metadataEntry?.mimeType ?? '',
                                 ) === MediaType.Audio ? (
                                 <MusicIcon className="size-5" />
                               ) : mediaTypeFromMimeType(
-                                  metadataEntry.mimeType,
+                                  metadataEntry?.mimeType ?? '',
                                 ) === MediaType.Video ? (
                                 <VideoIcon className="size-5" />
                               ) : mediaTypeFromMimeType(
-                                  metadataEntry.mimeType,
+                                  metadataEntry?.mimeType ?? '',
                                 ) === MediaType.Document ? (
                                 <FileTextIcon className="size-5" />
                               ) : (
@@ -275,7 +276,7 @@ export const FolderObjectSidebar = ({
                                   'text-sm font-semibold ',
                                 )}
                               >
-                                {metadataEntry.type === 'external' ? (
+                                {metadataEntry?.type === 'external' ? (
                                   <span>
                                     {metadataEntry.mimeType} -{' '}
                                     {formatBytes(metadataEntry.size)} -{' '}
@@ -284,13 +285,13 @@ export const FolderObjectSidebar = ({
                                 ) : (
                                   <span>
                                     <span className="opacity-50">value: </span>
-                                    {JSON.parse(metadataEntry.content)}
+                                    {JSON.parse(metadataEntry?.content ?? '')}
                                   </span>
                                 )}
                               </p>
                             </div>
                           </div>
-                          {metadataEntry.type === 'external' && (
+                          {metadataEntry?.type === 'external' && (
                             <div className="flex shrink-0 gap-2 sm:flex sm:items-end">
                               <Button
                                 size="sm"

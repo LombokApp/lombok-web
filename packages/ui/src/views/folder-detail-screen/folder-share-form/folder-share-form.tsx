@@ -177,7 +177,7 @@ export const FolderShareForm = ({
     if (listFolderShareUsersQuery.isLoading) {
       return 'Loading...'
     }
-    return usersById[userId].username
+    return usersById[userId]?.username ?? ''
   }
 
   // Update both the form state and the visual state for permissions

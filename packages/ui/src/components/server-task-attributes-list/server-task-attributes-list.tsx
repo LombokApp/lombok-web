@@ -57,11 +57,15 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
                     className="flex size-8 items-center justify-center overflow-hidden rounded-full"
                     style={{
                       background: task.ownerIdentifier.includes(':')
-                        ? stringToColour(task.ownerIdentifier.split(':')[1])
+                        ? stringToColour(
+                            task.ownerIdentifier.split(':')[1] ?? '',
+                          )
                         : '',
                       color: task.ownerIdentifier.includes(':')
                         ? invertColour(
-                            stringToColour(task.ownerIdentifier.split(':')[1]),
+                            stringToColour(
+                              task.ownerIdentifier.split(':')[1] ?? '',
+                            ),
                           )
                         : undefined,
                     }}
@@ -75,7 +79,7 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
                       />
                     ) : (
                       <span className="uppercase">
-                        {task.ownerIdentifier.split(':')[1][0]}
+                        {task.ownerIdentifier.split(':')[1]?.[0] ?? ''}
                       </span>
                     )}
                   </div>

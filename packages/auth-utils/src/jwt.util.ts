@@ -16,7 +16,6 @@ export const verifyToken = (
   try {
     payload = jwtDecode.jwtDecode(token)
   } catch (error) {
-    console.log('Errror!', error)
     if (!(error instanceof jwtDecode.InvalidTokenError)) {
       throw error
     }

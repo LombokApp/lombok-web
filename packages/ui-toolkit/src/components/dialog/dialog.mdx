@@ -10,9 +10,18 @@ import * as Stories from './dialog.stories'
 
 #### A window overlaid on either the primary window or another dialog window, rendering the content underneath inert.
 
-<Button variant="outline" size="sm" onClick={() => {
-  window.open('https://www.radix-ui.com/primitives/docs/components/dialog#api-reference', '_blank')
-}}>API Reference</Button>
+<Button
+  variant="outline"
+  size="sm"
+  onClick={() => {
+    window.open(
+      'https://www.radix-ui.com/primitives/docs/components/dialog#api-reference',
+      '_blank',
+    )
+  }}
+>
+  API Reference
+</Button>
 
 <Source
   dark
@@ -33,8 +42,8 @@ import {
     <DialogHeader>
       <DialogTitle>Are you absolutely sure?</DialogTitle>
       <DialogDescription>
-        This action cannot be undone. This will permanently delete your
-        account and remove your data from our servers.
+        This action cannot be undone. This will permanently delete your account
+        and remove your data from our servers.
       </DialogDescription>
     </DialogHeader>
   </DialogContent>

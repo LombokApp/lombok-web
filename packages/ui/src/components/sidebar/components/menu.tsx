@@ -1,4 +1,4 @@
-import type { UserDTO } from '@stellariscloud/types'
+import type { IAuthContext } from '@stellariscloud/auth-utils'
 import {
   Button,
   cn,
@@ -18,7 +18,7 @@ import { CollapseMenuButton } from './collapse-menu-button'
 
 interface MenuProps {
   isOpen: boolean | undefined
-  viewer: UserDTO
+  viewer: NonNullable<IAuthContext['viewer']>
   appMenuItems: AppMenuItemAndHref[]
 }
 

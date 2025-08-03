@@ -1,10 +1,11 @@
+import { spawn } from 'bun'
+import type { FfmpegCommand } from 'fluent-ffmpeg'
+import ffmpegBase from 'fluent-ffmpeg'
+import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import fs from 'fs'
-import { spawn } from 'bun'
-import { v5 as uuidV5 } from 'uuid'
-import ffmpegBase, { FfmpegCommand } from 'fluent-ffmpeg'
 import sharp from 'sharp'
+import { v5 as uuidV5 } from 'uuid'
 
 export async function getMediaDimensionsWithSharp(
   filePath: string,
@@ -21,12 +22,13 @@ export async function getMediaDimensionsWithSharp(
   }
 }
 
+import { MediaType } from '@stellariscloud/types'
+import { mediaTypeFromMimeType } from '@stellariscloud/utils'
+
 import {
   getExifTagsFromImage,
   previewDimensionsForMaxDimension,
 } from './image.util'
-import { mediaTypeFromMimeType } from '@stellariscloud/utils'
-import { MediaType } from '@stellariscloud/types'
 
 export const ffmpeg = ffmpegBase
 
@@ -48,7 +50,7 @@ export const getMediaDimensionsWithFFMpeg = async (filepath: string) => {
             lengthMs: lengthMs > 0 ? lengthMs : 0,
           })
         } else {
-          reject(err)
+          reject(err instanceof Error ? err : new Error(String(err)))
         }
       })
     },
@@ -82,6 +84,47 @@ async function waitForFFmpegCommand(command: FfmpegCommand) {
       reject(e)
     })
   })
+}
+
+async function readStreamToString(
+  stream: ReadableStream<Uint8Array> | null,
+): Promise<string> {
+  if (!stream) {
+    return ''
+  }
+
+  const reader = stream.getReader()
+  const decoder = new TextDecoder()
+  let result = ''
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  while (true) {
+    const { value, done } = await reader.read()
+    if (done) {
+      break
+    }
+    result += decoder.decode(value, { stream: true })
+  }
+  result += decoder.decode() // flush remaining
+  return result
+}
+
+export async function convertHeicToJpeg(input: string, output: string) {
+  const child = spawn(['heif-dec', input, output], {
+    stdout: 'pipe',
+    stderr: 'pipe',
+  })
+
+  const _stdoutText = await readStreamToString(child.stdout)
+  const stderrText = await readStreamToString(child.stderr)
+
+  const exitCode = await child.exited
+
+  if (exitCode === 1) {
+    if (stderrText) {
+      console.error('stderr:', stderrText.trim())
+    }
+    throw new Error('Failed to convert heic to jpeg')
+  }
 }
 
 export const resizeContent = async ({
@@ -130,21 +173,21 @@ export const resizeContent = async ({
     }
   }
 
-  mediaType === MediaType.Video
-    ? await waitForFFmpegCommand(
-        ffmpeg()
-          .addInput(finalInFilepath)
-          .size(`${finalWidth}x${finalHeight}`)
-          .autopad()
-          .addOutput(outFilepath)
-          .outputOptions(
-            rotation ? [`-metadata:s:v rotate="${rotation}"`] : [],
-          ),
-      )
-    : await sharp(finalInFilepath)
-        .rotate(mimeType === 'image/heic' ? 0 : rotation)
-        .resize(finalWidth)
-        .toFile(outFilepath)
+  if (mediaType === MediaType.Video) {
+    await waitForFFmpegCommand(
+      ffmpeg()
+        .addInput(finalInFilepath)
+        .size(`${finalWidth}x${finalHeight}`)
+        .autopad()
+        .addOutput(outFilepath)
+        .outputOptions(rotation ? [`-metadata:s:v rotate="${rotation}"`] : []),
+    )
+  } else {
+    await sharp(finalInFilepath)
+      .rotate(mimeType === 'image/heic' ? 0 : rotation)
+      .resize(finalWidth)
+      .toFile(outFilepath)
+  }
 
   if (fs.existsSync(tempDir)) {
     fs.rmSync(finalInFilepath)
@@ -168,7 +211,9 @@ export function parseOrientationToPosition(orientation: string): number {
 
   // Extract the rotation value from the orientation string
   const rotationMatch = orientation.match(/Rotate (\d+) (CW|CCW)/)
-  if (!rotationMatch) return 0
+  if (!rotationMatch) {
+    return 0
+  }
 
   const degrees = parseInt(rotationMatch[1], 10)
   const direction = rotationMatch[2]
@@ -192,13 +237,12 @@ export async function getNecessaryContentRotation(
   if (mimeType.startsWith('image/') && mimeType !== 'image/heic') {
     const metadata = await getExifTagsFromImage(filepath)
     if (
-      metadata &&
       typeof metadata === 'object' &&
       'Orientation' in metadata &&
       typeof metadata.Orientation === 'string'
     ) {
       // Orientation: "Rotate 270 CW",
-      return parseOrientationToPosition(metadata?.Orientation)
+      return parseOrientationToPosition(metadata.Orientation)
     }
   }
   return 0
@@ -274,38 +318,4 @@ export const generateMpegDashWithFFmpeg = async (
       reject(e)
     })
   })
-}
-
-export async function convertHeicToJpeg(input: string, output: string) {
-  const child = spawn(['heif-dec', input, output], {
-    stdout: 'pipe',
-    stderr: 'pipe',
-  })
-
-  const stdoutText = await readStreamToString(child.stdout)
-  const stderrText = await readStreamToString(child.stderr)
-
-  const exitCode = await child.exited
-
-  if (exitCode === 1) {
-    if (stderrText) console.error('stderr:', stderrText.trim())
-    throw new Error('Failed to convert heic to jpeg')
-  }
-}
-
-async function readStreamToString(
-  stream: ReadableStream<Uint8Array> | null,
-): Promise<string> {
-  if (!stream) return ''
-
-  const reader = stream.getReader()
-  const decoder = new TextDecoder()
-  let result = ''
-  while (true) {
-    const { value, done } = await reader.read()
-    if (done) break
-    result += decoder.decode(value, { stream: true })
-  }
-  result += decoder.decode() // flush remaining
-  return result
 }

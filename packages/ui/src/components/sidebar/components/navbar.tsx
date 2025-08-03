@@ -21,10 +21,16 @@ interface NavbarProps {
 export function Navbar({ breadcrumbs }: NavbarProps) {
   const authContext = useAuthContext()
   return (
-    <header className="sticky top-0 z-10 w-full border-b bg-background/95 py-2 supports-[backdrop-filter]:bg-background/60 dark:shadow-foreground/10">
+    <header className="bg-background/[.95] supports-[backdrop-filter]:bg-background/60 dark:shadow-foreground/10 sticky top-0 z-10 w-full border-b py-2">
       <div className="mx-4 flex h-8 items-center sm:mx-8">
         <div className="flex items-center space-x-4 lg:space-x-0">
-          <SheetMenu onSignout={() => authContext.logout()} />
+          {authContext.viewer && (
+            <SheetMenu
+              appMenuItems={[]}
+              onSignout={() => authContext.logout()}
+              viewer={authContext.viewer}
+            />
+          )}
           <div className="flex items-center gap-4 pl-6">
             {breadcrumbs && (
               <Breadcrumb className="hidden md:flex">

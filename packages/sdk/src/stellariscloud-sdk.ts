@@ -1,5 +1,5 @@
-import { paths } from '@stellariscloud/types'
 import { Authenticator } from '@stellariscloud/auth-utils'
+import type { paths } from '@stellariscloud/types'
 import createFetchClient from 'openapi-fetch'
 
 export class StellarisCloudSdk {

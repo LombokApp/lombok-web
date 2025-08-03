@@ -1,8 +1,10 @@
 import type { IframeMessage } from './types'
 
 export class IframeCommunicator {
-  private messageHandlers: Map<string, (message: IframeMessage) => void> =
-    new Map()
+  private readonly messageHandlers = new Map<
+    string,
+    (message: IframeMessage) => void
+  >()
 
   constructor() {
     this.setupMessageListener()
@@ -16,7 +18,7 @@ export class IframeCommunicator {
       }
 
       const message = event.data as IframeMessage
-      if (!message || !message.type) {
+      if (!message.type) {
         return
       }
 
@@ -33,9 +35,6 @@ export class IframeCommunicator {
   }
 
   public sendMessage(message: IframeMessage): void {
-    if (!window.parent) {
-      throw new Error('No parent window available')
-    }
     window.parent.postMessage(message, '*')
   }
 

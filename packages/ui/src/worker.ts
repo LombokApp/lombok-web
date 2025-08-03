@@ -58,10 +58,10 @@ const presignedURLBufferContext: Record<
 > = {}
 
 const maybeSendBatch = (folderId: string) => {
-  const folderBatch =
-    folderId in presignedURLBufferContext
-      ? presignedURLBufferContext[folderId]
-      : { batchBuffer: [], lastTimeExecuted: Date.now() }
+  const folderBatch = presignedURLBufferContext[folderId] ?? {
+    batchBuffer: [],
+    lastTimeExecuted: Date.now(),
+  }
   presignedURLBufferContext[folderId] = folderBatch
   if (
     folderBatch.batchBuffer.length > 0 &&
@@ -124,10 +124,10 @@ const requestDownloadUrlAndMaybeSendBatch = (
   objectIdentifier: string,
 ) => {
   const folderObjectKey = `${folderId}:${objectIdentifier}`
-  const folderBatch =
-    folderId in presignedURLBufferContext
-      ? presignedURLBufferContext[folderId]
-      : { batchBuffer: [], lastTimeExecuted: Date.now() }
+  const folderBatch = presignedURLBufferContext[folderId] ?? {
+    batchBuffer: [],
+    lastTimeExecuted: Date.now(),
+  }
   presignedURLBufferContext[folderId] = folderBatch
   presignedURLBufferContext[folderId].batchBuffer.push(objectIdentifier)
   if (presignedURLBufferContext[folderId].batchBuffer.length === 1) {
@@ -207,7 +207,7 @@ const downloadLocally = async (
         }
       }
 
-      const blob = new Blob(chunks)
+      const blob = new Blob(chunks as BlobPart[])
 
       log({
         level: LogLevel.INFO,

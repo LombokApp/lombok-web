@@ -1,7 +1,7 @@
+import type { paths } from '@stellariscloud/types'
 import createFetchClient from 'openapi-fetch'
 
 import { verifyToken } from './jwt.util'
-import { paths } from '@stellariscloud/types'
 
 export interface AuthenticatorStateType {
   isAuthenticated: boolean
@@ -71,43 +71,37 @@ export class Authenticator {
       },
     })
 
-    setTimeout(async () => {
-      // Use provided token functions if available
-      let accessToken: string | undefined
-      if (this.getAccessTokenFn) {
-        accessToken = await this.getAccessTokenFn()
-      }
-      if (accessToken && verifyToken(accessToken)) {
-        this.tokens.accessToken = accessToken
-        let refreshToken: string | undefined
-        if (this.getRefreshTokenFn) {
-          refreshToken = await this.getRefreshTokenFn()
+    setTimeout(() => {
+      void (async () => {
+        // Use provided token functions if available
+        const accessToken = await this.getAccessTokenFn()
+        if (accessToken && verifyToken(accessToken)) {
+          this.tokens.accessToken = accessToken
+          let refreshToken: string | undefined
+          if (this.getRefreshTokenFn) {
+            refreshToken = await this.getRefreshTokenFn()
+          }
+          this.tokens.refreshToken = refreshToken
+          this.state = { isAuthenticated: true, isLoaded: true }
+          return
         }
-        this.tokens.refreshToken = refreshToken
-        this.state = { isAuthenticated: true, isLoaded: true }
-        return
-      }
-      this.reset()
-      this.state = { isAuthenticated: false, isLoaded: true }
+        await this.reset()
+        this.state = { isAuthenticated: false, isLoaded: true }
+      })()
     })
   }
 
   // getAccessToken returns valid accessToken if it exists or refreshes the token if not valid.
   public async getAccessToken() {
-    let token = this.tokens.accessToken
-    if (this.getAccessTokenFn) {
-      token = await this.getAccessTokenFn()
-      this.tokens.accessToken = token
-    }
+    const token = await this.getAccessTokenFn()
     if (token && verifyToken(token)) {
       return token
     }
-    let refreshToken = this.tokens.refreshToken
     if (this.getRefreshTokenFn) {
-      refreshToken = await this.getRefreshTokenFn()
+      const refreshToken = await this.getRefreshTokenFn()
       this.tokens.refreshToken = refreshToken
     }
-    if (refreshToken) {
+    if (this.tokens.refreshToken) {
       await this.refresh()
     }
     if (this.state.isAuthenticated) {
@@ -156,7 +150,7 @@ export class Authenticator {
       }
       return loginResponse
     } catch (error: unknown) {
-      this.reset()
+      await this.reset()
       throw error
     }
   }
@@ -200,7 +194,7 @@ export class Authenticator {
       }
       return signupResponse
     } catch (error: unknown) {
-      this.reset()
+      await this.reset()
       throw error
     }
   }
@@ -222,7 +216,7 @@ export class Authenticator {
       }
     }
 
-    this.reset()
+    await this.reset()
 
     if (backendLogoutFailed) {
       throw error
@@ -232,7 +226,7 @@ export class Authenticator {
   public addEventListener(
     type: AuthenticatorEventNames,
     callback: EventListenerOrEventListenerObject | null,
-    options?: boolean | AddEventListenerOptions | undefined,
+    options?: boolean | AddEventListenerOptions,
   ) {
     this.eventTarget?.addEventListener(type, callback, options)
     this.state = this._state
@@ -241,7 +235,7 @@ export class Authenticator {
   public removeEventListener(
     type: AuthenticatorEventNames,
     callback: EventListenerOrEventListenerObject | null,
-    options?: boolean | AddEventListenerOptions | undefined,
+    options?: boolean | AddEventListenerOptions,
   ) {
     this.eventTarget?.removeEventListener(type, callback, options)
   }
@@ -277,7 +271,7 @@ export class Authenticator {
         )
       }
 
-      const { accessToken, refreshToken } = refreshTokenResponse.data?.session
+      const { accessToken, refreshToken } = refreshTokenResponse.data.session
 
       this.tokens.accessToken = accessToken
       this.tokens.refreshToken = refreshToken
@@ -289,16 +283,16 @@ export class Authenticator {
         await this.onTokensRefreshed({ accessToken, refreshToken })
       }
     } catch (err: unknown) {
-      this.reset()
+      await this.reset()
       throw err
     }
   }
 
-  private reset() {
+  private async reset() {
     this.tokens.accessToken = undefined
     this.tokens.refreshToken = undefined
     if (this.state.isAuthenticated) {
-      this.onLogout?.()
+      await this.onLogout?.()
     }
     this.state = { isAuthenticated: false, isLoaded: true }
   }

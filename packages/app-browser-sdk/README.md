@@ -6,7 +6,7 @@ A browser SDK for StellarisCloud iframe applications that provides automatic com
 
 - **Automatic Iframe Communication**: Secure communication between iframe and parent window with automatic initialization
 - **Token Management**: Automatic handling of authentication tokens received from parent
-- **API Client**: Direct access to pre-configured StellarisCloud API client  
+- **API Client**: Direct access to pre-configured StellarisCloud API client
 - **React Hooks**: Easy integration with React applications including auth state management
 - **URL-based Configuration**: Automatic base path detection from URL parameters
 
@@ -32,7 +32,7 @@ const sdk = new AppBrowserSdk({
   },
   onLogout: () => {
     console.log('Logout event received')
-  }
+  },
 })
 
 // The SDK automatically initializes when created
@@ -194,7 +194,7 @@ bun install
 bun run build:clean
 
 # Type checking
-bun run ts:check
+bun run tsc:check
 
 # Linting
 bun run lint:check

@@ -34,7 +34,7 @@ export function DataTableToolbar<TData>({
   onFiltersChange,
 }: DataTableToolbarProps<TData>) {
   const isFiltered =
-    Object.keys(filters).filter((key) => filters[key].length).length > 0
+    Object.keys(filters).filter((key) => filters[key]?.length !== 0).length > 0
 
   const _searchFilterValue = React.useMemo<string | undefined>(() => {
     return 'search' in filters && filters.search.length ? filters.search[0] : ''
@@ -92,8 +92,8 @@ export function DataTableToolbar<TData>({
                   })
                 }
                 selectedValues={new Set(filters[filterOptionKey] ?? [])}
-                title={filterOptions[filterOptionKey].label}
-                options={filterOptions[filterOptionKey].options}
+                title={filterOptions[filterOptionKey]?.label ?? ''}
+                options={filterOptions[filterOptionKey]?.options ?? []}
               />
             ))}
 

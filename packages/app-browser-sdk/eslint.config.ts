@@ -1,7 +1,6 @@
 import eslint from '@eslint/js'
-import eslintStorybook from 'eslint-plugin-storybook'
 import eslintTailwind from 'eslint-plugin-tailwindcss'
-import tseslint from 'typescript-eslint'
+import tseslint, { type Config } from 'typescript-eslint'
 
 import baseConfig from '../../eslint-config/base'
 import reactConfig from '../../eslint-config/react'
@@ -17,9 +16,17 @@ export default tseslint.config(
   reactConfig,
   strictConfig,
   {
-    ignores: ['node_modules/', 'dist/'],
+    ignores: ['node_modules/', 'dist/', 'build/', 'public/', 'fonts/'],
   },
   {
+    plugins: {
+      tailwind: eslintTailwind,
+    },
+    settings: {
+      tailwindcss: {
+        config: 'tailwind.config.ts',
+      },
+    },
     languageOptions: {
       ecmaVersion: 2022,
       parserOptions: {
@@ -38,4 +45,4 @@ export default tseslint.config(
       },
     },
   },
-)
+) as Config

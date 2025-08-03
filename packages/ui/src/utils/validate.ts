@@ -4,5 +4,5 @@ export const isValidEmail = (email = '') => {
     return false
   }
 
-  return !(splitEmail[0].length === 0 || splitEmail[1].length === 0)
+  return !(splitEmail[0]?.length === 0 || splitEmail[1]?.length === 0)
 }

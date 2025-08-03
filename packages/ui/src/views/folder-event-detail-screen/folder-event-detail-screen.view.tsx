@@ -6,7 +6,7 @@ import { $api } from '@/src/services/api'
 
 export function FolderEventDetailScreen() {
   const params = useParams()
-  const eventId = (params['*']?.split('/') ?? [])[2]
+  const eventId = (params['*']?.split('/') ?? [])[2] ?? ''
   const { folderId } = useFolderContext()
 
   const { data, isLoading } = $api.useQuery(
@@ -14,6 +14,9 @@ export function FolderEventDetailScreen() {
     '/api/v1/folders/{folderId}/events/{eventId}',
     {
       params: { path: { folderId, eventId } },
+    },
+    {
+      enabled: !!eventId && !!folderId,
     },
   )
 

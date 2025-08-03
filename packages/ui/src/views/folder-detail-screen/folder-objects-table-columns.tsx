@@ -9,8 +9,8 @@ function previewObjectKeyForFolderObject(folderObject: FolderObjectDTO) {
   if (folderObject.hash) {
     const previewMetadata =
       folderObject.hash &&
-      'thumbnailLg' in folderObject.contentMetadata[folderObject.hash]
-        ? folderObject.contentMetadata[folderObject.hash]['thumbnailLg']
+      'thumbnailLg' in (folderObject.contentMetadata[folderObject.hash] ?? {})
+        ? folderObject.contentMetadata[folderObject.hash]?.['thumbnailLg']
         : undefined
     if (previewMetadata?.type === 'external') {
       return toMetadataObjectIdentifier(

@@ -17,6 +17,6 @@
     "declarationMap": true,
     "outDir": "./dist"
   },
-  "include": ["index.ts", "src/**/*"],
+  "include": ["index.ts", "src/**/*", "eslint.config.ts"],
   "exclude": ["node_modules", "dist"]
 }
