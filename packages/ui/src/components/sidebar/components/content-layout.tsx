@@ -13,7 +13,7 @@ export function ContentLayout({
   contentPadding = true,
 }: ContentLayoutProps) {
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex size-full flex-col">
       <Navbar breadcrumbs={breadcrumbs} />
       <div
         className={cn(

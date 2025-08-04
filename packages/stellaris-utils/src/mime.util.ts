@@ -2,13 +2,13 @@ import { MediaType } from '@stellariscloud/types'
 
 import type {
   AudioMediaMimeTypes,
-  DocumentMediaMimeTypes,
   ImageMediaMimeTypes,
   VideoMediaMimeTypes,
 } from './constants'
 import {
   AUDIO_MEDIA_MIME_TYPES,
   DOCUMENT_MEDIA_MIME_TYPES,
+  DocumentMediaMimeTypes,
   EXTENSION_TO_MIME_TYPE_MAP,
   IMAGE_MEDIA_MIME_TYPES,
   MIME_TYPE_TO_EXTENSION_MAP,
@@ -48,6 +48,20 @@ export const mediaTypeFromExtension = (extension: string) => {
     return MediaType.Document
   }
   return MediaType.Unknown
+}
+
+export const isRenderableTextMimeType = (mimeType: string) => {
+  // Check specific document types that are renderable
+  if (
+    mimeType === String(DocumentMediaMimeTypes.TXT) ||
+    mimeType === String(DocumentMediaMimeTypes.HTML) ||
+    mimeType === String(DocumentMediaMimeTypes.JSON)
+  ) {
+    return true
+  }
+
+  // PDF and office documents are not directly renderable in webpages
+  return false
 }
 
 export const extensionFromMimeType = (mimeType: string): string | undefined => {

@@ -111,6 +111,11 @@ const AuthenticatedContent = () => {
       <main
         className={cn(
           'bg-foreground/[.01] min-h-[calc(100vh_-_56px)] flex-1 transition-[margin-left] duration-300 ease-in-out',
+          !sidebarDisabled
+            ? !getOpenState()
+              ? 'lg:max-w-[calc(100vw_-_70px)]'
+              : 'lg:max-w-[calc(100vw_-_256px)]'
+            : 'w-full',
           !sidebarDisabled && (!getOpenState() ? 'lg:ml-[70px]' : 'lg:ml-64'),
         )}
       >
