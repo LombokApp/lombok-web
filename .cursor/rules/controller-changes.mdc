@@ -1,0 +1,10 @@
+---
+globs: packages/api/src/**/*.controller.ts
+alwaysApply: false
+---
+
+When changing the controller endpoints, a couple of things need to be followed/considered:
+
+1. Make sure the API types are defined like all the others in that type returned from the endpoint is wrapped with "createZodDto" named and located in the "dto" directory adjacent to the controller.
+2. Before any changes will be recognised in the frontend, you'll need to run `bun generate:openapi` to regenerate the API types.
+3. Generally, use the other endpoints across all \*.controller.ts files in the API package to understand the conventions you should follow.

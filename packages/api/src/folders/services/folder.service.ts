@@ -931,20 +931,20 @@ export class FolderService {
     {
       folderId,
       appIdentifier,
-      taskKey,
+      taskIdentifier,
       inputParams,
       objectKey,
     }: {
       folderId: string
       appIdentifier: string
-      taskKey: string
+      taskIdentifier: string
       inputParams: unknown // TODO: improve
       objectKey?: string
     },
   ): Promise<void> {
     const _folderAndPermissions = await this.getFolderAsUser(actor, folderId)
     // console.log('Handling Action:', {
-    //   taskKey,
+    //   taskIdentifier,
     //   folderId,
     //   appIdentifier,
     //   actionParams,
@@ -956,7 +956,7 @@ export class FolderService {
       userId: actor.id,
       level: EventLevel.INFO,
       data: { inputParams },
-      eventKey: `TRIGGER_TASK:${appIdentifier.toUpperCase()}:${taskKey}`,
+      eventKey: `TRIGGER_TASK:${appIdentifier.toUpperCase()}:${taskIdentifier}!!FIX!!`,
     })
   }
 

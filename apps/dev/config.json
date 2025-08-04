@@ -2,10 +2,9 @@
   "description": "The dev app.",
   "identifier": "dev",
   "label": "Dev",
-  "requiresStorage": true,
   "tasks": [
     {
-      "key": "DO_SPECIAL_THING",
+      "identifier": "DO_SPECIAL_THING",
       "label": "Do Special Thing",
       "description": "Do special thing for each new object.",
       "triggers": [

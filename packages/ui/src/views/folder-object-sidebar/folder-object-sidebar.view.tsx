@@ -78,7 +78,7 @@ export const FolderObjectSidebar = ({
     : ({} as ContentMetadataType)
   const handleAppTaskTrigger = $api.useMutation(
     'post',
-    '/api/v1/folders/{folderId}/apps/{appIdentifier}/trigger/{taskKey}',
+    '/api/v1/folders/{folderId}/apps/{appIdentifier}/trigger/{taskIdentifier}',
   )
 
   const serverContext = useServerContext()
@@ -94,15 +94,15 @@ export const FolderObjectSidebar = ({
   }[] = serverContext.appFolderObjectTaskTriggers.map((trigger) => ({
     description: trigger.taskTrigger.description,
     icon: CheckIcon,
-    id: trigger.taskTrigger.taskKey,
-    key: trigger.taskTrigger.taskKey,
+    id: trigger.taskTrigger.taskIdentifier,
+    key: trigger.taskTrigger.taskIdentifier,
     label: trigger.taskTrigger.label,
     onExecute: () =>
       handleAppTaskTrigger.mutate({
         params: {
           path: {
             folderId,
-            taskKey: trigger.taskTrigger.taskKey,
+            taskIdentifier: trigger.taskTrigger.taskIdentifier,
             appIdentifier: trigger.appIdentifier,
           },
         },

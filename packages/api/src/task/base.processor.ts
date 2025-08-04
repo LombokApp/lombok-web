@@ -1,5 +1,6 @@
 import { getApp } from 'src/shared/app-helper'
 
+import type { TaskInputData } from './entities/task.entity'
 import type { CoreTaskInputData } from './services/core-task.service'
 import { CoreTaskService } from './services/core-task.service'
 import type { CoreTaskName } from './task.constants'
@@ -19,7 +20,7 @@ export abstract class BaseProcessor<K extends CoreTaskName> {
     setTimeout(() => void this.registerProcessor(), 100)
   }
 
-  _run(inputData: Record<string, string | number>) {
+  _run(inputData: TaskInputData) {
     return this.run(inputData as never)
   }
 

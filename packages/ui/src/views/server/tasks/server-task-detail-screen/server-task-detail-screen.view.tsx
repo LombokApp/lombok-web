@@ -20,7 +20,9 @@ export function ServerTaskDetailScreen({ taskId }: { taskId: string }) {
         <Card className="border-0 bg-transparent">
           <CardHeader className="p-0 pb-4">
             <CardTitle>Task: {data?.task.id}</CardTitle>
-            <CardDescription>Key: {data?.task.taskKey}</CardDescription>
+            <CardDescription>
+              Identifier: {data?.task.taskIdentifier}
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <ServerTaskAttributesList task={data?.task} />

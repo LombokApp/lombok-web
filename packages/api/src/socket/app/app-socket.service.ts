@@ -16,7 +16,7 @@ import {
 const AppAuthPayload = z.object({
   appWorkerId: z.string(),
   token: z.string(),
-  handledTaskKeys: z.array(z.string()).optional(),
+  handledTaskIdentifiers: z.array(z.string()).optional(),
 })
 
 export const APP_WORKER_INFO_CACHE_KEY_PREFIX = 'APP_WORKER'
@@ -100,10 +100,11 @@ export class AppSocketService {
         socket.disconnect(true)
         throw new UnauthorizedException()
       }
+      console.log('auth.handledTaskIdentifiers', auth.handledTaskIdentifiers)
       const workerInfo: ExternalAppWorker = {
         appIdentifier,
         socketClientId: socket.id,
-        handledTaskKeys: auth.handledTaskKeys ?? [], // TODO: validate worker reported task keys to match their config
+        handledTaskIdentifiers: auth.handledTaskIdentifiers ?? [], // TODO: validate worker reported task keys to match their config
         workerId: auth.appWorkerId,
         ip: socket.handshake.address,
       }
@@ -164,8 +165,11 @@ export class AppSocketService {
       })
       // add the clients to the rooms corresponding to their subscriptions
       await Promise.all(
-        (auth.handledTaskKeys ?? []).map((taskKey) => {
-          const roomKey = this.getRoomKeyForAppAndTask(appIdentifier, taskKey)
+        (auth.handledTaskIdentifiers ?? []).map((taskIdentifier) => {
+          const roomKey = this.getRoomKeyForAppAndTask(
+            appIdentifier,
+            taskIdentifier,
+          )
           return socket.join(roomKey)
         }),
       )
@@ -178,25 +182,28 @@ export class AppSocketService {
     }
   }
 
-  getRoomKeyForAppAndTask(appIdentifier: string, taskKey: string) {
-    return `${APP_NS_PREFIX}${appIdentifier.toLowerCase()}__task:${taskKey}`
+  getRoomKeyForAppAndTask(appIdentifier: string, taskIdentifier: string) {
+    return `${APP_NS_PREFIX}${appIdentifier.toLowerCase()}__task:${taskIdentifier}`
   }
 
   notifyAppWorkersOfPendingTasks(
     appIdentifier: string,
-    taskKey: string,
+    taskIdentifier: string,
     count: number,
   ) {
     // eslint-disable-next-line no-console
     console.log('Broadcasting pending tasks message:', {
       appIdentifier,
-      taskKey,
+      taskIdentifier,
       count,
     })
     if (this.namespace) {
       this.namespace
-        .to(this.getRoomKeyForAppAndTask(appIdentifier, taskKey))
-        .emit('PENDING_TASKS_NOTIFICATION', { taskKey, count })
+        .to(this.getRoomKeyForAppAndTask(appIdentifier, taskIdentifier))
+        .emit('PENDING_TASKS_NOTIFICATION', {
+          taskIdentifier,
+          count,
+        })
     } else {
       // eslint-disable-next-line no-console
       console.log(

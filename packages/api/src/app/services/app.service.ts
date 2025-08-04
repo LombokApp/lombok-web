@@ -3,6 +3,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common'
 import nestJsConfig from '@nestjs/config'
 import { hashLocalFile } from '@stellariscloud/core-worker'
@@ -20,7 +21,17 @@ import {
 } from '@stellariscloud/types'
 import { safeZodParse } from '@stellariscloud/utils'
 import { spawn } from 'bun'
-import { and, eq, inArray, isNull } from 'drizzle-orm'
+import {
+  and,
+  arrayContains,
+  count,
+  eq,
+  ilike,
+  inArray,
+  isNull,
+  or,
+  SQL,
+} from 'drizzle-orm'
 import fs from 'fs'
 import fsPromises from 'fs/promises'
 import mime from 'mime'
@@ -30,7 +41,9 @@ import { JWTService } from 'src/auth/services/jwt.service'
 import { SessionService } from 'src/auth/services/session.service'
 import { KVService } from 'src/cache/kv.service'
 import { readDirRecursive } from 'src/core/utils/fs.util'
+import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { EventLevel, eventsTable } from 'src/event/entities/event.entity'
+import { RUN_WORKER_SCRIPT_TASK_KEY } from 'src/event/services/event.service'
 import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
@@ -50,6 +63,7 @@ import { z } from 'zod'
 
 import { appConfig } from '../config'
 import { AppSocketAPIRequest } from '../constants/app-api-messages'
+import { AppSort } from '../dto/apps-list-query-params.dto'
 import { App, appsTable } from '../entities/app.entity'
 import { AppAlreadyInstalledException } from '../exceptions/app-already-installed.exception'
 import { AppInvalidException } from '../exceptions/app-invalid.exception'
@@ -81,7 +95,7 @@ const logEntrySchema = z.object({
 })
 
 const attemptStartHandleTaskSchema = z.object({
-  taskKeys: z.array(z.string()),
+  taskIdentifiers: z.array(z.string()),
 })
 
 const attemptStartHandleTaskByIdSchema = z.object({
@@ -190,6 +204,14 @@ export class AppService {
     }
 
     return this.sessionService.createAppUserSession(user, appIdentifier)
+  }
+
+  async getWorkerScriptRunnerApp() {
+    return this.ormService.db.query.appsTable.findFirst({
+      where: arrayContains(appsTable.implementedTasks, [
+        RUN_WORKER_SCRIPT_TASK_KEY,
+      ]),
+    })
   }
 
   async handleAppRequest(
@@ -317,7 +339,10 @@ export class AppService {
               const task = await this.ormService.db.query.tasksTable.findFirst({
                 where: and(
                   eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
-                  inArray(tasksTable.taskKey, requestData.taskKeys),
+                  inArray(
+                    tasksTable.taskIdentifier,
+                    requestData.taskIdentifiers,
+                  ),
                   isNull(tasksTable.startedAt),
                 ),
               })
@@ -894,41 +919,66 @@ export class AppService {
     }
   }
 
-  public getContentForAppAsset(
-    appIdentifier: string,
-    appUi: string,
-    filename: string,
-  ) {
-    const CACHE_KEY = this.getCacheKeyForAppAsset(
-      appIdentifier,
-      appUi,
-      filename,
-    )
-    return this.kvService.ops.get(CACHE_KEY) as string
-  }
+  public async listAppsAsAdmin(
+    user: User,
+    {
+      offset,
+      limit,
+      sort = [AppSort.CreatedAtDesc],
+      search,
+    }: {
+      offset?: number
+      limit?: number
+      sort?: AppSort[]
+      search?: string
+    } = {},
+  ): Promise<{ meta: { totalCount: number }; result: App[] }> {
+    if (!user.isAdmin) {
+      throw new UnauthorizedException()
+    }
 
-  public getCacheKeyForAppAsset(
-    appIdentifier: string,
-    appUi: string,
-    filename: string,
-  ) {
-    return `APP_UI:${appIdentifier}:${appUi}:${filename}`
-  }
+    const conditions: (SQL | undefined)[] = []
 
-  public listApps() {
-    return this.ormService.db.query.appsTable.findMany({ limit: 100 })
+    if (search) {
+      conditions.push(
+        or(
+          ilike(appsTable.label, `%${search}%`),
+          ilike(appsTable.identifier, `%${search}%`),
+        ),
+      )
+    }
+
+    const apps = await this.ormService.db.query.appsTable.findMany({
+      ...(conditions.length ? { where: and(...conditions) } : {}),
+      offset: Math.max(0, offset ?? 0),
+      limit: Math.min(100, limit ?? 25),
+      orderBy: parseSort(
+        appsTable,
+        normalizeSortParam(sort) ?? [AppSort.CreatedAtDesc],
+      ),
+    })
+
+    const appsCountResult = await this.ormService.db
+      .select({
+        count: count(),
+      })
+      .from(appsTable)
+      .where(conditions.length ? and(...conditions) : undefined)
+
+    return {
+      result: apps,
+      meta: { totalCount: appsCountResult[0]?.count ?? 0 },
+    }
   }
 
   public async uninstallApp(app: App) {
     const serverStorageLocation =
       await this.serverConfigurationService.getServerStorageLocation()
-    const appRequiresStorage =
-      app.config.requiresStorage ||
-      Object.keys(app.manifest).filter(
-        (manifestItemPath) =>
-          manifestItemPath.startsWith('/ui') ||
-          manifestItemPath.startsWith('/workers'),
-      ).length
+    const appRequiresStorage = Object.keys(app.manifest).filter(
+      (manifestItemPath) =>
+        manifestItemPath.startsWith('/ui') ||
+        manifestItemPath.startsWith('/workers'),
+    ).length
 
     if (appRequiresStorage && serverStorageLocation) {
       const prefix = `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}${app.identifier}/`
@@ -958,8 +1008,7 @@ export class AppService {
 
     const serverStorageLocation =
       await this.serverConfigurationService.getServerStorageLocation()
-    const appRequiresStorage =
-      app.config.requiresStorage || assetManifestEntryPaths.length
+    const appRequiresStorage = assetManifestEntryPaths.length > 0
 
     if (appRequiresStorage && !serverStorageLocation) {
       throw new AppRequirementsNotSatisfiedException()
@@ -1298,6 +1347,17 @@ export class AppService {
     }
     const parseResult = appConfigSchema.safeParse(config)
 
+    const implementedTasks = config.tasks.map((t) => t.identifier)
+    const subscribedEvents = config.tasks.reduce<string[]>(
+      (acc, task) =>
+        acc.concat(
+          (task.triggers ?? [])
+            .filter((t) => t.type === 'event')
+            .map((t) => t.event),
+        ),
+      [],
+    )
+
     const app = {
       validation: {
         value: parseResult.success,
@@ -1309,6 +1369,10 @@ export class AppService {
         manifest,
         publicKey,
         workerScripts,
+        subscribedEvents,
+        implementedTasks,
+        requiresStorage:
+          Object.keys(uis).length > 0 || Object.keys(workerScripts).length > 0,
         uis,
         config,
         createdAt: now,

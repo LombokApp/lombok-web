@@ -117,7 +117,7 @@ export class TaskService {
     if (search) {
       conditions.push(
         or(
-          ilike(tasksTable.taskKey, `%${search}%`),
+          ilike(tasksTable.taskIdentifier, `%${search}%`),
           ilike(tasksTable.errorMessage, `%${search}%`),
           ilike(tasksTable.errorCode, `%${search}%`),
         ),
@@ -173,7 +173,7 @@ export class TaskService {
   async handlePendingTasks() {
     const pendingTasks = await this.ormService.db
       .select({
-        taskKey: tasksTable.taskKey,
+        taskIdentifier: tasksTable.taskIdentifier,
         ownerIdentifier: tasksTable.ownerIdentifier,
         count: sql<number>`cast(count(${tasksTable.id}) as int)`,
       })
@@ -181,7 +181,7 @@ export class TaskService {
       .where(
         and(isNull(tasksTable.startedAt), isNull(tasksTable.workerIdentifier)),
       )
-      .groupBy(tasksTable.taskKey, tasksTable.ownerIdentifier)
+      .groupBy(tasksTable.taskIdentifier, tasksTable.ownerIdentifier)
     const pendingTasksByApp = pendingTasks.reduce<
       Record<string, Record<string, number>>
     >((acc, next) => {
@@ -190,16 +190,19 @@ export class TaskService {
         ...acc,
         [appIdentifier]: {
           ...(appIdentifier in acc ? acc[appIdentifier] : {}),
-          [next.taskKey]: next.count,
+          [next.taskIdentifier]: next.count,
         },
       }
     }, {})
     for (const appIdentifier of Object.keys(pendingTasksByApp)) {
-      for (const taskKey of Object.keys(pendingTasksByApp[appIdentifier])) {
-        const pendingTaskCount = pendingTasksByApp[appIdentifier][taskKey]
+      for (const taskIdentifier of Object.keys(
+        pendingTasksByApp[appIdentifier],
+      )) {
+        const pendingTaskCount =
+          pendingTasksByApp[appIdentifier][taskIdentifier]
         this.appSocketService.notifyAppWorkersOfPendingTasks(
           appIdentifier,
-          taskKey,
+          taskIdentifier,
           pendingTaskCount,
         )
       }

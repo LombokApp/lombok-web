@@ -10,7 +10,7 @@
     "lint:fix": "eslint --fix",
     "prettier:check": "prettier --check \"./**/*.(ts|tsx)\"",
     "prettier:write": "prettier --write \"./**/*.(ts|tsx)\"",
-    "tsc:check": "tsc --noEmit",
+    "tsc:check": "tsc --noEmit -p tsconfig.app.json",
     "preview": "vite preview"
   },
   "dependencies": {

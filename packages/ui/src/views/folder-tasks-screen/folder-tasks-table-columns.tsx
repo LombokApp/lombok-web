@@ -19,7 +19,7 @@ export const folderTasksTableColumns: HideableColumnDef<TaskDTO>[] = [
     zeroWidth: true,
   },
   {
-    accessorKey: 'taskKey',
+    accessorKey: 'taskIdentifier',
     header: ({ column }) => (
       <DataTableColumnHeader
         canHide={column.getCanHide()}
@@ -50,7 +50,7 @@ export const folderTasksTableColumns: HideableColumnDef<TaskDTO>[] = [
         </div>
 
         <div className="flex flex-col">
-          <div className="w-[80px]">{row.getValue('taskKey')}</div>
+          <div className="w-[80px]">{row.getValue('taskIdentifier')}</div>
           <span className="max-w-[150px] truncate text-xs text-muted-foreground">
             {row.original.taskDescription.textKey}
           </span>

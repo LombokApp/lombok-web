@@ -42,7 +42,7 @@ const TaskCard = ({ task, folderId }: { task: TaskDTO; folderId: string }) => {
               />
               <div className="flex items-center gap-2">
                 <div className="font-semibold group-hover:text-primary">
-                  {task.taskKey}
+                  {task.taskIdentifier}
                 </div>
                 <div className="text-xs text-muted-foreground">
                   <div className="font-mono">

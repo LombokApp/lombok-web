@@ -1,9 +1,5 @@
-import type {
-  MiddlewareConsumer,
-  NestModule,
-  OnModuleInit,
-} from '@nestjs/common'
-import { forwardRef, Inject, Module, RequestMethod } from '@nestjs/common'
+import type { OnModuleInit } from '@nestjs/common'
+import { forwardRef, Inject, Module } from '@nestjs/common'
 import nestJSConfig, { ConfigModule } from '@nestjs/config'
 import { AuthModule } from 'src/auth/auth.module'
 import { authConfig } from 'src/auth/config'
@@ -16,7 +12,6 @@ import { ServerConfigurationService } from 'src/server/services/server-configura
 import { S3Service } from 'src/storage/s3.service'
 import { StorageModule } from 'src/storage/storage.module'
 
-import { AppAssetsMiddleware } from './app-assets.middleware'
 import { appConfig } from './config'
 import { AppsController } from './controllers/apps.controller'
 import { CoreAppService } from './core-app.service'
@@ -42,7 +37,7 @@ import { AppService } from './services/app.service'
   ],
   exports: [AppService],
 })
-export class AppModule implements OnModuleInit, NestModule {
+export class AppModule implements OnModuleInit {
   constructor(
     private readonly coreAppService: CoreAppService,
     private readonly ormService: OrmService,
@@ -61,11 +56,5 @@ export class AppModule implements OnModuleInit, NestModule {
       .then(() =>
         this.coreAppService.startCoreModuleThread('embedded_worker_1'),
       )
-  }
-
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(AppAssetsMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.GET })
   }
 }

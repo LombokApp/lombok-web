@@ -13,6 +13,7 @@ export const appSchema = z.object({
   label: z.string(),
   publicKey: z.string(),
   config: appConfigSchema,
+  requiresStorage: z.boolean(),
   manifest: appManifestSchema,
   externalWorkers: z.array(externalAppWorkerSchema),
   workerScripts: appWorkerScriptsSchema,

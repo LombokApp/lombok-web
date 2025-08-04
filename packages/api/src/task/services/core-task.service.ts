@@ -120,7 +120,8 @@ export class CoreTaskService {
         }
         // console.log('Started core task!')
         // we have secured the task, so perform execution
-        const processorName = task.taskKey
+        const processorName = task.taskIdentifier
+
         const processor = this.processors[processorName]
         this.runningTasksCount++
         await processor
@@ -181,7 +182,7 @@ export class CoreTaskService {
   }
 
   async addAsyncTask<K extends CoreTaskName>(
-    taskKey: K,
+    taskIdentifier: K,
     inputData: CoreTaskInputData<K>,
     context: { folderId?: string; objectKey?: string; userId?: string } = {},
   ) {
@@ -189,7 +190,7 @@ export class CoreTaskService {
 
     const event: NewEvent = {
       id: uuidV4(),
-      eventKey: `TRIGGER_CORE_TASK_${taskKey}`,
+      eventKey: `TRIGGER_CORE_TASK_${taskIdentifier}`,
       data: inputData,
       emitterIdentifier: 'core',
       folderId: context.folderId,
@@ -204,12 +205,12 @@ export class CoreTaskService {
       inputData,
       ownerIdentifier: 'core',
       taskDescription: {
-        textKey: `Task '${taskKey}'`,
+        textKey: `Task '${taskIdentifier}'`,
         variables: {},
       },
       subjectFolderId: context.folderId,
       subjectObjectKey: context.objectKey,
-      taskKey,
+      taskIdentifier,
       triggeringEventId: event.id,
       createdAt: now,
       updatedAt: now,

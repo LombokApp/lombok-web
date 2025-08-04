@@ -2,6 +2,9 @@ CREATE TABLE "apps" (
 	"identifier" text PRIMARY KEY NOT NULL,
 	"label" text NOT NULL,
 	"publicKey" text NOT NULL,
+	"requiresStorage" boolean NOT NULL,
+	"subscribedEvents" text[] DEFAULT ARRAY[]::text[] NOT NULL,
+	"implementedTasks" text[] DEFAULT ARRAY[]::text[] NOT NULL,
 	"contentHash" text NOT NULL,
 	"config" jsonb NOT NULL,
 	"workerScripts" jsonb NOT NULL,
@@ -94,7 +97,7 @@ CREATE TABLE "storage_locations" (
 CREATE TABLE "tasks" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"ownerIdentifier" text NOT NULL,
-	"taskKey" text NOT NULL,
+	"taskIdentifier" text NOT NULL,
 	"taskDescription" jsonb NOT NULL,
 	"inputData" jsonb NOT NULL,
 	"updates" jsonb DEFAULT '[]'::jsonb NOT NULL,
