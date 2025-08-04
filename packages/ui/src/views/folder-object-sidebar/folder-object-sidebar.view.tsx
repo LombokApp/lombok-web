@@ -285,7 +285,7 @@ export const FolderObjectSidebar = ({
                                 ) : (
                                   <span>
                                     <span className="opacity-50">value: </span>
-                                    {JSON.parse(metadataEntry?.content ?? '')}
+                                    {metadataEntry?.content ?? ''}
                                   </span>
                                 )}
                               </p>

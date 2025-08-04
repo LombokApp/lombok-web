@@ -202,13 +202,15 @@ export const FolderObjectDetailScreen = ({
             {folderObject && (
               <div className={'flex max-w-full flex-1 flex-col justify-around'}>
                 {folderObject.hash ? (
-                  <FolderObjectPreview
-                    folderId={folderId}
-                    objectKey={objectKey}
-                    objectMetadata={folderObject}
-                    previewObjectKey={displayObjectKey}
-                    displayMode="object-scale-down"
-                  />
+                  <div>
+                    <FolderObjectPreview
+                      folderId={folderId}
+                      objectKey={objectKey}
+                      objectMetadata={folderObject}
+                      previewObjectKey={displayObjectKey}
+                      displayMode="object-scale-down"
+                    />
+                  </div>
                 ) : (
                   <div className="flex flex-1 items-center justify-around">
                     <Button onClick={handleIndexFolderObject}>

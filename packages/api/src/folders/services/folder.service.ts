@@ -20,7 +20,7 @@ import {
   UserStorageProvisionTypeEnum,
 } from '@stellariscloud/types'
 import {
-  mediaTypeFromExtension,
+  mediaTypeFromMimeType,
   objectIdentifierToObjectKey,
   safeZodParse,
 } from '@stellariscloud/utils'
@@ -125,6 +125,7 @@ export interface FolderObjectUpdate {
   lastModified?: number
   size?: number
   eTag?: string
+  mimeType?: string
 }
 
 const customLocationPayloadSchema = z.object({
@@ -923,7 +924,29 @@ export class FolderService {
       objectKey: absoluteObjectKey,
       eTag,
     })
-    return this.updateFolderObjectInDB(folderId, objectKey, response)
+
+    const [objHeadUrlResult] = this.s3Service.createS3PresignedUrls([
+      {
+        endpoint: contentStorageLocation.endpoint,
+        region: contentStorageLocation.region,
+        accessKeyId: contentStorageLocation.accessKeyId,
+        secretAccessKey: contentStorageLocation.secretAccessKey,
+        bucket: contentStorageLocation.bucket,
+        objectKey,
+        method: SignedURLsRequestMethod.HEAD,
+        expirySeconds: 60,
+      },
+    ])
+    const objectHeadFetchResult = await fetch(objHeadUrlResult, {
+      method: 'HEAD',
+    })
+    const mimeType =
+      objectHeadFetchResult.headers.get('content-type') ?? undefined
+
+    return this.updateFolderObjectInDB(folderId, objectKey, {
+      ...response,
+      mimeType,
+    })
   }
 
   async handleAppTaskTrigger(
@@ -987,10 +1010,17 @@ export class FolderService {
             sizeBytes: updateRecord.size ?? 0,
             lastModified: updateRecord.lastModified ?? 0,
             eTag: updateRecord.eTag ?? '',
+            mimeType: updateRecord.mimeType ?? previousRecord.mimeType,
+            mediaType: updateRecord.mimeType
+              ? mediaTypeFromMimeType(updateRecord.mimeType)
+              : previousRecord.mediaType,
           })
           .returning()
       )[0]
     } else {
+      const mimeTypeFromExtension = extension
+        ? (mime.getType(extension) ?? '')
+        : ''
       record = (
         await this.ormService.db
           .insert(folderObjectsTable)
@@ -1003,9 +1033,9 @@ export class FolderService {
             contentMetadata: {},
             sizeBytes: updateRecord.size ?? 0,
             mediaType: extension
-              ? mediaTypeFromExtension(extension)
+              ? mediaTypeFromMimeType(mimeTypeFromExtension)
               : MediaType.Unknown,
-            mimeType: extension ? (mime.getType(extension) ?? '') : '',
+            mimeType: mimeTypeFromExtension,
             createdAt: now,
             updatedAt: now,
           })

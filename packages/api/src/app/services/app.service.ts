@@ -767,6 +767,7 @@ export class AppService {
         | SignedURLsRequestMethod.GET
         | SignedURLsRequestMethod.PUT
         | SignedURLsRequestMethod.DELETE
+        | SignedURLsRequestMethod.HEAD
       folderId: string
       objectKey: string
     }[],

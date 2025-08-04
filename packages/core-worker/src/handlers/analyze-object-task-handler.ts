@@ -208,6 +208,19 @@ export const analyzeObjectTaskHandler = async (
       content: `${rotation}`,
       mimeType: 'application/json',
     }
+    metadataDescription.mimeType = {
+      type: 'inline',
+      size: Buffer.from(JSON.stringify(mimeType)).length,
+      content: JSON.stringify(mimeType),
+      mimeType: 'application/json',
+    }
+    metadataDescription.mediaType = {
+      type: 'inline',
+      size: Buffer.from(JSON.stringify(mediaType)).length,
+      content: JSON.stringify(mediaType),
+      mimeType: 'application/json',
+    }
+
     if (MediaType.Video === mediaType && 'lengthMs' in scaleResult) {
       metadataDescription.lengthMs = {
         type: 'inline',

@@ -4519,7 +4519,8 @@
               "enum": [
                 "DELETE",
                 "PUT",
-                "GET"
+                "GET",
+                "HEAD"
               ]
             }
           },
