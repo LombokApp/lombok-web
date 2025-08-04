@@ -56,7 +56,9 @@ export const FolderObjectDetailScreen = ({
 
   React.useEffect(() => {
     setDisplayObjectKey(
-      displaySize === 'original' || folderObject?.mediaType === MediaType.Audio
+      displaySize === 'original' ||
+        folderObject?.mediaType === MediaType.Audio ||
+        folderObject?.mediaType === MediaType.Document
         ? `content:${objectKey}`
         : displaySize === 'compressed' &&
             folderObject?.hash &&
@@ -158,7 +160,7 @@ export const FolderObjectDetailScreen = ({
       />
       <div className="flex size-full flex-1 justify-end">
         <div
-          className="relative flex size-full flex-col"
+          className="relative flex flex-1 flex-col overflow-hidden"
           key={displayObjectKey}
         >
           <div className="flex items-center justify-between pb-2">
@@ -198,14 +200,14 @@ export const FolderObjectDetailScreen = ({
             )}
           >
             {folderObject && (
-              <div className={'flex flex-1 flex-col justify-around'}>
+              <div className={'flex max-w-full flex-1 flex-col justify-around'}>
                 {folderObject.hash ? (
                   <FolderObjectPreview
                     folderId={folderId}
                     objectKey={objectKey}
                     objectMetadata={folderObject}
                     previewObjectKey={displayObjectKey}
-                    displayMode="object-contain"
+                    displayMode="object-scale-down"
                   />
                 ) : (
                   <div className="flex flex-1 items-center justify-around">
