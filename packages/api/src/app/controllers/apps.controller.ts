@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UnauthorizedException,
   UseGuards,
@@ -17,7 +18,9 @@ import express from 'express'
 import { AppService } from 'src/app/services/app.service'
 import { LoginResponse } from 'src/auth/dto/responses/login-response.dto'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
+import { normalizeSortParam } from 'src/core/utils/sort.util'
 
+import { AppsListQueryParamsDTO } from '../dto/apps-list-query-params.dto'
 import { AppGetResponse } from '../dto/responses/app-get-response.dto'
 import { AppListResponse } from '../dto/responses/app-list-response.dto'
 import { SetWorkerScriptEnvVarsInputDTO } from '../dto/set-worker-script-env-vars-input.dto'
@@ -32,11 +35,22 @@ export class AppsController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  async listApps(@Req() req: express.Request): Promise<AppListResponse> {
-    if (!req.user) {
+  async listApps(
+    @Req() req: express.Request,
+    @Query() queryParams: AppsListQueryParamsDTO,
+  ): Promise<AppListResponse> {
+    if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
-    const apps = await this.appService.listApps()
+    const { result: apps, meta } = await this.appService.listAppsAsAdmin(
+      req.user,
+      {
+        offset: queryParams.offset,
+        limit: queryParams.limit,
+        sort: normalizeSortParam(queryParams.sort),
+        search: queryParams.search,
+      },
+    )
     const connectedExternalAppWorkers =
       this.appService.getExternalWorkerConnections()
     const result = apps.map((app) => {
@@ -47,7 +61,7 @@ export class AppsController {
     })
     return {
       result,
-      meta: { totalCount: result.length },
+      meta,
     }
   }
 
@@ -56,7 +70,7 @@ export class AppsController {
     @Req() req: express.Request,
     @Param('appIdentifier') appIdentifier: string,
   ): Promise<AppGetResponse> {
-    if (!req.user) {
+    if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
     const app = await this.appService.getApp(appIdentifier)
@@ -81,7 +95,7 @@ export class AppsController {
     @Param('workerIdentifier') workerIdentifier: string,
     @Body() { envVars }: SetWorkerScriptEnvVarsInputDTO,
   ): Promise<AppGetResponse['app']['workerScripts'][0]['envVars']> {
-    if (!req.user) {
+    if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
     const savedEnvVars = await this.appService.setAppWorkerEnvVars({

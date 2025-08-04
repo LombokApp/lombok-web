@@ -4,18 +4,34 @@ import {
   HttpStatus,
   Inject,
   Injectable,
+  InternalServerErrorException,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
 import { CoreEvent, FolderPushMessage } from '@stellariscloud/types'
-import { and, count, eq, ilike, inArray, or, SQL } from 'drizzle-orm'
+import {
+  and,
+  arrayContains,
+  count,
+  eq,
+  ilike,
+  inArray,
+  or,
+  SQL,
+} from 'drizzle-orm'
+import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
 import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
-import { type NewTask, tasksTable } from 'src/task/entities/task.entity'
-import type { User } from 'src/users/entities/user.entity'
+import {
+  type NewTask,
+  TaskInputData,
+  tasksTable,
+} from 'src/task/entities/task.entity'
+import { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
 import type { Event } from '../entities/event.entity'
@@ -29,9 +45,11 @@ export enum EventSort {
 }
 
 export const APP_NS_PREFIX = 'app:'
+export const RUN_WORKER_SCRIPT_TASK_KEY = 'RUN_WORKER_SCRIPT'
 
 @Injectable()
 export class EventService {
+  private readonly logger = new Logger(EventService.name)
   get folderService(): FolderService {
     return this._folderService as FolderService
   }
@@ -67,9 +85,7 @@ export class EventService {
     userId?: string
   }) {
     const now = new Date()
-    const triggeringTaskKey = eventKey.startsWith('TRIGGER_TASK:')
-      ? eventKey.split(':').at(-1)
-      : undefined
+
     const isAppEmitter = emitterIdentifier.startsWith(APP_NS_PREFIX)
     const isCoreEmitter = emitterIdentifier === 'core'
     const appIdentifier = isAppEmitter
@@ -79,23 +95,16 @@ export class EventService {
     const app = appIdentifier
       ? await this.appService.getApp(appIdentifier.toLowerCase())
       : undefined
-    const task = triggeringTaskKey
-      ? app?.config.tasks.find((t) => t.key === triggeringTaskKey)
-      : undefined
 
-    const authorized =
-      (isCoreEmitter ||
-        (appIdentifier &&
-          (triggeringTaskKey ||
-            app?.config.emittableEvents.includes(eventKey)))) ??
-      false
-
-    if (triggeringTaskKey && !task) {
-      throw new HttpException(
-        `No task in app "${appIdentifier}" by key "${triggeringTaskKey}"`,
-        HttpStatus.INTERNAL_SERVER_ERROR,
+    if (appIdentifier && !app) {
+      throw new InternalServerErrorException(
+        `No app found for identifier "${appIdentifier}"`,
       )
     }
+
+    const authorized = !!(
+      isCoreEmitter || app?.config.emittableEvents.includes(eventKey)
+    )
 
     // console.log('emitEvent:', {
     //   eventKey,
@@ -135,99 +144,100 @@ export class EventService {
         )
       }
 
-      if (triggeringTaskKey) {
-        const triggeredTask: NewTask = {
-          id: uuidV4(),
-          triggeringEventId: event.id,
-          subjectFolderId: locationContext?.folderId,
-          subjectObjectKey: locationContext?.objectKey,
-          taskDescription: {
-            textKey: triggeringTaskKey, // TODO: Determine task description based on app configs
-            variables: {},
-          },
-          taskKey: triggeringTaskKey,
-          inputData: {},
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          ownerIdentifier: `${APP_NS_PREFIX}${appIdentifier!.toLowerCase()}`,
-          createdAt: now,
-          updatedAt: now,
-        }
-        await db.insert(tasksTable).values([triggeredTask])
-      } else {
-        // regular event, so we should lookup apps that have subscribed to this event
-        const apps = await this.appService.listApps()
-        const tasks: NewTask[] = []
-        // Find the app that implements RUN_WORKER_SCRIPT
-        const runWorkerScriptApp = apps.find((a) =>
-          a.config.tasks.some((t) => t.key === 'RUN_WORKER_SCRIPT'),
-        )
-        const runWorkerScriptOwnerIdentifier = runWorkerScriptApp
-          ? `${APP_NS_PREFIX}${runWorkerScriptApp.identifier.toLowerCase()}`
-          : undefined
-        apps.forEach((_app) => {
-          _app.config.tasks.forEach((taskDefinition) => {
-            const isTriggered = taskDefinition.triggers?.find(
-              (trigger) =>
-                trigger.type === 'event' && trigger.event === eventKey,
-            )
-            if (isTriggered) {
-              const newTaskId = uuidV4()
-              // Build the base task object
-              // If the task has a worker property, add workerIdentifier
-              tasks.push({
-                id: taskDefinition.worker ? newTaskId : uuidV4(),
-                triggeringEventId: event.id,
-                subjectFolderId: locationContext?.folderId,
-                subjectObjectKey: locationContext?.objectKey,
-                taskDescription: {
-                  textKey: taskDefinition.key,
-                  variables: {},
-                },
-                taskKey: taskDefinition.key,
-                inputData: {},
-                ownerIdentifier: `${APP_NS_PREFIX}${_app.identifier.toLowerCase()}`,
-                createdAt: now,
-                updatedAt: now,
-                workerIdentifier: taskDefinition.worker,
-              })
-              // The RUN_WORKER_SCRIPT task (only if above task is worker based)
-              if (taskDefinition.worker && runWorkerScriptOwnerIdentifier) {
+      // regular event, so we should lookup apps that have subscribed to this event
+      const subscribedApps = await this.ormService.db.query.appsTable.findMany({
+        where: arrayContains(appsTable.subscribedEvents, [eventKey]),
+        limit: 100, // TODO: manage this limit somehow
+      })
+
+      const tasks: NewTask[] = []
+
+      await Promise.all(
+        subscribedApps.map(async (subscribedApp) => {
+          return Promise.all(
+            subscribedApp.config.tasks.map(async (taskDefinition) => {
+              if (
+                taskDefinition.triggers?.find(
+                  (trigger) =>
+                    trigger.type === 'event' && trigger.event === eventKey,
+                )
+              ) {
+                const isWorkerExecutedTask = !!taskDefinition.worker?.length
+                const newTaskId = uuidV4()
+                // Build the base task object
+                // If the task has a worker property, add workerIdentifier
                 tasks.push({
-                  id: uuidV4(),
+                  id: isWorkerExecutedTask ? newTaskId : uuidV4(),
                   triggeringEventId: event.id,
                   subjectFolderId: locationContext?.folderId,
                   subjectObjectKey: locationContext?.objectKey,
                   taskDescription: {
-                    textKey: 'RUN_WORKER_SCRIPT',
+                    textKey: taskDefinition.identifier,
                     variables: {},
                   },
-                  taskKey: 'RUN_WORKER_SCRIPT',
-                  inputData: {
-                    appIdentifier: _app.identifier,
-                    workerIdentifier: taskDefinition.worker,
-                    taskId: newTaskId,
-                  },
-                  ownerIdentifier: runWorkerScriptOwnerIdentifier,
+                  taskIdentifier: taskDefinition.identifier,
+                  inputData: {},
+                  ownerIdentifier: `${APP_NS_PREFIX}${subscribedApp.identifier.toLowerCase()}`,
                   createdAt: now,
                   updatedAt: now,
+                  workerIdentifier: taskDefinition.worker,
                 })
+                // The RUN_WORKER_SCRIPT task (only if above task is worker based)
+                if (isWorkerExecutedTask) {
+                  // Load the app that implements the RUN_WORKER_SCRIPT task
+                  const workerScriptRunnerApp =
+                    await this.appService.getWorkerScriptRunnerApp()
+                  const runWorkerScriptOwnerIdentifier = workerScriptRunnerApp
+                    ? `${APP_NS_PREFIX}${workerScriptRunnerApp.identifier.toLowerCase()}`
+                    : undefined
+
+                  const inputData: TaskInputData = {
+                    appIdentifier: subscribedApp.identifier,
+                    workerIdentifier: taskDefinition.worker ?? '',
+                    taskId: newTaskId,
+                  }
+                  console.log('inputData##:', inputData)
+                  if (runWorkerScriptOwnerIdentifier) {
+                    tasks.push({
+                      id: uuidV4(),
+                      triggeringEventId: event.id,
+                      subjectFolderId: locationContext?.folderId,
+                      subjectObjectKey: locationContext?.objectKey,
+                      taskDescription: {
+                        textKey: RUN_WORKER_SCRIPT_TASK_KEY,
+                        variables: {},
+                      },
+                      taskIdentifier: RUN_WORKER_SCRIPT_TASK_KEY,
+                      inputData,
+                      ownerIdentifier: runWorkerScriptOwnerIdentifier,
+                      createdAt: now,
+                      updatedAt: now,
+                    })
+                  } else {
+                    this.logger.error(
+                      `No installed app implements the "${RUN_WORKER_SCRIPT_TASK_KEY}" task, so this worker task will not be executed.`,
+                    )
+                    return Promise.resolve()
+                  }
+                }
+                return Promise.resolve()
               }
-            }
-          })
+            }),
+          )
+        }),
+      )
+      if (tasks.length) {
+        await db.insert(tasksTable).values(tasks)
+        // notify folder rooms of new tasks
+        tasks.forEach((_task) => {
+          if (_task.subjectFolderId) {
+            this.folderSocketService.sendToFolderRoom(
+              _task.subjectFolderId,
+              FolderPushMessage.TASK_ADDED,
+              { task: _task },
+            )
+          }
         })
-        if (tasks.length) {
-          await db.insert(tasksTable).values(tasks)
-          // notify folder rooms of new tasks
-          tasks.forEach((_task) => {
-            if (_task.subjectFolderId) {
-              this.folderSocketService.sendToFolderRoom(
-                _task.subjectFolderId,
-                FolderPushMessage.TASK_ADDED,
-                { task: _task },
-              )
-            }
-          })
-        }
       }
     })
   }

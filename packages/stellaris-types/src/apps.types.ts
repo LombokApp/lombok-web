@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export interface AppTaskTrigger {
-  taskKey: string
+  taskIdentifier: string
   label: string
   description: string
 }
@@ -42,7 +42,7 @@ export const triggerSchema = z.discriminatedUnion('type', [
 ])
 
 export const taskConfigSchema = z.object({
-  key: z.string(),
+  identifier: z.string(),
   label: z.string(),
   triggers: z.array(triggerSchema).optional(),
   folderAction: z.object({ description: z.string() }).optional(),
@@ -97,7 +97,6 @@ export const appConfigSchema = z.object({
     .refine((v) => v.toLowerCase() === v),
   label: z.string().nonempty(),
   description: z.string().nonempty(),
-  requiresStorage: z.boolean(),
   emittableEvents: z.array(z.string().nonempty()),
   tasks: z.array(taskConfigSchema),
   externalWorkers: z.array(z.string().nonempty()).optional(),
@@ -146,7 +145,7 @@ export const appUIMapSchema = z.record(z.string(), appUISchema)
 export const externalAppWorkerSchema = z.object({
   appIdentifier: z.string(),
   workerId: z.string(),
-  handledTaskKeys: z.array(z.string()),
+  handledTaskIdentifiers: z.array(z.string()),
   socketClientId: z.string(),
   ip: z.string(),
 })

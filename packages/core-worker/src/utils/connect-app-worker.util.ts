@@ -23,13 +23,13 @@ export const connectAndPerformWork = async (
   >,
 ) => {
   // TODO: send internal state back to the core via a message
-  const taskKeys = Object.keys(taskHandlers)
-  // log({ message: 'Connecting...', data: { connectURL, taskKeys } })
+  const taskIdentifiers = Object.keys(taskHandlers)
+  // log({ message: 'Connecting...', data: { connectURL, taskIdentifiers } })
   const socket = io(`${socketBaseUrl}/apps`, {
     auth: {
       appWorkerId,
       token: appToken,
-      handledTaskKeys: taskKeys,
+      handledTaskIdentifiers: taskIdentifiers,
     },
     reconnection: false,
   })
@@ -80,13 +80,13 @@ export const connectAndPerformWork = async (
         try {
           concurrentTasks++
           const attemptStartHandleResponse =
-            await serverClient.attemptStartHandleTask(taskKeys)
+            await serverClient.attemptStartHandleTask(taskIdentifiers)
           const task = attemptStartHandleResponse.result
           if (attemptStartHandleResponse.error) {
             const errorMessage = `${attemptStartHandleResponse.error.code} - ${attemptStartHandleResponse.error.message}`
             await log({ message: errorMessage, name: 'Error' })
           } else {
-            await taskHandlers[task.taskKey](task, serverClient)
+            await taskHandlers[task.taskIdentifier](task, serverClient)
               .then(() => serverClient.completeHandleTask(task.id))
               .catch((e: unknown) => {
                 return serverClient.failHandleTask(task.id, {

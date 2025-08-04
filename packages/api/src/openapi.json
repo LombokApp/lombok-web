@@ -1079,7 +1079,7 @@
         ]
       }
     },
-    "/api/v1/folders/{folderId}/apps/{appIdentifier}/trigger/{taskKey}": {
+    "/api/v1/folders/{folderId}/apps/{appIdentifier}/trigger/{taskIdentifier}": {
       "post": {
         "operationId": "handleAppTaskTrigger",
         "parameters": [
@@ -1100,7 +1100,7 @@
             }
           },
           {
-            "name": "taskKey",
+            "name": "taskIdentifier",
             "required": true,
             "in": "path",
             "schema": {
@@ -2920,7 +2920,70 @@
     "/api/v1/server/apps": {
       "get": {
         "operationId": "listApps",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "label-asc",
+                      "label-desc",
+                      "identifier-asc",
+                      "identifier-desc",
+                      "createdAt-asc",
+                      "createdAt-desc",
+                      "updatedAt-asc",
+                      "updatedAt-desc"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "label-asc",
+                    "label-desc",
+                    "identifier-asc",
+                    "identifier-desc",
+                    "createdAt-asc",
+                    "createdAt-desc",
+                    "updatedAt-asc",
+                    "updatedAt-desc"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -5273,7 +5336,7 @@
                 "type": "string",
                 "format": "uuid"
               },
-              "taskKey": {
+              "taskIdentifier": {
                 "type": "string"
               },
               "ownerIdentifier": {
@@ -5293,19 +5356,7 @@
               "handlerId": {
                 "type": "string"
               },
-              "inputData": {
-                "type": "object",
-                "additionalProperties": {
-                  "oneOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "number"
-                    }
-                  ]
-                }
-              },
+              "inputData": {},
               "errorAt": {
                 "type": "string",
                 "format": "date-time"
@@ -5357,7 +5408,7 @@
             },
             "required": [
               "id",
-              "taskKey",
+              "taskIdentifier",
               "ownerIdentifier",
               "triggeringEventId",
               "inputData",
@@ -5395,7 +5446,7 @@
                   "type": "string",
                   "format": "uuid"
                 },
-                "taskKey": {
+                "taskIdentifier": {
                   "type": "string"
                 },
                 "ownerIdentifier": {
@@ -5415,19 +5466,7 @@
                 "handlerId": {
                   "type": "string"
                 },
-                "inputData": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "oneOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      }
-                    ]
-                  }
-                },
+                "inputData": {},
                 "errorAt": {
                   "type": "string",
                   "format": "date-time"
@@ -5479,7 +5518,7 @@
               },
               "required": [
                 "id",
-                "taskKey",
+                "taskIdentifier",
                 "ownerIdentifier",
                 "triggeringEventId",
                 "inputData",
@@ -5675,9 +5714,6 @@
                       "type": "string",
                       "minLength": 1
                     },
-                    "requiresStorage": {
-                      "type": "boolean"
-                    },
                     "emittableEvents": {
                       "type": "array",
                       "items": {
@@ -5690,7 +5726,7 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "key": {
+                          "identifier": {
                             "type": "string"
                           },
                           "label": {
@@ -5844,7 +5880,7 @@
                           }
                         },
                         "required": [
-                          "key",
+                          "identifier",
                           "label",
                           "description"
                         ]
@@ -5918,10 +5954,12 @@
                     "identifier",
                     "label",
                     "description",
-                    "requiresStorage",
                     "emittableEvents",
                     "tasks"
                   ]
+                },
+                "requiresStorage": {
+                  "type": "boolean"
                 },
                 "manifest": {
                   "type": "object",
@@ -5956,7 +5994,7 @@
                       "workerId": {
                         "type": "string"
                       },
-                      "handledTaskKeys": {
+                      "handledTaskIdentifiers": {
                         "type": "array",
                         "items": {
                           "type": "string"
@@ -5972,7 +6010,7 @@
                     "required": [
                       "appIdentifier",
                       "workerId",
-                      "handledTaskKeys",
+                      "handledTaskIdentifiers",
                       "socketClientId",
                       "ip"
                     ]
@@ -6103,6 +6141,7 @@
                 "label",
                 "publicKey",
                 "config",
+                "requiresStorage",
                 "manifest",
                 "externalWorkers",
                 "workerScripts",
@@ -6149,9 +6188,6 @@
                     "type": "string",
                     "minLength": 1
                   },
-                  "requiresStorage": {
-                    "type": "boolean"
-                  },
                   "emittableEvents": {
                     "type": "array",
                     "items": {
@@ -6164,7 +6200,7 @@
                     "items": {
                       "type": "object",
                       "properties": {
-                        "key": {
+                        "identifier": {
                           "type": "string"
                         },
                         "label": {
@@ -6318,7 +6354,7 @@
                         }
                       },
                       "required": [
-                        "key",
+                        "identifier",
                         "label",
                         "description"
                       ]
@@ -6392,10 +6428,12 @@
                   "identifier",
                   "label",
                   "description",
-                  "requiresStorage",
                   "emittableEvents",
                   "tasks"
                 ]
+              },
+              "requiresStorage": {
+                "type": "boolean"
               },
               "manifest": {
                 "type": "object",
@@ -6430,7 +6468,7 @@
                     "workerId": {
                       "type": "string"
                     },
-                    "handledTaskKeys": {
+                    "handledTaskIdentifiers": {
                       "type": "array",
                       "items": {
                         "type": "string"
@@ -6446,7 +6484,7 @@
                   "required": [
                     "appIdentifier",
                     "workerId",
-                    "handledTaskKeys",
+                    "handledTaskIdentifiers",
                     "socketClientId",
                     "ip"
                   ]
@@ -6577,6 +6615,7 @@
               "label",
               "publicKey",
               "config",
+              "requiresStorage",
               "manifest",
               "externalWorkers",
               "uis",

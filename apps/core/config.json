@@ -5,7 +5,7 @@
   "requiresStorage": false,
   "tasks": [
     {
-      "key": "ANALYZE_OBJECT",
+      "identifier": "ANALYZE_OBJECT",
       "label": "Analyze Object",
       "description": "Analyze the content of a file and save the result as metadata",
       "inputParams": {
@@ -32,7 +32,7 @@
       ]
     },
     {
-      "key": "ANALYZE_ALL_OBJECTS",
+      "identifier": "ANALYZE_ALL_OBJECTS",
       "label": "Analyze All Objects",
       "description": "Analyze all files in a folder",
       "triggers": [
@@ -50,7 +50,7 @@
       }
     },
     {
-      "key": "RUN_WORKER_SCRIPT",
+      "identifier": "RUN_WORKER_SCRIPT",
       "label": "Run Worker",
       "description": "Run a worker script.",
       "inputParams": {

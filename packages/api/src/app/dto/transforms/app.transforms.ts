@@ -13,6 +13,7 @@ export function transformAppToDTO(
     config: app.config,
     manifest: app.manifest,
     externalWorkers,
+    requiresStorage: app.requiresStorage,
     workerScripts: Object.keys(app.workerScripts).map(
       (workerScriptIdentifier) => ({
         identifier: workerScriptIdentifier,

@@ -1,5 +1,5 @@
 {
-  "id": "17332c3b-16a0-4236-ba4a-5afc4503c598",
+  "id": "a42d6ef2-eaf5-449e-9213-e76a1823e5d1",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -25,6 +25,26 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "requiresStorage": {
+          "name": "requiresStorage",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subscribedEvents": {
+          "name": "subscribedEvents",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ARRAY[]::text[]"
+        },
+        "implementedTasks": {
+          "name": "implementedTasks",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "ARRAY[]::text[]"
         },
         "contentHash": {
           "name": "contentHash",
@@ -694,8 +714,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "taskKey": {
-          "name": "taskKey",
+        "taskIdentifier": {
+          "name": "taskIdentifier",
           "type": "text",
           "primaryKey": false,
           "notNull": true

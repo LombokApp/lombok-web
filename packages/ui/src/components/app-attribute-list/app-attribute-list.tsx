@@ -133,7 +133,7 @@ export function AppAttributeList({ app }: { app?: AppDTO }) {
                 ) : (
                   app.config.tasks.map((task, i) => (
                     <Badge variant={'outline'} key={i}>
-                      {task.key}
+                      {task.identifier}
                     </Badge>
                   ))
                 )}

@@ -22,7 +22,7 @@ interface AppAPIResponse<T> {
 }
 export interface AppTask {
   id: string
-  taskKey: string
+  taskIdentifier: string
   inputData: unknown
   subjectFolderId?: string
   subjectObjectKey?: string
@@ -50,7 +50,7 @@ export interface CoreServerMessageInterface {
     taskHandlerId?: string,
   ) => Promise<AppAPIResponse<AppTask>>
   attemptStartHandleTask: (
-    taskKeys: string[],
+    taskIdentifiers: string[],
   ) => Promise<AppAPIResponse<AppTask>>
   failHandleTask: (
     taskId: string,
@@ -158,9 +158,9 @@ export const buildAppClient = (
         taskHandlerId,
       }) as ReturnType<CoreServerMessageInterface['attemptStartHandleTaskById']>
     },
-    attemptStartHandleTask(taskKeys: string[]) {
+    attemptStartHandleTask(taskIdentifiers: string[]) {
       return emitWithAck('ATTEMPT_START_HANDLE_TASK', {
-        taskKeys,
+        taskIdentifiers,
       }) as ReturnType<CoreServerMessageInterface['attemptStartHandleTask']>
     },
     failHandleTask(taskId, error) {

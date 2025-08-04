@@ -1,4 +1,6 @@
+import type { ServerAppsListRequest } from '@stellariscloud/types'
 import { cn, DataTable } from '@stellariscloud/ui-toolkit'
+import type { PaginationState, SortingState } from '@tanstack/react-table'
 import React from 'react'
 import { useSearchParams } from 'react-router-dom'
 
@@ -6,7 +8,11 @@ import { $api } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'
 import {
   convertFiltersToSearchParams,
+  convertPaginationToSearchParams,
+  convertSortingToSearchParams,
   readFiltersFromSearchParams,
+  readPaginationFromSearchParams,
+  readSortingFromSearchParams,
 } from '@/src/utils/tables'
 
 import { serverAppsTableColumns } from './server-apps-table-columns'
@@ -16,8 +22,6 @@ const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
 }
 
 export function ServerAppsScreen() {
-  const { data: installedApps } = $api.useQuery('get', '/api/v1/server/apps')
-
   const [searchParams, setSearchParams] = useSearchParams()
   const [filters, setFilters] = React.useState<Record<string, string[]>>(
     readFiltersFromSearchParams(searchParams, FILTER_CONFIGS),
@@ -26,15 +30,65 @@ export function ServerAppsScreen() {
   const onFiltersChange = React.useCallback(
     (newFilters: Record<string, string[]>) => {
       setFilters(newFilters)
-      setSearchParams(
-        convertFiltersToSearchParams(newFilters, searchParams, FILTER_CONFIGS),
+      const newParams = convertFiltersToSearchParams(
+        newFilters,
+        searchParams,
+        FILTER_CONFIGS,
       )
+      setSearchParams(newParams)
+    },
+    [setSearchParams, searchParams],
+  )
+
+  const [sorting, setSorting] = React.useState<SortingState>(
+    readSortingFromSearchParams(searchParams),
+  )
+
+  const handleSortingChange = React.useCallback(
+    (newSorting: SortingState) => {
+      setSorting(newSorting)
+      const newParams = convertSortingToSearchParams(newSorting, searchParams)
+      setSearchParams(newParams)
+    },
+    [setSearchParams, searchParams],
+  )
+
+  const [pagination, setPagination] = React.useState<PaginationState>(
+    readPaginationFromSearchParams(searchParams),
+  )
+
+  const handlePaginationChange = React.useCallback(
+    (newPagination: PaginationState) => {
+      setPagination(newPagination)
+      const newParams = convertPaginationToSearchParams(
+        newPagination,
+        searchParams,
+      )
+      setSearchParams(newParams)
     },
     [setSearchParams, searchParams],
   )
 
   const searchFilterValue =
     'search' in filters ? filters['search'][0] : undefined
+
+  const listServerAppsQuery = $api.useQuery('get', '/api/v1/server/apps', {
+    params: {
+      query: {
+        limit: pagination.pageSize,
+        offset: pagination.pageSize * pagination.pageIndex,
+        sort:
+          sorting.length > 0
+            ? (sorting.map(
+                (s) => `${s.id}-${s.desc ? 'desc' : 'asc'}`,
+              ) as ServerAppsListRequest['sort'])
+            : undefined,
+        search:
+          typeof searchFilterValue === 'string' ? searchFilterValue : undefined,
+      },
+    },
+  })
+  const apps = listServerAppsQuery.data
 
   return (
     <div className={cn('flex h-full flex-1 flex-col items-center')}>
@@ -43,16 +97,13 @@ export function ServerAppsScreen() {
         enableSearch={true}
         filters={filters}
         onColumnFiltersChange={onFiltersChange}
-        data={
-          installedApps?.result
-            ? searchFilterValue
-              ? installedApps.result.filter((app) =>
-                  app.identifier.includes(searchFilterValue),
-                )
-              : installedApps.result
-            : []
-        }
+        rowCount={apps?.meta.totalCount}
+        data={apps?.result ?? []}
         columns={serverAppsTableColumns}
+        sorting={sorting}
+        pagination={pagination}
+        onPaginationChange={handlePaginationChange}
+        onSortingChange={handleSortingChange}
       />
     </div>
   )

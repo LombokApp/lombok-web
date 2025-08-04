@@ -3,19 +3,22 @@ import { foldersTable } from 'src/folders/entities/folder.entity'
 
 import { eventsTable } from '../../event/entities/event.entity'
 
+// Recursive type for nested Records with string keys and string/number values
+export interface TaskInputData {
+  [key: string]: string | number | TaskInputData
+}
+
 export const tasksTable = pgTable('tasks', {
   id: uuid('id').primaryKey(),
   ownerIdentifier: text('ownerIdentifier').notNull(), // core, app:core, app:other, ...
-  taskKey: text('taskKey').notNull(),
+  taskIdentifier: text('taskIdentifier').notNull(),
   taskDescription: jsonb('taskDescription')
     .$type<{
       textKey: string
       variables: Record<string, string>
     }>()
     .notNull(),
-  inputData: jsonb('inputData')
-    .notNull()
-    .$type<Record<string, string | number>>(),
+  inputData: jsonb('inputData').notNull().$type<TaskInputData>(),
   updates: jsonb('updates')
     .notNull()
     .$type<

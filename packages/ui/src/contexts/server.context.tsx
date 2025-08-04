@@ -121,7 +121,7 @@ export const ServerContextProvider = ({
               taskTrigger: {
                 description: item.description,
                 label: item.label,
-                taskKey: item.key,
+                taskIdentifier: item.identifier,
               },
               appIdentifier: next.identifier,
             })),
@@ -141,7 +141,7 @@ export const ServerContextProvider = ({
               taskTrigger: {
                 description: item.description,
                 label: item.label,
-                taskKey: item.key,
+                taskIdentifier: item.identifier,
               },
               appIdentifier: next.identifier,
             })),

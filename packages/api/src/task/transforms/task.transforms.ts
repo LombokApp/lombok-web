@@ -16,7 +16,7 @@ export function transformTaskToDTO(task: Task): TaskDTO {
     errorMessage: task.errorMessage ?? undefined,
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
-    taskKey: task.taskKey,
+    taskIdentifier: task.taskIdentifier,
     taskDescription: task.taskDescription,
     startedAt: task.startedAt ?? undefined,
     completedAt: task.completedAt ?? undefined,

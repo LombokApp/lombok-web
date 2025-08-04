@@ -53,6 +53,10 @@ export type ServerSettingsGetResponse =
 export type AppsListResponse =
   paths['/api/v1/server/apps']['get']['responses']['200']['content']['application/json']
 
+export type ServerAppsListRequest = NonNullable<
+  paths['/api/v1/server/apps']['get']['parameters']['query']
+>
+
 export type FolderListRequest = NonNullable<
   paths['/api/v1/folders']['get']['parameters']['query']
 >

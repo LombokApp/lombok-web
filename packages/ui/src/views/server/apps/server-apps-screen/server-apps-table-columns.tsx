@@ -17,52 +17,147 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
     zeroWidth: true,
   },
   {
+    accessorKey: 'label',
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Label"
+      />
+    ),
+    cell: ({ row }) => <span>{row.original.label}</span>,
+    enableSorting: true,
+    enableHiding: true,
+  },
+  {
     accessorKey: 'identifier',
     header: ({ column }) => (
       <DataTableColumnHeader
         canHide={column.getCanHide()}
         column={column}
-        title="Name"
-      />
-    ),
-    cell: ({ row }) => {
-      return (
-        <div className="flex items-center gap-4 font-normal">
-          <div
-            className="flex size-8 items-center justify-center overflow-hidden rounded-full"
-            style={{
-              background: stringToColour(row.original.identifier),
-              color: invertColour(stringToColour(row.original.identifier)),
-            }}
-          >
-            <span className="uppercase">{row.original.identifier[0]}</span>
-          </div>
-
-          <span>{row.original.identifier.toUpperCase()}</span>
-        </div>
-      )
-    },
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'publicKey',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="Public Key"
+        title="Identifier"
       />
     ),
     cell: ({ row }) => (
-      <div className="flex flex-col">
-        <div className="">{row.getValue('publicKey')}</div>
-        <span className="max-w-[400px] truncate text-xs text-muted-foreground">
-          {row.original.publicKey}
-        </span>
+      <div className="flex items-center gap-4 font-normal">
+        <div
+          className="flex size-8 items-center justify-center overflow-hidden rounded-full"
+          style={{
+            background: stringToColour(row.original.identifier),
+            color: invertColour(stringToColour(row.original.identifier)),
+          }}
+        >
+          <span className="uppercase">{row.original.identifier[0]}</span>
+        </div>
+        <span>{row.original.identifier.toUpperCase()}</span>
       </div>
     ),
     enableSorting: false,
     enableHiding: false,
+  },
+  {
+    id: 'description',
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Description"
+      />
+    ),
+    cell: ({ row }) => <span>{row.original.config.description || ''}</span>,
+    enableSorting: false,
+    enableHiding: true,
+  },
+  {
+    id: 'requiresStorage',
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Requires Storage"
+      />
+    ),
+    cell: ({ row }) => (
+      <span>{row.original.requiresStorage ? 'Yes' : 'No'}</span>
+    ),
+    enableSorting: false,
+    enableHiding: true,
+  },
+  {
+    id: 'tasks',
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Tasks"
+      />
+    ),
+    cell: ({ row }) => (
+      <span>
+        {row.original.config.tasks.map((task) => task.label).join(', ') || ''}
+      </span>
+    ),
+    enableSorting: false,
+    enableHiding: true,
+  },
+  {
+    id: 'workers',
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Workers"
+      />
+    ),
+    cell: ({ row }) => {
+      const scriptWorkers = row.original.workerScripts.map((w) => w.identifier)
+      const configWorkers = row.original.config.workerScripts
+        ? Object.keys(row.original.config.workerScripts)
+        : []
+      const allWorkers = [...scriptWorkers, ...configWorkers].filter(
+        (v, i, a) => a.indexOf(v) === i,
+      )
+      return <span>{allWorkers.join(', ')}</span>
+    },
+    enableSorting: false,
+    enableHiding: true,
+  },
+  {
+    id: 'createdAt',
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Created At"
+      />
+    ),
+    cell: ({ row }) => (
+      <span>
+        {row.original.createdAt
+          ? new Date(row.original.createdAt).toLocaleString()
+          : ''}
+      </span>
+    ),
+    enableSorting: true,
+    enableHiding: true,
+  },
+  {
+    id: 'updatedAt',
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Updated At"
+      />
+    ),
+    cell: ({ row }) => (
+      <span>
+        {row.original.updatedAt
+          ? new Date(row.original.updatedAt).toLocaleString()
+          : ''}
+      </span>
+    ),
+    enableSorting: true,
+    enableHiding: true,
   },
 ]

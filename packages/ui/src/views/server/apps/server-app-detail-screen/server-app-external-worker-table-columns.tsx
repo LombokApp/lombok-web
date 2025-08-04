@@ -43,7 +43,7 @@ export const serverAppExternalWorkerTableColumns: ColumnDef<AppExternalWorkersDT
       enableHiding: false,
     },
     {
-      accessorKey: 'handledTaskKeys',
+      accessorKey: 'handledTaskIdentifiers',
       header: ({ column }) => (
         <DataTableColumnHeader
           canHide={column.getCanHide()}
@@ -54,7 +54,7 @@ export const serverAppExternalWorkerTableColumns: ColumnDef<AppExternalWorkersDT
       cell: ({ row: { original: appWorker } }) => {
         return (
           <div className="flex items-center gap-2 font-normal">
-            {appWorker.handledTaskKeys.join(', ')}
+            {appWorker.handledTaskIdentifiers.join(', ')}
           </div>
         )
       },

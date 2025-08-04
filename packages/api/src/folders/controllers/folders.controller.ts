@@ -300,12 +300,12 @@ export class FoldersController {
   /**
    * Handle app task trigger
    */
-  @Post('/:folderId/apps/:appIdentifier/trigger/:taskKey')
+  @Post('/:folderId/apps/:appIdentifier/trigger/:taskIdentifier')
   async handleAppTaskTrigger(
     @Req() req: express.Request,
     @Param('folderId', ParseUUIDPipe) folderId: string,
     @Param('appIdentifier') appIdentifier: string,
-    @Param('taskKey') taskKey: string,
+    @Param('taskIdentifier') taskIdentifier: string,
     @Body() body: TriggerAppTaskInputDTO,
   ): Promise<void> {
     if (!req.user) {
@@ -313,7 +313,7 @@ export class FoldersController {
     }
     await this.folderService.handleAppTaskTrigger(req.user, {
       folderId,
-      taskKey,
+      taskIdentifier,
       inputParams: body.inputParams,
       appIdentifier,
       objectKey: body.objectKey,

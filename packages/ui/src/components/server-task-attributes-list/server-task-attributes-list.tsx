@@ -31,7 +31,7 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
                 VALUE_TEXT_COLOR,
               )}
             >
-              {task?.taskKey}
+              {task?.taskIdentifier}
             </dd>
           </div>
           <div

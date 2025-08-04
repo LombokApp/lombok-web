@@ -7,7 +7,7 @@ import { $api } from '@/src/services/api'
 // Define a minimal Task interface for what we need
 interface Task {
   id: string
-  taskKey: string
+  taskIdentifier: string
   createdAt: string
   updatedAt: string
   ownerIdentifier: string
@@ -100,7 +100,9 @@ export function FolderTaskDetailScreen() {
             <div className="space-y-4">
               <div className="flex justify-between">
                 <div>
-                  <h1 className="text-2xl font-semibold">{taskData.taskKey}</h1>
+                  <h1 className="text-2xl font-semibold">
+                    {taskData.taskIdentifier}
+                  </h1>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                       <div

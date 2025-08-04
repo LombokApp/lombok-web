@@ -265,7 +265,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/folders/{folderId}/apps/{appIdentifier}/trigger/{taskKey}": {
+    "/api/v1/folders/{folderId}/apps/{appIdentifier}/trigger/{taskIdentifier}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1367,7 +1367,7 @@ export interface components {
             task: {
                 /** Format: uuid */
                 id: string;
-                taskKey: string;
+                taskIdentifier: string;
                 ownerIdentifier: string;
                 /** Format: uuid */
                 triggeringEventId: string;
@@ -1375,9 +1375,7 @@ export interface components {
                 subjectFolderId?: string;
                 subjectObjectKey?: string;
                 handlerId?: string;
-                inputData: {
-                    [key: string]: string | number;
-                };
+                inputData: unknown;
                 /** Format: date-time */
                 errorAt?: string;
                 errorCode?: string;
@@ -1406,7 +1404,7 @@ export interface components {
             result: {
                 /** Format: uuid */
                 id: string;
-                taskKey: string;
+                taskIdentifier: string;
                 ownerIdentifier: string;
                 /** Format: uuid */
                 triggeringEventId: string;
@@ -1414,9 +1412,7 @@ export interface components {
                 subjectFolderId?: string;
                 subjectObjectKey?: string;
                 handlerId?: string;
-                inputData: {
-                    [key: string]: string | number;
-                };
+                inputData: unknown;
                 /** Format: date-time */
                 errorAt?: string;
                 errorCode?: string;
@@ -1489,10 +1485,9 @@ export interface components {
                     identifier: string;
                     label: string;
                     description: string;
-                    requiresStorage: boolean;
                     emittableEvents: string[];
                     tasks: {
-                        key: string;
+                        identifier: string;
                         label: string;
                         triggers?: ({
                             /** @enum {string} */
@@ -1552,6 +1547,7 @@ export interface components {
                         };
                     };
                 };
+                requiresStorage: boolean;
                 manifest: {
                     [key: string]: {
                         hash: string;
@@ -1562,7 +1558,7 @@ export interface components {
                 externalWorkers: {
                     appIdentifier: string;
                     workerId: string;
-                    handledTaskKeys: string[];
+                    handledTaskIdentifiers: string[];
                     socketClientId: string;
                     ip: string;
                 }[];
@@ -1611,10 +1607,9 @@ export interface components {
                     identifier: string;
                     label: string;
                     description: string;
-                    requiresStorage: boolean;
                     emittableEvents: string[];
                     tasks: {
-                        key: string;
+                        identifier: string;
                         label: string;
                         triggers?: ({
                             /** @enum {string} */
@@ -1674,6 +1669,7 @@ export interface components {
                         };
                     };
                 };
+                requiresStorage: boolean;
                 manifest: {
                     [key: string]: {
                         hash: string;
@@ -1684,7 +1680,7 @@ export interface components {
                 externalWorkers: {
                     appIdentifier: string;
                     workerId: string;
-                    handledTaskKeys: string[];
+                    handledTaskIdentifiers: string[];
                     socketClientId: string;
                     ip: string;
                 }[];
@@ -2279,7 +2275,7 @@ export interface operations {
             path: {
                 folderId: string;
                 appIdentifier: string;
-                taskKey: string;
+                taskIdentifier: string;
             };
             cookie?: never;
         };
@@ -3057,7 +3053,12 @@ export interface operations {
     };
     listApps: {
         parameters: {
-            query?: never;
+            query?: {
+                sort?: ("label-asc" | "label-desc" | "identifier-asc" | "identifier-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("label-asc" | "label-desc" | "identifier-asc" | "identifier-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
+                search?: string;
+                offset?: number;
+                limit?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
