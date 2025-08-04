@@ -47,9 +47,7 @@ export function Navbar({ breadcrumbs }: NavbarProps) {
                         {breadcrumb.href ? (
                           <BreadcrumbLink asChild>
                             <Link to={breadcrumb.href} className="truncate">
-                              {i === breadcrumbs.length - 1
-                                ? 'this is a dummy this is a dummy this is a dummy this is a dummy this is a dummy this is a dummy this is a dummy this is a dummy this is a dummy this is a dummy this is a dummy this is a dummy this this this this this this this this this this'
-                                : breadcrumb.label}
+                              {breadcrumb.label}
                             </Link>
                           </BreadcrumbLink>
                         ) : (

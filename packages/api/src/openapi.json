@@ -5365,26 +5365,12 @@
               "errorCode": {
                 "type": "string"
               },
+              "errorDetails": {},
               "errorMessage": {
                 "type": "string"
               },
               "taskDescription": {
-                "type": "object",
-                "properties": {
-                  "textKey": {
-                    "type": "string"
-                  },
-                  "variables": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "type": "string"
-                    }
-                  }
-                },
-                "required": [
-                  "textKey",
-                  "variables"
-                ]
+                "type": "string"
               },
               "updates": {
                 "type": "array",
@@ -5475,26 +5461,12 @@
                 "errorCode": {
                   "type": "string"
                 },
+                "errorDetails": {},
                 "errorMessage": {
                   "type": "string"
                 },
                 "taskDescription": {
-                  "type": "object",
-                  "properties": {
-                    "textKey": {
-                      "type": "string"
-                    },
-                    "variables": {
-                      "type": "object",
-                      "additionalProperties": {
-                        "type": "string"
-                      }
-                    }
-                  },
-                  "required": [
-                    "textKey",
-                    "variables"
-                  ]
+                  "type": "string"
                 },
                 "updates": {
                   "type": "array",

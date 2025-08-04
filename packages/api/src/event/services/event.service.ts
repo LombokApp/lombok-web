@@ -9,7 +9,11 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
-import { CoreEvent, FolderPushMessage } from '@stellariscloud/types'
+import {
+  CoreEvent,
+  FolderPushMessage,
+  TaskInputData,
+} from '@stellariscloud/types'
 import {
   and,
   arrayContains,
@@ -26,11 +30,7 @@ import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
-import {
-  type NewTask,
-  TaskInputData,
-  tasksTable,
-} from 'src/task/entities/task.entity'
+import { type NewTask, tasksTable } from 'src/task/entities/task.entity'
 import { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -171,10 +171,7 @@ export class EventService {
                   triggeringEventId: event.id,
                   subjectFolderId: locationContext?.folderId,
                   subjectObjectKey: locationContext?.objectKey,
-                  taskDescription: {
-                    textKey: taskDefinition.identifier,
-                    variables: {},
-                  },
+                  taskDescription: taskDefinition.identifier,
                   taskIdentifier: taskDefinition.identifier,
                   inputData: {},
                   ownerIdentifier: `${APP_NS_PREFIX}${subscribedApp.identifier.toLowerCase()}`,
@@ -196,17 +193,13 @@ export class EventService {
                     workerIdentifier: taskDefinition.worker ?? '',
                     taskId: newTaskId,
                   }
-                  console.log('inputData##:', inputData)
                   if (runWorkerScriptOwnerIdentifier) {
                     tasks.push({
                       id: uuidV4(),
                       triggeringEventId: event.id,
                       subjectFolderId: locationContext?.folderId,
                       subjectObjectKey: locationContext?.objectKey,
-                      taskDescription: {
-                        textKey: RUN_WORKER_SCRIPT_TASK_KEY,
-                        variables: {},
-                      },
+                      taskDescription: RUN_WORKER_SCRIPT_TASK_KEY,
                       taskIdentifier: RUN_WORKER_SCRIPT_TASK_KEY,
                       inputData,
                       ownerIdentifier: runWorkerScriptOwnerIdentifier,

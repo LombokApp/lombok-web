@@ -6,7 +6,7 @@ import {
   AppAPIError,
   buildAppClient,
 } from '@stellariscloud/app-worker-sdk/src/app-worker-sdk'
-import type { AppLogEntry } from '@stellariscloud/types'
+import type { AppLogEntry, WorkerErrorDetails } from '@stellariscloud/types'
 import { serializeError } from '@stellariscloud/utils'
 import { io } from 'socket.io-client'
 
@@ -96,6 +96,9 @@ export const connectAndPerformWork = async (
                       : 'APP_TASK_EXECUTION_ERROR',
                   ),
                   message: serializeError(e),
+                  details: JSON.parse(
+                    serializeWorkerError(e),
+                  ) as WorkerErrorDetails,
                 })
               })
           }

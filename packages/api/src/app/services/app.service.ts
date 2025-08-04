@@ -18,6 +18,7 @@ import {
   appConfigSchema,
   metadataEntrySchema,
   SignedURLsRequestMethod,
+  workerErrorDetailsSchema,
 } from '@stellariscloud/types'
 import { safeZodParse } from '@stellariscloud/utils'
 import { spawn } from 'bun'
@@ -153,6 +154,7 @@ const failHandleTaskSchema = z.object({
   error: z.object({
     message: z.string(),
     code: z.string(),
+    details: workerErrorDetailsSchema.optional(),
   }),
 })
 
@@ -478,14 +480,10 @@ export class AppService {
                 .set({
                   errorCode: parsedFailHandleTaskMessage.error.code,
                   errorMessage: parsedFailHandleTaskMessage.error.message,
+                  errorDetails: parsedFailHandleTaskMessage.error.details,
                   errorAt: new Date(),
                 })
-                .where(
-                  and(
-                    eq(tasksTable.id, task.id),
-                    eq(tasksTable.ownerIdentifier, appIdentifierPrefixed),
-                  ),
-                ),
+                .where(and(eq(tasksTable.id, task.id))),
             }
           } else {
             // eslint-disable-next-line no-console

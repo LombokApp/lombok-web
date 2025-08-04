@@ -43,7 +43,7 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
             <dt
               className={cn('text-sm font-medium leading-6', LABEL_TEXT_COLOR)}
             >
-              Emitted By
+              Owned By
             </dt>
             <dd
               className={cn(

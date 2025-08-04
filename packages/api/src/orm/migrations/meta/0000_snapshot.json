@@ -1,5 +1,5 @@
 {
-  "id": "a42d6ef2-eaf5-449e-9213-e76a1823e5d1",
+  "id": "a302faea-2a20-4b13-9b72-3967e8fa88fe",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -722,7 +722,7 @@
         },
         "taskDescription": {
           "name": "taskDescription",
-          "type": "jsonb",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -790,6 +790,12 @@
         "errorMessage": {
           "name": "errorMessage",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "errorDetails": {
+          "name": "errorDetails",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },

@@ -6,6 +6,7 @@ import { AppAPIError } from '@stellariscloud/app-worker-sdk'
 import { safeZodParse } from '@stellariscloud/utils'
 import { z } from 'zod'
 
+import { WorkerScriptRuntimeError } from '../../errors'
 import { uniqueExecutionKey } from '../../utils/ids'
 import { runWorkerScript } from '../../worker-scripts/run-worker-script'
 
@@ -54,14 +55,24 @@ export const runWorkerScriptTaskHandler = async (
     // Report success
     await server.completeHandleTask(workerScriptTask.id)
   } catch (error) {
+    const isWorkerError = error instanceof WorkerScriptRuntimeError
     // Report failure
-    await server.failHandleTask(workerScriptTask.id, {
-      code: 'APP_TASK_EXECUTION_ERROR',
-      message:
-        error instanceof Error
-          ? error.message
-          : 'Failed to execute worker script',
-    })
-    throw error
+    if (isWorkerError) {
+      // If it's a worker script error, report it as a failure against the worker script task
+      await server.failHandleTask(workerScriptTask.id, {
+        code: 'WORKER_SCRIPT_RUNTIME_ERROR',
+        message: 'Worker task script failed to load and/or execute.',
+        details: error.details,
+      })
+    } else {
+      // If it's not a worker error, report it as an internal server error for the script task and then rethrow so it fails the RUN_WORKER_SCRIPT task
+      await server.failHandleTask(workerScriptTask.id, {
+        code: 'WORKER_EXECUTOR_ERROR',
+        message:
+          'A system error occurred while executing the worker task script.',
+      })
+
+      throw error
+    }
   }
 }
