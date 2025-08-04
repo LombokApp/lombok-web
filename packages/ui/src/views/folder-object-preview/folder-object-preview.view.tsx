@@ -44,8 +44,27 @@ export const FolderObjectPreview = ({
   )
   const folderObject = objectMetadata ?? folderObjectQuery.data?.folderObject
 
-  const mimeType = folderObject?.mimeType
-  const mediaType = (folderObject?.mediaType ?? MediaType.Unknown) as MediaType
+  const contentHash = folderObject?.hash ?? ''
+
+  const contentMetadata =
+    folderObject && contentHash && contentHash in folderObject.contentMetadata
+      ? folderObject.contentMetadata[contentHash]
+      : undefined
+
+  const mimeType =
+    contentMetadata &&
+    'mimeType' in contentMetadata &&
+    contentMetadata.mimeType.type === 'inline'
+      ? (JSON.parse(contentMetadata.mimeType.content) as string)
+      : (folderObject?.mimeType ?? undefined)
+
+  const mediaType = (
+    contentMetadata &&
+    'mediaType' in contentMetadata &&
+    contentMetadata.mediaType.type === 'inline'
+      ? JSON.parse(contentMetadata.mediaType.content)
+      : (folderObject?.mediaType ?? MediaType.Unknown)
+  ) as MediaType
 
   const isRenderableText = !!mimeType && isRenderableTextMimeType(mimeType)
 

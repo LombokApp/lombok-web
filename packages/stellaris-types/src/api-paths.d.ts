@@ -1156,7 +1156,7 @@ export interface components {
         FolderCreateSignedUrlInputDTO: {
             objectIdentifier: string;
             /** @enum {string} */
-            method: "DELETE" | "PUT" | "GET";
+            method: "DELETE" | "PUT" | "GET" | "HEAD";
         }[];
         FolderCreateSignedUrlsResponse: {
             urls: string[];

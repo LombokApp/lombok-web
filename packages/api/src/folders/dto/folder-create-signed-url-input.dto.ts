@@ -9,6 +9,7 @@ export const createSignedUrlInputSchema = z.array(
       SignedURLsRequestMethod.DELETE,
       SignedURLsRequestMethod.PUT,
       SignedURLsRequestMethod.GET,
+      SignedURLsRequestMethod.HEAD,
     ]),
   }),
 )
