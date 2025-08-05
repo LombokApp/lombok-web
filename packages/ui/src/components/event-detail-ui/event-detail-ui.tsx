@@ -9,6 +9,8 @@ import {
   cn,
 } from '@stellariscloud/ui-toolkit'
 
+import { DateDisplay } from '@/src/components/date-display'
+
 interface EventDetailUIProps {
   eventData: EventDTO | undefined
   isLoading: boolean
@@ -196,7 +198,10 @@ export function EventDetailUI({
                       Created At
                     </label>
                     <p className="mt-1 font-mono text-sm">
-                      {new Date(eventData.createdAt).toLocaleString()}
+                      <DateDisplay
+                        date={eventData.createdAt}
+                        showTimeSince={false}
+                      />
                     </p>
                   </div>
                   <div>

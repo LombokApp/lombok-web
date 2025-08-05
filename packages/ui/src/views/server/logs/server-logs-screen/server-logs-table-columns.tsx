@@ -3,32 +3,13 @@ import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { cn } from '@stellariscloud/ui-toolkit'
 import { Badge } from '@stellariscloud/ui-toolkit/src/components/badge'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
-import {
-  dateStringToHumanReadable,
-  timeSinceOrUntil,
-} from '@stellariscloud/utils'
 import { BugIcon, InfoIcon, OctagonAlert, TriangleAlert } from 'lucide-react'
+
+import { DateDisplay } from '@/src/components/date-display'
 
 import { stringToColour } from '../../../../utils/colors'
 
 export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
-  {
-    accessorKey: 'message',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="Message"
-      />
-    ),
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <div className="flex flex-col">
-          <span className="font-medium">{row.original.message}</span>
-        </div>
-      </div>
-    ),
-  },
   {
     accessorKey: 'emitterIdentifier',
     header: ({ column }) => (
@@ -49,6 +30,23 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
         <span className="text-sm text-muted-foreground">
           {row.original.emitterIdentifier}
         </span>
+      </div>
+    ),
+  },
+  {
+    accessorKey: 'message',
+    header: ({ column }) => (
+      <DataTableColumnHeader
+        canHide={column.getCanHide()}
+        column={column}
+        title="Message"
+      />
+    ),
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        <div className="flex flex-col">
+          <span className="font-medium">{row.original.message}</span>
+        </div>
       </div>
     ),
   },
@@ -131,17 +129,8 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
         title="Created"
       />
     ),
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">
-          <div className="flex flex-col">
-            <span>
-              {dateStringToHumanReadable(new Date(row.original.createdAt))}
-            </span>
-            <span>{timeSinceOrUntil(new Date(row.original.createdAt))}</span>
-          </div>
-        </span>
-      </div>
-    ),
+    cell: ({ row }) => {
+      return <DateDisplay date={row.original.createdAt} />
+    },
   },
 ]

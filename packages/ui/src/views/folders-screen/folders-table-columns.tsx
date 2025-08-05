@@ -1,7 +1,8 @@
 import type { FolderDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
-import { timeSinceOrUntil } from '@stellariscloud/utils'
+
+import { DateDisplay } from '@/src/components/date-display'
 
 import { TableLinkColumn } from '../../components/table-link-column/table-link-column'
 
@@ -41,14 +42,7 @@ export const foldersTableColumns: HideableColumnDef<{
         title="Created"
       />
     ),
-    cell: ({ row }) => (
-      <div className="flex w-[140px] flex-col text-xs">
-        <div>{new Date(row.original.folder.createdAt).toLocaleString()}</div>
-        <div className="italic text-muted-foreground">
-          {timeSinceOrUntil(new Date(row.original.folder.createdAt))}
-        </div>
-      </div>
-    ),
+    cell: ({ row }) => <DateDisplay date={row.original.folder.createdAt} />,
     enableSorting: true,
     enableHiding: false,
   },
@@ -61,14 +55,7 @@ export const foldersTableColumns: HideableColumnDef<{
         title="Updated"
       />
     ),
-    cell: ({ row }) => (
-      <div className="flex w-[140px] flex-col text-xs">
-        <div>{new Date(row.original.folder.updatedAt).toLocaleString()}</div>
-        <div className="italic text-muted-foreground">
-          {timeSinceOrUntil(new Date(row.original.folder.updatedAt))}
-        </div>
-      </div>
-    ),
+    cell: ({ row }) => <DateDisplay date={row.original.folder.updatedAt} />,
     enableSorting: true,
     enableHiding: false,
   },

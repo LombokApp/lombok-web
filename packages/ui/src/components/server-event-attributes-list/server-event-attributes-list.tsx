@@ -1,7 +1,8 @@
 import type { EventDTO } from '@stellariscloud/types'
 import { Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
-import { timeSinceOrUntil } from '@stellariscloud/utils'
 import { Link } from 'react-router-dom'
+
+import { DateDisplay } from '@/src/components/date-display'
 
 import { invertColour, stringToColour } from '../../utils/colors'
 
@@ -108,14 +109,7 @@ export function ServerEventAttributesList({ event }: { event?: EventDTO }) {
                 VALUE_TEXT_COLOR,
               )}
             >
-              {event?.createdAt && (
-                <div className="flex flex-col">
-                  <div>{new Date(event.createdAt).toLocaleString()}</div>
-                  <div className="text-xs">
-                    {timeSinceOrUntil(new Date(event.createdAt))}
-                  </div>
-                </div>
-              )}
+              {event?.createdAt && <DateDisplay date={event.createdAt} />}
             </dd>
           </div>
           <div

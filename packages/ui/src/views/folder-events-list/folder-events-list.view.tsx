@@ -12,6 +12,7 @@ import { ActivityIcon } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
+import { DateDisplay } from '@/src/components/date-display'
 import { $api } from '@/src/services/api'
 
 import { useFolderContext } from '../../pages/folders/folder.context'
@@ -64,12 +65,17 @@ const EventCard = ({
               </div>
             </div>
             <div className="text-xs text-muted-foreground">
-              {new Date(event.createdAt).toLocaleString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
+              <DateDisplay
+                date={event.createdAt}
+                showTimeSince={false}
+                className="text-xs"
+                dateOptions={{
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }}
+              />
             </div>
           </div>
           <div className="mt-1 flex gap-1 text-xs text-muted-foreground">

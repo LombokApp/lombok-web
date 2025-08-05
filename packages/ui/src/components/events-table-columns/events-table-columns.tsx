@@ -2,8 +2,8 @@ import type { EventDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { cn } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
-import { timeSinceOrUntil } from '@stellariscloud/utils'
 
+import { DateDisplay } from '@/src/components/date-display'
 import { TableLinkColumn } from '@/src/components/table-link-column/table-link-column'
 import { invertColour, stringToColour } from '@/src/utils/colors'
 
@@ -157,14 +157,7 @@ export function configureEventsTableColumns(
           title="Created"
         />
       ),
-      cell: ({ row }) => (
-        <div className="flex w-[140px] flex-col text-xs">
-          <div>{new Date(row.getValue('createdAt')).toLocaleString()}</div>
-          <div className="italic text-muted-foreground">
-            {timeSinceOrUntil(new Date(row.original.createdAt))}
-          </div>
-        </div>
-      ),
+      cell: ({ row }) => <DateDisplay date={row.original.createdAt} />,
       enableSorting: true,
       enableHiding: false,
     },

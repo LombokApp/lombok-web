@@ -5,11 +5,11 @@ import {
   CardTitle,
   DataTable,
 } from '@stellariscloud/ui-toolkit'
-import { timeSinceOrUntil } from '@stellariscloud/utils'
 import { format } from 'date-fns'
 import { Folders, HandshakeIcon, KeyIcon, Pencil } from 'lucide-react'
 import React from 'react'
 
+import { DateDisplay } from '@/src/components/date-display'
 import { StatCardGroup } from '@/src/components/stat-card-group/stat-card-group'
 import { $api } from '@/src/services/api'
 
@@ -176,17 +176,27 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
             <div>
               <p className="text-sm text-muted-foreground">Created At</p>
               <p className="font-medium">
-                {userQuery.data?.user.createdAt
-                  ? format(new Date(userQuery.data.user.createdAt), 'PPpp')
-                  : '-'}
+                {userQuery.data?.user.createdAt ? (
+                  <DateDisplay
+                    date={userQuery.data.user.createdAt}
+                    showTimeSince={false}
+                  />
+                ) : (
+                  '-'
+                )}
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Last Updated</p>
               <p className="font-medium">
-                {userQuery.data?.user.updatedAt
-                  ? format(new Date(userQuery.data.user.updatedAt), 'PPpp')
-                  : '-'}
+                {userQuery.data?.user.updatedAt ? (
+                  <DateDisplay
+                    date={userQuery.data.user.updatedAt}
+                    showTimeSince={false}
+                  />
+                ) : (
+                  '-'
+                )}
               </p>
             </div>
           </div>
@@ -199,14 +209,14 @@ export function ServerUserDetailScreen({ userId }: { userId: string }) {
             stats={[
               {
                 title: 'Joined',
-                label: timeSinceOrUntil(new Date(1707979480000)),
-                subtitle: new Date(1707979480000).toLocaleString(),
+                label: '2 months ago',
+                subtitle: 'January 15, 2024',
                 icon: HandshakeIcon,
               },
               {
                 title: 'Last Login',
-                label: timeSinceOrUntil(new Date(1727979480000)),
-                subtitle: new Date(1727979480000).toLocaleString(),
+                label: '1 week ago',
+                subtitle: 'March 10, 2024',
                 icon: KeyIcon,
               },
               {

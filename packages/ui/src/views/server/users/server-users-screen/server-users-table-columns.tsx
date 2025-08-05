@@ -1,8 +1,8 @@
 import type { UserDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
-import { timeSinceOrUntil } from '@stellariscloud/utils'
 
+import { DateDisplay } from '@/src/components/date-display'
 import { invertColour, stringToColour } from '@/src/utils/colors'
 
 import { TableLinkColumn } from '../../../../components/table-link-column/table-link-column'
@@ -87,14 +87,7 @@ export const serverUsersTableColumns: HideableColumnDef<UserDTO>[] = [
         title="Created"
       />
     ),
-    cell: ({ row }) => (
-      <div className="flex w-[140px] flex-col text-xs">
-        <div>{new Date(row.getValue('createdAt')).toLocaleString()}</div>
-        <div className="italic text-muted-foreground">
-          {timeSinceOrUntil(new Date(row.original.createdAt))}
-        </div>
-      </div>
-    ),
+    cell: ({ row }) => <DateDisplay date={row.original.createdAt} />,
     enableSorting: true,
     enableHiding: false,
   },
@@ -107,14 +100,7 @@ export const serverUsersTableColumns: HideableColumnDef<UserDTO>[] = [
         title="Updated"
       />
     ),
-    cell: ({ row }) => (
-      <div className="flex w-[140px] flex-col text-xs">
-        <div>{new Date(row.getValue('updatedAt')).toLocaleString()}</div>
-        <div className="italic text-muted-foreground">
-          {timeSinceOrUntil(new Date(row.original.updatedAt))}
-        </div>
-      </div>
-    ),
+    cell: ({ row }) => <DateDisplay date={row.original.updatedAt} />,
     enableSorting: true,
     enableHiding: false,
   },

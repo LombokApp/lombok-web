@@ -52,23 +52,24 @@ export const timeSinceOrUntil = (date: Date) => {
     : `${t} ${t === 1 ? 'day' : 'days'} ago`
 }
 
-export const dateStringToHumanReadable = (
+export const dateToHumanReadable = (
   date: Date | string,
-  options: Intl.DateTimeFormatOptions | undefined = undefined,
+  options: Intl.DateTimeFormatOptions = {},
 ) => {
   const d = typeof date === 'string' ? new Date(date) : date
   const defaultOptions: Intl.DateTimeFormatOptions = {
-    weekday: 'long',
+    weekday: 'short',
     year: 'numeric',
-    month: 'long',
+    month: 'short',
     day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
   } as const
 
-  const dateStr = d.toLocaleDateString('en-US', {
+  const dateStr = d.toLocaleString('en-US', {
     ...defaultOptions,
     ...options,
   })
-
-  const timeSinceStr = timeSinceOrUntil(d)
-  return `${dateStr} (${timeSinceStr})`
+  return dateStr
 }

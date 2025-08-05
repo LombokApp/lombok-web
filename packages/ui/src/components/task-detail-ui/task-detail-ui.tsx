@@ -9,6 +9,8 @@ import {
   cn,
 } from '@stellariscloud/ui-toolkit'
 
+import { DateDisplay } from '@/src/components/date-display'
+
 interface TaskDetailUIProps {
   taskData: TaskDTO | undefined
   isLoading: boolean
@@ -233,7 +235,10 @@ export function TaskDetailUI({
                         Created
                       </label>
                       <p className="mt-1 font-mono text-sm">
-                        {new Date(taskData.createdAt).toLocaleString()}
+                        <DateDisplay
+                          date={taskData.createdAt}
+                          showTimeSince={false}
+                        />
                       </p>
                     </div>
                     <div>
@@ -241,7 +246,10 @@ export function TaskDetailUI({
                         Updated
                       </label>
                       <p className="mt-1 font-mono text-sm">
-                        {new Date(taskData.updatedAt).toLocaleString()}
+                        <DateDisplay
+                          date={taskData.updatedAt}
+                          showTimeSince={false}
+                        />
                       </p>
                     </div>
                   </div>
@@ -329,7 +337,10 @@ export function TaskDetailUI({
                     <div className="flex-1">
                       <p className="text-sm font-medium">Task Created</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(taskData.createdAt).toLocaleString()}
+                        <DateDisplay
+                          date={taskData.createdAt}
+                          showTimeSince={false}
+                        />
                       </p>
                     </div>
                   </div>
@@ -355,7 +366,10 @@ export function TaskDetailUI({
                         <div className="flex-1">
                           <p className="text-sm font-medium">Task Started</p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(taskData.startedAt).toLocaleString()}
+                            <DateDisplay
+                              date={taskData.startedAt}
+                              showTimeSince={false}
+                            />
                           </p>
                         </div>
                       </div>
@@ -383,7 +397,10 @@ export function TaskDetailUI({
                         <div className="flex-1">
                           <p className="text-sm font-medium">Task Completed</p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(taskData.completedAt).toLocaleString()}
+                            <DateDisplay
+                              date={taskData.completedAt}
+                              showTimeSince={false}
+                            />
                           </p>
                         </div>
                       </div>
@@ -411,7 +428,10 @@ export function TaskDetailUI({
                         <div className="flex-1">
                           <p className="text-sm font-medium">Task Failed</p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(taskData.errorAt).toLocaleString()}
+                            <DateDisplay
+                              date={taskData.errorAt}
+                              showTimeSince={false}
+                            />
                           </p>
                         </div>
                       </div>
@@ -461,8 +481,12 @@ export function TaskDetailUI({
                       Error Time
                     </label>
                     <p className="mt-1 font-mono text-sm">
-                      {taskData.errorAt &&
-                        new Date(taskData.errorAt).toLocaleString()}
+                      {taskData.errorAt && (
+                        <DateDisplay
+                          date={taskData.errorAt}
+                          showTimeSince={false}
+                        />
+                      )}
                     </p>
                   </div>
                   {errorToDisplay.message && (

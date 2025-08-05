@@ -2,6 +2,8 @@ import type { AppDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 
+import { DateDisplay } from '@/src/components/date-display'
+
 import { TableLinkColumn } from '../../../../components/table-link-column/table-link-column'
 import { invertColour, stringToColour } from '../../../../utils/colors'
 
@@ -15,19 +17,6 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
     ),
     enableSorting: false,
     zeroWidth: true,
-  },
-  {
-    accessorKey: 'label',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="Label"
-      />
-    ),
-    cell: ({ row }) => <span>{row.original.label}</span>,
-    enableSorting: true,
-    enableHiding: true,
   },
   {
     accessorKey: 'identifier',
@@ -49,7 +38,12 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
         >
           <span className="uppercase">{row.original.identifier[0]}</span>
         </div>
-        <span>{row.original.identifier.toUpperCase()}</span>
+        <div className="flex flex-col">
+          <span className="text-sm">{row.original.label.toUpperCase()}</span>
+          <span className="text-xs italic text-muted-foreground">
+            {row.original.identifier.toLowerCase()}
+          </span>
+        </div>
       </div>
     ),
     enableSorting: false,
@@ -74,11 +68,13 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
       <DataTableColumnHeader
         canHide={column.getCanHide()}
         column={column}
-        title="Requires Storage"
+        title="Required Storage"
       />
     ),
     cell: ({ row }) => (
-      <span>{row.original.requiresStorage ? 'Yes' : 'No'}</span>
+      <div className="flex w-[80px] items-center justify-center">
+        <span>{row.original.requiresStorage ? 'Yes' : 'No'}</span>
+      </div>
     ),
     enableSorting: false,
     enableHiding: true,
@@ -133,9 +129,20 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
     ),
     cell: ({ row }) => (
       <span>
-        {row.original.createdAt
-          ? new Date(row.original.createdAt).toLocaleString()
-          : ''}
+        {row.original.createdAt ? (
+          <DateDisplay
+            className="text-sm"
+            date={row.original.createdAt}
+            showTimeSince={true}
+            dateOptions={{
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            }}
+          />
+        ) : (
+          ''
+        )}
       </span>
     ),
     enableSorting: true,
@@ -152,9 +159,19 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
     ),
     cell: ({ row }) => (
       <span>
-        {row.original.updatedAt
-          ? new Date(row.original.updatedAt).toLocaleString()
-          : ''}
+        {row.original.updatedAt ? (
+          <DateDisplay
+            className="text-sm"
+            date={row.original.updatedAt}
+            dateOptions={{
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            }}
+          />
+        ) : (
+          ''
+        )}
       </span>
     ),
     enableSorting: true,
