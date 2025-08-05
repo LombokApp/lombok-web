@@ -4,6 +4,7 @@ import { AppModule } from 'src/app/app.module'
 import { appConfig } from 'src/app/config'
 import { AppService } from 'src/app/services/app.service'
 import { FoldersModule } from 'src/folders/folders.module'
+import { LogModule } from 'src/log/log.module'
 import { StorageModule } from 'src/storage/storage.module'
 
 import { ServerController } from './controllers/server.controller'
@@ -17,6 +18,7 @@ import { ServerConfigurationService } from './services/server-configuration.serv
     StorageModule,
     forwardRef(() => FoldersModule),
     forwardRef(() => AppModule),
+    forwardRef(() => LogModule),
   ],
   controllers: [
     ServerController,

@@ -3128,6 +3128,409 @@
           "Apps"
         ]
       }
+    },
+    "/api/v1/server/logs/{logId}": {
+      "get": {
+        "operationId": "getLog",
+        "parameters": [
+          {
+            "name": "logId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a log entry by id.",
+        "tags": [
+          "ServerLogs"
+        ]
+      }
+    },
+    "/api/v1/server/logs": {
+      "get": {
+        "operationId": "listLogs",
+        "parameters": [
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "createdAt-asc",
+                      "createdAt-desc",
+                      "message-asc",
+                      "message-desc",
+                      "emitterIdentifier-asc",
+                      "emitterIdentifier-desc",
+                      "level-asc",
+                      "level-desc"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "createdAt-asc",
+                    "createdAt-desc",
+                    "message-asc",
+                    "message-desc",
+                    "emitterIdentifier-asc",
+                    "emitterIdentifier-desc",
+                    "level-asc",
+                    "level-desc"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "folderId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "objectKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeTrace",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeDebug",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeInfo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeWarning",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeError",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogListResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List log entries.",
+        "tags": [
+          "ServerLogs"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/logs/{logId}": {
+      "get": {
+        "operationId": "getFolderLog",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "logId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogGetResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a folder log entry by id.",
+        "tags": [
+          "FolderLogs"
+        ]
+      }
+    },
+    "/api/v1/folders/{folderId}/logs": {
+      "get": {
+        "operationId": "listFolderLogs",
+        "parameters": [
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "createdAt-asc",
+                      "createdAt-desc",
+                      "message-asc",
+                      "message-desc",
+                      "emitterIdentifier-asc",
+                      "emitterIdentifier-desc",
+                      "level-asc",
+                      "level-desc"
+                    ]
+                  }
+                },
+                {
+                  "type": "string",
+                  "enum": [
+                    "createdAt-asc",
+                    "createdAt-desc",
+                    "message-asc",
+                    "message-desc",
+                    "emitterIdentifier-asc",
+                    "emitterIdentifier-desc",
+                    "level-asc",
+                    "level-desc"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "name": "objectKey",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeTrace",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeDebug",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeInfo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeWarning",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "includeError",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true"
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogListResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List folder log entries.",
+        "tags": [
+          "FolderLogs"
+        ]
+      }
     }
   },
   "info": {
@@ -6614,6 +7017,141 @@
         },
         "required": [
           "envVars"
+        ]
+      },
+      "LogGetResponse": {
+        "type": "object",
+        "properties": {
+          "log": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "message": {
+                "type": "string"
+              },
+              "level": {
+                "type": "string",
+                "enum": [
+                  "TRACE",
+                  "DEBUG",
+                  "INFO",
+                  "WARN",
+                  "ERROR"
+                ]
+              },
+              "emitterIdentifier": {
+                "type": "string"
+              },
+              "locationContext": {
+                "type": "object",
+                "properties": {
+                  "folderId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "objectKey": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "folderId"
+                ]
+              },
+              "data": {},
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "message",
+              "level",
+              "emitterIdentifier",
+              "createdAt"
+            ]
+          }
+        },
+        "required": [
+          "log"
+        ]
+      },
+      "LogListResponse": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "level": {
+                  "type": "string",
+                  "enum": [
+                    "TRACE",
+                    "DEBUG",
+                    "INFO",
+                    "WARN",
+                    "ERROR"
+                  ]
+                },
+                "emitterIdentifier": {
+                  "type": "string"
+                },
+                "locationContext": {
+                  "type": "object",
+                  "properties": {
+                    "folderId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "objectKey": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "folderId"
+                  ]
+                },
+                "data": {},
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "id",
+                "message",
+                "level",
+                "emitterIdentifier",
+                "createdAt"
+              ]
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "totalCount"
+            ]
+          }
+        },
+        "required": [
+          "result",
+          "meta"
         ]
       }
     }

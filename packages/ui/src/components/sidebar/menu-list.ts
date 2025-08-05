@@ -4,6 +4,7 @@ import {
   AppWindow,
   Box,
   ChartLine,
+  FileText,
   Folders,
   KeySquare,
   LayoutGrid,
@@ -85,6 +86,11 @@ export function getMenuList(
                 href: '/server/tasks',
                 label: 'Tasks',
                 icon: ListChecks,
+              },
+              {
+                href: '/server/logs',
+                label: 'Logs',
+                icon: FileText,
               },
               {
                 href: '/server/settings',

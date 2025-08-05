@@ -12,6 +12,7 @@ import {
   foldersRelations,
   foldersTable,
 } from '../folders/entities/folder.entity'
+import { logEntriesTable } from '../log/entities/log-entry.entity'
 import { folderObjectsTable } from '../folders/entities/folder-object.entity'
 import {
   folderSharesRelations,
@@ -34,6 +35,7 @@ export const dbSchema = {
   folderObjectsTable,
   appsTable,
   eventsTable,
+  logEntriesTable,
   tasksTable,
   folderSharesTable,
 }

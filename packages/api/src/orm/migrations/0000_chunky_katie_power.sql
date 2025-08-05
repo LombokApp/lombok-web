@@ -70,6 +70,17 @@ CREATE TABLE "folders" (
 	"updatedAt" timestamp NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "log_entries" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"message" text NOT NULL,
+	"emitterIdentifier" text NOT NULL,
+	"folderId" text,
+	"level" text NOT NULL,
+	"objectKey" text,
+	"data" jsonb,
+	"createdAt" timestamp NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "server_settings" (
 	"key" text PRIMARY KEY NOT NULL,
 	"value" jsonb,

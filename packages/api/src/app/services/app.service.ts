@@ -43,13 +43,14 @@ import { SessionService } from 'src/auth/services/session.service'
 import { KVService } from 'src/cache/kv.service'
 import { readDirRecursive } from 'src/core/utils/fs.util'
 import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
-import { EventLevel, eventsTable } from 'src/event/entities/event.entity'
 import { RUN_WORKER_SCRIPT_TASK_KEY } from 'src/event/services/event.service'
 import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
 import { FolderNotFoundException } from 'src/folders/exceptions/folder-not-found.exception'
 import { FolderService } from 'src/folders/services/folder.service'
+import { LogLevel } from 'src/log/entities/log-entry.entity'
+import { LogEntryService } from 'src/log/services/log-entry.service'
 import { OrmService } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { uploadFile } from 'src/shared/utils'
@@ -59,7 +60,6 @@ import { S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { Task, tasksTable } from 'src/task/entities/task.entity'
 import { User } from 'src/users/entities/user.entity'
-import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
 
 import { appConfig } from '../config'
@@ -183,6 +183,7 @@ export class AppService {
     @Inject(appConfig.KEY)
     private readonly _appConfig: nestJsConfig.ConfigType<typeof appConfig>,
     private readonly ormService: OrmService,
+    private readonly logEntryService: LogEntryService,
     private readonly jwtService: JWTService,
     private readonly sessionService: SessionService,
     private readonly serverConfigurationService: ServerConfigurationService,
@@ -221,7 +222,6 @@ export class AppService {
     requestingAppIdentifier: string,
     message: unknown,
   ) {
-    const now = new Date()
     if (safeZodParse(message, AppSocketAPIRequest)) {
       const requestData = message.data
       const appIdentifierPrefixed = `${APP_NS_PREFIX}${requestingAppIdentifier.toLowerCase()}`
@@ -229,22 +229,13 @@ export class AppService {
       switch (message.name) {
         case 'SAVE_LOG_ENTRY':
           if (safeZodParse(requestData, logEntrySchema)) {
-            await this.ormService.db.insert(eventsTable).values([
-              {
-                createdAt: now,
-                level: EventLevel.INFO, // TODO: translate app log level to event level
-                emitterIdentifier: requestingAppIdentifier,
-                eventKey: `${appIdentifierPrefixed.toUpperCase()}:LOG_ENTRY`,
-                folderId: requestData.locationContext?.folderId,
-                objectKey: requestData.locationContext?.objectKey,
-                data: {
-                  logData: requestData.data,
-                  message: requestData.message,
-                  name: requestData.name,
-                },
-                id: uuidV4(),
-              },
-            ])
+            await this.logEntryService.emitLog({
+              emitterIdentifier: `${APP_NS_PREFIX}${requestingAppIdentifier}`,
+              logMessage: requestData.message,
+              data: requestData.data,
+              level: LogLevel.INFO, // TODO: translate app log level to event level
+              locationContext: requestData.locationContext,
+            })
             return {
               result: undefined,
             }

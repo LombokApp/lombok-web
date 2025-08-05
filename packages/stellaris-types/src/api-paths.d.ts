@@ -779,6 +779,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/logs/{logId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a log entry by id. */
+        get: operations["getLog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List log entries. */
+        get: operations["listLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/logs/{logId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a folder log entry by id. */
+        get: operations["getFolderLog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List folder log entries. */
+        get: operations["listFolderLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1715,6 +1783,45 @@ export interface components {
         SetWorkerScriptEnvVarsInputDTO: {
             envVars: {
                 [key: string]: string;
+            };
+        };
+        LogGetResponse: {
+            log: {
+                /** Format: uuid */
+                id: string;
+                message: string;
+                /** @enum {string} */
+                level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
+                emitterIdentifier: string;
+                locationContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                };
+                data?: unknown;
+                /** Format: date-time */
+                createdAt: string;
+            };
+        };
+        LogListResponse: {
+            result: {
+                /** Format: uuid */
+                id: string;
+                message: string;
+                /** @enum {string} */
+                level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
+                emitterIdentifier: string;
+                locationContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                };
+                data?: unknown;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            meta: {
+                totalCount: number;
             };
         };
     };
@@ -3131,6 +3238,112 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoginResponse"];
+                };
+            };
+        };
+    };
+    getLog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                logId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogGetResponse"];
+                };
+            };
+        };
+    };
+    listLogs: {
+        parameters: {
+            query?: {
+                sort?: ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc")[] | ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc");
+                folderId?: string;
+                objectKey?: string;
+                search?: string;
+                includeTrace?: "true";
+                includeDebug?: "true";
+                includeInfo?: "true";
+                includeWarning?: "true";
+                includeError?: "true";
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogListResponse"];
+                };
+            };
+        };
+    };
+    getFolderLog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                logId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogGetResponse"];
+                };
+            };
+        };
+    };
+    listFolderLogs: {
+        parameters: {
+            query?: {
+                sort?: ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc")[] | ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc");
+                objectKey?: string;
+                search?: string;
+                includeTrace?: "true";
+                includeDebug?: "true";
+                includeInfo?: "true";
+                includeWarning?: "true";
+                includeError?: "true";
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogListResponse"];
                 };
             };
         };
