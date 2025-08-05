@@ -94,26 +94,32 @@ export const FolderObjectPreview = ({
       </div>
     </div>
   )
-
   return (
     <div
       className={cn(
-        'flex justify-center size-full bg-foreground/[.03] rounded-md',
+        'flex justify-center size-full bg-foreground/[.03] rounded-md max-w-full max-h-full',
       )}
     >
       <div
         className={cn(
-          'flex justify-center overflow-hidden',
+          'flex justify-center max-w-full max-h-full overflow-hidden',
           isCoverView && 'size-full',
         )}
       >
         {(file &&
           dataURL &&
           (mediaType === MediaType.Image ? (
-            <div className={cn('flex-1 flex flex-col justify-around')}>
+            <div
+              className={cn(
+                'flex-1 flex flex-col justify-around size-full',
+                isCoverView && 'min-w-max min-h-max',
+              )}
+            >
               <img
                 className={cn(
-                  !isCoverView && 'max-w-full max-h-full',
+                  !isCoverView
+                    ? 'max-w-min max-h-min'
+                    : 'max-w-full max-h-full',
                   displayMode,
                 )}
                 alt={fileName ?? objectKey}
@@ -121,25 +127,12 @@ export const FolderObjectPreview = ({
               />
             </div>
           ) : mediaType === MediaType.Video ? (
-            <div className="flex h-full justify-center">
-              <VideoPlayer
-                className={displayMode}
-                width="100%"
-                height="100%"
-                controls
-                src={dataURL}
-              />
+            <div className="flex size-full justify-center">
+              <VideoPlayer className={displayMode} controls src={dataURL} />
             </div>
           ) : mediaType === MediaType.Audio ? (
             <div className="flex size-full items-center justify-center p-4">
-              <div className="sm:size-full lg:size-4/5 xl:size-3/5">
-                <AudioPlayer
-                  width="100%"
-                  height="100%"
-                  controls
-                  src={dataURL}
-                />
-              </div>
+              <AudioPlayer width="100%" height="100%" controls src={dataURL} />
             </div>
           ) : mediaType === MediaType.Document && isRenderableText ? (
             <div className="size-full overflow-hidden">

@@ -6,6 +6,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
+  cn,
 } from '@stellariscloud/ui-toolkit'
 import React from 'react'
 import { Link } from 'react-router-dom'
@@ -21,9 +22,9 @@ interface NavbarProps {
 export function Navbar({ breadcrumbs }: NavbarProps) {
   const authContext = useAuthContext()
   return (
-    <header className="bg-background/[.95] supports-[backdrop-filter]:bg-background/60 dark:shadow-foreground/10 sticky top-0 z-10 w-full border-b py-2">
-      <div className="mx-4 flex h-8 items-center sm:mx-8">
-        <div className="flex items-center space-x-4 lg:space-x-0">
+    <header className="dark:shadow-foreground/10 sticky top-0 z-10 w-full border-b bg-background/[.95] py-2 supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-8 w-full flex-1">
+        <div className="flex flex-1 items-center truncate">
           {authContext.viewer && (
             <SheetMenu
               appMenuItems={[]}
@@ -31,23 +32,34 @@ export function Navbar({ breadcrumbs }: NavbarProps) {
               viewer={authContext.viewer}
             />
           )}
-          <div className="flex items-center gap-4 pl-6">
+          <div className="flex max-w-full flex-1 grow items-center pl-14 lg:-ml-0">
             {breadcrumbs && (
-              <Breadcrumb className="hidden md:flex">
-                <BreadcrumbList>
+              <Breadcrumb className="hidden w-full md:flex">
+                <BreadcrumbList className="w-full max-w-full flex-nowrap">
                   {breadcrumbs.map((breadcrumb, i) => (
                     <React.Fragment key={i}>
-                      <BreadcrumbItem>
+                      <BreadcrumbItem
+                        className={cn(
+                          'block',
+                          i === breadcrumbs.length - 1 && 'truncate',
+                        )}
+                      >
                         {breadcrumb.href ? (
                           <BreadcrumbLink asChild>
-                            <Link to={breadcrumb.href}>{breadcrumb.label}</Link>
+                            <Link to={breadcrumb.href} className="truncate">
+                              {i === breadcrumbs.length - 1
+                                ? 'this is a dummy this is a dummy this is a dummy this is a dummy this is a dummy this is a dummy this is a dummy this is a dummy this is a dummy this is a dummy this is a dummy this is a dummy this this this this this this this this this this'
+                                : breadcrumb.label}
+                            </Link>
                           </BreadcrumbLink>
                         ) : (
-                          <BreadcrumbPage>{breadcrumb.label}</BreadcrumbPage>
+                          <BreadcrumbPage className="block w-full">
+                            {breadcrumb.label}
+                          </BreadcrumbPage>
                         )}
                       </BreadcrumbItem>
                       {i !== breadcrumbs.length - 1 ? (
-                        <BreadcrumbSeparator />
+                        <BreadcrumbSeparator className="shrink-0" />
                       ) : null}
                     </React.Fragment>
                   ))}
@@ -57,7 +69,7 @@ export function Navbar({ breadcrumbs }: NavbarProps) {
           </div>
         </div>
         {authContext.viewer && (
-          <div className="flex flex-1 items-center justify-end gap-2">
+          <div className="flex shrink-0 items-center justify-end gap-2 px-2">
             <ModeToggle />
             <UserNav
               onSignout={() => authContext.logout()}

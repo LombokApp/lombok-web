@@ -1,7 +1,8 @@
 import type { FolderObjectDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { toMetadataObjectIdentifier } from '@stellariscloud/utils'
-import { Link } from 'react-router-dom'
+
+import { TableLinkColumn } from '@/src/components/table-link-column/table-link-column'
 
 import { FolderObjectPreview } from '../folder-object-preview/folder-object-preview.view'
 
@@ -24,16 +25,11 @@ function previewObjectKeyForFolderObject(folderObject: FolderObjectDTO) {
 export const folderObjectsTableColumns: HideableColumnDef<FolderObjectDTO>[] = [
   {
     id: 'link',
-    cell: ({ row }) => {
-      return (
-        <div className="size-0 max-w-0 overflow-hidden">
-          <Link
-            to={`/folders/${row.original.folderId}/objects/${row.original.objectKey}`}
-            className="absolute inset-0"
-          />
-        </div>
-      )
-    },
+    cell: ({ row }) => (
+      <TableLinkColumn
+        to={`/folders/${row.original.folderId}/objects/${row.original.objectKey}`}
+      />
+    ),
     enableSorting: false,
     zeroWidth: true,
   },
