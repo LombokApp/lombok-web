@@ -6,6 +6,7 @@ import { authConfig } from 'src/auth/config'
 import { coreConfig } from 'src/core/config'
 import { EventModule } from 'src/event/event.module'
 import { FoldersModule } from 'src/folders/folders.module'
+import { LogModule } from 'src/log/log.module'
 import { OrmService } from 'src/orm/orm.service'
 import { ServerModule } from 'src/server/server.module'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
@@ -24,6 +25,7 @@ import { AppService } from './services/app.service'
     ConfigModule.forFeature(authConfig),
     AuthModule,
     EventModule,
+    forwardRef(() => LogModule),
     StorageModule,
     forwardRef(() => ServerModule),
     forwardRef(() => FoldersModule),

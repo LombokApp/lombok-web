@@ -2,6 +2,7 @@ import { cn } from '@stellariscloud/ui-toolkit'
 import {
   AppWindow,
   ChartLine,
+  FileText,
   LayoutGrid,
   ListChecks,
   Settings,
@@ -128,6 +129,26 @@ export function ServerTabControls({
         <div className="flex items-center gap-2">
           <ListChecks className="size-4" />
           Tasks
+        </div>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={serverPage[0] === 'logs'}
+        aria-controls="logs-tab-content"
+        data-state={serverPage[0] === 'logs' ? 'active' : 'inactive'}
+        id="logs-tab-trigger"
+        className={cn(
+          'ring-offset-background focus-visible:ring-ring data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm',
+          serverPage[0] === 'logs' && 'bg-background text-foreground shadow-sm',
+        )}
+        tabIndex={-1}
+        data-orientation="horizontal"
+        onClick={() => navigate('/server/logs')}
+      >
+        <div className="flex items-center gap-2">
+          <FileText className="size-4" />
+          Logs
         </div>
       </button>
       <button

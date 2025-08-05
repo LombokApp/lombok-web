@@ -5,6 +5,7 @@ import { ServerAppsScreen } from '../../apps/server-apps-screen/server-apps-scre
 import { ServerSettingsScreen } from '../../config/server-config-screen/server-config-screen'
 import { ServerEventDetailScreen } from '../../events/server-event-detail-screen/server-event-detail-screen.view'
 import { ServerEventsScreen } from '../../events/server-events-screen/server-events-screen.view'
+import { ServerLogsScreen } from '../../logs/server-logs-screen/server-logs-screen.view'
 import { ServerTaskDetailScreen } from '../../tasks/server-task-detail-screen/server-task-detail-screen.view'
 import { ServerTasksScreen } from '../../tasks/server-tasks-screen/server-tasks-screen.view'
 import { ServerUserDetailScreen } from '../../users/server-user-detail-screen/server-user-detail-screen.view'
@@ -34,6 +35,7 @@ export function ServerScreen({ serverPage }: { serverPage: string[] }) {
         {serverPage[0] === 'events' && !serverPage[1] && <ServerEventsScreen />}
         {serverPage[0] === 'apps' && !serverPage[1] && <ServerAppsScreen />}
         {serverPage[0] === 'tasks' && !serverPage[1] && <ServerTasksScreen />}
+        {serverPage[0] === 'logs' && !serverPage[1] && <ServerLogsScreen />}
         {serverPage[0] === 'settings' && !!serverPage[0] && (
           <ServerSettingsScreen tab={paramParts[1] ?? 'general'} />
         )}

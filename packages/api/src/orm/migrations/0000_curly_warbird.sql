@@ -31,7 +31,6 @@ CREATE TABLE "events" (
 	"emitterIdentifier" text NOT NULL,
 	"userId" text,
 	"folderId" text,
-	"level" text NOT NULL,
 	"objectKey" text,
 	"data" jsonb,
 	"createdAt" timestamp NOT NULL
@@ -68,6 +67,17 @@ CREATE TABLE "folders" (
 	"ownerId" uuid NOT NULL,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "log_entries" (
+	"id" uuid PRIMARY KEY NOT NULL,
+	"message" text NOT NULL,
+	"emitterIdentifier" text NOT NULL,
+	"folderId" text,
+	"level" text NOT NULL,
+	"objectKey" text,
+	"data" jsonb,
+	"createdAt" timestamp NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "server_settings" (

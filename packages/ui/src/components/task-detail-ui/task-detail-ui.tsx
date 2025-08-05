@@ -1,3 +1,4 @@
+import type { TaskDTO } from '@stellariscloud/types'
 import {
   Badge,
   Card,
@@ -8,29 +9,10 @@ import {
   cn,
 } from '@stellariscloud/ui-toolkit'
 
-interface TaskData {
-  id: string
-  taskIdentifier: string
-  ownerIdentifier: string
-  triggeringEventId: string
-  subjectFolderId?: string
-  subjectObjectKey?: string
-  handlerId?: string
-  inputData: unknown
-  taskDescription: string
-  updates: unknown[]
-  startedAt?: string
-  completedAt?: string
-  errorAt?: string
-  createdAt: string
-  updatedAt: string
-  errorCode?: string
-  errorMessage?: string
-  errorDetails?: unknown
-}
+import { DateDisplay } from '@/src/components/date-display'
 
 interface TaskDetailUIProps {
-  taskData: TaskData | undefined
+  taskData: TaskDTO | undefined
   isLoading: boolean
   isError: boolean
 }
@@ -41,7 +23,7 @@ export function TaskDetailUI({
   isError,
 }: TaskDetailUIProps) {
   // Get the appropriate color for the status indicator
-  const getStatusColor = (task?: TaskData) => {
+  const getStatusColor = (task?: TaskDTO) => {
     if (!task) {
       return 'bg-gray-600'
     }
@@ -58,7 +40,7 @@ export function TaskDetailUI({
   }
 
   // Get the status text and badge variant
-  const getStatusInfo = (task?: TaskData) => {
+  const getStatusInfo = (task?: TaskDTO) => {
     if (!task) {
       return { text: 'Unknown', variant: 'secondary' as const }
     }
@@ -253,7 +235,10 @@ export function TaskDetailUI({
                         Created
                       </label>
                       <p className="mt-1 font-mono text-sm">
-                        {new Date(taskData.createdAt).toLocaleString()}
+                        <DateDisplay
+                          date={taskData.createdAt}
+                          showTimeSince={false}
+                        />
                       </p>
                     </div>
                     <div>
@@ -261,7 +246,10 @@ export function TaskDetailUI({
                         Updated
                       </label>
                       <p className="mt-1 font-mono text-sm">
-                        {new Date(taskData.updatedAt).toLocaleString()}
+                        <DateDisplay
+                          date={taskData.updatedAt}
+                          showTimeSince={false}
+                        />
                       </p>
                     </div>
                   </div>
@@ -349,7 +337,10 @@ export function TaskDetailUI({
                     <div className="flex-1">
                       <p className="text-sm font-medium">Task Created</p>
                       <p className="text-sm text-muted-foreground">
-                        {new Date(taskData.createdAt).toLocaleString()}
+                        <DateDisplay
+                          date={taskData.createdAt}
+                          showTimeSince={false}
+                        />
                       </p>
                     </div>
                   </div>
@@ -375,7 +366,10 @@ export function TaskDetailUI({
                         <div className="flex-1">
                           <p className="text-sm font-medium">Task Started</p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(taskData.startedAt).toLocaleString()}
+                            <DateDisplay
+                              date={taskData.startedAt}
+                              showTimeSince={false}
+                            />
                           </p>
                         </div>
                       </div>
@@ -403,7 +397,10 @@ export function TaskDetailUI({
                         <div className="flex-1">
                           <p className="text-sm font-medium">Task Completed</p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(taskData.completedAt).toLocaleString()}
+                            <DateDisplay
+                              date={taskData.completedAt}
+                              showTimeSince={false}
+                            />
                           </p>
                         </div>
                       </div>
@@ -431,7 +428,10 @@ export function TaskDetailUI({
                         <div className="flex-1">
                           <p className="text-sm font-medium">Task Failed</p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(taskData.errorAt).toLocaleString()}
+                            <DateDisplay
+                              date={taskData.errorAt}
+                              showTimeSince={false}
+                            />
                           </p>
                         </div>
                       </div>
@@ -481,8 +481,12 @@ export function TaskDetailUI({
                       Error Time
                     </label>
                     <p className="mt-1 font-mono text-sm">
-                      {taskData.errorAt &&
-                        new Date(taskData.errorAt).toLocaleString()}
+                      {taskData.errorAt && (
+                        <DateDisplay
+                          date={taskData.errorAt}
+                          showTimeSince={false}
+                        />
+                      )}
                     </p>
                   </div>
                   {errorToDisplay.message && (

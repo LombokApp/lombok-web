@@ -2,8 +2,10 @@ import type { AppDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 
+import { ActorFeedback } from '@/src/components/actor-feedback'
+import { DateDisplay } from '@/src/components/date-display'
+
 import { TableLinkColumn } from '../../../../components/table-link-column/table-link-column'
-import { invertColour, stringToColour } from '../../../../utils/colors'
 
 export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
   {
@@ -17,19 +19,6 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
     zeroWidth: true,
   },
   {
-    accessorKey: 'label',
-    header: ({ column }) => (
-      <DataTableColumnHeader
-        canHide={column.getCanHide()}
-        column={column}
-        title="Label"
-      />
-    ),
-    cell: ({ row }) => <span>{row.original.label}</span>,
-    enableSorting: true,
-    enableHiding: true,
-  },
-  {
     accessorKey: 'identifier',
     header: ({ column }) => (
       <DataTableColumnHeader
@@ -39,18 +28,11 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
       />
     ),
     cell: ({ row }) => (
-      <div className="flex items-center gap-4 font-normal">
-        <div
-          className="flex size-8 items-center justify-center overflow-hidden rounded-full"
-          style={{
-            background: stringToColour(row.original.identifier),
-            color: invertColour(stringToColour(row.original.identifier)),
-          }}
-        >
-          <span className="uppercase">{row.original.identifier[0]}</span>
-        </div>
-        <span>{row.original.identifier.toUpperCase()}</span>
-      </div>
+      <ActorFeedback
+        title={row.original.label}
+        emitterIdentifier={`app:${row.original.identifier}`}
+        showSubtitle={true}
+      />
     ),
     enableSorting: false,
     enableHiding: false,
@@ -74,11 +56,13 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
       <DataTableColumnHeader
         canHide={column.getCanHide()}
         column={column}
-        title="Requires Storage"
+        title="Required Storage"
       />
     ),
     cell: ({ row }) => (
-      <span>{row.original.requiresStorage ? 'Yes' : 'No'}</span>
+      <div className="flex w-[80px] items-center justify-center">
+        <span>{row.original.requiresStorage ? 'Yes' : 'No'}</span>
+      </div>
     ),
     enableSorting: false,
     enableHiding: true,
@@ -133,9 +117,20 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
     ),
     cell: ({ row }) => (
       <span>
-        {row.original.createdAt
-          ? new Date(row.original.createdAt).toLocaleString()
-          : ''}
+        {row.original.createdAt ? (
+          <DateDisplay
+            className="text-sm"
+            date={row.original.createdAt}
+            showTimeSince={true}
+            dateOptions={{
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            }}
+          />
+        ) : (
+          ''
+        )}
       </span>
     ),
     enableSorting: true,
@@ -152,9 +147,19 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
     ),
     cell: ({ row }) => (
       <span>
-        {row.original.updatedAt
-          ? new Date(row.original.updatedAt).toLocaleString()
-          : ''}
+        {row.original.updatedAt ? (
+          <DateDisplay
+            className="text-sm"
+            date={row.original.updatedAt}
+            dateOptions={{
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            }}
+          />
+        ) : (
+          ''
+        )}
       </span>
     ),
     enableSorting: true,

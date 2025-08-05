@@ -20,6 +20,15 @@ export type ServerEventsListRequest = NonNullable<
 export type ServerEventsListResponse =
   paths['/api/v1/server/events']['get']['responses']['200']['content']['application/json']
 
+export type ServerLogsListRequest = NonNullable<
+  paths['/api/v1/server/logs']['get']['parameters']['query']
+>
+export type ServerLogsListResponse =
+  paths['/api/v1/server/logs']['get']['responses']['200']['content']['application/json']
+
+export type LogEntryDTO =
+  paths['/api/v1/server/logs/{logId}']['get']['responses']['200']['content']['application/json']['log']
+
 // API Types for UI imports
 export type FolderDTO =
   paths['/api/v1/folders/{folderId}']['get']['responses']['200']['content']['application/json']['folder']

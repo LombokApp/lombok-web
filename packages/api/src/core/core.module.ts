@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_INTERCEPTOR } from '@nestjs/core'
 import { CacheModule } from 'src/cache/cache.module'
+import { LogModule } from 'src/log/log.module'
 import { SocketModule } from 'src/socket/socket.module'
 import { StorageModule } from 'src/storage/storage.module'
 import { TaskModule } from 'src/task/task.module'
@@ -29,6 +30,7 @@ import { ZodSerializerInterceptor } from './serializer/serializer.util'
     SocketModule,
     StorageModule,
     TaskModule,
+    LogModule,
   ],
   providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],
   controllers: [],

@@ -12,6 +12,7 @@ import { ListChecks } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
+import { DateDisplay } from '@/src/components/date-display'
 import { useFolderContext } from '@/src/pages/folders/folder.context'
 import { $api } from '@/src/services/api'
 
@@ -54,16 +55,23 @@ const TaskCard = ({ task, folderId }: { task: TaskDTO; folderId: string }) => {
               </div>
             </div>
             <div className="text-xs text-muted-foreground">
-              {task.completedAt
-                ? new Date(task.completedAt).toLocaleString(undefined, {
+              {task.completedAt ? (
+                <DateDisplay
+                  date={task.completedAt}
+                  showTimeSince={false}
+                  className="text-xs"
+                  dateOptions={{
                     month: 'short',
                     day: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit',
-                  })
-                : task.startedAt
-                  ? 'In progress'
-                  : 'Pending'}
+                  }}
+                />
+              ) : task.startedAt ? (
+                'In progress'
+              ) : (
+                'Pending'
+              )}
             </div>
           </div>
           {task.subjectObjectKey && (

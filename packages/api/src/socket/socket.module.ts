@@ -11,6 +11,7 @@ import { EventModule } from 'src/event/event.module'
 import { EventService } from 'src/event/services/event.service'
 import { FoldersModule } from 'src/folders/folders.module'
 import { FolderService } from 'src/folders/services/folder.service'
+import { LogModule } from 'src/log/log.module'
 import { ServerModule } from 'src/server/server.module'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { StorageModule } from 'src/storage/storage.module'
@@ -30,7 +31,8 @@ import { UserSocketService } from './user/user-socket.service'
     forwardRef(() => AuthModule),
     ServerModule,
     StorageModule,
-    EventModule,
+    forwardRef(() => EventModule),
+    forwardRef(() => LogModule),
     ConfigModule.forFeature(authConfig),
     ConfigModule.forFeature(coreConfig),
     ConfigModule.forFeature(appConfig),

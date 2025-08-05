@@ -5,6 +5,7 @@ import { appConfig } from 'src/app/config'
 import { AppService } from 'src/app/services/app.service'
 import { EventModule } from 'src/event/event.module'
 import { EventService } from 'src/event/services/event.service'
+import { LogEntryService } from 'src/log/services/log-entry.service'
 import { ServerModule } from 'src/server/server.module'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { SocketModule } from 'src/socket/socket.module'
@@ -32,6 +33,7 @@ import { FolderService } from './services/folder.service'
     FolderService,
     UserSocketService,
     AppService,
+    LogEntryService,
     ServerConfigurationService,
     ReindexFolderProcessor,
   ],

@@ -22,7 +22,7 @@ interface NavbarProps {
 export function Navbar({ breadcrumbs }: NavbarProps) {
   const authContext = useAuthContext()
   return (
-    <header className="dark:shadow-foreground/10 sticky top-0 z-10 w-full border-b bg-background/[.95] py-2 supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-10 w-full border-b bg-background/[.95] py-2 supports-[backdrop-filter]:bg-background/60 dark:shadow-foreground/10">
       <div className="flex h-8 w-full flex-1">
         <div className="flex flex-1 items-center truncate">
           {authContext.viewer && (

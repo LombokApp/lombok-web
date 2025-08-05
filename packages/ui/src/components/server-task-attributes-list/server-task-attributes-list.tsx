@@ -1,7 +1,8 @@
 import type { TaskDTO } from '@stellariscloud/types'
 import { Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
-import { timeSinceOrUntil } from '@stellariscloud/utils'
 import { Link } from 'react-router-dom'
+
+import { DateDisplay } from '@/src/components/date-display'
 
 import { invertColour, stringToColour } from '../../utils/colors'
 
@@ -116,14 +117,7 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
                 VALUE_TEXT_COLOR,
               )}
             >
-              {task?.createdAt && (
-                <div className="flex flex-col">
-                  <div>{new Date(task.createdAt).toLocaleString()}</div>
-                  <div className="text-xs">
-                    {timeSinceOrUntil(new Date(task.createdAt))}
-                  </div>
-                </div>
-              )}
+              {task?.createdAt && <DateDisplay date={task.createdAt} />}
             </dd>
           </div>
           <div
