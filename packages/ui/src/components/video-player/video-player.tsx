@@ -1,8 +1,8 @@
 import { cn } from '@stellariscloud/ui-toolkit'
 
 interface VideoPlayerProps {
-  width: string
-  height: string
+  width?: string
+  height?: string
   src: string
   grayscale?: boolean
   autoPlay?: boolean
@@ -13,8 +13,6 @@ interface VideoPlayerProps {
 
 export const VideoPlayer = ({
   src,
-  width,
-  height,
   autoPlay = false,
   controls = true,
   grayscale = false,
@@ -24,7 +22,7 @@ export const VideoPlayer = ({
   return (
     <div
       className={cn(
-        'flex flex-1',
+        'flex flex-col justify-center',
         grayscale && 'grayscale duration-200 ease-in-out hover:grayscale-0',
       )}
     >
@@ -35,7 +33,6 @@ export const VideoPlayer = ({
         autoPlay={autoPlay}
         muted
         loop
-        style={{ width, height }}
       >
         <source src={src} type={type} />
       </video>

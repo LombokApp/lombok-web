@@ -8,7 +8,7 @@ interface TableLinkColumnProps {
 export function TableLinkColumn({ to, onClick }: TableLinkColumnProps) {
   return (
     <div className="size-0 max-w-0 overflow-hidden">
-      <Link to={to} onClick={onClick} className="absolute inset-0" />
+      <Link to={to} onClick={onClick} className="absolute inset-0 z-10" />
     </div>
   )
 }

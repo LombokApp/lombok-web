@@ -158,18 +158,18 @@ export const FolderObjectDetailScreen = ({
         setModalData={setDeleteModalData}
         onConfirm={handleDelete}
       />
-      <div className="flex size-full flex-1 justify-end">
+      <div className="flex size-full flex-1 justify-between">
         <div
-          className="relative flex flex-1 flex-col overflow-hidden"
+          className="flex max-w-full flex-col lg:w-1/2 xl:flex-1"
           key={displayObjectKey}
         >
-          <div className="flex items-center justify-between pb-2">
+          <div className="flex items-center justify-between pb-2 pr-0 lg:pr-4">
             <div className="pl-2">
               <TypographyH3>{objectKey}</TypographyH3>
             </div>
 
             {folderObject?.objectKey && (
-              <div className="px-4">
+              <div className="pl-2">
                 <div className="flex gap-2">
                   {folderContext.folderPermissions?.includes(
                     FolderPermissionEnum.OBJECT_EDIT,
@@ -196,21 +196,19 @@ export const FolderObjectDetailScreen = ({
           <div
             className={cn(
               'flex w-full flex-1 overflow-hidden',
-              sidebarOpen && 'pr-4',
+              sidebarOpen && 'pr-0 lg:pr-4',
             )}
           >
             {folderObject && (
               <div className={'flex max-w-full flex-1 flex-col justify-around'}>
                 {folderObject.hash ? (
-                  <div>
-                    <FolderObjectPreview
-                      folderId={folderId}
-                      objectKey={objectKey}
-                      objectMetadata={folderObject}
-                      previewObjectKey={displayObjectKey}
-                      displayMode="object-scale-down"
-                    />
-                  </div>
+                  <FolderObjectPreview
+                    folderId={folderId}
+                    objectKey={objectKey}
+                    objectMetadata={folderObject}
+                    previewObjectKey={displayObjectKey}
+                    displayMode="object-scale-down"
+                  />
                 ) : (
                   <div className="flex flex-1 items-center justify-around">
                     <Button onClick={handleIndexFolderObject}>
@@ -223,7 +221,7 @@ export const FolderObjectDetailScreen = ({
           </div>
         </div>
         {sidebarOpen && folderObject && folderContext.folder && (
-          <div className="xs:w-full md:w-[1/2] lg:w-[1/2] xl:w-2/5 2xl:w-[35%] 2xl:max-w-[35rem]">
+          <div className="xs:w-0 overflow-hidden lg:w-1/2 xl:w-1/3 max-w-[40rem]">
             <FolderObjectSidebar
               folderAndPermission={
                 folderContext.folderPermissions && {
