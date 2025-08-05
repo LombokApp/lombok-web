@@ -231,11 +231,17 @@ export class AppService {
           if (safeZodParse(requestData, logEntrySchema)) {
             await this.ormService.db.insert(eventsTable).values([
               {
-                ...requestData,
                 createdAt: now,
                 level: EventLevel.INFO, // TODO: translate app log level to event level
                 emitterIdentifier: requestingAppIdentifier,
-                eventKey: `${appIdentifierPrefixed}:LOG_ENTRY`,
+                eventKey: `${appIdentifierPrefixed.toUpperCase()}:LOG_ENTRY`,
+                folderId: requestData.locationContext?.folderId,
+                objectKey: requestData.locationContext?.objectKey,
+                data: {
+                  logData: requestData.data,
+                  message: requestData.message,
+                  name: requestData.name,
+                },
                 id: uuidV4(),
               },
             ])

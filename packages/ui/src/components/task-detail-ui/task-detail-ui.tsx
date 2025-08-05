@@ -1,3 +1,4 @@
+import type { TaskDTO } from '@stellariscloud/types'
 import {
   Badge,
   Card,
@@ -8,29 +9,8 @@ import {
   cn,
 } from '@stellariscloud/ui-toolkit'
 
-interface TaskData {
-  id: string
-  taskIdentifier: string
-  ownerIdentifier: string
-  triggeringEventId: string
-  subjectFolderId?: string
-  subjectObjectKey?: string
-  handlerId?: string
-  inputData: unknown
-  taskDescription: string
-  updates: unknown[]
-  startedAt?: string
-  completedAt?: string
-  errorAt?: string
-  createdAt: string
-  updatedAt: string
-  errorCode?: string
-  errorMessage?: string
-  errorDetails?: unknown
-}
-
 interface TaskDetailUIProps {
-  taskData: TaskData | undefined
+  taskData: TaskDTO | undefined
   isLoading: boolean
   isError: boolean
 }
@@ -41,7 +21,7 @@ export function TaskDetailUI({
   isError,
 }: TaskDetailUIProps) {
   // Get the appropriate color for the status indicator
-  const getStatusColor = (task?: TaskData) => {
+  const getStatusColor = (task?: TaskDTO) => {
     if (!task) {
       return 'bg-gray-600'
     }
@@ -58,7 +38,7 @@ export function TaskDetailUI({
   }
 
   // Get the status text and badge variant
-  const getStatusInfo = (task?: TaskData) => {
+  const getStatusInfo = (task?: TaskDTO) => {
     if (!task) {
       return { text: 'Unknown', variant: 'secondary' as const }
     }
