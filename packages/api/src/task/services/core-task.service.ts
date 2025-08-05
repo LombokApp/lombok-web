@@ -204,10 +204,7 @@ export class CoreTaskService {
       id: uuidV4(),
       inputData,
       ownerIdentifier: 'core',
-      taskDescription: {
-        textKey: `Task '${taskIdentifier}'`,
-        variables: {},
-      },
+      taskDescription: `Task '${taskIdentifier}'`,
       subjectFolderId: context.folderId,
       subjectObjectKey: context.objectKey,
       taskIdentifier,

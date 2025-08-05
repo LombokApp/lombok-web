@@ -1379,13 +1379,9 @@ export interface components {
                 /** Format: date-time */
                 errorAt?: string;
                 errorCode?: string;
+                errorDetails?: unknown;
                 errorMessage?: string;
-                taskDescription: {
-                    textKey: string;
-                    variables: {
-                        [key: string]: string;
-                    };
-                };
+                taskDescription: string;
                 updates: unknown[];
                 /** Format: date-time */
                 startedAt?: string;
@@ -1416,13 +1412,9 @@ export interface components {
                 /** Format: date-time */
                 errorAt?: string;
                 errorCode?: string;
+                errorDetails?: unknown;
                 errorMessage?: string;
-                taskDescription: {
-                    textKey: string;
-                    variables: {
-                        [key: string]: string;
-                    };
-                };
+                taskDescription: string;
                 updates: unknown[];
                 /** Format: date-time */
                 startedAt?: string;

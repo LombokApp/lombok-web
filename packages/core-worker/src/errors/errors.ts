@@ -1,3 +1,5 @@
+import type { WorkerErrorDetails } from '@stellariscloud/types'
+
 export class WorkerError extends Error {
   constructor(
     message: string,
@@ -15,7 +17,6 @@ export interface SerializeableError {
   name: string
   message: string
   stack?: string
-  cause?: unknown
   innerError?: SerializeableError
 }
 
@@ -28,7 +29,6 @@ export function serializeWorkerError(err: unknown): string {
     name: err.name,
     message: err.message,
     stack: err.stack,
-    cause: err.cause,
     innerError:
       err instanceof WorkerError && err.innerError
         ? (JSON.parse(
@@ -43,6 +43,15 @@ export class ScriptExecutionError extends Error {
   constructor(
     message: string,
     public readonly details: Record<string, unknown>,
+  ) {
+    super(message)
+  }
+}
+
+export class WorkerScriptRuntimeError extends Error {
+  constructor(
+    message: string,
+    public readonly details: WorkerErrorDetails,
   ) {
     super(message)
   }

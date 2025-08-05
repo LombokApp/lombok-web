@@ -47,7 +47,6 @@ export const FolderObjectDetailScreen = ({
 
   const currentVersionMetadata = React.useMemo(
     () =>
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       (folderObject?.hash && folderObject.contentMetadata[folderObject.hash]
         ? (folderObject.contentMetadata[folderObject.hash] ?? {})
         : {}) as Record<string, ContentMetadataEntry | undefined>,
@@ -221,7 +220,7 @@ export const FolderObjectDetailScreen = ({
           </div>
         </div>
         {sidebarOpen && folderObject && folderContext.folder && (
-          <div className="xs:w-0 overflow-hidden lg:w-1/2 xl:w-1/3 max-w-[40rem]">
+          <div className="xs:w-0 max-w-[40rem] overflow-hidden lg:w-1/2 xl:w-1/3">
             <FolderObjectSidebar
               folderAndPermission={
                 folderContext.folderPermissions && {

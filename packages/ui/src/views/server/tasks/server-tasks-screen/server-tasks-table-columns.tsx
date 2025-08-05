@@ -54,7 +54,7 @@ export const serverTasksTableColumns: HideableColumnDef<TaskDTO>[] = [
         <div className="flex flex-col">
           <div className="w-[80px]">{row.getValue('taskIdentifier')}</div>
           <span className="max-w-[150px] truncate text-xs text-muted-foreground">
-            {row.original.taskDescription.textKey}
+            {row.original.taskDescription}
           </span>
         </div>
       </div>

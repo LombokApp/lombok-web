@@ -98,7 +98,7 @@ CREATE TABLE "tasks" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"ownerIdentifier" text NOT NULL,
 	"taskIdentifier" text NOT NULL,
-	"taskDescription" jsonb NOT NULL,
+	"taskDescription" text NOT NULL,
 	"inputData" jsonb NOT NULL,
 	"updates" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"triggeringEventId" uuid NOT NULL,
@@ -110,6 +110,7 @@ CREATE TABLE "tasks" (
 	"errorAt" timestamp,
 	"errorCode" text,
 	"errorMessage" text,
+	"errorDetails" jsonb,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL,
 	"workerIdentifier" text

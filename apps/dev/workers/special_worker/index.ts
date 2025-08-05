@@ -16,6 +16,8 @@ export const handleTask: TaskHandler = async function handleTask(
       method: 'GET',
     },
   ])
+  throw new Error('Poop!!!')
+
   console.log('From inside worker task handler:', {
     generatedPresignedUrls: urls,
     envVars: process.env,

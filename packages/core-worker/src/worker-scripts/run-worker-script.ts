@@ -12,7 +12,7 @@ import fs from 'fs'
 import os from 'os'
 import path from 'path'
 
-import { ScriptExecutionError } from '../errors'
+import { ScriptExecutionError, WorkerScriptRuntimeError } from '../errors'
 import { downloadFileToDisk } from '../utils/file.util'
 
 // Helper function to parse request body based on Content-Type and HTTP method
@@ -267,6 +267,7 @@ export const runWorkerScript = async ({
       ) as SerializeableError
     }
     const errorClassName = parsedErr.className
+
     console.log(
       ...[
         '',
@@ -277,7 +278,24 @@ export const runWorkerScript = async ({
         '==================',
       ].map((line) => `${line}\n`),
     )
-    throw new Error(`Failed to run worker script. Exit code: ${exitCode}`)
+
+    throw new WorkerScriptRuntimeError(
+      `Failure during worker script execution. Exit code: ${exitCode}`,
+      {
+        className: parsedErr.className,
+        name: parsedErr.name,
+        message: parsedErr.message,
+        stack: parsedErr.stack ?? '',
+        ...(parsedErr.innerError && {
+          innerError: {
+            className: parsedErr.innerError.className,
+            name: parsedErr.innerError.name,
+            message: parsedErr.innerError.message,
+            stack: parsedErr.innerError.stack ?? '',
+          },
+        }),
+      },
+    )
   }
 
   if (!isRequest) {

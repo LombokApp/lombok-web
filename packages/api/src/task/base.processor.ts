@@ -1,6 +1,6 @@
+import type { TaskInputData } from '@stellariscloud/types'
 import { getApp } from 'src/shared/app-helper'
 
-import type { TaskInputData } from './entities/task.entity'
 import type { CoreTaskInputData } from './services/core-task.service'
 import { CoreTaskService } from './services/core-task.service'
 import type { CoreTaskName } from './task.constants'

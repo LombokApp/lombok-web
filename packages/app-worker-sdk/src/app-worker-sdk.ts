@@ -2,6 +2,7 @@ import type {
   AppLogEntry,
   AppManifest,
   ContentMetadataType,
+  WorkerErrorDetails,
 } from '@stellariscloud/types'
 import type { Socket } from 'socket.io-client'
 
@@ -54,7 +55,11 @@ export interface CoreServerMessageInterface {
   ) => Promise<AppAPIResponse<AppTask>>
   failHandleTask: (
     taskId: string,
-    error: { code: string; message: string },
+    error: {
+      code: string
+      message: string
+      details?: WorkerErrorDetails
+    },
   ) => Promise<AppAPIResponse<void>>
   completeHandleTask: (taskId: string) => Promise<AppAPIResponse<void>>
   getMetadataSignedUrls: (
