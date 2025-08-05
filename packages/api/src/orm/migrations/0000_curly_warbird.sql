@@ -31,7 +31,6 @@ CREATE TABLE "events" (
 	"emitterIdentifier" text NOT NULL,
 	"userId" text,
 	"folderId" text,
-	"level" text NOT NULL,
 	"objectKey" text,
 	"data" jsonb,
 	"createdAt" timestamp NOT NULL

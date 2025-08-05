@@ -14,16 +14,7 @@ import {
   FolderPushMessage,
   TaskInputData,
 } from '@stellariscloud/types'
-import {
-  and,
-  arrayContains,
-  count,
-  eq,
-  ilike,
-  inArray,
-  or,
-  SQL,
-} from 'drizzle-orm'
+import { and, arrayContains, count, eq, ilike, or, SQL } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
 import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
@@ -35,7 +26,7 @@ import { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
 import type { Event } from '../entities/event.entity'
-import { EventLevel, eventsTable } from '../entities/event.entity'
+import { eventsTable } from '../entities/event.entity'
 
 export enum EventSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -73,14 +64,12 @@ export class EventService {
     emitterIdentifier,
     eventKey,
     data,
-    level = EventLevel.INFO,
     locationContext,
     userId,
   }: {
     emitterIdentifier: string // "core" for internally emitted events, and "app:<appIdentifier>" for app emitted events
     eventKey: CoreEvent | string
     data: unknown
-    level: EventLevel
     locationContext?: { folderId: string; objectKey?: string }
     userId?: string
   }) {
@@ -125,7 +114,6 @@ export class EventService {
             id: uuidV4(),
             eventKey,
             emitterIdentifier,
-            level,
             folderId: locationContext?.folderId,
             objectKey: locationContext?.objectKey,
             userId,
@@ -290,11 +278,6 @@ export class EventService {
       search,
       folderId,
       objectKey,
-      includeDebug,
-      includeError,
-      includeInfo,
-      includeTrace,
-      includeWarning,
     }: {
       folderId?: string
       objectKey?: string
@@ -319,11 +302,6 @@ export class EventService {
       search,
       folderId,
       objectKey,
-      includeDebug,
-      includeError,
-      includeTrace,
-      includeWarning,
-      includeInfo,
     })
   }
 
@@ -334,11 +312,6 @@ export class EventService {
     sort = [EventSort.CreatedAtAsc],
     objectKey,
     folderId,
-    includeDebug,
-    includeError,
-    includeInfo,
-    includeTrace,
-    includeWarning,
   }: {
     folderId?: string
     objectKey?: string
@@ -346,33 +319,12 @@ export class EventService {
     offset?: number
     limit?: number
     sort?: EventSort[]
-    includeTrace?: 'true'
-    includeDebug?: 'true'
-    includeInfo?: 'true'
-    includeWarning?: 'true'
-    includeError?: 'true'
   }) {
     const conditions: (SQL | undefined)[] = []
     if (folderId) {
       conditions.push(eq(eventsTable.folderId, folderId))
     }
 
-    const levelFilters: EventLevel[] = []
-    if (includeDebug) {
-      levelFilters.push(EventLevel.DEBUG)
-    }
-    if (includeTrace) {
-      levelFilters.push(EventLevel.TRACE)
-    }
-    if (includeInfo) {
-      levelFilters.push(EventLevel.INFO)
-    }
-    if (includeWarning) {
-      levelFilters.push(EventLevel.WARN)
-    }
-    if (includeError) {
-      levelFilters.push(EventLevel.ERROR)
-    }
     if (search) {
       conditions.push(
         or(
@@ -380,10 +332,6 @@ export class EventService {
           ilike(eventsTable.emitterIdentifier, `%${search}%`),
         ),
       )
-    }
-
-    if (levelFilters.length) {
-      conditions.push(inArray(eventsTable.level, levelFilters))
     }
 
     if (objectKey) {

@@ -1,5 +1,5 @@
 {
-  "id": "ea510118-e5d2-44b7-b954-c04b14dd6644",
+  "id": "2cd23c23-5cfb-4c65-ab22-388d200db9cf",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -191,12 +191,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
-        },
-        "level": {
-          "name": "level",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
         },
         "objectKey": {
           "name": "objectKey",

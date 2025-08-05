@@ -1,11 +1,7 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common'
 import { FolderPushMessage } from '@stellariscloud/types'
 import { and, count, eq, isNull } from 'drizzle-orm'
-import {
-  EventLevel,
-  eventsTable,
-  NewEvent,
-} from 'src/event/entities/event.entity'
+import { eventsTable, NewEvent } from 'src/event/entities/event.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { CoreTaskName } from 'src/task/task.constants'
@@ -196,7 +192,6 @@ export class CoreTaskService {
       folderId: context.folderId,
       objectKey: context.objectKey,
       userId: context.userId,
-      level: EventLevel.INFO,
       createdAt: now,
     }
 

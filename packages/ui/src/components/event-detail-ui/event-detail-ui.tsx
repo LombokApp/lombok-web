@@ -1,6 +1,5 @@
 import type { EventDTO } from '@stellariscloud/types'
 import {
-  Badge,
   Card,
   CardContent,
   CardDescription,
@@ -22,50 +21,6 @@ export function EventDetailUI({
   isLoading,
   isError,
 }: EventDetailUIProps) {
-  // Get the appropriate color for the level indicator
-  const getLevelColor = (level?: string) => {
-    if (!level) {
-      return 'bg-slate-500'
-    }
-
-    switch (level) {
-      case 'INFO':
-        return 'bg-blue-500'
-      case 'ERROR':
-        return 'bg-red-500'
-      case 'WARN':
-        return 'bg-amber-500'
-      case 'DEBUG':
-        return 'bg-neutral-500'
-      case 'TRACE':
-        return 'bg-slate-500'
-      default:
-        return 'bg-slate-500'
-    }
-  }
-
-  // Get the badge variant for the level
-  const getLevelBadgeVariant = (level?: string) => {
-    if (!level) {
-      return 'secondary' as const
-    }
-
-    switch (level) {
-      case 'INFO':
-        return 'default' as const
-      case 'ERROR':
-        return 'destructive' as const
-      case 'WARN':
-        return 'outline' as const
-      case 'DEBUG':
-        return 'secondary' as const
-      case 'TRACE':
-        return 'secondary' as const
-      default:
-        return 'secondary' as const
-    }
-  }
-
   if (isLoading) {
     return (
       <div className="flex h-full flex-1 flex-col items-center justify-center">
@@ -150,18 +105,6 @@ export function EventDetailUI({
                 </h1>
               </div>
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={cn(
-                      'h-2 w-2 rounded-full',
-                      getLevelColor(eventData.level),
-                    )}
-                  />
-                  <Badge variant={getLevelBadgeVariant(eventData.level)}>
-                    {eventData.level}
-                  </Badge>
-                </div>
-                <span>•</span>
                 <span className="font-mono">ID: {eventData.id}</span>
               </div>
             </div>

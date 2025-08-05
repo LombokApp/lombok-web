@@ -5924,16 +5924,6 @@
               "eventKey": {
                 "type": "string"
               },
-              "level": {
-                "type": "string",
-                "enum": [
-                  "TRACE",
-                  "DEBUG",
-                  "INFO",
-                  "WARN",
-                  "ERROR"
-                ]
-              },
               "emitterIdentifier": {
                 "type": "string"
               },
@@ -5961,7 +5951,6 @@
             "required": [
               "id",
               "eventKey",
-              "level",
               "emitterIdentifier",
               "createdAt"
             ]
@@ -5997,16 +5986,6 @@
                 "eventKey": {
                   "type": "string"
                 },
-                "level": {
-                  "type": "string",
-                  "enum": [
-                    "TRACE",
-                    "DEBUG",
-                    "INFO",
-                    "WARN",
-                    "ERROR"
-                  ]
-                },
                 "emitterIdentifier": {
                   "type": "string"
                 },
@@ -6034,7 +6013,6 @@
               "required": [
                 "id",
                 "eventKey",
-                "level",
                 "emitterIdentifier",
                 "createdAt"
               ]

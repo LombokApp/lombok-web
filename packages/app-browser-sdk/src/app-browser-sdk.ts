@@ -80,7 +80,6 @@ export class AppBrowserSdk implements AppBrowserSdkInstance {
     })
 
     _communicator.onMessage('ERROR', (message) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       const _error = new Error(
         (message.payload as { message: string }).message || 'Unknown error',
       )

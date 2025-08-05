@@ -1,6 +1,5 @@
 import type { EventDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
-import { cn } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 
 import { DateDisplay } from '@/src/components/date-display'
@@ -99,49 +98,6 @@ export function configureEventsTableColumns(
             ) : (
               <span className="italic text-muted-foreground">None</span>
             )}
-          </div>
-        )
-      },
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      accessorKey: 'level',
-      header: ({ column }) => (
-        <DataTableColumnHeader
-          canHide={column.getCanHide()}
-          column={column}
-          title="Level"
-        />
-      ),
-      cell: ({ row }) => {
-        // Map event levels to color indicators
-        const getLevelColor = (level: string) => {
-          switch (level) {
-            case 'ERROR':
-              return 'bg-red-500'
-            case 'WARN':
-              return 'bg-yellow-500'
-            case 'INFO':
-              return 'bg-blue-500'
-            case 'DEBUG':
-              return 'bg-gray-500'
-            case 'TRACE':
-              return 'bg-gray-400'
-            default:
-              return 'bg-gray-500'
-          }
-        }
-
-        return (
-          <div className="flex items-center gap-2">
-            <div
-              className={cn(
-                'size-2 rounded-full',
-                getLevelColor(row.original.level),
-              )}
-            />
-            <div className="">{row.getValue('level')}</div>
           </div>
         )
       },

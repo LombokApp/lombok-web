@@ -38,7 +38,6 @@ import {
 import mime from 'mime'
 import { APP_NS_PREFIX, AppService } from 'src/app/services/app.service'
 import { parseSort } from 'src/core/utils/sort.util'
-import { EventLevel } from 'src/event/entities/event.entity'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
@@ -977,7 +976,6 @@ export class FolderService {
       emitterIdentifier: `${APP_NS_PREFIX}${appIdentifier.toLowerCase()}`,
       locationContext: folderId ? { folderId, objectKey } : undefined,
       userId: actor.id,
-      level: EventLevel.INFO,
       data: { inputParams },
       eventKey: `TRIGGER_TASK:${appIdentifier.toUpperCase()}:${taskIdentifier}!!FIX!!`,
     })
@@ -1054,7 +1052,6 @@ export class FolderService {
     await this.eventService.emitEvent({
       emitterIdentifier: 'core',
       eventKey: previousRecord ? 'CORE:OBJECT_UPDATED' : 'CORE:OBJECT_ADDED',
-      level: EventLevel.INFO,
       locationContext: {
         folderId: record.folderId,
         objectKey: record.objectKey,

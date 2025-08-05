@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  cn,
   Skeleton,
   TypographyH3,
 } from '@stellariscloud/ui-toolkit'
@@ -27,24 +26,6 @@ const EventCard = ({
   event: EventDTO
   folderId: string
 }) => {
-  // Map event levels to color indicators
-  const getLevelColor = (level: string) => {
-    switch (level) {
-      case 'ERROR':
-        return 'bg-red-500'
-      case 'WARN':
-        return 'bg-yellow-500'
-      case 'INFO':
-        return 'bg-blue-500'
-      case 'DEBUG':
-        return 'bg-gray-500'
-      case 'TRACE':
-        return 'bg-gray-400'
-      default:
-        return 'bg-gray-500'
-    }
-  }
-
   return (
     <Link
       to={`/folders/${folderId}/events/${event.id}`}
@@ -54,12 +35,6 @@ const EventCard = ({
         <div>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <div
-                className={cn(
-                  'size-2.5 rounded-full',
-                  getLevelColor(event.level),
-                )}
-              />
               <div className="font-semibold group-hover:text-primary">
                 {event.eventKey}
               </div>

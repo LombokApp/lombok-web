@@ -1499,8 +1499,6 @@ export interface components {
                 /** Format: uuid */
                 id: string;
                 eventKey: string;
-                /** @enum {string} */
-                level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
                 emitterIdentifier: string;
                 locationContext?: {
                     /** Format: uuid */
@@ -1520,8 +1518,6 @@ export interface components {
                 /** Format: uuid */
                 id: string;
                 eventKey: string;
-                /** @enum {string} */
-                level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
                 emitterIdentifier: string;
                 locationContext?: {
                     /** Format: uuid */

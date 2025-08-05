@@ -12,12 +12,12 @@ import {
   foldersRelations,
   foldersTable,
 } from '../folders/entities/folder.entity'
-import { logEntriesTable } from '../log/entities/log-entry.entity'
 import { folderObjectsTable } from '../folders/entities/folder-object.entity'
 import {
   folderSharesRelations,
   folderSharesTable,
 } from '../folders/entities/folder-share.entity'
+import { logEntriesTable } from '../log/entities/log-entry.entity'
 import { serverSettingsTable } from '../server/entities/server-configuration.entity'
 import { storageLocationsTable } from '../storage/entities/storage-location.entity'
 import { tasksTable } from '../task/entities/task.entity'
