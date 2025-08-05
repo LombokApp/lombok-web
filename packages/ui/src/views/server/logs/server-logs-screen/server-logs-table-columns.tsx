@@ -1,13 +1,11 @@
 import type { LogEntryDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { cn } from '@stellariscloud/ui-toolkit'
-import { Badge } from '@stellariscloud/ui-toolkit/src/components/badge'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
-import { BugIcon, InfoIcon, OctagonAlert, TriangleAlert } from 'lucide-react'
 
+import { ActorFeedback } from '@/src/components/actor-feedback'
 import { DateDisplay } from '@/src/components/date-display'
-
-import { stringToColour } from '../../../../utils/colors'
+import { getLevelColor } from '@/src/utils/level-utils'
 
 export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
   {
@@ -20,17 +18,13 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
       />
     ),
     cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <div
-          className="size-2 rounded-full"
-          style={{
-            backgroundColor: stringToColour(row.original.emitterIdentifier),
-          }}
-        />
-        <span className="text-sm text-muted-foreground">
-          {row.original.emitterIdentifier}
-        </span>
-      </div>
+      <ActorFeedback
+        emitterIdentifier={row.original.emitterIdentifier}
+        title={(
+          row.original.emitterIdentifier.split(':')[1] ?? ''
+        ).toUpperCase()}
+        showSubtitle={true}
+      />
     ),
   },
   {
@@ -60,34 +54,15 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
       />
     ),
     cell: ({ row }) => {
-      const level = row.original.level
-      const getLevelConfig = (_levelValue: string) => {
-        switch (level) {
-          case 'TRACE':
-            return { icon: InfoIcon, color: 'bg-gray-100 text-gray-800' }
-          case 'DEBUG':
-            return { icon: BugIcon, color: 'bg-blue-100 text-blue-800' }
-          case 'INFO':
-            return { icon: InfoIcon, color: 'bg-green-100 text-green-800' }
-          case 'WARN':
-            return {
-              icon: TriangleAlert,
-              color: 'bg-yellow-100 text-yellow-800',
-            }
-          case 'ERROR':
-            return { icon: OctagonAlert, color: 'bg-red-100 text-red-800' }
-          default:
-            return { icon: InfoIcon, color: 'bg-gray-100 text-gray-800' }
-        }
-      }
-      const config = getLevelConfig(level)
-      const Icon = config.icon
       return (
         <div className="flex items-center gap-2">
-          <Badge className={cn('gap-1', config.color)}>
-            <Icon className="size-3" />
-            {level}
-          </Badge>
+          <div
+            className={cn(
+              'size-2 rounded-full',
+              getLevelColor(row.original.level),
+            )}
+          />
+          <div className="">{row.getValue('level')}</div>
         </div>
       )
     },

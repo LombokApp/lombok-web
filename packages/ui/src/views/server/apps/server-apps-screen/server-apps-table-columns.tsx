@@ -2,10 +2,10 @@ import type { AppDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
 
+import { ActorFeedback } from '@/src/components/actor-feedback'
 import { DateDisplay } from '@/src/components/date-display'
 
 import { TableLinkColumn } from '../../../../components/table-link-column/table-link-column'
-import { invertColour, stringToColour } from '../../../../utils/colors'
 
 export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
   {
@@ -28,23 +28,11 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
       />
     ),
     cell: ({ row }) => (
-      <div className="flex items-center gap-4 font-normal">
-        <div
-          className="flex size-8 items-center justify-center overflow-hidden rounded-full"
-          style={{
-            background: stringToColour(row.original.identifier),
-            color: invertColour(stringToColour(row.original.identifier)),
-          }}
-        >
-          <span className="uppercase">{row.original.identifier[0]}</span>
-        </div>
-        <div className="flex flex-col">
-          <span className="text-sm">{row.original.label.toUpperCase()}</span>
-          <span className="text-xs italic text-muted-foreground">
-            {row.original.identifier.toLowerCase()}
-          </span>
-        </div>
-      </div>
+      <ActorFeedback
+        title={row.original.label}
+        emitterIdentifier={`app:${row.original.identifier}`}
+        showSubtitle={true}
+      />
     ),
     enableSorting: false,
     enableHiding: false,
