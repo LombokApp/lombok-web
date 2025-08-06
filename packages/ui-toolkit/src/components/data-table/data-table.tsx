@@ -41,6 +41,7 @@ export type HideableColumnDef<
 interface DataTableProps<TData, TValue> {
   columns: HideableColumnDef<TData, TValue>[]
   data: TData[]
+  fixedLayout?: boolean
   title?: string
   filters?: Record<string, string[]>
   sorting?: SortingState
@@ -64,6 +65,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   title,
+  fixedLayout = false,
   filters = {},
   sorting = [],
   filterOptions = {},
@@ -139,40 +141,40 @@ export function DataTable<TData, TValue>({
       )}
       <div className="vertical-scrollbar-container">
         <div className="rounded-md border border-foreground/10 bg-background">
-          <Table>
-            {!hideHeader && (
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => {
-                  return (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => {
-                        return (
-                          <TableHead
-                            key={header.id}
-                            colSpan={header.colSpan}
-                            className={
-                              (
-                                header.column
-                                  .columnDef as HideableColumnDef<TData>
-                              ).zeroWidth
-                                ? 'w-0 p-0'
-                                : undefined
-                            }
-                          >
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext(),
-                                )}
-                          </TableHead>
-                        )
-                      })}
-                    </TableRow>
-                  )
-                })}
-              </TableHeader>
-            )}
+          <Table
+            className={cn('w-full max-w-full', fixedLayout && 'table-fixed')}
+          >
+            <TableHeader className={cn(hideHeader && 'hidden')}>
+              {table.getHeaderGroups().map((headerGroup) => {
+                return (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead
+                          key={header.id}
+                          colSpan={header.colSpan}
+                          className={
+                            (
+                              header.column
+                                .columnDef as HideableColumnDef<TData>
+                            ).zeroWidth
+                              ? 'w-0 p-0'
+                              : undefined
+                          }
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </TableHead>
+                      )
+                    })}
+                  </TableRow>
+                )
+              })}
+            </TableHeader>
             <TableBody>
               {table.getRowModel().rows.length ? (
                 table.getRowModel().rows.map((row) => (
@@ -195,7 +197,7 @@ export function DataTable<TData, TValue>({
                             (cell.column.columnDef as HideableColumnDef<TData>)
                               .zeroWidth
                               ? 'w-0 p-0'
-                              : `${cellPadding} truncate`
+                              : `${cellPadding}`
                           }
                         >
                           {flexRender(

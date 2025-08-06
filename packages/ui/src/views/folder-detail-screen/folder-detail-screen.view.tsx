@@ -383,129 +383,131 @@ export const FolderDetailScreen = () => {
             focusedObjectKeyFromParams && 'opacity-0',
           )}
         >
-          <div className="flex size-full flex-1 gap-4 overflow-hidden">
-            <div className="flex h-full flex-1">
-              {folderContext.folderMetadata?.totalCount === 0 ? (
-                <div className="flex size-full flex-col items-center justify-center">
-                  <div className="flex w-full max-w-md flex-col items-center p-8">
-                    <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-foreground/[.04] p-4">
-                      <Folder
-                        className="size-20 text-gray-400"
-                        strokeWidth={1}
-                      />
-                    </div>
-                    <h3 className="mb-3 text-xl font-medium">
-                      This folder is empty
-                    </h3>
-                    <p className="mb-8 text-center text-sm opacity-75">
-                      You can upload files or reindex the folder to discover
-                      existing files.
-                    </p>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() =>
-                          setUploadModalData({
-                            isOpen: true,
-                            uploadingProgress,
-                          })
-                        }
-                        variant="default"
-                        className="flex items-center gap-2"
-                      >
-                        <CloudUpload className="size-6" />
-                        Upload files
-                      </Button>
-                      <Button
-                        onClick={() => void handleReindexFolder()}
-                        variant="outline"
-                        className="flex items-center gap-2"
-                      >
-                        <FolderSync className="size-6" />
-                        Reindex folder
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex size-full flex-col gap-2">
-                  <div className="flex justify-between">
-                    <EditableTitle
-                      value={folderContext.folder?.name ?? ''}
-                      onChange={async (name) => {
-                        await folderUpdateMutation.mutateAsync({
-                          body: { name },
-                          params: { path: { folderId } },
-                        })
-                      }}
-                      placeholder="Enter folder name..."
-                    />
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="m-1 rounded-full">
-                        <div className="flex size-8 items-center justify-around rounded-full border">
-                          <Ellipsis className="size-5 shrink-0" />
-                        </div>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        {folderContext.folderPermissions?.includes(
-                          FolderPermissionEnum.OBJECT_EDIT,
-                        ) && (
-                          <DropdownMenuItem
-                            onClick={() =>
-                              setUploadModalData({
-                                isOpen: true,
-                                uploadingProgress,
-                              })
-                            }
-                            className="gap-2"
-                          >
-                            <CloudUpload className="size-5" />
-                            Upload
-                          </DropdownMenuItem>
-                        )}
-                        {folderContext.folderPermissions?.includes(
-                          FolderPermissionEnum.FOLDER_REINDEX,
-                        ) && (
-                          <DropdownMenuItem
-                            onClick={() =>
-                              setReindexFolderModalData({
-                                ...reindexFolderModalData,
-                                isOpen: true,
-                              })
-                            }
-                            className="gap-2"
-                          >
-                            <FolderSync className="size-5" />
-                            Reindex
-                          </DropdownMenuItem>
-                        )}
+          <div className="flex size-full w-full flex-1 justify-between @4xl:flex-none @8xl:w-[90%] @9xl:w-[85%] @10xl:w-[80%] @11xl:w-[75%] @12xl:w-[70%] @13xl:w-[65%] @15xl:w-[90rem] @4xl:gap-4">
+            <div className="flex min-w-0 flex-1">
+              <div className="flex size-full flex-col gap-2">
+                <div className="flex justify-between">
+                  <EditableTitle
+                    value={folderContext.folder?.name ?? ''}
+                    onChange={async (name) => {
+                      await folderUpdateMutation.mutateAsync({
+                        body: { name },
+                        params: { path: { folderId } },
+                      })
+                    }}
+                    placeholder="Enter folder name..."
+                  />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="m-1 rounded-full">
+                      <div className="flex size-8 items-center justify-around rounded-full border">
+                        <Ellipsis className="size-5 shrink-0" />
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {folderContext.folderPermissions?.includes(
+                        FolderPermissionEnum.OBJECT_EDIT,
+                      ) && (
                         <DropdownMenuItem
-                          onClick={() => void handleShareFolder()}
+                          onClick={() =>
+                            setUploadModalData({
+                              isOpen: true,
+                              uploadingProgress,
+                            })
+                          }
                           className="gap-2"
                         >
-                          <Share2 className="size-5" />
-                          Share
+                          <CloudUpload className="size-5" />
+                          Upload
                         </DropdownMenuItem>
-                        {folderContext.folderPermissions?.includes(
-                          FolderPermissionEnum.FOLDER_FORGET,
-                        ) && (
-                          <DropdownMenuItem
-                            onClick={() =>
-                              setForgetFolderConfirmationModelData({
-                                ...forgetFolderConfirmationModelData,
-                                isOpen: true,
-                              })
-                            }
-                            className="gap-2"
-                          >
-                            <Trash className="size-5" />
-                            Delete
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                      )}
+                      {folderContext.folderPermissions?.includes(
+                        FolderPermissionEnum.FOLDER_REINDEX,
+                      ) && (
+                        <DropdownMenuItem
+                          onClick={() =>
+                            setReindexFolderModalData({
+                              ...reindexFolderModalData,
+                              isOpen: true,
+                            })
+                          }
+                          className="gap-2"
+                        >
+                          <FolderSync className="size-5" />
+                          Reindex
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem
+                        onClick={() => void handleShareFolder()}
+                        className="gap-2"
+                      >
+                        <Share2 className="size-5" />
+                        Share
+                      </DropdownMenuItem>
+                      {folderContext.folderPermissions?.includes(
+                        FolderPermissionEnum.FOLDER_FORGET,
+                      ) && (
+                        <DropdownMenuItem
+                          onClick={() =>
+                            setForgetFolderConfirmationModelData({
+                              ...forgetFolderConfirmationModelData,
+                              isOpen: true,
+                            })
+                          }
+                          className="gap-2"
+                        >
+                          <Trash className="size-5" />
+                          Delete
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {folderContext.folderMetadata?.totalCount === 0 ? (
+                  <div className="flex size-full">
+                    <div className="flex w-full max-w-md flex-col items-center p-8">
+                      <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-foreground/[.04] p-4">
+                        <Folder
+                          className="size-20 text-gray-400"
+                          strokeWidth={1}
+                        />
+                      </div>
+                      <h3 className="mb-3 text-xl font-medium">
+                        This folder is empty
+                      </h3>
+                      <p className="mb-8 text-center text-sm opacity-75">
+                        You can upload files or reindex the folder to discover
+                        existing files.
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() =>
+                            setUploadModalData({
+                              isOpen: true,
+                              uploadingProgress,
+                            })
+                          }
+                          variant="default"
+                          className="flex items-center gap-2"
+                        >
+                          <CloudUpload className="size-6" />
+                          Upload files
+                        </Button>
+                        <Button
+                          onClick={() => void handleReindexFolder()}
+                          variant="outline"
+                          className="flex items-center gap-2"
+                        >
+                          <FolderSync className="size-6" />
+                          Reindex folder
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex min-h-0 flex-1 flex-col">
+                ) : (
+                  <div className="flex min-h-0 max-w-full flex-1 flex-col">
                     <DataTable
+                      fixedLayout={true}
                       cellPadding={'p-1.5'}
                       hideHeader={true}
                       enableSearch={true}
@@ -548,14 +550,14 @@ export const FolderDetailScreen = () => {
                       }}
                     />
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
             {sidebarOpen &&
               folderContext.folder &&
               folderContext.folderPermissions && (
-                <div className="xs:w-full h-full md:w-[1/2] lg:w-[1/2] xl:w-2/5 2xl:w-[35%] 2xl:max-w-[35rem]">
-                  <div className="h-full pr-1">
+                <div className="flex max-w-0 @4xl:min-w-80 @4xl:max-w-[30rem] @4xl:grow">
+                  <div className="size-full">
                     <FolderSidebar
                       folderMetadata={folderContext.folderMetadata}
                       folderAndPermission={{
