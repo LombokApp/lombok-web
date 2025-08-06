@@ -2583,8 +2583,12 @@
                     "enum": [
                       "createdAt-asc",
                       "createdAt-desc",
-                      "updatedAt-asc",
-                      "updatedAt-desc"
+                      "eventKey-asc",
+                      "eventKey-desc",
+                      "emitterIdentifier-asc",
+                      "emitterIdentifier-desc",
+                      "objectKey-asc",
+                      "objectKey-desc"
                     ]
                   }
                 },
@@ -2593,8 +2597,12 @@
                   "enum": [
                     "createdAt-asc",
                     "createdAt-desc",
-                    "updatedAt-asc",
-                    "updatedAt-desc"
+                    "eventKey-asc",
+                    "eventKey-desc",
+                    "emitterIdentifier-asc",
+                    "emitterIdentifier-desc",
+                    "objectKey-asc",
+                    "objectKey-desc"
                   ]
                 }
               ]
@@ -2623,61 +2631,6 @@
             "in": "query",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "includeTrace",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
-          },
-          {
-            "name": "includeDebug",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
-          },
-          {
-            "name": "includeInfo",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
-          },
-          {
-            "name": "includeWarning",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
-          },
-          {
-            "name": "includeError",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
             }
           },
           {
@@ -2781,8 +2734,12 @@
                     "enum": [
                       "createdAt-asc",
                       "createdAt-desc",
-                      "updatedAt-asc",
-                      "updatedAt-desc"
+                      "eventKey-asc",
+                      "eventKey-desc",
+                      "emitterIdentifier-asc",
+                      "emitterIdentifier-desc",
+                      "objectKey-asc",
+                      "objectKey-desc"
                     ]
                   }
                 },
@@ -2791,8 +2748,12 @@
                   "enum": [
                     "createdAt-asc",
                     "createdAt-desc",
-                    "updatedAt-asc",
-                    "updatedAt-desc"
+                    "eventKey-asc",
+                    "eventKey-desc",
+                    "emitterIdentifier-asc",
+                    "emitterIdentifier-desc",
+                    "objectKey-asc",
+                    "objectKey-desc"
                   ]
                 }
               ]
@@ -2812,61 +2773,6 @@
             "in": "query",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "includeTrace",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
-          },
-          {
-            "name": "includeDebug",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
-          },
-          {
-            "name": "includeInfo",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
-          },
-          {
-            "name": "includeWarning",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
-            }
-          },
-          {
-            "name": "includeError",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "true"
-              ]
             }
           },
           {
@@ -5936,6 +5842,13 @@
                   },
                   "objectKey": {
                     "type": "string"
+                  },
+                  "folderName": {
+                    "type": "string"
+                  },
+                  "folderOwnerId": {
+                    "type": "string",
+                    "format": "uuid"
                   }
                 },
                 "required": [
@@ -5998,6 +5911,13 @@
                     },
                     "objectKey": {
                       "type": "string"
+                    },
+                    "folderName": {
+                      "type": "string"
+                    },
+                    "folderOwnerId": {
+                      "type": "string",
+                      "format": "uuid"
                     }
                   },
                   "required": [

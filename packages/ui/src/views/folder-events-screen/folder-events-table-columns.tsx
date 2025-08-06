@@ -5,4 +5,6 @@ export const folderEventsTableColumns = configureEventsTableColumns({
     `/folders/${event.locationContext?.folderId}/events/${event.id}`,
   eventKeyTitle: 'Event',
   showEmitterSubtext: true,
+  folderObjectColumnTitle: 'Object',
+  showFolderInFolderObjectColumn: false,
 })

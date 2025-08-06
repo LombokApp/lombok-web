@@ -7,7 +7,9 @@ import {
   CardTitle,
   cn,
 } from '@stellariscloud/ui-toolkit'
+import { Link } from 'react-router-dom'
 
+import { useAuthContext } from '@stellariscloud/auth-utils'
 import { DateDisplay } from '@/src/components/date-display'
 
 interface EventDetailUIProps {
@@ -21,6 +23,9 @@ export function EventDetailUI({
   isLoading,
   isError,
 }: EventDetailUIProps) {
+  const authContext = useAuthContext()
+  const currentUserId = authContext.viewer?.id
+
   if (isLoading) {
     return (
       <div className="flex h-full flex-1 flex-col items-center justify-center">
@@ -92,6 +97,12 @@ export function EventDetailUI({
     )
   }
 
+  // Check if the current user owns the folder
+  const isFolderOwner =
+    currentUserId &&
+    eventData.locationContext?.folderOwnerId &&
+    currentUserId === eventData.locationContext.folderOwnerId
+
   return (
     <div className={cn('flex h-full flex-1 flex-col items-center')}>
       <div className="container flex flex-1 flex-col">
@@ -155,14 +166,55 @@ export function EventDetailUI({
                       {eventData.emitterIdentifier}
                     </p>
                   </div>
-                  {eventData.locationContext?.objectKey && (
+                  {eventData.locationContext && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
-                        Object Key
+                        Location Context
                       </label>
-                      <p className="mt-1 break-all font-mono text-sm">
-                        {eventData.locationContext.objectKey}
-                      </p>
+                      <div className="mt-1 space-y-1">
+                        {eventData.locationContext.folderName &&
+                          eventData.locationContext.folderId && (
+                            <p className="font-medium text-sm">
+                              Folder:{' '}
+                              {isFolderOwner ? (
+                                <Link
+                                  to={`/folders/${eventData.locationContext.folderId}`}
+                                  className="text-primary hover:underline"
+                                >
+                                  {eventData.locationContext.folderName}
+                                </Link>
+                              ) : (
+                                <span>
+                                  {eventData.locationContext.folderName}
+                                </span>
+                              )}
+                            </p>
+                          )}
+                        {eventData.locationContext.objectKey &&
+                          eventData.locationContext.folderId && (
+                            <p className="text-sm text-muted-foreground">
+                              Object:{' '}
+                              {isFolderOwner ? (
+                                <Link
+                                  to={`/folders/${eventData.locationContext.folderId}/objects/${eventData.locationContext.objectKey}`}
+                                  className="text-primary hover:underline"
+                                >
+                                  {eventData.locationContext.objectKey}
+                                </Link>
+                              ) : (
+                                <span>
+                                  {eventData.locationContext.objectKey}
+                                </span>
+                              )}
+                            </p>
+                          )}
+                        {!eventData.locationContext.folderName &&
+                          eventData.locationContext.folderId && (
+                            <p className="font-mono text-sm text-muted-foreground">
+                              Folder ID: {eventData.locationContext.folderId}
+                            </p>
+                          )}
+                      </div>
                     </div>
                   )}
                 </div>

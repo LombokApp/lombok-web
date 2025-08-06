@@ -10,6 +10,8 @@ interface EventsTableColumnsConfig {
   getLinkTo: (event: EventDTO) => string
   eventKeyTitle?: string
   showEmitterSubtext?: boolean
+  folderObjectColumnTitle?: string
+  showFolderInFolderObjectColumn?: boolean
 }
 
 export function configureEventsTableColumns(
@@ -78,30 +80,67 @@ export function configureEventsTableColumns(
           </div>
         </div>
       ),
-      enableSorting: false,
+      enableSorting: true,
       enableHiding: false,
     },
     {
-      accessorKey: 'objectKey',
+      accessorKey: 'emitterIdentifier',
       header: ({ column }) => (
         <DataTableColumnHeader
           canHide={column.getCanHide()}
           column={column}
-          title="Object"
+          title="Emitter"
+        />
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">
+            {row.original.emitterIdentifier}
+          </span>
+        </div>
+      ),
+      enableSorting: true,
+      enableHiding: false,
+    },
+    {
+      accessorKey: 'locationContext',
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          canHide={column.getCanHide()}
+          column={column}
+          title={config.folderObjectColumnTitle || 'Folder / Object'}
         />
       ),
       cell: ({ row: { original: event } }) => {
-        return (
-          <div className="flex items-center gap-2 font-normal">
-            {event.locationContext?.objectKey ? (
-              event.locationContext.objectKey
-            ) : (
+        const hasFolder =
+          event.locationContext?.folderName || event.locationContext?.folderId
+        const hasObject = event.locationContext?.objectKey
+
+        if (!hasFolder && !hasObject) {
+          return (
+            <div className="flex items-center gap-2 font-normal">
               <span className="italic text-muted-foreground">None</span>
+            </div>
+          )
+        }
+
+        return (
+          <div className="flex flex-col gap-1">
+            {config.showFolderInFolderObjectColumn && hasFolder && (
+              <div className="font-medium">
+                {event.locationContext?.folderName ||
+                  event.locationContext?.folderId}
+              </div>
+            )}
+            {hasObject && (
+              <div className="text-sm text-muted-foreground">
+                {event.locationContext?.objectKey}
+              </div>
             )}
           </div>
         )
       },
-      enableSorting: false,
+      enableSorting: true,
       enableHiding: false,
     },
     {

@@ -9,6 +9,8 @@ export const eventSchema = z.object({
     .object({
       folderId: z.string().uuid(),
       objectKey: z.string().optional(),
+      folderName: z.string().optional(),
+      folderOwnerId: z.string().uuid().optional(),
     })
     .optional(),
   data: z.unknown(),

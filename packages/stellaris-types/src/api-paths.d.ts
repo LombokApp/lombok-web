@@ -1504,6 +1504,9 @@ export interface components {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
+                    folderName?: string;
+                    /** Format: uuid */
+                    folderOwnerId?: string;
                 };
                 data?: unknown;
                 /** Format: date-time */
@@ -1523,6 +1526,9 @@ export interface components {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
+                    folderName?: string;
+                    /** Format: uuid */
+                    folderOwnerId?: string;
                 };
                 data?: unknown;
                 /** Format: date-time */
@@ -3064,15 +3070,10 @@ export interface operations {
     listEvents: {
         parameters: {
             query?: {
-                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
+                sort?: ("createdAt-asc" | "createdAt-desc" | "eventKey-asc" | "eventKey-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc")[] | ("createdAt-asc" | "createdAt-desc" | "eventKey-asc" | "eventKey-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc");
                 folderId?: string;
                 objectKey?: string;
                 search?: string;
-                includeTrace?: "true";
-                includeDebug?: "true";
-                includeInfo?: "true";
-                includeWarning?: "true";
-                includeError?: "true";
                 offset?: number;
                 limit?: number;
             };
@@ -3117,14 +3118,9 @@ export interface operations {
     listFolderEvents: {
         parameters: {
             query?: {
-                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
+                sort?: ("createdAt-asc" | "createdAt-desc" | "eventKey-asc" | "eventKey-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc")[] | ("createdAt-asc" | "createdAt-desc" | "eventKey-asc" | "eventKey-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc");
                 objectKey?: string;
                 search?: string;
-                includeTrace?: "true";
-                includeDebug?: "true";
-                includeInfo?: "true";
-                includeWarning?: "true";
-                includeError?: "true";
                 offset?: number;
                 limit?: number;
             };

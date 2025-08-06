@@ -9,7 +9,6 @@ import {
   DataTable,
 } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
-import { AlertTriangle, InfoIcon, MessageSquare, XCircle } from 'lucide-react'
 import React from 'react'
 import { useSearchParams } from 'react-router-dom'
 
@@ -29,7 +28,7 @@ import { folderEventsTableColumns } from './folder-events-table-columns'
 
 const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   search: { isSearchFilter: true },
-  level: { paramPrefix: 'level' },
+  objectKey: { paramPrefix: 'objectKey' },
 }
 
 export function FolderEventsScreen() {
@@ -83,7 +82,8 @@ export function FolderEventsScreen() {
 
   const searchFilterValue =
     'search' in filters ? filters['search'][0] : undefined
-  const levelFilterValue = filters['level'] ?? []
+  const objectKeyFilterValue =
+    'objectKey' in filters ? filters['objectKey'][0] : undefined
 
   const { data: listFolderEventsQuery } = $api.useQuery(
     'get',
@@ -107,13 +107,10 @@ export function FolderEventsScreen() {
             typeof searchFilterValue === 'string'
               ? searchFilterValue
               : undefined,
-          includeError: levelFilterValue.includes('ERROR') ? 'true' : undefined,
-          includeWarning: levelFilterValue.includes('WARN')
-            ? 'true'
-            : undefined,
-          includeInfo: levelFilterValue.includes('INFO') ? 'true' : undefined,
-          includeDebug: levelFilterValue.includes('DEBUG') ? 'true' : undefined,
-          includeTrace: levelFilterValue.includes('TRACE') ? 'true' : undefined,
+          objectKey:
+            typeof objectKeyFilterValue === 'string'
+              ? objectKeyFilterValue
+              : undefined,
         },
       },
     },
@@ -139,18 +136,6 @@ export function FolderEventsScreen() {
               pagination={pagination}
               onPaginationChange={handlePaginationChange}
               onSortingChange={handleSortingChange}
-              filterOptions={{
-                level: {
-                  label: 'Level',
-                  options: [
-                    { value: 'ERROR', label: 'Error', icon: XCircle },
-                    { value: 'WARN', label: 'Warning', icon: AlertTriangle },
-                    { value: 'INFO', label: 'Info', icon: InfoIcon },
-                    { value: 'DEBUG', label: 'Debug', icon: MessageSquare },
-                    { value: 'TRACE', label: 'Trace', icon: MessageSquare },
-                  ],
-                },
-              }}
             />
           </CardContent>
         </Card>

@@ -7,7 +7,7 @@ import postgres from 'postgres'
 
 import { appsTable } from '../app/entities/app.entity'
 import { sessionsTable } from '../auth/entities/session.entity'
-import { eventsTable } from '../event/entities/event.entity'
+import { eventsRelations, eventsTable } from '../event/entities/event.entity'
 import {
   foldersRelations,
   foldersTable,
@@ -35,6 +35,7 @@ export const dbSchema = {
   folderObjectsTable,
   appsTable,
   eventsTable,
+  eventsRelations,
   logEntriesTable,
   tasksTable,
   folderSharesTable,

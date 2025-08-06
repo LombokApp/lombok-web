@@ -31,8 +31,12 @@ import { eventsTable } from '../entities/event.entity'
 export enum EventSort {
   CreatedAtAsc = 'createdAt-asc',
   CreatedAtDesc = 'createdAt-desc',
-  UpdatedAtAsc = 'updatedAt-asc',
-  UpdatedAtDesc = 'updatedAt-desc',
+  EventKeyAsc = 'eventKey-asc',
+  EventKeyDesc = 'eventKey-desc',
+  EmitterIdentifierAsc = 'emitterIdentifier-asc',
+  EmitterIdentifierDesc = 'emitterIdentifier-desc',
+  ObjectKeyAsc = 'objectKey-asc',
+  ObjectKeyDesc = 'objectKey-desc',
 }
 
 export const APP_NS_PREFIX = 'app:'
@@ -226,7 +230,7 @@ export class EventService {
   async getFolderEventAsUser(
     actor: User,
     { folderId, eventId }: { folderId: string; eventId: string },
-  ): Promise<Event> {
+  ): Promise<Event & { folder?: { name: string; ownerId: string } }> {
     const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
 
     const event = await this.ormService.db.query.eventsTable.findFirst({
@@ -234,6 +238,9 @@ export class EventService {
         eq(eventsTable.folderId, folder.id),
         eq(eventsTable.id, eventId),
       ),
+      with: {
+        folder: true,
+      },
     })
 
     if (!event) {
@@ -241,7 +248,12 @@ export class EventService {
       throw new NotFoundException()
     }
 
-    return event
+    return {
+      ...event,
+      folder: event.folder
+        ? { name: event.folder.name, ownerId: event.folder.ownerId }
+        : undefined,
+    } as Event & { folder?: { name: string; ownerId: string } }
   }
 
   async listFolderEventsAsUser(
@@ -259,14 +271,25 @@ export class EventService {
     return this.listEvents({ ...queryParams, folderId: folder.id })
   }
 
-  async getEventAsAdmin(actor: User, eventId: string): Promise<Event> {
+  async getEventAsAdmin(
+    actor: User,
+    eventId: string,
+  ): Promise<Event & { folder?: { name: string; ownerId: string } }> {
     const event = await this.ormService.db.query.eventsTable.findFirst({
       where: eq(eventsTable.id, eventId),
+      with: {
+        folder: true,
+      },
     })
     if (!event) {
       throw new NotFoundException()
     }
-    return event
+    return {
+      ...event,
+      folder: event.folder
+        ? { name: event.folder.name, ownerId: event.folder.ownerId }
+        : undefined,
+    } as Event & { folder?: { name: string; ownerId: string } }
   }
 
   async listEventsAsAdmin(
@@ -285,13 +308,11 @@ export class EventService {
       offset?: number
       limit?: number
       sort?: EventSort[]
-      includeTrace?: 'true'
-      includeDebug?: 'true'
-      includeInfo?: 'true'
-      includeWarning?: 'true'
-      includeError?: 'true'
     },
-  ): Promise<{ meta: { totalCount: number }; result: Event[] }> {
+  ): Promise<{
+    meta: { totalCount: number }
+    result: (Event & { folder?: { name: string; ownerId: string } })[]
+  }> {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
@@ -346,6 +367,9 @@ export class EventService {
         eventsTable,
         normalizeSortParam(sort) ?? [EventSort.CreatedAtAsc],
       ),
+      with: {
+        folder: true,
+      },
     })
 
     const eventsCountResult = await this.ormService.db
@@ -356,7 +380,12 @@ export class EventService {
       .where(conditions.length ? and(...conditions) : undefined)
 
     return {
-      result: events,
+      result: events.map((event) => ({
+        ...event,
+        folder: event.folder
+          ? { name: event.folder.name, ownerId: event.folder.ownerId }
+          : undefined,
+      })),
       meta: { totalCount: eventsCountResult[0].count },
     }
   }
