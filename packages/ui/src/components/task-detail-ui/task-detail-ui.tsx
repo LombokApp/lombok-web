@@ -542,14 +542,14 @@ export function TaskDetailUI({
                     <label className="text-sm font-medium text-muted-foreground">
                       Error Time
                     </label>
-                    <p className="mt-1 font-mono text-sm">
+                    <div className="mt-1 font-mono text-sm">
                       {taskData.errorAt && (
                         <DateDisplay
                           date={taskData.errorAt}
                           showTimeSince={false}
                         />
                       )}
-                    </p>
+                    </div>
                   </div>
                   {errorToDisplay.message && (
                     <div className="md:col-span-2">
@@ -566,9 +566,9 @@ export function TaskDetailUI({
                       <label className="text-sm font-medium text-muted-foreground">
                         Error Stacktrace
                       </label>
-                      <p className="mt-1 rounded-md bg-destructive/10 p-3 font-mono text-sm text-destructive">
+                      <span className="mt-1 rounded-md bg-destructive/10 p-3 font-mono text-sm text-destructive">
                         <pre>{errorToDisplay.stacktrace}</pre>
-                      </p>
+                      </span>
                     </div>
                   )}
                 </div>

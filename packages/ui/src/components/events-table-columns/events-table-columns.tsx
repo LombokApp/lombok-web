@@ -64,16 +64,10 @@ export function configureEventsTableColumns(
             )}
           </div>
 
-          <div className="flex flex-col">
-            <div
-              className={
-                config.showEmitterSubtext ? '' : 'w-[200px] font-medium'
-              }
-            >
-              {row.getValue('eventKey')}
-            </div>
+          <div className="flex flex-col min-w-0">
+            <div className="font-medium">{row.getValue('eventKey')}</div>
             {config.showEmitterSubtext && (
-              <span className="max-w-[200px] truncate text-xs text-muted-foreground">
+              <span className="truncate text-xs text-muted-foreground">
                 {row.original.emitterIdentifier}
               </span>
             )}
