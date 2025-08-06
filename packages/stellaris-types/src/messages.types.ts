@@ -23,8 +23,7 @@ export enum ServerPushMessage {
 export type AppPushMessage = ServerPushMessage | FolderPushMessage
 
 export interface AppLogEntry {
-  level: 'error' | 'warning' | 'info' | 'debug'
-  name: string
+  level: 'ERROR' | 'WARN' | 'INFO' | 'DEBUG' | 'TRACE'
   message: string
   data: Record<string, unknown>
 }

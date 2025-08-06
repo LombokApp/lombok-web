@@ -1815,6 +1815,9 @@ export interface components {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
                 };
                 data?: unknown;
                 /** Format: date-time */
@@ -1833,6 +1836,9 @@ export interface components {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
                 };
                 data?: unknown;
                 /** Format: date-time */

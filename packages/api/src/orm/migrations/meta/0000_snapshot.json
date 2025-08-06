@@ -1,5 +1,5 @@
 {
-  "id": "49ffb39a-23d2-49e8-89c9-bec6d720b8e6",
+  "id": "2a90c0ee-71d3-4803-ab30-12cd5dec2d04",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -603,7 +603,7 @@
         },
         "subjectFolderId": {
           "name": "subjectFolderId",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -633,7 +633,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "log_entries_subjectFolderId_folders_id_fk": {
+          "name": "log_entries_subjectFolderId_folders_id_fk",
+          "tableFrom": "log_entries",
+          "tableTo": "folders",
+          "columnsFrom": [
+            "subjectFolderId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

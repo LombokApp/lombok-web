@@ -100,7 +100,6 @@ export class AppSocketService {
         socket.disconnect(true)
         throw new UnauthorizedException()
       }
-      console.log('auth.handledTaskIdentifiers', auth.handledTaskIdentifiers)
       const workerInfo: ExternalAppWorker = {
         appIdentifier,
         socketClientId: socket.id,
@@ -142,14 +141,12 @@ export class AppSocketService {
           if (response?.error) {
             this.logger.log('APP Message Error:', {
               message,
-              auth,
               appIdentifier,
               error: response.error,
             })
           } else {
             this.logger.log('APP Message Response:', {
               message,
-              auth,
               appIdentifier,
               response,
             })

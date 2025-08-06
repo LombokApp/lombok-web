@@ -116,18 +116,9 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
       />
     ),
     cell: ({ row }) => (
-      <span>
+      <span className="text-xs">
         {row.original.createdAt ? (
-          <DateDisplay
-            className="text-sm"
-            date={row.original.createdAt}
-            showTimeSince={true}
-            dateOptions={{
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-            }}
-          />
+          <DateDisplay date={row.original.createdAt} showTimeSince={true} />
         ) : (
           ''
         )}
@@ -146,17 +137,9 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
       />
     ),
     cell: ({ row }) => (
-      <span>
+      <span className="text-xs">
         {row.original.updatedAt ? (
-          <DateDisplay
-            className="text-sm"
-            date={row.original.updatedAt}
-            dateOptions={{
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-            }}
-          />
+          <DateDisplay date={row.original.updatedAt} />
         ) : (
           ''
         )}

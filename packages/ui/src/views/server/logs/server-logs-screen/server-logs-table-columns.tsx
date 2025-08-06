@@ -26,6 +26,7 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
         showSubtitle={true}
       />
     ),
+    enableHiding: false,
   },
   {
     accessorKey: 'message',
@@ -43,6 +44,7 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
         </div>
       </div>
     ),
+    enableHiding: false,
   },
   {
     accessorKey: 'level',
@@ -66,6 +68,7 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
         </div>
       )
     },
+    enableHiding: false,
   },
   {
     accessorKey: 'subjectContext',
@@ -73,7 +76,7 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
       <DataTableColumnHeader
         canHide={column.getCanHide()}
         column={column}
-        title="Location"
+        title="Folder / Object"
       />
     ),
     cell: ({ row }) => {
@@ -89,7 +92,9 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
       return (
         <div className="flex flex-col gap-1">
           <div className="font-medium">
-            Folder: {subjectContext.folderId.slice(0, 8)}...
+            Folder:{' '}
+            {subjectContext.folderName ||
+              `${subjectContext.folderId.slice(0, 8)}...`}
           </div>
           {subjectContext.objectKey && (
             <div className="text-sm text-muted-foreground">
@@ -99,6 +104,8 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
         </div>
       )
     },
+    enableHiding: false,
+    enableSorting: false,
   },
   {
     accessorKey: 'createdAt',
@@ -112,5 +119,6 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
     cell: ({ row }) => {
       return <DateDisplay date={row.original.createdAt} />
     },
+    enableHiding: false,
   },
 ]

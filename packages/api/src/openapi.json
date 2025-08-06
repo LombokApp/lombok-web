@@ -7004,10 +7004,19 @@
                   },
                   "objectKey": {
                     "type": "string"
+                  },
+                  "folderName": {
+                    "type": "string"
+                  },
+                  "folderOwnerId": {
+                    "type": "string",
+                    "format": "uuid"
                   }
                 },
                 "required": [
-                  "folderId"
+                  "folderId",
+                  "folderName",
+                  "folderOwnerId"
                 ]
               },
               "data": {},
@@ -7066,10 +7075,19 @@
                     },
                     "objectKey": {
                       "type": "string"
+                    },
+                    "folderName": {
+                      "type": "string"
+                    },
+                    "folderOwnerId": {
+                      "type": "string",
+                      "format": "uuid"
                     }
                   },
                   "required": [
-                    "folderId"
+                    "folderId",
+                    "folderName",
+                    "folderOwnerId"
                   ]
                 },
                 "data": {},

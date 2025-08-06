@@ -1,15 +1,15 @@
 import { createZodDto } from '@anatine/zod-nestjs'
-import { baseSubjectContextSchema } from '@stellariscloud/types'
+import { subjectContextSchema } from '@stellariscloud/types'
 import { z } from 'zod'
 
-import { LogLevel } from '../entities/log-entry.entity'
+import { LogEntryLevel } from '../entities/log-entry.entity'
 
 export const logEntrySchema = z.object({
   id: z.string().uuid(),
   message: z.string(),
-  level: z.nativeEnum(LogLevel),
+  level: z.nativeEnum(LogEntryLevel),
   emitterIdentifier: z.string(),
-  subjectContext: baseSubjectContextSchema.optional(),
+  subjectContext: subjectContextSchema.optional(),
   data: z.unknown(),
   createdAt: z.date(),
 })

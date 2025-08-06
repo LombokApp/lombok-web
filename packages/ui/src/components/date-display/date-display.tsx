@@ -20,7 +20,7 @@ export const DateDisplay = ({
       <div className="flex flex-col">
         <span>{dateToHumanReadable(dateObj, dateOptions)}</span>
         {showTimeSince && (
-          <span className="text-[80%] italic">{timeSinceOrUntil(dateObj)}</span>
+          <span className="text-[90%] italic">{timeSinceOrUntil(dateObj)}</span>
         )}
       </div>
     </div>

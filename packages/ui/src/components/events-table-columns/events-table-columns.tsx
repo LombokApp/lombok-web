@@ -140,7 +140,7 @@ export function configureEventsTableColumns(
           </div>
         )
       },
-      enableSorting: true,
+      enableSorting: false,
       enableHiding: false,
     },
     {

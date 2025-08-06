@@ -59,9 +59,8 @@ export class CoreAppService {
         }
 
         child.stdin.write(JSON.stringify(workerDataPayload))
+        this.logger.debug('Embedded core app worker thread started')
       }, 500)
-
-      this.logger.debug('Embedded core app worker thread started')
     }
   }
 

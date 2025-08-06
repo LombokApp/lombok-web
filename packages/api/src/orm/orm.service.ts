@@ -17,7 +17,10 @@ import {
   folderSharesRelations,
   folderSharesTable,
 } from '../folders/entities/folder-share.entity'
-import { logEntriesTable } from '../log/entities/log-entry.entity'
+import {
+  logEntriesRelations,
+  logEntriesTable,
+} from '../log/entities/log-entry.entity'
 import { serverSettingsTable } from '../server/entities/server-configuration.entity'
 import { storageLocationsTable } from '../storage/entities/storage-location.entity'
 import { tasksRelations, tasksTable } from '../task/entities/task.entity'
@@ -37,6 +40,7 @@ export const dbSchema = {
   eventsTable,
   eventsRelations,
   logEntriesTable,
+  logEntriesRelations,
   tasksTable,
   tasksRelations,
   folderSharesTable,

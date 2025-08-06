@@ -12,7 +12,7 @@ import { User } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 
 import type { LogEntry, NewLogEntry } from '../entities/log-entry.entity'
-import { logEntriesTable, LogLevel } from '../entities/log-entry.entity'
+import { logEntriesTable, LogEntryLevel } from '../entities/log-entry.entity'
 
 export enum LogSort {
   CreatedAtAsc = 'createdAt-asc',
@@ -38,13 +38,13 @@ export class LogEntryService {
     emitterIdentifier,
     logMessage,
     data,
-    level = LogLevel.INFO,
+    level = LogEntryLevel.INFO,
     subjectContext,
   }: {
     emitterIdentifier: string
     logMessage: string
     data: unknown
-    level: LogLevel
+    level: LogEntryLevel
     subjectContext?: { folderId: string; objectKey?: string }
   }) {
     const now = new Date()
@@ -54,8 +54,8 @@ export class LogEntryService {
         id: uuidV4(),
         emitterIdentifier,
         level,
-        folderId: subjectContext?.folderId,
-        objectKey: subjectContext?.objectKey,
+        subjectFolderId: subjectContext?.folderId,
+        subjectObjectKey: subjectContext?.objectKey,
         createdAt: now,
         message: logMessage,
         data,
@@ -67,7 +67,7 @@ export class LogEntryService {
   async getFolderLogAsUser(
     actor: User,
     { folderId, logId }: { folderId: string; logId: string },
-  ): Promise<LogEntry> {
+  ): Promise<LogEntry & { folder?: { name: string; ownerId: string } }> {
     const { folder } = await this.folderService.getFolderAsUser(actor, folderId)
 
     const logEntry = await this.ormService.db.query.logEntriesTable.findFirst({
@@ -75,13 +75,21 @@ export class LogEntryService {
         eq(logEntriesTable.subjectFolderId, folder.id),
         eq(logEntriesTable.id, logId),
       ),
+      with: {
+        folder: true,
+      },
     })
 
     if (!logEntry) {
       throw new NotFoundException()
     }
 
-    return logEntry
+    return {
+      ...logEntry,
+      folder: logEntry.folder
+        ? { name: logEntry.folder.name, ownerId: logEntry.folder.ownerId }
+        : undefined,
+    } as LogEntry & { folder?: { name: string; ownerId: string } }
   }
 
   async listFolderLogsAsUser(
@@ -98,17 +106,28 @@ export class LogEntryService {
     return this.listLogs({ ...queryParams, folderId: folder.id })
   }
 
-  async getLogAsAdmin(actor: User, logId: string): Promise<LogEntry> {
+  async getLogAsAdmin(
+    actor: User,
+    logId: string,
+  ): Promise<LogEntry & { folder?: { name: string; ownerId: string } }> {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
     const logEntry = await this.ormService.db.query.logEntriesTable.findFirst({
       where: eq(logEntriesTable.id, logId),
+      with: {
+        folder: true,
+      },
     })
     if (!logEntry) {
       throw new NotFoundException()
     }
-    return logEntry
+    return {
+      ...logEntry,
+      folder: logEntry.folder
+        ? { name: logEntry.folder.name, ownerId: logEntry.folder.ownerId }
+        : undefined,
+    } as LogEntry & { folder?: { name: string; ownerId: string } }
   }
 
   async listLogsAsAdmin(
@@ -138,7 +157,10 @@ export class LogEntryService {
       includeWarning?: 'true'
       includeError?: 'true'
     },
-  ): Promise<{ meta: { totalCount: number }; result: LogEntry[] }> {
+  ): Promise<{
+    meta: { totalCount: number }
+    result: (LogEntry & { folder?: { name: string; ownerId: string } })[]
+  }> {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
@@ -181,27 +203,30 @@ export class LogEntryService {
     includeInfo?: 'true'
     includeWarning?: 'true'
     includeError?: 'true'
-  }) {
+  }): Promise<{
+    meta: { totalCount: number }
+    result: (LogEntry & { folder?: { name: string; ownerId: string } })[]
+  }> {
     const conditions: (SQL | undefined)[] = []
     if (folderId) {
       conditions.push(eq(logEntriesTable.subjectFolderId, folderId))
     }
 
-    const levelFilters: LogLevel[] = []
+    const levelFilters: LogEntryLevel[] = []
     if (includeDebug) {
-      levelFilters.push(LogLevel.DEBUG)
+      levelFilters.push(LogEntryLevel.DEBUG)
     }
     if (includeTrace) {
-      levelFilters.push(LogLevel.TRACE)
+      levelFilters.push(LogEntryLevel.TRACE)
     }
     if (includeInfo) {
-      levelFilters.push(LogLevel.INFO)
+      levelFilters.push(LogEntryLevel.INFO)
     }
     if (includeWarning) {
-      levelFilters.push(LogLevel.WARN)
+      levelFilters.push(LogEntryLevel.WARN)
     }
     if (includeError) {
-      levelFilters.push(LogLevel.ERROR)
+      levelFilters.push(LogEntryLevel.ERROR)
     }
     if (search) {
       conditions.push(
@@ -228,6 +253,9 @@ export class LogEntryService {
         logEntriesTable,
         normalizeSortParam(sort) ?? [LogSort.CreatedAtAsc],
       ),
+      with: {
+        folder: true,
+      },
     })
 
     const logEntriesCountResult = await this.ormService.db
@@ -238,7 +266,12 @@ export class LogEntryService {
       .where(conditions.length ? and(...conditions) : undefined)
 
     return {
-      result: logEntries,
+      result: logEntries.map((logEntry) => ({
+        ...logEntry,
+        folder: logEntry.folder
+          ? { name: logEntry.folder.name, ownerId: logEntry.folder.ownerId }
+          : undefined,
+      })) as (LogEntry & { folder?: { name: string; ownerId: string } })[],
       meta: { totalCount: logEntriesCountResult[0].count },
     }
   }

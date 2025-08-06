@@ -13,7 +13,7 @@ import { io } from 'socket.io-client'
 import type { SerializeableError } from '../errors/errors'
 import { serializeWorkerError } from '../errors/errors'
 
-export const connectAndPerformWork = async (
+export const connectAndPerformWork = (
   socketBaseUrl: string,
   appWorkerId: string,
   appToken: string,
@@ -21,6 +21,7 @@ export const connectAndPerformWork = async (
     string,
     (task: AppTask, serverClient: CoreServerMessageInterface) => Promise<void>
   >,
+  onConnect: () => Promise<void>,
 ) => {
   // TODO: send internal state back to the core via a message
   const taskIdentifiers = Object.keys(taskHandlers)
@@ -37,28 +38,23 @@ export const connectAndPerformWork = async (
   const log = async (logEntryProperties: Partial<AppLogEntry>) => {
     const logEntry: AppLogEntry = {
       data: logEntryProperties.data ?? {},
-      name: logEntryProperties.name ?? 'info',
-      level: logEntryProperties.level ?? 'info',
+      level: logEntryProperties.level ?? 'INFO',
       message: logEntryProperties.message ?? '',
     }
     await serverClient.saveLogEntry(logEntry)
   }
-  await log({ message: 'Connected.' })
   let concurrentTasks = 0
 
   const shutdown = () => {
     socket.disconnect()
   }
 
+  socket.on('connect', onConnect)
   const wait = new Promise<void>((resolve, reject) => {
-    socket.on('connect', async () => {
-      await log({ message: `App Worker "${appWorkerId}" connected.` })
-    })
-
     socket.on('disconnect', (reason) => {
-      console.log({
-        level: 'warning',
-        message: `Worker disconnected. Reason: ${reason}`,
+      void log({
+        level: 'DEBUG',
+        message: `Worker disconnected - Reason: ${reason}`,
         data: {
           appWorkerId,
         },
@@ -68,7 +64,7 @@ export const connectAndPerformWork = async (
 
     socket.onAny((_data) => {
       // eslint-disable-next-line no-console
-      ;(socket.disconnected ? console.log : log)({
+      void ((socket.disconnected ? console.log : log) as typeof log)({
         message: 'Got event in worker thread',
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         data: _data,
@@ -84,7 +80,10 @@ export const connectAndPerformWork = async (
           const task = attemptStartHandleResponse.result
           if (attemptStartHandleResponse.error) {
             const errorMessage = `${attemptStartHandleResponse.error.code} - ${attemptStartHandleResponse.error.message}`
-            await log({ message: errorMessage, name: 'Error' })
+            await log({
+              message: `Error attempting to start handle task: ${errorMessage}`,
+              level: 'ERROR',
+            })
           } else {
             await taskHandlers[task.taskIdentifier](task, serverClient)
               .then(() => serverClient.completeHandleTask(task.id))
@@ -103,8 +102,8 @@ export const connectAndPerformWork = async (
               })
           }
         } catch (error: unknown) {
-          ;(socket.disconnected ? console.log : log)({
-            level: 'error',
+          void ((socket.disconnected ? console.log : log) as typeof log)({
+            level: 'ERROR',
             message: 'Unexpected error during app worker execution',
             data: {
               errorObj: JSON.parse(
@@ -120,10 +119,9 @@ export const connectAndPerformWork = async (
     })
 
     socket.on('error', (error) => {
-      ;(socket.disconnected ? console.log : log)({
-        message: 'Core app worker websocket error.',
-        name: 'CoreAppWorkerSocketError',
-        level: 'error',
+      void ((socket.disconnected ? console.log : log) as typeof log)({
+        message: 'Core app worker websocket error',
+        level: 'ERROR',
         data: {
           appWorkerId,
           errorObj: JSON.parse(
