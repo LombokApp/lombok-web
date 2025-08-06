@@ -68,13 +68,13 @@ export class EventService {
     emitterIdentifier,
     eventKey,
     data,
-    locationContext,
+    subjectContext,
     userId,
   }: {
     emitterIdentifier: string // "core" for internally emitted events, and "app:<appIdentifier>" for app emitted events
     eventKey: CoreEvent | string
     data: unknown
-    locationContext?: { folderId: string; objectKey?: string }
+    subjectContext?: { folderId: string; objectKey?: string }
     userId?: string
   }) {
     const now = new Date()
@@ -118,8 +118,8 @@ export class EventService {
             id: uuidV4(),
             eventKey,
             emitterIdentifier,
-            folderId: locationContext?.folderId,
-            objectKey: locationContext?.objectKey,
+            subjectFolderId: subjectContext?.folderId,
+            subjectObjectKey: subjectContext?.objectKey,
             userId,
             createdAt: now,
             data,
@@ -128,9 +128,9 @@ export class EventService {
         .returning()
 
       // Emit EVENT_CREATED to folder room if folderId is present
-      if (locationContext?.folderId) {
+      if (subjectContext?.folderId) {
         this.folderSocketService.sendToFolderRoom(
-          locationContext.folderId,
+          subjectContext.folderId,
           FolderPushMessage.EVENT_CREATED as FolderPushMessage,
           { event },
         )
@@ -161,8 +161,8 @@ export class EventService {
                 tasks.push({
                   id: isWorkerExecutedTask ? newTaskId : uuidV4(),
                   triggeringEventId: event.id,
-                  subjectFolderId: locationContext?.folderId,
-                  subjectObjectKey: locationContext?.objectKey,
+                  subjectFolderId: subjectContext?.folderId,
+                  subjectObjectKey: subjectContext?.objectKey,
                   taskDescription: taskDefinition.identifier,
                   taskIdentifier: taskDefinition.identifier,
                   inputData: {},
@@ -189,8 +189,8 @@ export class EventService {
                     tasks.push({
                       id: uuidV4(),
                       triggeringEventId: event.id,
-                      subjectFolderId: locationContext?.folderId,
-                      subjectObjectKey: locationContext?.objectKey,
+                      subjectFolderId: subjectContext?.folderId,
+                      subjectObjectKey: subjectContext?.objectKey,
                       taskDescription: RUN_WORKER_SCRIPT_TASK_KEY,
                       taskIdentifier: RUN_WORKER_SCRIPT_TASK_KEY,
                       inputData,
@@ -235,7 +235,7 @@ export class EventService {
 
     const event = await this.ormService.db.query.eventsTable.findFirst({
       where: and(
-        eq(eventsTable.folderId, folder.id),
+        eq(eventsTable.subjectFolderId, folder.id),
         eq(eventsTable.id, eventId),
       ),
       with: {
@@ -343,7 +343,7 @@ export class EventService {
   }) {
     const conditions: (SQL | undefined)[] = []
     if (folderId) {
-      conditions.push(eq(eventsTable.folderId, folderId))
+      conditions.push(eq(eventsTable.subjectFolderId, folderId))
     }
 
     if (search) {
@@ -356,7 +356,7 @@ export class EventService {
     }
 
     if (objectKey) {
-      conditions.push(eq(eventsTable.objectKey, objectKey))
+      conditions.push(eq(eventsTable.subjectObjectKey, objectKey))
     }
 
     const events = await this.ormService.db.query.eventsTable.findMany({

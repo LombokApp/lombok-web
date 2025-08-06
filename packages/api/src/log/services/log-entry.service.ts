@@ -39,13 +39,13 @@ export class LogEntryService {
     logMessage,
     data,
     level = LogLevel.INFO,
-    locationContext,
+    subjectContext,
   }: {
     emitterIdentifier: string
     logMessage: string
     data: unknown
     level: LogLevel
-    locationContext?: { folderId: string; objectKey?: string }
+    subjectContext?: { folderId: string; objectKey?: string }
   }) {
     const now = new Date()
 
@@ -54,8 +54,8 @@ export class LogEntryService {
         id: uuidV4(),
         emitterIdentifier,
         level,
-        folderId: locationContext?.folderId,
-        objectKey: locationContext?.objectKey,
+        folderId: subjectContext?.folderId,
+        objectKey: subjectContext?.objectKey,
         createdAt: now,
         message: logMessage,
         data,
@@ -72,7 +72,7 @@ export class LogEntryService {
 
     const logEntry = await this.ormService.db.query.logEntriesTable.findFirst({
       where: and(
-        eq(logEntriesTable.folderId, folder.id),
+        eq(logEntriesTable.subjectFolderId, folder.id),
         eq(logEntriesTable.id, logId),
       ),
     })
@@ -184,7 +184,7 @@ export class LogEntryService {
   }) {
     const conditions: (SQL | undefined)[] = []
     if (folderId) {
-      conditions.push(eq(logEntriesTable.folderId, folderId))
+      conditions.push(eq(logEntriesTable.subjectFolderId, folderId))
     }
 
     const levelFilters: LogLevel[] = []
@@ -217,7 +217,7 @@ export class LogEntryService {
     }
 
     if (objectKey) {
-      conditions.push(eq(logEntriesTable.objectKey, objectKey))
+      conditions.push(eq(logEntriesTable.subjectObjectKey, objectKey))
     }
 
     const logEntries = await this.ormService.db.query.logEntriesTable.findMany({

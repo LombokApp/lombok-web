@@ -5700,6 +5700,30 @@
               "updatedAt": {
                 "type": "string",
                 "format": "date-time"
+              },
+              "subjectContext": {
+                "type": "object",
+                "properties": {
+                  "folderId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "objectKey": {
+                    "type": "string"
+                  },
+                  "folderName": {
+                    "type": "string"
+                  },
+                  "folderOwnerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "folderId",
+                  "folderName",
+                  "folderOwnerId"
+                ]
               }
             },
             "required": [
@@ -5796,6 +5820,30 @@
                 "updatedAt": {
                   "type": "string",
                   "format": "date-time"
+                },
+                "subjectContext": {
+                  "type": "object",
+                  "properties": {
+                    "folderId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "objectKey": {
+                      "type": "string"
+                    },
+                    "folderName": {
+                      "type": "string"
+                    },
+                    "folderOwnerId": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "folderId",
+                    "folderName",
+                    "folderOwnerId"
+                  ]
                 }
               },
               "required": [
@@ -5833,7 +5881,7 @@
               "emitterIdentifier": {
                 "type": "string"
               },
-              "locationContext": {
+              "subjectContext": {
                 "type": "object",
                 "properties": {
                   "folderId": {
@@ -5852,7 +5900,9 @@
                   }
                 },
                 "required": [
-                  "folderId"
+                  "folderId",
+                  "folderName",
+                  "folderOwnerId"
                 ]
               },
               "data": {},
@@ -5902,7 +5952,7 @@
                 "emitterIdentifier": {
                   "type": "string"
                 },
-                "locationContext": {
+                "subjectContext": {
                   "type": "object",
                   "properties": {
                     "folderId": {
@@ -5921,7 +5971,9 @@
                     }
                   },
                   "required": [
-                    "folderId"
+                    "folderId",
+                    "folderName",
+                    "folderOwnerId"
                   ]
                 },
                 "data": {},
@@ -6943,7 +6995,7 @@
               "emitterIdentifier": {
                 "type": "string"
               },
-              "locationContext": {
+              "subjectContext": {
                 "type": "object",
                 "properties": {
                   "folderId": {
@@ -7005,7 +7057,7 @@
                 "emitterIdentifier": {
                   "type": "string"
                 },
-                "locationContext": {
+                "subjectContext": {
                   "type": "object",
                   "properties": {
                     "folderId": {

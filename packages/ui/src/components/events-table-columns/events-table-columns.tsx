@@ -103,7 +103,7 @@ export function configureEventsTableColumns(
       enableHiding: false,
     },
     {
-      accessorKey: 'locationContext',
+      accessorKey: 'subjectContext',
       header: ({ column }) => (
         <DataTableColumnHeader
           canHide={column.getCanHide()}
@@ -113,8 +113,8 @@ export function configureEventsTableColumns(
       ),
       cell: ({ row: { original: event } }) => {
         const hasFolder =
-          event.locationContext?.folderName || event.locationContext?.folderId
-        const hasObject = event.locationContext?.objectKey
+          event.subjectContext?.folderName || event.subjectContext?.folderId
+        const hasObject = event.subjectContext?.objectKey
 
         if (!hasFolder && !hasObject) {
           return (
@@ -128,13 +128,13 @@ export function configureEventsTableColumns(
           <div className="flex flex-col gap-1">
             {config.showFolderInFolderObjectColumn && hasFolder && (
               <div className="font-medium">
-                {event.locationContext?.folderName ||
-                  event.locationContext?.folderId}
+                {event.subjectContext?.folderName ||
+                  event.subjectContext?.folderId}
               </div>
             )}
             {hasObject && (
               <div className="text-sm text-muted-foreground">
-                {event.locationContext?.objectKey}
+                {event.subjectContext?.objectKey}
               </div>
             )}
           </div>

@@ -189,8 +189,8 @@ export class CoreTaskService {
       eventKey: `TRIGGER_CORE_TASK_${taskIdentifier}`,
       data: inputData,
       emitterIdentifier: 'core',
-      folderId: context.folderId,
-      objectKey: context.objectKey,
+      subjectFolderId: context.folderId,
+      subjectObjectKey: context.objectKey,
       userId: context.userId,
       createdAt: now,
     }

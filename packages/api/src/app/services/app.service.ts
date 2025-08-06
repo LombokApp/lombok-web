@@ -86,7 +86,7 @@ const logEntrySchema = z.object({
   name: z.string(),
   message: z.string(),
   level: z.string(),
-  locationContext: z
+  subjectContext: z
     .object({
       folderId: z.string(),
       objectKey: z.string().optional(),
@@ -234,7 +234,7 @@ export class AppService {
               logMessage: requestData.message,
               data: requestData.data,
               level: LogLevel.INFO, // TODO: translate app log level to event level
-              locationContext: requestData.locationContext,
+              subjectContext: requestData.subjectContext,
             })
             return {
               result: undefined,

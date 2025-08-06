@@ -16,13 +16,13 @@ export const DateDisplay = ({
   const dateObj = typeof date === 'string' ? new Date(date) : date
 
   return (
-    <span className={className}>
+    <div className={className}>
       <div className="flex flex-col">
         <span>{dateToHumanReadable(dateObj, dateOptions)}</span>
         {showTimeSince && (
           <span className="text-[80%] italic">{timeSinceOrUntil(dateObj)}</span>
         )}
       </div>
-    </span>
+    </div>
   )
 }

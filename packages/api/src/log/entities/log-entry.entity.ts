@@ -12,9 +12,9 @@ export const logEntriesTable = pgTable('log_entries', {
   id: uuid('id').primaryKey(),
   message: text('message').notNull(),
   emitterIdentifier: text('emitterIdentifier').notNull(),
-  folderId: text('folderId'),
+  subjectFolderId: text('subjectFolderId'),
   level: text('level').notNull().$type<LogLevel>(),
-  objectKey: text('objectKey'),
+  subjectObjectKey: text('subjectObjectKey'),
   data: jsonb('data').$type<unknown>(),
   createdAt: timestamp('createdAt').notNull(),
 })

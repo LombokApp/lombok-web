@@ -8,14 +8,15 @@ export function transformEventToDTO(
     id: event.id,
     emitterIdentifier: event.emitterIdentifier,
     eventKey: event.eventKey,
-    locationContext: event.folderId
-      ? {
-          folderId: event.folderId,
-          objectKey: event.objectKey ? event.objectKey : undefined,
-          folderName: event.folder?.name,
-          folderOwnerId: event.folder?.ownerId,
-        }
-      : undefined,
+    subjectContext:
+      event.subjectFolderId && event.folder
+        ? {
+            folderId: event.subjectFolderId,
+            objectKey: event.subjectObjectKey ?? undefined,
+            folderName: event.folder.name,
+            folderOwnerId: event.folder.ownerId,
+          }
+        : undefined,
     data: event.data,
     createdAt: event.createdAt,
   }

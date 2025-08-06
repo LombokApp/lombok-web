@@ -7,10 +7,10 @@ export function transformLogEntryToDTO(logEntry: LogEntry): LogEntryDTO {
     emitterIdentifier: logEntry.emitterIdentifier,
     message: logEntry.message,
     level: logEntry.level,
-    locationContext: logEntry.folderId
+    subjectContext: logEntry.subjectFolderId
       ? {
-          folderId: logEntry.folderId,
-          objectKey: logEntry.objectKey ? logEntry.objectKey : undefined,
+          folderId: logEntry.subjectFolderId,
+          objectKey: logEntry.subjectObjectKey ?? undefined,
         }
       : undefined,
     data: logEntry.data,

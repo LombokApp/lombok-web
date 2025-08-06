@@ -30,8 +30,8 @@ CREATE TABLE "events" (
 	"eventKey" text NOT NULL,
 	"emitterIdentifier" text NOT NULL,
 	"userId" text,
-	"folderId" uuid,
-	"objectKey" text,
+	"subjectFolderId" uuid,
+	"subjectObjectKey" text,
 	"data" jsonb,
 	"createdAt" timestamp NOT NULL
 );
@@ -73,9 +73,9 @@ CREATE TABLE "log_entries" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"message" text NOT NULL,
 	"emitterIdentifier" text NOT NULL,
-	"folderId" text,
+	"subjectFolderId" text,
 	"level" text NOT NULL,
-	"objectKey" text,
+	"subjectObjectKey" text,
 	"data" jsonb,
 	"createdAt" timestamp NOT NULL
 );
@@ -142,7 +142,7 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
-ALTER TABLE "events" ADD CONSTRAINT "events_folderId_folders_id_fk" FOREIGN KEY ("folderId") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "events" ADD CONSTRAINT "events_subjectFolderId_folders_id_fk" FOREIGN KEY ("subjectFolderId") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folder_shares" ADD CONSTRAINT "folder_shares_folderId_folders_id_fk" FOREIGN KEY ("folderId") REFERENCES "public"."folders"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folders" ADD CONSTRAINT "folders_contentLocationId_storage_locations_id_fk" FOREIGN KEY ("contentLocationId") REFERENCES "public"."storage_locations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "folders" ADD CONSTRAINT "folders_metadataLocationId_storage_locations_id_fk" FOREIGN KEY ("metadataLocationId") REFERENCES "public"."storage_locations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

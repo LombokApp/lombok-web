@@ -1,4 +1,5 @@
 import type { TaskInputData, WorkerErrorDetails } from '@stellariscloud/types'
+import { relations } from 'drizzle-orm'
 import { jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 
@@ -33,6 +34,13 @@ export const tasksTable = pgTable('tasks', {
   updatedAt: timestamp('updatedAt').notNull(),
   workerIdentifier: text('workerIdentifier'),
 })
+
+export const tasksRelations = relations(tasksTable, ({ one }) => ({
+  folder: one(foldersTable, {
+    fields: [tasksTable.subjectFolderId],
+    references: [foldersTable.id],
+  }),
+}))
 
 export type Task = typeof tasksTable.$inferSelect
 export type NewTask = typeof tasksTable.$inferInsert

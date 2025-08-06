@@ -1459,6 +1459,14 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
+                subjectContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
+                };
             };
         };
         TaskListResponse: {
@@ -1492,6 +1500,14 @@ export interface components {
                 createdAt: string;
                 /** Format: date-time */
                 updatedAt: string;
+                subjectContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
+                };
             }[];
         };
         EventGetResponse: {
@@ -1500,13 +1516,13 @@ export interface components {
                 id: string;
                 eventKey: string;
                 emitterIdentifier: string;
-                locationContext?: {
+                subjectContext?: {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
-                    folderName?: string;
+                    folderName: string;
                     /** Format: uuid */
-                    folderOwnerId?: string;
+                    folderOwnerId: string;
                 };
                 data?: unknown;
                 /** Format: date-time */
@@ -1522,13 +1538,13 @@ export interface components {
                 id: string;
                 eventKey: string;
                 emitterIdentifier: string;
-                locationContext?: {
+                subjectContext?: {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
-                    folderName?: string;
+                    folderName: string;
                     /** Format: uuid */
-                    folderOwnerId?: string;
+                    folderOwnerId: string;
                 };
                 data?: unknown;
                 /** Format: date-time */
@@ -1795,7 +1811,7 @@ export interface components {
                 /** @enum {string} */
                 level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
                 emitterIdentifier: string;
-                locationContext?: {
+                subjectContext?: {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;
@@ -1813,7 +1829,7 @@ export interface components {
                 /** @enum {string} */
                 level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
                 emitterIdentifier: string;
-                locationContext?: {
+                subjectContext?: {
                     /** Format: uuid */
                     folderId: string;
                     objectKey?: string;

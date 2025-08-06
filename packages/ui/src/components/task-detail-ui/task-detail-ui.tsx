@@ -1,3 +1,4 @@
+import { useAuthContext } from '@stellariscloud/auth-utils'
 import type { TaskDTO } from '@stellariscloud/types'
 import {
   Badge,
@@ -8,6 +9,7 @@ import {
   CardTitle,
   cn,
 } from '@stellariscloud/ui-toolkit'
+import { Link } from 'react-router-dom'
 
 import { DateDisplay } from '@/src/components/date-display'
 
@@ -22,6 +24,9 @@ export function TaskDetailUI({
   isLoading,
   isError,
 }: TaskDetailUIProps) {
+  const authContext = useAuthContext()
+  const currentUserId = authContext.viewer?.id
+
   // Get the appropriate color for the status indicator
   const getStatusColor = (task?: TaskDTO) => {
     if (!task) {
@@ -126,6 +131,12 @@ export function TaskDetailUI({
       </div>
     )
   }
+
+  // Check if the current user owns the folder
+  const isFolderOwner =
+    currentUserId &&
+    taskData.subjectContext?.folderOwnerId &&
+    currentUserId === taskData.subjectContext.folderOwnerId
 
   const statusInfo = getStatusInfo(taskData)
   const errorDetails = taskData.errorDetails
@@ -234,26 +245,75 @@ export function TaskDetailUI({
                       <label className="text-sm font-medium text-muted-foreground">
                         Created
                       </label>
-                      <p className="mt-1 font-mono text-sm">
+                      <div className="mt-1 font-mono text-sm">
                         <DateDisplay
                           date={taskData.createdAt}
                           showTimeSince={false}
                         />
-                      </p>
+                      </div>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
                         Updated
                       </label>
-                      <p className="mt-1 font-mono text-sm">
+                      <div className="mt-1 font-mono text-sm">
                         <DateDisplay
                           date={taskData.updatedAt}
                           showTimeSince={false}
                         />
-                      </p>
+                      </div>
                     </div>
                   </div>
-                  {taskData.subjectObjectKey && (
+                  {taskData.subjectContext && (
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Location Context
+                      </label>
+                      <div className="mt-1 space-y-1">
+                        {taskData.subjectContext.folderName &&
+                          taskData.subjectContext.folderId && (
+                            <p className="text-sm font-medium">
+                              Folder:{' '}
+                              {isFolderOwner ? (
+                                <Link
+                                  to={`/folders/${taskData.subjectContext.folderId}`}
+                                  className="text-primary hover:underline"
+                                >
+                                  {taskData.subjectContext.folderName}
+                                </Link>
+                              ) : (
+                                <span>
+                                  {taskData.subjectContext.folderName}
+                                </span>
+                              )}
+                            </p>
+                          )}
+                        {taskData.subjectContext.objectKey &&
+                          taskData.subjectContext.folderId && (
+                            <p className="text-sm text-muted-foreground">
+                              Object:{' '}
+                              {isFolderOwner ? (
+                                <Link
+                                  to={`/folders/${taskData.subjectContext.folderId}/objects/${taskData.subjectContext.objectKey}`}
+                                  className="text-primary hover:underline"
+                                >
+                                  {taskData.subjectContext.objectKey}
+                                </Link>
+                              ) : (
+                                <span>{taskData.subjectContext.objectKey}</span>
+                              )}
+                            </p>
+                          )}
+                        {!taskData.subjectContext.folderName &&
+                          taskData.subjectContext.folderId && (
+                            <p className="font-mono text-sm text-muted-foreground">
+                              Folder ID: {taskData.subjectContext.folderId}
+                            </p>
+                          )}
+                      </div>
+                    </div>
+                  )}
+                  {taskData.subjectObjectKey && !taskData.subjectContext && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
                         Object Key
@@ -272,14 +332,16 @@ export function TaskDetailUI({
                         {taskData.triggeringEventId}
                       </p>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">
-                        Subject Folder ID
-                      </label>
-                      <p className="mt-1 break-all font-mono text-sm">
-                        {taskData.subjectFolderId}
-                      </p>
-                    </div>
+                    {taskData.subjectFolderId && !taskData.subjectContext && (
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">
+                          Subject Folder ID
+                        </label>
+                        <p className="mt-1 break-all font-mono text-sm">
+                          {taskData.subjectFolderId}
+                        </p>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
@@ -336,12 +398,12 @@ export function TaskDetailUI({
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium">Task Created</p>
-                      <p className="text-sm text-muted-foreground">
+                      <div className="text-sm text-muted-foreground">
                         <DateDisplay
                           date={taskData.createdAt}
                           showTimeSince={false}
                         />
-                      </p>
+                      </div>
                     </div>
                   </div>
 
@@ -365,12 +427,12 @@ export function TaskDetailUI({
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-medium">Task Started</p>
-                          <p className="text-sm text-muted-foreground">
+                          <div className="text-sm text-muted-foreground">
                             <DateDisplay
                               date={taskData.startedAt}
                               showTimeSince={false}
                             />
-                          </p>
+                          </div>
                         </div>
                       </div>
                     </>
@@ -396,12 +458,12 @@ export function TaskDetailUI({
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-medium">Task Completed</p>
-                          <p className="text-sm text-muted-foreground">
+                          <div className="text-sm text-muted-foreground">
                             <DateDisplay
                               date={taskData.completedAt}
                               showTimeSince={false}
                             />
-                          </p>
+                          </div>
                         </div>
                       </div>
                     </>
@@ -427,12 +489,12 @@ export function TaskDetailUI({
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-medium">Task Failed</p>
-                          <p className="text-sm text-muted-foreground">
+                          <div className="text-sm text-muted-foreground">
                             <DateDisplay
                               date={taskData.errorAt}
                               showTimeSince={false}
                             />
-                          </p>
+                          </div>
                         </div>
                       </div>
                     </>
