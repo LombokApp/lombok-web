@@ -978,7 +978,7 @@ export class FolderService {
       subjectContext: folderId ? { folderId, objectKey } : undefined,
       userId: actor.id,
       data: { inputParams },
-      eventKey: `TRIGGER_TASK:${appIdentifier.toUpperCase()}:${taskIdentifier}!!FIX!!`,
+      eventIdentifier: `TRIGGER_TASK:${appIdentifier.toUpperCase()}:${taskIdentifier}!!FIX!!`,
     })
   }
 
@@ -1052,7 +1052,9 @@ export class FolderService {
 
     await this.eventService.emitEvent({
       emitterIdentifier: 'platform',
-      eventKey: previousRecord ? 'CORE:OBJECT_UPDATED' : 'CORE:OBJECT_ADDED',
+      eventIdentifier: previousRecord
+        ? 'CORE:OBJECT_UPDATED'
+        : 'CORE:OBJECT_ADDED',
       subjectContext: {
         folderId: record.folderId,
         objectKey: record.objectKey,

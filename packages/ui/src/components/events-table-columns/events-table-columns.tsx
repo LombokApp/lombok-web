@@ -8,7 +8,7 @@ import { TableLinkColumn } from '@/src/components/table-link-column/table-link-c
 
 interface EventsTableColumnsConfig {
   getLinkTo: (event: EventDTO) => string
-  eventKeyTitle?: string
+  eventIdentifierTitle?: string
   showActorSubtext?: boolean
   folderObjectColumnTitle?: string
   showFolderInFolderObjectColumn?: boolean
@@ -27,18 +27,18 @@ export function configureEventsTableColumns(
       zeroWidth: true,
     },
     {
-      accessorKey: 'eventKey',
+      accessorKey: 'eventIdentifier',
       header: ({ column }) => (
         <DataTableColumnHeader
           canHide={column.getCanHide()}
           column={column}
-          title={config.eventKeyTitle || 'Event Key'}
+          title={config.eventIdentifierTitle || 'Event Identifier'}
         />
       ),
       cell: ({ row }) => (
         <ActorFeedback
           actorIdentifier={row.original.emitterIdentifier}
-          title={row.getValue('eventKey')}
+          title={row.getValue('eventIdentifier')}
           showSubtitle={config.showActorSubtext}
           subtitle={`emitted by: ${row.original.emitterIdentifier}`}
         />

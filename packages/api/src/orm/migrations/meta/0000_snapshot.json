@@ -1,5 +1,5 @@
 {
-  "id": "2a90c0ee-71d3-4803-ab30-12cd5dec2d04",
+  "id": "0aa9beaf-67cf-4899-bdfd-6d4429984394",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -168,8 +168,8 @@
           "primaryKey": true,
           "notNull": true
         },
-        "eventKey": {
-          "name": "eventKey",
+        "eventIdentifier": {
+          "name": "eventIdentifier",
           "type": "text",
           "primaryKey": false,
           "notNull": true

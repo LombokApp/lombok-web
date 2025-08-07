@@ -33,8 +33,8 @@ import { eventsTable } from '../entities/event.entity'
 export enum EventSort {
   CreatedAtAsc = 'createdAt-asc',
   CreatedAtDesc = 'createdAt-desc',
-  EventKeyAsc = 'eventKey-asc',
-  EventKeyDesc = 'eventKey-desc',
+  EventIdentifierAsc = 'eventIdentifier-asc',
+  EventIdentifierDesc = 'eventIdentifier-desc',
   EmitterIdentifierAsc = 'emitterIdentifier-asc',
   EmitterIdentifierDesc = 'emitterIdentifier-desc',
   ObjectKeyAsc = 'objectKey-asc',
@@ -67,13 +67,13 @@ export class EventService {
 
   async emitEvent({
     emitterIdentifier,
-    eventKey,
+    eventIdentifier,
     data,
     subjectContext,
     userId,
   }: {
     emitterIdentifier: string // "core" for internally emitted events, and "app:<appIdentifier>" for app emitted events
-    eventKey: CoreEvent | string
+    eventIdentifier: CoreEvent | string
     data: unknown
     subjectContext?: { folderId: string; objectKey?: string }
     userId?: string
@@ -97,11 +97,11 @@ export class EventService {
     }
 
     const authorized = !!(
-      isCoreEmitter || app?.config.emittableEvents.includes(eventKey)
+      isCoreEmitter || app?.config.emittableEvents.includes(eventIdentifier)
     )
 
     // console.log('emitEvent:', {
-    //   eventKey,
+    //   eventIdentifier,
     //   emitterIdentifier,
     //   data,
     //   authorized,
@@ -117,7 +117,7 @@ export class EventService {
         .values([
           {
             id: uuidV4(),
-            eventKey,
+            eventIdentifier,
             emitterIdentifier,
             subjectFolderId: subjectContext?.folderId,
             subjectObjectKey: subjectContext?.objectKey,
@@ -139,7 +139,7 @@ export class EventService {
 
       // regular event, so we should lookup apps that have subscribed to this event
       const subscribedApps = await this.ormService.db.query.appsTable.findMany({
-        where: arrayContains(appsTable.subscribedEvents, [eventKey]),
+        where: arrayContains(appsTable.subscribedEvents, [eventIdentifier]),
         limit: 100, // TODO: manage this limit somehow
       })
 
@@ -152,7 +152,8 @@ export class EventService {
               if (
                 taskDefinition.triggers?.find(
                   (trigger) =>
-                    trigger.type === 'event' && trigger.event === eventKey,
+                    trigger.type === 'event' &&
+                    trigger.event === eventIdentifier,
                 )
               ) {
                 const isWorkerExecutedTask = !!taskDefinition.worker?.length
@@ -350,7 +351,7 @@ export class EventService {
     if (search) {
       conditions.push(
         or(
-          ilike(eventsTable.eventKey, `%${search}%`),
+          ilike(eventsTable.eventIdentifier, `%${search}%`),
           ilike(eventsTable.emitterIdentifier, `%${search}%`),
         ),
       )

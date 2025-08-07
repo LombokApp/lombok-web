@@ -7,7 +7,7 @@ export function transformEventToDTO(
   return {
     id: event.id,
     emitterIdentifier: event.emitterIdentifier,
-    eventKey: event.eventKey,
+    eventIdentifier: event.eventIdentifier,
     subjectContext:
       event.subjectFolderId && event.folder
         ? {

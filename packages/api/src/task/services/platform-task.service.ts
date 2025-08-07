@@ -184,7 +184,7 @@ export class PlatformTaskService {
 
     const event: NewEvent = {
       id: uuidV4(),
-      eventKey: `TRIGGER_CORE_TASK_${taskIdentifier}`,
+      eventIdentifier: `TRIGGER_CORE_TASK_${taskIdentifier}`,
       data: inputData,
       emitterIdentifier: 'platform',
       subjectFolderId: context.folderId,

@@ -4,7 +4,7 @@ import { z } from 'zod'
 
 export const eventSchema = z.object({
   id: z.string().uuid(),
-  eventKey: z.string(),
+  eventIdentifier: z.string(),
   emitterIdentifier: z.string(),
   subjectContext: subjectContextSchema.optional(),
   data: z.unknown(),
