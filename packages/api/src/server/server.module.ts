@@ -11,6 +11,7 @@ import { ServerController } from './controllers/server.controller'
 import { ServerStorageLocationController } from './controllers/server-storage-location.controller'
 import { UserStorageProvisionsController } from './controllers/user-storage-provisions.controller'
 import { ServerConfigurationService } from './services/server-configuration.service'
+import { ServerMetricsService } from './services/server-metrics.service'
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { ServerConfigurationService } from './services/server-configuration.serv
     UserStorageProvisionsController,
     ServerStorageLocationController,
   ],
-  providers: [ServerConfigurationService, AppService],
+  providers: [ServerConfigurationService, ServerMetricsService, AppService],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class ServerModule {}

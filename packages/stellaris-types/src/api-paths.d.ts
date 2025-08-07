@@ -523,6 +523,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get server metrics including user counts, folder counts, and storage statistics. */
+        get: operations["getServerMetrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/server/user-storage-provisions": {
         parameters: {
             query?: never;
@@ -1370,6 +1387,32 @@ export interface components {
              * @example 2024-01-01T00:00:00.000Z
              */
             timestamp: string;
+        };
+        ServerMetricsResponse: {
+            totalUsers: number;
+            totalFolders: number;
+            usersCreatedPreviousWeek: number;
+            foldersCreatedPreviousWeek: number;
+            totalIndexedSizeBytes: number;
+            sessionsCreatedPreviousWeek: number;
+            sessionsCreatedPrevious24Hours: number;
+            provisionedStorageLocations: {
+                totalCount: number;
+                summary: string;
+            };
+            totalIndexedSizeBytesAcrossProvisionedStorageLocations: number;
+            installedApps: {
+                totalCount: number;
+                summary: string;
+            };
+            tasksCreatedPreviousDay: number;
+            tasksCreatedPreviousHour: number;
+            taskErrorsPreviousDay: number;
+            taskErrorsPreviousHour: number;
+            serverEventsEmittedPreviousDay: number;
+            serverEventsEmittedPreviousHour: number;
+            folderEventsEmittedPreviousDay: number;
+            folderEventsEmittedPreviousHour: number;
         };
         UserStorageProvisionListResponse: {
             result: {
@@ -2790,6 +2833,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InstallAppsResponse"];
+                };
+            };
+        };
+    };
+    getServerMetrics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerMetricsResponse"];
                 };
             };
         };

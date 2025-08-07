@@ -379,11 +379,11 @@ export const FolderDetailScreen = () => {
         <div
           className={cn(
             'z-10 flex size-full flex-1',
-            'lg:container',
+            '@container justify-around',
             focusedObjectKeyFromParams && 'opacity-0',
           )}
         >
-          <div className="flex size-full w-full flex-1 justify-between @4xl:flex-none @8xl:w-[90%] @9xl:w-[85%] @10xl:w-[80%] @11xl:w-[75%] @12xl:w-[70%] @13xl:w-[65%] @15xl:w-[90rem] @4xl:gap-4">
+          <div className="@8xl:w-[90%] @9xl:w-[85%] @10xl:w-[80%] @11xl:w-[75%] @12xl:w-[70%] @13xl:w-[65%] @15xl:w-[90rem] flex size-full w-full flex-1 justify-between @4xl:flex-none @4xl:gap-4">
             <div className="flex min-w-0 flex-1">
               <div className="flex size-full flex-col gap-2">
                 <div className="flex justify-between">
@@ -464,7 +464,7 @@ export const FolderDetailScreen = () => {
                 </div>
 
                 {folderContext.folderMetadata?.totalCount === 0 ? (
-                  <div className="flex size-full">
+                  <div className="flex size-full items-center justify-center">
                     <div className="flex w-full max-w-md flex-col items-center p-8">
                       <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-foreground/[.04] p-4">
                         <Folder
