@@ -1,0 +1,162 @@
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  TypographyH3,
+} from '@stellariscloud/ui-toolkit'
+import {
+  AppWindow,
+  ChartLine,
+  Database,
+  Folders,
+  HardDrive,
+  ListCheck,
+  OctagonAlert,
+  Users,
+} from 'lucide-react'
+
+import { $api } from '@/src/services/api'
+
+import { StatCardGroup } from '../../../../components/stat-card-group/stat-card-group'
+
+// Utility function to format bytes to human readable format
+const formatBytes = (bytes: number): string => {
+  if (bytes === 0) {
+    return '0 B'
+  }
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
+}
+
+export function ServerOverviewContent() {
+  const { data: metrics, isLoading } = $api.useQuery(
+    'get',
+    '/api/v1/server/metrics',
+  )
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {Array.from({ length: 6 })
+            .fill(null)
+            .map((_, i) => (
+              <div
+                key={i}
+                className="h-24 animate-pulse rounded-lg bg-gray-200"
+              />
+            ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (!metrics) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <p className="text-gray-500">Failed to load server metrics</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <StatCardGroup
+        stats={[
+          {
+            title: 'Total Users',
+            label: metrics.totalUsers.toString(),
+            subtitle: `+${metrics.usersCreatedPreviousWeek} in the last week`,
+            icon: Users,
+          },
+          {
+            title: 'Total Folders',
+            label: metrics.totalFolders.toString(),
+            subtitle: `+${metrics.foldersCreatedPreviousWeek} in the last week`,
+            icon: Folders,
+          },
+          {
+            title: 'Sessions Created in the Previous Week',
+            label: metrics.sessionsCreatedPreviousWeek.toString(),
+            subtitle: `+${metrics.sessionsCreatedPrevious24Hours} in the last 24 hours`,
+            icon: HardDrive,
+          },
+        ]}
+      />
+      <StatCardGroup
+        stats={[
+          {
+            title: 'Total Indexed Storage',
+            label: formatBytes(metrics.totalIndexedSizeBytes),
+            subtitle: `${formatBytes(metrics.totalIndexedSizeBytesAcrossProvisionedStorageLocations)} in provisioned storage`,
+            icon: HardDrive,
+          },
+          {
+            title: 'Provisioned Storage Locations',
+            label: metrics.provisionedStorageLocations.totalCount.toString(),
+            subtitle: metrics.provisionedStorageLocations.summary,
+            icon: Database,
+          },
+          {
+            title: 'Installed Apps',
+            label: metrics.installedApps.totalCount.toString(),
+            subtitle: metrics.installedApps.summary,
+            icon: AppWindow,
+          },
+        ]}
+      />
+
+      <div className="grid grid-cols-1 gap-10 md:grid-cols-2">
+        <Card className="border-0 bg-transparent shadow-none">
+          <CardHeader className="p-0 pb-4 pt-3">
+            <TypographyH3>Tasks</TypographyH3>
+          </CardHeader>
+          <CardContent className="p-0">
+            <StatCardGroup
+              stats={[
+                {
+                  title: 'Tasks Created (24 hours)',
+                  label: metrics.tasksCreatedPreviousDay.toString(),
+                  subtitle: `+${metrics.tasksCreatedPreviousHour} in the last hour`,
+                  icon: ListCheck,
+                },
+                {
+                  title: 'Task Errors (24 hours)',
+                  label: metrics.taskErrorsPreviousDay.toString(),
+                  subtitle: `+${metrics.taskErrorsPreviousHour} in the last hour`,
+                  icon: OctagonAlert,
+                },
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 bg-transparent shadow-none">
+          <CardHeader className="p-0 pb-4 pt-3">
+            <TypographyH3>Events</TypographyH3>
+          </CardHeader>
+          <CardContent className="p-0">
+            <StatCardGroup
+              stats={[
+                {
+                  title: 'Server Events (24 hours)',
+                  label: metrics.serverEventsEmittedPreviousDay.toString(),
+                  subtitle: `+${metrics.serverEventsEmittedPreviousHour} in the last hour`,
+                  icon: ChartLine,
+                },
+                {
+                  title: 'Folder Events (24 hours)',
+                  label: metrics.folderEventsEmittedPreviousDay.toString(),
+                  subtitle: `+${metrics.folderEventsEmittedPreviousHour} in the last hour`,
+                  icon: OctagonAlert,
+                },
+              ]}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}

@@ -4,7 +4,7 @@ export const baseTheme = {
   light: {
     background: palette.neutral[0],
     foreground: palette.neutral[950],
-    card: palette.neutral[50],
+    card: palette.neutral[0],
     cardForeground: palette.neutral[950],
     inputBorder: palette.neutral[300],
     popover: palette.neutral[50],

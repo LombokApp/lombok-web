@@ -80,20 +80,19 @@ export const FoldersScreen = () => {
   const searchFilterValue =
     'search' in filters ? filters['search'][0] : undefined
 
-  const { data: userStorageProvisions, refetch: refetchUserStorageProvisions } =
-    $api.useQuery(
-      'get',
-      '/api/v1/server/user-storage-provisions',
-      {},
-      {
-        enabled: false,
-      },
-    )
+  const userStorageProvisionsQuery = $api.useQuery(
+    'get',
+    '/api/v1/server/user-storage-provisions',
+    {},
+    {
+      enabled: false,
+    },
+  )
 
   const [createFolderModalData, setCreateFolderModalData] =
     React.useState<CreateFolderModalData>({
       isOpen: false,
-      userStorageProvisions: userStorageProvisions?.result ?? [],
+      userStorageProvisions: userStorageProvisionsQuery.data?.result ?? [],
     })
 
   const { data: folders, refetch: listFolders } = $api.useQuery(
@@ -143,10 +142,10 @@ export const FoldersScreen = () => {
           <Button
             variant={'outline'}
             onClick={() => {
-              void refetchUserStorageProvisions().then(() => {
+              void userStorageProvisionsQuery.refetch().then(({ data }) => {
                 setCreateFolderModalData({
                   ...createFolderModalData,
-                  userStorageProvisions: userStorageProvisions?.result ?? [],
+                  userStorageProvisions: data?.result ?? [],
                   isOpen: true,
                 })
               })

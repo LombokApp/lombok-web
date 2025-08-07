@@ -10,7 +10,7 @@ import { ServerTaskDetailScreen } from '../../tasks/server-task-detail-screen/se
 import { ServerTasksScreen } from '../../tasks/server-tasks-screen/server-tasks-screen.view'
 import { ServerUserDetailScreen } from '../../users/server-user-detail-screen/server-user-detail-screen.view'
 import { ServerUsersScreen } from '../../users/server-users-screen/server-users-screen.view'
-import { ServerOverviewContent } from './server-overview-dummy-content'
+import { ServerOverviewContent } from './server-overview-content'
 import { ServerTabControls } from './server-tab-controls'
 
 export function ServerScreen({ serverPage }: { serverPage: string[] }) {

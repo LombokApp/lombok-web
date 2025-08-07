@@ -18,10 +18,12 @@ import { AppService } from 'src/app/services/app.service'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
 
 import { InstallAppsResponse } from '../dto/responses/install-apps-response.dto'
+import { ServerMetricsResponse } from '../dto/responses/server-metrics-response.dto'
 import { SettingSetResponse } from '../dto/responses/setting-set-response.dto'
 import { SettingsGetResponse } from '../dto/responses/settings-get-response.dto'
 import { SetSettingInputDTO } from '../dto/set-setting-input.dto'
 import { ServerConfigurationService } from '../services/server-configuration.service'
+import { ServerMetricsService } from '../services/server-metrics.service'
 
 @Controller('/api/v1/server')
 @ApiTags('Server')
@@ -31,6 +33,7 @@ import { ServerConfigurationService } from '../services/server-configuration.ser
 export class ServerController {
   constructor(
     private readonly serverConfigurationService: ServerConfigurationService,
+    private readonly serverMetricsService: ServerMetricsService,
     private readonly appService: AppService,
   ) {}
 
@@ -110,5 +113,18 @@ export class ServerController {
       message: 'Apps installation completed',
       timestamp: new Date().toISOString(),
     }
+  }
+
+  /**
+   * Get server metrics including user counts, folder counts, and storage statistics.
+   */
+  @Get('/metrics')
+  async getServerMetrics(
+    @Req() req: express.Request,
+  ): Promise<ServerMetricsResponse> {
+    if (!req.user?.isAdmin) {
+      throw new UnauthorizedException()
+    }
+    return this.serverMetricsService.getServerMetrics(req.user)
   }
 }

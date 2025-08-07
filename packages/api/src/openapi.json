@@ -1895,6 +1895,33 @@
         ]
       }
     },
+    "/api/v1/server/metrics": {
+      "get": {
+        "operationId": "getServerMetrics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServerMetricsResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get server metrics including user counts, folder counts, and storage statistics.",
+        "tags": [
+          "Server"
+        ]
+      }
+    },
     "/api/v1/server/user-storage-provisions": {
       "get": {
         "operationId": "listUserStorageProvisions",
@@ -5370,6 +5397,109 @@
         "required": [
           "message",
           "timestamp"
+        ]
+      },
+      "ServerMetricsResponse": {
+        "type": "object",
+        "properties": {
+          "totalUsers": {
+            "type": "number"
+          },
+          "totalFolders": {
+            "type": "number"
+          },
+          "usersCreatedPreviousWeek": {
+            "type": "number"
+          },
+          "foldersCreatedPreviousWeek": {
+            "type": "number"
+          },
+          "totalIndexedSizeBytes": {
+            "type": "number"
+          },
+          "sessionsCreatedPreviousWeek": {
+            "type": "number"
+          },
+          "sessionsCreatedPrevious24Hours": {
+            "type": "number"
+          },
+          "provisionedStorageLocations": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "number"
+              },
+              "summary": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "totalCount",
+              "summary"
+            ]
+          },
+          "totalIndexedSizeBytesAcrossProvisionedStorageLocations": {
+            "type": "number"
+          },
+          "installedApps": {
+            "type": "object",
+            "properties": {
+              "totalCount": {
+                "type": "number"
+              },
+              "summary": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "totalCount",
+              "summary"
+            ]
+          },
+          "tasksCreatedPreviousDay": {
+            "type": "number"
+          },
+          "tasksCreatedPreviousHour": {
+            "type": "number"
+          },
+          "taskErrorsPreviousDay": {
+            "type": "number"
+          },
+          "taskErrorsPreviousHour": {
+            "type": "number"
+          },
+          "serverEventsEmittedPreviousDay": {
+            "type": "number"
+          },
+          "serverEventsEmittedPreviousHour": {
+            "type": "number"
+          },
+          "folderEventsEmittedPreviousDay": {
+            "type": "number"
+          },
+          "folderEventsEmittedPreviousHour": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "totalUsers",
+          "totalFolders",
+          "usersCreatedPreviousWeek",
+          "foldersCreatedPreviousWeek",
+          "totalIndexedSizeBytes",
+          "sessionsCreatedPreviousWeek",
+          "sessionsCreatedPrevious24Hours",
+          "provisionedStorageLocations",
+          "totalIndexedSizeBytesAcrossProvisionedStorageLocations",
+          "installedApps",
+          "tasksCreatedPreviousDay",
+          "tasksCreatedPreviousHour",
+          "taskErrorsPreviousDay",
+          "taskErrorsPreviousHour",
+          "serverEventsEmittedPreviousDay",
+          "serverEventsEmittedPreviousHour",
+          "folderEventsEmittedPreviousDay",
+          "folderEventsEmittedPreviousHour"
         ]
       },
       "UserStorageProvisionListResponse": {
