@@ -22,7 +22,7 @@ import {
   AllowedActor,
   AuthGuardConfig,
 } from 'src/auth/guards/auth.guard-config'
-import { normalizeSortParam } from 'src/core/utils/sort.util'
+import { normalizeSortParam } from 'src/platform/utils/sort.util'
 
 import {
   ContentMetadataEntryDTO,

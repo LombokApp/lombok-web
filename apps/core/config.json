@@ -5,7 +5,7 @@
   "requiresStorage": false,
   "tasks": [
     {
-      "identifier": "ANALYZE_OBJECT",
+      "identifier": "analyze_object",
       "label": "Analyze Object",
       "description": "Analyze the content of a file and save the result as metadata",
       "inputParams": {
@@ -15,7 +15,7 @@
       "triggers": [
         {
           "type": "event",
-          "event": "CORE:OBJECT_ADDED",
+          "event": "platform:object_added",
           "inputParams": {
             "folderId": "{event.folderId}",
             "objectKey": "{event.objectKey}"
@@ -32,7 +32,7 @@
       ]
     },
     {
-      "identifier": "ANALYZE_ALL_OBJECTS",
+      "identifier": "analyze_all_objects",
       "label": "Analyze All Objects",
       "description": "Analyze all files in a folder",
       "triggers": [
@@ -50,7 +50,7 @@
       }
     },
     {
-      "identifier": "RUN_WORKER_SCRIPT",
+      "identifier": "run_worker_script",
       "label": "Run Worker",
       "description": "Run a worker script.",
       "inputParams": {
@@ -60,6 +60,6 @@
       }
     }
   ],
-  "emittableEvents": ["OBJECT_ANALYZED"],
+  "emittableEvents": [],
   "menuItems": []
 }

@@ -1,4 +1,4 @@
-import type { TaskDTO } from '@stellariscloud/types'
+import { PLATFORM_IDENTIFIER, type TaskDTO } from '@stellariscloud/types'
 import { Card, CardContent, cn } from '@stellariscloud/ui-toolkit'
 import { Link } from 'react-router-dom'
 
@@ -71,7 +71,7 @@ export function ServerTaskAttributesList({ task }: { task?: TaskDTO }) {
                         : undefined,
                     }}
                   >
-                    {task.ownerIdentifier === 'core' ? (
+                    {task.ownerIdentifier === PLATFORM_IDENTIFIER ? (
                       <img
                         width={30}
                         height={30}

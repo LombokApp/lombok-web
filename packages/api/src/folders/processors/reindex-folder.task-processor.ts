@@ -1,18 +1,18 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common'
 import { BaseProcessor } from 'src/task/base.processor'
-import type { CoreTaskInputData } from 'src/task/services/core-task.service'
-import { CoreTaskName } from 'src/task/task.constants'
+import type { PlatformTaskInputData } from 'src/task/services/platform-task.service'
+import { PlatformTaskName } from 'src/task/task.constants'
 
 import { FolderService } from '../services/folder.service'
 
 @Injectable()
 export class ReindexFolderProcessor<
-  T extends CoreTaskName.REINDEX_FOLDER,
-  K extends CoreTaskInputData<T>,
-> extends BaseProcessor<CoreTaskName.REINDEX_FOLDER> {
+  T extends PlatformTaskName.REINDEX_FOLDER,
+  K extends PlatformTaskInputData<T>,
+> extends BaseProcessor<PlatformTaskName.REINDEX_FOLDER> {
   private readonly folderService: FolderService
   constructor(@Inject(forwardRef(() => FolderService)) _folderService) {
-    super(CoreTaskName.REINDEX_FOLDER)
+    super(PlatformTaskName.REINDEX_FOLDER)
     this.folderService = _folderService as FolderService
   }
 

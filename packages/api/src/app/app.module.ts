@@ -3,11 +3,11 @@ import { forwardRef, Inject, Module } from '@nestjs/common'
 import nestJSConfig, { ConfigModule } from '@nestjs/config'
 import { AuthModule } from 'src/auth/auth.module'
 import { authConfig } from 'src/auth/config'
-import { coreConfig } from 'src/core/config'
 import { EventModule } from 'src/event/event.module'
 import { FoldersModule } from 'src/folders/folders.module'
 import { LogModule } from 'src/log/log.module'
 import { OrmService } from 'src/orm/orm.service'
+import { platformConfig } from 'src/platform/config'
 import { ServerModule } from 'src/server/server.module'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { S3Service } from 'src/storage/s3.service'
@@ -21,7 +21,7 @@ import { AppService } from './services/app.service'
 @Module({
   imports: [
     ConfigModule.forFeature(appConfig),
-    ConfigModule.forFeature(coreConfig),
+    ConfigModule.forFeature(platformConfig),
     ConfigModule.forFeature(authConfig),
     AuthModule,
     EventModule,
@@ -44,14 +44,16 @@ export class AppModule implements OnModuleInit {
     private readonly coreAppService: CoreAppService,
     private readonly ormService: OrmService,
     private readonly appService: AppService,
-    @Inject(coreConfig.KEY)
-    private readonly _coreConfig: nestJSConfig.ConfigType<typeof coreConfig>,
+    @Inject(platformConfig.KEY)
+    private readonly _platformConfig: nestJSConfig.ConfigType<
+      typeof platformConfig
+    >,
   ) {}
   async onModuleInit() {
     await this.ormService
       .waitForInit()
       .then(() => {
-        if (this._coreConfig.installAppsOnStart) {
+        if (this._platformConfig.installAppsOnStart) {
           return this.appService.installAllAppsFromDisk()
         }
       })

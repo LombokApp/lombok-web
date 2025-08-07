@@ -4,7 +4,7 @@ import { foldersTable } from 'src/folders/entities/folder.entity'
 
 export const eventsTable = pgTable('events', {
   id: uuid('id').primaryKey(),
-  eventKey: text('eventKey').notNull(),
+  eventIdentifier: text('eventIdentifier').notNull(),
   emitterIdentifier: text('emitterIdentifier').notNull(),
   userId: text('userId'),
   subjectFolderId: uuid('subjectFolderId').references(() => foldersTable.id),

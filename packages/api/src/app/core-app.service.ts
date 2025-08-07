@@ -1,13 +1,14 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
+import { APP_NS_PREFIX, CORE_APP_IDENTIFIER } from '@stellariscloud/types'
 import { spawn } from 'child_process'
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import path from 'path'
 import { authConfig } from 'src/auth/config'
-import { coreConfig } from 'src/core/config'
 import { OrmService } from 'src/orm/orm.service'
+import { platformConfig } from 'src/platform/config'
 import { v4 as uuidV4 } from 'uuid'
 
 import { CoreWorkerProcessDataPayload } from './core-app-worker'
@@ -19,8 +20,10 @@ export class CoreAppService {
   workers: Record<string, Worker | undefined> = {}
 
   constructor(
-    @Inject(coreConfig.KEY)
-    private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
+    @Inject(platformConfig.KEY)
+    private readonly _platformConfig: nestjsConfig.ConfigType<
+      typeof platformConfig
+    >,
     @Inject(authConfig.KEY)
     private readonly _authConfig: nestjsConfig.ConfigType<typeof authConfig>,
     private readonly ormService: OrmService,
@@ -28,7 +31,7 @@ export class CoreAppService {
 
   async startCoreModuleThread(appWorkerId: string) {
     const isEmbeddedCoreAppEnabled =
-      !this._coreConfig.disableEmbeddedCoreAppWorker
+      !this._platformConfig.disableEmbeddedCoreAppWorker
     if (!this.workers[appWorkerId] && isEmbeddedCoreAppEnabled) {
       // run the core-app-worker.ts script in a child thread
       const child = spawn(
@@ -40,9 +43,9 @@ export class CoreAppService {
           stdio: ['pipe', 'inherit', 'inherit'],
         },
       )
-      const appToken = !this._coreConfig.embeddedCoreAppToken
+      const appToken = !this._platformConfig.embeddedCoreAppToken
         ? await this.generateEmbeddedAppKeys()
-        : this._coreConfig.embeddedCoreAppToken
+        : this._platformConfig.embeddedCoreAppToken
       setTimeout(() => {
         // send the config as the first message
 
@@ -51,10 +54,12 @@ export class CoreAppService {
           appToken,
           appWorkerId,
           jwtSecret: this._authConfig.authJwtSecret,
-          hostId: this._coreConfig.hostId,
+          hostId: this._platformConfig.hostId,
           executionOptions: {
-            printWorkerOutput: this._coreConfig.printCoreProcessWorkerOutput,
-            emptyWorkerTmpDir: this._coreConfig.emptyCoreProcessWorkerTmpDirs,
+            printWorkerOutput:
+              this._platformConfig.printCoreProcessWorkerOutput,
+            emptyWorkerTmpDir:
+              this._platformConfig.emptyCoreProcessWorkerTmpDirs,
           },
         }
 
@@ -90,10 +95,10 @@ export class CoreAppService {
     )
 
     const payload: JwtPayload = {
-      aud: this._coreConfig.hostId,
+      aud: this._platformConfig.hostId,
       jti: uuidV4(),
       scp: [],
-      sub: `app:core`,
+      sub: `${APP_NS_PREFIX}${CORE_APP_IDENTIFIER}`,
     }
 
     const token = jwt.sign(payload, keys.privateKey, {
@@ -101,13 +106,11 @@ export class CoreAppService {
     })
 
     jwt.verify(token, keys.publicKey)
-    // const coreApp = await this.ormService.db.query.appsTable.findFirst({
-    //   where: eq(appsTable.identifier, 'core'),
-    // })
+
     await this.ormService.db
       .update(appsTable)
       .set({ publicKey: keys.publicKey })
-      .where(eq(appsTable.identifier, 'core'))
+      .where(eq(appsTable.identifier, CORE_APP_IDENTIFIER))
 
     return token
   }

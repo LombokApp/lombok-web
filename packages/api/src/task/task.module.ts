@@ -11,19 +11,19 @@ import { SocketModule } from 'src/socket/socket.module'
 
 import { ServerTasksController } from './controllers/server-tasks.controller'
 import { TasksController } from './controllers/tasks.controller'
-import { CoreTaskService } from './services/core-task.service'
+import { PlatformTaskService } from './services/platform-task.service'
 import { TaskService } from './services/task.service'
 
 @Global()
 @Module({
   imports: [forwardRef(() => SocketModule), forwardRef(() => FoldersModule)],
-  providers: [CoreTaskService, TaskService],
+  providers: [PlatformTaskService, TaskService],
   controllers: [ServerTasksController, TasksController],
-  exports: [CoreTaskService, TaskService],
+  exports: [PlatformTaskService, TaskService],
 })
 export class TaskModule implements OnModuleInit, OnModuleDestroy {
   constructor(
-    private readonly coreTaskService: CoreTaskService,
+    private readonly platformTaskService: PlatformTaskService,
     private readonly taskService: TaskService,
   ) {}
 
@@ -38,7 +38,7 @@ export class TaskModule implements OnModuleInit, OnModuleDestroy {
     this.jobs = [
       new CronJob(
         '*/5 * * * * *',
-        () => void this.coreTaskService.drainCoreTasks(),
+        () => void this.platformTaskService.drainPlatformTasks(),
         null,
         true,
       ),

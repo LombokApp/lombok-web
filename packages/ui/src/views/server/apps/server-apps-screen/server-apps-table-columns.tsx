@@ -30,7 +30,7 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
     cell: ({ row }) => (
       <ActorFeedback
         title={row.original.label}
-        emitterIdentifier={`app:${row.original.identifier}`}
+        actorIdentifier={`app:${row.original.identifier}`}
         showSubtitle={true}
       />
     ),

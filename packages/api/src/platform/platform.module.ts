@@ -36,4 +36,4 @@ import { ZodSerializerInterceptor } from './serializer/serializer.util'
   controllers: [],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
-export class CoreModule {}
+export class PlatformModule {}

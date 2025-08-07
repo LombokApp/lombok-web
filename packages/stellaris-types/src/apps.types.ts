@@ -1,5 +1,8 @@
 import { z } from 'zod'
 
+export const CORE_APP_IDENTIFIER = 'core'
+export const APP_NS_PREFIX = 'app:'
+
 export interface AppTaskTrigger {
   taskIdentifier: string
   label: string
@@ -40,10 +43,21 @@ export const triggerSchema = z.discriminatedUnion('type', [
   objectActionTriggerSchema,
   folderActionTriggerSchema,
 ])
+export const genericIdentifierSchema = z
+  .string()
+  .nonempty()
+  .regex(/^[a-z_]+$/)
+
+export const taskIdentifierSchema = genericIdentifierSchema.refine(
+  (v) => v.toLowerCase() === v,
+  {
+    message: 'Task identifier must be lowercase',
+  },
+)
 
 export const taskConfigSchema = z.object({
-  identifier: z.string(),
-  label: z.string(),
+  identifier: taskIdentifierSchema,
+  label: z.string().nonempty().min(1).max(128),
   triggers: z.array(triggerSchema).optional(),
   folderAction: z.object({ description: z.string() }).optional(),
   objectAction: z.object({ description: z.string() }).optional(),
@@ -89,14 +103,21 @@ export const appUISchema = z.object({
   files: appManifestSchema,
 })
 
+export const appIdentifierSchema = z
+  .string()
+  .nonempty()
+  .regex(/^[a-z]+$/)
+  .refine((v) => v.toLowerCase() === v, {
+    message: 'App identifier must be lowercase',
+  })
+  .refine((v) => v !== 'platform', {
+    message: "App identifier cannot be 'platform'",
+  })
+
 export const appConfigSchema = z.object({
-  identifier: z
-    .string()
-    .nonempty()
-    .regex(/^[a-z0-9]+$/)
-    .refine((v) => v.toLowerCase() === v),
-  label: z.string().nonempty(),
-  description: z.string().nonempty(),
+  identifier: appIdentifierSchema,
+  label: z.string().nonempty().min(1).max(128),
+  description: z.string().nonempty().min(1).max(1024),
   emittableEvents: z.array(z.string().nonempty()),
   tasks: z.array(taskConfigSchema),
   externalWorkers: z.array(z.string().nonempty()).optional(),
@@ -124,18 +145,28 @@ export const appWorkerScriptMapSchema = z.record(
   appWorkerScriptSchema,
 )
 
+export const appWorkerScriptIdentifierSchema = z
+  .string()
+  .nonempty()
+  .regex(/^[a-z0-9_]+$/)
+
 export const appWorkerScriptsSchema = z.array(
   appWorkerScriptSchema.merge(
     z.object({
-      identifier: z.string(),
+      identifier: appWorkerScriptIdentifierSchema,
     }),
   ),
 )
+export const appUiIdentifierSchema = z
+  .string()
+  .nonempty()
+  .regex(/^[a-z0-9_]+$/)
+  .refine((v) => v.toLowerCase() === v)
 
 export const appUIsSchema = z.array(
   appUISchema.merge(
     z.object({
-      identifier: z.string(),
+      identifier: appUiIdentifierSchema,
     }),
   ),
 )
@@ -143,9 +174,9 @@ export const appUIsSchema = z.array(
 export const appUIMapSchema = z.record(z.string(), appUISchema)
 
 export const externalAppWorkerSchema = z.object({
-  appIdentifier: z.string(),
+  appIdentifier: appIdentifierSchema,
   workerId: z.string(),
-  handledTaskIdentifiers: z.array(z.string()),
+  handledTaskIdentifiers: z.array(taskIdentifierSchema),
   socketClientId: z.string(),
   ip: z.string(),
 })

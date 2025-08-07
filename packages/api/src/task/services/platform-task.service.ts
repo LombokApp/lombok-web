@@ -1,27 +1,25 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common'
-import { FolderPushMessage } from '@stellariscloud/types'
+import { FolderPushMessage, PLATFORM_IDENTIFIER } from '@stellariscloud/types'
 import { and, count, eq, isNull } from 'drizzle-orm'
 import { eventsTable, NewEvent } from 'src/event/entities/event.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
-import { CoreTaskName } from 'src/task/task.constants'
+import { PlatformTaskName } from 'src/task/task.constants'
 import { v4 as uuidV4 } from 'uuid'
 
 import { BaseProcessor, ProcessorError } from '../base.processor'
 import { NewTask, tasksTable } from '../entities/task.entity'
 
-const MAX_CONCURRENT_CORE_TASKS = 10
+const MAX_CONCURRENT_PLATFORM_TASKS = 10
 
-const CORE_IDENTIFIER = 'core'
-
-export type CoreTaskInputData<K extends CoreTaskName> =
-  K extends CoreTaskName.REINDEX_FOLDER
+export type PlatformTaskInputData<K extends PlatformTaskName> =
+  K extends PlatformTaskName.REINDEX_FOLDER
     ? { folderId: string; userId: string }
     : never
 
 @Injectable()
-export class CoreTaskService {
-  processors: Record<string, BaseProcessor<CoreTaskName>> = {}
+export class PlatformTaskService {
+  processors: Record<string, BaseProcessor<PlatformTaskName>> = {}
   runningTasksCount = 0
   draining = false
 
@@ -34,50 +32,50 @@ export class CoreTaskService {
     private readonly _folderSocketService,
   ) {}
 
-  async drainCoreTasks() {
+  async drainPlatformTasks() {
     try {
       if (this.draining) {
         return
       }
       this.draining = true
-      await this._drainCoreTasks()
+      await this._drainPlatformTasks()
     } catch (error: unknown) {
       // eslint-disable-next-line no-console
-      console.log('Error draining core tasks. Error', error)
+      console.log('Error draining platform tasks. Error', error)
     } finally {
       this.draining = false
     }
   }
 
-  private async _drainCoreTasks() {
+  private async _drainPlatformTasks() {
     const taskExecutionLimit = Math.max(
-      MAX_CONCURRENT_CORE_TASKS - this.runningTasksCount,
+      MAX_CONCURRENT_PLATFORM_TASKS - this.runningTasksCount,
       0,
     )
     if (taskExecutionLimit) {
-      const coreTasksToExecute = await this.ormService.db
+      const platformTasksToExecute = await this.ormService.db
         .select({ taskId: tasksTable.id })
         .from(tasksTable)
         .where(
           and(
             isNull(tasksTable.startedAt),
-            eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
+            eq(tasksTable.ownerIdentifier, PLATFORM_IDENTIFIER),
           ),
         )
         .limit(taskExecutionLimit)
 
-      for (const { taskId } of coreTasksToExecute) {
-        await this.executeCoreTask(taskId)
+      for (const { taskId } of platformTasksToExecute) {
+        await this.executePlatformTask(taskId)
       }
     }
-    const unstartedCoreTasksCount = await this.unstartedCoreTaskCount()
-    if (unstartedCoreTasksCount) {
-      void this.drainCoreTasks()
+    const unstartedPlatformTasksCount = await this.unstartedPlatformTaskCount()
+    if (unstartedPlatformTasksCount) {
+      void this.drainPlatformTasks()
     }
   }
 
-  async unstartedCoreTaskCount() {
-    const [{ count: coreTaskCount }] = await this.ormService.db
+  async unstartedPlatformTaskCount() {
+    const [{ count: platformTaskCount }] = await this.ormService.db
       .select({
         count: count(),
       })
@@ -85,19 +83,19 @@ export class CoreTaskService {
       .where(
         and(
           isNull(tasksTable.startedAt),
-          eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
+          eq(tasksTable.ownerIdentifier, PLATFORM_IDENTIFIER),
         ),
       )
-    return coreTaskCount
+    return platformTaskCount
   }
 
-  async executeCoreTask(taskId: string) {
+  async executePlatformTask(taskId: string) {
     const task = await this.ormService.db.query.tasksTable.findFirst({
       where: eq(tasksTable.id, taskId),
     })
     if (task?.startedAt) {
       // console.log('Task already started.')
-    } else if (task?.ownerIdentifier === CORE_IDENTIFIER) {
+    } else if (task?.ownerIdentifier === PLATFORM_IDENTIFIER) {
       const startedTimestamp = new Date()
       const updateResult = await this.ormService.db
         .update(tasksTable)
@@ -114,7 +112,6 @@ export class CoreTaskService {
             { task },
           )
         }
-        // console.log('Started core task!')
         // we have secured the task, so perform execution
         const processorName = task.taskIdentifier
 
@@ -177,18 +174,18 @@ export class CoreTaskService {
     }
   }
 
-  async addAsyncTask<K extends CoreTaskName>(
+  async addAsyncTask<K extends PlatformTaskName>(
     taskIdentifier: K,
-    inputData: CoreTaskInputData<K>,
+    inputData: PlatformTaskInputData<K>,
     context: { folderId?: string; objectKey?: string; userId?: string } = {},
   ) {
     const now = new Date()
 
     const event: NewEvent = {
       id: uuidV4(),
-      eventKey: `TRIGGER_CORE_TASK_${taskIdentifier}`,
+      eventIdentifier: `TRIGGER_PLATFORM_TASK_${taskIdentifier}`,
       data: inputData,
-      emitterIdentifier: 'core',
+      emitterIdentifier: 'platform',
       subjectFolderId: context.folderId,
       subjectObjectKey: context.objectKey,
       userId: context.userId,
@@ -198,7 +195,7 @@ export class CoreTaskService {
     const task: NewTask = {
       id: uuidV4(),
       inputData,
-      ownerIdentifier: 'core',
+      ownerIdentifier: 'platform',
       taskDescription: `Task '${taskIdentifier}'`,
       subjectFolderId: context.folderId,
       subjectObjectKey: context.objectKey,
@@ -222,16 +219,14 @@ export class CoreTaskService {
       )
     }
 
-    // kickoff core task processing
-    void this.drainCoreTasks()
+    // kickoff platform task processing
+    void this.drainPlatformTasks()
   }
 
-  registerProcessor = <K extends CoreTaskName>(
+  registerProcessor = <K extends PlatformTaskName>(
     taskName: K,
-    // processorFunction: (inputData: CoreTaskInputData<K>) => Promise<void>,
-    processorFunction: BaseProcessor<CoreTaskName>,
+    processorFunction: BaseProcessor<PlatformTaskName>,
   ) => {
-    // console.log('Registering processor for:', taskName)
     this.processors[taskName] = processorFunction
   }
 }

@@ -19,7 +19,7 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
     ),
     cell: ({ row }) => (
       <ActorFeedback
-        emitterIdentifier={row.original.emitterIdentifier}
+        actorIdentifier={row.original.emitterIdentifier}
         title={(
           row.original.emitterIdentifier.split(':')[1] ?? ''
         ).toUpperCase()}

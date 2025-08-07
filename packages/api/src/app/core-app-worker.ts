@@ -184,8 +184,8 @@ process.stdin.once('data', (data) => {
       workerData.appWorkerId,
       workerData.appToken,
       {
-        ['ANALYZE_OBJECT']: analyzeObjectTaskHandler,
-        ['RUN_WORKER_SCRIPT']: runWorkerScriptTaskHandler,
+        ['analyze_object']: analyzeObjectTaskHandler,
+        ['run_worker_script']: runWorkerScriptTaskHandler,
       },
       async () => {
         await log({

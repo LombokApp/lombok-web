@@ -112,7 +112,7 @@ export function EventDetailUI({
             <div className="flex-1">
               <div className="mb-2 flex items-center gap-3">
                 <h1 className="text-3xl font-bold tracking-tight">
-                  {eventData.eventKey}
+                  {eventData.eventIdentifier}
                 </h1>
               </div>
               <div className="flex items-center gap-4 text-sm text-muted-foreground">

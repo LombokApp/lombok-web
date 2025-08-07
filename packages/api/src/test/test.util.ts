@@ -10,7 +10,7 @@ import { OrmService, TEST_DB_PREFIX } from 'src/orm/orm.service'
 import { HttpExceptionFilter } from 'src/shared/http-exception-filter'
 import { configureS3Client } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
-import { CoreTestModule } from 'src/test/core-test.module'
+import { PlatformTestModule } from 'src/test/core-test.module'
 import { usersTable } from 'src/users/entities/user.entity'
 
 import { ormConfig } from '../orm/config'
@@ -33,7 +33,7 @@ export async function buildTestModule({
   const bucketPathsToRemove: string[] = []
 
   const appPromise = Test.createTestingModule({
-    imports: [CoreTestModule],
+    imports: [PlatformTestModule],
     providers: [],
   })
     .overrideProvider(ormConfig.KEY)

@@ -3,8 +3,8 @@ import { configureEventsTableColumns } from '@/src/components/events-table-colum
 export const folderEventsTableColumns = configureEventsTableColumns({
   getLinkTo: (event) =>
     `/folders/${event.subjectContext?.folderId}/events/${event.id}`,
-  eventKeyTitle: 'Event',
-  showEmitterSubtext: true,
+  eventIdentifierTitle: 'Event',
+  showActorSubtext: true,
   folderObjectColumnTitle: 'Object',
   showFolderInFolderObjectColumn: false,
 })

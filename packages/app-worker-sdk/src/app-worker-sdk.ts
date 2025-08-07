@@ -29,7 +29,7 @@ export interface AppTask {
   subjectObjectKey?: string
 }
 
-export interface CoreServerMessageInterface {
+export interface PlatformServerMessageInterface {
   getServerBaseUrl: () => string
   getWorkerExecutionDetails: (
     appIdentifier: string,
@@ -101,7 +101,7 @@ export interface CoreServerMessageInterface {
 export const buildAppClient = (
   socket: Socket,
   serverBaseUrl: string,
-): CoreServerMessageInterface => {
+): PlatformServerMessageInterface => {
   const emitWithAck = async (name: string, data: unknown) => {
     const response = (await socket
       .timeout(SOCKET_RESPONSE_TIMEOUT)
@@ -123,54 +123,58 @@ export const buildAppClient = (
       return emitWithAck('GET_WORKER_EXECUTION_DETAILS', {
         appIdentifier,
         workerIdentifier,
-      }) as ReturnType<CoreServerMessageInterface['getWorkerExecutionDetails']>
+      }) as ReturnType<
+        PlatformServerMessageInterface['getWorkerExecutionDetails']
+      >
     },
     getAppUIbundle(appIdentifier, uiName) {
       return emitWithAck('GET_APP_UI_BUNDLE', {
         appIdentifier,
         uiName,
-      }) as ReturnType<CoreServerMessageInterface['getAppUIbundle']>
+      }) as ReturnType<PlatformServerMessageInterface['getAppUIbundle']>
     },
     saveLogEntry(entry) {
       return emitWithAck('SAVE_LOG_ENTRY', entry) as ReturnType<
-        CoreServerMessageInterface['saveLogEntry']
+        PlatformServerMessageInterface['saveLogEntry']
       >
     },
     getContentSignedUrls(requests) {
       return emitWithAck('GET_CONTENT_SIGNED_URLS', { requests }) as ReturnType<
-        CoreServerMessageInterface['getContentSignedUrls']
+        PlatformServerMessageInterface['getContentSignedUrls']
       >
     },
     getMetadataSignedUrls(requests) {
       return emitWithAck('GET_METADATA_SIGNED_URLS', {
         requests,
-      }) as ReturnType<CoreServerMessageInterface['getMetadataSignedUrls']>
+      }) as ReturnType<PlatformServerMessageInterface['getMetadataSignedUrls']>
     },
     updateContentMetadata(updates, taskId) {
       return emitWithAck('UPDATE_CONTENT_METADATA', {
         taskId,
         updates,
-      }) as ReturnType<CoreServerMessageInterface['updateContentMetadata']>
+      }) as ReturnType<PlatformServerMessageInterface['updateContentMetadata']>
     },
     completeHandleTask(taskId) {
       return emitWithAck('COMPLETE_HANDLE_TASK', taskId) as ReturnType<
-        CoreServerMessageInterface['completeHandleTask']
+        PlatformServerMessageInterface['completeHandleTask']
       >
     },
     attemptStartHandleTaskById(taskId: string, taskHandlerId?: string) {
       return emitWithAck('ATTEMPT_START_HANDLE_TASK_BY_ID', {
         taskId,
         taskHandlerId,
-      }) as ReturnType<CoreServerMessageInterface['attemptStartHandleTaskById']>
+      }) as ReturnType<
+        PlatformServerMessageInterface['attemptStartHandleTaskById']
+      >
     },
     attemptStartHandleTask(taskIdentifiers: string[]) {
       return emitWithAck('ATTEMPT_START_HANDLE_TASK', {
         taskIdentifiers,
-      }) as ReturnType<CoreServerMessageInterface['attemptStartHandleTask']>
+      }) as ReturnType<PlatformServerMessageInterface['attemptStartHandleTask']>
     },
     failHandleTask(taskId, error) {
       return emitWithAck('FAIL_HANDLE_TASK', { taskId, error }) as ReturnType<
-        CoreServerMessageInterface['failHandleTask']
+        PlatformServerMessageInterface['failHandleTask']
       >
     },
   }
@@ -190,12 +194,12 @@ export interface SerializeableRequest {
 
 export type RequestHandler = (
   request: Request,
-  { serverClient }: { serverClient: CoreServerMessageInterface },
+  { serverClient }: { serverClient: PlatformServerMessageInterface },
 ) => Promise<SerializeableResponse> | SerializeableResponse
 
 export type TaskHandler = (
   task: AppTask,
-  { serverClient }: { serverClient: CoreServerMessageInterface },
+  { serverClient }: { serverClient: PlatformServerMessageInterface },
 ) => Promise<undefined> | undefined
 
 export const sendResponse = (

@@ -2,8 +2,8 @@ import { configureEventsTableColumns } from '@/src/components/events-table-colum
 
 export const serverEventsTableColumns = configureEventsTableColumns({
   getLinkTo: (event) => `/server/events/${event.id}`,
-  eventKeyTitle: 'Event Key',
-  showEmitterSubtext: true,
+  eventIdentifierTitle: 'Event Identifier',
+  showActorSubtext: true,
   folderObjectColumnTitle: 'Folder / Object',
   showFolderInFolderObjectColumn: true,
 })

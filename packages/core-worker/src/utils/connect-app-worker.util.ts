@@ -1,6 +1,6 @@
 import type {
   AppTask,
-  CoreServerMessageInterface,
+  PlatformServerMessageInterface,
 } from '@stellariscloud/app-worker-sdk/src/app-worker-sdk'
 import {
   AppAPIError,
@@ -19,7 +19,10 @@ export const connectAndPerformWork = (
   appToken: string,
   taskHandlers: Record<
     string,
-    (task: AppTask, serverClient: CoreServerMessageInterface) => Promise<void>
+    (
+      task: AppTask,
+      serverClient: PlatformServerMessageInterface,
+    ) => Promise<void>
   >,
   onConnect: () => Promise<void>,
 ) => {

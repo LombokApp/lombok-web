@@ -1,5 +1,5 @@
 import type { EventDTO, FolderGetResponse } from '@stellariscloud/types'
-import { FolderPushMessage } from '@stellariscloud/types'
+import { FolderPushMessage, PLATFORM_IDENTIFIER } from '@stellariscloud/types'
 import {
   Card,
   CardContent,
@@ -36,7 +36,7 @@ const EventCard = ({
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div className="font-semibold group-hover:text-primary">
-                {event.eventKey}
+                {event.eventIdentifier}
               </div>
             </div>
             <div className="text-xs text-muted-foreground">
@@ -56,8 +56,8 @@ const EventCard = ({
           <div className="mt-1 flex gap-1 text-xs text-muted-foreground">
             <div>Source:</div>
             <div className="font-mono">
-              {event.emitterIdentifier === 'core'
-                ? 'core'
+              {event.emitterIdentifier === PLATFORM_IDENTIFIER
+                ? PLATFORM_IDENTIFIER
                 : `app:${event.emitterIdentifier.split(':').at(-1)?.toLowerCase()}`}
             </div>
           </div>

@@ -1,9 +1,9 @@
 import type { TaskInputData } from '@stellariscloud/types'
 import { getApp } from 'src/shared/app-helper'
 
-import type { CoreTaskInputData } from './services/core-task.service'
-import { CoreTaskService } from './services/core-task.service'
-import type { CoreTaskName } from './task.constants'
+import type { PlatformTaskInputData } from './services/platform-task.service'
+import { PlatformTaskService } from './services/platform-task.service'
+import type { PlatformTaskName } from './task.constants'
 
 export class ProcessorError extends Error {
   constructor(
@@ -14,8 +14,8 @@ export class ProcessorError extends Error {
   }
 }
 
-export abstract class BaseProcessor<K extends CoreTaskName> {
-  constructor(private readonly coreTaskName: K) {
+export abstract class BaseProcessor<K extends PlatformTaskName> {
+  constructor(private readonly platformTaskName: K) {
     // defer the init so the app is created first
     setTimeout(() => void this.registerProcessor(), 100)
   }
@@ -24,7 +24,7 @@ export abstract class BaseProcessor<K extends CoreTaskName> {
     return this.run(inputData as never)
   }
 
-  abstract run(inputData: CoreTaskInputData<K>): Promise<void>
+  abstract run(inputData: PlatformTaskInputData<K>): Promise<void>
 
   async registerProcessor() {
     const app = await getApp()
@@ -33,7 +33,7 @@ export abstract class BaseProcessor<K extends CoreTaskName> {
       console.log('App did not exist when registering processor.')
       return
     }
-    const coreTaskService = await app.resolve(CoreTaskService)
-    coreTaskService.registerProcessor(this.coreTaskName, this)
+    const platformTaskService = await app.resolve(PlatformTaskService)
+    platformTaskService.registerProcessor(this.platformTaskName, this)
   }
 }

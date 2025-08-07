@@ -15,7 +15,9 @@ import type {
   ExternalAppWorker,
 } from '@stellariscloud/types'
 import {
+  APP_NS_PREFIX,
   appConfigSchema,
+  CORE_APP_IDENTIFIER,
   metadataEntrySchema,
   SignedURLsRequestMethod,
   workerErrorDetailsSchema,
@@ -41,8 +43,6 @@ import path from 'path'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { SessionService } from 'src/auth/services/session.service'
 import { KVService } from 'src/cache/kv.service'
-import { readDirRecursive } from 'src/core/utils/fs.util'
-import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { RUN_WORKER_SCRIPT_TASK_KEY } from 'src/event/services/event.service'
 import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
 import { foldersTable } from 'src/folders/entities/folder.entity'
@@ -52,6 +52,8 @@ import { FolderService } from 'src/folders/services/folder.service'
 import { LogEntryLevel } from 'src/log/entities/log-entry.entity'
 import { LogEntryService } from 'src/log/services/log-entry.service'
 import { OrmService } from 'src/orm/orm.service'
+import { readDirRecursive } from 'src/platform/utils/fs.util'
+import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
 import { uploadFile } from 'src/shared/utils'
 import { APP_WORKER_INFO_CACHE_KEY_PREFIX } from 'src/socket/app/app-socket.service'
@@ -73,8 +75,6 @@ import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirem
 
 const MAX_APP_FILE_SIZE = 1024 * 1024 * 16
 const MAX_APP_TOTAL_SIZE = 1024 * 1024 * 32
-
-export const APP_NS_PREFIX = 'app:'
 
 export type MetadataUploadUrlsResponse = {
   folderId: string
@@ -224,7 +224,8 @@ export class AppService {
     if (safeZodParse(message, AppSocketAPIRequest)) {
       const requestData = message.data
       const appIdentifierPrefixed = `${APP_NS_PREFIX}${requestingAppIdentifier.toLowerCase()}`
-      const isCoreApp = appIdentifierPrefixed === `${APP_NS_PREFIX}core`
+      const isCoreApp =
+        appIdentifierPrefixed === `${APP_NS_PREFIX}${CORE_APP_IDENTIFIER}`
       switch (message.name) {
         case 'SAVE_LOG_ENTRY':
           if (safeZodParse(requestData, logEntrySchema)) {
@@ -517,7 +518,7 @@ export class AppService {
         case 'GET_WORKER_EXECUTION_DETAILS': {
           if (safeZodParse(requestData, getWorkerExecutionDetailsSchema)) {
             // verify the app is the installed "core" app, and that the specified worker payload exists and is specified in the config
-            if (requestingAppIdentifier !== 'core') {
+            if (requestingAppIdentifier !== CORE_APP_IDENTIFIER) {
               // must be "core" app to access app worker payloads
               return {
                 result: undefined,
@@ -769,6 +770,7 @@ export class AppService {
     {
       folderId: string
       objectKey: string
+      method: SignedURLsRequestMethod
       url: string
     }[]
   > {
@@ -835,6 +837,7 @@ export class AppService {
 
     return signedUrls.map((signedUrl) => ({
       url: signedUrl.url,
+      method: signedUrl.method,
       folderId: signedUrl.folderId,
       objectKey: signedUrl.objectKey,
     }))
@@ -845,7 +848,7 @@ export class AppService {
     requestData: { appIdentifier: string; uiName: string },
   ) {
     // verify the app is the installed "core" app
-    if (requestingAppIdentifier !== 'core') {
+    if (requestingAppIdentifier !== CORE_APP_IDENTIFIER) {
       // must be "core" app to access app UI bundles
       return {
         result: undefined,

@@ -10,16 +10,18 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import {
-  CoreEvent,
+  APP_NS_PREFIX,
   FolderPushMessage,
+  PLATFORM_IDENTIFIER,
+  PlatformEvent,
   TaskInputData,
 } from '@stellariscloud/types'
 import { and, arrayContains, count, eq, ilike, or, SQL } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
-import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
+import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { type NewTask, tasksTable } from 'src/task/entities/task.entity'
 import { User } from 'src/users/entities/user.entity'
@@ -31,16 +33,15 @@ import { eventsTable } from '../entities/event.entity'
 export enum EventSort {
   CreatedAtAsc = 'createdAt-asc',
   CreatedAtDesc = 'createdAt-desc',
-  EventKeyAsc = 'eventKey-asc',
-  EventKeyDesc = 'eventKey-desc',
+  EventIdentifierAsc = 'eventIdentifier-asc',
+  EventIdentifierDesc = 'eventIdentifier-desc',
   EmitterIdentifierAsc = 'emitterIdentifier-asc',
   EmitterIdentifierDesc = 'emitterIdentifier-desc',
   ObjectKeyAsc = 'objectKey-asc',
   ObjectKeyDesc = 'objectKey-desc',
 }
 
-export const APP_NS_PREFIX = 'app:'
-export const RUN_WORKER_SCRIPT_TASK_KEY = 'RUN_WORKER_SCRIPT'
+export const RUN_WORKER_SCRIPT_TASK_KEY = 'run_worker_script'
 
 @Injectable()
 export class EventService {
@@ -66,13 +67,13 @@ export class EventService {
 
   async emitEvent({
     emitterIdentifier,
-    eventKey,
+    eventIdentifier,
     data,
     subjectContext,
     userId,
   }: {
-    emitterIdentifier: string // "core" for internally emitted events, and "app:<appIdentifier>" for app emitted events
-    eventKey: CoreEvent | string
+    emitterIdentifier: 'platform' | `${typeof APP_NS_PREFIX}${string}`
+    eventIdentifier: PlatformEvent | string
     data: unknown
     subjectContext?: { folderId: string; objectKey?: string }
     userId?: string
@@ -80,7 +81,7 @@ export class EventService {
     const now = new Date()
 
     const isAppEmitter = emitterIdentifier.startsWith(APP_NS_PREFIX)
-    const isCoreEmitter = emitterIdentifier === 'core'
+    const isPlatformEmitter = emitterIdentifier === PLATFORM_IDENTIFIER
     const appIdentifier = isAppEmitter
       ? emitterIdentifier.slice(APP_NS_PREFIX.length)
       : undefined
@@ -96,11 +97,11 @@ export class EventService {
     }
 
     const authorized = !!(
-      isCoreEmitter || app?.config.emittableEvents.includes(eventKey)
+      isPlatformEmitter || app?.config.emittableEvents.includes(eventIdentifier)
     )
 
     // console.log('emitEvent:', {
-    //   eventKey,
+    //   eventIdentifier,
     //   emitterIdentifier,
     //   data,
     //   authorized,
@@ -116,7 +117,7 @@ export class EventService {
         .values([
           {
             id: uuidV4(),
-            eventKey,
+            eventIdentifier,
             emitterIdentifier,
             subjectFolderId: subjectContext?.folderId,
             subjectObjectKey: subjectContext?.objectKey,
@@ -138,7 +139,7 @@ export class EventService {
 
       // regular event, so we should lookup apps that have subscribed to this event
       const subscribedApps = await this.ormService.db.query.appsTable.findMany({
-        where: arrayContains(appsTable.subscribedEvents, [eventKey]),
+        where: arrayContains(appsTable.subscribedEvents, [eventIdentifier]),
         limit: 100, // TODO: manage this limit somehow
       })
 
@@ -151,7 +152,8 @@ export class EventService {
               if (
                 taskDefinition.triggers?.find(
                   (trigger) =>
-                    trigger.type === 'event' && trigger.event === eventKey,
+                    trigger.type === 'event' &&
+                    trigger.event === eventIdentifier,
                 )
               ) {
                 const isWorkerExecutedTask = !!taskDefinition.worker?.length
@@ -171,9 +173,9 @@ export class EventService {
                   updatedAt: now,
                   workerIdentifier: taskDefinition.worker,
                 })
-                // The RUN_WORKER_SCRIPT task (only if above task is worker based)
+                // The run_worker_script task (only if above task is worker based)
                 if (isWorkerExecutedTask) {
-                  // Load the app that implements the RUN_WORKER_SCRIPT task
+                  // Load the app that implements the run_worker_script task
                   const workerScriptRunnerApp =
                     await this.appService.getWorkerScriptRunnerApp()
                   const runWorkerScriptOwnerIdentifier = workerScriptRunnerApp
@@ -349,7 +351,7 @@ export class EventService {
     if (search) {
       conditions.push(
         or(
-          ilike(eventsTable.eventKey, `%${search}%`),
+          ilike(eventsTable.eventIdentifier, `%${search}%`),
           ilike(eventsTable.emitterIdentifier, `%${search}%`),
         ),
       )

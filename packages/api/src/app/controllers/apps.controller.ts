@@ -18,7 +18,7 @@ import express from 'express'
 import { AppService } from 'src/app/services/app.service'
 import { LoginResponse } from 'src/auth/dto/responses/login-response.dto'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
-import { normalizeSortParam } from 'src/core/utils/sort.util'
+import { normalizeSortParam } from 'src/platform/utils/sort.util'
 
 import { AppsListQueryParamsDTO } from '../dto/apps-list-query-params.dto'
 import { AppGetResponse } from '../dto/responses/app-get-response.dto'

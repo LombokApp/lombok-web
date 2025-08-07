@@ -1,5 +1,5 @@
 import { UserStorageProvisionTypeEnum } from '@stellariscloud/types'
-import { CoreTaskService } from 'src/task/services/core-task.service'
+import { PlatformTaskService } from 'src/task/services/platform-task.service'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
@@ -285,7 +285,8 @@ describe('Folders', () => {
     expect(folderGetResponse.response.status).toEqual(200)
     expect(folderGetResponse.data?.folder.id).toEqual(testFolder.folder.id)
 
-    const coreTaskService = await testModule?.app.resolve(CoreTaskService)
+    const platformTaskService =
+      await testModule?.app.resolve(PlatformTaskService)
 
     await reindexTestFolder({
       accessToken,
@@ -294,7 +295,7 @@ describe('Folders', () => {
     })
 
     // wait to see that a job was run (we know it's our job)
-    await waitForTrue(() => coreTaskService?.runningTasksCount === 0, {
+    await waitForTrue(() => platformTaskService?.runningTasksCount === 0, {
       retryPeriod: 100,
       maxRetries: 10,
     })

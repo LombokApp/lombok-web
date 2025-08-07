@@ -20,7 +20,7 @@ import { usersTable } from 'src/users/entities/user.entity'
 import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
 
-import { coreConfig } from '../../core/config'
+import { platformConfig } from '../../platform/config'
 
 const ALGORITHM = 'HS256'
 
@@ -110,8 +110,10 @@ export class JWTService {
   constructor(
     @Inject(authConfig.KEY)
     private readonly _authConfig: nestjsConfig.ConfigType<typeof authConfig>,
-    @Inject(coreConfig.KEY)
-    private readonly _coreConfig: nestjsConfig.ConfigType<typeof coreConfig>,
+    @Inject(platformConfig.KEY)
+    private readonly _platformConfig: nestjsConfig.ConfigType<
+      typeof platformConfig
+    >,
     private readonly ormService: OrmService,
   ) {}
 
@@ -119,7 +121,7 @@ export class JWTService {
   async createAppWorkerToken(appIdentifier: string) {
     return jwt.sign(
       {
-        aud: this._coreConfig.hostId,
+        aud: this._platformConfig.hostId,
         jti: `${uuidV4()}`,
         scp: [],
         sub: `${APP_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
@@ -134,7 +136,7 @@ export class JWTService {
 
   async createSessionAccessToken(session: Session): Promise<string> {
     const payload: AccessTokenJWT = {
-      aud: this._coreConfig.hostId,
+      aud: this._platformConfig.hostId,
       jti: `${session.id}:${uuidV4()}`,
       scp: [],
       sub: `${USER_JWT_SUB_PREFIX}${session.userId}`,
@@ -163,7 +165,7 @@ export class JWTService {
     appIdentifier: string,
   ): Promise<string> {
     const payload: AccessTokenJWT = {
-      aud: this._coreConfig.hostId,
+      aud: this._platformConfig.hostId,
       jti: `${session.id}:${uuidV4()}`,
       scp: [],
       sub: `${APP_USER_JWT_SUB_PREFIX}${session.userId}:${appIdentifier}`,
@@ -191,7 +193,7 @@ export class JWTService {
     try {
       return jwt.verify(token, this._authConfig.authJwtSecret, {
         algorithms: [ALGORITHM],
-        audience: this._coreConfig.hostId,
+        audience: this._platformConfig.hostId,
       }) as JwtPayload
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
@@ -263,7 +265,7 @@ export class JWTService {
     try {
       return jwt.verify(token, this._authConfig.authJwtSecret, {
         algorithms: [ALGORITHM],
-        audience: this._coreConfig.hostId,
+        audience: this._platformConfig.hostId,
         subject: `${APP_WORKER_JWT_SUB_PREFIX}${appIdentifier}`,
       }) as JwtPayload
     } catch (error) {

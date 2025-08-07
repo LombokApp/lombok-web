@@ -27,7 +27,7 @@ CREATE TABLE "session" (
 --> statement-breakpoint
 CREATE TABLE "events" (
 	"id" uuid PRIMARY KEY NOT NULL,
-	"eventKey" text NOT NULL,
+	"eventIdentifier" text NOT NULL,
 	"emitterIdentifier" text NOT NULL,
 	"userId" text,
 	"subjectFolderId" uuid,

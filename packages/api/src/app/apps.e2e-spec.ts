@@ -1,3 +1,4 @@
+import { CORE_APP_IDENTIFIER } from '@stellariscloud/types'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import { buildTestModule, createTestUser } from 'src/test/test.util'
 
@@ -52,7 +53,7 @@ describe('Apps', () => {
       password: '123',
     })
 
-    const appIdentifier = 'core'
+    const appIdentifier = CORE_APP_IDENTIFIER
     const generateTokenResponse = await apiClient(accessToken).POST(
       `/api/v1/server/apps/{appIdentifier}/user-access-token`,
       {

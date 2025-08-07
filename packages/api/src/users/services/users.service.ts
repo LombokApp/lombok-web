@@ -1,8 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { and, eq, ilike, or, SQL, sql } from 'drizzle-orm'
 import { authHelper } from 'src/auth/utils/auth-helper'
-import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
 import { OrmService } from 'src/orm/orm.service'
+import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { v4 as uuidV4 } from 'uuid'
 
 import { UserCreateInputDTO } from '../dto/user-create-input.dto'

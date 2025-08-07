@@ -3,7 +3,7 @@ import { z } from 'zod'
 
 import { isBoolean, parseEnv } from '../utils/config.util'
 
-export const coreConfig = registerAs('core', () => {
+export const platformConfig = registerAs('platform', () => {
   const env = parseEnv({
     INSTALL_APPS_ON_START: z.string().refine(isBoolean).optional(),
     APP_HOST_ID: z.string(),
