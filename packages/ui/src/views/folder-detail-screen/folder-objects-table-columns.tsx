@@ -48,8 +48,8 @@ export const folderObjectsTableColumns: HideableColumnDef<FolderObjectDTO>[] = [
   {
     accessorKey: 'main',
     cell: ({ row }) => (
-      <div className="flex gap-4 overflow-hidden rounded-md">
-        <div className="flex size-32">
+      <div className="flex w-full gap-4 rounded-md">
+        <div className="flex size-32 shrink-0">
           <FolderObjectPreview
             key={row.original.objectKey}
             folderId={row.original.folderId}
@@ -59,9 +59,9 @@ export const folderObjectsTableColumns: HideableColumnDef<FolderObjectDTO>[] = [
             objectKey={row.original.objectKey}
           />
         </div>
-        <div className="flex pt-2">
-          <span className="truncate text-muted-foreground">
-            <div className="text-base">{row.original.objectKey}</div>
+        <div className="flex min-w-0 flex-1 pt-2">
+          <div className="flex min-w-0 flex-1 flex-col gap-2 text-muted-foreground">
+            <div className="truncate">{row.original.objectKey}</div>
             <div className="flex items-center gap-1 font-mono">
               <div>{row.original.mimeType}</div>
               <div className="flex items-center gap-1 text-xs opacity-30">
@@ -69,7 +69,7 @@ export const folderObjectsTableColumns: HideableColumnDef<FolderObjectDTO>[] = [
                 {row.original.mediaType}
               </div>
             </div>
-          </span>
+          </div>
         </div>
       </div>
     ),

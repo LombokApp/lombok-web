@@ -42,7 +42,11 @@ export const foldersTableColumns: HideableColumnDef<{
         title="Created"
       />
     ),
-    cell: ({ row }) => <DateDisplay date={row.original.folder.createdAt} />,
+    cell: ({ row }) => (
+      <div className="text-xs">
+        <DateDisplay date={row.original.folder.createdAt} />
+      </div>
+    ),
     enableSorting: true,
     enableHiding: false,
   },
@@ -55,7 +59,11 @@ export const foldersTableColumns: HideableColumnDef<{
         title="Updated"
       />
     ),
-    cell: ({ row }) => <DateDisplay date={row.original.folder.updatedAt} />,
+    cell: ({ row }) => (
+      <div className="text-xs">
+        <DateDisplay date={row.original.folder.updatedAt} />
+      </div>
+    ),
     enableSorting: true,
     enableHiding: false,
   },

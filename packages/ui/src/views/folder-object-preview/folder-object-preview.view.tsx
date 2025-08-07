@@ -118,7 +118,7 @@ export const FolderObjectPreview = ({
               <img
                 className={cn(
                   !isCoverView
-                    ? 'max-w-min max-h-min'
+                    ? 'h-full max-w-min max-h-min'
                     : 'max-w-full max-h-full',
                   displayMode,
                 )}
@@ -128,7 +128,16 @@ export const FolderObjectPreview = ({
             </div>
           ) : mediaType === MediaType.Video ? (
             <div className="flex size-full justify-center">
-              <VideoPlayer className={displayMode} controls src={dataURL} />
+              <VideoPlayer
+                className={cn(
+                  !isCoverView
+                    ? 'h-full max-w-min max-h-min'
+                    : 'max-w-full max-h-full',
+                  displayMode,
+                )}
+                controls
+                src={dataURL}
+              />
             </div>
           ) : mediaType === MediaType.Audio ? (
             <div className="flex size-full items-center justify-center p-4">

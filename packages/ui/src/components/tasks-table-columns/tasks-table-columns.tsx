@@ -37,7 +37,7 @@ export function configureTasksTableColumns(
         />
       ),
       cell: ({ row }) => (
-        <div>
+        <div className="min-w-min shrink-0">
           <ActorFeedback
             emitterIdentifier={row.original.ownerIdentifier}
             title={row.original.taskIdentifier}
@@ -74,7 +74,7 @@ export function configureTasksTableColumns(
         }
 
         return (
-          <div className="flex flex-col gap-1">
+          <div className="flex max-w-80 flex-col gap-1">
             {config.showFolderInFolderObjectColumn && hasFolder && (
               <div className="truncate font-medium">
                 {task.subjectContext?.folderName ||

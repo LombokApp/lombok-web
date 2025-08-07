@@ -162,7 +162,7 @@ export const FolderObjectDetailScreen = ({
           className="flex max-w-full flex-col lg:w-1/2 xl:flex-1"
           key={displayObjectKey}
         >
-          <div className="flex items-center justify-between pb-2 pr-0 lg:pr-4">
+          <div className="flex items-start justify-between pb-2 pr-0 lg:pr-4">
             <div className="pl-2">
               <TypographyH3>{objectKey}</TypographyH3>
             </div>
