@@ -7,7 +7,7 @@ import postgres from 'postgres'
 
 import { appsTable } from '../app/entities/app.entity'
 import { sessionsTable } from '../auth/entities/session.entity'
-import { eventsTable } from '../event/entities/event.entity'
+import { eventsRelations, eventsTable } from '../event/entities/event.entity'
 import {
   foldersRelations,
   foldersTable,
@@ -17,10 +17,13 @@ import {
   folderSharesRelations,
   folderSharesTable,
 } from '../folders/entities/folder-share.entity'
-import { logEntriesTable } from '../log/entities/log-entry.entity'
+import {
+  logEntriesRelations,
+  logEntriesTable,
+} from '../log/entities/log-entry.entity'
 import { serverSettingsTable } from '../server/entities/server-configuration.entity'
 import { storageLocationsTable } from '../storage/entities/storage-location.entity'
-import { tasksTable } from '../task/entities/task.entity'
+import { tasksRelations, tasksTable } from '../task/entities/task.entity'
 import { usersTable } from '../users/entities/user.entity'
 import { ormConfig } from './config'
 
@@ -35,8 +38,11 @@ export const dbSchema = {
   folderObjectsTable,
   appsTable,
   eventsTable,
+  eventsRelations,
   logEntriesTable,
+  logEntriesRelations,
   tasksTable,
+  tasksRelations,
   folderSharesTable,
 }
 

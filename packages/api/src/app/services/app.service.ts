@@ -49,7 +49,7 @@ import { foldersTable } from 'src/folders/entities/folder.entity'
 import { folderObjectsTable } from 'src/folders/entities/folder-object.entity'
 import { FolderNotFoundException } from 'src/folders/exceptions/folder-not-found.exception'
 import { FolderService } from 'src/folders/services/folder.service'
-import { LogLevel } from 'src/log/entities/log-entry.entity'
+import { LogEntryLevel } from 'src/log/entities/log-entry.entity'
 import { LogEntryService } from 'src/log/services/log-entry.service'
 import { OrmService } from 'src/orm/orm.service'
 import { ServerConfigurationService } from 'src/server/services/server-configuration.service'
@@ -83,10 +83,9 @@ export type MetadataUploadUrlsResponse = {
 }[]
 
 const logEntrySchema = z.object({
-  name: z.string(),
   message: z.string(),
-  level: z.string(),
-  locationContext: z
+  level: z.nativeEnum(LogEntryLevel),
+  subjectContext: z
     .object({
       folderId: z.string(),
       objectKey: z.string().optional(),
@@ -233,8 +232,8 @@ export class AppService {
               emitterIdentifier: `${APP_NS_PREFIX}${requestingAppIdentifier}`,
               logMessage: requestData.message,
               data: requestData.data,
-              level: LogLevel.INFO, // TODO: translate app log level to event level
-              locationContext: requestData.locationContext,
+              level: requestData.level,
+              subjectContext: requestData.subjectContext,
             })
             return {
               result: undefined,
@@ -244,7 +243,7 @@ export class AppService {
             error: {
               code: 400,
               message: 'Invalid request.',
-              details: logEntrySchema.safeParse(requestData).error,
+              details: logEntrySchema.safeParse(requestData).error?.errors,
             },
           }
 

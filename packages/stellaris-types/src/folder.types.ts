@@ -95,7 +95,7 @@ export interface S3Object {
 export interface PresignedURLResult {
   objectKey: string
   url: string
-  method: 'PUT' | 'DELETE' | 'GET'
+  method: 'PUT' | 'DELETE' | 'GET' | 'HEAD'
 }
 
 export const FolderPermissionZodEnum = z.enum([
@@ -107,3 +107,18 @@ export const FolderPermissionZodEnum = z.enum([
 ])
 export type FolderPermissionName = z.infer<typeof FolderPermissionZodEnum>
 export const FolderPermissionEnum = FolderPermissionZodEnum.Enum
+
+// Base subject context schema for logs (without folder name and owner info)
+export const baseSubjectContextSchema = z.object({
+  folderId: z.string().uuid(),
+  objectKey: z.string().optional(),
+})
+
+// Full subject context schema for events and tasks (with folder name and owner info)
+export const subjectContextSchema = baseSubjectContextSchema.extend({
+  folderName: z.string(),
+  folderOwnerId: z.string().uuid(),
+})
+
+export type BaseSubjectContext = z.infer<typeof baseSubjectContextSchema>
+export type SubjectContext = z.infer<typeof subjectContextSchema>

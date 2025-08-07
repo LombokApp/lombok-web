@@ -1,7 +1,9 @@
 import type { TaskDTO } from '../dto/task.dto'
 import type { Task } from '../entities/task.entity'
 
-export function transformTaskToDTO(task: Task): TaskDTO {
+export function transformTaskToDTO(
+  task: Task & { folder?: { name: string; ownerId: string } },
+): TaskDTO {
   return {
     id: task.id,
     ownerIdentifier: task.ownerIdentifier,
@@ -21,5 +23,14 @@ export function transformTaskToDTO(task: Task): TaskDTO {
     taskDescription: task.taskDescription,
     startedAt: task.startedAt ?? undefined,
     completedAt: task.completedAt ?? undefined,
+    subjectContext:
+      task.subjectFolderId && task.folder
+        ? {
+            folderId: task.subjectFolderId,
+            objectKey: task.subjectObjectKey ?? undefined,
+            folderName: task.folder.name,
+            folderOwnerId: task.folder.ownerId,
+          }
+        : undefined,
   }
 }

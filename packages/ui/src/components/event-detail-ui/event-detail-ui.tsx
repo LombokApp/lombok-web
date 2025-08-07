@@ -1,3 +1,4 @@
+import { useAuthContext } from '@stellariscloud/auth-utils'
 import type { EventDTO } from '@stellariscloud/types'
 import {
   Card,
@@ -7,6 +8,7 @@ import {
   CardTitle,
   cn,
 } from '@stellariscloud/ui-toolkit'
+import { Link } from 'react-router-dom'
 
 import { DateDisplay } from '@/src/components/date-display'
 
@@ -21,6 +23,9 @@ export function EventDetailUI({
   isLoading,
   isError,
 }: EventDetailUIProps) {
+  const authContext = useAuthContext()
+  const currentUserId = authContext.viewer?.id
+
   if (isLoading) {
     return (
       <div className="flex h-full flex-1 flex-col items-center justify-center">
@@ -92,6 +97,12 @@ export function EventDetailUI({
     )
   }
 
+  // Check if the current user owns the folder
+  const isFolderOwner =
+    currentUserId &&
+    eventData.subjectContext?.folderOwnerId &&
+    currentUserId === eventData.subjectContext.folderOwnerId
+
   return (
     <div className={cn('flex h-full flex-1 flex-col items-center')}>
       <div className="container flex flex-1 flex-col">
@@ -140,12 +151,12 @@ export function EventDetailUI({
                     <label className="text-sm font-medium text-muted-foreground">
                       Created At
                     </label>
-                    <p className="mt-1 font-mono text-sm">
+                    <div className="mt-1 text-sm">
                       <DateDisplay
                         date={eventData.createdAt}
-                        showTimeSince={false}
+                        showTimeSince={true}
                       />
-                    </p>
+                    </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">
@@ -155,14 +166,55 @@ export function EventDetailUI({
                       {eventData.emitterIdentifier}
                     </p>
                   </div>
-                  {eventData.locationContext?.objectKey && (
+                  {eventData.subjectContext && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
-                        Object Key
+                        Folder / Object
                       </label>
-                      <p className="mt-1 break-all font-mono text-sm">
-                        {eventData.locationContext.objectKey}
-                      </p>
+                      <div className="mt-1 space-y-1">
+                        {eventData.subjectContext.folderName &&
+                          eventData.subjectContext.folderId && (
+                            <p className="text-sm font-medium">
+                              Folder:{' '}
+                              {isFolderOwner ? (
+                                <Link
+                                  to={`/folders/${eventData.subjectContext.folderId}`}
+                                  className="text-primary hover:underline"
+                                >
+                                  {eventData.subjectContext.folderName}
+                                </Link>
+                              ) : (
+                                <span>
+                                  {eventData.subjectContext.folderName}
+                                </span>
+                              )}
+                            </p>
+                          )}
+                        {eventData.subjectContext.objectKey &&
+                          eventData.subjectContext.folderId && (
+                            <p className="text-sm text-muted-foreground">
+                              Object:{' '}
+                              {isFolderOwner ? (
+                                <Link
+                                  to={`/folders/${eventData.subjectContext.folderId}/objects/${eventData.subjectContext.objectKey}`}
+                                  className="text-primary hover:underline"
+                                >
+                                  {eventData.subjectContext.objectKey}
+                                </Link>
+                              ) : (
+                                <span>
+                                  {eventData.subjectContext.objectKey}
+                                </span>
+                              )}
+                            </p>
+                          )}
+                        {!eventData.subjectContext.folderName &&
+                          eventData.subjectContext.folderId && (
+                            <p className="font-mono text-sm text-muted-foreground">
+                              Folder ID: {eventData.subjectContext.folderId}
+                            </p>
+                          )}
+                      </div>
                     </div>
                   )}
                 </div>

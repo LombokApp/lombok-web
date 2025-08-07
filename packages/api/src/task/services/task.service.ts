@@ -51,18 +51,26 @@ export class TaskService {
   async getFolderTaskAsUser(
     actor: User,
     { folderId, taskId }: { folderId: string; taskId: string },
-  ): Promise<Task> {
+  ): Promise<Task & { folder?: { name: string; ownerId: string } }> {
     await this.folderService.getFolderAsUser(actor, folderId)
     const task = await this.ormService.db.query.tasksTable.findFirst({
       where: and(
         eq(tasksTable.id, taskId),
         eq(tasksTable.subjectFolderId, folderId),
       ),
+      with: {
+        folder: true,
+      },
     })
     if (!task) {
       throw new NotFoundException()
     }
-    return task
+    return {
+      ...task,
+      folder: task.folder
+        ? { name: task.folder.name, ownerId: task.folder.ownerId }
+        : undefined,
+    } as Task & { folder?: { name: string; ownerId: string } }
   }
 
   async listFolderTasksAsUser(
@@ -84,17 +92,28 @@ export class TaskService {
     return this.listTasks(queryParams)
   }
 
-  async getTaskAsAdmin(actor: User, taskId: string): Promise<Task> {
+  async getTaskAsAdmin(
+    actor: User,
+    taskId: string,
+  ): Promise<Task & { folder?: { name: string; ownerId: string } }> {
     if (!actor.isAdmin) {
       throw new UnauthorizedException()
     }
     const task = await this.ormService.db.query.tasksTable.findFirst({
       where: eq(tasksTable.id, taskId),
+      with: {
+        folder: true,
+      },
     })
     if (!task) {
       throw new NotFoundException()
     }
-    return task
+    return {
+      ...task,
+      folder: task.folder
+        ? { name: task.folder.name, ownerId: task.folder.ownerId }
+        : undefined,
+    } as Task & { folder?: { name: string; ownerId: string } }
   }
 
   async listTasks({
@@ -155,6 +174,9 @@ export class TaskService {
         tasksTable,
         normalizeSortParam(sort) ?? [TaskSort.CreatedAtAsc],
       ),
+      with: {
+        folder: true,
+      },
     })
 
     const tasksCountResult = await this.ormService.db
@@ -165,7 +187,12 @@ export class TaskService {
       .where(conditions.length ? and(...conditions) : undefined)
 
     return {
-      result: tasks,
+      result: tasks.map((task) => ({
+        ...task,
+        folder: task.folder
+          ? { name: task.folder.name, ownerId: task.folder.ownerId }
+          : undefined,
+      })),
       meta: { totalCount: tasksCountResult[0].count },
     }
   }

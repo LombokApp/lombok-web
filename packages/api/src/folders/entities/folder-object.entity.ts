@@ -6,6 +6,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
 
@@ -36,6 +37,10 @@ export const folderObjectsTable = pgTable(
     index('folder_objects_folder_id_media_type_idx').on(
       table.folderId,
       table.mediaType,
+    ),
+    uniqueIndex('folder_objects_folder_id_object_key_unique').on(
+      table.folderId,
+      table.objectKey,
     ),
   ],
 )

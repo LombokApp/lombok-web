@@ -1,5 +1,5 @@
 {
-  "id": "2cd23c23-5cfb-4c65-ab22-388d200db9cf",
+  "id": "2a90c0ee-71d3-4803-ab30-12cd5dec2d04",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -186,14 +186,14 @@
           "primaryKey": false,
           "notNull": false
         },
-        "folderId": {
-          "name": "folderId",
-          "type": "text",
+        "subjectFolderId": {
+          "name": "subjectFolderId",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
-        "objectKey": {
-          "name": "objectKey",
+        "subjectObjectKey": {
+          "name": "subjectObjectKey",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -212,7 +212,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "events_subjectFolderId_folders_id_fk": {
+          "name": "events_subjectFolderId_folders_id_fk",
+          "tableFrom": "events",
+          "tableTo": "folders",
+          "columnsFrom": [
+            "subjectFolderId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -341,6 +355,27 @@
             }
           ],
           "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "folder_objects_folder_id_object_key_unique": {
+          "name": "folder_objects_folder_id_object_key_unique",
+          "columns": [
+            {
+              "expression": "folderId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "objectKey",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
           "concurrently": false,
           "method": "btree",
           "with": {}
@@ -566,9 +601,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "folderId": {
-          "name": "folderId",
-          "type": "text",
+        "subjectFolderId": {
+          "name": "subjectFolderId",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -578,8 +613,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "objectKey": {
-          "name": "objectKey",
+        "subjectObjectKey": {
+          "name": "subjectObjectKey",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -598,7 +633,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "log_entries_subjectFolderId_folders_id_fk": {
+          "name": "log_entries_subjectFolderId_folders_id_fk",
+          "tableFrom": "log_entries",
+          "tableTo": "folders",
+          "columnsFrom": [
+            "subjectFolderId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

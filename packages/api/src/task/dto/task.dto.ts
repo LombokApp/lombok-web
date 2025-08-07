@@ -1,5 +1,6 @@
 import { createZodDto } from '@anatine/zod-nestjs'
 import {
+  subjectContextSchema,
   taskInputDataSchema,
   workerErrorDetailsSchema,
 } from '@stellariscloud/types'
@@ -24,6 +25,7 @@ export const taskSchema = z.object({
   completedAt: z.date().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  subjectContext: subjectContextSchema.optional(),
 })
 
 export class TaskDTO extends createZodDto(taskSchema) {}
