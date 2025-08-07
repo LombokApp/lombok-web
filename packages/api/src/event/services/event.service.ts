@@ -11,9 +11,9 @@ import {
 } from '@nestjs/common'
 import {
   APP_NS_PREFIX,
-  CoreEvent,
   FolderPushMessage,
   PLATFORM_IDENTIFIER,
+  PlatformEvent,
   TaskInputData,
 } from '@stellariscloud/types'
 import { and, arrayContains, count, eq, ilike, or, SQL } from 'drizzle-orm'
@@ -41,7 +41,7 @@ export enum EventSort {
   ObjectKeyDesc = 'objectKey-desc',
 }
 
-export const RUN_WORKER_SCRIPT_TASK_KEY = 'RUN_WORKER_SCRIPT'
+export const RUN_WORKER_SCRIPT_TASK_KEY = 'run_worker_script'
 
 @Injectable()
 export class EventService {
@@ -72,8 +72,8 @@ export class EventService {
     subjectContext,
     userId,
   }: {
-    emitterIdentifier: string // "core" for internally emitted events, and "app:<appIdentifier>" for app emitted events
-    eventIdentifier: CoreEvent | string
+    emitterIdentifier: 'platform' | `${typeof APP_NS_PREFIX}${string}`
+    eventIdentifier: PlatformEvent | string
     data: unknown
     subjectContext?: { folderId: string; objectKey?: string }
     userId?: string
@@ -81,7 +81,7 @@ export class EventService {
     const now = new Date()
 
     const isAppEmitter = emitterIdentifier.startsWith(APP_NS_PREFIX)
-    const isCoreEmitter = emitterIdentifier === PLATFORM_IDENTIFIER
+    const isPlatformEmitter = emitterIdentifier === PLATFORM_IDENTIFIER
     const appIdentifier = isAppEmitter
       ? emitterIdentifier.slice(APP_NS_PREFIX.length)
       : undefined
@@ -97,7 +97,7 @@ export class EventService {
     }
 
     const authorized = !!(
-      isCoreEmitter || app?.config.emittableEvents.includes(eventIdentifier)
+      isPlatformEmitter || app?.config.emittableEvents.includes(eventIdentifier)
     )
 
     // console.log('emitEvent:', {
@@ -173,9 +173,9 @@ export class EventService {
                   updatedAt: now,
                   workerIdentifier: taskDefinition.worker,
                 })
-                // The RUN_WORKER_SCRIPT task (only if above task is worker based)
+                // The run_worker_script task (only if above task is worker based)
                 if (isWorkerExecutedTask) {
-                  // Load the app that implements the RUN_WORKER_SCRIPT task
+                  // Load the app that implements the run_worker_script task
                   const workerScriptRunnerApp =
                     await this.appService.getWorkerScriptRunnerApp()
                   const runWorkerScriptOwnerIdentifier = workerScriptRunnerApp

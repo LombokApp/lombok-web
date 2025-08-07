@@ -8,10 +8,10 @@ import { TaskModule } from 'src/task/task.module'
 
 import { AppModule } from '../app/app.module'
 import { AuthModule } from '../auth/auth.module'
-import { ZodSerializerInterceptor } from '../platform/serializer/serializer.util'
 import { EventModule } from '../event/event.module'
 import { FoldersModule } from '../folders/folders.module'
 import { OrmModule } from '../orm/orm.module'
+import { ZodSerializerInterceptor } from '../platform/serializer/serializer.util'
 import { ServerModule } from '../server/server.module'
 import { UsersModule } from '../users/users.module'
 
@@ -35,4 +35,4 @@ import { UsersModule } from '../users/users.module'
   providers: [{ provide: APP_INTERCEPTOR, useClass: ZodSerializerInterceptor }],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
-export class CoreTestModule {}
+export class PlatformTestModule {}

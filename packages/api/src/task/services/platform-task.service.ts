@@ -10,7 +10,7 @@ import { v4 as uuidV4 } from 'uuid'
 import { BaseProcessor, ProcessorError } from '../base.processor'
 import { NewTask, tasksTable } from '../entities/task.entity'
 
-const MAX_CONCURRENT_CORE_TASKS = 10
+const MAX_CONCURRENT_PLATFORM_TASKS = 10
 
 export type PlatformTaskInputData<K extends PlatformTaskName> =
   K extends PlatformTaskName.REINDEX_FOLDER
@@ -32,28 +32,28 @@ export class PlatformTaskService {
     private readonly _folderSocketService,
   ) {}
 
-  async drainCoreTasks() {
+  async drainPlatformTasks() {
     try {
       if (this.draining) {
         return
       }
       this.draining = true
-      await this._drainCoreTasks()
+      await this._drainPlatformTasks()
     } catch (error: unknown) {
       // eslint-disable-next-line no-console
-      console.log('Error draining core tasks. Error', error)
+      console.log('Error draining platform tasks. Error', error)
     } finally {
       this.draining = false
     }
   }
 
-  private async _drainCoreTasks() {
+  private async _drainPlatformTasks() {
     const taskExecutionLimit = Math.max(
-      MAX_CONCURRENT_CORE_TASKS - this.runningTasksCount,
+      MAX_CONCURRENT_PLATFORM_TASKS - this.runningTasksCount,
       0,
     )
     if (taskExecutionLimit) {
-      const coreTasksToExecute = await this.ormService.db
+      const platformTasksToExecute = await this.ormService.db
         .select({ taskId: tasksTable.id })
         .from(tasksTable)
         .where(
@@ -64,18 +64,18 @@ export class PlatformTaskService {
         )
         .limit(taskExecutionLimit)
 
-      for (const { taskId } of coreTasksToExecute) {
-        await this.executeCoreTask(taskId)
+      for (const { taskId } of platformTasksToExecute) {
+        await this.executePlatformTask(taskId)
       }
     }
-    const unstartedCoreTasksCount = await this.unstartedCoreTaskCount()
-    if (unstartedCoreTasksCount) {
-      void this.drainCoreTasks()
+    const unstartedPlatformTasksCount = await this.unstartedPlatformTaskCount()
+    if (unstartedPlatformTasksCount) {
+      void this.drainPlatformTasks()
     }
   }
 
-  async unstartedCoreTaskCount() {
-    const [{ count: coreTaskCount }] = await this.ormService.db
+  async unstartedPlatformTaskCount() {
+    const [{ count: platformTaskCount }] = await this.ormService.db
       .select({
         count: count(),
       })
@@ -86,10 +86,10 @@ export class PlatformTaskService {
           eq(tasksTable.ownerIdentifier, PLATFORM_IDENTIFIER),
         ),
       )
-    return coreTaskCount
+    return platformTaskCount
   }
 
-  async executeCoreTask(taskId: string) {
+  async executePlatformTask(taskId: string) {
     const task = await this.ormService.db.query.tasksTable.findFirst({
       where: eq(tasksTable.id, taskId),
     })
@@ -112,7 +112,6 @@ export class PlatformTaskService {
             { task },
           )
         }
-        // console.log('Started core task!')
         // we have secured the task, so perform execution
         const processorName = task.taskIdentifier
 
@@ -184,7 +183,7 @@ export class PlatformTaskService {
 
     const event: NewEvent = {
       id: uuidV4(),
-      eventIdentifier: `TRIGGER_CORE_TASK_${taskIdentifier}`,
+      eventIdentifier: `TRIGGER_PLATFORM_TASK_${taskIdentifier}`,
       data: inputData,
       emitterIdentifier: 'platform',
       subjectFolderId: context.folderId,
@@ -220,16 +219,14 @@ export class PlatformTaskService {
       )
     }
 
-    // kickoff core task processing
-    void this.drainCoreTasks()
+    // kickoff platform task processing
+    void this.drainPlatformTasks()
   }
 
   registerProcessor = <K extends PlatformTaskName>(
     taskName: K,
-    // processorFunction: (inputData: CoreTaskInputData<K>) => Promise<void>,
     processorFunction: BaseProcessor<PlatformTaskName>,
   ) => {
-    // console.log('Registering processor for:', taskName)
     this.processors[taskName] = processorFunction
   }
 }

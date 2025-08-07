@@ -4,13 +4,13 @@
   "label": "Dev",
   "tasks": [
     {
-      "identifier": "DO_SPECIAL_THING",
+      "identifier": "do_special_thing",
       "label": "Do Special Thing",
       "description": "Do special thing for each new object.",
       "triggers": [
         {
           "type": "event",
-          "event": "CORE:OBJECT_ADDED",
+          "event": "platform:object_added",
           "inputParams": {
             "folderId": "event:folderId",
             "objectKey": "event:objectKey"
@@ -31,11 +31,13 @@
   "uis": {
     "main": {
       "description": "The main UI for the dev app",
-      "menuItems": [{
-        "label": "Videos",
-        "iconPath": "/assets/logo.png",
-        "uiName": "main"
-      }]    
+      "menuItems": [
+        {
+          "label": "Videos",
+          "iconPath": "/assets/logo.png",
+          "uiName": "main"
+        }
+      ]
     }
   },
   "emittableEvents": []

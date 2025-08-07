@@ -1,6 +1,6 @@
 import type {
   AppTask,
-  CoreServerMessageInterface,
+  PlatformServerMessageInterface,
   SerializeableResponse,
 } from '@stellariscloud/app-worker-sdk'
 import type {
@@ -86,7 +86,7 @@ export const runWorkerScript = async ({
     emptyWorkerTmpDir: true,
   },
 }: {
-  server: CoreServerMessageInterface
+  server: PlatformServerMessageInterface
   requestOrTask: Request | AppTask
   appIdentifier: string
   workerIdentifier: string

@@ -17,6 +17,7 @@ import {
   FolderPermissionEnum,
   FolderPushMessage,
   MediaType,
+  PLATFORM_IDENTIFIER,
   SignedURLsRequestMethod,
   UserStorageProvisionTypeEnum,
 } from '@stellariscloud/types'
@@ -157,8 +158,8 @@ export class FolderService {
   get folderSocketService(): FolderSocketService {
     return this._folderSocketService as FolderSocketService
   }
-  get coreTaskService(): PlatformTaskService {
-    return this._coreTaskService as PlatformTaskService
+  get platformTaskService(): PlatformTaskService {
+    return this._platformTaskService as PlatformTaskService
   }
   get s3Service(): S3Service {
     return this._s3Service as S3Service
@@ -170,7 +171,7 @@ export class FolderService {
     @Inject(forwardRef(() => FolderSocketService))
     private readonly _folderSocketService,
     @Inject(forwardRef(() => PlatformTaskService))
-    private readonly _coreTaskService,
+    private readonly _platformTaskService,
     private readonly ormService: OrmService,
     private readonly serverConfigurationService: ServerConfigurationService,
     private readonly userService: UserService,
@@ -799,7 +800,7 @@ export class FolderService {
   }
 
   queueReindexFolder(folderId: string, userId: string) {
-    return this.coreTaskService.addAsyncTask(
+    return this.platformTaskService.addAsyncTask(
       PlatformTaskName.REINDEX_FOLDER,
       {
         folderId,
@@ -1051,10 +1052,10 @@ export class FolderService {
     )
 
     await this.eventService.emitEvent({
-      emitterIdentifier: 'platform',
+      emitterIdentifier: PLATFORM_IDENTIFIER,
       eventIdentifier: previousRecord
-        ? 'CORE:OBJECT_UPDATED'
-        : 'CORE:OBJECT_ADDED',
+        ? `${PLATFORM_IDENTIFIER}:object_updated`
+        : `${PLATFORM_IDENTIFIER}:object_added`,
       subjectContext: {
         folderId: record.folderId,
         objectKey: record.objectKey,

@@ -1,6 +1,6 @@
 import type {
   AppTask,
-  CoreServerMessageInterface,
+  PlatformServerMessageInterface,
 } from '@stellariscloud/app-worker-sdk'
 import { AppAPIError } from '@stellariscloud/app-worker-sdk'
 import type { ContentMetadataEntry } from '@stellariscloud/types'
@@ -27,7 +27,7 @@ import {
 
 export const analyzeObjectTaskHandler = async (
   task: AppTask,
-  server: CoreServerMessageInterface,
+  server: PlatformServerMessageInterface,
 ) => {
   console.log('Starting work for analyze object task:', task)
   if (!task.id) {

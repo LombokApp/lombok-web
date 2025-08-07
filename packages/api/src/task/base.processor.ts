@@ -15,7 +15,7 @@ export class ProcessorError extends Error {
 }
 
 export abstract class BaseProcessor<K extends PlatformTaskName> {
-  constructor(private readonly coreTaskName: K) {
+  constructor(private readonly platformTaskName: K) {
     // defer the init so the app is created first
     setTimeout(() => void this.registerProcessor(), 100)
   }
@@ -33,7 +33,7 @@ export abstract class BaseProcessor<K extends PlatformTaskName> {
       console.log('App did not exist when registering processor.')
       return
     }
-    const coreTaskService = await app.resolve(PlatformTaskService)
-    coreTaskService.registerProcessor(this.coreTaskName, this)
+    const platformTaskService = await app.resolve(PlatformTaskService)
+    platformTaskService.registerProcessor(this.platformTaskName, this)
   }
 }

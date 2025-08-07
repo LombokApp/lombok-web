@@ -1,0 +1,36 @@
+name: Linting
+
+on:
+  push:
+    branches:
+      - '**' # matches every branch
+      - '!main' # excludes master
+  workflow_dispatch:
+
+jobs:
+  check-stellaris-types:
+    name: Check @stellariscloud/types package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun --cwd packages/stellaris-types test:unit
+  check-api:
+    name: Check @stellariscloud/api package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - run: bun install
+      - run: bun --cwd packages/api test:unit

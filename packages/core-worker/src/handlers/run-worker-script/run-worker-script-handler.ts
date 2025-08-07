@@ -1,6 +1,6 @@
 import type {
   AppTask,
-  CoreServerMessageInterface,
+  PlatformServerMessageInterface,
 } from '@stellariscloud/app-worker-sdk'
 import { AppAPIError } from '@stellariscloud/app-worker-sdk'
 import { safeZodParse } from '@stellariscloud/utils'
@@ -18,7 +18,7 @@ const runWorkerScriptTaskInputDataSchema = z.object({
 
 export const runWorkerScriptTaskHandler = async (
   runWorkerScriptTask: AppTask,
-  server: CoreServerMessageInterface,
+  server: PlatformServerMessageInterface,
 ) => {
   if (
     !safeZodParse(
@@ -65,7 +65,7 @@ export const runWorkerScriptTaskHandler = async (
         details: error.details,
       })
     } else {
-      // If it's not a worker error, report it as an internal server error for the script task and then rethrow so it fails the RUN_WORKER_SCRIPT task
+      // If it's not a worker error, report it as an internal server error for the script task and then rethrow so it fails the run_worker_script task
       await server.failHandleTask(workerScriptTask.id, {
         code: 'WORKER_EXECUTOR_ERROR',
         message:
