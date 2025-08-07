@@ -17,7 +17,7 @@ import {
 import { and, arrayContains, count, eq, ilike, or, SQL } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
-import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
+import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'

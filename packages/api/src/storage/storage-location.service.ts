@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common'
 import { accessKeyPublicSchema, accessKeySchema } from '@stellariscloud/types'
 import { and, count, countDistinct, eq, or, SQLWrapper } from 'drizzle-orm'
-import { parseSort } from 'src/core/utils/sort.util'
+import { parseSort } from 'src/platform/utils/sort.util'
 import { foldersTable } from 'src/folders/entities/folder.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { configureS3Client, S3Service } from 'src/storage/s3.service'

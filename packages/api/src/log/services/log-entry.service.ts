@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { and, count, eq, ilike, inArray, or, SQL } from 'drizzle-orm'
-import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
+import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { User } from 'src/users/entities/user.entity'

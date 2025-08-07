@@ -12,7 +12,7 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger'
 import express from 'express'
 import { AuthGuard } from 'src/auth/guards/auth.guard'
-import { normalizeSortParam } from 'src/core/utils/sort.util'
+import { normalizeSortParam } from 'src/platform/utils/sort.util'
 
 import { TaskGetResponse } from '../dto/responses/task-get-response.dto'
 import { TaskListResponse } from '../dto/responses/task-list-response.dto'

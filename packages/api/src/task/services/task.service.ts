@@ -17,7 +17,7 @@ import {
   sql,
 } from 'drizzle-orm'
 import { APP_NS_PREFIX } from 'src/app/services/app.service'
-import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
+import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
 import { AppSocketService } from 'src/socket/app/app-socket.service'

@@ -8,7 +8,7 @@ import { TaskModule } from 'src/task/task.module'
 
 import { AppModule } from '../app/app.module'
 import { AuthModule } from '../auth/auth.module'
-import { ZodSerializerInterceptor } from '../core/serializer/serializer.util'
+import { ZodSerializerInterceptor } from '../platform/serializer/serializer.util'
 import { EventModule } from '../event/event.module'
 import { FoldersModule } from '../folders/folders.module'
 import { OrmModule } from '../orm/orm.module'

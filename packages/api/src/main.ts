@@ -1,7 +1,7 @@
 import { ConsoleLogger } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 
-import { CoreModule } from './core/core.module'
+import { PlatformModule } from './platform/platform.module'
 import { appReference, setApp, setAppInitializing } from './shared/app-helper'
 import { HttpExceptionFilter } from './shared/http-exception-filter'
 
@@ -9,7 +9,7 @@ export async function buildApp() {
   if (appReference.app) {
     return appReference.app
   }
-  const creationPromise = NestFactory.create(CoreModule, {
+  const creationPromise = NestFactory.create(PlatformModule, {
     logger: new ConsoleLogger({
       prefix: 'Stellaris Cloud',
       // json: true,

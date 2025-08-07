@@ -6,7 +6,7 @@ import type { OpenAPIObject } from '@nestjs/swagger/dist/interfaces/open-api-spe
 import { ReadonlyVisitor } from '@nestjs/swagger/dist/plugin'
 import * as fs from 'fs'
 import * as path from 'path'
-import { CoreModule } from 'src/core/core.module'
+import { PlatformModule } from 'src/platform/platform.module'
 
 const generator = new PluginMetadataGenerator()
 
@@ -102,7 +102,7 @@ function compressOpenApiDocument(document: OpenAPIObject) {
 }
 
 async function main() {
-  const app = await NestFactory.create(CoreModule, { preview: true })
+  const app = await NestFactory.create(PlatformModule, { preview: true })
 
   generator.generate({
     visitors: [

@@ -41,8 +41,8 @@ import path from 'path'
 import { JWTService } from 'src/auth/services/jwt.service'
 import { SessionService } from 'src/auth/services/session.service'
 import { KVService } from 'src/cache/kv.service'
-import { readDirRecursive } from 'src/core/utils/fs.util'
-import { normalizeSortParam, parseSort } from 'src/core/utils/sort.util'
+import { readDirRecursive } from 'src/platform/utils/fs.util'
+import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { RUN_WORKER_SCRIPT_TASK_KEY } from 'src/event/services/event.service'
 import type { FolderWithoutLocations } from 'src/folders/entities/folder.entity'
 import { foldersTable } from 'src/folders/entities/folder.entity'
@@ -769,6 +769,7 @@ export class AppService {
     {
       folderId: string
       objectKey: string
+      method: SignedURLsRequestMethod
       url: string
     }[]
   > {
@@ -835,6 +836,7 @@ export class AppService {
 
     return signedUrls.map((signedUrl) => ({
       url: signedUrl.url,
+      method: signedUrl.method,
       folderId: signedUrl.folderId,
       objectKey: signedUrl.objectKey,
     }))
