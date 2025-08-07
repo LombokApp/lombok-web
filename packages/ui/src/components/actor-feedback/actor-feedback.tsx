@@ -31,14 +31,14 @@ export function ActorFeedback({
         {emitterIdentifier === 'core' || emitterIdentifier === 'app:core' ? (
           <img width={30} height={30} alt="Core" src="/stellariscloud.png" />
         ) : (
-          <span className="uppercase">
+          <span className="truncate uppercase">
             {emitterIdentifier.split(':')[1]?.[0] ?? ''}
           </span>
         )}
       </div>
 
       <div className="flex min-w-0 flex-col">
-        <div className="font-medium">{children || title}</div>
+        <div className="truncate font-medium">{children || title}</div>
         {showSubtitle && (
           <span className="truncate text-xs text-muted-foreground">
             {subtitle || emitterIdentifier}

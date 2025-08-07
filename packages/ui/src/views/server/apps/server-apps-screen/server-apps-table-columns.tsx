@@ -46,7 +46,11 @@ export const serverAppsTableColumns: HideableColumnDef<AppDTO>[] = [
         title="Description"
       />
     ),
-    cell: ({ row }) => <span>{row.original.config.description || ''}</span>,
+    cell: ({ row }) => (
+      <div className="max-w-80 truncate">
+        <span>{row.original.config.description || ''}</span>
+      </div>
+    ),
     enableSorting: false,
     enableHiding: true,
   },

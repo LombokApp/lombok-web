@@ -76,13 +76,13 @@ export function configureTasksTableColumns(
         return (
           <div className="flex flex-col gap-1">
             {config.showFolderInFolderObjectColumn && hasFolder && (
-              <div className="font-medium">
+              <div className="truncate font-medium">
                 {task.subjectContext?.folderName ||
                   task.subjectContext?.folderId}
               </div>
             )}
             {hasObject && (
-              <div className="text-sm text-muted-foreground">
+              <div className="max-w-80 truncate text-sm text-muted-foreground">
                 {task.subjectContext?.objectKey}
               </div>
             )}
@@ -120,7 +120,7 @@ export function configureTasksTableColumns(
               />
             </div>
 
-            <div className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
+            <div className="flex items-center gap-2 truncate text-xs font-normal text-muted-foreground">
               {task.completedAt
                 ? 'Complete'
                 : task.errorAt

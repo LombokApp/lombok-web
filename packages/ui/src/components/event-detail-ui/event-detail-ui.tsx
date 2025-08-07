@@ -151,10 +151,10 @@ export function EventDetailUI({
                     <label className="text-sm font-medium text-muted-foreground">
                       Created At
                     </label>
-                    <div className="mt-1 font-mono text-sm">
+                    <div className="mt-1 text-sm">
                       <DateDisplay
                         date={eventData.createdAt}
-                        showTimeSince={false}
+                        showTimeSince={true}
                       />
                     </div>
                   </div>
@@ -169,7 +169,7 @@ export function EventDetailUI({
                   {eventData.subjectContext && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
-                        Location Context
+                        Folder / Object
                       </label>
                       <div className="mt-1 space-y-1">
                         {eventData.subjectContext.folderName &&

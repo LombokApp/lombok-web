@@ -245,10 +245,10 @@ export function TaskDetailUI({
                       <label className="text-sm font-medium text-muted-foreground">
                         Created
                       </label>
-                      <div className="mt-1 font-mono text-sm">
+                      <div className="mt-1 text-sm">
                         <DateDisplay
                           date={taskData.createdAt}
-                          showTimeSince={false}
+                          showTimeSince={true}
                         />
                       </div>
                     </div>
@@ -256,10 +256,10 @@ export function TaskDetailUI({
                       <label className="text-sm font-medium text-muted-foreground">
                         Updated
                       </label>
-                      <div className="mt-1 font-mono text-sm">
+                      <div className="mt-1 text-sm">
                         <DateDisplay
                           date={taskData.updatedAt}
-                          showTimeSince={false}
+                          showTimeSince={true}
                         />
                       </div>
                     </div>
@@ -267,7 +267,7 @@ export function TaskDetailUI({
                   {taskData.subjectContext && (
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">
-                        Location Context
+                        Folder / Object
                       </label>
                       <div className="mt-1 space-y-1">
                         {taskData.subjectContext.folderName &&

@@ -117,7 +117,11 @@ export const serverLogsTableColumns: HideableColumnDef<LogEntryDTO>[] = [
       />
     ),
     cell: ({ row }) => {
-      return <DateDisplay date={row.original.createdAt} />
+      return (
+        <div className="text-xs">
+          <DateDisplay date={row.original.createdAt} />
+        </div>
+      )
     },
     enableHiding: false,
   },

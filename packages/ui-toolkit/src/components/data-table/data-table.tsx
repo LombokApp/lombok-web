@@ -195,7 +195,7 @@ export function DataTable<TData, TValue>({
                             (cell.column.columnDef as HideableColumnDef<TData>)
                               .zeroWidth
                               ? 'w-0 p-0'
-                              : `${cellPadding} max-w-0 truncate`
+                              : `${cellPadding} truncate`
                           }
                         >
                           {flexRender(

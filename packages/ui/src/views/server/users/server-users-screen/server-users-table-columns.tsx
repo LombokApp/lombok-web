@@ -87,7 +87,11 @@ export const serverUsersTableColumns: HideableColumnDef<UserDTO>[] = [
         title="Created"
       />
     ),
-    cell: ({ row }) => <DateDisplay date={row.original.createdAt} />,
+    cell: ({ row }) => (
+      <div className="text-xs">
+        <DateDisplay date={row.original.createdAt} />
+      </div>
+    ),
     enableSorting: true,
     enableHiding: false,
   },
@@ -100,7 +104,11 @@ export const serverUsersTableColumns: HideableColumnDef<UserDTO>[] = [
         title="Updated"
       />
     ),
-    cell: ({ row }) => <DateDisplay date={row.original.updatedAt} />,
+    cell: ({ row }) => (
+      <div className="text-xs">
+        <DateDisplay date={row.original.updatedAt} />
+      </div>
+    ),
     enableSorting: true,
     enableHiding: false,
   },
