@@ -16,10 +16,9 @@ import {
   SQL,
   sql,
 } from 'drizzle-orm'
-import { APP_NS_PREFIX } from 'src/app/services/app.service'
-import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
+import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { AppSocketService } from 'src/socket/app/app-socket.service'
 import type { User } from 'src/users/entities/user.entity'
 
@@ -206,13 +205,17 @@ export class TaskService {
       })
       .from(tasksTable)
       .where(
-        and(isNull(tasksTable.startedAt), isNull(tasksTable.workerIdentifier)),
+        and(
+          isNull(tasksTable.startedAt),
+          isNull(tasksTable.workerIdentifier),
+          ilike(tasksTable.ownerIdentifier, 'app:%'),
+        ),
       )
       .groupBy(tasksTable.taskIdentifier, tasksTable.ownerIdentifier)
     const pendingTasksByApp = pendingTasks.reduce<
       Record<string, Record<string, number>>
     >((acc, next) => {
-      const appIdentifier = next.ownerIdentifier.slice(APP_NS_PREFIX.length)
+      const appIdentifier = next.ownerIdentifier.split(':').slice(1).join(':')
       return {
         ...acc,
         [appIdentifier]: {

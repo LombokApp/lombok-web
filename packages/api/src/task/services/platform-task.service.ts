@@ -1,10 +1,10 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common'
-import { FolderPushMessage } from '@stellariscloud/types'
+import { FolderPushMessage, PLATFORM_IDENTIFIER } from '@stellariscloud/types'
 import { and, count, eq, isNull } from 'drizzle-orm'
 import { eventsTable, NewEvent } from 'src/event/entities/event.entity'
 import { OrmService } from 'src/orm/orm.service'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
-import { CoreTaskName } from 'src/task/task.constants'
+import { PlatformTaskName } from 'src/task/task.constants'
 import { v4 as uuidV4 } from 'uuid'
 
 import { BaseProcessor, ProcessorError } from '../base.processor'
@@ -12,16 +12,14 @@ import { NewTask, tasksTable } from '../entities/task.entity'
 
 const MAX_CONCURRENT_CORE_TASKS = 10
 
-const CORE_IDENTIFIER = 'core'
-
-export type CoreTaskInputData<K extends CoreTaskName> =
-  K extends CoreTaskName.REINDEX_FOLDER
+export type PlatformTaskInputData<K extends PlatformTaskName> =
+  K extends PlatformTaskName.REINDEX_FOLDER
     ? { folderId: string; userId: string }
     : never
 
 @Injectable()
-export class CoreTaskService {
-  processors: Record<string, BaseProcessor<CoreTaskName>> = {}
+export class PlatformTaskService {
+  processors: Record<string, BaseProcessor<PlatformTaskName>> = {}
   runningTasksCount = 0
   draining = false
 
@@ -61,7 +59,7 @@ export class CoreTaskService {
         .where(
           and(
             isNull(tasksTable.startedAt),
-            eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
+            eq(tasksTable.ownerIdentifier, PLATFORM_IDENTIFIER),
           ),
         )
         .limit(taskExecutionLimit)
@@ -85,7 +83,7 @@ export class CoreTaskService {
       .where(
         and(
           isNull(tasksTable.startedAt),
-          eq(tasksTable.ownerIdentifier, CORE_IDENTIFIER),
+          eq(tasksTable.ownerIdentifier, PLATFORM_IDENTIFIER),
         ),
       )
     return coreTaskCount
@@ -97,7 +95,7 @@ export class CoreTaskService {
     })
     if (task?.startedAt) {
       // console.log('Task already started.')
-    } else if (task?.ownerIdentifier === CORE_IDENTIFIER) {
+    } else if (task?.ownerIdentifier === PLATFORM_IDENTIFIER) {
       const startedTimestamp = new Date()
       const updateResult = await this.ormService.db
         .update(tasksTable)
@@ -177,9 +175,9 @@ export class CoreTaskService {
     }
   }
 
-  async addAsyncTask<K extends CoreTaskName>(
+  async addAsyncTask<K extends PlatformTaskName>(
     taskIdentifier: K,
-    inputData: CoreTaskInputData<K>,
+    inputData: PlatformTaskInputData<K>,
     context: { folderId?: string; objectKey?: string; userId?: string } = {},
   ) {
     const now = new Date()
@@ -188,7 +186,7 @@ export class CoreTaskService {
       id: uuidV4(),
       eventKey: `TRIGGER_CORE_TASK_${taskIdentifier}`,
       data: inputData,
-      emitterIdentifier: 'core',
+      emitterIdentifier: 'platform',
       subjectFolderId: context.folderId,
       subjectObjectKey: context.objectKey,
       userId: context.userId,
@@ -198,7 +196,7 @@ export class CoreTaskService {
     const task: NewTask = {
       id: uuidV4(),
       inputData,
-      ownerIdentifier: 'core',
+      ownerIdentifier: 'platform',
       taskDescription: `Task '${taskIdentifier}'`,
       subjectFolderId: context.folderId,
       subjectObjectKey: context.objectKey,
@@ -226,10 +224,10 @@ export class CoreTaskService {
     void this.drainCoreTasks()
   }
 
-  registerProcessor = <K extends CoreTaskName>(
+  registerProcessor = <K extends PlatformTaskName>(
     taskName: K,
     // processorFunction: (inputData: CoreTaskInputData<K>) => Promise<void>,
-    processorFunction: BaseProcessor<CoreTaskName>,
+    processorFunction: BaseProcessor<PlatformTaskName>,
   ) => {
     // console.log('Registering processor for:', taskName)
     this.processors[taskName] = processorFunction

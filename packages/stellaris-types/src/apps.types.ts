@@ -1,5 +1,8 @@
 import { z } from 'zod'
 
+export const CORE_APP_IDENTIFIER = 'core'
+export const APP_NS_PREFIX = 'app:'
+
 export interface AppTaskTrigger {
   taskIdentifier: string
   label: string

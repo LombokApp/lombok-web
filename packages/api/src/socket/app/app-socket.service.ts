@@ -1,9 +1,9 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { ModuleRef } from '@nestjs/core'
-import { ExternalAppWorker } from '@stellariscloud/types'
+import { APP_NS_PREFIX, ExternalAppWorker } from '@stellariscloud/types'
 import { safeZodParse } from '@stellariscloud/utils'
 import type { Namespace, Socket } from 'socket.io'
-import { APP_NS_PREFIX, AppService } from 'src/app/services/app.service'
+import { AppService } from 'src/app/services/app.service'
 import { KVService } from 'src/cache/kv.service'
 import { z } from 'zod'
 

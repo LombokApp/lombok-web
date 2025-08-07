@@ -39,7 +39,7 @@ export function configureTasksTableColumns(
       cell: ({ row }) => (
         <div className="min-w-min shrink-0">
           <ActorFeedback
-            emitterIdentifier={row.original.ownerIdentifier}
+            actorIdentifier={row.original.ownerIdentifier}
             title={row.original.taskIdentifier}
             showSubtitle={config.showOwnerSubtext}
             subtitle={

@@ -1,4 +1,8 @@
-import type { TaskDTO } from '@stellariscloud/types'
+import {
+  APP_NS_PREFIX,
+  PLATFORM_IDENTIFIER,
+  type TaskDTO,
+} from '@stellariscloud/types'
 import { cn } from '@stellariscloud/ui-toolkit'
 
 export function TasksListCard({ task }: { task: TaskDTO }) {
@@ -25,9 +29,9 @@ export function TasksListCard({ task }: { task: TaskDTO }) {
         </div>
         <div className="flex gap-1 opacity-50">
           <div className="opacity-60">owner:</div>
-          {task.ownerIdentifier === 'core'
-            ? 'core'
-            : `app:${task.ownerIdentifier.split(':').at(-1)?.toLowerCase()}`}
+          {task.ownerIdentifier === PLATFORM_IDENTIFIER
+            ? PLATFORM_IDENTIFIER
+            : `${APP_NS_PREFIX}${task.ownerIdentifier.split(':').at(-1)?.toLowerCase()}`}
         </div>
       </div>
     </div>

@@ -13,6 +13,7 @@ import type {
   UserStorageProvisionType,
 } from '@stellariscloud/types'
 import {
+  APP_NS_PREFIX,
   FolderPermissionEnum,
   FolderPushMessage,
   MediaType,
@@ -36,7 +37,7 @@ import {
   sql,
 } from 'drizzle-orm'
 import mime from 'mime'
-import { APP_NS_PREFIX, AppService } from 'src/app/services/app.service'
+import { AppService } from 'src/app/services/app.service'
 import { EventService } from 'src/event/services/event.service'
 import { OrmService } from 'src/orm/orm.service'
 import { parseSort } from 'src/platform/utils/sort.util'
@@ -50,8 +51,8 @@ import { StorageLocationNotFoundException } from 'src/storage/exceptions/storage
 import { configureS3Client, S3Service } from 'src/storage/s3.service'
 import { createS3PresignedUrls } from 'src/storage/s3.utils'
 import { tasksTable } from 'src/task/entities/task.entity'
-import { CoreTaskService } from 'src/task/services/core-task.service'
-import { CoreTaskName } from 'src/task/task.constants'
+import { PlatformTaskService } from 'src/task/services/platform-task.service'
+import { PlatformTaskName } from 'src/task/task.constants'
 import { type User, usersTable } from 'src/users/entities/user.entity'
 import { UserNotFoundException } from 'src/users/exceptions/user-not-found.exception'
 import { UserService } from 'src/users/services/users.service'
@@ -156,8 +157,8 @@ export class FolderService {
   get folderSocketService(): FolderSocketService {
     return this._folderSocketService as FolderSocketService
   }
-  get coreTaskService(): CoreTaskService {
-    return this._coreTaskService as CoreTaskService
+  get coreTaskService(): PlatformTaskService {
+    return this._coreTaskService as PlatformTaskService
   }
   get s3Service(): S3Service {
     return this._s3Service as S3Service
@@ -168,7 +169,7 @@ export class FolderService {
     private readonly _s3Service,
     @Inject(forwardRef(() => FolderSocketService))
     private readonly _folderSocketService,
-    @Inject(forwardRef(() => CoreTaskService))
+    @Inject(forwardRef(() => PlatformTaskService))
     private readonly _coreTaskService,
     private readonly ormService: OrmService,
     private readonly serverConfigurationService: ServerConfigurationService,
@@ -799,7 +800,7 @@ export class FolderService {
 
   queueReindexFolder(folderId: string, userId: string) {
     return this.coreTaskService.addAsyncTask(
-      CoreTaskName.REINDEX_FOLDER,
+      PlatformTaskName.REINDEX_FOLDER,
       {
         folderId,
         userId,
@@ -1050,7 +1051,7 @@ export class FolderService {
     )
 
     await this.eventService.emitEvent({
-      emitterIdentifier: 'core',
+      emitterIdentifier: 'platform',
       eventKey: previousRecord ? 'CORE:OBJECT_UPDATED' : 'CORE:OBJECT_ADDED',
       subjectContext: {
         folderId: record.folderId,

@@ -1,5 +1,5 @@
 import { UserStorageProvisionTypeEnum } from '@stellariscloud/types'
-import { CoreTaskService } from 'src/task/services/core-task.service'
+import { PlatformTaskService } from 'src/task/services/platform-task.service'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
@@ -285,7 +285,7 @@ describe('Folders', () => {
     expect(folderGetResponse.response.status).toEqual(200)
     expect(folderGetResponse.data?.folder.id).toEqual(testFolder.folder.id)
 
-    const coreTaskService = await testModule?.app.resolve(CoreTaskService)
+    const coreTaskService = await testModule?.app.resolve(PlatformTaskService)
 
     await reindexTestFolder({
       accessToken,

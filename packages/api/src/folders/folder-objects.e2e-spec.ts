@@ -1,4 +1,4 @@
-import { CoreTaskService } from 'src/task/services/core-task.service'
+import { PlatformTaskService } from 'src/task/services/platform-task.service'
 import type { TestApiClient, TestModule } from 'src/test/test.types'
 import {
   buildTestModule,
@@ -272,7 +272,8 @@ describe('Folder Objects', () => {
     })
 
     expect(testFolder.folder.id).toBeTruthy()
-    const coreTaskService = await testModule?.app.resolve(CoreTaskService)
+    const platformTaskService =
+      await testModule?.app.resolve(PlatformTaskService)
 
     await reindexTestFolder({
       accessToken,
@@ -280,7 +281,7 @@ describe('Folder Objects', () => {
       folderId: testFolder.folder.id,
     })
 
-    await waitForTrue(() => coreTaskService?.runningTasksCount === 0, {
+    await waitForTrue(() => platformTaskService?.runningTasksCount === 0, {
       retryPeriod: 100,
       maxRetries: 10,
     })

@@ -15,7 +15,9 @@ import type {
   ExternalAppWorker,
 } from '@stellariscloud/types'
 import {
+  APP_NS_PREFIX,
   appConfigSchema,
+  CORE_APP_IDENTIFIER,
   metadataEntrySchema,
   SignedURLsRequestMethod,
   workerErrorDetailsSchema,
@@ -73,8 +75,6 @@ import { AppRequirementsNotSatisfiedException } from '../exceptions/app-requirem
 
 const MAX_APP_FILE_SIZE = 1024 * 1024 * 16
 const MAX_APP_TOTAL_SIZE = 1024 * 1024 * 32
-
-export const APP_NS_PREFIX = 'app:'
 
 export type MetadataUploadUrlsResponse = {
   folderId: string
@@ -224,7 +224,8 @@ export class AppService {
     if (safeZodParse(message, AppSocketAPIRequest)) {
       const requestData = message.data
       const appIdentifierPrefixed = `${APP_NS_PREFIX}${requestingAppIdentifier.toLowerCase()}`
-      const isCoreApp = appIdentifierPrefixed === `${APP_NS_PREFIX}core`
+      const isCoreApp =
+        appIdentifierPrefixed === `${APP_NS_PREFIX}${CORE_APP_IDENTIFIER}`
       switch (message.name) {
         case 'SAVE_LOG_ENTRY':
           if (safeZodParse(requestData, logEntrySchema)) {
@@ -517,7 +518,7 @@ export class AppService {
         case 'GET_WORKER_EXECUTION_DETAILS': {
           if (safeZodParse(requestData, getWorkerExecutionDetailsSchema)) {
             // verify the app is the installed "core" app, and that the specified worker payload exists and is specified in the config
-            if (requestingAppIdentifier !== 'core') {
+            if (requestingAppIdentifier !== CORE_APP_IDENTIFIER) {
               // must be "core" app to access app worker payloads
               return {
                 result: undefined,
@@ -847,7 +848,7 @@ export class AppService {
     requestData: { appIdentifier: string; uiName: string },
   ) {
     // verify the app is the installed "core" app
-    if (requestingAppIdentifier !== 'core') {
+    if (requestingAppIdentifier !== CORE_APP_IDENTIFIER) {
       // must be "core" app to access app UI bundles
       return {
         result: undefined,

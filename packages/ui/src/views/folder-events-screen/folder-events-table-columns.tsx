@@ -4,7 +4,7 @@ export const folderEventsTableColumns = configureEventsTableColumns({
   getLinkTo: (event) =>
     `/folders/${event.subjectContext?.folderId}/events/${event.id}`,
   eventKeyTitle: 'Event',
-  showEmitterSubtext: true,
+  showActorSubtext: true,
   folderObjectColumnTitle: 'Object',
   showFolderInFolderObjectColumn: false,
 })

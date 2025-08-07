@@ -1,3 +1,3 @@
-export enum CoreTaskName {
+export enum PlatformTaskName {
   REINDEX_FOLDER = 'REINDEX_FOLDER',
 }

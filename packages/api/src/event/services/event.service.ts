@@ -10,16 +10,18 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import {
+  APP_NS_PREFIX,
   CoreEvent,
   FolderPushMessage,
+  PLATFORM_IDENTIFIER,
   TaskInputData,
 } from '@stellariscloud/types'
 import { and, arrayContains, count, eq, ilike, or, SQL } from 'drizzle-orm'
 import { appsTable } from 'src/app/entities/app.entity'
 import { AppService } from 'src/app/services/app.service'
-import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { FolderService } from 'src/folders/services/folder.service'
 import { OrmService } from 'src/orm/orm.service'
+import { normalizeSortParam, parseSort } from 'src/platform/utils/sort.util'
 import { FolderSocketService } from 'src/socket/folder/folder-socket.service'
 import { type NewTask, tasksTable } from 'src/task/entities/task.entity'
 import { User } from 'src/users/entities/user.entity'
@@ -39,7 +41,6 @@ export enum EventSort {
   ObjectKeyDesc = 'objectKey-desc',
 }
 
-export const APP_NS_PREFIX = 'app:'
 export const RUN_WORKER_SCRIPT_TASK_KEY = 'RUN_WORKER_SCRIPT'
 
 @Injectable()
@@ -80,7 +81,7 @@ export class EventService {
     const now = new Date()
 
     const isAppEmitter = emitterIdentifier.startsWith(APP_NS_PREFIX)
-    const isCoreEmitter = emitterIdentifier === 'core'
+    const isCoreEmitter = emitterIdentifier === PLATFORM_IDENTIFIER
     const appIdentifier = isAppEmitter
       ? emitterIdentifier.slice(APP_NS_PREFIX.length)
       : undefined

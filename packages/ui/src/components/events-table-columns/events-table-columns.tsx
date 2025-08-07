@@ -9,7 +9,7 @@ import { TableLinkColumn } from '@/src/components/table-link-column/table-link-c
 interface EventsTableColumnsConfig {
   getLinkTo: (event: EventDTO) => string
   eventKeyTitle?: string
-  showEmitterSubtext?: boolean
+  showActorSubtext?: boolean
   folderObjectColumnTitle?: string
   showFolderInFolderObjectColumn?: boolean
 }
@@ -37,9 +37,10 @@ export function configureEventsTableColumns(
       ),
       cell: ({ row }) => (
         <ActorFeedback
-          emitterIdentifier={row.original.emitterIdentifier}
+          actorIdentifier={row.original.emitterIdentifier}
           title={row.getValue('eventKey')}
-          showSubtitle={config.showEmitterSubtext}
+          showSubtitle={config.showActorSubtext}
+          subtitle={`emitted by: ${row.original.emitterIdentifier}`}
         />
       ),
       enableSorting: true,

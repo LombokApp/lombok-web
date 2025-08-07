@@ -1,7 +1,9 @@
+import { PLATFORM_IDENTIFIER } from '@stellariscloud/types'
+
 import { invertColour, stringToColour } from '@/src/utils/colors'
 
 interface ActorFeedbackProps {
-  emitterIdentifier: string
+  actorIdentifier: string
   title: string
   showSubtitle?: boolean
   subtitle?: string
@@ -9,7 +11,7 @@ interface ActorFeedbackProps {
 }
 
 export function ActorFeedback({
-  emitterIdentifier,
+  actorIdentifier,
   title,
   showSubtitle = false,
   subtitle,
@@ -20,19 +22,19 @@ export function ActorFeedback({
       <div
         className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full"
         style={{
-          background: emitterIdentifier.includes(':')
-            ? stringToColour(emitterIdentifier.split(':')[1] ?? '')
+          background: actorIdentifier.includes(':')
+            ? stringToColour(actorIdentifier.split(':')[1] ?? '')
             : '',
-          color: emitterIdentifier.includes(':')
-            ? invertColour(stringToColour(emitterIdentifier))
+          color: actorIdentifier.includes(':')
+            ? invertColour(stringToColour(actorIdentifier))
             : undefined,
         }}
       >
-        {emitterIdentifier === 'core' || emitterIdentifier === 'app:core' ? (
+        {actorIdentifier === PLATFORM_IDENTIFIER ? (
           <img width={30} height={30} alt="Core" src="/stellariscloud.png" />
         ) : (
           <span className="truncate uppercase">
-            {emitterIdentifier.split(':')[1]?.[0] ?? ''}
+            {actorIdentifier.split(':')[1]?.[0] ?? ''}
           </span>
         )}
       </div>
@@ -41,7 +43,7 @@ export function ActorFeedback({
         <div className="truncate font-medium">{children || title}</div>
         {showSubtitle && (
           <span className="truncate text-xs text-muted-foreground">
-            {subtitle || emitterIdentifier}
+            {subtitle || actorIdentifier}
           </span>
         )}
       </div>

@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import nestjsConfig from '@nestjs/config'
+import { APP_NS_PREFIX, CORE_APP_IDENTIFIER } from '@stellariscloud/types'
 import { spawn } from 'child_process'
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
@@ -97,7 +98,7 @@ export class CoreAppService {
       aud: this._platformConfig.hostId,
       jti: uuidV4(),
       scp: [],
-      sub: `app:core`,
+      sub: `${APP_NS_PREFIX}${CORE_APP_IDENTIFIER}`,
     }
 
     const token = jwt.sign(payload, keys.privateKey, {
@@ -105,13 +106,11 @@ export class CoreAppService {
     })
 
     jwt.verify(token, keys.publicKey)
-    // const coreApp = await this.ormService.db.query.appsTable.findFirst({
-    //   where: eq(appsTable.identifier, 'core'),
-    // })
+
     await this.ormService.db
       .update(appsTable)
       .set({ publicKey: keys.publicKey })
-      .where(eq(appsTable.identifier, 'core'))
+      .where(eq(appsTable.identifier, CORE_APP_IDENTIFIER))
 
     return token
   }

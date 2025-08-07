@@ -47,9 +47,7 @@ const TaskCard = ({ task, folderId }: { task: TaskDTO; folderId: string }) => {
                 </div>
                 <div className="text-xs text-muted-foreground">
                   <div className="font-mono">
-                    {task.ownerIdentifier === 'core'
-                      ? 'core'
-                      : `app:${task.ownerIdentifier.split(':').at(-1)?.toLowerCase()}`}
+                    {task.ownerIdentifier.toLowerCase()}
                   </div>
                 </div>
               </div>
