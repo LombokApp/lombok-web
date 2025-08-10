@@ -32,6 +32,12 @@ export enum TaskSort {
   CreatedAtDesc = 'createdAt-desc',
   UpdatedAtAsc = 'updatedAt-asc',
   UpdatedAtDesc = 'updatedAt-desc',
+  StartedAtAsc = 'startedAt-asc',
+  StartedAtDesc = 'startedAt-desc',
+  CompletedAtAsc = 'completedAt-asc',
+  CompletedAtDesc = 'completedAt-desc',
+  ErrorAtAsc = 'errorAt-asc',
+  ErrorAtDesc = 'errorAt-desc',
 }
 
 @Injectable()

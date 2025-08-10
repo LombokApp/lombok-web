@@ -322,10 +322,11 @@ export class AppService {
                 },
               }
             }
+            const now = new Date()
             return {
               result: await this.ormService.db
                 .update(tasksTable)
-                .set({ completedAt: new Date() })
+                .set({ completedAt: now, updatedAt: now })
                 .where(eq(tasksTable.id, task.id)),
             }
           }
@@ -355,11 +356,13 @@ export class AppService {
                 break
               }
               // Try to secure the task
+              const now = new Date()
               securedTask = (
                 await this.ormService.db
                   .update(tasksTable)
                   .set({
-                    startedAt: new Date(),
+                    startedAt: now,
+                    updatedAt: now,
                     handlerId,
                   })
                   .where(
@@ -429,13 +432,14 @@ export class AppService {
                 },
               }
             }
-
+            const now = new Date()
             return {
               result: (
                 await this.ormService.db
                   .update(tasksTable)
                   .set({
-                    startedAt: new Date(),
+                    startedAt: now,
+                    updatedAt: now,
                     handlerId:
                       requestData.taskHandlerId && isCoreApp
                         ? requestData.taskHandlerId
@@ -471,6 +475,7 @@ export class AppService {
               }
             }
 
+            const now = new Date()
             return {
               result: await this.ormService.db
                 .update(tasksTable)
@@ -478,7 +483,8 @@ export class AppService {
                   errorCode: parsedFailHandleTaskMessage.error.code,
                   errorMessage: parsedFailHandleTaskMessage.error.message,
                   errorDetails: parsedFailHandleTaskMessage.error.details,
-                  errorAt: new Date(),
+                  errorAt: now,
+                  updatedAt: now,
                 })
                 .where(and(eq(tasksTable.id, task.id))),
             }

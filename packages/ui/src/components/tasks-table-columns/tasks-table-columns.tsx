@@ -169,5 +169,20 @@ export function configureTasksTableColumns(
       enableSorting: true,
       enableHiding: false,
     },
+    {
+      accessorKey: 'completedAt',
+      enableSorting: true,
+      forceHiding: true,
+    },
+    {
+      accessorKey: 'errorAt',
+      enableSorting: true,
+      forceHiding: true,
+    },
+    {
+      accessorKey: 'startedAt',
+      enableSorting: true,
+      forceHiding: true,
+    },
   ]
 }
