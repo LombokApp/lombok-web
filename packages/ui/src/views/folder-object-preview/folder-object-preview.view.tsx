@@ -130,9 +130,7 @@ export const FolderObjectPreview = ({
             <div className="flex size-full justify-center">
               <VideoPlayer
                 className={cn(
-                  !isCoverView
-                    ? 'h-full max-w-min max-h-min'
-                    : 'max-w-full max-h-full',
+                  !isCoverView ? 'h-full max-h-min' : 'max-w-fit max-h-fit',
                   displayMode,
                 )}
                 controls
