@@ -514,7 +514,9 @@ export const FolderDetailScreen = () => {
                       filters={filters}
                       sorting={sorting}
                       onColumnFiltersChange={handleFiltersChange}
-                      rowCount={folderContext.folderMetadata?.totalCount ?? 0}
+                      rowCount={
+                        listFolderObjectsQuery.data?.meta.totalCount ?? 0
+                      }
                       data={listFolderObjectsQuery.data?.result ?? []}
                       columns={folderObjectsTableColumns}
                       onPaginationChange={handlePaginationChange}
