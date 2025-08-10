@@ -22,7 +22,7 @@ export const VideoPlayer = ({
   return (
     <div
       className={cn(
-        'flex flex-col w-full justify-center',
+        'flex flex-col justify-center',
         grayscale && 'grayscale duration-200 ease-in-out hover:grayscale-0',
       )}
     >
