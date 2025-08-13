@@ -21,7 +21,7 @@
     "dev:lint-all": "sh ./cmd/dev-lint-all.sh",
     "dev:prettier-all": "sh ./cmd/dev-prettier-all.sh",
     "dev:tsc-all": "sh ./cmd/dev-tsc-all.sh",
-    "appuidemo:dev": "bun --cwd packages/app-dev-demo dev",
+    "appuidemo:dev": "bun --cwd packages/app-demo dev",
     "ui:dev": "bun --cwd packages/ui dev",
     "db:dev": "bun --cwd packages/api dev:docker:db",
     "minio:dev": "bun --cwd packages/api dev:docker:minio",

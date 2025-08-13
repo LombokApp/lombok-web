@@ -92,8 +92,8 @@
         "react": "^18.3.1",
       },
     },
-    "packages/app-dev-demo": {
-      "name": "@stellariscloud/app-dev-demo",
+    "packages/app-demo": {
+      "name": "@stellariscloud/app-demo",
       "version": "0.0.0",
       "dependencies": {
         "@stellariscloud/app-browser-sdk": "workspace:*",
@@ -1237,7 +1237,7 @@
 
     "@stellariscloud/app-browser-sdk": ["@stellariscloud/app-browser-sdk@workspace:packages/app-browser-sdk"],
 
-    "@stellariscloud/app-dev-demo": ["@stellariscloud/app-dev-demo@workspace:packages/app-dev-demo"],
+    "@stellariscloud/app-demo": ["@stellariscloud/app-demo@workspace:packages/app-demo"],
 
     "@stellariscloud/app-worker-sdk": ["@stellariscloud/app-worker-sdk@workspace:packages/app-worker-sdk"],
 

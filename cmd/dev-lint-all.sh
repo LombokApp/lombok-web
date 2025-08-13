@@ -16,8 +16,8 @@ bun --cwd packages/auth-utils lint:check
 echo "Checking @stellariscloud/app-browser-sdk..."
 bun --cwd packages/app-browser-sdk lint:check
 
-echo "Checking @stellariscloud/app-dev-demo..."
-bun --cwd packages/app-dev-demo lint:check
+echo "Checking @stellariscloud/app-demo..."
+bun --cwd packages/app-demo lint:check
 
 echo "Checking @stellariscloud/sdk..."
 bun --cwd packages/sdk lint:check

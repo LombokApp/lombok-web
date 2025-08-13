@@ -33,7 +33,7 @@
       "description": "The main UI for the dev app",
       "menuItems": [
         {
-          "label": "Videos",
+          "label": "Demo App",
           "iconPath": "/assets/logo.png",
           "uiName": "main"
         }

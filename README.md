@@ -85,7 +85,7 @@ bun dev:prettier-all
 bun dev:lint-all
 ```
 
-#### Run the demo app frontend in dev mode (in [@stellariscloud/app-dev-demo](./packages/app-dev-demo))
+#### Run the demo app frontend in dev mode (in [@stellariscloud/app-demo](./packages/app-demo))
 
 1. `echo 'SC_APP_FRONTEND_PROXY_HOST_DEV_MAIN=http://localhost:5175' > ./packages/ui/.env.development.local` -- tell the UI to proxy frontend requests for the `main` frontend of the `dev` app to `http://localhost:5175`
 2. `bun appuidemo:dev` -- run the demo app frontend
