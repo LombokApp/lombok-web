@@ -12,7 +12,7 @@ JOBS=(
   "check-core-worker"
   "check-app-browser-sdk"
   "check-app-worker-sdk"
-  "check-app-dev-demo"
+  "check-app-demo"
   "check-sdk"
   "check-auth-utils"
   "check-stellaris-utils"

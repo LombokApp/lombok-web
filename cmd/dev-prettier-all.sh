@@ -16,8 +16,8 @@ bun --cwd packages/auth-utils prettier:check
 echo "Checking @stellariscloud/app-browser-sdk..."
 bun --cwd packages/app-browser-sdk prettier:check
 
-echo "Checking @stellariscloud/app-dev-demo..."
-bun --cwd packages/app-dev-demo prettier:check
+echo "Checking @stellariscloud/app-demo..."
+bun --cwd packages/app-demo prettier:check
 
 echo "Checking @stellariscloud/sdk..."
 bun --cwd packages/sdk prettier:check

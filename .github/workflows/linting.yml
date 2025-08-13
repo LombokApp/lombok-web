@@ -88,8 +88,8 @@ jobs:
       - run: bun --cwd packages/app-worker-sdk lint:check
       - run: bun --cwd packages/app-worker-sdk tsc:check
 
-  check-app-dev-demo:
-    name: Check @stellariscloud/app-dev-demo package
+  check-app-demo:
+    name: Check @stellariscloud/app-demo package
     runs-on: ubuntu-latest
 
     steps:
@@ -100,9 +100,9 @@ jobs:
         with:
           bun-version: latest
       - run: bun install
-      - run: bun --cwd packages/app-dev-demo prettier:check
-      - run: bun --cwd packages/app-dev-demo lint:check
-      - run: bun --cwd packages/app-dev-demo tsc:check
+      - run: bun --cwd packages/app-demo prettier:check
+      - run: bun --cwd packages/app-demo lint:check
+      - run: bun --cwd packages/app-demo tsc:check
 
   check-sdk:
     name: Check @stellariscloud/sdk package

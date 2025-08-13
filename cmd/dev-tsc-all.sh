@@ -16,8 +16,8 @@ bun --cwd packages/app-browser-sdk tsc:check
 echo "Checking @stellariscloud/auth-utils..."
 bun --cwd packages/auth-utils tsc:check
 
-echo "Checking @stellariscloud/app-dev-demo..."
-bun --cwd packages/app-dev-demo tsc:check
+echo "Checking @stellariscloud/app-demo..."
+bun --cwd packages/app-demo tsc:check
 
 echo "Checking @stellariscloud/sdk..."
 bun --cwd packages/sdk tsc:check
