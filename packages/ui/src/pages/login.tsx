@@ -16,7 +16,7 @@ export const Login = () => {
   )
 
   return (
-    <div className="flex size-full flex-col justify-around">
+    <div className="flex size-full flex-col justify-around bg-foreground/[.03]">
       <LoginComponent
         error={
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any

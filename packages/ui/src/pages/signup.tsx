@@ -46,7 +46,7 @@ export const Signup = () => {
     [authContext, navigate, toast],
   )
   return (
-    <div className="flex size-full flex-col justify-around">
+    <div className="flex size-full flex-col justify-around bg-foreground/[.03]">
       <SignupComponent
         onLogin={() => void navigate('/login')}
         onSubmit={handleSignupSubmit}

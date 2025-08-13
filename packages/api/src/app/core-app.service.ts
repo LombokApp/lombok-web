@@ -29,7 +29,7 @@ export class CoreAppService {
     private readonly ormService: OrmService,
   ) {}
 
-  async startCoreModuleThread(appWorkerId: string) {
+  async startCoreAppThread(appWorkerId: string) {
     const isEmbeddedCoreAppEnabled =
       !this._platformConfig.disableEmbeddedCoreAppWorker
     if (!this.workers[appWorkerId] && isEmbeddedCoreAppEnabled) {
@@ -43,9 +43,7 @@ export class CoreAppService {
           stdio: ['pipe', 'inherit', 'inherit'],
         },
       )
-      const appToken = !this._platformConfig.embeddedCoreAppToken
-        ? await this.generateEmbeddedAppKeys()
-        : this._platformConfig.embeddedCoreAppToken
+      const appToken = await this.generateEmbeddedAppKeys()
       setTimeout(() => {
         // send the config as the first message
 

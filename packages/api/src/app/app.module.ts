@@ -57,8 +57,6 @@ export class AppModule implements OnModuleInit {
           return this.appService.installAllAppsFromDisk()
         }
       })
-      .then(() =>
-        this.coreAppService.startCoreModuleThread('embedded_worker_1'),
-      )
+      .then(() => this.coreAppService.startCoreAppThread('embedded_worker_1'))
   }
 }
