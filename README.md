@@ -4,7 +4,7 @@
 
 Stellaris Cloud is a free, open-source and self-hostable storage and compute platform that runs on any S3-compatible storage service. Deploy on minimal hardware, sync your files, and run custom apps — all while keeping your data sovereign.
 
-To learn more, visit the [public site](https://stellariscloud.com) and read the [documentation](https://stellariscloud.com/docs/introduction).
+To learn more, visit the [public site](https://stellariscloud.com) and read the [documentation](https://stellariscloud.com/docs).
 
 ## Running for development
 
@@ -78,9 +78,11 @@ bun build:separate-db
 ```
 bun dev:tsc-all
 ```
+
 ```
 bun dev:prettier-all
 ```
+
 ```
 bun dev:lint-all
 ```
