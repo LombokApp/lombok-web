@@ -1,4 +1,4 @@
-name: Linting
+name: Unit Tests
 
 on:
   push:

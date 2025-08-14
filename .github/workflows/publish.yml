@@ -1,0 +1,44 @@
+name: Publish images
+on:
+  push:
+    tags: ['v*.*.*']
+jobs:
+  build-and-push-main:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+      - name: Build & push
+        run: |
+          docker buildx build \
+            --target release \
+            --platform linux/amd64,linux/arm64 \
+            -f "./docker/app.Dockerfile" \
+            -t ghcr.io/${{ github.repository_owner }}/stellariscloud:${{ github.ref_name }} \
+            -t ghcr.io/${{ github.repository_owner }}/stellariscloud:latest \
+            --push .
+
+  build-and-push-standalone:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+      - name: Build & push
+        run: |
+          docker buildx build \
+            --target standalone-release \
+            --platform linux/amd64,linux/arm64 \
+            -f "./docker/app.Dockerfile" \
+            -t ghcr.io/${{ github.repository_owner }}/stellariscloud-standalone:${{ github.ref_name }} \
+            -t ghcr.io/${{ github.repository_owner }}/stellariscloud-standalone:latest \
+            --push .

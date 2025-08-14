@@ -33,7 +33,6 @@ RUN cd /temp/dev && \
   bun --cwd ./packages/stellaris-utils build && \
   # bun --cwd ./packages/ui-toolkit build && \
   bun --cwd ./packages/api build && \
-  rm ./packages/ui/.env.*.local && \
   bun --cwd ./packages/ui build && mv ./packages/ui/dist ./frontend && \
   # copy the sql migration files over (which were ignored by the build... maybe fix that)
   mkdir ./packages/api/dist/src/migrations/ && cp ./packages/api/src/orm/migrations/*.sql ./packages/api/dist/src/migrations/ && \
@@ -64,7 +63,7 @@ COPY --from=install /temp/dev ./
 EXPOSE 80/tcp
 ENTRYPOINT ["sh", "./entrypoint.sh"]
 
-FROM release AS pgrelease
+FROM release AS standalone-release
 
 ENV EMBEDDED_POSTGRES=true
 RUN apk add --no-cache postgresql postgresql-contrib

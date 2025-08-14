@@ -1,18 +1,16 @@
 services:
   app:
-    image: 'stellariscloud:latest'
-    container_name: stellaris-demo-app
-    platform: linux/amd64
+    image: ghcr.io/stellariscloud/stellariscloud:latest
+    container_name: stellariscloud-demo-app
     environment:
-      APP_HOST_ID: http://stellariscloud.localhost
-      INITIAL_USER: 'demo'
-      AUTH_JWT_SECRET: 00000000000000000000000000000000
-      DB_NAME: stellariscloud_demo
-      DB_USER: stellariscloud_demo
+      APP_HOST_ID: http://stellarisclouddemo.localhost
+      INITIAL_USER: demo
+      AUTH_JWT_SECRET: 00000000000000000000000000000000 # replace with a random string
+      DB_NAME: stellariscloud_demo_db
+      DB_USER: stellariscloud_demo_user
       DB_PASSWORD: demodemodemodemodemodemo
       DB_HOST: db
       DB_PORT: 5432
-      DISABLE_NOTICE_LOGGING: true
       LOG_LEVEL: debug
       INIT_EVENT_JOBS: true
       INSTALL_APPS_ON_START: true
@@ -28,8 +26,8 @@ services:
     image: postgres
     container_name: stellaris-demo-db
     environment:
-      POSTGRES_DB: stellariscloud_demo
-      POSTGRES_USER: stellariscloud_demo
+      POSTGRES_DB: stellariscloud_demo_db
+      POSTGRES_USER: stellariscloud_demo_user
       POSTGRES_PASSWORD: demodemodemodemodemodemo
     ports:
-      - 5438:5432
+      - 5432:5432
