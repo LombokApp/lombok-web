@@ -1,6 +1,7 @@
 import type { FolderDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
+import { FolderIcon } from 'lucide-react'
 
 import { DateDisplay } from '@/src/components/date-display'
 
@@ -28,7 +29,10 @@ export const foldersTableColumns: HideableColumnDef<{
       />
     ),
     cell: ({ row }) => (
-      <div className="flex items-start gap-2">{row.original.folder.name}</div>
+      <div className="flex items-center gap-2">
+        <FolderIcon className="size-4" />
+        {row.original.folder.name}
+      </div>
     ),
     enableSorting: true,
     enableHiding: false,
