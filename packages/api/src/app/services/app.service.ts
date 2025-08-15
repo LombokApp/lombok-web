@@ -110,7 +110,7 @@ const getWorkerExecutionDetailsSchema = z.object({
 
 const getAppUIbundleSchema = z.object({
   appIdentifier: z.string(),
-  uiName: z.string(),
+  uiIdentifier: z.string(),
 })
 
 const getContentSignedUrlsSchema = z.object({
@@ -851,7 +851,7 @@ export class AppService {
 
   async getAppUIbundle(
     requestingAppIdentifier: string,
-    requestData: { appIdentifier: string; uiName: string },
+    requestData: { appIdentifier: string; uiIdentifier: string },
   ) {
     // verify the app is the installed "core" app
     if (requestingAppIdentifier !== CORE_APP_IDENTIFIER) {
@@ -878,10 +878,10 @@ export class AppService {
     }
 
     // Check if the UI exists in the app's menuItems
-    const uiExists = requestData.uiName in workerApp.ui
+    const uiExists = requestData.uiIdentifier in workerApp.ui
 
     if (!uiExists) {
-      // UI by uiName not found in app by appIdentifier
+      // UI by uiIdentifier not found in app by appIdentifier
       return {
         result: undefined,
         error: {
@@ -907,7 +907,7 @@ export class AppService {
     const presignedGetURL = this.s3Service.createS3PresignedUrls([
       {
         method: SignedURLsRequestMethod.GET,
-        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}${requestData.appIdentifier}/ui/${requestData.uiName}.zip`,
+        objectKey: `${serverStorageLocation.prefix ? serverStorageLocation.prefix + '/' : ''}${requestData.appIdentifier}/ui/${requestData.uiIdentifier}.zip`,
         accessKeyId: serverStorageLocation.accessKeyId,
         secretAccessKey: serverStorageLocation.secretAccessKey,
         bucket: serverStorageLocation.bucket,
@@ -918,7 +918,7 @@ export class AppService {
     ])
 
     return {
-      manifest: workerApp.ui[requestData.uiName]['files'],
+      manifest: workerApp.ui[requestData.uiIdentifier]['files'],
       bundleUrl: presignedGetURL[0],
     }
   }
@@ -1338,14 +1338,14 @@ export class AppService {
       {},
     )
 
-    for (const uiName of Object.keys(uiDefinitions)) {
+    for (const uiIdentifier of Object.keys(uiDefinitions)) {
       if (
-        !Object.keys(uiDefinitions[uiName].files).find((f) =>
-          f.startsWith(`/ui/${uiName}/`),
+        !Object.keys(uiDefinitions[uiIdentifier].files).find((f) =>
+          f.startsWith(`/ui/${uiIdentifier}/`),
         )
       ) {
         throw new AppInvalidException(
-          `App ${appIdentifier} has a ui "${uiName}" defined without have an index.ts or index.js file.`,
+          `App ${appIdentifier} has a ui "${uiIdentifier}" defined without have an index.ts or index.js file.`,
         )
       }
     }

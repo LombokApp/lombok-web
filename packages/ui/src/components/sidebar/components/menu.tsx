@@ -105,7 +105,7 @@ export function Menu({
                                   <span className={cn('', !isOpen ? '' : '')}>
                                     {typeof Icon === 'string' ? (
                                       <img
-                                        src={`${protocol}//${context?.uiName}.${context?.appIdentifier}.apps.${API_HOST}${Icon}`}
+                                        src={`${protocol}//${context?.uiIdentifier}.${context?.appIdentifier}.apps.${API_HOST}${Icon}`}
                                         alt={`${context?.appLabel || label} icon`}
                                         className="size-4"
                                       />

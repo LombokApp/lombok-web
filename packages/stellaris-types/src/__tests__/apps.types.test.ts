@@ -3,7 +3,7 @@ import { describe, expect, it } from 'bun:test'
 import {
   appConfigSchema,
   appManifestSchema,
-  appMenuItemConfigSchema,
+  appMenuItemSchema,
   appUIConfigSchema,
   appWorkerScriptConfigSchema,
   ConfigParamType,
@@ -176,7 +176,7 @@ describe('apps.types', () => {
             menuItems: [
               {
                 label: 'Menu Item',
-                uiName: 'main',
+                uiIdentifier: 'main',
               },
             ],
           },
@@ -312,23 +312,21 @@ describe('apps.types', () => {
     })
   })
 
-  describe('appMenuItemConfigSchema', () => {
-    it('should validate menu item config', () => {
+  describe('appMenuItemSchema', () => {
+    it('should validate menu item config (with uiIdentifier)', () => {
       const validMenuItem = {
         label: 'Test Menu',
         iconPath: '/icons/test.svg',
-        uiName: 'main',
       }
-      const result = appMenuItemConfigSchema.safeParse(validMenuItem)
+      const result = appMenuItemSchema.safeParse(validMenuItem)
       expect(result.success).toBe(true)
     })
 
     it('should validate menu item config without icon', () => {
       const validMenuItem = {
         label: 'Test Menu',
-        uiName: 'main',
       }
-      const result = appMenuItemConfigSchema.safeParse(validMenuItem)
+      const result = appMenuItemSchema.safeParse(validMenuItem)
       expect(result.success).toBe(true)
     })
   })
@@ -340,7 +338,6 @@ describe('apps.types', () => {
         menuItems: [
           {
             label: 'Menu Item',
-            uiName: 'main',
           },
         ],
       }

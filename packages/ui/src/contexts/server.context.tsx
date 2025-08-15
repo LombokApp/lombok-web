@@ -32,6 +32,7 @@ export type AppMenuItemAndHref = {
   href: string
   appIdentifier: string
   appLabel: string
+  uiIdentifier: string
 } & AppMenuItem
 
 export interface IServerContext {
@@ -92,19 +93,19 @@ export const ServerContextProvider = ({
     () =>
       serverApps?.result.reduce<AppMenuItemAndHref[]>((acc, nextApp) => {
         return acc.concat(
-          nextApp.ui
-            .reduce<AppMenuItem[]>(
-              (uiAcc, nextUi) => uiAcc.concat(nextUi.menuItems),
-              [],
-            )
-            .map((item) => ({
-              iconPath: item.iconPath,
-              href: `/apps/${nextApp.identifier}/${item.uiName}`,
-              label: item.label,
-              appLabel: nextApp.label,
-              uiName: item.uiName,
-              appIdentifier: nextApp.identifier,
-            })),
+          nextApp.ui.reduce<AppMenuItemAndHref[]>(
+            (uiAcc, nextUi) =>
+              uiAcc.concat(
+                nextUi.menuItems.map((menuItem) => ({
+                  ...menuItem,
+                  href: `/apps/${nextApp.identifier}/${nextUi.identifier}${menuItem.url ? `/${menuItem.url}` : ''}`,
+                  uiIdentifier: nextUi.identifier,
+                  appIdentifier: nextApp.identifier,
+                  appLabel: nextApp.label,
+                })),
+              ),
+            [],
+          ),
         )
       }, []) ?? [],
     [serverApps],

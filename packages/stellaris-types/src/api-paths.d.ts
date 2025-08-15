@@ -1663,7 +1663,7 @@ export interface components {
                             menuItems: {
                                 label: string;
                                 iconPath?: string;
-                                uiName: string;
+                                url?: string;
                             }[];
                         };
                     };
@@ -1702,7 +1702,7 @@ export interface components {
                     menuItems: {
                         label: string;
                         iconPath?: string;
-                        uiName: string;
+                        url?: string;
                     }[];
                     files: {
                         [key: string]: {
@@ -1785,7 +1785,7 @@ export interface components {
                             menuItems: {
                                 label: string;
                                 iconPath?: string;
-                                uiName: string;
+                                url?: string;
                             }[];
                         };
                     };
@@ -1810,7 +1810,7 @@ export interface components {
                     menuItems: {
                         label: string;
                         iconPath?: string;
-                        uiName: string;
+                        url?: string;
                     }[];
                     files: {
                         [key: string]: {

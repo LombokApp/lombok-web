@@ -68,10 +68,10 @@ export const taskConfigSchema = z.object({
 
 export const appWorkersSchema = z.record(z.string(), z.object({}))
 
-export const appMenuItemConfigSchema = z.object({
+export const appMenuItemSchema = z.object({
   label: z.string(),
   iconPath: z.string().optional(),
-  uiName: z.string(),
+  url: z.string().optional(),
 })
 
 export const appIdentitySchema = z.object({
@@ -94,12 +94,12 @@ export const appWorkerScriptConfigSchema = z.object({
 
 export const appUIConfigSchema = z.object({
   description: z.string(),
-  menuItems: z.array(appMenuItemConfigSchema),
+  menuItems: z.array(appMenuItemSchema),
 })
 
 export const appUISchema = z.object({
   description: z.string(),
-  menuItems: z.array(appMenuItemConfigSchema),
+  menuItems: z.array(appMenuItemSchema),
   files: appManifestSchema,
 })
 
@@ -185,7 +185,7 @@ export type AppTaskConfig = z.infer<typeof taskConfigSchema>
 
 export type AppWorkersConfig = z.infer<typeof appWorkersSchema>
 
-export type AppMenuItem = z.infer<typeof appMenuItemConfigSchema>
+export type AppMenuItem = z.infer<typeof appMenuItemSchema>
 
 export type AppConfig = z.infer<typeof appConfigSchema>
 

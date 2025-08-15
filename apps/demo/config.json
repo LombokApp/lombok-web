@@ -33,9 +33,13 @@
       "description": "The main UI for the demo app",
       "menuItems": [
         {
-          "label": "Demo App",
+          "label": "Demo",
           "iconPath": "/assets/logo.png",
-          "uiName": "main"
+          "url": "demo-page"
+        },
+        {
+          "label": "Main",
+          "iconPath": "/assets/logo.png"
         }
       ]
     }

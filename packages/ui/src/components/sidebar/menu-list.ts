@@ -110,7 +110,7 @@ export function getMenuList(
               label: item.label,
               icon: item.iconPath ? item.iconPath : Box,
               context: {
-                uiName: item.uiName,
+                uiIdentifier: item.uiIdentifier,
                 appIdentifier: item.appIdentifier,
                 appLabel: item.appLabel,
               },

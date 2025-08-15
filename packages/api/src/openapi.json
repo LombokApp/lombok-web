@@ -6418,13 +6418,12 @@
                                 "iconPath": {
                                   "type": "string"
                                 },
-                                "uiName": {
+                                "url": {
                                   "type": "string"
                                 }
                               },
                               "required": [
-                                "label",
-                                "uiName"
+                                "label"
                               ]
                             }
                           }
@@ -6575,13 +6574,12 @@
                             "iconPath": {
                               "type": "string"
                             },
-                            "uiName": {
+                            "url": {
                               "type": "string"
                             }
                           },
                           "required": [
-                            "label",
-                            "uiName"
+                            "label"
                           ]
                         }
                       },
@@ -6906,13 +6904,12 @@
                               "iconPath": {
                                 "type": "string"
                               },
-                              "uiName": {
+                              "url": {
                                 "type": "string"
                               }
                             },
                             "required": [
-                              "label",
-                              "uiName"
+                              "label"
                             ]
                           }
                         }
@@ -7013,13 +7010,12 @@
                           "iconPath": {
                             "type": "string"
                           },
-                          "uiName": {
+                          "url": {
                             "type": "string"
                           }
                         },
                         "required": [
-                          "label",
-                          "uiName"
+                          "label"
                         ]
                       }
                     },
