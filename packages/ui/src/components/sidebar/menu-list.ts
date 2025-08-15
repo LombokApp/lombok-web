@@ -69,31 +69,37 @@ export function getMenuList(
               },
               {
                 href: '/server/users',
+                active: pathname?.startsWith('/server/users'),
                 label: 'Users',
                 icon: Users,
               },
               {
                 href: '/server/apps',
+                active: pathname?.startsWith('/server/apps'),
                 label: 'Apps',
                 icon: AppWindow,
               },
               {
                 href: '/server/events',
+                active: pathname?.startsWith('/server/events'),
                 label: 'Events',
                 icon: ChartLine,
               },
               {
                 href: '/server/tasks',
+                active: pathname?.startsWith('/server/tasks'),
                 label: 'Tasks',
                 icon: ListChecks,
               },
               {
                 href: '/server/logs',
+                active: pathname?.startsWith('/server/logs'),
                 label: 'Logs',
                 icon: FileText,
               },
               {
                 href: '/server/settings',
+                active: pathname?.startsWith('/server/settings'),
                 label: 'Settings',
                 icon: Settings,
               },
@@ -107,6 +113,7 @@ export function getMenuList(
             groupLabel: 'Apps',
             menus: appMenuItems.map((item) => ({
               href: item.href,
+              active: pathname === item.href,
               label: item.label,
               icon: item.iconPath ? item.iconPath : Box,
               context: {

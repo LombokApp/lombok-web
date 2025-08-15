@@ -84,9 +84,7 @@ export function Menu({
                                 className={cn(
                                   'h-9 w-full px-2 font-normal',
                                   isOpen ? 'justify-start' : 'justify-center',
-                                  (active === undefined &&
-                                    location.pathname.startsWith(href)) ||
-                                    active
+                                  active
                                     ? 'bg-accent text-accent-foreground'
                                     : 'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground',
                                 )}
