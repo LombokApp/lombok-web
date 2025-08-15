@@ -1,5 +1,5 @@
 {
-  "id": "0aa9beaf-67cf-4899-bdfd-6d4429984394",
+  "id": "880570ad-c27b-4657-880f-2c777771ed98",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -64,8 +64,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "uis": {
-          "name": "uis",
+        "ui": {
+          "name": "ui",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true

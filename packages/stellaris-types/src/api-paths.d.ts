@@ -4,3698 +4,3424 @@
  */
 
 export interface paths {
-  '/api/v1/auth/login': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** Authenticate the user and return access and refresh tokens. */
-    post: operations['login']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/auth/signup': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** Register a new user. */
-    post: operations['signup']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/auth/logout': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** Logout. Kill the current session. */
-    post: operations['logout']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/auth/{refreshToken}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** Refresh a session with a refresh token. */
-    post: operations['refreshToken']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/viewer': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: operations['getViewer']
-    put: operations['updateViewer']
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/users': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List the users. */
-    get: operations['listUsers']
-    put?: never
-    /** Create a user. */
-    post: operations['createUser']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/users/{userId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get a user by id. */
-    get: operations['getUser']
-    put?: never
-    post?: never
-    /** Delete a server user by id. */
-    delete: operations['deleteUser']
-    options?: never
-    head?: never
-    /** Update a user. */
-    patch: operations['updateUser']
-    trace?: never
-  }
-  '/api/v1/server/users/{userId}/sessions': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: operations['listActiveUserSessions']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders/{folderId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get a folder by id. */
-    get: operations['getFolder']
-    /** Update a folder by id. */
-    put: operations['updateFolder']
-    post?: never
-    /** Delete a folder by id. */
-    delete: operations['deleteFolder']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders/{folderId}/metadata': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get the metadata for a folder by id. */
-    get: operations['getFolderMetadata']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List folders. */
-    get: operations['listFolders']
-    put?: never
-    /** Create a folder. */
-    post: operations['createFolder']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders/{folderId}/reindex': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** Scan the underlying S3 location and update our local representation of it. */
-    post: operations['reindexFolder']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders/{folderId}/objects': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List folder objects by folderId. */
-    get: operations['listFolderObjects']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders/{folderId}/objects/{objectKey}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get a folder object by folderId and objectKey. */
-    get: operations['getFolderObject']
-    put?: never
-    /** Scan the object again in the underlying storage, and update its state in our db. */
-    post: operations['refreshFolderObjectS3Metadata']
-    /** Delete a folder object by folderId and objectKey. */
-    delete: operations['deleteFolderObject']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders/{folderId}/presigned-urls': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** Create presigned urls for objects in a folder. */
-    post: operations['createPresignedUrls']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders/{folderId}/apps/{appIdentifier}/trigger/{taskIdentifier}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** Handle app task trigger */
-    post: operations['handleAppTaskTrigger']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders/{folderId}/shares/{userId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get folder share for a user */
-    get: operations['getFolderShares']
-    put?: never
-    /** Add or update a folder share */
-    post: operations['upsertFolderShare']
-    /** Remove a folder share */
-    delete: operations['removeFolderShare']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders/{folderId}/shares': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List folder shares */
-    get: operations['listFolderShares']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders/{folderId}/user-share-options': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List prospective folder share users */
-    get: operations['listFolderShareUsers']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/access-keys': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List access keys. */
-    get: operations['listAccessKeys']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/access-keys/{accessKeyHashId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get an access key by id. */
-    get: operations['getAccessKey']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/access-keys/{accessKeyHashId}/rotate': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** Rotate an access key. */
-    post: operations['rotateAccessKey']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/access-keys/{accessKeyHashId}/buckets': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List buckets for an access key. */
-    get: operations['listAccessKeyBuckets']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/access-keys': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List server access keys. */
-    get: operations['listServerAccessKeys']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/access-keys/{accessKeyHashId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get server access key by id. */
-    get: operations['getServerAccessKey']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/access-keys/{accessKeyHashId}/rotate': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** Rotate a server access key. */
-    post: operations['rotateServerAccessKey']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/access-keys/{accessKeyHashId}/buckets': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List buckets for an access key. */
-    get: operations['listServerAccessKeyBuckets']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/settings': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get the server settings object. */
-    get: operations['getServerSettings']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/settings/{settingKey}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    /** Set a setting in the server settings objects. */
-    put: operations['setServerSetting']
-    post?: never
-    /** Reset a setting in the server settings objects. */
-    delete: operations['resetServerSetting']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/install-local-apps': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    /** Install all apps from disk. */
-    post: operations['installLocalApps']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/metrics': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get server metrics including user counts, folder counts, and storage statistics. */
-    get: operations['getServerMetrics']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/user-storage-provisions': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List the user storage provisions. */
-    get: operations['listUserStorageProvisions']
-    put?: never
-    /** Create a new user storage provision. */
-    post: operations['createUserStorageProvision']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/user-storage-provisions/{userStorageProvisionId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get a user storage provision by id. */
-    get: operations['getUserStorageProvision']
-    /** Update a server provision by id. */
-    put: operations['updateUserStorageProvision']
-    post?: never
-    /** Delete a server provision by id. */
-    delete: operations['deleteUserStorageProvision']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/server-storage-location': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get the server storage location. */
-    get: operations['getServerStorageLocation']
-    put?: never
-    /** Create a new server provision. */
-    post: operations['setServerStorageLocation']
-    /** Delete any set server storage location. */
-    delete: operations['deleteServerStorageLocation']
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/tasks/{taskId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get a task by id. */
-    get: operations['getTask']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/tasks': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List tasks. */
-    get: operations['listTasks']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders/{folderId}/tasks/{taskId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get a folder task by id. */
-    get: operations['getFolderTask']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders/{folderId}/tasks': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List tasks. */
-    get: operations['listFolderTasks']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/events/{eventId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get an event by id. */
-    get: operations['getEvent']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/events': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List events. */
-    get: operations['listEvents']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders/{folderId}/events/{eventId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get a folder event by id. */
-    get: operations['getFolderEvent']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders/{folderId}/events': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List tasks. */
-    get: operations['listFolderEvents']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/apps': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: operations['listApps']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/apps/{appIdentifier}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get: operations['getApp']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/env-vars': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put: operations['setWorkerScriptEnvVars']
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/apps/{appIdentifier}/user-access-token': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    get?: never
-    put?: never
-    post: operations['generateAppUserAccessToken']
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/logs/{logId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get a log entry by id. */
-    get: operations['getLog']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/server/logs': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List log entries. */
-    get: operations['listLogs']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders/{folderId}/logs/{logId}': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** Get a folder log entry by id. */
-    get: operations['getFolderLog']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
-  '/api/v1/folders/{folderId}/logs': {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    /** List folder log entries. */
-    get: operations['listFolderLogs']
-    put?: never
-    post?: never
-    delete?: never
-    options?: never
-    head?: never
-    patch?: never
-    trace?: never
-  }
+    "/api/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Authenticate the user and return access and refresh tokens. */
+        post: operations["login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Register a new user. */
+        post: operations["signup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Logout. Kill the current session. */
+        post: operations["logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/{refreshToken}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Refresh a session with a refresh token. */
+        post: operations["refreshToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/viewer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getViewer"];
+        put: operations["updateViewer"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the users. */
+        get: operations["listUsers"];
+        put?: never;
+        /** Create a user. */
+        post: operations["createUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/users/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a user by id. */
+        get: operations["getUser"];
+        put?: never;
+        post?: never;
+        /** Delete a server user by id. */
+        delete: operations["deleteUser"];
+        options?: never;
+        head?: never;
+        /** Update a user. */
+        patch: operations["updateUser"];
+        trace?: never;
+    };
+    "/api/v1/server/users/{userId}/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listActiveUserSessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a folder by id. */
+        get: operations["getFolder"];
+        /** Update a folder by id. */
+        put: operations["updateFolder"];
+        post?: never;
+        /** Delete a folder by id. */
+        delete: operations["deleteFolder"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/metadata": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the metadata for a folder by id. */
+        get: operations["getFolderMetadata"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List folders. */
+        get: operations["listFolders"];
+        put?: never;
+        /** Create a folder. */
+        post: operations["createFolder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/reindex": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Scan the underlying S3 location and update our local representation of it. */
+        post: operations["reindexFolder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/objects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List folder objects by folderId. */
+        get: operations["listFolderObjects"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/objects/{objectKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a folder object by folderId and objectKey. */
+        get: operations["getFolderObject"];
+        put?: never;
+        /** Scan the object again in the underlying storage, and update its state in our db. */
+        post: operations["refreshFolderObjectS3Metadata"];
+        /** Delete a folder object by folderId and objectKey. */
+        delete: operations["deleteFolderObject"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/presigned-urls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create presigned urls for objects in a folder. */
+        post: operations["createPresignedUrls"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/apps/{appIdentifier}/trigger/{taskIdentifier}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Handle app task trigger */
+        post: operations["handleAppTaskTrigger"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/shares/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get folder share for a user */
+        get: operations["getFolderShares"];
+        put?: never;
+        /** Add or update a folder share */
+        post: operations["upsertFolderShare"];
+        /** Remove a folder share */
+        delete: operations["removeFolderShare"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List folder shares */
+        get: operations["listFolderShares"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/user-share-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List prospective folder share users */
+        get: operations["listFolderShareUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access-keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List access keys. */
+        get: operations["listAccessKeys"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access-keys/{accessKeyHashId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an access key by id. */
+        get: operations["getAccessKey"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access-keys/{accessKeyHashId}/rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rotate an access key. */
+        post: operations["rotateAccessKey"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/access-keys/{accessKeyHashId}/buckets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List buckets for an access key. */
+        get: operations["listAccessKeyBuckets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/access-keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List server access keys. */
+        get: operations["listServerAccessKeys"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/access-keys/{accessKeyHashId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get server access key by id. */
+        get: operations["getServerAccessKey"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/access-keys/{accessKeyHashId}/rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rotate a server access key. */
+        post: operations["rotateServerAccessKey"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/access-keys/{accessKeyHashId}/buckets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List buckets for an access key. */
+        get: operations["listServerAccessKeyBuckets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the server settings object. */
+        get: operations["getServerSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/settings/{settingKey}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set a setting in the server settings objects. */
+        put: operations["setServerSetting"];
+        post?: never;
+        /** Reset a setting in the server settings objects. */
+        delete: operations["resetServerSetting"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/install-local-apps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Install all apps from disk. */
+        post: operations["installLocalApps"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get server metrics including user counts, folder counts, and storage statistics. */
+        get: operations["getServerMetrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/user-storage-provisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the user storage provisions. */
+        get: operations["listUserStorageProvisions"];
+        put?: never;
+        /** Create a new user storage provision. */
+        post: operations["createUserStorageProvision"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/user-storage-provisions/{userStorageProvisionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a user storage provision by id. */
+        get: operations["getUserStorageProvision"];
+        /** Update a server provision by id. */
+        put: operations["updateUserStorageProvision"];
+        post?: never;
+        /** Delete a server provision by id. */
+        delete: operations["deleteUserStorageProvision"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/server-storage-location": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the server storage location. */
+        get: operations["getServerStorageLocation"];
+        put?: never;
+        /** Create a new server provision. */
+        post: operations["setServerStorageLocation"];
+        /** Delete any set server storage location. */
+        delete: operations["deleteServerStorageLocation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/tasks/{taskId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a task by id. */
+        get: operations["getTask"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List tasks. */
+        get: operations["listTasks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/tasks/{taskId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a folder task by id. */
+        get: operations["getFolderTask"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List tasks. */
+        get: operations["listFolderTasks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/events/{eventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an event by id. */
+        get: operations["getEvent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List events. */
+        get: operations["listEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/events/{eventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a folder event by id. */
+        get: operations["getFolderEvent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List tasks. */
+        get: operations["listFolderEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/apps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listApps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/apps/{appIdentifier}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getApp"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/apps/{appIdentifier}/workers/{workerIdentifier}/env-vars": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["setWorkerScriptEnvVars"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/apps/{appIdentifier}/user-access-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["generateAppUserAccessToken"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/logs/{logId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a log entry by id. */
+        get: operations["getLog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/server/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List log entries. */
+        get: operations["listLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/logs/{logId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a folder log entry by id. */
+        get: operations["getFolderLog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/folders/{folderId}/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List folder log entries. */
+        get: operations["listFolderLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
-export type webhooks = Record<string, never>
+export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    LoginCredentialsDTO: {
-      login: string
-      password: string
-    }
-    LoginResponse: {
-      session: {
-        accessToken: string
-        refreshToken: string
-        /** Format: date-time */
-        expiresAt: string
-      }
-    }
-    SignupCredentialsDTO: {
-      username: string
-      /** Format: email */
-      email?: string
-      password: string
-    }
-    SignupResponse: {
-      user: {
-        /** Format: uuid */
-        id: string
-        name: string | null
-        email: string | null
-        emailVerified: boolean
-        isAdmin: boolean
-        username: string
-        permissions: string[]
-        /** Format: date-time */
-        createdAt: string
-        /** Format: date-time */
-        updatedAt: string
-      }
-    }
-    TokenRefreshResponse: {
-      session: {
-        accessToken: string
-        refreshToken: string
-        /** Format: date-time */
-        expiresAt: string
-      }
-    }
-    ViewerGetResponse: {
-      user: {
-        /** Format: uuid */
-        id: string
-        name: string | null
-        email: string | null
-        emailVerified: boolean
-        isAdmin: boolean
-        username: string
-        permissions: string[]
-        /** Format: date-time */
-        createdAt: string
-        /** Format: date-time */
-        updatedAt: string
-      }
-    }
-    ViewerUpdateInputDTO: {
-      name: string
-    }
-    UserCreateInputDTO: {
-      name?: string
-      email?: string
-      emailVerified?: boolean
-      isAdmin?: boolean
-      username: string
-      password: string
-      permissions?: string[]
-    }
-    UserGetResponse: {
-      user: {
-        /** Format: uuid */
-        id: string
-        name: string | null
-        email: string | null
-        emailVerified: boolean
-        isAdmin: boolean
-        username: string
-        permissions: string[]
-        /** Format: date-time */
-        createdAt: string
-        /** Format: date-time */
-        updatedAt: string
-      }
-    }
-    UserUpdateInputDTO: {
-      name?: string | null
-      email?: string | null
-      isAdmin?: boolean
-      username?: string
-      password?: string
-      permissions?: string[]
-    }
-    UserListResponse: {
-      meta: {
-        totalCount: number
-      }
-      result: {
-        /** Format: uuid */
-        id: string
-        name: string | null
-        email: string | null
-        emailVerified: boolean
-        isAdmin: boolean
-        username: string
-        permissions: string[]
-        /** Format: date-time */
-        createdAt: string
-        /** Format: date-time */
-        updatedAt: string
-      }[]
-    }
-    UserSessionListResponse: {
-      meta: {
-        totalCount: number
-      }
-      result: {
-        /** Format: uuid */
-        id: string
-        /** Format: date-time */
-        expiresAt: string
-        /** Format: date-time */
-        createdAt: string
-        /** Format: date-time */
-        updatedAt: string
-      }[]
-    }
-    InlineMetadataEntryDTO: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'inline'
-      mimeType: string
-      size: number
-      content: string
-    }
-    ExternalMetadataEntryDTO: {
-      /**
-       * @description discriminator enum property added by openapi-typescript
-       * @enum {string}
-       */
-      type: 'external'
-      storageKey: string
-      mimeType: string
-      size: number
-      hash: string
-    }
-    ContentMetadataEntryDTO:
-      | components['schemas']['InlineMetadataEntryDTO']
-      | components['schemas']['ExternalMetadataEntryDTO']
-    FolderGetResponse: {
-      folder: {
-        /** Format: uuid */
-        id: string
-        /** Format: uuid */
-        ownerId: string
-        name: string
-        metadataLocation: {
-          /** Format: uuid */
-          id: string
-          /** Format: uuid */
-          userId?: string
-          /** @enum {string} */
-          providerType: 'SERVER' | 'USER'
-          label: string
-          endpoint: string
-          region: string
-          bucket: string
-          prefix?: string
-          accessKeyId: string
-          accessKeyHashId: string
-        }
-        contentLocation: {
-          /** Format: uuid */
-          id: string
-          /** Format: uuid */
-          userId?: string
-          /** @enum {string} */
-          providerType: 'SERVER' | 'USER'
-          label: string
-          endpoint: string
-          region: string
-          bucket: string
-          prefix?: string
-          accessKeyId: string
-          accessKeyHashId: string
-        }
-        /** Format: date-time */
-        createdAt: string
-        /** Format: date-time */
-        updatedAt: string
-      }
-      permissions: (
-        | 'FOLDER_REINDEX'
-        | 'FOLDER_FORGET'
-        | 'FOLDER_EDIT'
-        | 'OBJECT_EDIT'
-        | 'OBJECT_MANAGE'
-      )[]
-    }
-    FolderGetMetadataResponse: {
-      totalCount: number
-      totalSizeBytes: number
-    }
-    FolderListResponse: {
-      meta: {
-        totalCount: number
-      }
-      result: {
-        permissions: (
-          | 'FOLDER_REINDEX'
-          | 'FOLDER_FORGET'
-          | 'FOLDER_EDIT'
-          | 'OBJECT_EDIT'
-          | 'OBJECT_MANAGE'
-        )[]
-        folder: {
-          /** Format: uuid */
-          id: string
-          /** Format: uuid */
-          ownerId: string
-          name: string
-          metadataLocation: {
-            /** Format: uuid */
-            id: string
-            /** Format: uuid */
-            userId?: string
-            /** @enum {string} */
-            providerType: 'SERVER' | 'USER'
-            label: string
-            endpoint: string
-            region: string
-            bucket: string
-            prefix?: string
-            accessKeyId: string
-            accessKeyHashId: string
-          }
-          contentLocation: {
-            /** Format: uuid */
-            id: string
-            /** Format: uuid */
-            userId?: string
-            /** @enum {string} */
-            providerType: 'SERVER' | 'USER'
-            label: string
-            endpoint: string
-            region: string
-            bucket: string
-            prefix?: string
-            accessKeyId: string
-            accessKeyHashId: string
-          }
-          /** Format: date-time */
-          createdAt: string
-          /** Format: date-time */
-          updatedAt: string
-        }
-      }[]
-    }
-    FolderCreateInputDTO: {
-      name: string
-      metadataLocation:
-        | {
-            accessKeyId: string
-            secretAccessKey: string
-            endpoint: string
-            bucket: string
-            region: string
-            prefix?: string
-          }
-        | {
-            /** Format: uuid */
-            storageProvisionId: string
-          }
-        | {
-            /** Format: uuid */
-            userLocationId: string
-            userLocationBucketOverride: string
-            userLocationPrefixOverride?: string
-          }
-      contentLocation:
-        | {
-            accessKeyId: string
-            secretAccessKey: string
-            endpoint: string
-            bucket: string
-            region: string
-            prefix?: string
-          }
-        | {
-            /** Format: uuid */
-            storageProvisionId: string
-          }
-        | {
-            /** Format: uuid */
-            userLocationId: string
-            userLocationBucketOverride: string
-            userLocationPrefixOverride?: string
-          }
-    }
-    FolderCreateResponse: {
-      folder: {
-        /** Format: uuid */
-        id: string
-        /** Format: uuid */
-        ownerId: string
-        name: string
-        metadataLocation: {
-          /** Format: uuid */
-          id: string
-          /** Format: uuid */
-          userId?: string
-          /** @enum {string} */
-          providerType: 'SERVER' | 'USER'
-          label: string
-          endpoint: string
-          region: string
-          bucket: string
-          prefix?: string
-          accessKeyId: string
-          accessKeyHashId: string
-        }
-        contentLocation: {
-          /** Format: uuid */
-          id: string
-          /** Format: uuid */
-          userId?: string
-          /** @enum {string} */
-          providerType: 'SERVER' | 'USER'
-          label: string
-          endpoint: string
-          region: string
-          bucket: string
-          prefix?: string
-          accessKeyId: string
-          accessKeyHashId: string
-        }
-        /** Format: date-time */
-        createdAt: string
-        /** Format: date-time */
-        updatedAt: string
-      }
-    }
-    FolderObjectListResponse: {
-      meta: {
-        totalCount: number
-      }
-      result: {
-        /** Format: uuid */
-        id: string
-        objectKey: string
-        /** Format: uuid */
-        folderId: string
-        hash?: string
-        lastModified: number
-        eTag: string
-        sizeBytes: number
-        mimeType: string
-        /** @enum {string} */
-        mediaType: 'IMAGE' | 'VIDEO' | 'AUDIO' | 'DOCUMENT' | 'UNKNOWN'
-        contentMetadata: {
-          [key: string]: {
-            [key: string]: components['schemas']['ContentMetadataEntryDTO']
-          }
-        }
-      }[]
-    }
-    FolderObjectGetResponse: {
-      folderObject: {
-        /** Format: uuid */
-        id: string
-        objectKey: string
-        /** Format: uuid */
-        folderId: string
-        hash?: string
-        lastModified: number
-        eTag: string
-        sizeBytes: number
-        mimeType: string
-        /** @enum {string} */
-        mediaType: 'IMAGE' | 'VIDEO' | 'AUDIO' | 'DOCUMENT' | 'UNKNOWN'
-        contentMetadata: {
-          [key: string]: {
-            [key: string]: components['schemas']['ContentMetadataEntryDTO']
-          }
-        }
-      }
-    }
-    FolderCreateSignedUrlInputDTO: {
-      objectIdentifier: string
-      /** @enum {string} */
-      method: 'DELETE' | 'PUT' | 'GET' | 'HEAD'
-    }[]
-    FolderCreateSignedUrlsResponse: {
-      urls: string[]
-    }
-    TriggerAppTaskInputDTO: {
-      objectKey?: string
-      inputParams?: unknown
-    }
-    FolderShareGetResponse: {
-      share: {
-        /** Format: uuid */
-        userId: string
-        permissions: (
-          | 'FOLDER_REINDEX'
-          | 'FOLDER_FORGET'
-          | 'FOLDER_EDIT'
-          | 'OBJECT_EDIT'
-          | 'OBJECT_MANAGE'
-        )[]
-      }
-    }
-    FolderShareListResponse: {
-      meta: {
-        totalCount: number
-      }
-      result: {
-        /** Format: uuid */
-        userId: string
-        permissions: (
-          | 'FOLDER_REINDEX'
-          | 'FOLDER_FORGET'
-          | 'FOLDER_EDIT'
-          | 'OBJECT_EDIT'
-          | 'OBJECT_MANAGE'
-        )[]
-      }[]
-    }
-    FolderShareUserListResponse: {
-      meta: {
-        totalCount: number
-      }
-      result: {
-        username: string
-        id: string
-      }[]
-    }
-    FolderShareCreateInputDTO: {
-      permissions: (
-        | 'FOLDER_REINDEX'
-        | 'FOLDER_FORGET'
-        | 'FOLDER_EDIT'
-        | 'OBJECT_EDIT'
-        | 'OBJECT_MANAGE'
-      )[]
-    }
-    FolderUpdateInputDTO: {
-      name: string
-    }
-    FolderUpdateResponseDTO: {
-      folder: {
-        /** Format: uuid */
-        id: string
-        /** Format: uuid */
-        ownerId: string
-        name: string
-        metadataLocation: {
-          /** Format: uuid */
-          id: string
-          /** Format: uuid */
-          userId?: string
-          /** @enum {string} */
-          providerType: 'SERVER' | 'USER'
-          label: string
-          endpoint: string
-          region: string
-          bucket: string
-          prefix?: string
-          accessKeyId: string
-          accessKeyHashId: string
-        }
-        contentLocation: {
-          /** Format: uuid */
-          id: string
-          /** Format: uuid */
-          userId?: string
-          /** @enum {string} */
-          providerType: 'SERVER' | 'USER'
-          label: string
-          endpoint: string
-          region: string
-          bucket: string
-          prefix?: string
-          accessKeyId: string
-          accessKeyHashId: string
-        }
-        /** Format: date-time */
-        createdAt: string
-        /** Format: date-time */
-        updatedAt: string
-      }
-    }
-    AccessKeyListResponse: {
-      meta: {
-        totalCount: number
-      }
-      result: {
-        accessKeyId: string
-        accessKeyHashId: string
-        endpoint: string
-        endpointDomain: string
-        region: string
-        folderCount: number
-      }[]
-    }
-    AccessKeyGetResponse: {
-      accessKey: {
-        accessKeyId: string
-        accessKeyHashId: string
-        endpoint: string
-        endpointDomain: string
-        region: string
-        folderCount: number
-      }
-    }
-    RotateAccessKeyInputDTO: {
-      accessKeyId: string
-      secretAccessKey: string
-    }
-    AccessKeyRotateResponse: {
-      accessKeyHashId: string
-    }
-    AccessKeyBucketsListResponseDTO: {
-      result: {
-        name: string
-        /** Format: date-time */
-        createdDate?: string
-      }[]
-    }
-    SettingsGetResponse: {
-      settings: {
-        SIGNUP_ENABLED?: boolean
-        SIGNUP_PERMISSIONS: string[]
-        SERVER_HOSTNAME: string | null
-      }
-    }
-    SetSettingInputDTO: {
-      value?: unknown
-    }
-    SettingSetResponse: {
-      settingKey: string
-      settingValue?: unknown
-    }
-    InstallAppsResponse: {
-      /**
-       * @description Success message
-       * @example Apps installation completed
-       */
-      message: string
-      /**
-       * @description Timestamp when the installation was completed
-       * @example 2024-01-01T00:00:00.000Z
-       */
-      timestamp: string
-    }
-    ServerMetricsResponse: {
-      totalUsers: number
-      totalFolders: number
-      usersCreatedPreviousWeek: number
-      foldersCreatedPreviousWeek: number
-      totalIndexedSizeBytes: number
-      sessionsCreatedPreviousWeek: number
-      sessionsCreatedPrevious24Hours: number
-      provisionedStorageLocations: {
-        totalCount: number
-        summary: string
-      }
-      totalIndexedSizeBytesAcrossProvisionedStorageLocations: number
-      installedApps: {
-        totalCount: number
-        summary: string
-      }
-      tasksCreatedPreviousDay: number
-      tasksCreatedPreviousHour: number
-      taskErrorsPreviousDay: number
-      taskErrorsPreviousHour: number
-      serverEventsEmittedPreviousDay: number
-      serverEventsEmittedPreviousHour: number
-      folderEventsEmittedPreviousDay: number
-      folderEventsEmittedPreviousHour: number
-    }
-    UserStorageProvisionListResponse: {
-      result: {
-        /** Format: uuid */
-        id: string
-        accessKeyHashId: string
-        endpoint: string
-        bucket: string
-        region: string
-        accessKeyId: string
-        prefix?: string
-        provisionTypes: ('CONTENT' | 'METADATA' | 'REDUNDANCY')[]
-        label: string
-        description: string
-      }[]
-    }
-    UserStorageProvisionGetResponse: {
-      userStorageProvision: {
-        /** Format: uuid */
-        id: string
-        accessKeyHashId: string
-        endpoint: string
-        bucket: string
-        region: string
-        accessKeyId: string
-        prefix?: string
-        provisionTypes: ('CONTENT' | 'METADATA' | 'REDUNDANCY')[]
-        label: string
-        description: string
-      }
-    }
-    UserStorageProvisionInputDTO: {
-      label: string
-      description: string
-      endpoint: string
-      bucket: string
-      region: string
-      accessKeyId: string
-      secretAccessKey: string
-      prefix?: string
-      provisionTypes: ('CONTENT' | 'METADATA' | 'REDUNDANCY')[]
-    }
-    ServerStorageLocationGetResponse: {
-      serverStorageLocation?: {
-        accessKeyHashId: string
-        accessKeyId: string
-        endpoint: string
-        bucket: string
-        region: string
-        prefix: string | null
-      }
-    }
-    ServerStorageLocationInputDTO: {
-      accessKeyId: string
-      secretAccessKey: string
-      /** Format: uri */
-      endpoint: string
-      bucket: string
-      region: string
-      prefix: string | null
-    }
-    TaskGetResponse: {
-      task: {
-        /** Format: uuid */
-        id: string
-        taskIdentifier: string
-        ownerIdentifier: string
-        /** Format: uuid */
-        triggeringEventId: string
-        /** Format: uuid */
-        subjectFolderId?: string
-        subjectObjectKey?: string
-        handlerId?: string
-        inputData: unknown
-        /** Format: date-time */
-        errorAt?: string
-        errorCode?: string
-        errorDetails?: unknown
-        errorMessage?: string
-        taskDescription: string
-        updates: unknown[]
-        /** Format: date-time */
-        startedAt?: string
-        /** Format: date-time */
-        completedAt?: string
-        /** Format: date-time */
-        createdAt: string
-        /** Format: date-time */
-        updatedAt: string
-        subjectContext?: {
-          /** Format: uuid */
-          folderId: string
-          objectKey?: string
-          folderName: string
-          /** Format: uuid */
-          folderOwnerId: string
-        }
-      }
-    }
-    TaskListResponse: {
-      meta: {
-        totalCount: number
-      }
-      result: {
-        /** Format: uuid */
-        id: string
-        taskIdentifier: string
-        ownerIdentifier: string
-        /** Format: uuid */
-        triggeringEventId: string
-        /** Format: uuid */
-        subjectFolderId?: string
-        subjectObjectKey?: string
-        handlerId?: string
-        inputData: unknown
-        /** Format: date-time */
-        errorAt?: string
-        errorCode?: string
-        errorDetails?: unknown
-        errorMessage?: string
-        taskDescription: string
-        updates: unknown[]
-        /** Format: date-time */
-        startedAt?: string
-        /** Format: date-time */
-        completedAt?: string
-        /** Format: date-time */
-        createdAt: string
-        /** Format: date-time */
-        updatedAt: string
-        subjectContext?: {
-          /** Format: uuid */
-          folderId: string
-          objectKey?: string
-          folderName: string
-          /** Format: uuid */
-          folderOwnerId: string
-        }
-      }[]
-    }
-    EventGetResponse: {
-      event: {
-        /** Format: uuid */
-        id: string
-        eventIdentifier: string
-        emitterIdentifier: string
-        subjectContext?: {
-          /** Format: uuid */
-          folderId: string
-          objectKey?: string
-          folderName: string
-          /** Format: uuid */
-          folderOwnerId: string
-        }
-        data?: unknown
-        /** Format: date-time */
-        createdAt: string
-      }
-    }
-    EventListResponse: {
-      meta: {
-        totalCount: number
-      }
-      result: {
-        /** Format: uuid */
-        id: string
-        eventIdentifier: string
-        emitterIdentifier: string
-        subjectContext?: {
-          /** Format: uuid */
-          folderId: string
-          objectKey?: string
-          folderName: string
-          /** Format: uuid */
-          folderOwnerId: string
-        }
-        data?: unknown
-        /** Format: date-time */
-        createdAt: string
-      }[]
-    }
-    AppListResponse: {
-      meta: {
-        totalCount: number
-      }
-      result: {
-        identifier: string
-        label: string
-        publicKey: string
-        config: {
-          identifier: string
-          label: string
-          description: string
-          emittableEvents: string[]
-          tasks: {
-            identifier: string
-            label: string
-            triggers?: (
-              | {
-                  /** @enum {string} */
-                  type: 'event'
-                  event: string
-                  inputParams: {
-                    [key: string]: string
-                  }
-                }
-              | {
-                  /** @enum {string} */
-                  type: 'objectAction'
-                  description: string
-                  inputParams: {
-                    [key: string]: string
-                  }
-                }
-              | {
-                  /** @enum {string} */
-                  type: 'folderAction'
-                  actionLabel: string
-                  inputParams: {
-                    [key: string]: string
-                  }
-                }
-            )[]
-            folderAction?: {
-              description: string
-            }
-            objectAction?: {
-              description: string
-            }
-            description: string
-            inputParams?: {
-              [key: string]: {
+    schemas: {
+        LoginCredentialsDTO: {
+            login: string;
+            password: string;
+        };
+        LoginResponse: {
+            session: {
+                accessToken: string;
+                refreshToken: string;
+                /** Format: date-time */
+                expiresAt: string;
+            };
+        };
+        SignupCredentialsDTO: {
+            username: string;
+            /** Format: email */
+            email?: string;
+            password: string;
+        };
+        SignupResponse: {
+            user: {
+                /** Format: uuid */
+                id: string;
+                name: string | null;
+                email: string | null;
+                emailVerified: boolean;
+                isAdmin: boolean;
+                username: string;
+                permissions: string[];
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            };
+        };
+        TokenRefreshResponse: {
+            session: {
+                accessToken: string;
+                refreshToken: string;
+                /** Format: date-time */
+                expiresAt: string;
+            };
+        };
+        ViewerGetResponse: {
+            user: {
+                /** Format: uuid */
+                id: string;
+                name: string | null;
+                email: string | null;
+                emailVerified: boolean;
+                isAdmin: boolean;
+                username: string;
+                permissions: string[];
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            };
+        };
+        ViewerUpdateInputDTO: {
+            name: string;
+        };
+        UserCreateInputDTO: {
+            name?: string;
+            email?: string;
+            emailVerified?: boolean;
+            isAdmin?: boolean;
+            username: string;
+            password: string;
+            permissions?: string[];
+        };
+        UserGetResponse: {
+            user: {
+                /** Format: uuid */
+                id: string;
+                name: string | null;
+                email: string | null;
+                emailVerified: boolean;
+                isAdmin: boolean;
+                username: string;
+                permissions: string[];
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            };
+        };
+        UserUpdateInputDTO: {
+            name?: string | null;
+            email?: string | null;
+            isAdmin?: boolean;
+            username?: string;
+            password?: string;
+            permissions?: string[];
+        };
+        UserListResponse: {
+            meta: {
+                totalCount: number;
+            };
+            result: {
+                /** Format: uuid */
+                id: string;
+                name: string | null;
+                email: string | null;
+                emailVerified: boolean;
+                isAdmin: boolean;
+                username: string;
+                permissions: string[];
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+        };
+        UserSessionListResponse: {
+            meta: {
+                totalCount: number;
+            };
+            result: {
+                /** Format: uuid */
+                id: string;
+                /** Format: date-time */
+                expiresAt: string;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+        };
+        InlineMetadataEntryDTO: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "inline";
+            mimeType: string;
+            size: number;
+            content: string;
+        };
+        ExternalMetadataEntryDTO: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "external";
+            storageKey: string;
+            mimeType: string;
+            size: number;
+            hash: string;
+        };
+        ContentMetadataEntryDTO: components["schemas"]["InlineMetadataEntryDTO"] | components["schemas"]["ExternalMetadataEntryDTO"];
+        FolderGetResponse: {
+            folder: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                ownerId: string;
+                name: string;
+                metadataLocation: {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    userId?: string;
+                    /** @enum {string} */
+                    providerType: "SERVER" | "USER";
+                    label: string;
+                    endpoint: string;
+                    region: string;
+                    bucket: string;
+                    prefix?: string;
+                    accessKeyId: string;
+                    accessKeyHashId: string;
+                };
+                contentLocation: {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    userId?: string;
+                    /** @enum {string} */
+                    providerType: "SERVER" | "USER";
+                    label: string;
+                    endpoint: string;
+                    region: string;
+                    bucket: string;
+                    prefix?: string;
+                    accessKeyId: string;
+                    accessKeyHashId: string;
+                };
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            };
+            permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
+        };
+        FolderGetMetadataResponse: {
+            totalCount: number;
+            totalSizeBytes: number;
+        };
+        FolderListResponse: {
+            meta: {
+                totalCount: number;
+            };
+            result: {
+                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
+                folder: {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    ownerId: string;
+                    name: string;
+                    metadataLocation: {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        userId?: string;
+                        /** @enum {string} */
+                        providerType: "SERVER" | "USER";
+                        label: string;
+                        endpoint: string;
+                        region: string;
+                        bucket: string;
+                        prefix?: string;
+                        accessKeyId: string;
+                        accessKeyHashId: string;
+                    };
+                    contentLocation: {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        userId?: string;
+                        /** @enum {string} */
+                        providerType: "SERVER" | "USER";
+                        label: string;
+                        endpoint: string;
+                        region: string;
+                        bucket: string;
+                        prefix?: string;
+                        accessKeyId: string;
+                        accessKeyHashId: string;
+                    };
+                    /** Format: date-time */
+                    createdAt: string;
+                    /** Format: date-time */
+                    updatedAt: string;
+                };
+            }[];
+        };
+        FolderCreateInputDTO: {
+            name: string;
+            metadataLocation: {
+                accessKeyId: string;
+                secretAccessKey: string;
+                endpoint: string;
+                bucket: string;
+                region: string;
+                prefix?: string;
+            } | {
+                /** Format: uuid */
+                storageProvisionId: string;
+            } | {
+                /** Format: uuid */
+                userLocationId: string;
+                userLocationBucketOverride: string;
+                userLocationPrefixOverride?: string;
+            };
+            contentLocation: {
+                accessKeyId: string;
+                secretAccessKey: string;
+                endpoint: string;
+                bucket: string;
+                region: string;
+                prefix?: string;
+            } | {
+                /** Format: uuid */
+                storageProvisionId: string;
+            } | {
+                /** Format: uuid */
+                userLocationId: string;
+                userLocationBucketOverride: string;
+                userLocationPrefixOverride?: string;
+            };
+        };
+        FolderCreateResponse: {
+            folder: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                ownerId: string;
+                name: string;
+                metadataLocation: {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    userId?: string;
+                    /** @enum {string} */
+                    providerType: "SERVER" | "USER";
+                    label: string;
+                    endpoint: string;
+                    region: string;
+                    bucket: string;
+                    prefix?: string;
+                    accessKeyId: string;
+                    accessKeyHashId: string;
+                };
+                contentLocation: {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    userId?: string;
+                    /** @enum {string} */
+                    providerType: "SERVER" | "USER";
+                    label: string;
+                    endpoint: string;
+                    region: string;
+                    bucket: string;
+                    prefix?: string;
+                    accessKeyId: string;
+                    accessKeyHashId: string;
+                };
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            };
+        };
+        FolderObjectListResponse: {
+            meta: {
+                totalCount: number;
+            };
+            result: {
+                /** Format: uuid */
+                id: string;
+                objectKey: string;
+                /** Format: uuid */
+                folderId: string;
+                hash?: string;
+                lastModified: number;
+                eTag: string;
+                sizeBytes: number;
+                mimeType: string;
                 /** @enum {string} */
-                type: 'boolean' | 'string' | 'number'
-                default?: (string | number | boolean) | null
-              }
-            }
-            worker?: string
-          }[]
-          externalWorkers?: string[]
-          workerScripts?: {
-            [key: string]: {
-              description: string
-              envVars?: {
-                [key: string]: string
-              }
-            }
-          }
-          uis?: {
-            [key: string]: {
-              description: string
-              menuItems: {
-                label: string
-                iconPath?: string
-                uiName: string
-              }[]
-            }
-          }
-        }
-        requiresStorage: boolean
-        manifest: {
-          [key: string]: {
-            hash: string
-            size: number
-            mimeType: string
-          }
-        }
-        externalWorkers: {
-          appIdentifier: string
-          workerId: string
-          handledTaskIdentifiers: string[]
-          socketClientId: string
-          ip: string
-        }[]
-        workerScripts: {
-          description: string
-          files: {
-            [key: string]: {
-              hash: string
-              size: number
-              mimeType: string
-            }
-          }
-          envVars: {
-            [key: string]: string
-          }
-          identifier: string
-        }[]
-        uis: {
-          description: string
-          menuItems: {
-            label: string
-            iconPath?: string
-            uiName: string
-          }[]
-          files: {
-            [key: string]: {
-              hash: string
-              size: number
-              mimeType: string
-            }
-          }
-          identifier: string
-        }[]
-        /** Format: date-time */
-        createdAt: string
-        /** Format: date-time */
-        updatedAt: string
-      }[]
-    }
-    AppGetResponse: {
-      app: {
-        identifier: string
-        label: string
-        publicKey: string
-        config: {
-          identifier: string
-          label: string
-          description: string
-          emittableEvents: string[]
-          tasks: {
-            identifier: string
-            label: string
-            triggers?: (
-              | {
-                  /** @enum {string} */
-                  type: 'event'
-                  event: string
-                  inputParams: {
-                    [key: string]: string
-                  }
-                }
-              | {
-                  /** @enum {string} */
-                  type: 'objectAction'
-                  description: string
-                  inputParams: {
-                    [key: string]: string
-                  }
-                }
-              | {
-                  /** @enum {string} */
-                  type: 'folderAction'
-                  actionLabel: string
-                  inputParams: {
-                    [key: string]: string
-                  }
-                }
-            )[]
-            folderAction?: {
-              description: string
-            }
-            objectAction?: {
-              description: string
-            }
-            description: string
-            inputParams?: {
-              [key: string]: {
+                mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
+                contentMetadata: {
+                    [key: string]: {
+                        [key: string]: components["schemas"]["ContentMetadataEntryDTO"];
+                    };
+                };
+            }[];
+        };
+        FolderObjectGetResponse: {
+            folderObject: {
+                /** Format: uuid */
+                id: string;
+                objectKey: string;
+                /** Format: uuid */
+                folderId: string;
+                hash?: string;
+                lastModified: number;
+                eTag: string;
+                sizeBytes: number;
+                mimeType: string;
                 /** @enum {string} */
-                type: 'boolean' | 'string' | 'number'
-                default?: (string | number | boolean) | null
-              }
-            }
-            worker?: string
-          }[]
-          externalWorkers?: string[]
-          workerScripts?: {
-            [key: string]: {
-              description: string
-              envVars?: {
-                [key: string]: string
-              }
-            }
-          }
-          uis?: {
-            [key: string]: {
-              description: string
-              menuItems: {
-                label: string
-                iconPath?: string
-                uiName: string
-              }[]
-            }
-          }
-        }
-        requiresStorage: boolean
-        manifest: {
-          [key: string]: {
-            hash: string
-            size: number
-            mimeType: string
-          }
-        }
-        externalWorkers: {
-          appIdentifier: string
-          workerId: string
-          handledTaskIdentifiers: string[]
-          socketClientId: string
-          ip: string
-        }[]
-        uis: {
-          description: string
-          menuItems: {
-            label: string
-            iconPath?: string
-            uiName: string
-          }[]
-          files: {
-            [key: string]: {
-              hash: string
-              size: number
-              mimeType: string
-            }
-          }
-          identifier: string
-        }[]
-        /** Format: date-time */
-        createdAt: string
-        /** Format: date-time */
-        updatedAt: string
-        workerScripts: {
-          description: string
-          files: {
-            [key: string]: {
-              hash: string
-              size: number
-              mimeType: string
-            }
-          }
-          envVars: {
-            [key: string]: string
-          }
-          identifier: string
-        }[]
-      }
-    }
-    SetWorkerScriptEnvVarsInputDTO: {
-      envVars: {
-        [key: string]: string
-      }
-    }
-    LogGetResponse: {
-      log: {
-        /** Format: uuid */
-        id: string
-        message: string
-        /** @enum {string} */
-        level: 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
-        emitterIdentifier: string
-        subjectContext?: {
-          /** Format: uuid */
-          folderId: string
-          objectKey?: string
-          folderName: string
-          /** Format: uuid */
-          folderOwnerId: string
-        }
-        data?: unknown
-        /** Format: date-time */
-        createdAt: string
-      }
-    }
-    LogListResponse: {
-      result: {
-        /** Format: uuid */
-        id: string
-        message: string
-        /** @enum {string} */
-        level: 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
-        emitterIdentifier: string
-        subjectContext?: {
-          /** Format: uuid */
-          folderId: string
-          objectKey?: string
-          folderName: string
-          /** Format: uuid */
-          folderOwnerId: string
-        }
-        data?: unknown
-        /** Format: date-time */
-        createdAt: string
-      }[]
-      meta: {
-        totalCount: number
-      }
-    }
-  }
-  responses: never
-  parameters: never
-  requestBodies: never
-  headers: never
-  pathItems: never
+                mediaType: "IMAGE" | "VIDEO" | "AUDIO" | "DOCUMENT" | "UNKNOWN";
+                contentMetadata: {
+                    [key: string]: {
+                        [key: string]: components["schemas"]["ContentMetadataEntryDTO"];
+                    };
+                };
+            };
+        };
+        FolderCreateSignedUrlInputDTO: {
+            objectIdentifier: string;
+            /** @enum {string} */
+            method: "DELETE" | "PUT" | "GET" | "HEAD";
+        }[];
+        FolderCreateSignedUrlsResponse: {
+            urls: string[];
+        };
+        TriggerAppTaskInputDTO: {
+            objectKey?: string;
+            inputParams?: unknown;
+        };
+        FolderShareGetResponse: {
+            share: {
+                /** Format: uuid */
+                userId: string;
+                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
+            };
+        };
+        FolderShareListResponse: {
+            meta: {
+                totalCount: number;
+            };
+            result: {
+                /** Format: uuid */
+                userId: string;
+                permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
+            }[];
+        };
+        FolderShareUserListResponse: {
+            meta: {
+                totalCount: number;
+            };
+            result: {
+                username: string;
+                id: string;
+            }[];
+        };
+        FolderShareCreateInputDTO: {
+            permissions: ("FOLDER_REINDEX" | "FOLDER_FORGET" | "FOLDER_EDIT" | "OBJECT_EDIT" | "OBJECT_MANAGE")[];
+        };
+        FolderUpdateInputDTO: {
+            name: string;
+        };
+        FolderUpdateResponseDTO: {
+            folder: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                ownerId: string;
+                name: string;
+                metadataLocation: {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    userId?: string;
+                    /** @enum {string} */
+                    providerType: "SERVER" | "USER";
+                    label: string;
+                    endpoint: string;
+                    region: string;
+                    bucket: string;
+                    prefix?: string;
+                    accessKeyId: string;
+                    accessKeyHashId: string;
+                };
+                contentLocation: {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    userId?: string;
+                    /** @enum {string} */
+                    providerType: "SERVER" | "USER";
+                    label: string;
+                    endpoint: string;
+                    region: string;
+                    bucket: string;
+                    prefix?: string;
+                    accessKeyId: string;
+                    accessKeyHashId: string;
+                };
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            };
+        };
+        AccessKeyListResponse: {
+            meta: {
+                totalCount: number;
+            };
+            result: {
+                accessKeyId: string;
+                accessKeyHashId: string;
+                endpoint: string;
+                endpointDomain: string;
+                region: string;
+                folderCount: number;
+            }[];
+        };
+        AccessKeyGetResponse: {
+            accessKey: {
+                accessKeyId: string;
+                accessKeyHashId: string;
+                endpoint: string;
+                endpointDomain: string;
+                region: string;
+                folderCount: number;
+            };
+        };
+        RotateAccessKeyInputDTO: {
+            accessKeyId: string;
+            secretAccessKey: string;
+        };
+        AccessKeyRotateResponse: {
+            accessKeyHashId: string;
+        };
+        AccessKeyBucketsListResponseDTO: {
+            result: {
+                name: string;
+                /** Format: date-time */
+                createdDate?: string;
+            }[];
+        };
+        SettingsGetResponse: {
+            settings: {
+                SIGNUP_ENABLED?: boolean;
+                SIGNUP_PERMISSIONS: string[];
+                SERVER_HOSTNAME: string | null;
+            };
+        };
+        SetSettingInputDTO: {
+            value?: unknown;
+        };
+        SettingSetResponse: {
+            settingKey: string;
+            settingValue?: unknown;
+        };
+        InstallAppsResponse: {
+            /**
+             * @description Success message
+             * @example Apps installation completed
+             */
+            message: string;
+            /**
+             * @description Timestamp when the installation was completed
+             * @example 2024-01-01T00:00:00.000Z
+             */
+            timestamp: string;
+        };
+        ServerMetricsResponse: {
+            totalUsers: number;
+            totalFolders: number;
+            usersCreatedPreviousWeek: number;
+            foldersCreatedPreviousWeek: number;
+            totalIndexedSizeBytes: number;
+            sessionsCreatedPreviousWeek: number;
+            sessionsCreatedPrevious24Hours: number;
+            provisionedStorageLocations: {
+                totalCount: number;
+                summary: string;
+            };
+            totalIndexedSizeBytesAcrossProvisionedStorageLocations: number;
+            installedApps: {
+                totalCount: number;
+                summary: string;
+            };
+            tasksCreatedPreviousDay: number;
+            tasksCreatedPreviousHour: number;
+            taskErrorsPreviousDay: number;
+            taskErrorsPreviousHour: number;
+            serverEventsEmittedPreviousDay: number;
+            serverEventsEmittedPreviousHour: number;
+            folderEventsEmittedPreviousDay: number;
+            folderEventsEmittedPreviousHour: number;
+        };
+        UserStorageProvisionListResponse: {
+            result: {
+                /** Format: uuid */
+                id: string;
+                accessKeyHashId: string;
+                endpoint: string;
+                bucket: string;
+                region: string;
+                accessKeyId: string;
+                prefix?: string;
+                provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
+                label: string;
+                description: string;
+            }[];
+        };
+        UserStorageProvisionGetResponse: {
+            userStorageProvision: {
+                /** Format: uuid */
+                id: string;
+                accessKeyHashId: string;
+                endpoint: string;
+                bucket: string;
+                region: string;
+                accessKeyId: string;
+                prefix?: string;
+                provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
+                label: string;
+                description: string;
+            };
+        };
+        UserStorageProvisionInputDTO: {
+            label: string;
+            description: string;
+            endpoint: string;
+            bucket: string;
+            region: string;
+            accessKeyId: string;
+            secretAccessKey: string;
+            prefix?: string;
+            provisionTypes: ("CONTENT" | "METADATA" | "REDUNDANCY")[];
+        };
+        ServerStorageLocationGetResponse: {
+            serverStorageLocation?: {
+                accessKeyHashId: string;
+                accessKeyId: string;
+                endpoint: string;
+                bucket: string;
+                region: string;
+                prefix: string | null;
+            };
+        };
+        ServerStorageLocationInputDTO: {
+            accessKeyId: string;
+            secretAccessKey: string;
+            /** Format: uri */
+            endpoint: string;
+            bucket: string;
+            region: string;
+            prefix: string | null;
+        };
+        TaskGetResponse: {
+            task: {
+                /** Format: uuid */
+                id: string;
+                taskIdentifier: string;
+                ownerIdentifier: string;
+                /** Format: uuid */
+                triggeringEventId: string;
+                /** Format: uuid */
+                subjectFolderId?: string;
+                subjectObjectKey?: string;
+                handlerId?: string;
+                inputData: unknown;
+                /** Format: date-time */
+                errorAt?: string;
+                errorCode?: string;
+                errorDetails?: unknown;
+                errorMessage?: string;
+                taskDescription: string;
+                updates: unknown[];
+                /** Format: date-time */
+                startedAt?: string;
+                /** Format: date-time */
+                completedAt?: string;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                subjectContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
+                };
+            };
+        };
+        TaskListResponse: {
+            meta: {
+                totalCount: number;
+            };
+            result: {
+                /** Format: uuid */
+                id: string;
+                taskIdentifier: string;
+                ownerIdentifier: string;
+                /** Format: uuid */
+                triggeringEventId: string;
+                /** Format: uuid */
+                subjectFolderId?: string;
+                subjectObjectKey?: string;
+                handlerId?: string;
+                inputData: unknown;
+                /** Format: date-time */
+                errorAt?: string;
+                errorCode?: string;
+                errorDetails?: unknown;
+                errorMessage?: string;
+                taskDescription: string;
+                updates: unknown[];
+                /** Format: date-time */
+                startedAt?: string;
+                /** Format: date-time */
+                completedAt?: string;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                subjectContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
+                };
+            }[];
+        };
+        EventGetResponse: {
+            event: {
+                /** Format: uuid */
+                id: string;
+                eventIdentifier: string;
+                emitterIdentifier: string;
+                subjectContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
+                };
+                data?: unknown;
+                /** Format: date-time */
+                createdAt: string;
+            };
+        };
+        EventListResponse: {
+            meta: {
+                totalCount: number;
+            };
+            result: {
+                /** Format: uuid */
+                id: string;
+                eventIdentifier: string;
+                emitterIdentifier: string;
+                subjectContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
+                };
+                data?: unknown;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+        };
+        AppListResponse: {
+            meta: {
+                totalCount: number;
+            };
+            result: {
+                identifier: string;
+                label: string;
+                publicKey: string;
+                config: {
+                    identifier: string;
+                    label: string;
+                    description: string;
+                    emittableEvents: string[];
+                    tasks: {
+                        identifier: string;
+                        label: string;
+                        triggers?: ({
+                            /** @enum {string} */
+                            type: "event";
+                            event: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            type: "objectAction";
+                            description: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            type: "folderAction";
+                            actionLabel: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        })[];
+                        folderAction?: {
+                            description: string;
+                        };
+                        objectAction?: {
+                            description: string;
+                        };
+                        description: string;
+                        inputParams?: {
+                            [key: string]: {
+                                /** @enum {string} */
+                                type: "boolean" | "string" | "number";
+                                default?: (string | number | boolean) | null;
+                            };
+                        };
+                        worker?: string;
+                    }[];
+                    externalWorkers?: string[];
+                    workerScripts?: {
+                        [key: string]: {
+                            description: string;
+                            envVars?: {
+                                [key: string]: string;
+                            };
+                        };
+                    };
+                    ui?: {
+                        [key: string]: {
+                            description: string;
+                            menuItems: {
+                                label: string;
+                                iconPath?: string;
+                                uiName: string;
+                            }[];
+                        };
+                    };
+                };
+                requiresStorage: boolean;
+                manifest: {
+                    [key: string]: {
+                        hash: string;
+                        size: number;
+                        mimeType: string;
+                    };
+                };
+                externalWorkers: {
+                    appIdentifier: string;
+                    workerId: string;
+                    handledTaskIdentifiers: string[];
+                    socketClientId: string;
+                    ip: string;
+                }[];
+                workerScripts: {
+                    description: string;
+                    files: {
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
+                    envVars: {
+                        [key: string]: string;
+                    };
+                    identifier: string;
+                }[];
+                ui: {
+                    description: string;
+                    menuItems: {
+                        label: string;
+                        iconPath?: string;
+                        uiName: string;
+                    }[];
+                    files: {
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
+                    identifier: string;
+                }[];
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+            }[];
+        };
+        AppGetResponse: {
+            app: {
+                identifier: string;
+                label: string;
+                publicKey: string;
+                config: {
+                    identifier: string;
+                    label: string;
+                    description: string;
+                    emittableEvents: string[];
+                    tasks: {
+                        identifier: string;
+                        label: string;
+                        triggers?: ({
+                            /** @enum {string} */
+                            type: "event";
+                            event: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            type: "objectAction";
+                            description: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            type: "folderAction";
+                            actionLabel: string;
+                            inputParams: {
+                                [key: string]: string;
+                            };
+                        })[];
+                        folderAction?: {
+                            description: string;
+                        };
+                        objectAction?: {
+                            description: string;
+                        };
+                        description: string;
+                        inputParams?: {
+                            [key: string]: {
+                                /** @enum {string} */
+                                type: "boolean" | "string" | "number";
+                                default?: (string | number | boolean) | null;
+                            };
+                        };
+                        worker?: string;
+                    }[];
+                    externalWorkers?: string[];
+                    workerScripts?: {
+                        [key: string]: {
+                            description: string;
+                            envVars?: {
+                                [key: string]: string;
+                            };
+                        };
+                    };
+                    ui?: {
+                        [key: string]: {
+                            description: string;
+                            menuItems: {
+                                label: string;
+                                iconPath?: string;
+                                uiName: string;
+                            }[];
+                        };
+                    };
+                };
+                requiresStorage: boolean;
+                manifest: {
+                    [key: string]: {
+                        hash: string;
+                        size: number;
+                        mimeType: string;
+                    };
+                };
+                externalWorkers: {
+                    appIdentifier: string;
+                    workerId: string;
+                    handledTaskIdentifiers: string[];
+                    socketClientId: string;
+                    ip: string;
+                }[];
+                ui: {
+                    description: string;
+                    menuItems: {
+                        label: string;
+                        iconPath?: string;
+                        uiName: string;
+                    }[];
+                    files: {
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
+                    identifier: string;
+                }[];
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+                workerScripts: {
+                    description: string;
+                    files: {
+                        [key: string]: {
+                            hash: string;
+                            size: number;
+                            mimeType: string;
+                        };
+                    };
+                    envVars: {
+                        [key: string]: string;
+                    };
+                    identifier: string;
+                }[];
+            };
+        };
+        SetWorkerScriptEnvVarsInputDTO: {
+            envVars: {
+                [key: string]: string;
+            };
+        };
+        LogGetResponse: {
+            log: {
+                /** Format: uuid */
+                id: string;
+                message: string;
+                /** @enum {string} */
+                level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
+                emitterIdentifier: string;
+                subjectContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
+                };
+                data?: unknown;
+                /** Format: date-time */
+                createdAt: string;
+            };
+        };
+        LogListResponse: {
+            result: {
+                /** Format: uuid */
+                id: string;
+                message: string;
+                /** @enum {string} */
+                level: "TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR";
+                emitterIdentifier: string;
+                subjectContext?: {
+                    /** Format: uuid */
+                    folderId: string;
+                    objectKey?: string;
+                    folderName: string;
+                    /** Format: uuid */
+                    folderOwnerId: string;
+                };
+                data?: unknown;
+                /** Format: date-time */
+                createdAt: string;
+            }[];
+            meta: {
+                totalCount: number;
+            };
+        };
+    };
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
-export type $defs = Record<string, never>
+export type $defs = Record<string, never>;
 export interface operations {
-  login: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['LoginCredentialsDTO']
-      }
-    }
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['LoginResponse']
-        }
-      }
-    }
-  }
-  signup: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SignupCredentialsDTO']
-      }
-    }
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['SignupResponse']
-        }
-      }
-    }
-  }
-  logout: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': boolean
-        }
-      }
-    }
-  }
-  refreshToken: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        refreshToken: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['TokenRefreshResponse']
-        }
-      }
-    }
-  }
-  getViewer: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ViewerGetResponse']
-        }
-      }
-    }
-  }
-  updateViewer: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ViewerUpdateInputDTO']
-      }
-    }
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ViewerGetResponse']
-        }
-      }
-    }
-  }
-  listUsers: {
-    parameters: {
-      query?: {
-        offset?: number
-        limit?: number
-        isAdmin?: boolean
-        sort?:
-          | (
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'email-asc'
-              | 'email-desc'
-              | 'name-asc'
-              | 'name-desc'
-              | 'username-asc'
-              | 'username-desc'
-              | 'updatedAt-asc'
-              | 'updatedAt-desc'
-            )[]
-          | (
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'email-asc'
-              | 'email-desc'
-              | 'name-asc'
-              | 'name-desc'
-              | 'username-asc'
-              | 'username-desc'
-              | 'updatedAt-asc'
-              | 'updatedAt-desc'
-            )
-        search?: string
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['UserListResponse']
-        }
-      }
-    }
-  }
-  createUser: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UserCreateInputDTO']
-      }
-    }
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['UserGetResponse']
-        }
-      }
-    }
-  }
-  getUser: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        userId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['UserGetResponse']
-        }
-      }
-    }
-  }
-  deleteUser: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        userId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-    }
-  }
-  updateUser: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        userId: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UserUpdateInputDTO']
-      }
-    }
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['UserGetResponse']
-        }
-      }
-    }
-  }
-  listActiveUserSessions: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        userId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['UserSessionListResponse']
-        }
-      }
-    }
-  }
-  getFolder: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['FolderGetResponse']
-        }
-      }
-    }
-  }
-  updateFolder: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['FolderUpdateInputDTO']
-      }
-    }
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['FolderUpdateResponseDTO']
-        }
-      }
-    }
-  }
-  deleteFolder: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-    }
-  }
-  getFolderMetadata: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['FolderGetMetadataResponse']
-        }
-      }
-    }
-  }
-  listFolders: {
-    parameters: {
-      query?: {
-        offset?: number
-        limit?: number
-        sort?:
-          | (
-              | 'name-asc'
-              | 'name-desc'
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'updatedAt-asc'
-              | 'updatedAt-desc'
-            )[]
-          | (
-              | 'name-asc'
-              | 'name-desc'
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'updatedAt-asc'
-              | 'updatedAt-desc'
-            )
-        search?: string
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['FolderListResponse']
-        }
-      }
-    }
-  }
-  createFolder: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['FolderCreateInputDTO']
-      }
-    }
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['FolderCreateResponse']
-        }
-      }
-    }
-  }
-  reindexFolder: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-    }
-  }
-  listFolderObjects: {
-    parameters: {
-      query?: {
-        offset?: number
-        limit?: number
-        search?: string
-        sort?:
-          | (
-              | 'size-asc'
-              | 'size-desc'
-              | 'filename-asc'
-              | 'filename-desc'
-              | 'objectKey-asc'
-              | 'objectKey-desc'
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'updatedAt-asc'
-              | 'updatedAt-desc'
-            )[]
-          | (
-              | 'size-asc'
-              | 'size-desc'
-              | 'filename-asc'
-              | 'filename-desc'
-              | 'objectKey-asc'
-              | 'objectKey-desc'
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'updatedAt-asc'
-              | 'updatedAt-desc'
-            )
-        includeImage?: 'true'
-        includeVideo?: 'true'
-        includeAudio?: 'true'
-        includeDocument?: 'true'
-        includeUnknown?: 'true'
-      }
-      header?: never
-      path: {
-        folderId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['FolderObjectListResponse']
-        }
-      }
-    }
-  }
-  getFolderObject: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-        objectKey: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['FolderObjectGetResponse']
-        }
-      }
-    }
-  }
-  refreshFolderObjectS3Metadata: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-        objectKey: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['FolderObjectGetResponse']
-        }
-      }
-    }
-  }
-  deleteFolderObject: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-        objectKey: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-    }
-  }
-  createPresignedUrls: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['FolderCreateSignedUrlInputDTO']
-      }
-    }
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['FolderCreateSignedUrlsResponse']
-        }
-      }
-    }
-  }
-  handleAppTaskTrigger: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-        appIdentifier: string
-        taskIdentifier: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['TriggerAppTaskInputDTO']
-      }
-    }
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-    }
-  }
-  getFolderShares: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-        userId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['FolderShareGetResponse']
-        }
-      }
-    }
-  }
-  upsertFolderShare: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-        userId: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['FolderShareCreateInputDTO']
-      }
-    }
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['FolderShareGetResponse']
-        }
-      }
-    }
-  }
-  removeFolderShare: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-        userId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-    }
-  }
-  listFolderShares: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['FolderShareListResponse']
-        }
-      }
-    }
-  }
-  listFolderShareUsers: {
-    parameters: {
-      query?: {
-        offset?: number
-        limit?: number
-        search?: string
-      }
-      header?: never
-      path: {
-        folderId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['FolderShareUserListResponse']
-        }
-      }
-    }
-  }
-  listAccessKeys: {
-    parameters: {
-      query?: {
-        offset?: number
-        limit?: number
-        sort?:
-          | (
-              | 'accessKeyId-asc'
-              | 'accessKeyId-desc'
-              | 'accessKeyHashId-asc'
-              | 'accessKeyHashId-desc'
-              | 'endpoint-asc'
-              | 'endpoint-desc'
-              | 'region-asc'
-              | 'region-desc'
-            )[]
-          | (
-              | 'accessKeyId-asc'
-              | 'accessKeyId-desc'
-              | 'accessKeyHashId-asc'
-              | 'accessKeyHashId-desc'
-              | 'endpoint-asc'
-              | 'endpoint-desc'
-              | 'region-asc'
-              | 'region-desc'
-            )
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['AccessKeyListResponse']
-        }
-      }
-    }
-  }
-  getAccessKey: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        accessKeyHashId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['AccessKeyGetResponse']
-        }
-      }
-    }
-  }
-  rotateAccessKey: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        accessKeyHashId: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RotateAccessKeyInputDTO']
-      }
-    }
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['AccessKeyRotateResponse']
-        }
-      }
-    }
-  }
-  listAccessKeyBuckets: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        accessKeyHashId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['AccessKeyBucketsListResponseDTO']
-        }
-      }
-    }
-  }
-  listServerAccessKeys: {
-    parameters: {
-      query?: {
-        offset?: number
-        limit?: number
-        sort?:
-          | (
-              | 'accessKeyId-asc'
-              | 'accessKeyId-desc'
-              | 'accessKeyHashId-asc'
-              | 'accessKeyHashId-desc'
-              | 'endpoint-asc'
-              | 'endpoint-desc'
-              | 'region-asc'
-              | 'region-desc'
-            )[]
-          | (
-              | 'accessKeyId-asc'
-              | 'accessKeyId-desc'
-              | 'accessKeyHashId-asc'
-              | 'accessKeyHashId-desc'
-              | 'endpoint-asc'
-              | 'endpoint-desc'
-              | 'region-asc'
-              | 'region-desc'
-            )
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['AccessKeyListResponse']
-        }
-      }
-    }
-  }
-  getServerAccessKey: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        accessKeyHashId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['AccessKeyGetResponse']
-        }
-      }
-    }
-  }
-  rotateServerAccessKey: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        accessKeyHashId: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RotateAccessKeyInputDTO']
-      }
-    }
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['AccessKeyRotateResponse']
-        }
-      }
-    }
-  }
-  listServerAccessKeyBuckets: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        accessKeyHashId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['AccessKeyBucketsListResponseDTO']
-        }
-      }
-    }
-  }
-  getServerSettings: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['SettingsGetResponse']
-        }
-      }
-    }
-  }
-  setServerSetting: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        settingKey: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SetSettingInputDTO']
-      }
-    }
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['SettingSetResponse']
-        }
-      }
-    }
-  }
-  resetServerSetting: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        settingKey: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['SettingSetResponse']
-        }
-      }
-    }
-  }
-  installLocalApps: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['InstallAppsResponse']
-        }
-      }
-    }
-  }
-  getServerMetrics: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ServerMetricsResponse']
-        }
-      }
-    }
-  }
-  listUserStorageProvisions: {
-    parameters: {
-      query?: {
-        provisionType?: 'CONTENT' | 'METADATA' | 'REDUNDANCY'
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['UserStorageProvisionListResponse']
-        }
-      }
-    }
-  }
-  createUserStorageProvision: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UserStorageProvisionInputDTO']
-      }
-    }
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['UserStorageProvisionListResponse']
-        }
-      }
-    }
-  }
-  getUserStorageProvision: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        userStorageProvisionId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['UserStorageProvisionGetResponse']
-        }
-      }
-    }
-  }
-  updateUserStorageProvision: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        userStorageProvisionId: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UserStorageProvisionInputDTO']
-      }
-    }
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['UserStorageProvisionListResponse']
-        }
-      }
-    }
-  }
-  deleteUserStorageProvision: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        userStorageProvisionId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['UserStorageProvisionListResponse']
-        }
-      }
-    }
-  }
-  getServerStorageLocation: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ServerStorageLocationGetResponse']
-        }
-      }
-    }
-  }
-  setServerStorageLocation: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ServerStorageLocationInputDTO']
-      }
-    }
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['ServerStorageLocationGetResponse']
-        }
-      }
-    }
-  }
-  deleteServerStorageLocation: {
-    parameters: {
-      query?: never
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content?: never
-      }
-    }
-  }
-  getTask: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        taskId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['TaskGetResponse']
-        }
-      }
-    }
-  }
-  listTasks: {
-    parameters: {
-      query?: {
-        objectKey?: string
-        sort?:
-          | (
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'updatedAt-asc'
-              | 'updatedAt-desc'
-            )[]
-          | (
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'updatedAt-asc'
-              | 'updatedAt-desc'
-            )
-        search?: string
-        includeWaiting?: 'true'
-        includeRunning?: 'true'
-        includeComplete?: 'true'
-        includeFailed?: 'true'
-        offset?: number
-        limit?: number
-        folderId?: string
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['TaskListResponse']
-        }
-      }
-    }
-  }
-  getFolderTask: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-        taskId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['TaskGetResponse']
-        }
-      }
-    }
-  }
-  listFolderTasks: {
-    parameters: {
-      query?: {
-        objectKey?: string
-        sort?:
-          | (
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'updatedAt-asc'
-              | 'updatedAt-desc'
-            )[]
-          | (
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'updatedAt-asc'
-              | 'updatedAt-desc'
-            )
-        search?: string
-        includeWaiting?: 'true'
-        includeRunning?: 'true'
-        includeComplete?: 'true'
-        includeFailed?: 'true'
-        offset?: number
-        limit?: number
-      }
-      header?: never
-      path: {
-        folderId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['TaskListResponse']
-        }
-      }
-    }
-  }
-  getEvent: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        eventId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['EventGetResponse']
-        }
-      }
-    }
-  }
-  listEvents: {
-    parameters: {
-      query?: {
-        sort?:
-          | (
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'eventIdentifier-asc'
-              | 'eventIdentifier-desc'
-              | 'emitterIdentifier-asc'
-              | 'emitterIdentifier-desc'
-              | 'objectKey-asc'
-              | 'objectKey-desc'
-            )[]
-          | (
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'eventIdentifier-asc'
-              | 'eventIdentifier-desc'
-              | 'emitterIdentifier-asc'
-              | 'emitterIdentifier-desc'
-              | 'objectKey-asc'
-              | 'objectKey-desc'
-            )
-        folderId?: string
-        objectKey?: string
-        search?: string
-        offset?: number
-        limit?: number
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['EventListResponse']
-        }
-      }
-    }
-  }
-  getFolderEvent: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-        eventId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['EventGetResponse']
-        }
-      }
-    }
-  }
-  listFolderEvents: {
-    parameters: {
-      query?: {
-        sort?:
-          | (
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'eventIdentifier-asc'
-              | 'eventIdentifier-desc'
-              | 'emitterIdentifier-asc'
-              | 'emitterIdentifier-desc'
-              | 'objectKey-asc'
-              | 'objectKey-desc'
-            )[]
-          | (
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'eventIdentifier-asc'
-              | 'eventIdentifier-desc'
-              | 'emitterIdentifier-asc'
-              | 'emitterIdentifier-desc'
-              | 'objectKey-asc'
-              | 'objectKey-desc'
-            )
-        objectKey?: string
-        search?: string
-        offset?: number
-        limit?: number
-      }
-      header?: never
-      path: {
-        folderId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['EventListResponse']
-        }
-      }
-    }
-  }
-  listApps: {
-    parameters: {
-      query?: {
-        sort?:
-          | (
-              | 'label-asc'
-              | 'label-desc'
-              | 'identifier-asc'
-              | 'identifier-desc'
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'updatedAt-asc'
-              | 'updatedAt-desc'
-            )[]
-          | (
-              | 'label-asc'
-              | 'label-desc'
-              | 'identifier-asc'
-              | 'identifier-desc'
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'updatedAt-asc'
-              | 'updatedAt-desc'
-            )
-        search?: string
-        offset?: number
-        limit?: number
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['AppListResponse']
-        }
-      }
-    }
-  }
-  getApp: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        appIdentifier: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['AppGetResponse']
-        }
-      }
-    }
-  }
-  setWorkerScriptEnvVars: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        appIdentifier: string
-        workerIdentifier: string
-      }
-      cookie?: never
-    }
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SetWorkerScriptEnvVarsInputDTO']
-      }
-    }
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': Record<string, never>
-        }
-      }
-    }
-  }
-  generateAppUserAccessToken: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        appIdentifier: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['LoginResponse']
-        }
-      }
-    }
-  }
-  getLog: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        logId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['LogGetResponse']
-        }
-      }
-    }
-  }
-  listLogs: {
-    parameters: {
-      query?: {
-        sort?:
-          | (
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'message-asc'
-              | 'message-desc'
-              | 'emitterIdentifier-asc'
-              | 'emitterIdentifier-desc'
-              | 'level-asc'
-              | 'level-desc'
-            )[]
-          | (
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'message-asc'
-              | 'message-desc'
-              | 'emitterIdentifier-asc'
-              | 'emitterIdentifier-desc'
-              | 'level-asc'
-              | 'level-desc'
-            )
-        folderId?: string
-        objectKey?: string
-        search?: string
-        includeTrace?: 'true'
-        includeDebug?: 'true'
-        includeInfo?: 'true'
-        includeWarning?: 'true'
-        includeError?: 'true'
-        offset?: number
-        limit?: number
-      }
-      header?: never
-      path?: never
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['LogListResponse']
-        }
-      }
-    }
-  }
-  getFolderLog: {
-    parameters: {
-      query?: never
-      header?: never
-      path: {
-        folderId: string
-        logId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['LogGetResponse']
-        }
-      }
-    }
-  }
-  listFolderLogs: {
-    parameters: {
-      query?: {
-        sort?:
-          | (
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'message-asc'
-              | 'message-desc'
-              | 'emitterIdentifier-asc'
-              | 'emitterIdentifier-desc'
-              | 'level-asc'
-              | 'level-desc'
-            )[]
-          | (
-              | 'createdAt-asc'
-              | 'createdAt-desc'
-              | 'message-asc'
-              | 'message-desc'
-              | 'emitterIdentifier-asc'
-              | 'emitterIdentifier-desc'
-              | 'level-asc'
-              | 'level-desc'
-            )
-        objectKey?: string
-        search?: string
-        includeTrace?: 'true'
-        includeDebug?: 'true'
-        includeInfo?: 'true'
-        includeWarning?: 'true'
-        includeError?: 'true'
-        offset?: number
-        limit?: number
-      }
-      header?: never
-      path: {
-        folderId: string
-      }
-      cookie?: never
-    }
-    requestBody?: never
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown
-        }
-        content: {
-          'application/json': components['schemas']['LogListResponse']
-        }
-      }
-    }
-  }
+    login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginCredentialsDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResponse"];
+                };
+            };
+        };
+    };
+    signup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignupCredentialsDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignupResponse"];
+                };
+            };
+        };
+    };
+    logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": boolean;
+                };
+            };
+        };
+    };
+    refreshToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                refreshToken: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TokenRefreshResponse"];
+                };
+            };
+        };
+    };
+    getViewer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewerGetResponse"];
+                };
+            };
+        };
+    };
+    updateViewer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ViewerUpdateInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewerGetResponse"];
+                };
+            };
+        };
+    };
+    listUsers: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+                isAdmin?: boolean;
+                sort?: ("createdAt-asc" | "createdAt-desc" | "email-asc" | "email-desc" | "name-asc" | "name-desc" | "username-asc" | "username-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "email-asc" | "email-desc" | "name-asc" | "name-desc" | "username-asc" | "username-desc" | "updatedAt-asc" | "updatedAt-desc");
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserListResponse"];
+                };
+            };
+        };
+    };
+    createUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserCreateInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserGetResponse"];
+                };
+            };
+        };
+    };
+    getUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserGetResponse"];
+                };
+            };
+        };
+    };
+    deleteUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserUpdateInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserGetResponse"];
+                };
+            };
+        };
+    };
+    listActiveUserSessions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserSessionListResponse"];
+                };
+            };
+        };
+    };
+    getFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderGetResponse"];
+                };
+            };
+        };
+    };
+    updateFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FolderUpdateInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderUpdateResponseDTO"];
+                };
+            };
+        };
+    };
+    deleteFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getFolderMetadata: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderGetMetadataResponse"];
+                };
+            };
+        };
+    };
+    listFolders: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+                sort?: ("name-asc" | "name-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("name-asc" | "name-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderListResponse"];
+                };
+            };
+        };
+    };
+    createFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FolderCreateInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderCreateResponse"];
+                };
+            };
+        };
+    };
+    reindexFolder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listFolderObjects: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+                search?: string;
+                sort?: ("size-asc" | "size-desc" | "filename-asc" | "filename-desc" | "objectKey-asc" | "objectKey-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("size-asc" | "size-desc" | "filename-asc" | "filename-desc" | "objectKey-asc" | "objectKey-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
+                includeImage?: "true";
+                includeVideo?: "true";
+                includeAudio?: "true";
+                includeDocument?: "true";
+                includeUnknown?: "true";
+            };
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderObjectListResponse"];
+                };
+            };
+        };
+    };
+    getFolderObject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                objectKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderObjectGetResponse"];
+                };
+            };
+        };
+    };
+    refreshFolderObjectS3Metadata: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                objectKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderObjectGetResponse"];
+                };
+            };
+        };
+    };
+    deleteFolderObject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                objectKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    createPresignedUrls: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FolderCreateSignedUrlInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderCreateSignedUrlsResponse"];
+                };
+            };
+        };
+    };
+    handleAppTaskTrigger: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                appIdentifier: string;
+                taskIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TriggerAppTaskInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getFolderShares: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderShareGetResponse"];
+                };
+            };
+        };
+    };
+    upsertFolderShare: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FolderShareCreateInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderShareGetResponse"];
+                };
+            };
+        };
+    };
+    removeFolderShare: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listFolderShares: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderShareListResponse"];
+                };
+            };
+        };
+    };
+    listFolderShareUsers: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+                search?: string;
+            };
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderShareUserListResponse"];
+                };
+            };
+        };
+    };
+    listAccessKeys: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+                sort?: ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc")[] | ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc");
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessKeyListResponse"];
+                };
+            };
+        };
+    };
+    getAccessKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accessKeyHashId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessKeyGetResponse"];
+                };
+            };
+        };
+    };
+    rotateAccessKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accessKeyHashId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RotateAccessKeyInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessKeyRotateResponse"];
+                };
+            };
+        };
+    };
+    listAccessKeyBuckets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accessKeyHashId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessKeyBucketsListResponseDTO"];
+                };
+            };
+        };
+    };
+    listServerAccessKeys: {
+        parameters: {
+            query?: {
+                offset?: number;
+                limit?: number;
+                sort?: ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc")[] | ("accessKeyId-asc" | "accessKeyId-desc" | "accessKeyHashId-asc" | "accessKeyHashId-desc" | "endpoint-asc" | "endpoint-desc" | "region-asc" | "region-desc");
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessKeyListResponse"];
+                };
+            };
+        };
+    };
+    getServerAccessKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accessKeyHashId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessKeyGetResponse"];
+                };
+            };
+        };
+    };
+    rotateServerAccessKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accessKeyHashId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RotateAccessKeyInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessKeyRotateResponse"];
+                };
+            };
+        };
+    };
+    listServerAccessKeyBuckets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accessKeyHashId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessKeyBucketsListResponseDTO"];
+                };
+            };
+        };
+    };
+    getServerSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingsGetResponse"];
+                };
+            };
+        };
+    };
+    setServerSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                settingKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetSettingInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingSetResponse"];
+                };
+            };
+        };
+    };
+    resetServerSetting: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                settingKey: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SettingSetResponse"];
+                };
+            };
+        };
+    };
+    installLocalApps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstallAppsResponse"];
+                };
+            };
+        };
+    };
+    getServerMetrics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerMetricsResponse"];
+                };
+            };
+        };
+    };
+    listUserStorageProvisions: {
+        parameters: {
+            query?: {
+                provisionType?: "CONTENT" | "METADATA" | "REDUNDANCY";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserStorageProvisionListResponse"];
+                };
+            };
+        };
+    };
+    createUserStorageProvision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserStorageProvisionInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserStorageProvisionListResponse"];
+                };
+            };
+        };
+    };
+    getUserStorageProvision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userStorageProvisionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserStorageProvisionGetResponse"];
+                };
+            };
+        };
+    };
+    updateUserStorageProvision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userStorageProvisionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserStorageProvisionInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserStorageProvisionListResponse"];
+                };
+            };
+        };
+    };
+    deleteUserStorageProvision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userStorageProvisionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserStorageProvisionListResponse"];
+                };
+            };
+        };
+    };
+    getServerStorageLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerStorageLocationGetResponse"];
+                };
+            };
+        };
+    };
+    setServerStorageLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServerStorageLocationInputDTO"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServerStorageLocationGetResponse"];
+                };
+            };
+        };
+    };
+    deleteServerStorageLocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    getTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskGetResponse"];
+                };
+            };
+        };
+    };
+    listTasks: {
+        parameters: {
+            query?: {
+                objectKey?: string;
+                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc");
+                search?: string;
+                includeWaiting?: "true";
+                includeRunning?: "true";
+                includeComplete?: "true";
+                includeFailed?: "true";
+                offset?: number;
+                limit?: number;
+                folderId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskListResponse"];
+                };
+            };
+        };
+    };
+    getFolderTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                taskId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskGetResponse"];
+                };
+            };
+        };
+    };
+    listFolderTasks: {
+        parameters: {
+            query?: {
+                objectKey?: string;
+                sort?: ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc")[] | ("createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc" | "startedAt-asc" | "startedAt-desc" | "completedAt-asc" | "completedAt-desc" | "errorAt-asc" | "errorAt-desc");
+                search?: string;
+                includeWaiting?: "true";
+                includeRunning?: "true";
+                includeComplete?: "true";
+                includeFailed?: "true";
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskListResponse"];
+                };
+            };
+        };
+    };
+    getEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventGetResponse"];
+                };
+            };
+        };
+    };
+    listEvents: {
+        parameters: {
+            query?: {
+                sort?: ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc")[] | ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc");
+                folderId?: string;
+                objectKey?: string;
+                search?: string;
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventListResponse"];
+                };
+            };
+        };
+    };
+    getFolderEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventGetResponse"];
+                };
+            };
+        };
+    };
+    listFolderEvents: {
+        parameters: {
+            query?: {
+                sort?: ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc")[] | ("createdAt-asc" | "createdAt-desc" | "eventIdentifier-asc" | "eventIdentifier-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "objectKey-asc" | "objectKey-desc");
+                objectKey?: string;
+                search?: string;
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventListResponse"];
+                };
+            };
+        };
+    };
+    listApps: {
+        parameters: {
+            query?: {
+                sort?: ("label-asc" | "label-desc" | "identifier-asc" | "identifier-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("label-asc" | "label-desc" | "identifier-asc" | "identifier-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
+                search?: string;
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppListResponse"];
+                };
+            };
+        };
+    };
+    getApp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppGetResponse"];
+                };
+            };
+        };
+    };
+    setWorkerScriptEnvVars: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+                workerIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetWorkerScriptEnvVarsInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+        };
+    };
+    generateAppUserAccessToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResponse"];
+                };
+            };
+        };
+    };
+    getLog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                logId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogGetResponse"];
+                };
+            };
+        };
+    };
+    listLogs: {
+        parameters: {
+            query?: {
+                sort?: ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc")[] | ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc");
+                folderId?: string;
+                objectKey?: string;
+                search?: string;
+                includeTrace?: "true";
+                includeDebug?: "true";
+                includeInfo?: "true";
+                includeWarning?: "true";
+                includeError?: "true";
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogListResponse"];
+                };
+            };
+        };
+    };
+    getFolderLog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+                logId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogGetResponse"];
+                };
+            };
+        };
+    };
+    listFolderLogs: {
+        parameters: {
+            query?: {
+                sort?: ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc")[] | ("createdAt-asc" | "createdAt-desc" | "message-asc" | "message-desc" | "emitterIdentifier-asc" | "emitterIdentifier-desc" | "level-asc" | "level-desc");
+                objectKey?: string;
+                search?: string;
+                includeTrace?: "true";
+                includeDebug?: "true";
+                includeInfo?: "true";
+                includeWarning?: "true";
+                includeError?: "true";
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogListResponse"];
+                };
+            };
+        };
+    };
 }

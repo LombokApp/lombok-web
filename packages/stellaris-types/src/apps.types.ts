@@ -131,7 +131,7 @@ export const appConfigSchema = z.object({
       appWorkerScriptConfigSchema,
     )
     .optional(),
-  uis: z.record(z.string().nonempty(), appUIConfigSchema).optional(),
+  ui: z.record(z.string().nonempty(), appUIConfigSchema).optional(),
 })
 
 export const appWorkerScriptSchema = z.object({

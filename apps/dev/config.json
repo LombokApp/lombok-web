@@ -28,7 +28,7 @@
       }
     }
   },
-  "uis": {
+  "ui": {
     "main": {
       "description": "The main UI for the dev app",
       "menuItems": [

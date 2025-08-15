@@ -92,7 +92,7 @@ export const ServerContextProvider = ({
     () =>
       serverApps?.result.reduce<AppMenuItemAndHref[]>((acc, nextApp) => {
         return acc.concat(
-          nextApp.uis
+          nextApp.ui
             .reduce<AppMenuItem[]>(
               (uiAcc, nextUi) => uiAcc.concat(nextUi.menuItems),
               [],

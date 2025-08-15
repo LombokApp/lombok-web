@@ -878,7 +878,7 @@ export class AppService {
     }
 
     // Check if the UI exists in the app's menuItems
-    const uiExists = requestData.uiName in workerApp.uis
+    const uiExists = requestData.uiName in workerApp.ui
 
     if (!uiExists) {
       // UI by uiName not found in app by appIdentifier
@@ -918,7 +918,7 @@ export class AppService {
     ])
 
     return {
-      manifest: workerApp.uis[requestData.uiName]['files'],
+      manifest: workerApp.ui[requestData.uiName]['files'],
       bundleUrl: presignedGetURL[0],
     }
   }
@@ -1269,7 +1269,7 @@ export class AppService {
       return acc
     }, {})
 
-    const workerScripts = Object.entries(
+    const workerScriptDefinitions = Object.entries(
       config.workerScripts ?? {},
     ).reduce<AppWorkerScriptMap>((acc, [workerIdentifier, value]) => {
       return {
@@ -1296,15 +1296,15 @@ export class AppService {
       }
     }, {})
 
-    for (const workerScript of Object.keys(workerScripts)) {
+    for (const workerScript of Object.keys(workerScriptDefinitions)) {
       if (
         !(
           `/workers/${workerScript}/index.ts` in
-          workerScripts[workerScript].files
+          workerScriptDefinitions[workerScript].files
         ) &&
         !(
           `/workers/${workerScript}/index.js` in
-          workerScripts[workerScript].files
+          workerScriptDefinitions[workerScript].files
         )
       ) {
         throw new AppInvalidException(
@@ -1313,7 +1313,7 @@ export class AppService {
       }
     }
 
-    const uis = Object.entries(config.uis ?? {}).reduce<AppUIMap>(
+    const uiDefinitions = Object.entries(config.ui ?? {}).reduce<AppUIMap>(
       (acc, [uiIdentifier, value]) => ({
         ...acc,
         [uiIdentifier]: {
@@ -1338,9 +1338,9 @@ export class AppService {
       {},
     )
 
-    for (const uiName of Object.keys(uis)) {
+    for (const uiName of Object.keys(uiDefinitions)) {
       if (
-        !Object.keys(uis[uiName].files).find((f) =>
+        !Object.keys(uiDefinitions[uiName].files).find((f) =>
           f.startsWith(`/ui/${uiName}/`),
         )
       ) {
@@ -1372,12 +1372,13 @@ export class AppService {
         label: config.label,
         manifest,
         publicKey,
-        workerScripts,
+        workerScripts: workerScriptDefinitions,
         subscribedEvents,
         implementedTasks,
         requiresStorage:
-          Object.keys(uis).length > 0 || Object.keys(workerScripts).length > 0,
-        uis,
+          Object.keys(uiDefinitions).length > 0 ||
+          Object.keys(workerScriptDefinitions).length > 0,
+        ui: uiDefinitions,
         config,
         createdAt: now,
         updatedAt: now,
