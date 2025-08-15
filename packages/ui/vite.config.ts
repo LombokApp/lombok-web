@@ -51,14 +51,14 @@ function subdomainProxyPlugin(env: Record<string, string>): PluginOption {
         // Extract second and third subdomains
         const hostParts = host.split('.')
         const appIdentifier = hostParts[1]
-        const uiName = hostParts[0]
+        const uiIdentifier = hostParts[0]
 
-        if (!appIdentifier || !uiName) {
+        if (!appIdentifier || !uiIdentifier) {
           next()
           return
         }
 
-        const appFrontendProxyHostConfigEnvKey = `SC_APP_FRONTEND_PROXY_HOST_${appIdentifier.toUpperCase()}_${uiName.toUpperCase()}`
+        const appFrontendProxyHostConfigEnvKey = `SC_APP_FRONTEND_PROXY_HOST_${appIdentifier.toUpperCase()}_${uiIdentifier.toUpperCase()}`
         const appProxyHostConfig = env[appFrontendProxyHostConfigEnvKey]
           ? new URL(env[appFrontendProxyHostConfigEnvKey])
           : undefined

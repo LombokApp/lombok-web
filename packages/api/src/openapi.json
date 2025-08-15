@@ -2254,7 +2254,13 @@
                       "createdAt-asc",
                       "createdAt-desc",
                       "updatedAt-asc",
-                      "updatedAt-desc"
+                      "updatedAt-desc",
+                      "startedAt-asc",
+                      "startedAt-desc",
+                      "completedAt-asc",
+                      "completedAt-desc",
+                      "errorAt-asc",
+                      "errorAt-desc"
                     ]
                   }
                 },
@@ -2264,7 +2270,13 @@
                     "createdAt-asc",
                     "createdAt-desc",
                     "updatedAt-asc",
-                    "updatedAt-desc"
+                    "updatedAt-desc",
+                    "startedAt-asc",
+                    "startedAt-desc",
+                    "completedAt-asc",
+                    "completedAt-desc",
+                    "errorAt-asc",
+                    "errorAt-desc"
                   ]
                 }
               ]
@@ -2441,7 +2453,13 @@
                       "createdAt-asc",
                       "createdAt-desc",
                       "updatedAt-asc",
-                      "updatedAt-desc"
+                      "updatedAt-desc",
+                      "startedAt-asc",
+                      "startedAt-desc",
+                      "completedAt-asc",
+                      "completedAt-desc",
+                      "errorAt-asc",
+                      "errorAt-desc"
                     ]
                   }
                 },
@@ -2451,7 +2469,13 @@
                     "createdAt-asc",
                     "createdAt-desc",
                     "updatedAt-asc",
-                    "updatedAt-desc"
+                    "updatedAt-desc",
+                    "startedAt-asc",
+                    "startedAt-desc",
+                    "completedAt-asc",
+                    "completedAt-desc",
+                    "errorAt-asc",
+                    "errorAt-desc"
                   ]
                 }
               ]
@@ -6160,15 +6184,17 @@
                     "identifier": {
                       "type": "string",
                       "minLength": 1,
-                      "pattern": "^[a-z0-9]+$"
+                      "pattern": "^[a-z]+$"
                     },
                     "label": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "maxLength": 128
                     },
                     "description": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "maxLength": 1024
                     },
                     "emittableEvents": {
                       "type": "array",
@@ -6183,10 +6209,14 @@
                         "type": "object",
                         "properties": {
                           "identifier": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "^[a-z_]+$"
                           },
                           "label": {
-                            "type": "string"
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 128
                           },
                           "triggers": {
                             "type": "array",
@@ -6369,7 +6399,7 @@
                         ]
                       }
                     },
-                    "uis": {
+                    "ui": {
                       "type": "object",
                       "additionalProperties": {
                         "type": "object",
@@ -6388,13 +6418,12 @@
                                 "iconPath": {
                                   "type": "string"
                                 },
-                                "uiName": {
+                                "url": {
                                   "type": "string"
                                 }
                               },
                               "required": [
-                                "label",
-                                "uiName"
+                                "label"
                               ]
                             }
                           }
@@ -6445,7 +6474,9 @@
                     "type": "object",
                     "properties": {
                       "appIdentifier": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[a-z]+$"
                       },
                       "workerId": {
                         "type": "string"
@@ -6453,7 +6484,9 @@
                       "handledTaskIdentifiers": {
                         "type": "array",
                         "items": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 1,
+                          "pattern": "^[a-z_]+$"
                         }
                       },
                       "socketClientId": {
@@ -6509,7 +6542,9 @@
                         }
                       },
                       "identifier": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[a-z0-9_]+$"
                       }
                     },
                     "required": [
@@ -6520,7 +6555,7 @@
                     ]
                   }
                 },
-                "uis": {
+                "ui": {
                   "type": "array",
                   "items": {
                     "type": "object",
@@ -6539,13 +6574,12 @@
                             "iconPath": {
                               "type": "string"
                             },
-                            "uiName": {
+                            "url": {
                               "type": "string"
                             }
                           },
                           "required": [
-                            "label",
-                            "uiName"
+                            "label"
                           ]
                         }
                       },
@@ -6572,7 +6606,9 @@
                         }
                       },
                       "identifier": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[a-z0-9_]+$"
                       }
                     },
                     "required": [
@@ -6601,7 +6637,7 @@
                 "manifest",
                 "externalWorkers",
                 "workerScripts",
-                "uis",
+                "ui",
                 "createdAt",
                 "updatedAt"
               ]
@@ -6634,15 +6670,17 @@
                   "identifier": {
                     "type": "string",
                     "minLength": 1,
-                    "pattern": "^[a-z0-9]+$"
+                    "pattern": "^[a-z]+$"
                   },
                   "label": {
                     "type": "string",
-                    "minLength": 1
+                    "minLength": 1,
+                    "maxLength": 128
                   },
                   "description": {
                     "type": "string",
-                    "minLength": 1
+                    "minLength": 1,
+                    "maxLength": 1024
                   },
                   "emittableEvents": {
                     "type": "array",
@@ -6657,10 +6695,14 @@
                       "type": "object",
                       "properties": {
                         "identifier": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 1,
+                          "pattern": "^[a-z_]+$"
                         },
                         "label": {
-                          "type": "string"
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 128
                         },
                         "triggers": {
                           "type": "array",
@@ -6843,7 +6885,7 @@
                       ]
                     }
                   },
-                  "uis": {
+                  "ui": {
                     "type": "object",
                     "additionalProperties": {
                       "type": "object",
@@ -6862,13 +6904,12 @@
                               "iconPath": {
                                 "type": "string"
                               },
-                              "uiName": {
+                              "url": {
                                 "type": "string"
                               }
                             },
                             "required": [
-                              "label",
-                              "uiName"
+                              "label"
                             ]
                           }
                         }
@@ -6919,7 +6960,9 @@
                   "type": "object",
                   "properties": {
                     "appIdentifier": {
-                      "type": "string"
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-z]+$"
                     },
                     "workerId": {
                       "type": "string"
@@ -6927,7 +6970,9 @@
                     "handledTaskIdentifiers": {
                       "type": "array",
                       "items": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1,
+                        "pattern": "^[a-z_]+$"
                       }
                     },
                     "socketClientId": {
@@ -6946,7 +6991,7 @@
                   ]
                 }
               },
-              "uis": {
+              "ui": {
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -6965,13 +7010,12 @@
                           "iconPath": {
                             "type": "string"
                           },
-                          "uiName": {
+                          "url": {
                             "type": "string"
                           }
                         },
                         "required": [
-                          "label",
-                          "uiName"
+                          "label"
                         ]
                       }
                     },
@@ -6998,7 +7042,9 @@
                       }
                     },
                     "identifier": {
-                      "type": "string"
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-z0-9_]+$"
                     }
                   },
                   "required": [
@@ -7054,7 +7100,9 @@
                       }
                     },
                     "identifier": {
-                      "type": "string"
+                      "type": "string",
+                      "minLength": 1,
+                      "pattern": "^[a-z0-9_]+$"
                     }
                   },
                   "required": [
@@ -7074,7 +7122,7 @@
               "requiresStorage",
               "manifest",
               "externalWorkers",
-              "uis",
+              "ui",
               "createdAt",
               "updatedAt",
               "workerScripts"

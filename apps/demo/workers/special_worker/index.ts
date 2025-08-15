@@ -8,7 +8,6 @@ export const handleTask: TaskHandler = async function handleTask(
   task,
   { serverClient },
 ) {
-  console.log('SPECIAL THING WORKER TASK HANDLER!!!!!')
   const urls = await serverClient.getContentSignedUrls([
     {
       folderId: 'b85646a9-3c5c-40c6-afe8-6035fdb827da',
@@ -16,7 +15,6 @@ export const handleTask: TaskHandler = async function handleTask(
       method: 'GET',
     },
   ])
-  throw new Error('Poop!!!')
 
   console.log('From inside worker task handler:', {
     generatedPresignedUrls: urls,
@@ -78,7 +76,7 @@ export const handleRequest: RequestHandler = async function handleRequest(
 
   return sendResponse(
     {
-      message: 'Hello, world!',
+      message: 'Hello, world (from special worker)!',
     },
     201,
   )

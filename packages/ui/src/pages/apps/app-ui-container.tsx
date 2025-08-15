@@ -16,19 +16,20 @@ export const AppUIContainer = () => {
   const { '*': subPath } = useParams()
   const pathParts = subPath?.split('/') ?? []
   const appIdentifier = pathParts[0]
-  const uiName = pathParts[1]
+  const uiIdentifier = pathParts[1]
+  const url = pathParts.slice(2).join('/')
   const serverContext = useServerContext()
   const app = serverContext.apps?.result.find(
     (_app) => _app.identifier === appIdentifier,
   )
   const uiLabel =
-    app?.config.uis?.[uiName ?? '']?.menuItems.find(
-      (_menuItem) => _menuItem.uiName === uiName,
+    app?.config.ui?.[uiIdentifier ?? '']?.menuItems.find(
+      (_menuItem) => _menuItem.url === url,
     )?.label ?? ''
 
   const appLabel = app?.label
 
-  if (!appIdentifier || !uiName) {
+  if (!appIdentifier || !uiIdentifier) {
     void navigate('/folders')
     return null
   }
@@ -64,7 +65,8 @@ export const AppUIContainer = () => {
         <AppUI
           getAccessTokens={getAppAccessTokens}
           appIdentifier={appIdentifier}
-          uiName={uiName}
+          uiIdentifier={uiIdentifier}
+          url={url}
           host={API_HOST}
           scheme={protocol}
         />

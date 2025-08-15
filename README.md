@@ -14,7 +14,7 @@ To learn more, visit the [public site](https://stellariscloud.com) and read the 
 4. `bun db:dev` -- run the db
 5. `bun api:dev` -- run the backend
 6. `bun ui:dev` -- run the ui
-7. Add `stellariscloud.localhost` and `minio.localhost` to your /etc/hosts file (pointing at 127.0.0.1)
+7. Add `stellariscloud.localhost` and `minio` to your /etc/hosts file (pointing at 127.0.0.1)
 8. Visit http://stellariscloud.localhost:5173
 
 ### Other helpful commands

@@ -3,13 +3,15 @@ import React from 'react'
 export function AppUI({
   appIdentifier,
   host,
-  uiName,
+  uiIdentifier,
+  url,
   scheme,
   getAccessTokens,
 }: {
   getAccessTokens: () => Promise<{ accessToken: string; refreshToken: string }>
   appIdentifier: string
-  uiName: string
+  uiIdentifier: string
+  url: string
   host: string
   scheme: string
 }) {
@@ -17,10 +19,17 @@ export function AppUI({
 
   React.useEffect(() => {
     // Set the iframe's new HTML
-    if (iframeRef.current?.contentWindow && appIdentifier && uiName) {
-      iframeRef.current.src = `${scheme}//${uiName}.${appIdentifier}.apps.${host}?basePath=${scheme}//${host}`
+    if (iframeRef.current?.contentWindow && appIdentifier && uiIdentifier) {
+      iframeRef.current.src = `${scheme}//${uiIdentifier}.${appIdentifier}.apps.${host}${url ? `/${url}` : ''}?basePath=${scheme}//${host}`
     }
-  }, [iframeRef.current?.contentWindow, appIdentifier, host, uiName, scheme])
+  }, [
+    iframeRef.current?.contentWindow,
+    appIdentifier,
+    host,
+    uiIdentifier,
+    scheme,
+    url,
+  ])
 
   // Handle messages from the iframe
   React.useEffect(() => {

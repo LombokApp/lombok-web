@@ -17,7 +17,7 @@ export const appSchema = z.object({
   manifest: appManifestSchema,
   externalWorkers: z.array(externalAppWorkerSchema),
   workerScripts: appWorkerScriptsSchema,
-  uis: appUIsSchema,
+  ui: appUIsSchema,
   createdAt: z.date(),
   updatedAt: z.date(),
 })

@@ -8,7 +8,7 @@ CREATE TABLE "apps" (
 	"contentHash" text NOT NULL,
 	"config" jsonb NOT NULL,
 	"workerScripts" jsonb NOT NULL,
-	"uis" jsonb NOT NULL,
+	"ui" jsonb NOT NULL,
 	"manifest" jsonb NOT NULL,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL

@@ -20,9 +20,9 @@ export function transformAppToDTO(
         ...app.workerScripts[workerScriptIdentifier],
       }),
     ),
-    uis: Object.keys(app.uis).map((uiIdentifier) => ({
+    ui: Object.keys(app.ui).map((uiIdentifier) => ({
       identifier: uiIdentifier,
-      ...app.uis[uiIdentifier],
+      ...app.ui[uiIdentifier],
     })),
     createdAt: app.createdAt,
     updatedAt: app.updatedAt,
