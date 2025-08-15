@@ -1,7 +1,7 @@
 {
-  "description": "The dev app.",
-  "identifier": "dev",
-  "label": "Dev",
+  "description": "The demo app.",
+  "identifier": "demo",
+  "label": "Demo App",
   "tasks": [
     {
       "identifier": "do_special_thing",
@@ -24,13 +24,13 @@
     "special_worker": {
       "description": "Manages special things for objects.",
       "envVars": {
-        "SPECIAL_THING_ENV_VAR": "pospopopwoerpower"
+        "SPECIAL_THING_ENV_VAR": "<some_dummy_env_var_value>"
       }
     }
   },
   "ui": {
     "main": {
-      "description": "The main UI for the dev app",
+      "description": "The main UI for the demo app",
       "menuItems": [
         {
           "label": "Demo App",
