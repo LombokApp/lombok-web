@@ -1,6 +1,13 @@
 import type { ServerStorageLocationDTO } from '@stellariscloud/types'
 import { Button } from '@stellariscloud/ui-toolkit'
-import { Globe, Key, Lock, PackageOpen, Server, Slash } from 'lucide-react'
+import {
+  Globe,
+  KeyRoundIcon,
+  Lock,
+  PackageOpen,
+  Server,
+  Slash,
+} from 'lucide-react'
 
 const DD_CLASS = 'mt-1 text-base text-muted-foreground font-mono'
 
@@ -51,7 +58,7 @@ export function ServerStorageLocationCard({
           <div className="flex flex-col pl-6 pt-6">
             <span className="sr-only">Access Key ID</span>
             <dt className="flex gap-2">
-              <Key
+              <KeyRoundIcon
                 aria-hidden="true"
                 className="h-6 w-5 text-muted-foreground"
               />

@@ -2,6 +2,7 @@ import type { AccessKeyPublicDTO } from '@stellariscloud/types'
 import type { HideableColumnDef } from '@stellariscloud/ui-toolkit'
 import { useToast } from '@stellariscloud/ui-toolkit'
 import { DataTableColumnHeader } from '@stellariscloud/ui-toolkit/src/components/data-table/data-table-column-header'
+import { KeyRoundIcon } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
@@ -97,7 +98,12 @@ export const configureServerAccessKeysTableColumns: (
     ),
     cell: ({ row }) => (
       <div className="flex flex-col">
-        <div className="w-[80px] truncate">{row.original.accessKeyHashId}</div>
+        <div className="flex items-center gap-2">
+          <KeyRoundIcon className="size-4" />
+          <div className="w-[80px] truncate">
+            {row.original.accessKeyHashId}
+          </div>
+        </div>
       </div>
     ),
     enableSorting: false,
