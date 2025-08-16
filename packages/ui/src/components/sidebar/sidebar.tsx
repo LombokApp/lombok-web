@@ -2,7 +2,7 @@ import type { IAuthContext } from '@stellariscloud/auth-utils'
 import { Button, cn } from '@stellariscloud/ui-toolkit'
 import { Link } from 'react-router-dom'
 
-import type { AppMenuItemAndHref } from '../../contexts/server.context'
+import type { AppMenuLink } from '../../contexts/server.context'
 import { useStore } from '../../hooks/use-store'
 import { Menu } from './components/menu'
 import { SidebarToggle } from './components/sidebar-toggle'
@@ -11,11 +11,11 @@ import { useSidebar } from './use-sidebar'
 export function Sidebar({
   onSignOut,
   authContext,
-  appMenuItems,
+  sidebarMenuLinkContributions: sidebarMenuLinks,
 }: {
   onSignOut: () => Promise<void>
   authContext: IAuthContext
-  appMenuItems: AppMenuItemAndHref[]
+  sidebarMenuLinkContributions: AppMenuLink[]
 }) {
   const sidebar = useStore(useSidebar, (x) => x)
   if (!sidebar) {
@@ -71,7 +71,7 @@ export function Sidebar({
               viewer={authContext.viewer}
               isOpen={getOpenState()}
               onSignOut={onSignOut}
-              appMenuItems={appMenuItems}
+              sidebarMenuLinkContributions={sidebarMenuLinks}
             />
           )}
         </div>

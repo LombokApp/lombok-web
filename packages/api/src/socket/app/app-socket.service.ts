@@ -73,7 +73,7 @@ export class AppSocketService {
         socket.disconnect(true)
         throw new UnauthorizedException()
       }
-      const app = await this.appService.getApp(appIdentifier)
+      const app = await this.appService.getAppAsAdmin(appIdentifier)
       if (!app) {
         // eslint-disable-next-line no-console
         console.log('App "%s" not recognised. Disconnecting...', appIdentifier)

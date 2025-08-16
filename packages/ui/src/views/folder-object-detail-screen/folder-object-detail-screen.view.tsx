@@ -4,10 +4,21 @@ import {
   FolderPushMessage,
   MediaType,
 } from '@stellariscloud/types'
-import { Button, cn, TypographyH3, useToast } from '@stellariscloud/ui-toolkit'
+import {
+  Button,
+  cn,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+  TypographyH3,
+  useToast,
+} from '@stellariscloud/ui-toolkit'
 import { Download, Trash } from 'lucide-react'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+
+import { useServerContext } from '@/src/hooks/use-server-context'
 
 import type { DeleteObjectModalData } from '../../components/delete-object-modal/delete-object-modal'
 import { DeleteObjectModal } from '../../components/delete-object-modal/delete-object-modal'
@@ -17,6 +28,11 @@ import { useFolderContext } from '../../pages/folders/folder.context'
 import { FolderObjectPreview } from '../folder-object-preview/folder-object-preview.view'
 import { FolderObjectSidebar } from '../folder-object-sidebar/folder-object-sidebar.view'
 
+const protocol = window.location.protocol
+const hostname = window.location.hostname
+const port = window.location.port
+const API_HOST = `${hostname}${port ? `:${port}` : ''}`
+
 export const FolderObjectDetailScreen = ({
   folderId,
   objectKey,
@@ -25,6 +41,7 @@ export const FolderObjectDetailScreen = ({
   objectKey: string
 }) => {
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
+  const serverContext = useServerContext()
   const { focusedFolderObject: folderObject, refetch: refetchFolderObject } =
     useFocusedFolderObjectContext()
   const [displaySize, setDisplaySize] = React.useState('compressed')
@@ -173,21 +190,66 @@ export const FolderObjectDetailScreen = ({
                   {folderContext.folderPermissions?.includes(
                     FolderPermissionEnum.OBJECT_EDIT,
                   ) && (
-                    <Button
-                      size="sm"
-                      onClick={() => setDeleteModalData({ isOpen: true })}
-                      variant={'outline'}
-                    >
-                      <Trash className="size-5" />
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip delayDuration={100}>
+                        <TooltipTrigger asChild>
+                          <Button
+                            size="sm"
+                            onClick={() => setDeleteModalData({ isOpen: true })}
+                            variant={'outline'}
+                          >
+                            <Trash className="size-5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">Delete</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
-                  <Button
-                    size="sm"
-                    variant={'outline'}
-                    onClick={handleDownload}
-                  >
-                    <Download className="size-5" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip delayDuration={100}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant={'outline'}
+                          onClick={handleDownload}
+                        >
+                          <Download className="size-5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">Download</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  {serverContext.objectActionMenuLinkContributions.map(
+                    (linkContribution) => (
+                      <TooltipProvider key={linkContribution.href}>
+                        <Tooltip delayDuration={100}>
+                          <TooltipTrigger asChild>
+                            <Button
+                              className="px-1"
+                              size="sm"
+                              variant={'outline'}
+                              onClick={() =>
+                                void navigate(
+                                  linkContribution.href
+                                    .replace('{folderId}', folderId)
+                                    .replace('{objectKey}', objectKey),
+                                )
+                              }
+                            >
+                              <img
+                                src={`${protocol}//${linkContribution.uiIdentifier}.${linkContribution.appIdentifier}.apps.${API_HOST}${linkContribution.iconPath}`}
+                                alt={`${linkContribution.appLabel} icon`}
+                                className="size-6"
+                              />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            {linkContribution.label}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ),
+                  )}
                 </div>
               </div>
             )}

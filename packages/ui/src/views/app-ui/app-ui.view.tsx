@@ -7,6 +7,7 @@ export function AppUI({
   url,
   scheme,
   getAccessTokens,
+  queryParams,
 }: {
   getAccessTokens: () => Promise<{ accessToken: string; refreshToken: string }>
   appIdentifier: string
@@ -14,22 +15,22 @@ export function AppUI({
   url: string
   host: string
   scheme: string
+  queryParams: Record<string, string>
 }) {
   const iframeRef = React.useRef<HTMLIFrameElement>(null)
 
+  const srcUrl = React.useMemo(() => {
+    const query = Object.entries(queryParams)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('&')
+    return `${scheme}//${uiIdentifier}.${appIdentifier}.apps.${host}${url ? url : ''}?${query}`
+  }, [appIdentifier, host, queryParams, uiIdentifier, scheme, url])
+
   React.useEffect(() => {
-    // Set the iframe's new HTML
-    if (iframeRef.current?.contentWindow && appIdentifier && uiIdentifier) {
-      iframeRef.current.src = `${scheme}//${uiIdentifier}.${appIdentifier}.apps.${host}${url ? `/${url}` : ''}?basePath=${scheme}//${host}`
+    if (iframeRef.current) {
+      iframeRef.current.src = srcUrl
     }
-  }, [
-    iframeRef.current?.contentWindow,
-    appIdentifier,
-    host,
-    uiIdentifier,
-    scheme,
-    url,
-  ])
+  }, [srcUrl])
 
   // Handle messages from the iframe
   React.useEffect(() => {

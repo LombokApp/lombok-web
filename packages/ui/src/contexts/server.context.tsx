@@ -1,9 +1,8 @@
 import { useAuthContext } from '@stellariscloud/auth-utils'
 import type {
-  AppMenuItem,
+  AppContributionsResponse,
   AppPushMessage,
-  AppsListResponse,
-  AppTaskTrigger,
+  AppUILink,
   ServerSettingsListResponse,
 } from '@stellariscloud/types'
 import { ServerPushMessage } from '@stellariscloud/types'
@@ -28,29 +27,35 @@ export interface Notification {
   id?: string
 }
 
-export type AppMenuItemAndHref = {
+export type AppMenuLink = {
   href: string
   appIdentifier: string
   appLabel: string
   uiIdentifier: string
-} & AppMenuItem
+} & AppUILink
+
+export interface AppSidebarEmbed {
+  href: string
+  appIdentifier: string
+  appLabel: string
+  uiIdentifier: string
+  title: string
+  iconPath?: string
+  path: string
+}
 
 export interface IServerContext {
-  refreshApps: () => Promise<QueryObserverResult<AppsListResponse>>
+  refreshApps: () => Promise<QueryObserverResult<AppContributionsResponse>>
   refreshSettings: () => Promise<
     ServerSettingsListResponse['settings'] | undefined
   >
-  appMenuItems: AppMenuItemAndHref[]
-  appFolderTaskTriggers: {
-    taskTrigger: AppTaskTrigger
-    appIdentifier: string
-  }[]
-  appFolderObjectTaskTriggers: {
-    taskTrigger: AppTaskTrigger
-    appIdentifier: string
-  }[]
+  sidebarMenuLinkContributions: AppMenuLink[]
+  folderActionMenuLinkContributions: AppMenuLink[]
+  objectActionMenuLinkContributions: AppMenuLink[]
+  folderSidebarEmbedContributions: AppSidebarEmbed[]
+  objectSidebarEmbedContributions: AppSidebarEmbed[]
   settings?: ServerSettingsListResponse['settings']
-  apps?: AppsListResponse
+  appContributions?: AppContributionsResponse
   subscribeToMessages: (handler: SocketMessageHandler) => void
   unsubscribeFromMessages: (handler: SocketMessageHandler) => void
   socketConnected: boolean
@@ -67,7 +72,10 @@ export const ServerContextProvider = ({
   children: React.ReactNode
 }) => {
   const authContext = useAuthContext()
-  const appsQuery = $api.useQuery('get', '/api/v1/server/apps')
+  const appsContributionsQuery = $api.useQuery(
+    'get',
+    '/api/v1/server/app-contributions',
+  )
   const settingsQuery = $api.useQuery(
     'get',
     '/api/v1/server/settings',
@@ -88,78 +96,124 @@ export const ServerContextProvider = ({
 
   // Derived state from API data
   const serverSettings = settingsQuery.data?.settings
-  const serverApps = appsQuery.data
-  const menuItems = React.useMemo(
-    () =>
-      serverApps?.result.reduce<AppMenuItemAndHref[]>((acc, nextApp) => {
+  const appContributionsResult = appsContributionsQuery.data
+  const {
+    sidebarMenuLinkContributions,
+    folderActionMenuLinkContributions,
+    objectActionMenuLinkContributions,
+    folderSidebarEmbedContributions,
+    objectSidebarEmbedContributions,
+  } = React.useMemo(
+    () => ({
+      sidebarMenuLinkContributions: Object.keys(
+        appContributionsResult ?? {},
+      ).reduce<AppMenuLink[]>((acc, nextAppIdentifier) => {
+        const appIdentifier =
+          appContributionsResult?.[nextAppIdentifier]?.appIdentifier ?? ''
+        const appLabel =
+          appContributionsResult?.[nextAppIdentifier]?.appLabel ?? ''
+        const contributions =
+          appContributionsResult?.[nextAppIdentifier]?.contributions
         return acc.concat(
-          nextApp.ui.reduce<AppMenuItemAndHref[]>(
-            (uiAcc, nextUi) =>
-              uiAcc.concat(
-                nextUi.menuItems.map((menuItem) => ({
-                  ...menuItem,
-                  href: `/apps/${nextApp.identifier}/${nextUi.identifier}${menuItem.url ? `/${menuItem.url}` : ''}`,
-                  uiIdentifier: nextUi.identifier,
-                  appIdentifier: nextApp.identifier,
-                  appLabel: nextApp.label,
-                })),
-              ),
-            [],
+          (contributions?.sidebarMenuLinks ?? []).map(
+            (nextSidebarMenuLink) => ({
+              ...nextSidebarMenuLink,
+              href: `/apps/${appIdentifier}/${nextSidebarMenuLink.uiIdentifier}${nextSidebarMenuLink.path}`,
+              appIdentifier,
+              appLabel,
+            }),
           ),
         )
-      }, []) ?? [],
-    [serverApps],
-  )
-  const appFolderActions = React.useMemo(
-    () =>
-      serverApps?.result.reduce<
-        { taskTrigger: AppTaskTrigger; appIdentifier: string }[]
-      >((acc, next) => {
+      }, []),
+      folderSidebarEmbedContributions: Object.keys(
+        appContributionsResult ?? {},
+      ).reduce<AppSidebarEmbed[]>((acc, nextAppIdentifier) => {
+        const appIdentifier =
+          appContributionsResult?.[nextAppIdentifier]?.appIdentifier ?? ''
+        const appLabel =
+          appContributionsResult?.[nextAppIdentifier]?.appLabel ?? ''
+        const contributions =
+          appContributionsResult?.[nextAppIdentifier]?.contributions
         return acc.concat(
-          next.config.tasks
-            .filter((item) => item.folderAction)
-            .map((item) => ({
-              taskTrigger: {
-                description: item.description,
-                label: item.label,
-                taskIdentifier: item.identifier,
-              },
-              appIdentifier: next.identifier,
-            })),
+          (contributions?.folderSidebarEmbeds ?? []).map((nextEmbed) => ({
+            ...nextEmbed,
+            href: `/apps/${appIdentifier}/${nextEmbed.uiIdentifier}${nextEmbed.path}`,
+            appIdentifier,
+            appLabel,
+          })),
         )
-      }, []) ?? [],
-    [serverApps],
-  )
-  const appFolderObjectActions = React.useMemo(
-    () =>
-      serverApps?.result.reduce<
-        { taskTrigger: AppTaskTrigger; appIdentifier: string }[]
-      >((acc, next) => {
+      }, []),
+      objectSidebarEmbedContributions: Object.keys(
+        appContributionsResult ?? {},
+      ).reduce<AppSidebarEmbed[]>((acc, nextAppIdentifier) => {
+        const appIdentifier =
+          appContributionsResult?.[nextAppIdentifier]?.appIdentifier ?? ''
+        const appLabel =
+          appContributionsResult?.[nextAppIdentifier]?.appLabel ?? ''
+        const contributions =
+          appContributionsResult?.[nextAppIdentifier]?.contributions
         return acc.concat(
-          next.config.tasks
-            .filter((item) => item.objectAction)
-            .map((item) => ({
-              taskTrigger: {
-                description: item.description,
-                label: item.label,
-                taskIdentifier: item.identifier,
-              },
-              appIdentifier: next.identifier,
-            })),
+          (contributions?.objectSidebarEmbeds ?? []).map((nextEmbed) => ({
+            ...nextEmbed,
+            href: `/apps/${appIdentifier}/${nextEmbed.uiIdentifier}${nextEmbed.path}`,
+            appIdentifier,
+            appLabel,
+          })),
         )
-      }, []) ?? [],
-    [serverApps],
+      }, []),
+      folderActionMenuLinkContributions: Object.keys(
+        appContributionsResult ?? {},
+      ).reduce<AppMenuLink[]>((acc, nextAppIdentifier) => {
+        const appIdentifier =
+          appContributionsResult?.[nextAppIdentifier]?.appIdentifier ?? ''
+        const appLabel =
+          appContributionsResult?.[nextAppIdentifier]?.appLabel ?? ''
+        const contributions =
+          appContributionsResult?.[nextAppIdentifier]?.contributions
+        return acc.concat(
+          (contributions?.folderActionMenuLinks ?? []).map(
+            (nextFolderActionMenuLink) => ({
+              ...nextFolderActionMenuLink,
+              href: `/apps/${appIdentifier}/${nextFolderActionMenuLink.uiIdentifier}${nextFolderActionMenuLink.path}`,
+              appIdentifier,
+              appLabel,
+            }),
+          ),
+        )
+      }, []),
+      objectActionMenuLinkContributions: Object.keys(
+        appContributionsResult ?? {},
+      ).reduce<AppMenuLink[]>((acc, nextAppIdentifier) => {
+        const appIdentifier =
+          appContributionsResult?.[nextAppIdentifier]?.appIdentifier ?? ''
+        const appLabel =
+          appContributionsResult?.[nextAppIdentifier]?.appLabel ?? ''
+        const contributions =
+          appContributionsResult?.[nextAppIdentifier]?.contributions
+        return acc.concat(
+          (contributions?.objectActionMenuLinks ?? []).map(
+            (nextObjectActionMenuLink) => ({
+              ...nextObjectActionMenuLink,
+              href: `/apps/${appIdentifier}/${nextObjectActionMenuLink.uiIdentifier}${nextObjectActionMenuLink.path}`,
+              appIdentifier,
+              appLabel,
+            }),
+          ),
+        )
+      }, []),
+    }),
+    [appContributionsResult],
   )
 
   const messageHandler = React.useCallback(
     (name: AppPushMessage) => {
       if (ServerPushMessage.APPS_UPDATED === name) {
-        void appsQuery.refetch()
+        void appsContributionsQuery.refetch()
       } else if (ServerPushMessage.SETTINGS_UPDATED === name) {
         void refetchSettings()
       }
     },
-    [appsQuery, refetchSettings],
+    [appsContributionsQuery, refetchSettings],
   )
 
   const { socket } = useWebsocket('user', messageHandler)
@@ -175,14 +229,16 @@ export const ServerContextProvider = ({
   return (
     <ServerContext.Provider
       value={{
-        refreshApps: appsQuery.refetch,
+        refreshApps: appsContributionsQuery.refetch,
         refreshSettings: refetchSettings,
         socketConnected: socket?.connected ?? false,
-        appMenuItems: menuItems,
-        appFolderTaskTriggers: appFolderActions,
-        appFolderObjectTaskTriggers: appFolderObjectActions,
+        sidebarMenuLinkContributions,
+        folderActionMenuLinkContributions,
+        objectActionMenuLinkContributions,
+        folderSidebarEmbedContributions,
+        objectSidebarEmbedContributions,
         settings: serverSettings,
-        apps: serverApps,
+        appContributions: appsContributionsQuery.data,
         subscribeToMessages,
         unsubscribeFromMessages,
         socket,

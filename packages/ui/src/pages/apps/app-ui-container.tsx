@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { ContentLayout } from '@/src/components/sidebar/components/content-layout'
 import { useServerContext } from '@/src/hooks/use-server-context'
@@ -14,20 +14,18 @@ const API_HOST = `${hostname}${port ? `:${port}` : ''}`
 export const AppUIContainer = () => {
   const navigate = useNavigate()
   const { '*': subPath } = useParams()
+  const [searchParams] = useSearchParams()
   const pathParts = subPath?.split('/') ?? []
-  const appIdentifier = pathParts[0]
+  const appIdentifier = pathParts[0] ?? ''
   const uiIdentifier = pathParts[1]
-  const url = pathParts.slice(2).join('/')
+  const url = `/${pathParts.slice(2).join('/')}`
   const serverContext = useServerContext()
-  const app = serverContext.apps?.result.find(
-    (_app) => _app.identifier === appIdentifier,
-  )
   const uiLabel =
-    app?.config.ui?.[uiIdentifier ?? '']?.menuItems.find(
-      (_menuItem) => _menuItem.url === url,
+    serverContext.appContributions?.[
+      appIdentifier
+    ]?.contributions.sidebarMenuLinks.find(
+      (sidebarMenuLink) => sidebarMenuLink.path === url,
     )?.label ?? ''
-
-  const appLabel = app?.label
 
   if (!appIdentifier || !uiIdentifier) {
     void navigate('/folders')
@@ -54,9 +52,17 @@ export const AppUIContainer = () => {
     [appIdentifier],
   )
 
+  const queryParams = React.useMemo(
+    () => ({
+      basePath: `${protocol}//${hostname}${port ? `:${port}` : ''}`,
+      ...Object.fromEntries(searchParams),
+    }),
+    [searchParams],
+  )
+
   return (
     <ContentLayout
-      breadcrumbs={[{ label: `App: ${appLabel ?? appIdentifier}` }].concat(
+      breadcrumbs={[{ label: `App: ${appIdentifier}` }].concat(
         uiLabel ? [{ label: uiLabel }] : [],
       )}
       contentPadding={false}
@@ -66,6 +72,7 @@ export const AppUIContainer = () => {
           getAccessTokens={getAppAccessTokens}
           appIdentifier={appIdentifier}
           uiIdentifier={uiIdentifier}
+          queryParams={queryParams}
           url={url}
           host={API_HOST}
           scheme={protocol}

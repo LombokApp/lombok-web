@@ -68,7 +68,7 @@ export const taskConfigSchema = z.object({
 
 export const appWorkersSchema = z.record(z.string(), z.object({}))
 
-export const appMenuItemSchema = z.object({
+export const appUILinkSchema = z.object({
   label: z.string(),
   iconPath: z.string().optional(),
   url: z.string().optional(),
@@ -94,12 +94,10 @@ export const appWorkerScriptConfigSchema = z.object({
 
 export const appUIConfigSchema = z.object({
   description: z.string(),
-  menuItems: z.array(appMenuItemSchema),
 })
 
 export const appUISchema = z.object({
   description: z.string(),
-  menuItems: z.array(appMenuItemSchema),
   files: appManifestSchema,
 })
 
@@ -113,6 +111,57 @@ export const appIdentifierSchema = z
   .refine((v) => v !== 'platform', {
     message: "App identifier cannot be 'platform'",
   })
+
+export const appContributionsSchema = z.object({
+  routes: z.array(
+    z.object({
+      title: z.string().nonempty(),
+      uiIdentifier: z.string().nonempty(),
+      iconPath: z.string().optional(),
+      path: z.string().nonempty(),
+    }),
+  ),
+  sidebarMenuLinks: z.array(
+    z.object({
+      label: z.string().nonempty(),
+      uiIdentifier: z.string().nonempty(),
+      iconPath: z.string().optional(),
+      path: z.string().nonempty(),
+    }),
+  ),
+  folderActionMenuLinks: z.array(
+    z.object({
+      label: z.string().nonempty(),
+      uiIdentifier: z.string().nonempty(),
+      iconPath: z.string().optional(),
+      path: z.string().nonempty(),
+    }),
+  ),
+  objectActionMenuLinks: z.array(
+    z.object({
+      label: z.string().nonempty(),
+      uiIdentifier: z.string().nonempty(),
+      iconPath: z.string().optional(),
+      path: z.string().nonempty(),
+    }),
+  ),
+  folderSidebarEmbeds: z.array(
+    z.object({
+      title: z.string().nonempty(),
+      uiIdentifier: z.string().nonempty(),
+      iconPath: z.string().optional(),
+      path: z.string().nonempty(),
+    }),
+  ),
+  objectSidebarEmbeds: z.array(
+    z.object({
+      title: z.string().nonempty(),
+      uiIdentifier: z.string().nonempty(),
+      iconPath: z.string().optional(),
+      path: z.string().nonempty(),
+    }),
+  ),
+})
 
 export const appConfigSchema = z.object({
   identifier: appIdentifierSchema,
@@ -132,6 +181,7 @@ export const appConfigSchema = z.object({
     )
     .optional(),
   ui: z.record(z.string().nonempty(), appUIConfigSchema).optional(),
+  contributions: appContributionsSchema.optional(),
 })
 
 export const appWorkerScriptSchema = z.object({
@@ -185,7 +235,7 @@ export type AppTaskConfig = z.infer<typeof taskConfigSchema>
 
 export type AppWorkersConfig = z.infer<typeof appWorkersSchema>
 
-export type AppMenuItem = z.infer<typeof appMenuItemSchema>
+export type AppUILink = z.infer<typeof appUILinkSchema>
 
 export type AppConfig = z.infer<typeof appConfigSchema>
 
@@ -198,5 +248,7 @@ export type AppUIMap = z.infer<typeof appUIMapSchema>
 export type AppManifest = z.infer<typeof appManifestSchema>
 
 export type ExternalAppWorker = z.infer<typeof externalAppWorkerSchema>
+
+export type AppContributions = z.infer<typeof appContributionsSchema>
 
 export type ExternalAppWorkerMap = Record<string, ExternalAppWorker[]>

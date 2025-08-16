@@ -19,10 +19,8 @@ import {
   mediaTypeFromMimeType,
   toMetadataObjectIdentifier,
 } from '@stellariscloud/utils'
-import type { LucideProps } from 'lucide-react'
 import {
   Box,
-  CheckIcon,
   Download,
   File,
   FileJson,
@@ -41,11 +39,15 @@ import {
   VideoIcon,
 } from 'lucide-react'
 
-import { ActionsList } from '@/src/components/actions-list/actions-list.component'
 import { TasksList } from '@/src/components/tasks-list/tasks-list.component'
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache.context'
 import { useServerContext } from '@/src/hooks/use-server-context'
-import { $api } from '@/src/services/api'
+import { $api, $apiClient } from '@/src/services/api'
+import { AppUI } from '@/src/views/app-ui/app-ui.view'
+const protocol = window.location.protocol
+const hostname = window.location.hostname
+const port = window.location.port
+const API_HOST = `${hostname}${port ? `:${port}` : ''}`
 
 export const FolderObjectSidebar = ({
   folder,
@@ -59,6 +61,7 @@ export const FolderObjectSidebar = ({
 }) => {
   const { downloadToFile } = useLocalFileCacheContext()
   const folderId = folder.id
+  const serverContext = useServerContext()
   const listFolderTasksQuery = $api.useQuery(
     'get',
     '/api/v1/folders/{folderId}/tasks',
@@ -76,42 +79,6 @@ export const FolderObjectSidebar = ({
     ? (folderObject.contentMetadata[folderObject.hash] ??
       ({} as ContentMetadataType))
     : ({} as ContentMetadataType)
-  const handleAppTaskTrigger = $api.useMutation(
-    'post',
-    '/api/v1/folders/{folderId}/apps/{appIdentifier}/trigger/{taskIdentifier}',
-  )
-
-  const serverContext = useServerContext()
-  const actionItems: {
-    id: string
-    key: string
-    label: string
-    description: string
-    icon: React.ForwardRefExoticComponent<
-      Omit<LucideProps, 'ref'> & React.RefAttributes<SVGSVGElement>
-    >
-    onExecute: () => void
-  }[] = serverContext.appFolderObjectTaskTriggers.map((trigger) => ({
-    description: trigger.taskTrigger.description,
-    icon: CheckIcon,
-    id: trigger.taskTrigger.taskIdentifier,
-    key: trigger.taskTrigger.taskIdentifier,
-    label: trigger.taskTrigger.label,
-    onExecute: () =>
-      handleAppTaskTrigger.mutate({
-        params: {
-          path: {
-            folderId,
-            taskIdentifier: trigger.taskTrigger.taskIdentifier,
-            appIdentifier: trigger.appIdentifier,
-          },
-        },
-        body: {
-          inputParams: {},
-          objectKey,
-        },
-      }),
-  }))
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -212,6 +179,58 @@ export const FolderObjectSidebar = ({
             </dl>
           </CardContent>
         </Card>
+        {serverContext.objectSidebarEmbedContributions.map((embed) => {
+          const url = embed.path
+            .replace('{folderId}', folderId)
+            .replace('{objectKey}', objectKey)
+          const getAccessTokens = () =>
+            $apiClient
+              .POST('/api/v1/server/apps/{appIdentifier}/user-access-token', {
+                params: { path: { appIdentifier: embed.appIdentifier } },
+              })
+              .then((res) => {
+                if (!res.data) {
+                  throw new Error('Failed to generate app access token')
+                }
+                return res.data.session
+              })
+          return (
+            <Card
+              className="shrink-0"
+              key={`${embed.appIdentifier}:${embed.uiIdentifier}:${embed.path}`}
+            >
+              <CardHeader className="p-4 pt-3">
+                <TypographyH3>
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={`${protocol}//${embed.uiIdentifier}.${embed.appIdentifier}.apps.${API_HOST}${embed.iconPath ?? ''}`}
+                      alt={`${embed.appLabel} icon`}
+                      className="size-6"
+                    />
+                    {embed.title}
+                  </div>
+                </TypographyH3>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="h-80 w-full">
+                  <AppUI
+                    getAccessTokens={getAccessTokens}
+                    appIdentifier={embed.appIdentifier}
+                    uiIdentifier={embed.uiIdentifier}
+                    url={url}
+                    host={API_HOST}
+                    scheme={protocol}
+                    queryParams={{
+                      basePath: `${protocol}//${API_HOST}`,
+                      folderId,
+                      objectKey,
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
         {folderObject.hash && (
           <Card className="shrink-0">
             <CardHeader className="p-4 pt-3">
@@ -333,22 +352,6 @@ export const FolderObjectSidebar = ({
                   </pre>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {actionItems.length > 0 && (
-          <Card className="shrink-0">
-            <CardHeader className="p-4 pt-3">
-              <TypographyH3>
-                <div className="flex items-center gap-2">
-                  <ListChecks />
-                  Actions
-                </div>
-              </TypographyH3>
-            </CardHeader>
-            <CardContent>
-              <ActionsList actionItems={actionItems} />
             </CardContent>
           </Card>
         )}

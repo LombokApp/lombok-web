@@ -11,7 +11,7 @@ import {
 import { Ellipsis, LogOut } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
-import type { AppMenuItemAndHref } from '@/src/contexts/server.context'
+import type { AppMenuLink } from '@/src/contexts/server.context'
 
 import { getMenuList } from '../menu-list'
 import { CollapseMenuButton } from './collapse-menu-button'
@@ -19,7 +19,7 @@ import { CollapseMenuButton } from './collapse-menu-button'
 interface MenuProps {
   isOpen: boolean | undefined
   viewer: NonNullable<IAuthContext['viewer']>
-  appMenuItems: AppMenuItemAndHref[]
+  sidebarMenuLinkContributions: AppMenuLink[]
 }
 
 const protocol = window.location.protocol
@@ -31,11 +31,14 @@ export function Menu({
   onSignOut,
   isOpen,
   viewer,
-  appMenuItems,
+  sidebarMenuLinkContributions,
 }: { onSignOut: () => Promise<void> } & MenuProps) {
   const location = useLocation()
-
-  const menuList = getMenuList(location.pathname, viewer, appMenuItems)
+  const menuList = getMenuList(
+    location.pathname,
+    viewer,
+    sidebarMenuLinkContributions,
+  )
   return (
     <div className="flex h-full flex-col">
       <ScrollArea className="h-full flex-1 overflow-x-visible [&>div>div[style]]:!block">
@@ -164,16 +167,19 @@ export function Menu({
               <Button
                 onClick={() => void onSignOut()}
                 variant="ghost"
-                className="h-9 w-full justify-start px-2 font-normal text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground"
+                className={cn(
+                  !isOpen ? 'justify-center' : 'justify-start',
+                  'h-9 w-full px-2 font-normal text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground',
+                )}
               >
-                <span className={cn(isOpen === false ? '' : 'mr-3')}>
+                <span className={cn(isOpen && 'mr-3')}>
                   <LogOut className="size-4" />
                 </span>
                 <span
                   className={cn(
                     'text-sm',
-                    isOpen === false
-                      ? '-translate-x-96 opacity-0'
+                    !isOpen
+                      ? '-translate-x-96 opacity-0 w-0'
                       : 'translate-x-0 opacity-100',
                   )}
                 >
@@ -181,9 +187,7 @@ export function Menu({
                 </span>
               </Button>
             </TooltipTrigger>
-            {isOpen === false && (
-              <TooltipContent side="right">Sign out</TooltipContent>
-            )}
+            {!isOpen && <TooltipContent side="right">Sign out</TooltipContent>}
           </Tooltip>
         </TooltipProvider>
       </div>
