@@ -2,9 +2,10 @@ import { describe, expect, it } from 'bun:test'
 
 import {
   appConfigSchema,
+  appContributionsSchema,
   appManifestSchema,
-  appMenuItemSchema,
   appUIConfigSchema,
+  appUILinkSchema,
   appWorkerScriptConfigSchema,
   ConfigParamType,
   externalAppWorkerSchema,
@@ -123,9 +124,6 @@ describe('apps.types', () => {
         worker: 'test-worker',
       }
       const result = taskConfigSchema.safeParse(validTask)
-      if (!result.success) {
-        console.log(result.error)
-      }
       expect(result.success).toBe(true)
     })
 
@@ -318,7 +316,7 @@ describe('apps.types', () => {
         label: 'Test Menu',
         iconPath: '/icons/test.svg',
       }
-      const result = appMenuItemSchema.safeParse(validMenuItem)
+      const result = appUILinkSchema.safeParse(validMenuItem)
       expect(result.success).toBe(true)
     })
 
@@ -326,7 +324,7 @@ describe('apps.types', () => {
       const validMenuItem = {
         label: 'Test Menu',
       }
-      const result = appMenuItemSchema.safeParse(validMenuItem)
+      const result = appUILinkSchema.safeParse(validMenuItem)
       expect(result.success).toBe(true)
     })
   })
@@ -365,6 +363,121 @@ describe('apps.types', () => {
       }
       const result = appWorkerScriptConfigSchema.safeParse(validScriptConfig)
       expect(result.success).toBe(true)
+    })
+  })
+
+  describe('appContributionsSchema', () => {
+    it('should validate complete contributions object', () => {
+      const validContributions = {
+        routes: [
+          {
+            title: 'Home',
+            uiIdentifier: 'main_ui',
+            iconPath: '/icons/home.svg',
+            path: '/home',
+          },
+        ],
+        sidebarMenuLinks: [
+          {
+            label: 'Dashboard',
+            uiIdentifier: 'main_ui',
+            path: '/dashboard',
+          },
+        ],
+        folderActionMenuLinks: [
+          {
+            label: 'Analyze Folder',
+            uiIdentifier: 'tools_ui',
+            iconPath: '/icons/analyze.svg',
+            path: '/folders/:id/analyze',
+          },
+        ],
+        objectActionMenuLinks: [
+          {
+            label: 'Process Object',
+            uiIdentifier: 'tools_ui',
+            path: '/objects/:id/process',
+          },
+        ],
+        folderSidebarEmbeds: [
+          {
+            title: 'Folder Stats',
+            uiIdentifier: 'analytics_ui',
+            path: '/folders/:id/stats',
+          },
+        ],
+        objectSidebarEmbeds: [
+          {
+            title: 'Object Preview',
+            uiIdentifier: 'viewer_ui',
+            path: '/objects/:id/preview',
+          },
+        ],
+      }
+      const result = appContributionsSchema.safeParse(validContributions)
+      expect(result.success).toBe(true)
+    })
+
+    it('should allow empty arrays for all contribution sections', () => {
+      const validContributions = {
+        routes: [],
+        sidebarMenuLinks: [],
+        folderActionMenuLinks: [],
+        objectActionMenuLinks: [],
+        folderSidebarEmbeds: [],
+        objectSidebarEmbeds: [],
+      }
+      const result = appContributionsSchema.safeParse(validContributions)
+      expect(result.success).toBe(true)
+    })
+
+    it('should reject contributions missing a required section', () => {
+      const invalidContributions = {
+        // routes missing
+        sidebarMenuLinks: [],
+        folderActionMenuLinks: [],
+        objectActionMenuLinks: [],
+        folderSidebarEmbeds: [],
+        objectSidebarEmbeds: [],
+      }
+      const result = appContributionsSchema.safeParse(
+        invalidContributions as unknown,
+      )
+      expect(result.success).toBe(false)
+    })
+
+    it('should reject a route entry with empty required fields', () => {
+      const invalidContributions = {
+        routes: [
+          {
+            title: '',
+            uiIdentifier: '',
+            path: '',
+          },
+        ],
+        sidebarMenuLinks: [],
+        folderActionMenuLinks: [],
+        objectActionMenuLinks: [],
+        folderSidebarEmbeds: [],
+        objectSidebarEmbeds: [],
+      }
+      const result = appContributionsSchema.safeParse(invalidContributions)
+      expect(result.success).toBe(false)
+    })
+
+    it('should reject when a section has the wrong type', () => {
+      const invalidContributions = {
+        routes: {},
+        sidebarMenuLinks: [],
+        folderActionMenuLinks: [],
+        objectActionMenuLinks: [],
+        folderSidebarEmbeds: [],
+        objectSidebarEmbeds: [],
+      }
+      const result = appContributionsSchema.safeParse(
+        invalidContributions as unknown,
+      )
+      expect(result.success).toBe(false)
     })
   })
 })

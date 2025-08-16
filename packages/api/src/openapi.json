@@ -3086,6 +3086,32 @@
         ]
       }
     },
+    "/api/v1/server/app-contributions": {
+      "get": {
+        "operationId": "getAppContributions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppContributionsResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Apps"
+        ]
+      }
+    },
     "/api/v1/server/logs/{logId}": {
       "get": {
         "operationId": "getLog",
@@ -6406,33 +6432,193 @@
                         "properties": {
                           "description": {
                             "type": "string"
-                          },
-                          "menuItems": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "label": {
-                                  "type": "string"
-                                },
-                                "iconPath": {
-                                  "type": "string"
-                                },
-                                "url": {
-                                  "type": "string"
-                                }
-                              },
-                              "required": [
-                                "label"
-                              ]
-                            }
                           }
                         },
                         "required": [
-                          "description",
-                          "menuItems"
+                          "description"
                         ]
                       }
+                    },
+                    "contributions": {
+                      "type": "object",
+                      "properties": {
+                        "routes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "title": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "uiIdentifier": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "iconPath": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "required": [
+                              "title",
+                              "uiIdentifier",
+                              "path"
+                            ]
+                          }
+                        },
+                        "sidebarMenuLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "uiIdentifier": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "iconPath": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "uiIdentifier",
+                              "path"
+                            ]
+                          }
+                        },
+                        "folderActionMenuLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "uiIdentifier": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "iconPath": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "uiIdentifier",
+                              "path"
+                            ]
+                          }
+                        },
+                        "objectActionMenuLinks": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "label": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "uiIdentifier": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "iconPath": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "required": [
+                              "label",
+                              "uiIdentifier",
+                              "path"
+                            ]
+                          }
+                        },
+                        "folderSidebarEmbeds": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "title": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "uiIdentifier": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "iconPath": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "required": [
+                              "title",
+                              "uiIdentifier",
+                              "path"
+                            ]
+                          }
+                        },
+                        "objectSidebarEmbeds": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "title": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "uiIdentifier": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "iconPath": {
+                                "type": "string"
+                              },
+                              "path": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "required": [
+                              "title",
+                              "uiIdentifier",
+                              "path"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "routes",
+                        "sidebarMenuLinks",
+                        "folderActionMenuLinks",
+                        "objectActionMenuLinks",
+                        "folderSidebarEmbeds",
+                        "objectSidebarEmbeds"
+                      ]
                     }
                   },
                   "required": [
@@ -6563,26 +6749,6 @@
                       "description": {
                         "type": "string"
                       },
-                      "menuItems": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "label": {
-                              "type": "string"
-                            },
-                            "iconPath": {
-                              "type": "string"
-                            },
-                            "url": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "label"
-                          ]
-                        }
-                      },
                       "files": {
                         "type": "object",
                         "additionalProperties": {
@@ -6613,7 +6779,6 @@
                     },
                     "required": [
                       "description",
-                      "menuItems",
                       "files",
                       "identifier"
                     ]
@@ -6892,33 +7057,193 @@
                       "properties": {
                         "description": {
                           "type": "string"
-                        },
-                        "menuItems": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "label": {
-                                "type": "string"
-                              },
-                              "iconPath": {
-                                "type": "string"
-                              },
-                              "url": {
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "label"
-                            ]
-                          }
                         }
                       },
                       "required": [
-                        "description",
-                        "menuItems"
+                        "description"
                       ]
                     }
+                  },
+                  "contributions": {
+                    "type": "object",
+                    "properties": {
+                      "routes": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "title": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "uiIdentifier": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "iconPath": {
+                              "type": "string"
+                            },
+                            "path": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "required": [
+                            "title",
+                            "uiIdentifier",
+                            "path"
+                          ]
+                        }
+                      },
+                      "sidebarMenuLinks": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "uiIdentifier": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "iconPath": {
+                              "type": "string"
+                            },
+                            "path": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "uiIdentifier",
+                            "path"
+                          ]
+                        }
+                      },
+                      "folderActionMenuLinks": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "uiIdentifier": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "iconPath": {
+                              "type": "string"
+                            },
+                            "path": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "uiIdentifier",
+                            "path"
+                          ]
+                        }
+                      },
+                      "objectActionMenuLinks": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "label": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "uiIdentifier": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "iconPath": {
+                              "type": "string"
+                            },
+                            "path": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "uiIdentifier",
+                            "path"
+                          ]
+                        }
+                      },
+                      "folderSidebarEmbeds": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "title": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "uiIdentifier": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "iconPath": {
+                              "type": "string"
+                            },
+                            "path": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "required": [
+                            "title",
+                            "uiIdentifier",
+                            "path"
+                          ]
+                        }
+                      },
+                      "objectSidebarEmbeds": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "title": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "uiIdentifier": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "iconPath": {
+                              "type": "string"
+                            },
+                            "path": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "required": [
+                            "title",
+                            "uiIdentifier",
+                            "path"
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "routes",
+                      "sidebarMenuLinks",
+                      "folderActionMenuLinks",
+                      "objectActionMenuLinks",
+                      "folderSidebarEmbeds",
+                      "objectSidebarEmbeds"
+                    ]
                   }
                 },
                 "required": [
@@ -6999,26 +7324,6 @@
                     "description": {
                       "type": "string"
                     },
-                    "menuItems": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "label": {
-                            "type": "string"
-                          },
-                          "iconPath": {
-                            "type": "string"
-                          },
-                          "url": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "label"
-                        ]
-                      }
-                    },
                     "files": {
                       "type": "object",
                       "additionalProperties": {
@@ -7049,7 +7354,6 @@
                   },
                   "required": [
                     "description",
-                    "menuItems",
                     "files",
                     "identifier"
                   ]
@@ -7146,6 +7450,206 @@
         "required": [
           "envVars"
         ]
+      },
+      "AppContributionsResponse": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "object",
+          "properties": {
+            "appLabel": {
+              "type": "string"
+            },
+            "appIdentifier": {
+              "type": "string"
+            },
+            "contributions": {
+              "type": "object",
+              "properties": {
+                "routes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uiIdentifier": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "iconPath": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "uiIdentifier",
+                      "path"
+                    ]
+                  }
+                },
+                "sidebarMenuLinks": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uiIdentifier": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "iconPath": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "uiIdentifier",
+                      "path"
+                    ]
+                  }
+                },
+                "folderActionMenuLinks": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uiIdentifier": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "iconPath": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "uiIdentifier",
+                      "path"
+                    ]
+                  }
+                },
+                "objectActionMenuLinks": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uiIdentifier": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "iconPath": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "uiIdentifier",
+                      "path"
+                    ]
+                  }
+                },
+                "folderSidebarEmbeds": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uiIdentifier": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "iconPath": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "uiIdentifier",
+                      "path"
+                    ]
+                  }
+                },
+                "objectSidebarEmbeds": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uiIdentifier": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "iconPath": {
+                        "type": "string"
+                      },
+                      "path": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "title",
+                      "uiIdentifier",
+                      "path"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "routes",
+                "sidebarMenuLinks",
+                "folderActionMenuLinks",
+                "objectActionMenuLinks",
+                "folderSidebarEmbeds",
+                "objectSidebarEmbeds"
+              ]
+            }
+          },
+          "required": [
+            "appLabel",
+            "appIdentifier",
+            "contributions"
+          ]
+        }
       },
       "LogGetResponse": {
         "type": "object",

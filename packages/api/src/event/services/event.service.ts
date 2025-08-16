@@ -87,7 +87,7 @@ export class EventService {
       : undefined
 
     const app = appIdentifier
-      ? await this.appService.getApp(appIdentifier.toLowerCase())
+      ? await this.appService.getAppAsAdmin(appIdentifier.toLowerCase())
       : undefined
 
     if (appIdentifier && !app) {

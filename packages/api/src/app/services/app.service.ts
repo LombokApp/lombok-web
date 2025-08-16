@@ -9,6 +9,7 @@ import nestJsConfig from '@nestjs/config'
 import { hashLocalFile } from '@stellariscloud/core-worker'
 import type {
   AppConfig,
+  AppContributions,
   AppManifest,
   AppUIMap,
   AppWorkerScriptMap,
@@ -193,14 +194,14 @@ export class AppService {
     this.folderService = _folderService as FolderService
   }
 
-  getApp(appIdentifier: string): Promise<App | undefined> {
+  getAppAsAdmin(appIdentifier: string): Promise<App | undefined> {
     return this.ormService.db.query.appsTable.findFirst({
       where: eq(appsTable.identifier, appIdentifier),
     })
   }
 
   async createAppUserSession(user: User, appIdentifier: string) {
-    const app = await this.getApp(appIdentifier)
+    const app = await this.getAppAsAdmin(appIdentifier)
     if (!app) {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
@@ -535,7 +536,9 @@ export class AppService {
               }
             }
 
-            const workerApp = await this.getApp(requestData.appIdentifier)
+            const workerApp = await this.getAppAsAdmin(
+              requestData.appIdentifier,
+            )
             if (!workerApp) {
               // app by appIdentifier not found
               return {
@@ -865,7 +868,7 @@ export class AppService {
       }
     }
 
-    const workerApp = await this.getApp(requestData.appIdentifier)
+    const workerApp = await this.getAppAsAdmin(requestData.appIdentifier)
     if (!workerApp) {
       // app by appIdentifier not found
       return {
@@ -1000,7 +1003,7 @@ export class AppService {
 
   public async installApp(app: App, update = false) {
     const now = new Date()
-    const installedApp = await this.getApp(app.identifier)
+    const installedApp = await this.getAppAsAdmin(app.identifier)
     if (installedApp && !update) {
       throw new AppAlreadyInstalledException()
     }
@@ -1405,7 +1408,7 @@ export class AppService {
     envVars: Record<string, string>
   }): Promise<Record<string, string>> {
     // Fetch the app
-    const app = await this.getApp(appIdentifier)
+    const app = await this.getAppAsAdmin(appIdentifier)
     if (!app) {
       throw new NotFoundException(`App not found: ${appIdentifier}`)
     }
@@ -1469,5 +1472,38 @@ export class AppService {
           )
       : {}
     return result
+  }
+
+  async getAppContributions(): Promise<
+    Record<
+      string,
+      {
+        appLabel: string
+        appIdentifier: string
+        contributions: AppContributions
+      }
+    >
+  > {
+    const apps = await this.ormService.db.query.appsTable.findMany()
+
+    return apps.reduce((acc, nextApp) => {
+      const contributions: AppContributions | undefined =
+        nextApp.config.contributions ?? undefined
+      return {
+        ...acc,
+        [nextApp.identifier]: {
+          appLabel: nextApp.label,
+          appIdentifier: nextApp.identifier,
+          contributions: {
+            routes: contributions?.routes ?? [],
+            sidebarMenuLinks: contributions?.sidebarMenuLinks ?? [],
+            folderActionMenuLinks: contributions?.folderActionMenuLinks ?? [],
+            objectActionMenuLinks: contributions?.objectActionMenuLinks ?? [],
+            folderSidebarEmbeds: contributions?.folderSidebarEmbeds ?? [],
+            objectSidebarEmbeds: contributions?.objectSidebarEmbeds ?? [],
+          },
+        },
+      }
+    }, {})
   }
 }

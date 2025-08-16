@@ -21,12 +21,13 @@ import { AuthGuard } from 'src/auth/guards/auth.guard'
 import { normalizeSortParam } from 'src/platform/utils/sort.util'
 
 import { AppsListQueryParamsDTO } from '../dto/apps-list-query-params.dto'
+import { AppContributionsResponse } from '../dto/responses/app-contributions-response.dto'
 import { AppGetResponse } from '../dto/responses/app-get-response.dto'
 import { AppListResponse } from '../dto/responses/app-list-response.dto'
 import { SetWorkerScriptEnvVarsInputDTO } from '../dto/set-worker-script-env-vars-input.dto'
 import { transformAppToDTO } from '../dto/transforms/app.transforms'
 
-@Controller('/api/v1/server/apps')
+@Controller('/api/v1/server')
 @ApiTags('Apps')
 @UsePipes(ZodValidationPipe)
 @UseGuards(AuthGuard)
@@ -34,7 +35,7 @@ import { transformAppToDTO } from '../dto/transforms/app.transforms'
 export class AppsController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
+  @Get('/apps')
   async listApps(
     @Req() req: express.Request,
     @Query() queryParams: AppsListQueryParamsDTO,
@@ -65,7 +66,7 @@ export class AppsController {
     }
   }
 
-  @Get('/:appIdentifier')
+  @Get('/apps/:appIdentifier')
   async getApp(
     @Req() req: express.Request,
     @Param('appIdentifier') appIdentifier: string,
@@ -73,7 +74,7 @@ export class AppsController {
     if (!req.user?.isAdmin) {
       throw new UnauthorizedException()
     }
-    const app = await this.appService.getApp(appIdentifier)
+    const app = await this.appService.getAppAsAdmin(appIdentifier)
     if (!app) {
       throw new NotFoundException()
     }
@@ -88,7 +89,7 @@ export class AppsController {
     }
   }
 
-  @Put('/:appIdentifier/workers/:workerIdentifier/env-vars')
+  @Put('/apps/:appIdentifier/workers/:workerIdentifier/env-vars')
   async setWorkerScriptEnvVars(
     @Req() req: express.Request,
     @Param('appIdentifier') appIdentifier: string,
@@ -107,7 +108,7 @@ export class AppsController {
     return savedEnvVars
   }
 
-  @Post('/:appIdentifier/user-access-token')
+  @Post('/apps/:appIdentifier/user-access-token')
   async generateAppUserAccessToken(
     @Req() req: express.Request,
     @Param('appIdentifier') appIdentifier: string,
@@ -128,5 +129,16 @@ export class AppsController {
         expiresAt: session.session.expiresAt,
       },
     }
+  }
+
+  @Get('/app-contributions')
+  async getAppContributions(
+    @Req() req: express.Request,
+  ): Promise<AppContributionsResponse> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+    const contributions = await this.appService.getAppContributions()
+    return contributions
   }
 }

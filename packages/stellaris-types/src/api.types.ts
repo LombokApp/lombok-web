@@ -62,6 +62,9 @@ export type ServerSettingsGetResponse =
 export type AppsListResponse =
   paths['/api/v1/server/apps']['get']['responses']['200']['content']['application/json']
 
+export type AppContributionsResponse =
+  paths['/api/v1/server/app-contributions']['get']['responses']['200']['content']['application/json']
+
 export type ServerAppsListRequest = NonNullable<
   paths['/api/v1/server/apps']['get']['parameters']['query']
 >

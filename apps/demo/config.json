@@ -30,19 +30,76 @@
   },
   "ui": {
     "main": {
-      "description": "The main UI for the demo app",
-      "menuItems": [
-        {
-          "label": "Demo",
-          "iconPath": "/assets/logo.png",
-          "url": "demo-page"
-        },
-        {
-          "label": "Main",
-          "iconPath": "/assets/logo.png"
-        }
-      ]
+      "description": "The main UI for the demo app"
     }
+  },
+  "contributions": {
+    "routes": [
+      {
+        "title": "Demo",
+        "uiIdentifier": "main",
+        "iconPath": "/assets/logo.png",
+        "path": "/demo-page"
+      },
+      {
+        "title": "Landing Page",
+        "uiIdentifier": "main",
+        "iconPath": "/assets/logo.png",
+        "path": "/"
+      },
+      {
+        "title": "Thing Doer",
+        "uiIdentifier": "main",
+        "iconPath": "/assets/logo.png",
+        "path": "/thing-doer"
+      }
+    ],
+    "sidebarMenuLinks": [
+      {
+        "label": "Landing Page",
+        "iconPath": "/assets/logo.png",
+        "uiIdentifier": "main",
+        "path": "/"
+      },
+      {
+        "label": "Demo Page",
+        "iconPath": "/assets/logo.png",
+        "uiIdentifier": "main",
+        "path": "/demo-page"
+      }
+    ],
+    "folderActionMenuLinks": [
+      {
+        "label": "Do Folder Thing",
+        "iconPath": "/assets/logo.png",
+        "uiIdentifier": "main",
+        "path": "/demo-page?folderId={folderId}"
+      }
+    ],
+    "objectActionMenuLinks": [
+      {
+        "label": "Do Object Thing",
+        "iconPath": "/assets/logo.png",
+        "uiIdentifier": "main",
+        "path": "/demo-page?folderId={folderId}&objectKey={objectKey}"
+      }
+    ],
+    "folderSidebarEmbeds": [
+      {
+        "title": "Demo Folder Sidebar Embed",
+        "iconPath": "/assets/logo.png",
+        "uiIdentifier": "main",
+        "path": "/demo-page"
+      }
+    ],
+    "objectSidebarEmbeds": [
+      {
+        "title": "Demo Object Sidebar Embed",
+        "iconPath": "/assets/logo.png",
+        "uiIdentifier": "main",
+        "path": "/demo-page"
+      }
+    ]
   },
   "emittableEvents": []
 }

@@ -796,6 +796,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/app-contributions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAppContributions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/server/logs/{logId}": {
         parameters: {
             query?: never;
@@ -1660,12 +1676,45 @@ export interface components {
                     ui?: {
                         [key: string]: {
                             description: string;
-                            menuItems: {
-                                label: string;
-                                iconPath?: string;
-                                url?: string;
-                            }[];
                         };
+                    };
+                    contributions?: {
+                        routes: {
+                            title: string;
+                            uiIdentifier: string;
+                            iconPath?: string;
+                            path: string;
+                        }[];
+                        sidebarMenuLinks: {
+                            label: string;
+                            uiIdentifier: string;
+                            iconPath?: string;
+                            path: string;
+                        }[];
+                        folderActionMenuLinks: {
+                            label: string;
+                            uiIdentifier: string;
+                            iconPath?: string;
+                            path: string;
+                        }[];
+                        objectActionMenuLinks: {
+                            label: string;
+                            uiIdentifier: string;
+                            iconPath?: string;
+                            path: string;
+                        }[];
+                        folderSidebarEmbeds: {
+                            title: string;
+                            uiIdentifier: string;
+                            iconPath?: string;
+                            path: string;
+                        }[];
+                        objectSidebarEmbeds: {
+                            title: string;
+                            uiIdentifier: string;
+                            iconPath?: string;
+                            path: string;
+                        }[];
                     };
                 };
                 requiresStorage: boolean;
@@ -1699,11 +1748,6 @@ export interface components {
                 }[];
                 ui: {
                     description: string;
-                    menuItems: {
-                        label: string;
-                        iconPath?: string;
-                        url?: string;
-                    }[];
                     files: {
                         [key: string]: {
                             hash: string;
@@ -1782,12 +1826,45 @@ export interface components {
                     ui?: {
                         [key: string]: {
                             description: string;
-                            menuItems: {
-                                label: string;
-                                iconPath?: string;
-                                url?: string;
-                            }[];
                         };
+                    };
+                    contributions?: {
+                        routes: {
+                            title: string;
+                            uiIdentifier: string;
+                            iconPath?: string;
+                            path: string;
+                        }[];
+                        sidebarMenuLinks: {
+                            label: string;
+                            uiIdentifier: string;
+                            iconPath?: string;
+                            path: string;
+                        }[];
+                        folderActionMenuLinks: {
+                            label: string;
+                            uiIdentifier: string;
+                            iconPath?: string;
+                            path: string;
+                        }[];
+                        objectActionMenuLinks: {
+                            label: string;
+                            uiIdentifier: string;
+                            iconPath?: string;
+                            path: string;
+                        }[];
+                        folderSidebarEmbeds: {
+                            title: string;
+                            uiIdentifier: string;
+                            iconPath?: string;
+                            path: string;
+                        }[];
+                        objectSidebarEmbeds: {
+                            title: string;
+                            uiIdentifier: string;
+                            iconPath?: string;
+                            path: string;
+                        }[];
                     };
                 };
                 requiresStorage: boolean;
@@ -1807,11 +1884,6 @@ export interface components {
                 }[];
                 ui: {
                     description: string;
-                    menuItems: {
-                        label: string;
-                        iconPath?: string;
-                        url?: string;
-                    }[];
                     files: {
                         [key: string]: {
                             hash: string;
@@ -1844,6 +1916,50 @@ export interface components {
         SetWorkerScriptEnvVarsInputDTO: {
             envVars: {
                 [key: string]: string;
+            };
+        };
+        AppContributionsResponse: {
+            [key: string]: {
+                appLabel: string;
+                appIdentifier: string;
+                contributions: {
+                    routes: {
+                        title: string;
+                        uiIdentifier: string;
+                        iconPath?: string;
+                        path: string;
+                    }[];
+                    sidebarMenuLinks: {
+                        label: string;
+                        uiIdentifier: string;
+                        iconPath?: string;
+                        path: string;
+                    }[];
+                    folderActionMenuLinks: {
+                        label: string;
+                        uiIdentifier: string;
+                        iconPath?: string;
+                        path: string;
+                    }[];
+                    objectActionMenuLinks: {
+                        label: string;
+                        uiIdentifier: string;
+                        iconPath?: string;
+                        path: string;
+                    }[];
+                    folderSidebarEmbeds: {
+                        title: string;
+                        uiIdentifier: string;
+                        iconPath?: string;
+                        path: string;
+                    }[];
+                    objectSidebarEmbeds: {
+                        title: string;
+                        uiIdentifier: string;
+                        iconPath?: string;
+                        path: string;
+                    }[];
+                };
             };
         };
         LogGetResponse: {
@@ -3314,6 +3430,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoginResponse"];
+                };
+            };
+        };
+    };
+    getAppContributions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppContributionsResponse"];
                 };
             };
         };

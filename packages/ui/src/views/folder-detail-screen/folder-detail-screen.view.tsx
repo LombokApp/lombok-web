@@ -42,6 +42,7 @@ import {
   type UploadModalData,
 } from '@/src/components/upload-modal/upload-modal'
 import { useLocalFileCacheContext } from '@/src/contexts/local-file-cache.context'
+import { useServerContext } from '@/src/hooks/use-server-context'
 import { useFolderContext } from '@/src/pages/folders/folder.context'
 import { $api } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'
@@ -61,6 +62,11 @@ const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   search: { isSearchFilter: true },
   mediaType: { paramPrefix: 'mediaType' },
 }
+
+const protocol = window.location.protocol
+const hostname = window.location.hostname
+const port = window.location.port
+const API_HOST = `${hostname}${port ? `:${port}` : ''}`
 
 export const FolderDetailScreen = () => {
   const navigate = useNavigate()
@@ -82,7 +88,7 @@ export const FolderDetailScreen = () => {
   )
   const [sidebarOpen, _setSidebarOpen] = React.useState(true)
   const { uploadFile, uploadingProgress } = useLocalFileCacheContext()
-
+  const serverContext = useServerContext()
   const [uploadModalData, setUploadModalData] = React.useState<UploadModalData>(
     {
       isOpen: false,
@@ -383,7 +389,7 @@ export const FolderDetailScreen = () => {
             focusedObjectKeyFromParams && 'opacity-0',
           )}
         >
-          <div className="@8xl:w-[90%] @9xl:w-[85%] @10xl:w-[80%] @11xl:w-[75%] @12xl:w-[70%] @13xl:w-[65%] @15xl:w-[90rem] flex size-full w-full flex-1 justify-between @4xl:flex-none @4xl:gap-4">
+          <div className="flex size-full w-full flex-1 justify-between @4xl:flex-none @4xl:gap-4 @8xl:w-[90%] @9xl:w-[85%] @10xl:w-4/5 @11xl:w-[75%] @12xl:w-[70%] @13xl:w-[65%] @15xl:w-[90rem]">
             <div className="flex min-w-0 flex-1">
               <div className="flex size-full flex-col gap-2">
                 <div className="flex justify-between">
@@ -458,6 +464,29 @@ export const FolderDetailScreen = () => {
                           <Trash className="size-5" />
                           Delete
                         </DropdownMenuItem>
+                      )}
+                      {serverContext.folderActionMenuLinkContributions.map(
+                        (linkContribution) => (
+                          <DropdownMenuItem
+                            key={linkContribution.href}
+                            onClick={() =>
+                              void navigate(
+                                linkContribution.href.replace(
+                                  '{folderId}',
+                                  folderId,
+                                ),
+                              )
+                            }
+                            className="gap-2"
+                          >
+                            <img
+                              src={`${protocol}//${linkContribution.uiIdentifier}.${linkContribution.appIdentifier}.apps.${API_HOST}${linkContribution.iconPath}`}
+                              alt={`${linkContribution.appLabel} icon`}
+                              className="size-4"
+                            />
+                            {linkContribution.label}
+                          </DropdownMenuItem>
+                        ),
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>

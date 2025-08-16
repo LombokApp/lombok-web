@@ -10,8 +10,17 @@ import {
 import { formatBytes } from '@stellariscloud/utils'
 import { Calculator, Globe, KeyRound, Search } from 'lucide-react'
 
+import { useServerContext } from '@/src/hooks/use-server-context'
+import { $apiClient } from '@/src/services/api'
+import { AppUI } from '@/src/views/app-ui/app-ui.view'
+
 import { FolderEventsList } from '../folder-events-list/folder-events-list.view'
 import { FolderTasksList } from '../folder-tasks-list/folder-tasks-list.view'
+
+const protocol = window.location.protocol
+const hostname = window.location.hostname
+const port = window.location.port
+const API_HOST = `${hostname}${port ? `:${port}` : ''}`
 
 export const FolderSidebar = ({
   folderAndPermission,
@@ -21,6 +30,7 @@ export const FolderSidebar = ({
   folderMetadata?: FolderMetadata
 }) => {
   const { folder } = folderAndPermission ?? {}
+  const serverContext = useServerContext()
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -95,6 +105,57 @@ export const FolderSidebar = ({
             </dl>
           </CardContent>
         </Card>
+
+        {folder &&
+          serverContext.folderSidebarEmbedContributions.map((embed) => {
+            const url = embed.path.replace('{folderId}', folder.id)
+            const getAccessTokens = () =>
+              $apiClient
+                .POST('/api/v1/server/apps/{appIdentifier}/user-access-token', {
+                  params: { path: { appIdentifier: embed.appIdentifier } },
+                })
+                .then((res) => {
+                  if (!res.data) {
+                    throw new Error('Failed to generate app access token')
+                  }
+                  return res.data.session
+                })
+            return (
+              <Card
+                className="shrink-0"
+                key={`${embed.appIdentifier}:${embed.uiIdentifier}:${embed.path}`}
+              >
+                <CardHeader className="p-4 pt-3">
+                  <TypographyH3>
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={`${protocol}//${embed.uiIdentifier}.${embed.appIdentifier}.apps.${API_HOST}${embed.iconPath ?? ''}`}
+                        alt={`${embed.appLabel} icon`}
+                        className="size-6"
+                      />
+                      {embed.title}
+                    </div>
+                  </TypographyH3>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="h-80 w-full">
+                    <AppUI
+                      getAccessTokens={getAccessTokens}
+                      appIdentifier={embed.appIdentifier}
+                      uiIdentifier={embed.uiIdentifier}
+                      url={url}
+                      host={API_HOST}
+                      scheme={protocol}
+                      queryParams={{
+                        basePath: `${protocol}//${API_HOST}`,
+                        folderId: folder.id,
+                      }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
 
         <div className="shrink-0 overflow-hidden">
           <FolderTasksList {...{ folderAndPermission }} />
