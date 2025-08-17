@@ -25,6 +25,7 @@ export const appsTable = pgTable('apps', {
   workerScripts: jsonb('workerScripts').$type<AppWorkerScriptMap>().notNull(),
   ui: jsonb('ui').$type<AppUIMap>().notNull(),
   manifest: jsonb('manifest').$type<AppManifest>().notNull(),
+  enabled: boolean('enabled').notNull().default(false),
   createdAt: timestamp('createdAt').notNull(),
   updatedAt: timestamp('updatedAt').notNull(),
 })

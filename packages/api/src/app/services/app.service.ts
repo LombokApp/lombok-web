@@ -1386,6 +1386,7 @@ export class AppService {
         createdAt: now,
         updatedAt: now,
         contentHash: '', // TODO: calculate the exact content hash
+        enabled: true,
       },
     }
     return app
