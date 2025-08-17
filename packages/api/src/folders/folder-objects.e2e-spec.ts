@@ -23,6 +23,7 @@ describe('Folder Objects', () => {
 
   afterEach(async () => {
     await testModule?.resetAppState()
+    testModule?.cleanupMinioTestBuckets()
   })
 
   it(`should 401 on list folder objects without token`, async () => {

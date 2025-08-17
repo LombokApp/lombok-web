@@ -69,6 +69,14 @@ export async function buildTestModule({
       // shutdown the app
       await app.close()
     },
+    cleanupMinioTestBuckets: () => {
+      for (const p of bucketPathsToRemove) {
+        if (fs.existsSync(p)) {
+          fs.rmSync(p, { recursive: true })
+        }
+      }
+      bucketPathsToRemove.length = 0
+    },
     getAppService: () => {
       return appService
     },

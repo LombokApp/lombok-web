@@ -86,6 +86,29 @@ export class FoldersController {
   }
 
   /**
+   * Check S3 access and update folder accessError
+   */
+  @Post('/:folderId/check-access')
+  async checkFolderAccess(
+    @Req() req: express.Request,
+    @Param('folderId', ParseUUIDPipe) folderId: string,
+  ): Promise<{ ok: boolean }> {
+    if (!req.user) {
+      throw new UnauthorizedException()
+    }
+
+    const { permissions } = await this.folderService.getFolderAsUser(
+      req.user,
+      folderId,
+    )
+    if (!permissions.includes(FolderPermissionEnum.FOLDER_EDIT)) {
+      throw new UnauthorizedException()
+    }
+    await this.folderService.checkAndUpdateFolderAccessError(folderId)
+    return { ok: true }
+  }
+
+  /**
    * Get the metadata for a folder by id.
    */
   @Get('/:folderId/metadata')

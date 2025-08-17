@@ -160,6 +160,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/folders/{folderId}/check-access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["checkFolderAccess"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/folders/{folderId}/metadata": {
         parameters: {
             query?: never;
@@ -1087,6 +1103,10 @@ export interface components {
                     accessKeyId: string;
                     accessKeyHashId: string;
                 };
+                accessError: {
+                    message: string;
+                    code: string;
+                } | null;
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -1140,6 +1160,10 @@ export interface components {
                         accessKeyId: string;
                         accessKeyHashId: string;
                     };
+                    accessError: {
+                        message: string;
+                        code: string;
+                    } | null;
                     /** Format: date-time */
                     createdAt: string;
                     /** Format: date-time */
@@ -1219,6 +1243,10 @@ export interface components {
                     accessKeyId: string;
                     accessKeyHashId: string;
                 };
+                accessError: {
+                    message: string;
+                    code: string;
+                } | null;
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -1351,6 +1379,10 @@ export interface components {
                     accessKeyId: string;
                     accessKeyHashId: string;
                 };
+                accessError: {
+                    message: string;
+                    code: string;
+                } | null;
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -2357,6 +2389,25 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    checkFolderAccess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                folderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };

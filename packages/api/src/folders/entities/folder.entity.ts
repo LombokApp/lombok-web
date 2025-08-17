@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm'
-import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import type { StorageLocation } from 'src/storage/entities/storage-location.entity'
 import { storageLocationsTable } from 'src/storage/entities/storage-location.entity'
 import { usersTable } from 'src/users/entities/user.entity'
@@ -18,6 +18,10 @@ export const foldersTable = pgTable('folders', {
   ownerId: uuid('ownerId')
     .notNull()
     .references(() => usersTable.id),
+  accessError: jsonb('accessError').$type<{
+    message: string
+    code: string
+  }>(),
   createdAt: timestamp('createdAt').notNull(),
   updatedAt: timestamp('updatedAt').notNull(),
 })

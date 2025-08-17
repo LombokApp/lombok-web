@@ -569,6 +569,34 @@
         ]
       }
     },
+    "/api/v1/folders/{folderId}/check-access": {
+      "post": {
+        "operationId": "checkFolderAccess",
+        "parameters": [
+          {
+            "name": "folderId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Folders"
+        ]
+      }
+    },
     "/api/v1/folders/{folderId}/metadata": {
       "get": {
         "operationId": "getFolderMetadata",
@@ -4271,6 +4299,22 @@
                   "accessKeyHashId"
                 ]
               },
+              "accessError": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "message",
+                  "code"
+                ],
+                "nullable": true
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -4286,6 +4330,7 @@
               "name",
               "metadataLocation",
               "contentLocation",
+              "accessError",
               "createdAt",
               "updatedAt"
             ]
@@ -4472,6 +4517,22 @@
                         "accessKeyHashId"
                       ]
                     },
+                    "accessError": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "code": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message",
+                        "code"
+                      ],
+                      "nullable": true
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -4487,6 +4548,7 @@
                     "name",
                     "metadataLocation",
                     "contentLocation",
+                    "accessError",
                     "createdAt",
                     "updatedAt"
                   ]
@@ -4768,6 +4830,22 @@
                   "accessKeyHashId"
                 ]
               },
+              "accessError": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "message",
+                  "code"
+                ],
+                "nullable": true
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -4783,6 +4861,7 @@
               "name",
               "metadataLocation",
               "contentLocation",
+              "accessError",
               "createdAt",
               "updatedAt"
             ]
@@ -5266,6 +5345,22 @@
                   "accessKeyHashId"
                 ]
               },
+              "accessError": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "message",
+                  "code"
+                ],
+                "nullable": true
+              },
               "createdAt": {
                 "type": "string",
                 "format": "date-time"
@@ -5281,6 +5376,7 @@
               "name",
               "metadataLocation",
               "contentLocation",
+              "accessError",
               "createdAt",
               "updatedAt"
             ]

@@ -66,6 +66,7 @@ CREATE TABLE "folders" (
 	"contentLocationId" uuid NOT NULL,
 	"metadataLocationId" uuid NOT NULL,
 	"ownerId" uuid NOT NULL,
+	"accessError" jsonb,
 	"createdAt" timestamp NOT NULL,
 	"updatedAt" timestamp NOT NULL
 );

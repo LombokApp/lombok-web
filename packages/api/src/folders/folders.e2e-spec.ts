@@ -23,6 +23,7 @@ describe('Folders', () => {
 
   afterEach(async () => {
     await testModule?.resetAppState()
+    testModule?.cleanupMinioTestBuckets()
   })
 
   it(`should create a folder`, async () => {
@@ -229,13 +230,18 @@ describe('Folders', () => {
       password: '123',
     })
 
+    const bucketNameNonOwner = await testModule!.initMinioTestBucket([])
+    const metadataBucketNameNonOwner = await testModule!.initMinioTestBucket()
+
     const folderCreateResponse = await apiClient(accessToken).POST(
       '/api/v1/folders',
       {
         body: {
           name: 'My Folder',
-          contentLocation: testS3Location({ bucketName: '__dummy__' }),
-          metadataLocation: testS3Location({ bucketName: '__dummy__' }),
+          contentLocation: testS3Location({ bucketName: bucketNameNonOwner }),
+          metadataLocation: testS3Location({
+            bucketName: metadataBucketNameNonOwner,
+          }),
         },
       },
     )
@@ -316,15 +322,17 @@ describe('Folders', () => {
       admin: true,
     })
 
+    const serverProvisionBucket = await testModule!.initMinioTestBucket()
+    const serverS3Config = testModule!.testS3ClientConfig()
     const userStorageProvisionInput = {
       label: 'Test Provision',
       description: 'This is a test provision',
-      accessKeyId: 'testakid',
-      secretAccessKey: 'testsak',
-      bucket: 'somebucket',
+      accessKeyId: serverS3Config.accessKeyId,
+      secretAccessKey: serverS3Config.secretAccessKey,
+      bucket: serverProvisionBucket,
       prefix: 'someserverprefix',
-      endpoint: 'https://endpointexample.com',
-      region: 'auto',
+      endpoint: serverS3Config.endpoint,
+      region: serverS3Config.region,
       provisionTypes: [UserStorageProvisionTypeEnum.CONTENT],
     }
 
@@ -414,14 +422,11 @@ describe('Folders', () => {
       admin: true,
     })
 
-    const storageLocationInput = {
-      accessKeyId: 'testakid',
-      secretAccessKey: 'testsak',
-      bucket: 'somebucket',
+    const userLocationBucket = await testModule!.initMinioTestBucket()
+    const storageLocationInput = testS3Location({
+      bucketName: userLocationBucket,
       prefix: 'someserverprefix',
-      endpoint: 'https://endpointexample.com',
-      region: 'auto',
-    }
+    })
 
     const folderCreateResponse = await apiClient(accessToken).POST(
       '/api/v1/folders',
@@ -488,15 +493,17 @@ describe('Folders', () => {
       admin: true,
     })
 
+    const serverPresignBucket = await testModule!.initMinioTestBucket()
+    const serverPresignConfig = testModule!.testS3ClientConfig()
     const storageProvisionInput = {
       label: 'Test Provision',
       description: 'This is a test provision',
-      accessKeyId: 'testakid',
-      secretAccessKey: 'testsak',
-      bucket: 'somebucket',
+      accessKeyId: serverPresignConfig.accessKeyId,
+      secretAccessKey: serverPresignConfig.secretAccessKey,
+      bucket: serverPresignBucket,
       prefix: 'someserverprefix',
-      endpoint: 'https://endpointexample.com',
-      region: 'auto',
+      endpoint: serverPresignConfig.endpoint,
+      region: serverPresignConfig.region,
       provisionTypes: [UserStorageProvisionTypeEnum.CONTENT],
     }
 
@@ -579,26 +586,26 @@ describe('Folders', () => {
       admin: true,
     })
 
+    const userPresignContentBucket = await testModule!.initMinioTestBucket([])
+    const userPresignMetadataBucket = await testModule!.initMinioTestBucket()
+    const userPresignConfig = testModule!.testS3ClientConfig()
+
     const folderCreateResponse = await apiClient(accessToken).POST(
       '/api/v1/folders',
       {
         body: {
           name: 'My Folder',
           contentLocation: {
-            prefix: 'content_prefix',
-            accessKeyId: 'testakid',
-            secretAccessKey: 'testsak',
-            bucket: 'somebucket',
-            endpoint: 'https://endpointexample.com',
-            region: 'auto',
+            ...testS3Location({
+              bucketName: userPresignContentBucket,
+              prefix: 'content_prefix',
+            }),
           },
           metadataLocation: {
-            prefix: 'metadata_prefix',
-            accessKeyId: 'testakid',
-            secretAccessKey: 'testsak',
-            bucket: 'somebucket',
-            endpoint: 'https://endpointexample.com',
-            region: 'auto',
+            ...testS3Location({
+              bucketName: userPresignMetadataBucket,
+              prefix: 'metadata_prefix',
+            }),
           },
         },
       },
@@ -626,12 +633,12 @@ describe('Folders', () => {
 
     expect(presignedUrls.response.status).toBe(201)
 
-    const expectedContentUrlPrefix = `https://endpointexample.com/somebucket/content_prefix/someobjectkey`
+    const expectedContentUrlPrefix = `${userPresignConfig.endpoint}/${userPresignContentBucket}/content_prefix/someobjectkey`
     expect(
       presignedUrls.data?.urls[0].slice(0, expectedContentUrlPrefix.length),
     ).toBe(expectedContentUrlPrefix)
 
-    const expectedMetadataUrlPrefix = `https://endpointexample.com/somebucket/metadata_prefix/someobjectkey/somehash?`
+    const expectedMetadataUrlPrefix = `${userPresignConfig.endpoint}/${userPresignMetadataBucket}/metadata_prefix/someobjectkey/somehash?`
     expect(
       presignedUrls.data?.urls[1].slice(0, expectedMetadataUrlPrefix.length),
     ).toBe(expectedMetadataUrlPrefix)
@@ -646,27 +653,23 @@ describe('Folders', () => {
       admin: true,
     })
 
+    const sepContentBucket = await testModule!.initMinioTestBucket([])
+    const sepMetadataBucket = await testModule!.initMinioTestBucket()
+    const sepConfig = testModule!.testS3ClientConfig()
+
     const folderCreateResponse = await apiClient(accessToken).POST(
       '/api/v1/folders',
       {
         body: {
           name: 'My Folder',
-          contentLocation: {
+          contentLocation: testS3Location({
+            bucketName: sepContentBucket,
             prefix: '',
-            accessKeyId: 'testakid',
-            secretAccessKey: 'testsak',
-            bucket: 'somebucket',
-            endpoint: 'https://endpointexample.com',
-            region: 'auto',
-          },
-          metadataLocation: {
+          }),
+          metadataLocation: testS3Location({
+            bucketName: sepMetadataBucket,
             prefix: '',
-            accessKeyId: 'metadatatestkeyid',
-            secretAccessKey: 'metadatasecretkey',
-            bucket: 'metadatatestbucket',
-            endpoint: 'https://metadatatestexample.com',
-            region: 'auto',
-          },
+          }),
         },
       },
     )
@@ -693,11 +696,11 @@ describe('Folders', () => {
 
     expect(presignedUrls.response.status).toBe(201)
 
-    const expectedContentUrlPrefix = `https://endpointexample.com/somebucket/someobjectkey?`
+    const expectedContentUrlPrefix = `${sepConfig.endpoint}/${sepContentBucket}/someobjectkey?`
     expect(
       presignedUrls.data?.urls[0].slice(0, expectedContentUrlPrefix.length),
     ).toBe(expectedContentUrlPrefix)
-    const expectedMetadataUrlPrefix = `https://metadatatestexample.com/metadatatestbucket/someobjectkey/somehash?`
+    const expectedMetadataUrlPrefix = `${sepConfig.endpoint}/${sepMetadataBucket}/someobjectkey/somehash?`
     expect(
       presignedUrls.data?.urls[1].slice(0, expectedMetadataUrlPrefix.length),
     ).toBe(expectedMetadataUrlPrefix)
@@ -712,27 +715,22 @@ describe('Folders', () => {
       admin: true,
     })
 
+    const writeOpContentBucket = await testModule!.initMinioTestBucket([])
+    const writeOpMetadataBucket = await testModule!.initMinioTestBucket()
+
     const folderCreateResponse = await apiClient(accessToken).POST(
       '/api/v1/folders',
       {
         body: {
           name: 'My Folder',
-          contentLocation: {
+          contentLocation: testS3Location({
+            bucketName: writeOpContentBucket,
             prefix: '',
-            accessKeyId: 'testakid',
-            secretAccessKey: 'testsak',
-            bucket: 'somebucket',
-            endpoint: 'https://endpointexample.com',
-            region: 'auto',
-          },
-          metadataLocation: {
+          }),
+          metadataLocation: testS3Location({
+            bucketName: writeOpMetadataBucket,
             prefix: '',
-            accessKeyId: 'metadatatestkeyid',
-            secretAccessKey: 'metadatasecretkey',
-            bucket: 'metadatatestbucket',
-            endpoint: 'https://metadatatestexample.com',
-            region: 'auto',
-          },
+          }),
         },
       },
     )
@@ -791,6 +789,9 @@ describe('Folders', () => {
   })
 
   it(`should 401 on create folder without token`, async () => {
+    const contentBucketNoToken = await testModule!.initMinioTestBucket([])
+    const metadataBucketNoToken = await testModule!.initMinioTestBucket()
+
     const response = await apiClient().POST('/api/v1/folders', {
       body: {
         name: '__dummy__',
@@ -798,7 +799,7 @@ describe('Folders', () => {
           accessKeyId: '__dummy__',
           secretAccessKey: '__dummy__',
           endpoint: '__dummy__',
-          bucket: '__dummy__',
+          bucket: contentBucketNoToken,
           region: '__dummy__',
           prefix: '__dummy__',
         },
@@ -806,7 +807,7 @@ describe('Folders', () => {
           accessKeyId: '__dummy__',
           secretAccessKey: '__dummy__',
           endpoint: '__dummy__',
-          bucket: '__dummy__',
+          bucket: metadataBucketNoToken,
           region: '__dummy__',
           prefix: '__dummy__',
         },
@@ -870,11 +871,16 @@ describe('Folders', () => {
       password: '123',
     })
 
+    const bucketNameEmpty = await testModule!.initMinioTestBucket([])
+    const metadataBucketNameEmpty = await testModule!.initMinioTestBucket()
+
     const response = await apiClient(accessToken).POST('/api/v1/folders', {
       body: {
         name: '',
-        contentLocation: testS3Location({ bucketName: '__dummy__' }),
-        metadataLocation: testS3Location({ bucketName: '__dummy__' }),
+        contentLocation: testS3Location({ bucketName: bucketNameEmpty }),
+        metadataLocation: testS3Location({
+          bucketName: metadataBucketNameEmpty,
+        }),
       },
     })
 
@@ -891,11 +897,16 @@ describe('Folders', () => {
 
     const longName = 'a'.repeat(257)
 
+    const bucketNameTooLong = await testModule!.initMinioTestBucket([])
+    const metadataBucketNameTooLong = await testModule!.initMinioTestBucket()
+
     const response = await apiClient(accessToken).POST('/api/v1/folders', {
       body: {
         name: longName,
-        contentLocation: testS3Location({ bucketName: '__dummy__' }),
-        metadataLocation: testS3Location({ bucketName: '__dummy__' }),
+        contentLocation: testS3Location({ bucketName: bucketNameTooLong }),
+        metadataLocation: testS3Location({
+          bucketName: metadataBucketNameTooLong,
+        }),
       },
     })
 
@@ -912,11 +923,14 @@ describe('Folders', () => {
 
     const maxLengthName = 'a'.repeat(256)
 
+    const bucketNameMax = await testModule!.initMinioTestBucket([])
+    const metadataBucketNameMax = await testModule!.initMinioTestBucket()
+
     const response = await apiClient(accessToken).POST('/api/v1/folders', {
       body: {
         name: maxLengthName,
-        contentLocation: testS3Location({ bucketName: '__dummy__' }),
-        metadataLocation: testS3Location({ bucketName: '__dummy__' }),
+        contentLocation: testS3Location({ bucketName: bucketNameMax }),
+        metadataLocation: testS3Location({ bucketName: metadataBucketNameMax }),
       },
     })
 

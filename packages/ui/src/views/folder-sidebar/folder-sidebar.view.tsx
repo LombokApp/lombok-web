@@ -1,5 +1,6 @@
 import type { FolderGetResponse, FolderMetadata } from '@stellariscloud/types'
 import {
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -25,12 +26,20 @@ const API_HOST = `${hostname}${port ? `:${port}` : ''}`
 export const FolderSidebar = ({
   folderAndPermission,
   folderMetadata,
+  onFolderAccessErrorCheck,
 }: {
   folderAndPermission?: FolderGetResponse
   folderMetadata?: FolderMetadata
+  onFolderAccessErrorCheck: () => Promise<void>
 }) => {
   const { folder } = folderAndPermission ?? {}
   const serverContext = useServerContext()
+  const rerunAccessCheck = async () => {
+    if (!folder) {
+      return
+    }
+    await onFolderAccessErrorCheck()
+  }
 
   return (
     <div className="h-full overflow-x-visible">
@@ -83,6 +92,28 @@ export const FolderSidebar = ({
                         </span>
                       </dd>
                     </div>
+                    {folder.accessError && (
+                      <div className="mt-4 rounded-md border border-red-300 bg-red-50 p-3 text-red-700">
+                        <div className="text-sm font-semibold">
+                          Storage access problem
+                        </div>
+                        <div className="text-xs">
+                          <span className="font-mono">
+                            {folder.accessError.code}
+                          </span>
+                          : {folder.accessError.message}
+                        </div>
+                        <div className="mt-2">
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => void rerunAccessCheck()}
+                          >
+                            Re-run access check
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </>
                 )}
                 <div className="mt-4 flex w-full flex-none items-center gap-x-4">

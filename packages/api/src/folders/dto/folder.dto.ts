@@ -8,6 +8,12 @@ export const folderSchema = z.object({
   name: z.string(),
   metadataLocation: storageLocationSchema,
   contentLocation: storageLocationSchema,
+  accessError: z
+    .object({
+      message: z.string(),
+      code: z.string(),
+    })
+    .nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 })
