@@ -84,7 +84,7 @@ export function ServerAppDetailScreen({
   )
 
   return (
-    <div className={'size-full gap-8'}>
+    <div className={'flex size-full flex-col gap-8'}>
       {!!app && app.enabled === false && (
         <Alert variant="destructive" className="mb-6 border-foreground/20">
           <OctagonX className="size-4" />
