@@ -172,17 +172,19 @@ export function convertSortingToSearchParams(
 /**
  * Reads pagination state from search params on initial load
  * @param searchParams - The URL search params object
+ * @param defaultPageSize - The default page size to use when not specified in the URL (defaults to 10)
  * @returns PaginationState - The pagination state object
  */
 export function readPaginationFromSearchParams(
   searchParams: URLSearchParams,
+  defaultPageSize = 10,
 ): PaginationState {
   const pageFromUrl = searchParams.get('page')
   const pageSizeFromUrl = searchParams.get('pageSize')
 
   return {
     pageIndex: pageFromUrl ? parseInt(pageFromUrl, 10) - 1 : 0,
-    pageSize: pageSizeFromUrl ? parseInt(pageSizeFromUrl, 10) : 10,
+    pageSize: pageSizeFromUrl ? parseInt(pageSizeFromUrl, 10) : defaultPageSize,
   }
 }
 

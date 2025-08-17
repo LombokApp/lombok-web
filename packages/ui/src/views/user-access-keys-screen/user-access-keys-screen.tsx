@@ -17,12 +17,14 @@ import { configureUserAccessKeysTableColumns } from './user-access-keys-table-co
 export function UserAccessKeysScreen() {
   const [searchParams, setSearchParams] = useSearchParams()
 
+  const DEFAULT_PAGE_SIZE = 10
+
   // Initialize state from URL parameters
   const [sorting, setSorting] = React.useState<SortingState>(
     readSortingFromSearchParams(searchParams),
   )
   const [pagination, setPagination] = React.useState<PaginationState>(
-    readPaginationFromSearchParams(searchParams),
+    readPaginationFromSearchParams(searchParams, DEFAULT_PAGE_SIZE),
   )
 
   // URL synchronization handlers
@@ -41,6 +43,7 @@ export function UserAccessKeysScreen() {
       const newParams = convertPaginationToSearchParams(
         newPagination,
         searchParams,
+        DEFAULT_PAGE_SIZE,
       )
       setSearchParams(newParams)
     },

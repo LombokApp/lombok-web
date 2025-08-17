@@ -44,6 +44,8 @@ const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   status: { paramPrefix: 'status' },
 }
 
+const DEFAULT_PAGE_SIZE = 10
+
 export function FolderTasksScreen() {
   const { folderId, folder } = useFolderContext()
 
@@ -94,12 +96,15 @@ export function FolderTasksScreen() {
   )
 
   const [pagination, setPagination] = React.useState<PaginationState>(
-    readPaginationFromSearchParams(searchParams),
+    readPaginationFromSearchParams(searchParams, DEFAULT_PAGE_SIZE),
   )
 
   // Keep local pagination in sync with URL params
   React.useEffect(() => {
-    const syncedPagination = readPaginationFromSearchParams(searchParams)
+    const syncedPagination = readPaginationFromSearchParams(
+      searchParams,
+      DEFAULT_PAGE_SIZE,
+    )
     setPagination(syncedPagination)
   }, [searchParams])
 
@@ -109,6 +114,7 @@ export function FolderTasksScreen() {
       const newParams = convertPaginationToSearchParams(
         newPagination,
         searchParams,
+        DEFAULT_PAGE_SIZE,
       )
       setSearchParams(newParams)
     },

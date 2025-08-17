@@ -23,6 +23,8 @@ const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   level: { paramPrefix: 'level', normalizeTo: 'upper' },
 }
 
+const DEFAULT_PAGE_SIZE = 10
+
 export function ServerLogsScreen() {
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -72,12 +74,15 @@ export function ServerLogsScreen() {
   )
 
   const [pagination, setPagination] = React.useState<PaginationState>(
-    readPaginationFromSearchParams(searchParams),
+    readPaginationFromSearchParams(searchParams, DEFAULT_PAGE_SIZE),
   )
 
   // Keep local pagination in sync with URL params
   React.useEffect(() => {
-    const syncedPagination = readPaginationFromSearchParams(searchParams)
+    const syncedPagination = readPaginationFromSearchParams(
+      searchParams,
+      DEFAULT_PAGE_SIZE,
+    )
     setPagination(syncedPagination)
   }, [searchParams])
 
@@ -87,6 +92,7 @@ export function ServerLogsScreen() {
       const newParams = convertPaginationToSearchParams(
         newPagination,
         searchParams,
+        DEFAULT_PAGE_SIZE,
       )
       setSearchParams(newParams)
     },

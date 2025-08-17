@@ -28,6 +28,8 @@ const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   search: { isSearchFilter: true },
 }
 
+const DEFAULT_PAGE_SIZE = 10
+
 export function ServerUsersScreen() {
   const [modalData, setModalData] = React.useState<ServerUserModalData>({
     user: undefined,
@@ -82,12 +84,15 @@ export function ServerUsersScreen() {
   )
 
   const [pagination, setPagination] = React.useState<PaginationState>(
-    readPaginationFromSearchParams(searchParams),
+    readPaginationFromSearchParams(searchParams, DEFAULT_PAGE_SIZE),
   )
 
   // Keep local pagination in sync with URL params
   React.useEffect(() => {
-    const syncedPagination = readPaginationFromSearchParams(searchParams)
+    const syncedPagination = readPaginationFromSearchParams(
+      searchParams,
+      DEFAULT_PAGE_SIZE,
+    )
     setPagination(syncedPagination)
   }, [searchParams])
 
@@ -97,6 +102,7 @@ export function ServerUsersScreen() {
       const newParams = convertPaginationToSearchParams(
         newPagination,
         searchParams,
+        DEFAULT_PAGE_SIZE,
       )
       setSearchParams(newParams)
     },

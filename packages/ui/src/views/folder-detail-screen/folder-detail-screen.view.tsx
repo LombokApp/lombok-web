@@ -48,6 +48,7 @@ import { $api } from '@/src/services/api'
 import type { DataTableFilterConfig } from '@/src/utils/tables'
 import {
   convertFiltersToSearchParams,
+  convertPaginationToSearchParams,
   convertSortingToSearchParams,
   readFiltersFromSearchParams,
   readPaginationFromSearchParams,
@@ -130,8 +131,9 @@ export const FolderDetailScreen = () => {
   const [sorting, setSorting] = React.useState<SortingState>(
     readSortingFromSearchParams(searchParams),
   )
+  const DEFAULT_PAGE_SIZE = 10
   const [pagination, setPagination] = React.useState<PaginationState>(
-    readPaginationFromSearchParams(searchParams),
+    readPaginationFromSearchParams(searchParams, DEFAULT_PAGE_SIZE),
   )
 
   // Keep local UI state in sync with URL params
@@ -141,7 +143,10 @@ export const FolderDetailScreen = () => {
       FILTER_CONFIGS,
     )
     const syncedSorting = readSortingFromSearchParams(searchParams)
-    const syncedPagination = readPaginationFromSearchParams(searchParams)
+    const syncedPagination = readPaginationFromSearchParams(
+      searchParams,
+      DEFAULT_PAGE_SIZE,
+    )
     setFilters(syncedFilters)
     setSorting(syncedSorting)
     setPagination(syncedPagination)
@@ -263,11 +268,12 @@ export const FolderDetailScreen = () => {
   const handlePaginationChange = React.useCallback(
     (newPagination: PaginationState) => {
       setPagination(newPagination)
-      setSearchParams({
-        ...searchParams,
-        page: `${newPagination.pageIndex + 1}`,
-        pageSize: `${newPagination.pageSize}`,
-      })
+      const newParams = convertPaginationToSearchParams(
+        newPagination,
+        searchParams,
+        DEFAULT_PAGE_SIZE,
+      )
+      setSearchParams(newParams)
     },
     [searchParams, setSearchParams],
   )
