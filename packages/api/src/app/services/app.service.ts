@@ -194,6 +194,30 @@ export class AppService {
     this.folderService = _folderService as FolderService
   }
 
+  public async setAppEnabledAsAdmin(
+    user: User,
+    appIdentifier: string,
+    enabled: boolean,
+  ): Promise<App> {
+    if (!user.isAdmin) {
+      throw new UnauthorizedException()
+    }
+
+    const app = await this.getAppAsAdmin(appIdentifier)
+    if (!app) {
+      throw new NotFoundException(`App not found: ${appIdentifier}`)
+    }
+
+    const now = new Date()
+    const [updated] = await this.ormService.db
+      .update(appsTable)
+      .set({ enabled, updatedAt: now })
+      .where(eq(appsTable.identifier, appIdentifier))
+      .returning()
+
+    return updated
+  }
+
   getAppAsAdmin(appIdentifier: string): Promise<App | undefined> {
     return this.ormService.db.query.appsTable.findFirst({
       where: eq(appsTable.identifier, appIdentifier),

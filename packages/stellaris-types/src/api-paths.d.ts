@@ -748,6 +748,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/server/apps/{appIdentifier}/enabled": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["setAppEnabled"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/server/apps/{appIdentifier}": {
         parameters: {
             query?: never;
@@ -1718,6 +1734,7 @@ export interface components {
                     };
                 };
                 requiresStorage: boolean;
+                enabled?: boolean;
                 manifest: {
                     [key: string]: {
                         hash: string;
@@ -1762,6 +1779,9 @@ export interface components {
                 /** Format: date-time */
                 updatedAt: string;
             }[];
+        };
+        SetAppEnabledInputDTO: {
+            enabled: boolean;
         };
         AppGetResponse: {
             app: {
@@ -1868,6 +1888,7 @@ export interface components {
                     };
                 };
                 requiresStorage: boolean;
+                enabled?: boolean;
                 manifest: {
                     [key: string]: {
                         hash: string;
@@ -3362,6 +3383,31 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AppListResponse"];
+                };
+            };
+        };
+    };
+    setAppEnabled: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appIdentifier: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetAppEnabledInputDTO"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppGetResponse"];
                 };
             };
         };

@@ -24,6 +24,7 @@ import { AppsListQueryParamsDTO } from '../dto/apps-list-query-params.dto'
 import { AppContributionsResponse } from '../dto/responses/app-contributions-response.dto'
 import { AppGetResponse } from '../dto/responses/app-get-response.dto'
 import { AppListResponse } from '../dto/responses/app-list-response.dto'
+import { SetAppEnabledInputDTO } from '../dto/set-app-enabled-input.dto'
 import { SetWorkerScriptEnvVarsInputDTO } from '../dto/set-worker-script-env-vars-input.dto'
 import { transformAppToDTO } from '../dto/transforms/app.transforms'
 
@@ -63,6 +64,30 @@ export class AppsController {
     return {
       result,
       meta,
+    }
+  }
+
+  @Put('/apps/:appIdentifier/enabled')
+  async setAppEnabled(
+    @Req() req: express.Request,
+    @Param('appIdentifier') appIdentifier: string,
+    @Body() { enabled }: SetAppEnabledInputDTO,
+  ): Promise<AppGetResponse> {
+    if (!req.user?.isAdmin) {
+      throw new UnauthorizedException()
+    }
+    const app = await this.appService.setAppEnabledAsAdmin(
+      req.user,
+      appIdentifier,
+      enabled,
+    )
+    const connectedExternalAppWorkers =
+      this.appService.getExternalWorkerConnections()
+    return {
+      app: transformAppToDTO(
+        app,
+        connectedExternalAppWorkers[app.identifier] ?? [],
+      ),
     }
   }
 

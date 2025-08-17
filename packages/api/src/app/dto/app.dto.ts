@@ -14,6 +14,7 @@ export const appSchema = z.object({
   publicKey: z.string(),
   config: appConfigSchema,
   requiresStorage: z.boolean(),
+  enabled: z.boolean().optional(),
   manifest: appManifestSchema,
   externalWorkers: z.array(externalAppWorkerSchema),
   workerScripts: appWorkerScriptsSchema,
