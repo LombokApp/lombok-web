@@ -3368,6 +3368,7 @@ export interface operations {
             query?: {
                 sort?: ("label-asc" | "label-desc" | "identifier-asc" | "identifier-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc")[] | ("label-asc" | "label-desc" | "identifier-asc" | "identifier-desc" | "createdAt-asc" | "createdAt-desc" | "updatedAt-asc" | "updatedAt-desc");
                 search?: string;
+                enabled?: boolean;
                 offset?: number;
                 limit?: number;
             };

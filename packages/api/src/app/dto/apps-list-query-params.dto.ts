@@ -18,6 +18,10 @@ export const appsListQueryParamsSchema = z.object({
     .or(z.nativeEnum(AppSort).optional())
     .optional(),
   search: z.string().optional(),
+  enabled: z.preprocess(
+    (a) => (a === undefined ? undefined : a === 'true'),
+    z.boolean().optional(),
+  ),
   offset: z
     .preprocess(
       (a) => parseInt(a as string, 10),

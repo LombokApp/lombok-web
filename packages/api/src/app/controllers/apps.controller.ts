@@ -51,6 +51,7 @@ export class AppsController {
         limit: queryParams.limit,
         sort: normalizeSortParam(queryParams.sort),
         search: queryParams.search,
+        enabled: queryParams.enabled,
       },
     )
     const connectedExternalAppWorkers =

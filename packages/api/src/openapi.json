@@ -2925,6 +2925,14 @@
             }
           },
           {
+            "name": "enabled",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "name": "offset",
             "required": false,
             "in": "query",

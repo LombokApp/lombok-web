@@ -19,6 +19,7 @@ import { serverAppsTableColumns } from './server-apps-table-columns'
 
 const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   search: { isSearchFilter: true },
+  enabled: { normalizeTo: 'lower' },
 }
 
 export function ServerAppsScreen() {
@@ -85,6 +86,14 @@ export function ServerAppsScreen() {
             : undefined,
         search:
           typeof searchFilterValue === 'string' ? searchFilterValue : undefined,
+        enabled:
+          (filters.enabled?.length ?? 0) === 1
+            ? filters.enabled?.[0]?.toLowerCase() === 'true'
+              ? true
+              : filters.enabled?.[0]?.toLowerCase() === 'false'
+                ? false
+                : undefined
+            : undefined,
       },
     },
   })
@@ -96,6 +105,15 @@ export function ServerAppsScreen() {
         title="Apps"
         enableSearch={true}
         filters={filters}
+        filterOptions={{
+          enabled: {
+            label: 'Enabled',
+            options: [
+              { label: 'Enabled', value: 'true' },
+              { label: 'Disabled', value: 'false' },
+            ],
+          },
+        }}
         onColumnFiltersChange={onFiltersChange}
         rowCount={apps?.meta.totalCount}
         data={apps?.result ?? []}

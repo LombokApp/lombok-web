@@ -20,7 +20,7 @@ import { serverLogsTableColumns } from './server-logs-table-columns'
 
 const FILTER_CONFIGS: Record<string, DataTableFilterConfig> = {
   search: { isSearchFilter: true },
-  level: { paramPrefix: 'level' },
+  level: { paramPrefix: 'level', normalizeTo: 'upper' },
 }
 
 export function ServerLogsScreen() {

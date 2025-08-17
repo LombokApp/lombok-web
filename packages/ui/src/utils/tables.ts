@@ -8,6 +8,8 @@ export interface DataTableFilterConfig {
   isSearchFilter?: boolean
   /** The prefix to use for URL params (e.g., 'status' becomes 'status-') */
   paramPrefix?: string
+  /** Normalize values to a specific case when reading/writing */
+  normalizeTo?: 'upper' | 'lower'
 }
 
 /**
@@ -32,7 +34,16 @@ export function readFiltersFromSearchParams(
       const prefix = config.paramPrefix || filterKey
       // Get all values for this filter key
       const values = searchParams.getAll(prefix)
-      filters[filterKey] = values.map((value) => value.toUpperCase())
+      const normalizedValues = values.map((value) => {
+        if (config.normalizeTo === 'upper') {
+          return value.toUpperCase()
+        }
+        if (config.normalizeTo === 'lower') {
+          return value.toLowerCase()
+        }
+        return value
+      })
+      filters[filterKey] = normalizedValues
     }
   })
 
@@ -58,11 +69,20 @@ export function convertFiltersToSearchParams(
     if (config.isSearchFilter) {
       // Handle search filters
       if (filterKey in newFilters) {
-        // Update or add search filter
-        if (filterKey in newFilters && newFilters[filterKey]) {
-          newSearchParams.set(filterKey, newFilters[filterKey][0] ?? '')
+        const rawValue = newFilters[filterKey]?.[0]
+        const trimmedValue =
+          typeof rawValue === 'string' ? rawValue.trim() : undefined
+
+        if (trimmedValue && trimmedValue.length > 0) {
+          const normalizedValue =
+            config.normalizeTo === 'upper'
+              ? trimmedValue.toUpperCase()
+              : config.normalizeTo === 'lower'
+                ? trimmedValue.toLowerCase()
+                : trimmedValue
+          newSearchParams.set(filterKey, normalizedValue)
         } else {
-          // Remove search filter if empty
+          // Remove search filter if value is missing or empty
           newSearchParams.delete(filterKey)
         }
       } else {
@@ -78,9 +98,20 @@ export function convertFiltersToSearchParams(
 
       // Add new dynamic filter params if present in new filters
       if (filterKey in newFilters && newFilters[filterKey]) {
-        newFilters[filterKey].forEach((value) => {
-          newSearchParams.append(prefix, value.toLowerCase())
-        })
+        newFilters[filterKey]
+          .map((value) => (typeof value === 'string' ? value.trim() : value))
+          .filter((value): value is string =>
+            Boolean(value && value.length > 0),
+          )
+          .forEach((value) => {
+            const normalizedValue =
+              config.normalizeTo === 'upper'
+                ? value.toUpperCase()
+                : config.normalizeTo === 'lower'
+                  ? value.toLowerCase()
+                  : value
+            newSearchParams.append(prefix, normalizedValue)
+          })
       }
     }
   })

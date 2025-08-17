@@ -957,11 +957,13 @@ export class AppService {
       limit,
       sort = [AppSort.CreatedAtDesc],
       search,
+      enabled,
     }: {
       offset?: number
       limit?: number
       sort?: AppSort[]
       search?: string
+      enabled?: boolean
     } = {},
   ): Promise<{ meta: { totalCount: number }; result: App[] }> {
     if (!user.isAdmin) {
@@ -977,6 +979,10 @@ export class AppService {
           ilike(appsTable.identifier, `%${search}%`),
         ),
       )
+    }
+
+    if (typeof enabled === 'boolean') {
+      conditions.push(eq(appsTable.enabled, enabled))
     }
 
     const apps = await this.ormService.db.query.appsTable.findMany({
