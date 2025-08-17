@@ -1,13 +1,5 @@
 import type { FolderEventsListRequest } from '@stellariscloud/types'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  cn,
-  DataTable,
-} from '@stellariscloud/ui-toolkit'
+import { DataTable } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import React from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -144,28 +136,24 @@ export function FolderEventsScreen() {
   )
 
   return (
-    <div className={cn('flex h-full flex-1 flex-col items-center')}>
-      <div className="container flex flex-1 flex-col">
-        <Card className="border-0 bg-transparent">
-          <CardHeader className="p-0 pb-4">
-            <CardTitle>Folder Events</CardTitle>
-            <CardDescription>Folder: {folder?.name}</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <DataTable
-              enableSearch={true}
-              filters={filters}
-              onColumnFiltersChange={onFiltersChange}
-              rowCount={listFolderEventsQuery?.meta.totalCount}
-              data={listFolderEventsQuery?.result ?? []}
-              columns={folderEventsTableColumns}
-              sorting={sorting}
-              pagination={pagination}
-              onPaginationChange={handlePaginationChange}
-              onSortingChange={handleSortingChange}
-            />
-          </CardContent>
-        </Card>
+    <div className="container m-auto flex h-full max-h-full flex-1 flex-col gap-4 py-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Folder Events</h1>
+        <p className="text-muted-foreground">Folder: {folder?.name}</p>
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <DataTable
+          enableSearch={true}
+          filters={filters}
+          onColumnFiltersChange={onFiltersChange}
+          rowCount={listFolderEventsQuery?.meta.totalCount}
+          data={listFolderEventsQuery?.result ?? []}
+          columns={folderEventsTableColumns}
+          sorting={sorting}
+          pagination={pagination}
+          onPaginationChange={handlePaginationChange}
+          onSortingChange={handleSortingChange}
+        />
       </div>
     </div>
   )

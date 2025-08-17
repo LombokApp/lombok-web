@@ -84,9 +84,9 @@ export function ServerAppDetailScreen({
   )
 
   return (
-    <div className={'flex size-full flex-1 flex-col gap-8'}>
+    <div className={'size-full gap-8'}>
       {!!app && app.enabled === false && (
-        <Alert variant="destructive" className="border-foreground/20">
+        <Alert variant="destructive" className="mb-6 border-foreground/20">
           <OctagonX className="size-4" />
           <AlertTitle>App is disabled</AlertTitle>
           <AlertDescription>

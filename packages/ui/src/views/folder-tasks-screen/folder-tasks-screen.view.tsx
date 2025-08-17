@@ -1,13 +1,5 @@
 import type { ServerTasksApiListTasksRequest } from '@stellariscloud/types'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  cn,
-  DataTable,
-} from '@stellariscloud/ui-toolkit'
+import { DataTable } from '@stellariscloud/ui-toolkit'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import { CircleCheck, CircleX, Clock10Icon, Play } from 'lucide-react'
 import React from 'react'
@@ -164,29 +156,25 @@ export function FolderTasksScreen() {
   )
 
   return (
-    <div className={cn('flex h-full flex-1 flex-col items-center')}>
-      <div className="container flex flex-1 flex-col">
-        <Card className="border-0 bg-transparent shadow-none">
-          <CardHeader className="p-0 pb-4">
-            <CardTitle>Folder Tasks</CardTitle>
-            <CardDescription>Folder: {folder?.name}</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <DataTable
-              enableSearch={true}
-              filters={filters}
-              onColumnFiltersChange={onFiltersChange}
-              rowCount={listFolderTasksQuery.data?.meta.totalCount}
-              data={listFolderTasksQuery.data?.result ?? []}
-              columns={folderTasksTableColumns}
-              sorting={sorting}
-              pagination={pagination}
-              onPaginationChange={handlePaginationChange}
-              onSortingChange={handleSortingChange}
-              filterOptions={FILTER_OPTIONS}
-            />
-          </CardContent>
-        </Card>
+    <div className="container m-auto flex h-full max-h-full flex-1 flex-col gap-4 py-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Folder Tasks</h1>
+        <p className="text-muted-foreground">Folder: {folder?.name}</p>
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <DataTable
+          enableSearch={true}
+          filters={filters}
+          onColumnFiltersChange={onFiltersChange}
+          rowCount={listFolderTasksQuery.data?.meta.totalCount}
+          data={listFolderTasksQuery.data?.result ?? []}
+          columns={folderTasksTableColumns}
+          sorting={sorting}
+          pagination={pagination}
+          onPaginationChange={handlePaginationChange}
+          onSortingChange={handleSortingChange}
+          filterOptions={FILTER_OPTIONS}
+        />
       </div>
     </div>
   )

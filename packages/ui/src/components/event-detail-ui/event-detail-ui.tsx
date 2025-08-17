@@ -104,8 +104,8 @@ export function EventDetailUI({
     currentUserId === eventData.subjectContext.folderOwnerId
 
   return (
-    <div className={cn('flex h-full flex-1 flex-col items-center')}>
-      <div className="container flex flex-1 flex-col">
+    <div className={cn('flex size-full flex-1 flex-col items-center')}>
+      <div className="flex w-full flex-1 flex-col">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-start justify-between">
